@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.Universal
     internal class DecalGBufferRenderPass : ScriptableRenderPass
     {
         private FilteringSettings m_FilteringSettings;
-        private ProfilingSampler m_ProfilingSampler;
         private List<ShaderTagId> m_ShaderTagIdList;
         private DecalDrawGBufferSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
@@ -30,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DrawSystem = drawSystem;
             m_Settings = settings;
-            m_ProfilingSampler = new ProfilingSampler("Decal GBuffer Render");
+            profilingSampler = new ProfilingSampler("Draw Decal To GBuffer");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
             m_DecalLayers = decalLayers;
 
@@ -122,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
             DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
             var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
             var rendererList = context.CreateRendererList(ref param);
-            using (new ProfilingScope(renderingData.commandBuffer, m_ProfilingSampler))
+            using (new ProfilingScope(renderingData.commandBuffer, profilingSampler))
             {
                 ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
             }
@@ -165,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal GBuffer Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();

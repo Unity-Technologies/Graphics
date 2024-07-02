@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-anti-aliasing
+---
 # Anti-aliasing in the Universal Render Pipeline
 
 Aliasing is a side effect that happens when a digital sampler samples real-world information and attempts to digitize it. For example, when you sample audio or video, aliasing means that the shape of the digital signal doesn't match the shape of the original signal. This means when Unity renders a line, it may appear jagged as the pixels don't align perfectly with the line's intended path across the screen.

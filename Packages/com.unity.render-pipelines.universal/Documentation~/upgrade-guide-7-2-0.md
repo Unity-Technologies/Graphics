@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-upgrade-guide-7-2-0
+---
 # Upgrading to version 7.2.0 of the Universal Render Pipeline
 
 On this page, you will find information about upgrading from an older version of the Universal Render Pipeline (URP) to the current version.

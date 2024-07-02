@@ -99,5 +99,10 @@ namespace UnityEngine.Rendering.HighDefinition
             ValidateLightingMaterial(material);
             SixWayAPI.ValidateMaterial(material);
         }
+
+        public static void ValidateWaterDecalMaterial(Material material)
+        {
+            WaterDecalAPI.SetupWaterDecalKeywordsAndProperties(material);
+        }
     }
 }

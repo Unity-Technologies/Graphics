@@ -1715,7 +1715,7 @@ namespace UnityEditor.Rendering
             if (EditorPrefs.HasKey(kResourceFilterEditorPrefsKey))
                 m_ResourceFilter = (ResourceFilter)EditorPrefs.GetInt(kResourceFilterEditorPrefsKey);
 
-            RenderGraphViewerLifetimeAnalytic.WindowOpened();
+            GraphicsToolLifetimeAnalytic.WindowOpened<RenderGraphViewer>();
         }
 
         void CreateGUI()
@@ -1734,7 +1734,7 @@ namespace UnityEditor.Rendering
         void OnDisable()
         {
             UnsubscribeToRenderGraphEvents();
-            RenderGraphViewerLifetimeAnalytic.WindowClosed();
+            GraphicsToolLifetimeAnalytic.WindowClosed<RenderGraphViewer>();
         }
 
         void SubscribeToRenderGraphEvents()

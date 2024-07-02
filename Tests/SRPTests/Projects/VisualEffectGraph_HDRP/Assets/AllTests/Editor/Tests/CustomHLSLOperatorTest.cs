@@ -114,6 +114,83 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(expectedGeneratedCode, hlslExpression.customCode);
         }
 
+
+        [UnityTest, Description("Regression for UUM-74518")]
+        public IEnumerator Check_CustomHLSL_Operator_Used_In_Two_Expressions_Path([Values(true, false)] bool strictlySameEndExpression, [Values(true, false)] bool useSimpleFunction)
+        {
+            string trackedCode;
+            string hlslCode;
+            if (!useSimpleFunction)
+            {
+                trackedCode = "ConsumeStructuredBuffer<float2>"; //This type of buffer is exotic enough to be only used by this custom hlsl
+                hlslCode = $@"
+float3 Check_CustomHLSL_Operator_Used_In_Two_Expression_Path({trackedCode} inputBuffer)
+{{
+    return float3(inputBuffer.Consume(), 2.0f);
+}}";
+
+            }
+            else
+            {
+                trackedCode = "float3(87, 78, 51) / float3(14.5f, 13, 8.5)";
+                hlslCode = $@"
+float3 Check_CustomHLSL_Operator_Used_In_Two_Expression_Path()
+{{
+    return {trackedCode};
+}}";
+
+            }
+
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+
+            var init = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+            var update = graph.children.OfType<VFXBasicUpdate>().FirstOrDefault();
+
+            Assert.IsNotNull(init);
+            Assert.IsNotNull(update);
+            Assert.AreNotEqual(init, update);
+
+            var tracker = "Find_Me_In_Generated_Name";
+            init.label = tracker + "_Init";
+            update.label = tracker + "_Update";
+
+            var setColorInit = ScriptableObject.CreateInstance<Block.SetAttribute>();
+            setColorInit.SetSettingValue("attribute", "color");
+            init.AddChild(setColorInit);
+
+            var setColorUpdate = ScriptableObject.CreateInstance<Block.SetAttribute>();
+            setColorUpdate.SetSettingValue("attribute", "color");
+            update.AddChild(setColorUpdate);
+
+            if (strictlySameEndExpression)
+            {
+                Assert.IsTrue(hlslOperator.outputSlots[0].Link(setColorInit.inputSlots[0]));
+                Assert.IsTrue(hlslOperator.outputSlots[0].Link(setColorUpdate.inputSlots[0]));
+            }
+            else
+            {
+                Assert.IsTrue(hlslOperator.outputSlots[0].Link(setColorInit.inputSlots[0]));
+                Assert.IsTrue(hlslOperator.outputSlots[0][1].Link(setColorUpdate.inputSlots[0][1])); //This will generate a VFXExpressionCombine in endExpression
+            }
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph.GetResource().asset));
+            yield return null;
+
+            for (int shaderIndex = 0; shaderIndex < graph.GetResource().GetShaderSourceCount(); shaderIndex++)
+            {
+                var name = graph.GetResource().GetShaderSourceName(shaderIndex);
+                if (name.Contains(tracker))
+                {
+                    var source = graph.GetResource().GetShaderSource(shaderIndex);
+                    Assert.IsTrue(source.Contains(trackedCode), "Can't find target function content in " + name);
+                    if (!useSimpleFunction)
+                        Assert.IsTrue(Regex.IsMatch(source, trackedCode + ".*;"), "Can't find declaration of buffer in " + name);
+                }
+            }
+        }
+
         [UnityTest, Description("Regression for UUM-69735")]
         public IEnumerator Check_CustomHLSL_Operator_Use_Shader_File_And_ShaderGraph()
         {

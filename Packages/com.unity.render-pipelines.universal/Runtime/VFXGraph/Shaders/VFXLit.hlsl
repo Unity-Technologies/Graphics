@@ -50,11 +50,14 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
     //SampleSH could partially be done on vertex using SampleSHVertex & SampleSHPixel
     //For now, use directly the simpler per pixel fallback
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+    float4 unusedShadowmask;
     inputData.bakedGI = SAMPLE_GI(0, // No vertex support
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
         inputData.viewDirectionWS,
-        i.VFX_VARYING_POSCS.xy);
+        i.VFX_VARYING_POSCS.xy,
+        unusedShadowmask,
+        unusedShadowmask);
 #else
     inputData.bakedGI = SampleSH(normalWS);
 #endif

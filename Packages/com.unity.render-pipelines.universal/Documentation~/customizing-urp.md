@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-customizing-urp
+---
 # Custom rendering and post-processing 
 
 Customize and extend the rendering process in the Universal Render Pipeline (URP). Create a custom render pass in a C# script and inject it into the URP frame rendering loop.

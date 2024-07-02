@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-rendering-debugger-add-controls
+---
 ## Add controls to the Rendering Debugger
 
 You can customise the [Rendering Debugger window](rendering-debugger.md) with your own controls and scripts, to visualize your project's lighting, rendering or Material properties.

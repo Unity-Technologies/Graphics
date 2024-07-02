@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph
+---
 # Render graph system
 
 The render graph system is a set of APIs you use to create a [Scriptable Render Pass](renderer-features/scriptable-render-passes.md).
@@ -7,8 +10,7 @@ The render graph system is a set of APIs you use to create a [Scriptable Render 
 |[Introduction to the render graph system](render-graph-introduction.md)|What the render graph system is, and how it optimizes rendering.|
 |[Write a render pass using the render graph system](render-graph-write-render-pass.md)|Write a Scriptable Render Pass using the render graph APIs.|
 |[Use textures](working-with-textures.md)|Access and use textures in your render passes, and how to blit.|
-|[Use frame data](accessing-frame-data.md)|Get the textures URP creates for the current frame and use them in your render passes.|
-|[Get the current framebuffer with framebuffer fetch](render-graph-framebuffer-fetch.md)|Read the frame rendered so far from the on-chip memory of the GPU, instead of video memory.|
+|[Use frame data](render-graph-frame-data.md)|Get the textures URP creates for the current frame and use them in your render passes.|
 |[Draw objects in a render pass](render-graph-draw-objects-in-a-pass.md)|Draw objects in the render graph system using the `RendererList` API.|
 |[Use a compute shader in a render pass](render-graph-compute-shader.md)|Create a render pass that runs a compute shader.|
 |[Analyze a render graph](render-graph-view.md)|Check a render graph using the Render Graph Viewer, Rendering Debugger, or Frame Debugger.|

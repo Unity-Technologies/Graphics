@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-2d-customlit
+---
 # Custom Lighting in 2D
 
 The default lighting model in 2D renderer is meant for generic use and was design to provide some level flexibility.
@@ -8,7 +11,7 @@ You can now make your own 2D Lighting model.
 
 ## Sprite Custom Lit Shader Graph
 
-The new Shader Graph target "Custom Lit Shader Graph" provides a great starting point to create a custom lithing model shader. It does not sample the Light Textures but it does have a Normal pass and a fallback Forward pass for use in non 2D Renderer.
+The new Shader Graph target "Custom Lit Shader Graph" provides a great starting point to create a custom lighting model shader. It does not sample the Light Textures but it does have a Normal pass and a fallback Forward pass for use in non 2D Renderer.
 
 ## 2D Light Texture
 

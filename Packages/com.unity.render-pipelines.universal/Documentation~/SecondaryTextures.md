@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-secondary-textures
+---
 # Setting up normal map and mask Textures
 
 2D Lights can interact with **normal map** and **mask** Textures linked to Sprites to create advanced lighting effects, such as [normal mapping](https://en.wikipedia.org/wiki/Normal_mapping). Assign these additional Textures to Sprites by using the [Sprite Editor](https://docs.unity3d.com/Manual/SpriteEditor.html)’s [Secondary Textures](https://docs.unity3d.com/Manual/SpriteEditor-SecondaryTextures.html) module. First select a Sprite, and open the [Sprite Editor](https://docs.unity3d.com/Manual/SpriteEditor.html) from its Inspector window. Then select the **Secondary Textures** module from the drop-down menu at the top left of the editor window.

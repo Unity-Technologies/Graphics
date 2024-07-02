@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-draw-objects-in-a-pass
+---
 # Draw objects in a render pass
 
 To draw objects in a custom render pass that uses the render graph system, use the `RendererListHandle` API to create a list of objects to draw.

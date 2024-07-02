@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-custom-pass-injection-points
+---
 # Injection points
 
 URP contains multiple injection points that let you inject render passes into the frame rendering loop and execute them upon different events.

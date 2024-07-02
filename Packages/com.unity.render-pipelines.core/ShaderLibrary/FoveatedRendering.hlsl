@@ -5,14 +5,8 @@
 #error Use #include_with_pragmas "FoveatedRenderingKeywords.hlsl" before including this file
 #endif*/
 
-#if (!defined(UNITY_COMPILER_DXC) && (defined(UNITY_PLATFORM_OSX) || defined(UNITY_PLATFORM_IOS) || defined(UNITY_PLATFORM_VISIONOS))) || defined(SHADER_API_PS5)
+#if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
 
-    #if defined(SHADER_API_PS5) || defined(SHADER_API_METAL)
-        #define SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER 1
-    #endif
-#endif
-
-#if SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER
 #if defined(SHADER_API_PS5)
     #include "Packages/com.unity.render-pipelines.ps5/ShaderLibrary/API/FoveatedRendering_PSSL.hlsl"
 #endif
@@ -90,12 +84,12 @@ float2 FoveatedRemapPrevFrameNonUniformToLinear(float2 uv)
 }
 #undef FOVEATED_FLIP_Y
 
-int2 FoveatedRemapLinearToNonUniformCS(int2 positionCS)
+float2 FoveatedRemapLinearToNonUniformCS(float2 positionCS)
 {
-    return FoveatedRemapLinearToNonUniform((positionCS + float2(0.5, 0.5)) * _ScreenSize.zw) * _ScreenSize.xy;
+    return FoveatedRemapLinearToNonUniform(positionCS * _ScreenSize.zw) * _ScreenSize.xy;
 }
 
-int2 FoveatedRemapNonUniformToLinearCS(int2 positionCS)
+float2 FoveatedRemapNonUniformToLinearCS(float2 positionCS)
 {
     UNITY_BRANCH if(_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
         positionCS = RemapFoveatedRenderingNonUniformToLinearCS(positionCS, true);
@@ -111,8 +105,8 @@ float2 FoveatedRemapDensity(float2 uv) {return uv;}
 float2 FoveatedRemapPrevFrameDensity(float2 uv) {return uv;}
 float2 FoveatedRemapNonUniformToLinear(float2 uv) {return uv;}
 float2 FoveatedRemapPrevFrameNonUniformToLinear(float2 uv) {return uv;}
-int2 FoveatedRemapLinearToNonUniformCS(int2 positionCS) {return positionCS;}
-int2 FoveatedRemapNonUniformToLinearCS(int2 positionCS) {return positionCS;}
+float2 FoveatedRemapLinearToNonUniformCS(float2 positionCS) {return positionCS;}
+float2 FoveatedRemapNonUniformToLinearCS(float2 positionCS) {return positionCS;}
 
 #endif
 

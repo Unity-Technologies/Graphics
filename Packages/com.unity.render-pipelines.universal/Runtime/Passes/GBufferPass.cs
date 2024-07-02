@@ -18,8 +18,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         static ShaderTagId s_ShaderTagUniversalGBuffer = new ShaderTagId("UniversalGBuffer");
         static ShaderTagId s_ShaderTagUniversalMaterialType = new ShaderTagId("UniversalMaterialType");
 
-        static ProfilingSampler s_ProfilingSampler = new ProfilingSampler("Render GBuffer");
-
         DeferredLights m_DeferredLights;
 
         static ShaderTagId[] s_ShaderTagValues;
@@ -31,7 +29,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, DeferredLights deferredLights)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(GBufferPass));
+            base.profilingSampler = new ProfilingSampler("Draw GBuffer");
             base.renderPassEvent = evt;
             m_PassData = new PassData();
 
@@ -132,7 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             InitRendererLists(ref m_PassData, context, default(RenderGraph), universalRenderingData, cameraData, lightData, false);
 
             var cmd = renderingData.commandBuffer;
-            using (new ProfilingScope(cmd, s_ProfilingSampler))
+            using (new ProfilingScope(cmd, profilingSampler))
             {
                 #if UNITY_EDITOR
                 // Need to clear the bounded targets to get scene-view filtering working.
@@ -234,7 +232,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             TextureHandle[] gbuffer;
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("GBuffer Pass", out var passData, s_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 // Note: This code is pretty confusing as passData.gbuffer[i] and gbuffer[i] actually point to the same array but seem to be mixed in this code.
                 passData.gbuffer = gbuffer = m_DeferredLights.GbufferTextureHandles;

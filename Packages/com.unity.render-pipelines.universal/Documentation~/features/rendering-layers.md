@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-rendering-layers
+---
 # Rendering Layers
 
 The Rendering Layers feature lets you configure certain Lights to affect only specific GameObjects.
@@ -12,25 +15,19 @@ To read how to implement this example, refer to [How to use Rendering Layers](#h
 
 To enable Rendering Layers for Lights in your project:
 
-1. In the [URP Asset](../universalrp-asset.md), in the **Lighting** section, click the vertical ellipsis icon (&vellip;) and select **Show Additional Properties**
-
-    ![Show Additional Properties](../Images/settings-general/show-additional-properties.png)
+1. In the [URP Asset](../universalrp-asset.md), in the **Lighting** section, open the **More** (⋮) menu and select **Advanced Properties**.
 
 2. In the [URP Asset](../universalrp-asset.md), in the **Lighting** section, select **Use Rendering Layers**.
-
-    ![URP Asset > Lighting > Use Rendering Layers](../Images/lighting/rendering-layers/rendering-layers-enable.png)<br/>*URP Asset > Lighting > Use Rendering Layers*
 
 ## <a name="enable-decals"></a>Enable Rendering Layers for Decals
 
 To enable Rendering Layers for decals in your project:
 
-1. In the [Decal Renderer Feature](../renderer-feature-decal.md#decal-renderer-feature-properties), enable **Use Rendering Layers**.
+1. In the **Project** window, select a Renderer asset with a [Decal Renderer Feature](../renderer-feature-decal.md#decal-renderer-feature-properties).
 
-    ![Decal Renderer Feature, Inspector view.](../Images/decal/decal-rf-inspector.png)<br/>*Decal Renderer Feature, Inspector view.*
+2. In the Decal Renderer Feature, enable **Use Rendering Layers**.
 
-When you enable Rendering Layers for Decals, Unity shows the **Rendering Layers** property on each Decal Projector:
-
-![Rendering Layers property on a Decal Projector.](../Images/lighting/rendering-layers/decal-projector-rendering-layers.png)
+When you enable Rendering Layers for Decals, Unity shows the **Rendering Layers** property on each Decal Projector.
 
 ## How to edit Rendering Layer names
 
@@ -66,9 +63,9 @@ To implement the example:
 
 5. Make the following settings on Lights and Spheres:
 
-    Light `A`: in the property **Light > General > Rendering Layers**, clear all options, and select `Green`.
+    Light `A`: in the property **Light > Rendering > Rendering Layers**, clear all options, and select `Green`.
 
-    Light `B`: in the property **Light > General > Rendering Layers**, clear all options, and select `Red`.
+    Light `B`: in the property **Light > Rendering > Rendering Layers**, clear all options, and select `Red`.
 
     Sphere `C`: in the property **Mesh Renderer > Additional Settings > Rendering Layer Mask**, select all options, clear `Green`.
 
@@ -119,8 +116,6 @@ To implement the example:
 3. Go to **Project Settings** > **Tags and Layers**. Add a Rendering Layer called `Receive decals`.
 
 4. Select the Decal Projector. In the Rendering Layers property, select `Receive decals`.
-
-    ![Rendering Layers property on a Decal Projector.](../Images/lighting/rendering-layers/decal-projector-rendering-layers.png)
 
 5. Select the paint bucket GameObject. In the **Rendering Layer Mask** field, clear the `Receive decals` layer. Now the Decal Projector does not affect this GameObject.
 

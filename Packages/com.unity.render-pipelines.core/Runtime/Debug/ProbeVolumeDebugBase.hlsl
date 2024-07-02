@@ -147,11 +147,9 @@ void FindSamplingData(float3 posWS, float3 normalWS, uint renderingLayer, out fl
     }
 
     // stuff
-    biasedPosWS += _APVWorldOffset;
-    samplingPositionNoAntiLeak_WS = biasedPosWS;
-
     probeDistance = ProbeDistance(subdiv);
-    snappedProbePosition_WS = GetSnappedProbePosition(biasedPosWS, subdiv);
+    snappedProbePosition_WS = GetSnappedProbePosition(biasedPosWS, subdiv) + _APVWorldOffset;
+    samplingPositionNoAntiLeak_WS = biasedPosWS + _APVWorldOffset;
 }
 
 // Return probe sampling weight
@@ -267,7 +265,7 @@ bool ShouldCull(inout v2f o)
     int brickSize = UNITY_ACCESS_INSTANCED_PROP(Props, _IndexInAtlas).w;
 
     bool shouldCull = false;
-    if (distance(position.xyz, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
+    if (distance(position.xyz + _APVWorldOffset, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
     {
         DoCull(o);
         shouldCull = true;
@@ -301,7 +299,12 @@ float3 CalculateDiffuseLighting(v2f i)
     float3 normal = normalize(i.normal);
 
     float3 skyShadingDirection = normal;
-    if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
+    if (_ShadingMode == DEBUGPROBESHADINGMODE_PROBE_OCCLUSION)
+    {
+        float4 shadowmask = apvRes.ProbeOcclusion[texLoc];
+        return float4(shadowmask.rgb * 0.5 + (shadowmask.a * 0.5), 1);
+    }
+    else if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
     {
         if (_APVSkyDirectionWeight > 0)
         {

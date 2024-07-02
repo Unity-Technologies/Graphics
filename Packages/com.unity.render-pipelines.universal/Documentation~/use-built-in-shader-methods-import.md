@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-use-built-in-shader-methods-import
+---
 # Import a file from the URP shader library
 
 The High-Level Shader Language (HLSL) shader files for the Universal Render Pipeline (URP) are in the `Packages/com.unity.render-pipelines.universal/ShaderLibrary/` folder in your project.

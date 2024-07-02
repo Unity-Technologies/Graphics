@@ -4402,7 +4402,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
 
-            // We need to still do the bloom pass if lens flare post process is active because it uses _BloomTexture.
+            // If bloom intensity is set to 0, we  still need to do the bloom pass if lens flare post process is active because SSLF uses _BloomTexture.
+            // If bloom frame setting is set to false, since lens flare is a child of it, lens flare frame setting will be false as well, preventing this pass to be executed.
+            // This is to avoid confusing users deactivating bloom in frame setting and still seing the bloom pass executed.
             bool lensFlareScreenSpaceActive = m_LensFlareScreenSpace.IsActive() && m_LensFlareScreenSpaceFS;
 
             TextureHandle bloomTexture = renderGraph.defaultResources.blackTextureXR;

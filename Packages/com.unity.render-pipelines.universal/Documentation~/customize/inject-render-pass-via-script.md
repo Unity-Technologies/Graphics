@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-inject-render-pass-via-script
+---
 # Inject a render pass via scripting
 
 Unity raises a [beginCameraRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-beginCameraRendering.html) event before it renders each active Camera in every frame. If a Camera is inactive (for example, if the **Camera** component checkbox is cleared on a Camera GameObject), Unity does not raise a `beginCameraRendering` event for this Camera.

@@ -5,6 +5,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         _MainTex("Diffuse", 2D) = "white" {}
         _MaskTex("Mask", 2D) = "white" {}
         _NormalMap("Normal Map", 2D) = "bump" {}
+        _ZWrite("ZWrite", Float) = 0
 
         // Legacy properties. They're here so that materials using this shader can gracefully fallback to the legacy sprite shader.
         [HideInInspector] _Color("Tint", Color) = (1,1,1,1)
@@ -19,7 +20,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
         Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
         Cull Off
-        ZWrite Off
+        ZWrite [_ZWrite]
+        ZTest Off
 
         Pass
         {
@@ -131,6 +133,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
         Pass
         {
+            ZWrite Off
+
             Tags { "LightMode" = "NormalsRendering"}
 
             HLSLPROGRAM

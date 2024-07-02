@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-use-built-in-shader-methods-shadows
+---
 # Use shadows in a custom URP shader
 
 To use shadows in a custom Universal Render Pipeline (URP) shader, follow these steps:

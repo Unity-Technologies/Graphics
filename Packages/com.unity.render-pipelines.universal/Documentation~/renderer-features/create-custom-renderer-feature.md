@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-create-custom-renderer-feature
+---
 # Example of a complete Scriptable Renderer Feature
 
 This section describes how to create a complete [Scriptable Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer.
@@ -308,10 +311,7 @@ This section demonstrates how to implement the settings for the custom blur rend
 
         // Blit from the camera color to the render graph texture,
         // using the first shader pass.
-        builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-        {
-            Blitter.BlitTexture(context.cmd, data.src, m_ScaleBias, data.material, 0);
-        });
+        builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context, 0));
     }
     ```
 
@@ -321,33 +321,25 @@ This section demonstrates how to implement the settings for the custom blur rend
     private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
     ```
 
-2. In the `RecordRenderGraph` method, using the `builder` variable, add the render pass for the horizontal blur. This pass uses the output of the previous pass as its input, it does that using the `FrameBufferFetch` method. In this example, using this method lets URP merge two blur passes into a single render pass. Refer to the complete shader code for the implementation details.
+2. In the `RecordRenderGraph` method, using the `builder` variable, add the render pass for the horizontal blur. This pass uses the output of the previous pass as its input. Refer to the complete shader code for the implementation details.
 
     ```C#
     // Horizontal blur pass
-    using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_HorizontalPassName,
-            out var passData))
+    using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_HorizontalPassName, out var passData))
     {
-        // Reset unused passData fields
-        passData.src = TextureHandle.nullHandle;
-
-        // Use the same material as the previous pass
+        // Configure pass data
+        passData.src = dst;
         passData.material = material;
 
-        // Use the output of the previous pass as the input,
-        // and bind it as FrameBufferFetch input
-        builder.SetInputAttachment(dst, 0);
-
+        // Use the output of the previous pass as the input
+        builder.UseTexture(passData.src);
+        
         // Use the input texture of the previous pass as the output
         builder.SetRenderAttachment(srcCamColor, 0);
 
         // Blit from the render graph texture to the camera color,
-        // using the second shader pass,
-        // which reads the input texture using the FrameBufferFetch method.
-        builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-        {
-            Blitter.BlitTexture(context.cmd, m_ScaleBias, data.material, 1);
-        });
+        // using the second shader pass.
+        builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context, 1));
     }
     ```
 
@@ -510,7 +502,7 @@ public class BlurRendererFeature : ScriptableRendererFeature
         material = new Material(shader);
         blurRenderPass = new BlurRenderPass(material, settings);
         
-        blurRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
+        blurRenderPass.renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer,
@@ -566,7 +558,7 @@ public class BlurRenderPass : ScriptableRenderPass
     private const string k_VerticalPassName = "VerticalBlurRenderPass";
     private const string k_HorizontalPassName = "HorizontalBlurRenderPass";
 
-    private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
+    private static Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
 
     private BlurSettings defaultSettings;
     private Material material;
@@ -601,6 +593,11 @@ public class BlurRenderPass : ScriptableRenderPass
     {
         internal TextureHandle src;
         internal Material material;
+    }
+
+    private static void ExecutePass(PassData data, RasterGraphContext context, int pass)
+    {
+        Blitter.BlitTexture(context.cmd, data.src, m_ScaleBias, data.material, pass);
     }
 
     public override void RecordRenderGraph(RenderGraph renderGraph,
@@ -645,36 +642,25 @@ public class BlurRenderPass : ScriptableRenderPass
 
             // Blit from the camera color to the render graph texture,
             // using the first shader pass.
-            builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-            {
-                Blitter.BlitTexture(context.cmd, data.src, m_ScaleBias, data.material, 0);
-            });
+            builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context, 0));
         }
-
+        
         // Horizontal blur pass
-        using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_HorizontalPassName,
-            out var passData))
+        using (var builder = renderGraph.AddRasterRenderPass<PassData>(k_HorizontalPassName, out var passData))
         {
-            // Reset unused passData fields
-            passData.src = TextureHandle.nullHandle;
-
-            // Use the same material as the previous pass
+            // Configure pass data
+            passData.src = dst;
             passData.material = material;
 
-            // Use the output of the previous pass as the input,
-            // and bind it as FrameBufferFetch input
-            builder.SetInputAttachment(dst, 0);
-
+            // Use the output of the previous pass as the input
+            builder.UseTexture(passData.src);
+            
             // Use the input texture of the previous pass as the output
             builder.SetRenderAttachment(srcCamColor, 0);
 
             // Blit from the render graph texture to the camera color,
-            // using the second shader pass,
-            // which reads the input texture using the FrameBufferFetch method.
-            builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-            {
-                Blitter.BlitTexture(context.cmd, m_ScaleBias, data.material, 1);
-            });
+            // using the second shader pass.
+            builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecutePass(data, context, 1));
         }
     }
 }
@@ -732,6 +718,23 @@ Shader "CustomEffects/Blur"
             
             return float4(color.rgb / (BLUR_SAMPLES + 1), 1);
         }
+
+        float4 BlurHorizontal (Varyings input) : SV_Target
+        {
+            const float BLUR_SAMPLES = 64;
+            const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
+            
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float3 color = 0;
+            float blurPixels = _HorizontalBlur * _ScreenParams.x;
+            for(float i = -BLUR_SAMPLES_RANGE; i <= BLUR_SAMPLES_RANGE; i++)
+            {
+                float2 sampleOffset =
+                    float2 ((blurPixels / _BlitTexture_TexelSize.z) * (i / BLUR_SAMPLES_RANGE), 0);
+                color += SAMPLE_TEXTURE2D(_BlitTexture, sampler_LinearClamp, input.texcoord + sampleOffset).rgb;
+            }
+            return float4(color / (BLUR_SAMPLES + 1), 1);
+        }
     
     ENDHLSL
     
@@ -754,30 +757,12 @@ Shader "CustomEffects/Blur"
         
         Pass
         {
-            Name "BlurPassHorizontal_FrameBufferFetch"
+            Name "BlurPassHorizontal"
 
             HLSLPROGRAM
             
             #pragma vertex Vert
-            #pragma fragment Frag
-
-           FRAMEBUFFER_INPUT_X_HALF(0);
-
-           float4 Frag(Varyings input) : SV_Target
-           {
-                const float BLUR_SAMPLES = 64;
-                const float BLUR_SAMPLES_RANGE = BLUR_SAMPLES / 2;
-                
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                float3 color = 0;
-                float blurPixels = _HorizontalBlur * _ScreenParams.x;
-                for(float i = -BLUR_SAMPLES_RANGE; i <= BLUR_SAMPLES_RANGE; i++)
-                {
-                    float2 sampleOffset = float2 ((blurPixels / 1) * (i / BLUR_SAMPLES_RANGE), 0);
-                    color += LOAD_FRAMEBUFFER_X_INPUT(0, input.positionCS.xy + sampleOffset).rgb;
-                }
-                return float4(color / (BLUR_SAMPLES + 1), 1);
-           }
+            #pragma fragment BlurHorizontal
             
             ENDHLSL
         }

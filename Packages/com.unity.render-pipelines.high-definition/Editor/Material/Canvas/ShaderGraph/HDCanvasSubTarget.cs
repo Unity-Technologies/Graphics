@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering.BuiltIn;
 using UnityEditor.Rendering.Canvas.ShaderGraph;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
@@ -80,7 +81,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if(canvasData.alphaClip)
                 context.AddField(UnityEditor.ShaderGraph.Fields.AlphaTest);
         }
-        protected virtual void CollectPassKeywords(ref PassDescriptor pass) { }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
@@ -88,6 +88,70 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (canvasData.alphaClip)
                 collector.AddShaderProperty(CanvasProperties.AlphaTest);
         }
+
+        protected override DefineCollection GetPassDefines()
+        {
+            var defines = base.GetPassDefines();
+
+            if (m_CanvasData.supportsMotionVectors)
+            {
+                defines.Add(new KeywordDescriptor
+                {
+                    referenceName = "UI_MOTION_VECTORS",
+                    displayName = "UI_MOTION_VECTORS",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.ShaderFeature,
+                    scope = KeywordScope.Global,
+                    value = 1,
+                }, 1);
+            }
+
+            return defines;
+        }
+
+        public override PassDescriptor GenerateUIPassDescriptor(bool isSRP)
+        {
+            var pass = base.GenerateUIPassDescriptor(isSRP);
+
+            pass.requiredFields.Add(StructFields.Varyings.texCoord2); // Motion vectors support
+
+            // Patch render state to support motion vectors.
+            pass.renderStates = new RenderStateCollection
+            {
+                {RenderState.Cull(Cull.Off)},
+                {RenderState.ZWrite(ZWrite.On)},
+                {RenderState.ZTest(CanvasUniforms.ZTest)},
+                {RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha)},
+                {RenderState.ColorMask(CanvasUniforms.ColorMask)},
+                {RenderState.Stencil(new StencilDescriptor()
+                    {
+                        Ref = CanvasUniforms.Ref,
+                        Comp = CanvasUniforms.Comp,
+                        Pass = CanvasUniforms.Pass,
+                        ReadMask = CanvasUniforms.ReadMask,
+                        WriteMask = CanvasUniforms.WriteMask,
+                    })
+                }
+            };
+
+            return pass;
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo)
+        {
+            base.GetPropertiesGUI(ref context, onChange, registerUndo);
+
+            context.AddProperty("Supports Motion vectors", new Toggle() { value = m_CanvasData.supportsMotionVectors }, (evt) =>
+            {
+                if (Equals(m_CanvasData.supportsMotionVectors, evt.newValue))
+                    return;
+
+                registerUndo("Supports Motion vectors");
+                m_CanvasData.supportsMotionVectors = evt.newValue;
+                onChange();
+            });
+        }
+
         public override bool IsNodeAllowedBySubTarget(Type nodeType)
         {
             base.IsNodeAllowedBySubTarget(nodeType);

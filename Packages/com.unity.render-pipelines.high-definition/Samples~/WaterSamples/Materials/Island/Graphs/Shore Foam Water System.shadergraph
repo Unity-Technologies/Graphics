@@ -662,6 +662,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "3187c847be554cec84dcd96148157986"
@@ -722,10 +723,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 779.5000610351563,
-            "y": 366.5000915527344,
-            "width": 56.0,
-            "height": 23.99993896484375
+            "x": 714.6666870117188,
+            "y": 366.6666564941406,
+            "width": 55.99993896484375,
+            "height": 24.0
         }
     },
     "m_Slots": [
@@ -1944,7 +1945,8 @@
     "m_AffectsNormal": true,
     "m_AffectsEmission": false,
     "m_DrawOrder": 0,
-    "m_SupportLodCrossFade": false
+    "m_SupportLodCrossFade": false,
+    "m_TransparentDynamicUpdate": false
 }
 
 {
@@ -3191,6 +3193,7 @@
     "m_OpaqueCullMode": 2,
     "m_SortPriority": 0,
     "m_AlphaTest": false,
+    "m_ExcludeFromTUAndAA": false,
     "m_TransparentDepthPrepass": false,
     "m_TransparentDepthPostpass": false,
     "m_SupportLodCrossFade": false,

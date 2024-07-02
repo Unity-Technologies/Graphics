@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-lift-gamma-gain
+---
 # Lift Gamma Gain
 
 This effect allows you to perform three-way color grading. The **Lift Gamma Gain** trackballs follow the [ASC CDL](<https://en.wikipedia.org/wiki/ASC_CDL>) standard. When you adjust the position of the point on the trackball, it shifts the hue of the image towards that color in the given tonal range. Use the different trackballs to affect different ranges within the image. Adjust the slider under the trackball to offset the color lightness of that range.

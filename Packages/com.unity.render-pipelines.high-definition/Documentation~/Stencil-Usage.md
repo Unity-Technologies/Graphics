@@ -58,7 +58,7 @@ The table below givews you an idea of the bits used throughout the pipeline in H
 |                                    | 2                  | **SMAA** and **DistortionVectors**    | [Subpixel morphological anti-aliasing (SMAA)](Anti-Aliasing.md#SMAA) |
 |                                    | 3                  |    | Reserved for future use. |
 |                                    | 4                  | **Refractive**    | [Refraction](understand-refraction.md). |
-|                                    | 4                  | **WaterSurface**    | [Water](water.md). |
+|                                    | 5                  | **WaterSurface**    | [Water](water.md). |
 
 ## More Stencil Bits for Custom Passes
 

@@ -257,7 +257,7 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
                 includes = isSRP ? SRPCoreIncludes() : AdditionalIncludesOnly(),
 
                 //definitions
-                defines  = CanvasDefineCollections.GenerateCanvasDefines(),
+                defines  = GetPassDefines(),
                 keywords = CanvasKeywords.GenerateCoreKeywords(),
 
             };
@@ -362,18 +362,6 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
             BlockFields.SurfaceDescription.AlphaClipThreshold
 
         };
-    }
-#endregion
-
-#region Defines
-    static class CanvasDefineCollections
-    {
-        public static DefineCollection GenerateCanvasDefines()
-        {
-            return new DefineCollection()
-            {
-            };
-        }
     }
 #endregion
 

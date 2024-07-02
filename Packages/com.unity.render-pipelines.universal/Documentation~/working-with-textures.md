@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-working-with-textures
+---
 # Using textures
 
 How to access and use textures in a custom render pass in the Universal Render Pipeline (URP).

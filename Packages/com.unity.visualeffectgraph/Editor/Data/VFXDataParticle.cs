@@ -998,6 +998,25 @@ namespace UnityEditor.VFX
                     groupIndex++;
                 }
 
+            if (needsIndirectBuffer)
+            {
+                // Assign a task group to tasks coming from an output without VFXOutputUpdate but that have an indirect buffer
+                foreach (var output in indirectOutputHasTaskDependency)
+                {
+                    bool incrementGroupIndex = false;
+                    foreach (var task in compiledData.contextToCompiledData[output].tasks)
+                    {
+                        if (taskGroups.ContainsKey(task)) //output already handled through its VFXOutputUpdate above.
+                            break;
+                        incrementGroupIndex = true;
+                        taskGroups[task] = groupIndex;
+                    }
+
+                    if (incrementGroupIndex)
+                        groupIndex++;
+                }
+            }
+
             // Allocate the buffers based on their binding order in the tasks
             uint prefixIndex = 0;
             foreach (var context in m_Contexts)
@@ -1368,8 +1387,9 @@ namespace UnityEditor.VFX
                         VFXEditorTaskDesc singleMeshTaskDesc = taskDesc;
                         singleMeshTaskDesc.parameters = VFXMultiMeshHelper.PatchCPUMapping(taskDesc.parameters, multiMeshOutput.meshCount, j).ToArray();
                         singleMeshTaskDesc.buffers = VFXMultiMeshHelper.PatchBufferMapping(taskDesc.buffers, j).ToArray();
-                        VFXMultiMeshHelper.PatchInstancingSplitValues(instancingSplitDescValues, expressionGraph, context.inputSlots, multiMeshOutput.meshCount, j);
-                        singleMeshTaskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instancingSplitDescValues);
+                        var instancingSplitDescValuesMesh = new List<uint>(instancingSplitDescValues);
+                        VFXMultiMeshHelper.PatchInstancingSplitValues(instancingSplitDescValuesMesh, expressionGraph, context.inputSlots, multiMeshOutput.meshCount, j);
+                        singleMeshTaskDesc.instanceSplitIndex = AddInstanceSplitDesc(instanceSplitDescs, instancingSplitDescValuesMesh);
                         AddTaskDesc(taskDescs, singleMeshTaskDesc, context);
                     }
                 }

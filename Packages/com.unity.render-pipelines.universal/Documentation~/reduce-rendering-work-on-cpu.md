@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-reduce-rendering-work-on-cpu
+---
 # Reduce rendering work on the CPU
 
 You can use the GPU Resident Drawer or GPU occlusion culling to speed up rendering. When you enable these features, Unity optimizes the rendering pipeline so the CPU has less work to do each frame, and the GPU draws GameObjects more efficiently.

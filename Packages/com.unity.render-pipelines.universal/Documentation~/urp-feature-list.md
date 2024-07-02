@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-urp-feature-list
+---
 # URP features
 
 This page contains an overview of the key features you can use in the Universal Render Pipeline (URP).

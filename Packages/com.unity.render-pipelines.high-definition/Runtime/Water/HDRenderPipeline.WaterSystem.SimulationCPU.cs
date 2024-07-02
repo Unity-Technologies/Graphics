@@ -561,17 +561,21 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_GPUReadbackMode)
                 currentWater.displacementBufferSynchronizer.EnqueueRequest(cmd, currentWater.simulation.gpuBuffers.displacementBuffer, true);
 
-            if (currentWater.waterMask != null)
-                currentWater.waterMaskSynchronizer.EnqueueRequest(cmd, currentWater.waterMask, true);
+            var deformationBuffer = currentWater.GetDeformationBuffer(this, true);
+            if (deformationBuffer != null)
+                currentWater.deformationBufferSychro.EnqueueRequest(cmd, deformationBuffer, true);
 
-            if (currentWater.deformation && m_ActiveWaterDeformation)
-                currentWater.deformationBufferSychro.EnqueueRequest(cmd, currentWater.deformationBuffer, true);
+            var waterMask = currentWater.GetSimulationMaskBuffer(this, true);
+            if (waterMask != null)
+                currentWater.waterMaskSynchronizer.EnqueueRequest(cmd, waterMask, true);
 
-            if (currentWater.largeCurrentMap != null)
-                currentWater.largeCurrentMapSynchronizer.EnqueueRequest(cmd, currentWater.largeCurrentMap, true);
+            var largeCurrentMap = currentWater.GetLargeCurrentBuffer(this, true);
+            if (largeCurrentMap != null)
+                currentWater.largeCurrentMapSynchronizer.EnqueueRequest(cmd, largeCurrentMap, true);
 
-            if (currentWater.ripplesCurrentMap != null)
-                currentWater.ripplesCurrentMapSynchronizer.EnqueueRequest(cmd, currentWater.ripplesCurrentMap, true);
+            var ripplesCurrentMap = currentWater.GetRipplesCurrentBuffer(this, true);
+            if (ripplesCurrentMap != null)
+                currentWater.ripplesCurrentMapSynchronizer.EnqueueRequest(cmd, ripplesCurrentMap, true);
         }
     }
 }

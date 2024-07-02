@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-tonemapping
+---
 # Tonemapping
 
 Tonemapping is the process of remapping the HDR values of an image to a new range of values. Its most common purpose is to make an image with a low dynamic range appear to have a higher range. For more information, refer to the [Wikipedia article on Tone mapping](https://en.wikipedia.org/wiki/Tone_mapping).

@@ -19,30 +19,30 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
-void PackWaterVertexData(VertexDescription vertexDescription, out float4 uv0, out float4 uv1)
+void PackWaterVertexData(VertexDescription vertex, out float4 uv0, out float4 uv1)
 {
-    float3 displacement = vertexDescription.Displacement;
+#if defined(SHADER_STAGE_VERTEX) && defined(TESSELLATION_ON)
+    uv0 = float4(vertex.Displacement, 1.0);
+    uv1 = float4(vertex.Position, 1.0);
+#else
+    uv0.xy = vertex.Position.xz;
+    uv0.z = vertex.Displacement.y;
+    uv0.w = length(vertex.Displacement.xz);
 
-    #if defined(SHADER_STAGE_VERTEX) && defined(TESSELLATION_ON)
-    uv0 = float4(vertexDescription.Displacement, 1.0);
-    uv1 = float4(vertexDescription.Position, 1.0);
-    #else
-    uv0 = float4(vertexDescription.Position.x, vertexDescription.Position.z, displacement.y, 0.0);
-    uv1 = float4(vertexDescription.LowFrequencyHeight, length(float2(displacement.x, displacement.z)), 0.0, 0.0);
-    #endif
+    if (_GridSize.x >= 0)
+        uv1.xyz = TransformObjectToWorld(vertex.Position + vertex.Displacement);
+    uv1.w = vertex.LowFrequencyHeight;
+#endif
 }
 
-// The water shader graph required these four fields to be fed (not an option)
+#if defined(TESSELLATION_ON)
+    #define VaryingsMeshType VaryingsMeshToDS
+#else
+    #define VaryingsMeshType VaryingsMeshToPS
+#endif
+
 // Modifications should probably be replicated to ApplyTessellationModification
-AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
-    #ifdef USE_CUSTOMINTERP_SUBSTRUCT
-    #ifdef TESSELLATION_ON
-    , inout VaryingsMeshToDS varyings
-    #else
-    , inout VaryingsMeshToPS varyings
-    #endif
-    #endif
-    )
+void ApplyMeshModification(AttributesMesh input, float3 timeParameters, inout VaryingsMeshType varyings, out VertexDescription vertexDescription)
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
@@ -51,20 +51,17 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     // evaluate vertex graph
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
     // Backward compatibility with old graphs
     $VertexDescriptionInputs.uv0: vertexDescription.Displacement = vertexDescription.uv0.xyz;
     $VertexDescriptionInputs.uv1: vertexDescription.LowFrequencyHeight = vertexDescription.uv1.x;
 
-    input.positionOS = vertexDescription.Position + vertexDescription.Displacement;
-    input.normalOS = vertexDescription.Normal;
-    PackWaterVertexData(vertexDescription, input.uv0, input.uv1);
-
+    // Custom interpolators
     $splice(CustomInterpolatorVertMeshCustomInterpolation)
-
-    return input;
 }
+
+#undef VaryingsMeshType
 
 FragInputs BuildFragInputs(VaryingsMeshToPS input)
 {
@@ -77,7 +74,7 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     output.tangentToWorld = k_identity3x3;
     output.positionSS = input.positionCS;       // input.positionCS is SV_Position
 
-    $FragInputs.positionRWS:                    output.positionRWS =                input.positionRWS;
+    $FragInputs.positionRWS:                    output.positionRWS =                input.texCoord1.xyz;
     $FragInputs.positionPixel:                  output.positionPixel =              input.positionCS.xy; // NOTE: this is not actually in clip space, it is the VPOS pixel coordinate value
     $FragInputs.positionPredisplacementRWS:     output.positionPredisplacementRWS = input.positionPredisplacementRWS;
     $FragInputs.tangentToWorld:                 output.tangentToWorld =             GetLocalFrame(input.normalWS);

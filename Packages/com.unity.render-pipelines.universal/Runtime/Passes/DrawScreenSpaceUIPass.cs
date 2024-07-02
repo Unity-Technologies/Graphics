@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="RenderPassEvent"/>
         public DrawScreenSpaceUIPass(RenderPassEvent evt, bool renderOffscreen)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(DrawScreenSpaceUIPass));
+            profilingSampler = ProfilingSampler.Get(URPProfileId.DrawScreenSpaceUI);
             renderPassEvent = evt;
             useNativeRenderPass = false;
             m_RenderOffscreen = renderOffscreen;
@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            using (new ProfilingScope(renderingData.commandBuffer, ProfilingSampler.Get(URPProfileId.DrawScreenSpaceUI)))
+            using (new ProfilingScope(renderingData.commandBuffer, profilingSampler))
             {
                 RendererList rendererList = context.CreateUIOverlayRendererList(renderingData.cameraData.camera);
                 ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
             TextureHandle depthBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_OverlayUITexture_Depth", false);
 
             // Render uGUI and UIToolkit overlays
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space UIToolkit/uGUI Pass - Offscreen", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Screen Space UIToolkit/uGUI - Offscreen", out var passData, profilingSampler))
             {
                 builder.SetRenderAttachment(output, 0);
 
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.Universal
             // Doing so allow us to safely cover cases when graphics commands called through onGUI() in user scripts are not supported by RenderPass API
             // Besides, Vulkan backend doesn't support SetSRGWrite() in RenderPass API and we have some of them at IMGUI levels
             // Note, these specific UI calls doesn't need depth buffer unlike UIToolkit/uGUI
-            using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Screen Space IMGUI/SoftwareCursor Pass - Offscreen", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw Screen Space IMGUI/SoftwareCursor - Offscreen", out var passData, profilingSampler))
             {
                 passData.colorTarget = output;
                 builder.UseTexture(output, AccessFlags.Write);
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
 
             // Render uGUI and UIToolkit overlays
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Screen Space UIToolkit/uGUI Pass - Overlay", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw UIToolkit/uGUI Overlay", out var passData, profilingSampler))
             {
                 if (cameraData.requiresOpaqueTexture && renderer != null)
                     builder.UseGlobalTexture(s_CameraOpaqueTextureID);
@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.Universal
             // Doing so allow us to safely cover cases when graphics commands called through onGUI() in user scripts are not supported by RenderPass API
             // Besides, Vulkan backend doesn't support SetSRGWrite() in RenderPass API and we have some of them at IMGUI levels
             // Note, these specific UI calls doesn't need depth buffer unlike UIToolkit/uGUI
-            using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Screen Space IMGUI/SoftwareCursor Pass - Overlay", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddUnsafePass<UnsafePassData>("Draw IMGUI/SoftwareCursor Overlay", out var passData, profilingSampler))
             {
                 passData.colorTarget = colorBuffer;
                 builder.UseTexture(colorBuffer, AccessFlags.Write);

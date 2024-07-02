@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-package-samples
+---
 # Package samples
 
 The Universal Render Pipeline (URP) comes with a set of samples to help you get started.

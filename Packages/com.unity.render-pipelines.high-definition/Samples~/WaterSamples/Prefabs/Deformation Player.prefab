@@ -45,10 +45,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78cf48dc57241ca4180a616b92b5d9f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: 4
-  amplitude: 0.5
-  regionSize: {x: 10, y: 10}
   scaleMode: 1
+  regionSize: {x: 10, y: 10}
+  amplitude: 0.5
+  surfaceFoamDimmer: 1
+  deepFoamDimmer: 1
+  resolution: {x: 128, y: 128}
+  updateMode: 0
+  material: {fileID: 2100000, guid: 472af0c3082c9a546afbde3066a300b1, type: 2}
+  type: 5
   boxBlend: {x: 0, y: 0}
   cubicBlend: 1
   waveLength: 3
@@ -60,9 +65,8 @@ MonoBehaviour:
   deepFoamRange: {x: 0.5, y: 0.8}
   bowWaveElevation: 1
   range: {x: 0, y: 1}
-  texture: {fileID: 2800000, guid: 940b1c9ababba9547b0214a2d9e3292a, type: 3}
-  deepFoamDimmer: 1
-  surfaceFoamDimmer: 1
+  texture: {fileID: 0}
+  version: 1
 --- !u!114 &1980968489909947230
 MonoBehaviour:
   m_ObjectHideFlags: 0

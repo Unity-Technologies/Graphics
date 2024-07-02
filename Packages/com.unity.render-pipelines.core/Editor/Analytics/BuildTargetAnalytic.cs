@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Analytics
             {
                 var activeBuildTarget = EditorUserBuildSettings.activeBuildTarget;
                 var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(activeBuildTarget);
-                var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+                var activeBuildTargetGroupName = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup).TargetName;
 
                 error = null;
 
@@ -37,7 +37,6 @@ namespace UnityEditor.Rendering.Analytics
                 };
                 return true;
             }
-
         };
 
         [System.Diagnostics.DebuggerDisplay("{render_pipeline_asset_type} - {quality_levels}/{total_quality_levels_on_project}")]

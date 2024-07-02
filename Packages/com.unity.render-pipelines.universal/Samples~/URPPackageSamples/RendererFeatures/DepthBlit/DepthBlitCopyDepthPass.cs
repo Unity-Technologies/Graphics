@@ -24,6 +24,10 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
         public TextureHandle source;
         public Vector4 scaleBias;
         public int depthBufferId;
+        public GlobalKeyword keyword_DepthMsaa2;
+        public GlobalKeyword keyword_DepthMsaa4;
+        public GlobalKeyword keyword_DepthMsaa8;
+        public GlobalKeyword keyword_OutputDepth;
     }
 
     public DepthBlitCopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, RTHandle destination)
@@ -103,6 +107,10 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
             passData.source = src;
             passData.scaleBias = m_ScaleBias;
             passData.depthBufferId = m_DepthBufferId;
+            passData.keyword_DepthMsaa2 = m_Keyword_DepthMsaa2;
+            passData.keyword_DepthMsaa4 = m_Keyword_DepthMsaa4;
+            passData.keyword_DepthMsaa8 = m_Keyword_DepthMsaa8;
+            passData.keyword_OutputDepth = m_Keyword_OutputDepth;
 
             builder.UseTexture(src, AccessFlags.Read);
             builder.SetRenderAttachment(dest, 0, AccessFlags.Write);
@@ -114,12 +122,12 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
                 // Enable an MSAA shader keyword based on the source texture MSAA sample count
                 RTHandle sourceTex = data.source;
                 int cameraSamples = sourceTex.rt.antiAliasing;
-                context.cmd.SetKeyword(m_Keyword_DepthMsaa2, cameraSamples == 2);
-                context.cmd.SetKeyword(m_Keyword_DepthMsaa4, cameraSamples == 4);
-                context.cmd.SetKeyword(m_Keyword_DepthMsaa8, cameraSamples == 8);
+                context.cmd.SetKeyword(data.keyword_DepthMsaa2, cameraSamples == 2);
+                context.cmd.SetKeyword(data.keyword_DepthMsaa4, cameraSamples == 4);
+                context.cmd.SetKeyword(data.keyword_DepthMsaa8, cameraSamples == 8);
 
                 // This example does not copy the depth values back to the depth buffer, so we disable this keyword.
-                context.cmd.SetKeyword(m_Keyword_OutputDepth, false);
+                context.cmd.SetKeyword(data.keyword_OutputDepth, false);
 
                 // Bind the depth buffer to the material
                 data.copyDepthMaterial.SetTexture(data.depthBufferId, data.source);

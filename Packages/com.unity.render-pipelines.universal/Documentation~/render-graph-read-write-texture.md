@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-read-write-texture
+---
 # Use a texture in a render pass
 
 You can use the render graph system API to set a texture as an input or output for a custom render pass, so you can read from or write to it.

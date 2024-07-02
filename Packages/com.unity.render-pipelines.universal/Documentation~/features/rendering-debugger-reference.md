@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-rendering-debugger-reference
+---
 # Rendering Debugger reference
 
 The Rendering Debugger contains the following sections:

@@ -293,7 +293,9 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
                     GetAbsolutePositionWS(inputData.positionWS),
                     inputData.normalWS,
                     inputData.viewDirectionWS,
-                    inputData.positionCS.xy);
+                    inputData.positionCS.xy,
+                    inputData.probeOcclusion,
+                    inputData.shadowMask);
                 #else
                 inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.vertexSH, inputData.normalWS);
                 #endif
@@ -337,7 +339,9 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
                     GetAbsolutePositionWS(inputData.positionWS),
                     inputData.normalWS,
                     inputData.viewDirectionWS,
-                    inputData.positionCS.xy);
+                    inputData.positionCS.xy,
+                    inputData.probeOcclusion,
+                    inputData.shadowMask);
                 #else
                 inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.vertexSH, inputData.normalWS);
                 #endif

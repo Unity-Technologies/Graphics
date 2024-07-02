@@ -285,11 +285,13 @@ half4 CalculateShadowMask(InputData inputData)
 {
     // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
     #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    half4 shadowMask = inputData.shadowMask;
+    half4 shadowMask = inputData.shadowMask; // Shadowmask was sampled from lightmap
+    #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    half4 shadowMask = inputData.shadowMask; // Shadowmask (probe occlusion) was sampled from APV
     #elif !defined (LIGHTMAP_ON)
-    half4 shadowMask = unity_ProbesOcclusion;
+    half4 shadowMask = unity_ProbesOcclusion; // Sample shadowmask (probe occlusion) from legacy probes
     #else
-    half4 shadowMask = half4(1, 1, 1, 1);
+    half4 shadowMask = half4(1, 1, 1, 1); // Fallback shadowmask, fully unoccluded
     #endif
 
     return shadowMask;

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-creating-a-new-project-with-urp
+---
 # Create a project with URP
 
 ![URP 3D Sample](Images/AssetShots/Beauty/Template.png)

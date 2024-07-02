@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.Universal
                 public static readonly string disabledPostprocessing = L10n.Tr("Post Processing is currently disabled on the current Universal Render Pipeline renderer.");
                 public static readonly string selectRenderPipelineAsset = L10n.Tr("Select Render Pipeline Asset");
                 public static readonly string disabledPostprocessingAntiAliasWarning = L10n.Tr("Post Processing based Anti-aliasing requires Post Processing enabled to function.");
+                public static readonly string MSAAWarning = L10n.Tr("MSAA is enabled. TAA will be disabled when using current UniversalRenderPipelineAsset.");
             }
         }
     }

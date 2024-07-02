@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-optimize-for-better-performance
+---
 # Optimize for better performance
 
 If the performance of your Universal Render Pipeline (URP) project seems slow, you can analyze your project and adjust settings to increase performance.

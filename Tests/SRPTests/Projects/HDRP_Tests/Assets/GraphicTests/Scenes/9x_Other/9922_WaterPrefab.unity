@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: -31998.5, g: -31767.08, b: -31066.797, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -183,14 +182,14 @@ MonoBehaviour:
   m_PointlightHDType: 0
   m_SpotLightShape: 0
   m_AreaLightShape: 0
-  m_Intensity: 70000
   m_EnableSpotReflector: 1
+  m_LightUnit: 2
   m_LuxAtDistance: 1
+  m_Intensity: 70000
   m_InnerSpotPercent: 0
   m_SpotIESCutoffPercent: 100
   m_LightDimmer: 1
   m_VolumetricDimmer: 1
-  m_LightUnit: 2
   m_FadeDistance: 10000
   m_VolumetricFadeDistance: 10000
   m_AffectDiffuse: 1
@@ -305,7 +304,7 @@ MonoBehaviour:
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
   m_AreaLightEmissiveMeshLayer: -1
-  m_Version: 12
+  m_Version: 13
   m_ObsoleteShadowResolutionTier: 1
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
@@ -372,6 +371,9 @@ Light:
   m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+  m_LightUnit: 2
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!4 &203134003
 Transform:
   m_ObjectHideFlags: 0
@@ -413,7 +415,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 40
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -446,6 +448,11 @@ PrefabInstance:
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: field of view
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
@@ -644,11 +651,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 134329179465978043, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: currentDebugMultiplier
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 1350380774915005182, guid: 21b9b509580531242b334e31c34bd3a0,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -674,21 +676,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Full Pool Flip XY
       objectReference: {fileID: 0}
-    - target: {fileID: 4243643000015105685, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: currentDebugMultiplier
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 4991001520961610731, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: currentDebugMultiplier
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6199871386745062280, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: amplitude
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 6206847544266369454, guid: 21b9b509580531242b334e31c34bd3a0,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -698,11 +685,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalScale.z
       value: -10
-      objectReference: {fileID: 0}
-    - target: {fileID: 7432775259799358720, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: currentDebugMultiplier
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7619216644262982313, guid: 21b9b509580531242b334e31c34bd3a0,
         type: 3}
@@ -857,20 +839,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: "Full Pool Flip XY 180\xB0"
       objectReference: {fileID: 0}
-    - target: {fileID: 4991001520961610731, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: currentDebugMultiplier
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 5323684199163332372, guid: 21b9b509580531242b334e31c34bd3a0,
         type: 3}
       propertyPath: m_IsActive
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6199871386745062280, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: amplitude
-      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6206847544266369454, guid: 21b9b509580531242b334e31c34bd3a0,
         type: 3}
@@ -1005,16 +977,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 134329179465978043, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: debugMode
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 134329179465978043, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: waterFoamDebugMode
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1350380774915005182, guid: 21b9b509580531242b334e31c34bd3a0,
         type: 3}
       propertyPath: m_LocalRotation.w
@@ -1069,16 +1031,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: "Full Pool 180\xB0"
-      objectReference: {fileID: 0}
-    - target: {fileID: 4991001520961610731, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: currentDebugMultiplier
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6199871386745062280, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: amplitude
-      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6206847544266369454, guid: 21b9b509580531242b334e31c34bd3a0,
         type: 3}
@@ -1218,6 +1170,7 @@ MonoBehaviour:
   m_StaticLightingSkyUniqueID: 0
   m_StaticLightingCloudsUniqueID: 0
   m_StaticLightingVolumetricClouds: 0
+  bounces: 1
 --- !u!4 &2013410475
 Transform:
   m_ObjectHideFlags: 1
@@ -1245,11 +1198,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Full Pool Base
-      objectReference: {fileID: 0}
-    - target: {fileID: 4991001520961610731, guid: 21b9b509580531242b334e31c34bd3a0,
-        type: 3}
-      propertyPath: currentDebugMultiplier
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7619216644262982313, guid: 21b9b509580531242b334e31c34bd3a0,
         type: 3}
@@ -1302,7 +1250,8 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5849285475187691840, guid: 21b9b509580531242b334e31c34bd3a0, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 21b9b509580531242b334e31c34bd3a0, type: 3}

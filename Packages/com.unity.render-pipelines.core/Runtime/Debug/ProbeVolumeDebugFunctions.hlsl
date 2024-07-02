@@ -1,6 +1,11 @@
 #ifndef PROBEVOLUMEDEBUG_FUNCTIONS_HLSL
 #define PROBEVOLUMEDEBUG_FUNCTIONS_HLSL
 
+float4 TransformPosition(float3 posOS)
+{
+    return mul(UNITY_MATRIX_M, float4(posOS, 1.0f)) + float4(_APVWorldOffset, 0.0f);
+}
+
 #ifdef PROBE_VOLUME_DEBUG_FUNCTION_MAIN
     v2f vert(appdata v)
     {
@@ -12,7 +17,7 @@
 
         if (!ShouldCull(o))
         {
-            float3 probePosition_WS = mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+            float3 probePosition_WS = TransformPosition(0.0f).xyz;
             if (_AdjustmentVolumeCount > 0 && !IsInSelection(probePosition_WS))
             {
                 DoCull(o);
@@ -39,8 +44,8 @@
                     return o;
                 }
 
-                float4 wsPos = mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 0.0f, 1.0f));
-                wsPos += normalize(mul(UNITY_MATRIX_M, float4((v.vertex.xyz), 0.0f))) * _ProbeSize * 0.3f; // avoid scale from transformation matrix to be effective (otherwise some probes are bigger than others)
+                float4 wsPos = float4(probePosition_WS, 1.0);
+                wsPos += normalize(mul(UNITY_MATRIX_M, float4(v.vertex.xyz, 0.0f))) * _ProbeSize * 0.3f; // avoid scale from transformation matrix to be effective (otherwise some probes are bigger than others)
 
                 float4 pos = mul(UNITY_MATRIX_VP, wsPos);
                 float remappedDepth = Remap(-1.0f, 1.0f, 0.6f, 1.0f, pos.z); // remapped depth to draw gizmo on top of most other objects
@@ -52,7 +57,7 @@
             }
             else
             {
-                float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0));
+                float4 wsPos = TransformPosition(v.vertex.xyz * _ProbeSize);
                 o.vertex = mul(UNITY_MATRIX_VP, wsPos);
                 o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
 
@@ -73,7 +78,7 @@
         UNITY_SETUP_INSTANCE_ID(i);
 
         if (_ShadingMode >= DEBUGPROBESHADINGMODE_SH && _ShadingMode <= DEBUGPROBESHADINGMODE_SHL0L1
-            || _ShadingMode == DEBUGPROBESHADINGMODE_SKY_OCCLUSION_SH || _ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
+            || _ShadingMode == DEBUGPROBESHADINGMODE_SKY_OCCLUSION_SH || _ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION || _ShadingMode == DEBUGPROBESHADINGMODE_PROBE_OCCLUSION)
         {
             return float4(CalculateDiffuseLighting(i) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
         }
@@ -207,7 +212,7 @@
         o.vertex = 0;
         o.normal = 0;
 
-        float3 probePosition_WS = mul(UNITY_MATRIX_M, float4(0.0f, 0.0f, 1.0f, 1.0f)).xyz;
+        float3 probePosition_WS = TransformPosition(0.0f).xyz;
         float3 offset = UNITY_ACCESS_INSTANCED_PROP(Props, _Offset).xyz;
         float offsetLenSqr = dot(offset, offset);
         if (offsetLenSqr <= 1e-6f)
@@ -220,7 +225,7 @@
         }
         else if (!ShouldCull(o))
         {
-            float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.x * _OffsetSize, v.vertex.y * _OffsetSize, v.vertex.z, 1.f));
+            float4 wsPos = TransformPosition(v.vertex.xyz * float3(_OffsetSize, _OffsetSize, 1.0f));
             o.vertex = mul(UNITY_MATRIX_VP, wsPos);
             o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
         }

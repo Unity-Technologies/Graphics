@@ -83,8 +83,6 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, int groupIndex : SV_Gr
 
     // Evaluate the cloud transmittance
     VolumetricRayResult result = TraceVolumetricRay(ray);
-    result.inScattering *= GetCurrentExposureMultiplier();
-    result.meanDistance = min(result.meanDistance, ray.maxRayLength);
 
     #if defined(PHYSICALLY_BASED_SUN) && !defined(TRACE_FOR_SKY)
     if (!result.invalidRay && _PBRFogEnabled)
@@ -100,12 +98,12 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, int groupIndex : SV_Gr
 
         float3 skyColor, skyOpacity;
         EvaluateAtmosphericScattering(V, positionNDC, result.meanDistance, skyColor, skyOpacity);
-        result.inScattering.xyz = result.inScattering.xyz * (1 - skyOpacity) + skyColor * (1 - transmittance);
+        result.scattering.xyz = result.scattering.xyz * (1 - skyOpacity) + skyColor * (1 - transmittance);
     }
     #endif
 
     // Output the result
-    _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = result.inScattering;
+    _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = result.scattering;
 
     // Compute the cloud depth
     float depth = result.invalidRay ? UNITY_RAW_FAR_CLIP_VALUE : EncodeInfiniteDepth(result.meanDistance, _CloudNearPlane);

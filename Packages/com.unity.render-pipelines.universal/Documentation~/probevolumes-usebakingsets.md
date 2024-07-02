@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-usebakingsets
+---
 # Bake multiple scenes together with Baking Sets
 
 If you [load multiple scenes simultaneously](https://docs.unity3d.com/Documentation/Manual/MultiSceneEditing.html) in your project, for example if you load multiples scenes at the same time in an open world game, you can add the scenes to a single Baking Set so you can bake the lighting for all the scenes together.

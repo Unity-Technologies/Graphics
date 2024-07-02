@@ -1,12 +1,14 @@
 {
     "introduction": 
 	"""Welcome to the Water System Samples.
-	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/WaterSystem.html">WaterSystem</a> allows you to add water to your scenes.
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/water.html">WaterSystem</a> allows you to add water to your scenes.
 	Multiple water presets are available, this scene showcases the customisation of a Pool.
 	
 	<i>This scene works properly in <b>Play Mode</b> since it uses Physics and Rigidbody to simulation real buoyancy.</i> 
 	
 	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
+
+The project uses the Mask and Current Water Decal workflow. Make sure it is enabled in the Graphics settings first. 
 	
 <h1>General</h1>
 	

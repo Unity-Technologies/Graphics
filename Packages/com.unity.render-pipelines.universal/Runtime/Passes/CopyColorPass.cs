@@ -35,7 +35,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="Downsampling"/>
         public CopyColorPass(RenderPassEvent evt, Material samplingMaterial, Material copyColorMaterial = null, string customPassName = null)
         {
-            base.profilingSampler = customPassName != null ? new ProfilingSampler(customPassName): new ProfilingSampler(nameof(CopyColorPass));
+            profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : ProfilingSampler.Get(URPProfileId.CopyColor);
+
             m_PassData = new PassData();
 
             m_SamplingMaterial = samplingMaterial;
@@ -190,27 +191,29 @@ namespace UnityEngine.Rendering.Universal.Internal
             ConfigureDescriptor(downsampling, ref descriptor, out var filterMode);
 
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_CameraOpaqueTexture", true, filterMode);
-
-            RenderInternal(renderGraph, destination, source, "Copy Color", cameraData.xr.enabled);
+            
+            RenderInternal(renderGraph, destination, source, cameraData.xr.enabled);                    
 
             return destination;
         }
+
+
 
         // This will not create a new texture, but will reuse an existing one as destination.
         // Typical use case is a persistent texture imported to the render graph. For example history textures.
         // Note that the amount of downsampling is determined by the destination size.
         // Therefore, the downsampling param controls only the algorithm (shader) used for the downsampling, not size.
-        internal void RenderToExistingTexture(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle destination, in TextureHandle source, Downsampling downsampling = Downsampling.None, string passName = "Copy Color")
+        internal void RenderToExistingTexture(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle destination, in TextureHandle source, Downsampling downsampling = Downsampling.None)
         {
             m_DownsamplingMethod = downsampling;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            RenderInternal(renderGraph, destination, source, passName, cameraData.xr.enabled);
+            RenderInternal(renderGraph, destination, source, cameraData.xr.enabled);
         }
 
-        private void RenderInternal(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, string passName, bool useProceduralBlit)
+        private void RenderInternal(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.destination = destination;
                 builder.SetRenderAttachment(destination, 0, AccessFlags.Write);

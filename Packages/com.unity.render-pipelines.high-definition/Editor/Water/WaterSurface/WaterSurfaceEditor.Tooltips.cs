@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_CausticsDirectionalShadowDimmer = EditorGUIUtility.TrTextContent("Directional Shadow Dimmer", "Sets the water caustics dimmer value for the directional shadow.");
 
         static public readonly GUIContent k_FoamSmoothness = EditorGUIUtility.TrTextContent("Smoothness", "Controls the simulation foam smoothness.");
-        static public readonly GUIContent k_FoamPersistenceMultiplier = EditorGUIUtility.TrTextContent("Persistence Multiplier", "Specifies the foam persistence multiplier. A higher value will lead to the foam remaining visible longer.");
+        static public readonly GUIContent k_FoamPersistenceMultiplier = EditorGUIUtility.TrTextContent("Persistence Multiplier", "Specifies the decal foam persistence multiplier. A higher value will lead to the foam remaining visible longer.\nThis option requires Foam to be enabled in the Water Decals section.");
         static public readonly GUIContent k_FoamCurrentInfluence = EditorGUIUtility.TrTextContent("Current Influence", "Specifies the influence of the swell current on foam. A value of zero means foam stays still, a value of one makes the foam match with current direction and speed. Ripples motion have no impact on foam.");
         static public readonly GUIContent k_FoamTextureTiling = EditorGUIUtility.TrTextContent("Texture Tiling", "Sets the per meter tiling for the foam texture.");
         static public readonly GUIContent k_FoamColor = EditorGUIUtility.TrTextContent("Color", "Sets the foam color.");

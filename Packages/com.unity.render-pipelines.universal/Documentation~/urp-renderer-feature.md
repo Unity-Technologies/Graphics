@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-urp-renderer-feature
+---
 # Pre-built effects (Renderer Features)
 
 A Renderer Feature is an asset that lets you add a built-in effect to a Universal Render Pipeline (URP) Renderer, and configure its behavior.

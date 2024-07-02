@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering
             internal static readonly GUIContent s_Mode = new GUIContent("Mode", "Choose which type of adjustment to apply to probes covered by this volume.");
             internal static readonly GUIContent s_DilationThreshold = new GUIContent("Dilation Validity Threshold", "Override the Dilation Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.");
             internal static readonly GUIContent virtualOffsetThreshold = new GUIContent("Validity Threshold", "Override the Virtual Offset Validity Threshold for probes covered by this Probe Adjustment Volume. Higher values increase the chance of probes being considered invalid.");
-            internal static readonly GUIContent s_VODirection = new GUIContent("Direction", "Rotate the axis along which probes will be pushed when applying Virtual Offset.");
+            internal static readonly GUIContent s_VODirection = new GUIContent("Rotation", "Rotate the axis along which probes will be pushed when applying Virtual Offset.");
             internal static readonly GUIContent s_VODistance = new GUIContent("Distance", "Determines how far probes are pushed in the direction of the Virtual Offset.");
             internal static readonly GUIContent renderingLayerMaskOperation = new GUIContent("Operation", "The operation to combine the Rendering Layer Mask set by this adjustment volume with the Rendering Layer Mask of the probes covered by this volume.");
             internal static readonly GUIContent renderingLayerMask = new GUIContent("Rendering Layer Mask", "Sets the Rendering Layer Mask to be combined with the Rendering Layer Mask of the probes covered by this volume.");

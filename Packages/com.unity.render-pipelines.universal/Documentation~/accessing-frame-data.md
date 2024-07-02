@@ -1,8 +1,11 @@
-# Use frame data
+---
+uid: urp-docfx-accessing-frame-data
+---
+# Get data from the current frame
 
-You can fetch the textures the Universal Render Pipeline (URP) creates for the current frame, for example the active color buffer or a G-buffer texture, and use them in your render passes.
+You can fetch the textures that the Universal Render Pipeline (URP) creates for the current frame, for example the active color buffer or a G-buffer texture, and use them in your render passes.
 
-These textures are called frame data, resource data, or frame resources.
+These textures are called frame data, resource data, or frame resources. This documentation refers to these textures as frame data.
 
 Some textures might not exist in the frame data, depending on which injection point you use to insert your custom render pass into the URP frame rendering loop. For more information about which textures exist when, refer to [Injection points reference](customize/custom-pass-injection-points.md).
 
@@ -28,7 +31,7 @@ Follow these steps to get a handle to a texture in the frame data:
 
 2. Get the handle to a texture in the frame data.
 
-    For example, the following gets a handle to the active color texture:
+For example, the following gets a handle to the active color texture:
 
     ```csharp
     TextureHandle activeColorTexture = frameData.activeColorTexture;

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-color-adjustments
+---
 # Color Adjustments
 
 Use this effect to tweak the overall tone, brightness, and contrast of the final rendered image.

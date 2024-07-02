@@ -6,6 +6,8 @@
     float4x4 unity_MatrixVP;
 #endif
 
+#define INCLUDE_ONLY_MV_FUNCTIONS
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 
 // Get Homogeneous normalized device coordinates
 float4 GetVertexPositionNDC(float3 positionCS)
@@ -92,9 +94,10 @@ Varyings BuildVaryings(Attributes input)
         #endif
     #endif
 
-
     #if defined(VARYINGS_NEED_TEXCOORD2)
-        output.texCoord2 = input.uv2;
+    // Store previous CS position for MV calculation
+    float3 previousPositionRWS = TransformPreviousObjectToWorld(input.positionOS);
+    output.texCoord2 = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
     #endif
 
     #if defined(VARYINGS_NEED_TEXCOORD3)
@@ -108,6 +111,14 @@ Varyings BuildVaryings(Attributes input)
     #ifdef VARYINGS_NEED_SCREENPOSITION
         output.screenPosition = GetVertexPositionNDC(output.positionCS); // vertexInput.positionNDC;
     #endif
+
+    // Apply MV bias
+    #if UNITY_REVERSED_Z
+    output.positionCS.z -= unity_MotionVectorsParams.z * output.positionCS.w;
+    #else
+    output.positionCS.z += unity_MotionVectorsParams.z * output.positionCS.w;
+    #endif
+
     return output;
 }
 
@@ -118,8 +129,30 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
+//NOTE: some shaders set target1 to be
+//   Blend 1 SrcAlpha OneMinusSrcAlpha
+//The reason for this blend mode is to let virtual texturing alpha dither work.
+//Anything using Target1 should write 1.0 or 0.0 in alpha to write / not write into the target.
+#ifdef UNITY_VIRTUAL_TEXTURING
+#define VT_BUFFER_TARGET SV_Target1
+#define EXTRA_BUFFER_TARGET SV_Target2
+#if defined(SHADER_API_PSSL)
+//For exact packing on pssl, we want to write exact 16 bit unorm (respect exact bit packing).
+//In some sony platforms, the default is FMT_16_ABGR, which would incur in loss of precision.
+//Thus, when VT is enabled, we force FMT_32_ABGR
+#pragma PSSL_target_output_format(target 1 FMT_32_ABGR)
+#endif
+#else
+#define EXTRA_BUFFER_TARGET SV_Target1
+#endif
 
-half4 frag(PackedVaryings packedInput) : SV_TARGET
+void frag(PackedVaryings packedInput,
+out float4 outColor : SV_Target0
+#ifdef UNITY_VIRTUAL_TEXTURING
+    , out float4 outVTFeedback : VT_BUFFER_TARGET
+#endif
+    , out float4 outMotionVec : EXTRA_BUFFER_TARGET
+)
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
@@ -136,23 +169,32 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
 
     half alpha = surfaceDescription.Alpha;
-    half4 color = half4(surfaceDescription.BaseColor + surfaceDescription.Emission, alpha) ;
+    outColor = half4(surfaceDescription.BaseColor + surfaceDescription.Emission, alpha) ;
 
     #if !defined(HAVE_VFX_MODIFICATION) && !defined(_DISABLE_COLOR_TINT)
-    color *= unpacked.color;
+    outColor *= unpacked.color;
     #endif
 
     #ifdef UNITY_UI_CLIP_RECT
         //mask = Uv2
         half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(unpacked.texCoord1.xy)) * unpacked.texCoord1.zw);
-        color.a *= m.x * m.y;
+        outColor.a *= m.x * m.y;
     #endif
 
     #ifdef _ALPHATEST_ON
         clip(alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    color.rgb *= color.a;
+    outColor.rgb *= outColor.a;
 
-    return  color;
+    // We don't support VT feedback on UI
+#ifdef UNITY_VIRTUAL_TEXTURING
+    outVTFeedback = 0;
+#endif
+
+    #if defined(UI_MOTION_VECTORS)
+        float4 previousPositionCS = unpacked.texCoord2;
+        float2 motionVector = CalculateMotionVector(unpacked.positionCS, previousPositionCS);
+        outMotionVec = float4(motionVector * 0.5, 1, 1);
+    #endif
 }

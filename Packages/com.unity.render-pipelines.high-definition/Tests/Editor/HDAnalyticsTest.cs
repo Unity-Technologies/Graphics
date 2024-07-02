@@ -68,10 +68,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
         const string k_DefaultsDirectory = "Packages/com.unity.render-pipelines.high-definition/Tests/Editor/HDAnalyticsTests_Defaults.txt";
 
-        [Test][Ignore("Sync RP Asset values")]
+        [Test]
+        [Ignore("Failure introduced byt https://github.cds.internal.unity3d.com/unity/unity/pull/51256")]
         public void CheckDefaultAnalyticsAreUpToDateOnBigQuery()
         {
-            var currentDefaults = string.Join(",", RenderPipelineSettings.NewDefault().ToNestedColumn());
+            var currentDefaults = string.Join(",\n", RenderPipelineSettings.NewDefault().ToNestedColumn());
 
             //File.WriteAllText(k_DefaultsDirectory, currentDefaults); // Uncomment this line to update the file
 

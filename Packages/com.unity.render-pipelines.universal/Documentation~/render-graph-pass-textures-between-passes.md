@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-pass-textures-between-passes
+---
 # Transfer a texture between render passes
 
 You can transfer a texture between render passes, for example if you need to create a texture in one render pass and read it in a later render pass.
@@ -212,7 +215,7 @@ For example:
 
 ```csharp
 // Allocate a global shader texture called _GlobalTexture
-private int shaderTextureID = Shader.globalTextureID("_GlobalTexture")
+private int globalTextureID = Shader.PropertyToID("_GlobalTexture")
 
 using (var builder = renderGraph.AddRasterRenderPass<PassData>("MyPass", out var passData)){
 

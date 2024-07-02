@@ -69,6 +69,8 @@ struct APVResources
     TEXTURE3D_APV(L2_3);
     TEXTURE3D_APV(Validity);
 
+    TEXTURE3D_APV(ProbeOcclusion);
+
     TEXTURE3D_APV(SkyOcclusionL0L1);
     TEXTURE3D(SkyShadingDirectionIndices);
 };
@@ -82,7 +84,15 @@ struct APVResourcesRW
     RWTexture3D<float4> L2_1;
     RWTexture3D<float4> L2_2;
     RWTexture3D<float4> L2_3;
+    RWTexture3D<float4> ProbeOcclusion;
 };
+
+#ifndef USE_APV_PROBE_OCCLUSION
+// If we are rendering a probe lit renderer, and we have APV enabled, and we are using subtractive or shadowmask mode, we sample occlusion from APV.
+#if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)) && (defined(LIGHTMAP_SHADOW_MIXING) || defined(SHADOWS_SHADOWMASK))
+#define USE_APV_PROBE_OCCLUSION 1
+#endif
+#endif
 
 #define LOAD_APV_RES_L1(res, target) \
     res.L0_L1Rx  = CALL_MERGE_NAME(target, _L0_L1Rx); \
@@ -93,13 +103,27 @@ struct APVResourcesRW
     res.L2_1 = CALL_MERGE_NAME(target, _L2_1); \
     res.L2_2 = CALL_MERGE_NAME(target, _L2_2); \
     res.L2_3 = CALL_MERGE_NAME(target, _L2_3);
+#define LOAD_APV_RES_OCCLUSION(res, target) \
+    res.ProbeOcclusion = CALL_MERGE_NAME(target, _ProbeOcclusion);
 
 #ifndef PROBE_VOLUMES_L2
-# define LOAD_APV_RES(res, target) LOAD_APV_RES_L1(res, target)
+    #ifndef USE_APV_PROBE_OCCLUSION
+    # define LOAD_APV_RES(res, target) LOAD_APV_RES_L1(res, target)
+    #else
+    # define LOAD_APV_RES(res, target) LOAD_APV_RES_L1(res, target) \
+        LOAD_APV_RES_OCCLUSION(res, target)
+    #endif
 #else
-# define LOAD_APV_RES(res, target) \
-    LOAD_APV_RES_L1(res, target) \
-    LOAD_APV_RES_L2(res, target)
+    #ifndef USE_APV_PROBE_OCCLUSION
+    # define LOAD_APV_RES(res, target) \
+        LOAD_APV_RES_L1(res, target) \
+        LOAD_APV_RES_L2(res, target)
+    #else
+    # define LOAD_APV_RES(res, target) \
+        LOAD_APV_RES_L1(res, target) \
+        LOAD_APV_RES_L2(res, target) \
+        LOAD_APV_RES_OCCLUSION(res, target)
+    #endif
 #endif
 
 struct APVSample
@@ -117,6 +141,10 @@ struct APVSample
 
     float4 skyOcclusionL0L1;
     float3 skyShadingDirection;
+
+#ifdef USE_APV_PROBE_OCCLUSION
+    float4 probeOcclusion;
+#endif
 
 #define APV_SAMPLE_STATUS_INVALID -1
 #define APV_SAMPLE_STATUS_ENCODED 0
@@ -171,6 +199,8 @@ TEXTURE3D_APV(_APVResL2_0);
 TEXTURE3D_APV(_APVResL2_1);
 TEXTURE3D_APV(_APVResL2_2);
 TEXTURE3D_APV(_APVResL2_3);
+
+TEXTURE3D_APV(_APVProbeOcclusion);
 
 TEXTURE3D_APV(_APVResValidity);
 
@@ -311,6 +341,8 @@ APVResources FillAPVResources()
     apvRes.SkyShadingDirectionIndices = _SkyShadingDirectionIndicesTex;
     apvRes.SkyPrecomputedDirections = _SkyPrecomputedDirections;
 
+    apvRes.ProbeOcclusion = _APVProbeOcclusion;
+
     return apvRes;
 }
 
@@ -395,6 +427,10 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     else
         apvSample.skyShadingDirection = float3(0, 0, 0);
 
+#ifdef USE_APV_PROBE_OCCLUSION
+    apvSample.probeOcclusion = SAMPLE_TEXTURE3D_LOD(apvRes.ProbeOcclusion, s_linear_clamp_sampler, uvw, 0).rgba;
+#endif
+
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
 
     return apvSample;
@@ -420,6 +456,10 @@ APVSample LoadAndDecodeAPV(APVResources apvRes, int3 loc)
     apvSample.L2_C = half3(LOAD_TEXTURE3D(apvRes.L2_3, loc).rgb);
 #endif // PROBE_VOLUMES_L2
 
+#ifdef USE_APV_PROBE_OCCLUSION
+    apvSample.probeOcclusion = LOAD_TEXTURE3D(apvRes.ProbeOcclusion, loc).rgba;
+#endif
+
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
     apvSample.Decode();
 
@@ -440,6 +480,10 @@ void WeightSample(inout APVSample apvSample, half weight)
     apvSample.L2_C *= weight;
 #endif // PROBE_VOLUMES_L2
 
+#ifdef USE_APV_PROBE_OCCLUSION
+    apvSample.probeOcclusion *= weight;
+#endif
+
     apvSample.skyOcclusionL0L1 *= weight;
 }
 
@@ -457,6 +501,10 @@ void AccumulateSamples(inout APVSample dst, APVSample other, half weight)
     dst.L2_B += other.L2_B;
     dst.L2_C += other.L2_C;
 #endif // PROBE_VOLUMES_L2
+
+#ifdef USE_APV_PROBE_OCCLUSION
+    dst.probeOcclusion += other.probeOcclusion;
+#endif
 
     dst.skyOcclusionL0L1 += other.skyOcclusionL0L1;
 }
@@ -622,6 +670,13 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, uint
     else
     {
         ZERO_INITIALIZE(APVSample, outSample);
+
+        #ifdef USE_APV_PROBE_OCCLUSION
+        // The "neutral" value for probe occlusion is 1.0. We write it here to prevent objects that are outside
+        // the bounds of the probe volume from being entirely shadowed.
+        outSample.probeOcclusion = 1.0f;
+        #endif
+
         outSample.status = APV_SAMPLE_STATUS_INVALID;
     }
 
@@ -804,7 +859,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir,
-    in float2 positionSS, in uint renderingLayer, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
+    in float2 positionSS, in uint renderingLayer, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting, out float4 probeOcclusion)
 {
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
     backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
@@ -812,18 +867,44 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
     posWS = AddNoiseToSamplingPosition(posWS, positionSS, viewDir);
 
     APVSample apvSample = SampleAPV(posWS, normalWS, renderingLayer, viewDir);
+#ifdef USE_APV_PROBE_OCCLUSION
+    probeOcclusion = apvSample.probeOcclusion;
+#else
+    probeOcclusion = 1;
+#endif
+
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 viewDir,
+    in float2 positionSS, in uint renderingLayer, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
+{
+    float4 unusedProbeOcclusion = 0;
+    EvaluateAdaptiveProbeVolume(posWS, normalWS, backNormalWS, viewDir, positionSS, renderingLayer, bakeDiffuseLighting, backBakeDiffuseLighting, unusedProbeOcclusion);
+}
+
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 viewDir, in float2 positionSS, in uint renderingLayer,
-    out float3 bakeDiffuseLighting)
+    out float3 bakeDiffuseLighting, out float4 probeOcclusion)
 {
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
     posWS = AddNoiseToSamplingPosition(posWS, positionSS, viewDir);
 
     APVSample apvSample = SampleAPV(posWS, normalWS, renderingLayer, viewDir);
+#ifdef USE_APV_PROBE_OCCLUSION
+    probeOcclusion = apvSample.probeOcclusion;
+#else
+    probeOcclusion = 1;
+#endif
+
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, bakeDiffuseLighting);
+}
+
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 viewDir, in float2 positionSS, in uint renderingLayer,
+    out float3 bakeDiffuseLighting)
+{
+    float4 unusedProbeOcclusion = 0;
+    EvaluateAdaptiveProbeVolume(posWS, normalWS, viewDir, positionSS, renderingLayer, bakeDiffuseLighting, unusedProbeOcclusion);
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float2 positionSS, out float3 bakeDiffuseLighting)

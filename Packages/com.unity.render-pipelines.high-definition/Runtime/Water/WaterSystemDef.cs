@@ -372,51 +372,24 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL(PackingRules.Exact, false)]
-    struct WaterDeformerData
+    struct WaterDecalData
     {
+        public Vector2 positionXZ;
+        public Vector2 forwardXZ;
+
         public float2 regionSize;
-        public int type;
+        public float surfaceFoamDimmer;
+        public float deepFoamDimmer;
+
         public float amplitude;
+        public float padding0;
+        public float padding1;
+        public float padding2;
 
-        public Vector3 position;
-        public float rotation;
-
-        public float2 blendRegion;
-        public float2 breakingRange;
-
-        public float bowWaveElevation;
-        public float waveLength;
-        public int waveRepetition;
-        public float waveSpeed;
-
-        public float waveOffset;
-        public int cubicBlend;
-        public float deepFoamDimmer;
-        public float surfaceFoamDimmer;
-
-        public float2 deepFoamRange;
-        public float2 padding3;
-
-        // Scale and offset used to read in the texture atlas
-        public Vector4 scaleOffset;
-    }
-
-    [GenerateHLSL(PackingRules.Exact, false)]
-    struct WaterGeneratorData
-    {
-        public Vector3 position;
-        public float rotation;
-
-        public float2 regionSize;
-        public int type;
-        public int padding0;
-
-        public float2 padding1;
-        public float deepFoamDimmer;
-        public float surfaceFoamDimmer;
-
-        // Scale and offset used to read in the texture atlas
-        public Vector4 scaleOffset;
+        public Vector4 deformFoamScaleOffset;
+        public Vector4 maskScaleOffset;
+        public Vector4 largeCurrentScaleOffset;
+        public Vector4 ripplesCurrentScaleOffset;
     }
 
     [GenerateHLSL(PackingRules.Exact, false)]

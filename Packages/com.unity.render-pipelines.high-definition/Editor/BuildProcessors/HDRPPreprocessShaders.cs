@@ -13,8 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public CommonShaderPreprocessor()
         {
-            m_ShaderResources = HDRPBuildData.instance.runtimeShaders;
-            m_MaterialResources = HDRPBuildData.instance.materialResources;
+           m_ShaderResources = HDRPBuildData.instance.runtimeShaders;
+           m_MaterialResources = HDRPBuildData.instance.materialResources;
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
@@ -40,6 +40,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
 
                 if (stripDebugVariants && snippet.passName.StartsWith(WaterSystem.k_WaterMaskPass))
+                    return true;
+            }
+            if (HDRPBuildData.instance.waterDecalMaskAndCurrent)
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WaterDecalPartial))
+                    return true;
+            }
+            else
+            {
+                if (inputData.shaderKeywordSet.IsEnabled(m_WaterDecalComplete))
                     return true;
             }
 

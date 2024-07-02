@@ -57,4 +57,17 @@ float2 CalcNdcMotionVectorFromCsPositions(float4 posCS, float4 prevPosCS)
     return velocity;
 }
 
+// Same as CalcNdcMotionVectorFromCsPositions but returns vec3 ndc space motion vector.
+// Also Application SpaceWarp does not support non-uniform foveated rendering so the relevant foveated rendering code is not in this variant.
+float3 CalcAswNdcMotionVectorFromCsPositions(float4 posCS, float4 prevPosCS)
+{
+    float3 posNDC = posCS.xyz * rcp(posCS.w);
+    float3 prevPosNDC = prevPosCS.xyz * rcp(prevPosCS.w);
+
+    float3 velocity;
+    // Calculate forward velocity
+    velocity = (posNDC.xyz - prevPosNDC.xyz);
+
+    return velocity;
+}
 #endif

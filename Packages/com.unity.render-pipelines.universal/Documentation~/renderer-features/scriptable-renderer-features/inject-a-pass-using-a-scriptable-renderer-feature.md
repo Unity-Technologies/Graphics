@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-inject-a-pass-using-a-scriptable-renderer-feature
+---
 # Inject a render pass using a Scriptable Renderer Feature
 
 Use the `ScriptableRenderFeature` API to insert a [Scriptable Render Pass](../../renderer-features/scriptable-render-passes.md) into the Universal Render Pipeline (URP) frame rendering loop. 

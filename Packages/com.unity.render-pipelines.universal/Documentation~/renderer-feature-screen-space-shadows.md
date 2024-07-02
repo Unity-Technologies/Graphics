@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-renderer-feature-screen-space-shadows
+---
 # Screen Space Shadows Renderer Feature
 
 ![Screen-space shadows](Images/ssshadows/ssshadows-result.png)<br/>*Screen-space shadows in a sample scene.*

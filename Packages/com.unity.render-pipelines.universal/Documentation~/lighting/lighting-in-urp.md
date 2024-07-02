@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-lighting-in-urp
+---
 # Lighting in the Universal Render Pipeline
 
 All of Unity's render pipelines share common lighting functionality, but each render pipeline has some important differences.

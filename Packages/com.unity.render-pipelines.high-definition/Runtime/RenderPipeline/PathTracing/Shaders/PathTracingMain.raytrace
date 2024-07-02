@@ -1,6 +1,9 @@
 // We do not rely on recursion, beyond subsurface scattering
 #pragma max_recursion_depth 2
 
+// On some consoles we get a timeout when compiling this, so we only target d3d platforms
+#pragma only_renderers d3d11
+
 // SRP/HDRP includes
 #define SHADER_TARGET 50
 // Include and define the shader pass (Required for light cluster code)

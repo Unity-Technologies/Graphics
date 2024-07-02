@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering
 
         SerializedDataParameter m_IntensityMultiplier;
         SerializedDataParameter m_SkyOcclusionIntensityMultiplier;
+        SerializedDataParameter m_WorldOffset;
 
         public override void OnEnable()
         {
@@ -30,6 +31,7 @@ namespace UnityEditor.Rendering
 
             m_IntensityMultiplier = Unpack(o.Find(x => x.intensityMultiplier));
             m_SkyOcclusionIntensityMultiplier = Unpack(o.Find(x => x.skyOcclusionIntensityMultiplier));
+            m_WorldOffset = Unpack(o.Find(x => x.worldOffset));
 
             base.OnEnable();
         }
@@ -46,6 +48,7 @@ namespace UnityEditor.Rendering
 
             PropertyField(m_IntensityMultiplier);
             PropertyField(m_SkyOcclusionIntensityMultiplier);
+            PropertyField(m_WorldOffset);
         }
     }
 }

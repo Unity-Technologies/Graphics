@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_LightCookieManager = initParams.lightCookieManager;
         }
 
-        static ProfilingSampler s_SetupDeferredLights = new ProfilingSampler("Setup Deferred lights.");
+        static ProfilingSampler s_SetupDeferredLights = new ProfilingSampler("Setup Deferred lights");
         private class SetupLightPassData
         {
             internal UniversalCameraData cameraData;
@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         internal void SetupRenderGraphLights(RenderGraph renderGraph, UniversalCameraData cameraData, UniversalLightData lightData)
         {
-            using (var builder = renderGraph.AddUnsafePass<SetupLightPassData>("SetupDeferredLights", out var passData,
+            using (var builder = renderGraph.AddUnsafePass<SetupLightPassData>(s_SetupDeferredLights.name, out var passData,
                 s_SetupDeferredLights))
             {
                 passData.cameraData = cameraData;

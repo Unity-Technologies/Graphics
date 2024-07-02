@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-deferred-rendering-path
+---
 # Deferred Rendering Path in URP
 
 URP Universal Renderer supports the following Rendering Paths:

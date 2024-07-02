@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-rendering-debugger-use
+---
 # Use the Rendering Debugger
 
 The Rendering Debugger window is available in the following modes:

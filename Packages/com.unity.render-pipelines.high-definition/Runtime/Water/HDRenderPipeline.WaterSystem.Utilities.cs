@@ -300,28 +300,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return 0;
         }
 
-        uint4 ShiftUInt(uint4 val, int numBits)
+        static void SetupWaterShaderKeyword(CommandBuffer cmd, bool decalWorkflow, int bandCount, bool localCurrent)
         {
-            return new uint4(val.x >> 16, val.y >> 16, val.z >> 16, val.w >> 16);
-        }
+            CoreUtils.SetKeyword(cmd, "WATER_DECAL_PARTIAL", !decalWorkflow);
+            CoreUtils.SetKeyword(cmd, "WATER_DECAL_COMPLETE", decalWorkflow);
 
-        uint4 WaterHashFunctionUInt4(uint3 coord)
-        {
-            uint4 x = coord.xyzz;
-            x = (ShiftUInt(x, 16) ^ x.yzxy) * 0x45d9f3bu;
-            x = (ShiftUInt(x, 16) ^ x.yzxz) * 0x45d9f3bu;
-            x = (ShiftUInt(x, 16) ^ x.yzxx) * 0x45d9f3bu;
-            return x;
-        }
-
-        float4 WaterHashFunctionFloat4(uint3 p)
-        {
-            uint4 hashed = WaterHashFunctionUInt4(p);
-            return new float4(hashed.x, hashed.y, hashed.z, hashed.w) / (float)0xffffffffU;
-        }
-
-        static void SetupWaterShaderKeyword(CommandBuffer cmd, int bandCount, bool localCurrent)
-        {
             CoreUtils.SetKeyword(cmd, "WATER_ONE_BAND", bandCount == 1);
             CoreUtils.SetKeyword(cmd, "WATER_TWO_BANDS", bandCount == 2);
             CoreUtils.SetKeyword(cmd, "WATER_THREE_BANDS", bandCount == 3);

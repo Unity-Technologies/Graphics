@@ -88,6 +88,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_DecalSurfaceGradient;
         protected ShaderKeyword m_EditorVisualization;
         protected ShaderKeyword m_SupportWater;
+        protected ShaderKeyword m_WaterDecalPartial;
+        protected ShaderKeyword m_WaterDecalComplete;
         protected ShaderKeyword m_SupportWaterCaustics;
         protected ShaderKeyword m_SupportWaterCausticsShadow;
         protected ShaderKeyword m_SupportWaterAbsorption;
@@ -133,6 +135,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DecalSurfaceGradient = new ShaderKeyword("DECAL_SURFACE_GRADIENT");
             m_EditorVisualization = new ShaderKeyword("EDITOR_VISUALIZATION");
             m_SupportWater = new ShaderKeyword("SUPPORT_WATER");
+            m_WaterDecalPartial = new ShaderKeyword("WATER_DECAL_PARTIAL");
+            m_WaterDecalComplete = new ShaderKeyword("WATER_DECAL_COMPLETE");
             m_SupportWaterCaustics = new ShaderKeyword("SUPPORT_WATER_CAUSTICS");
             m_SupportWaterCausticsShadow = new ShaderKeyword("SUPPORT_WATER_CAUSTICS_SHADOW");
             m_SupportWaterAbsorption = new ShaderKeyword("SUPPORT_WATER_ABSORPTION");

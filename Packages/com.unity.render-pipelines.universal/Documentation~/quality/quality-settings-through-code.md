@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-quality-settings-through-code
+---
 # Control URP Quality settings through code
 
 Unity has several preset levels of [Quality settings](https://docs.unity3d.com/Manual/class-QualitySettings.html) and you might add more to your project. To accommodate different hardware specifications, you can switch between these levels and the associated URP Asset from C# scripts. The following examples show how to use API to change Quality setting levels and the active URP Asset, and how to change specific settings in the URP Asset at runtime.

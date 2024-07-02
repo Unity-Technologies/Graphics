@@ -266,6 +266,31 @@ Shader "Universal Render Pipeline/Unlit"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "XRMotionVectors"
+            Tags { "LightMode" = "XRMotionVectors" }
+            ColorMask RGBA
+
+            // Stencil write for obj motion pixels
+            Stencil
+            {
+                WriteMask 1
+                Ref 1
+                Comp Always
+                Pass Replace
+            }
+
+            HLSLPROGRAM
+            #pragma shader_feature_local _ALPHATEST_ON
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma shader_feature_local_vertex _ADD_PRECOMPUTED_VELOCITY
+            #define APLICATION_SPACE_WARP_MOTION 1
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"
+            ENDHLSL
+        }
     }
 
     FallBack "Hidden/Universal Render Pipeline/FallbackError"

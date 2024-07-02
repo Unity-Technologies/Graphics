@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-lens-flare-component
+---
 # Add lens flares
 
 ![](../../images/shared/lens-flare/lens-flare-header.png)

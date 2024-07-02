@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-effect-list
+---
 # Effect List
 
 These are the post-processing effects that are available in the Universal Render Pipeline (URP):

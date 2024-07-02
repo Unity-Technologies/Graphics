@@ -591,6 +591,7 @@
     "m_OutputNode": {
         "m_Id": "d34a6dac40b643db9cb4e799d2310ac7"
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": []
 }
 
@@ -3053,7 +3054,8 @@
     },
     "m_TextureType": 1,
     "m_NormalMapSpace": 0,
-    "m_EnableGlobalMipBias": true
+    "m_EnableGlobalMipBias": true,
+    "m_MipSamplingMode": 0
 }
 
 {

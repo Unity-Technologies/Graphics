@@ -35,15 +35,15 @@ float FoamErosion(float foamTime, float2 position, bool isSurfaceFoam = true, fl
     // We still use lodBias for surface foam but force the LOD for deep foam because we want it blurrier.
     if	(isSurfaceFoam)
     {
-        foamMasksA = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, UVA * _FoamTiling);
+        foamMasksA = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, UVA * _WaterFoamTiling);
         if (_FoamCurrentInfluence > 0)
-            foamMasksB = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, UVB * _FoamTiling);
+            foamMasksB = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, UVB * _WaterFoamTiling);
     }
     else
     {
-        foamMasksA = SAMPLE_TEXTURE2D_LOD(_FoamTexture, s_linear_repeat_sampler, UVA * _FoamTiling, lod);
+        foamMasksA = SAMPLE_TEXTURE2D_LOD(_FoamTexture, s_linear_repeat_sampler, UVA * _WaterFoamTiling, lod);
         if (_FoamCurrentInfluence > 0)
-            foamMasksB = SAMPLE_TEXTURE2D_LOD(_FoamTexture, s_linear_repeat_sampler, UVB * _FoamTiling, lod);
+            foamMasksB = SAMPLE_TEXTURE2D_LOD(_FoamTexture, s_linear_repeat_sampler, UVB * _WaterFoamTiling, lod);
     }
 
     foamMasks = lerp(foamMasksA, foamMasksB, lerpFactor);

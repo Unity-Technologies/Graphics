@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-tilemap-renderer-2d-renderer
+---
 # Using the Tilemap Renderer with URP 2D
 
 Setup and required settings when using the Tilemap Renderer component with URP 2D.

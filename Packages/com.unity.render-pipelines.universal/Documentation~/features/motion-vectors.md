@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-motion-vectors
+---
 # Motion vectors in URP
 
 URP calculates the frame-to-frame screen-space movement of surface fragments using a [motion vector render pass](#motion-vectors-pass). URP stores the movement data in a full-screen texture and the stored per-pixel values are called [motion vectors](#definition).

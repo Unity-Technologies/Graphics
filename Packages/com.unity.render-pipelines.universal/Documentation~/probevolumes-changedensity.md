@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-changedensity
+---
 # Configure the size and density of Adaptive Probe Volumes
 
 Refer to [Understanding Adaptive Probe Volumes](probevolumes-concept.md) for more information about how Adaptive Probe Volumes work.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-create-custom-renderer-feature-compatibility-mode
+---
 # Example of a complete Scriptable Renderer Feature in Compatibility Mode
 
 This section describes how to create a complete [Scriptable Renderer Feature](./scriptable-renderer-features/intro-to-scriptable-renderer-features.md) for a URP Renderer.

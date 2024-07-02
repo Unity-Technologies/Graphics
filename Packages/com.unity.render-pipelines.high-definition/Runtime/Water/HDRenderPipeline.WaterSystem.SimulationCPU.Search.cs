@@ -20,6 +20,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal WaterSpectrumParameters spectrum;
         internal WaterRenderingParameters rendering;
         internal int activeBandCount;
+
+        internal bool decalWorkflow;
+        internal float2 decalRegionCenter;
+        internal float2 decalRegionScale;
         #endregion
 
         #region Water Mask
@@ -37,8 +41,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool activeDeformation;
         [ReadOnly] internal NativeArray<half> deformationBuffer;
         internal int2 deformationResolution;
-        internal float2 deformationRegionScale;
-        internal float2 deformationRegionOffset;
         internal float2 waterForwardXZ;
         #endregion
 
@@ -149,19 +151,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class WaterSystem
     {
-        static void EvaluateWaterDisplacement(WaterSimSearchData wsd, float3 positionAWS, bool includeSimulation, out float3 totalDisplacement, out float2 dir)
+        static void EvaluateSimulationDisplacement(WaterSimSearchData wsd, float3 positionAWS, bool includeSimulation, out float2 horizontalDisplacement, out float2 dir, out float3 verticalDisplacements)
         {
-            // Will hold the total displacement
-            totalDisplacement = 0.0f;
             dir = OrientationToDirection(wsd.spectrum.patchOrientation.x);
 
             if (includeSimulation)
             {
                 // Compute the simulation coordinates
                 float2 uv = float2(positionAWS.x, positionAWS.z);
-                float3 waterMask = EvaluateWaterMask(wsd, uv);
 
-                // The behavior is different if we have a current map or we don't
                 if (wsd.activeGroup0CurrentMap || wsd.activeGroup1CurrentMap)
                 {
                     // Read the current data
@@ -188,28 +186,48 @@ namespace UnityEngine.Rendering.HighDefinition
                     ComputeWaterUVs(wsd, gr0uv.xy, out gr0SimCoord);
                     ComputeWaterUVs(wsd, gr1uv.xy, out gr1SimCoord);
                     AggregateWaterSimCoords(wsd, gr0SimCoord, gr1SimCoord, gr0CurrentData, gr1CurrentData, true, out finalSimCoord);
-                    float3 totalDisplacement0 = EvaluateWaterSimulation(wsd, finalSimCoord, waterMask);
+                    EvaluateWaterSimulation(wsd, finalSimCoord, out var horizontalDisplacement0, out var verticalDisplacements0);
 
                     // Sample the simulation (second time)
                     ComputeWaterUVs(wsd, gr0uv.zw, out gr0SimCoord);
                     ComputeWaterUVs(wsd, gr1uv.zw, out gr1SimCoord);
                     AggregateWaterSimCoords(wsd, gr0SimCoord, gr1SimCoord, gr0CurrentData, gr1CurrentData, false, out finalSimCoord);
-                    float3 totalDisplacement1 = EvaluateWaterSimulation(wsd, finalSimCoord, waterMask);
+                    EvaluateWaterSimulation(wsd, finalSimCoord, out var horizontalDisplacement1, out var verticalDisplacements1);
 
                     // Combine both contributions
-                    totalDisplacement = totalDisplacement0 + totalDisplacement1;
+                    horizontalDisplacement = horizontalDisplacement0 + horizontalDisplacement1;
+                    verticalDisplacements = verticalDisplacements0 + verticalDisplacements1;
                 }
                 else
                 {
                     ComputeWaterUVs(wsd, uv, out var coords);
-                    totalDisplacement = EvaluateWaterSimulation(wsd, coords, waterMask);
+                    EvaluateWaterSimulation(wsd, coords, out horizontalDisplacement, out verticalDisplacements);
                 }
 
-                // We only apply the choppiness tot he first two bands, doesn't behave very good past those
-                totalDisplacement.yz *= WaterConsts.k_WaterMaxChoppinessValue;
+                horizontalDisplacement *= -WaterConsts.k_WaterMaxChoppinessValue;
+            }
+            else
+            {
 
-                // The vertical displacement is stored in the X channel and the XZ displacement in the YZ channel
-                totalDisplacement = ShuffleDisplacement(totalDisplacement);
+                horizontalDisplacement = 0.0f;
+                verticalDisplacements = 0.0f;
+            }
+        }
+
+        static void EvaluateVerticalDisplacement(WaterSimSearchData wsd, WaterSearchParameters wsp, float3 positionOS, float3 verticalDisplacements, out float verticalDisplacement)
+        {
+            float3 positionAWS = mul(wsd.rendering.waterToWorldMatrix, float4(positionOS, 1.0f)).xyz;
+
+            float3 waterMask = EvaluateWaterMask(wsd, positionAWS);
+
+            verticalDisplacement = dot(verticalDisplacements, waterMask);
+
+            // Apply the deformation if required
+            if (wsp.includeDeformation && wsd.activeDeformation)
+            {
+                float deformation = EvaluateDeformers(wsd, positionAWS);
+                if (!float.IsNaN(deformation))
+                    verticalDisplacement += deformation;
             }
         }
 
@@ -259,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             float2 surfaceGradient = 0;
             float2 uv = float2(positionAWS.x, positionAWS.z);
-            float3 waterMask = EvaluateWaterMask(wsd, uv);
+            float3 waterMask = EvaluateWaterMask(wsd, positionAWS);
 
             if (!wsp.excludeSimulation)
             {
@@ -310,12 +328,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal struct WaterSimulationTapData
         {
-            public float3 currentDisplacement;
             public float2 direction;
-            public float3 displacedPoint;
             public float2 offset;
             public float distance;
-            public float height;
+            public float2 horizontalDisplacement;
+            public float3 verticalDisplacements;
         }
 
         static WaterSimulationTapData EvaluateDisplacementData(WaterSimSearchData wsd, float3 currentLocation, float3 referencePosition, bool includeSimulation)
@@ -323,19 +340,12 @@ namespace UnityEngine.Rendering.HighDefinition
             WaterSimulationTapData data;
 
             // Evaluate the displacement at the current point
-            EvaluateWaterDisplacement(wsd, currentLocation, includeSimulation, out data.currentDisplacement, out data.direction);
-
-            // Evaluate the complete position
-            data.displacedPoint = currentLocation + data.currentDisplacement;
+            EvaluateSimulationDisplacement(wsd, currentLocation, includeSimulation, out data.horizontalDisplacement, out data.direction, out data.verticalDisplacements);
 
             // Evaluate the distance to the reference point
-            data.offset = referencePosition.xz - data.displacedPoint.xz;
+            data.offset = (currentLocation.xz + data.horizontalDisplacement) - referencePosition.xz;
+            data.distance = length(data.offset);
 
-            // Length of the offset vector
-            data.distance = Mathf.Sqrt(data.offset.x * data.offset.x + data.offset.y * data.offset.y);
-
-            // Simulation height of the position of the offset vector
-            data.height = data.currentDisplacement.y;
             return data;
         }
 
@@ -355,57 +365,43 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             float2 stepSize = tapData.offset;
+            float3 currentVertical = tapData.verticalDisplacements;
+            float3 currentPositionOS = startPositionOS;
+
             sr.error = tapData.distance;
-            sr.candidateLocationWS = startPositionOS;
             sr.currentDirectionWS = float3(tapData.direction.x, 0, tapData.direction.y);
             sr.numIterations = 0;
 
             // Go through the steps until we found a position that satisfies our constraints
             while (sr.numIterations < wsp.maxIterations)
             {
-                // Is the point close enough to target position?
                 if (sr.error < wsp.error)
                     break;
 
-                // Reset the search progress flag
-                bool progress = false;
-
-                float3 candidateLocation = sr.candidateLocationWS + new float3(stepSize.x, 0, stepSize.y);
+                float3 candidateLocation = currentPositionOS - new float3(stepSize.x, 0, stepSize.y);
                 tapData = EvaluateDisplacementData(wsd, candidateLocation, targetPositionOS, !wsp.excludeSimulation);
                 if (float.IsNaN(tapData.distance))
                     return false;
 
                 if (tapData.distance < sr.error)
                 {
-                    sr.candidateLocationWS = candidateLocation;
                     stepSize = tapData.offset;
+                    currentVertical = tapData.verticalDisplacements;
+                    currentPositionOS = candidateLocation;
                     sr.error = tapData.distance;
                     sr.currentDirectionWS = float3(tapData.direction.x, 0, tapData.direction.y);
-                    progress = true;
                 }
-
-                // If we didn't make any progress in this step, this means out steps are probably too big make them smaller
-                if (!progress)
+                else // If we didn't make any progress in this step, this means out steps are probably too big make them smaller
                     stepSize *= 0.5f;
 
                 sr.numIterations++;
             }
 
-            // Apply the deformation if required
-            if (wsp.includeDeformation && wsd.activeDeformation)
-            {
-                float deformation = EvaluateDeformers(wsd, wsp.targetPositionWS);
-                if (float.IsNaN(deformation))
-                    return false;
-
-                tapData.displacedPoint.y += deformation;
-                tapData.currentDisplacement.y += deformation;
-                tapData.height = tapData.currentDisplacement.y;
-            }
+            EvaluateVerticalDisplacement(wsd, wsp, currentPositionOS, currentVertical, out var currentHeight);
 
             // Convert the positions from OS to world space
-            sr.projectedPositionWS = mul(wsd.rendering.waterToWorldMatrix, float4(targetPositionOS.x, tapData.height, targetPositionOS.z, 1.0f)).xyz;
-            sr.candidateLocationWS = mul(wsd.rendering.waterToWorldMatrix, float4(sr.candidateLocationWS, 1.0f)).xyz;
+            sr.projectedPositionWS = mul(wsd.rendering.waterToWorldMatrix, float4(targetPositionOS.x, currentHeight, targetPositionOS.z, 1.0f)).xyz;
+            sr.candidateLocationWS = mul(wsd.rendering.waterToWorldMatrix, float4(currentPositionOS, 1.0f)).xyz;
 
             if (wsp.outputNormal)
             {

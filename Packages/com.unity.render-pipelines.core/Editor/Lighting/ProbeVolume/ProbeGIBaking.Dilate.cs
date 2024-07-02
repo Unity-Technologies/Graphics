@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering
             public Vector4 SO_L0L1;
             public Vector3 SO_Direction;
 
+            public Vector4 ProbeOcclusion;
+
             void ToSphericalHarmonicsL2(ref SphericalHarmonicsL2 sh)
             {
                 SphericalHarmonicsL2Utils.SetCoefficient(ref sh, 0, L0);
@@ -90,6 +92,9 @@ namespace UnityEngine.Rendering
                     var directions = ProbeVolumeConstantRuntimeResources.GetSkySamplingDirections();
                     SO_Direction = id == 255 ? Vector3.zero : directions[id];
                 }
+
+                if (cellChunkData.probeOcclusion.Length != 0)
+                    ReadFromShaderCoeffsProbeOcclusion(ref ProbeOcclusion, cellChunkData.probeOcclusion, index);
             }
 
             internal void ToSphericalHarmonicsShaderConstants(ProbeReferenceVolume.Cell cell, int probeIdx)
@@ -108,6 +113,9 @@ namespace UnityEngine.Rendering
                     WriteToShaderSkyOcclusion(SO_L0L1, cellChunkData.skyOcclusionDataL0L1, index * 4);
                 if (cellChunkData.skyShadingDirectionIndices.Length != 0)
                     cellChunkData.skyShadingDirectionIndices[index] = (byte)SkyOcclusionBaker.EncodeSkyShadingDirection(SO_Direction);
+
+                if (cellChunkData.probeOcclusion.Length != 0)
+                    WriteToShaderProbeOcclusion(ProbeOcclusion, cellChunkData.probeOcclusion, index * 4);
             }
         }
 
@@ -328,6 +336,8 @@ namespace UnityEngine.Rendering
                 cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVResL2_2, rr.L2_2);
                 cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVResL2_3, rr.L2_3);
 
+                cmd.SetGlobalTexture(ProbeReferenceVolume.ShaderIDs._APVProbeOcclusion, rr.ProbeOcclusion ?? (RenderTargetIdentifier)CoreUtils.whiteVolumeTexture);
+
                 cmd.SetComputeTextureParam(dilationShader, dilationKernel, ProbeReferenceVolume.ShaderIDs._SkyOcclusionTexL0L1, rr.SkyOcclusionL0L1 ?? (RenderTargetIdentifier)CoreUtils.blackVolumeTexture);
                 cmd.SetComputeTextureParam(dilationShader, dilationKernel, ProbeReferenceVolume.ShaderIDs._SkyShadingDirectionIndicesTex, rr.SkyShadingDirectionIndices ?? (RenderTargetIdentifier)CoreUtils.blackVolumeTexture);
                 cmd.SetComputeBufferParam(dilationShader, dilationKernel, ProbeReferenceVolume.ShaderIDs._SkyPrecomputedDirections, rr.SkyPrecomputedDirections);
@@ -347,6 +357,7 @@ namespace UnityEngine.Rendering
             parameters.skyOcclusionShadingDirection = bakingSet.skyOcclusionShadingDirection ? true : false;
             parameters.regionCount = 1;
             parameters.regionLayerMasks = 1;
+            parameters.worldOffset = Vector3.zero;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

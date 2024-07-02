@@ -255,6 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public static partial class HDMaterial
     {
         //enum representing all shader and shadergraph that we expose to user
+        // Warning: must match orders defined in s_ShaderPaths and s_SubTargetIds
         internal enum ShaderID
         {
             Lit,
@@ -274,6 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SG_Decal,
             SG_Eye,
             SG_Water,
+            SG_WaterDecal,
             SG_FogVolume,
             SG_SixWay,
             SG_PBRSky,
@@ -305,8 +307,10 @@ namespace UnityEngine.Rendering.HighDefinition
             "DecalSubTarget",
             "EyeSubTarget",
             "WaterSubTarget",
+            "WaterDecalSubTarget",
             "FogVolumeSubTarget",
             "HDSixWaySubTarget",
+            "PBRSkySubTarget",
         };
 
         // list of methods for resetting keywords
@@ -331,6 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
             { ShaderID.SG_Eye, ShaderGraphAPI.ValidateLightingMaterial },
             { ShaderID.SG_FogVolume, ShaderGraphAPI.ValidateFogVolumeMaterial },
             { ShaderID.SG_SixWay, ShaderGraphAPI.ValidateSixWayMaterial },
+            { ShaderID.SG_WaterDecal, ShaderGraphAPI.ValidateWaterDecalMaterial },
         };
 
         internal static ShaderID GetShaderID(Material material)

@@ -151,12 +151,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Water Properties
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
-                supportWaterDeformation = true,
-                deformationAtlasSize = WaterAtlasSize.AtlasSize512,
-                maximumDeformerCount = 64,
-                supportWaterFoam = true,
-                foamAtlasSize = WaterAtlasSize.AtlasSize512,
                 supportWaterExclusion = true,
+
+                supportWaterDecals = true,
+                waterDecalAtlasSize = WaterAtlasSize.AtlasSize1024,
+                maximumWaterDecalCount = 48,
+
                 waterScriptInteractionsMode = WaterScriptInteractionsMode.GPUReadback,
                 waterFullCPUSimulation = false,
 
@@ -268,16 +268,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public WaterSimulationResolution waterSimulationResolution;
         /// <summary>Support Water Surfaces exclusion.</summary>
         public bool supportWaterExclusion;
+
         /// <summary>Support Water Surfaces deformation.</summary>
-        public bool supportWaterDeformation;
-        /// <summary>Defines the resolution of the deformer atlas.</summary>
-        public WaterAtlasSize deformationAtlasSize;
-        /// <summary>Maximum amount of water deformers supported.</summary>
-        public int maximumDeformerCount;
-        /// <summary>Support Water Surfaces foam.</summary>
-        public bool supportWaterFoam;
-        /// <summary>Defines the resolution of the foam system atlas.</summary>
-        public WaterAtlasSize foamAtlasSize;
+        public bool supportWaterDecals;
+        /// <summary>Defines the resolution of the decal atlas.</summary>
+        public WaterAtlasSize waterDecalAtlasSize;
+        /// <summary>Maximum amount of visible water decals.</summary>
+        public int maximumWaterDecalCount;
+
         /// <summary>Defines if the script interactions should simulate water on CPU or fetch simulation from the GPU.</summary>
         [Tooltip("Defines if the script interactions should simulate water on CPU or fetch simulation from the GPU.")]
         public WaterScriptInteractionsMode waterScriptInteractionsMode;

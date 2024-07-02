@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.Universal
     internal class DecalForwardEmissivePass : ScriptableRenderPass
     {
         private FilteringSettings m_FilteringSettings;
-        private ProfilingSampler m_ProfilingSampler;
         private List<ShaderTagId> m_ShaderTagIdList;
         private DecalDrawFowardEmissiveSystem m_DrawSystem;
         private PassData m_PassData;
@@ -25,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
             m_DrawSystem = drawSystem;
-            m_ProfilingSampler = new ProfilingSampler("Decal Forward Emissive Render");
+            profilingSampler = new ProfilingSampler("Draw Decal Forward Emissive");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
@@ -47,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
             var param = InitRendererListParams(universalRenderingData, cameraData, lightData);
 
             var rendererList = context.CreateRendererList(ref param);
-            using (new ProfilingScope(universalRenderingData.commandBuffer, m_ProfilingSampler))
+            using (new ProfilingScope(universalRenderingData.commandBuffer, profilingSampler))
             {
                 ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(universalRenderingData.commandBuffer), m_PassData, rendererList);
             }
@@ -80,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Decal Forward Emissive Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();

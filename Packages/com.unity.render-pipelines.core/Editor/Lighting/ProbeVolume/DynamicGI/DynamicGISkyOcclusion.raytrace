@@ -1,22 +1,3 @@
-#define RAYTRACING_BACKEND_HARDWARE
+#define UNIFIED_RT_BACKEND_HARDWARE
 #include "DynamicGISkyOcclusion.hlsl"
-
-#pragma max_recursion_depth 1
-
-[shader("raygeneration")]
-void MainRayGenShader()
-{
-    UnifiedRT::DispatchInfo dispatchInfo;
-    dispatchInfo.dispatchThreadID = DispatchRaysIndex();
-    dispatchInfo.dispatchDimensionsInThreads = DispatchRaysDimensions();
-    dispatchInfo.localThreadIndex = 0;
-    dispatchInfo.globalThreadIndex = DispatchRaysIndex().x + DispatchRaysIndex().y * DispatchRaysDimensions().x + DispatchRaysIndex().z * (DispatchRaysDimensions().x * DispatchRaysDimensions().y);
-
-    RayGenExecute(dispatchInfo);
-}
-
-[shader("miss")]
-void MainMissShader0(inout UnifiedRT::Hit hit : SV_RayPayload)
-{
-    hit.instanceIndex = -1;
-}
+#include_with_pragmas "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Hardware/HardwareRaygenShader.hlsl"

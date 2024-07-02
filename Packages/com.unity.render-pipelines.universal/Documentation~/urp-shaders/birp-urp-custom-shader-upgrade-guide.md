@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-birp-urp-custom-shader-upgrade-guide
+---
 # Upgrade custom shaders for URP compatibility
 
 Custom Shaders written for the Built-In Render Pipeline are not compatible with the Universal Render Pipeline (URP), and you can't upgrade them automatically with the Render Pipeline Converter. Instead, you must rewrite the incompatible sections of shader code to work with URP.

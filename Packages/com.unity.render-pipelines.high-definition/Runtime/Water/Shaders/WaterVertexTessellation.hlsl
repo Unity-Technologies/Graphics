@@ -91,27 +91,19 @@ VaryingsMeshType VertMeshWater(AttributesMesh input)
 
     float3 positionPredisplacementOS = input.positionOS;
 
-    // Due to the fact that a first clipping pass is done at the end of the vertex stage, we need to ensure that
-    // the base triangles that were outside the frustum and need to be visible. We then have to apply the displacement to them
-    input = ApplyMeshModification(input, _TimeParameters.xyz
-    #ifdef USE_CUSTOMINTERP_SUBSTRUCT
-        , output
-    #endif
-        );
+    VertexDescription vertex;
+    ApplyMeshModification(input, _TimeParameters.xyz, output, vertex);
 
     // Export for the following stage
-    if (_GridSize.x >= 0)
-    {
-        output.positionRWS =  TransformObjectToWorld(input.positionOS);
-        output.normalWS = input.normalOS;
-        output.texCoord0 = input.uv0;
-        output.texCoord1 = input.uv1;
-    }
+    PackWaterVertexData(vertex, output.texCoord0, output.texCoord1);
+
+    output.normalWS = vertex.Normal;
 
     #ifdef TESSELLATION_ON
     output.tessellationFactor = _WaterMaxTessellationFactor;
+    output.positionRWS = TransformObjectToWorld(vertex.Position + vertex.Displacement);
     #else
-    output.positionCS = TransformWorldToHClip(output.positionRWS);
+    output.positionCS = TransformWorldToHClip(output.texCoord1.xyz);
     #endif
 
     #if defined(WATER_DISPLACEMENT)
@@ -166,20 +158,15 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     // Transfer the unprocessed instance ID to the next stage
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-    // Apply the mesh modifications that come from the shader graph
-    input = ApplyTessellationModification(input, _TimeParameters.xyz);
+    VertexDescription vertex;
+    ApplyTessellationModification(input, _TimeParameters.xyz, output, vertex);
 
     // Export for the following stage
-    output.positionCS = TransformWorldToHClip(input.positionRWS);
-    output.positionRWS = input.positionRWS;
-    output.normalWS = input.normalWS;
-    output.texCoord0 = input.texCoord0;
-    output.texCoord1 = input.texCoord1;
+    PackWaterVertexData(vertex, output.texCoord0, output.texCoord1);
 
-#ifdef USE_CUSTOMINTERP_SUBSTRUCT
-    // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
-    VertMeshTesselationCustomInterpolation(input, output);
-#endif
+    output.positionCS = TransformWorldToHClip(output.texCoord1.xyz);
+    output.normalWS = vertex.Normal;
+
 
     return output;
 }

@@ -3,6 +3,8 @@ using Unity.Mathematics;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // This buffer contains surface data that mostly don't change
+    // Note: be careful not to use generic names to not conflict with user defined variables
+    // eg. _FoamSmoothness should not be used
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesWaterPerSurface
     {
@@ -16,18 +18,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _PatchDirectionDampener;
         public int4 _PatchGroup;
 
-        // Scale of the water mask
-        public Vector2 _WaterMaskScale;
-        // Offset of the water mask
-        public Vector2 _WaterMaskOffset;
-        // Remap range of the water mask
-        public Vector2 _WaterMaskRemap;
-
         // Per group data
         public float2 _GroupOrientation;
 
-        public Vector2 _DeformationRegionOffset;
-        public Vector2 _DeformationRegionScale;
+        // Resolution at which the simulation is evaluated
+        public uint _BandResolution;
+        // Surface Index
+        public int _SurfaceIndex;
 
         // Per band data
         public Vector4 _Band0_ScaleOffset_AmplitudeMultiplier;
@@ -37,29 +34,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public float2 _Band1_Fade;
         public float2 _Band2_Fade;
 
-        // Resolution at which the simulation is evaluated
-        public uint _BandResolution;
-        // Surface Index
-        public int _SurfaceIndex;
-
-        // Scale of the foam mask
-        public Vector2 _SimulationFoamMaskScale;
-        // Offset of the foam mask
-        public Vector2 _SimulationFoamMaskOffset;
+        // Deformation region resolution
+        public int _DeformationRegionResolution;
+        // Foam region resolution
+        public float _WaterFoamRegionResolution;
 
         // Foam Intensity
         public float _SimulationFoamIntensity;
         // Amount of surface foam
         public float _SimulationFoamAmount;
-        // Foam region resolution
-        public float _WaterFoamRegionResolution;
         // Foam Tiling
-        public float _FoamTiling;
+        public float _WaterFoamTiling;
+        // Resolution of the decal atlas
+        public float _DecalAtlasScale;
 
-        // Size of the foam region
-        public Vector2 _FoamRegionScale;
-        // Center of the foam region
-        public Vector2 _FoamRegionOffset;
+        // Size of the decal region
+        public Vector2 _DecalRegionScale;
+        // Center of the decal region
+        public Vector2 _DecalRegionOffset;
 
         // Up direction of the water surface
         public float4 _WaterUpDirection;
@@ -73,7 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _CausticsRegionSize;
         // Caustic band index
         public int _CausticsBandIndex;
-        public float _PaddingW2;
+        // Offset applied to the caustics LOD
+        public float _CausticsMaxLOD;
 
         // Base color data
         public Vector4 _WaterAlbedo;
@@ -86,18 +79,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Influence of current on foam scrolling
         public float _FoamCurrentInfluence;
         // Smoothness of the foam
-        public float _FoamSmoothness;
+        public float _WaterFoamSmoothness;
         // Water smoothness
         public float _WaterSmoothness;
         // Controls the fade multiplier of the foam
         public float _FoamPersistenceMultiplier;
-
-        // Forward vector of water surface
-        public float2 _WaterForwardXZ;
-        // Deformation region resolution
-        public int _DeformationRegionResolution;
-        // Offset applied to the caustics LOD
-        public float _CausticsMaxLOD;
 
         // Tiling of the caustics texture
         public float _CausticsTilingFactor;
@@ -112,14 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _MaxWaveDisplacement;
         // Maximal wave height of the current setup
         public float _MaxWaveHeight;
-
-        // Current Map Influence
-        public Vector2 _CurrentMapInfluence;
-
-        // Scale & offset of the large
-        public Vector4 _Group0CurrentRegionScaleOffset;
-        // Scale & offset of the ripples
-        public Vector4 _Group1CurrentRegionScaleOffset;
+        public Vector2 _PaddingW2;
 
         // Which rendering layers should affect this surface - for decals
         public uint _WaterRenderingLayer;
@@ -133,17 +112,30 @@ namespace UnityEngine.Rendering.HighDefinition
         // This matrix is used for caustics in case of a custom mesh
         public Matrix4x4 _WaterCustomTransform_Inverse;
 
-        // Below are the only data that needs to be changed every frame
+        // Those are not used in decal mode
+
+        public Vector2 _WaterMaskScale;
+        public Vector2 _WaterMaskOffset;
+        public Vector2 _WaterMaskRemap;
+        public Vector2 _CurrentMapInfluence;
+
+        public Vector2 _SimulationFoamMaskScale;
+        public Vector2 _SimulationFoamMaskOffset;
+
+        public Vector4 _Group0CurrentRegionScaleOffset;
+        public Vector4 _Group1CurrentRegionScaleOffset;
+
+        // Below are the only data that need to be changed every frame
         // Currently the whole buffer is reupload anyway, but this should be changed
 
-        // Maximum horizontal deformation
+        // Maximum vertical deformation
         public float _MaxWaterDeformation;
         // Current simulation time
         public float _SimulationTime;
         // Delta-time since the last simulation step
         public float _DeltaTime;
         // Padding
-        public float _PaddingW1;
+        public float _PaddingW3;
     }
 
     // This buffer contains surface data that vary per camera

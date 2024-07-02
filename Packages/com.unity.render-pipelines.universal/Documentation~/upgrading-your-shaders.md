@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-upgrading-your-shaders
+---
 # Converting your shaders
 
 Shaders written for the Built-in Render Pipeline are not compatible with Universal Render Pipeline (URP) shaders. Unity renders objects with the [default magenta error shader](https://docs.unity3d.com/Manual/shader-error.html) if they use Built-In Render Pipeline shaders.

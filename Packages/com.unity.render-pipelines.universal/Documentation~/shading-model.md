@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-shading-model
+---
 # Shading models in Universal Render Pipeline
 
 A shading model defines how a Material’s color varies depending on factors such as surface orientation, viewer direction, and lighting. Your choice of a shading model depends on the artistic direction and performance budget of your application. Universal Render Pipeline (URP) provides Shaders with the following shading models:

@@ -218,6 +218,7 @@ namespace ShaderStrippingAndPrefiltering
             helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
 
             TestStripUnusedPass_2D(shader);
+            TestStripUnusedPass_XR(shader);
             TestStripUnusedPass_ShadowCaster(shader);
             TestStripUnusedPass_Decals(shader);
         }
@@ -236,6 +237,24 @@ namespace ShaderStrippingAndPrefiltering
             helper.data.strip2DPasses = true;
             helper.data.passName = ShaderScriptableStripper.kPassNameUniversal2D;
             helper.IsTrue(helper.stripper.StripUnusedPass_2D(ref helper.data));
+            helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
+        }
+
+
+        public void TestStripUnusedPass_XR(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripUnusedXRVariants = false;
+            helper.data.passName = ShaderScriptableStripper.kPassNameXRMotionVectors;
+            helper.IsFalse(helper.stripper.StripUnusedPass_XRMotionVectors(ref helper.data));
+            helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripUnusedXRVariants = true;
+            helper.data.passName = ShaderScriptableStripper.kPassNameXRMotionVectors;
+            helper.IsTrue(helper.stripper.StripUnusedPass_XRMotionVectors(ref helper.data));
             helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
         }
 
@@ -709,6 +728,7 @@ namespace ShaderStrippingAndPrefiltering
         [TestCase("Hidden/Universal Render Pipeline/LensFlareScreenSpace")]
         [TestCase("Hidden/Universal Render Pipeline/XR/XROcclusionMesh")]
         [TestCase("Hidden/Universal Render Pipeline/XR/XRMirrorView")]
+        [TestCase("Hidden/Universal Render Pipeline/XR/XRMotionVector")]
         public void TestStripUnusedFeatures(string shaderName)
         {
             Shader shader = Shader.Find(shaderName);
@@ -945,13 +965,18 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.None, stripUnusedXRVariants: false);
             helper.IsFalse(helper.stripper.StripUnusedFeatures_XROcclusionMesh(ref helper.data));
             helper.IsFalse(helper.stripper.StripUnusedFeatures_XRMirrorView(ref helper.data));
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_XRMotionVector(ref helper.data));
 
             helper = new TestHelper(shader, ShaderFeatures.None, stripUnusedXRVariants: true);
             bool isXROcclusion = shader != null && shader.name == "Hidden/Universal Render Pipeline/XR/XROcclusionMesh";
             bool isXRMirror = shader != null && shader.name == "Hidden/Universal Render Pipeline/XR/XRMirrorView";
+            bool isXRMotionVector = shader != null && shader.name == "Hidden/Universal Render Pipeline/XR/XRMotionVector";
+
             //We should strip the shader only if it's the XR shader.
             helper.IsTrue(isXROcclusion ? helper.stripper.StripUnusedFeatures_XROcclusionMesh(ref helper.data) : !helper.stripper.StripUnusedFeatures_XROcclusionMesh(ref helper.data));
             helper.IsTrue(isXRMirror ? helper.stripper.StripUnusedFeatures_XRMirrorView(ref helper.data) : !helper.stripper.StripUnusedFeatures_XRMirrorView(ref helper.data));
+            helper.IsTrue(isXRMotionVector ? helper.stripper.StripUnusedFeatures_XRMotionVector(ref helper.data) : !helper.stripper.StripUnusedFeatures_XRMotionVector(ref helper.data));
+
         }
 
         public void TestStripUnusedFeatures_DeferredRendering(Shader shader)

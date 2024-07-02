@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="LayerMask"/>
         public DepthNormalOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(DepthNormalOnlyPass));
+            profilingSampler = ProfilingSampler.Get(URPProfileId.DrawDepthNormalPrepass);
             m_PassData = new PassData();
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
@@ -113,20 +113,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthNormalPrepass)))
-            {
-                // Enable Rendering Layers
-                if (passData.enableRenderingLayers)
-                    cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
+        {            
+            // Enable Rendering Layers
+            if (passData.enableRenderingLayers)
+                cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
 
-                // Draw
-                cmd.DrawRendererList(rendererList);
+            // Draw
+            cmd.DrawRendererList(rendererList);
 
-                // Clean up
-                if (passData.enableRenderingLayers)
-                    cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);
-            }
+            // Clean up
+            if (passData.enableRenderingLayers)
+                cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);            
         }
 
         /// <inheritdoc/>
@@ -141,7 +138,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.enableRenderingLayers = enableRenderingLayers;
             var param = InitRendererListParams(universalRenderingData, cameraData,lightData);
             var rendererList = context.CreateRendererList(ref param);
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
+
+            var cmd = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
+
+            using (new ProfilingScope(cmd, profilingSampler))
+            {
+                ExecutePass(cmd, m_PassData, rendererList);
+            }
         }
 
         /// <inheritdoc/>
@@ -185,7 +188,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("DepthNormals Prepass", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.cameraNormalsTexture = cameraNormalsTexture;
                 builder.SetRenderAttachment(cameraNormalsTexture, 0, AccessFlags.Write);

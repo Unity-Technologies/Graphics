@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-how-to-custom-effect-render-objects
+---
 # Example: How to create a custom rendering effect using the Render Objects Renderer Feature
 
 URP draws objects in the **DrawOpaqueObjects** and **DrawTransparentObjects** passes. You might need to draw objects at a different point in the frame rendering, or interpret and write rendering data (like depth and stencil) in alternate ways. The [Render Objects Renderer Feature](renderer-feature-render-objects.md) lets you do such customizations by letting you draw objects on a certain layer, at a certain time, with specific overrides.

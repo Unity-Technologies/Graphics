@@ -3223,7 +3223,15 @@ namespace UnityEngine.Rendering.HighDefinition
             float halfWidth = m_ShapeWidth * 0.5f;
             float halfHeight = m_ShapeHeight * 0.5f;
             float diag = Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
-            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, Mathf.Max(range, diag));
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, range + diag);
+        }
+
+        void UpdateDiscLightBounds()
+        {
+            legacyLight.useShadowMatrixOverride = false;
+            // TODO: Don't use bounding sphere overrides. Support this properly in Unity native instead.
+            legacyLight.useBoundingSphereOverride = true;
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, range + m_ShapeWidth);
         }
 
         void UpdateTubeLightBounds()
@@ -3231,7 +3239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyLight.useShadowMatrixOverride = false;
             // TODO: Don't use bounding sphere overrides. Support this properly in Unity native instead.
             legacyLight.useBoundingSphereOverride = true;
-            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, Mathf.Max(range, m_ShapeWidth * 0.5f));
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, range + m_ShapeWidth * 0.5f);
         }
 
         void UpdateBoxLightBounds()
@@ -3277,6 +3285,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case LightType.Rectangle:
                     UpdateRectangleLightBounds();
+                    break;
+                case LightType.Disc:
+                    UpdateDiscLightBounds();
                     break;
                 case LightType.Tube:
                     UpdateTubeLightBounds();

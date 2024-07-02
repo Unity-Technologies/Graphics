@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-bloom
+---
 # Bloom
 
 ![Bloom](Images/post-proc/Bloom-off.png)

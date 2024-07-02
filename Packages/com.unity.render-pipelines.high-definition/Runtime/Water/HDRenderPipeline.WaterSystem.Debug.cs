@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ctx.cmd.SetBufferData(data.perCameraCB, data.sharedPerCameraDataArray, surfaceData.surfaceIndex, 0, 1);
                                 ConstantBuffer.Push(ctx.cmd, data.waterDebugCBs[surfaceIdx], surfaceData.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
 
-                                SetupWaterShaderKeyword(ctx.cmd, surfaceData.numActiveBands, surfaceData.activeCurrent);
+                                SetupWaterShaderKeyword(ctx.cmd, data.decalWorkflow, surfaceData.numActiveBands, surfaceData.activeCurrent);
                                 DrawWaterSurface(ctx.cmd, k_PassesWaterMask, data, ref surfaceData);
                                 ResetWaterShaderKeyword(ctx.cmd);
                             }

@@ -13,7 +13,7 @@ namespace UnityEngine.VFX.SDF
     /// </summary>
     public class MeshToSDFBaker : IDisposable
     {
-        private RenderTexture m_RayMap, m_SignMap, m_SignMapBis;
+        private RenderTexture[] m_RayMaps, m_SignMaps;
         private RenderTexture[] m_RenderTextureViews;
         private GraphicsBuffer m_CounterBuffer, m_AccumCounterBuffer, m_TrianglesInVoxels, m_TrianglesUV;
         private GraphicsBuffer
@@ -54,6 +54,8 @@ namespace UnityEngine.VFX.SDF
         private int[] m_OffsetRayMap = new int[3];
         private float[] m_MinBoundsExtended = new float[3];
         private float[] m_MaxBoundsExtended = new float[3];
+
+        private int m_RayMapUseCounter = 0;
 
         internal static uint kMaxRecommandedGridSize = 1 << 24;
         internal static uint kMaxAbsoluteGridSize = 1 << 27;
@@ -347,15 +349,20 @@ namespace UnityEngine.VFX.SDF
 
             CreateRenderTextureIfNeeded(ref m_textureVoxel, rtDesc4Channels);
             CreateRenderTextureIfNeeded(ref m_textureVoxelBis, rtDesc4Channels);
-            CreateRenderTextureIfNeeded(ref m_RayMap, rtDesc4Channels);
-            CreateRenderTextureIfNeeded(ref m_SignMap, rtDescSignMap);
-            CreateRenderTextureIfNeeded(ref m_SignMapBis, rtDescSignMap);
+
+            if(m_RayMaps == null)
+                m_RayMaps = new RenderTexture[2];
+            if(m_SignMaps == null)
+                m_SignMaps = new RenderTexture[2];
+
+            for (int i = 0; i < 2; i++)
+            {
+                CreateRenderTextureIfNeeded(ref m_RayMaps[i], rtDesc4Channels);
+                CreateRenderTextureIfNeeded(ref m_SignMaps[i], rtDescSignMap);
+            }
 
             CreateRenderTextureIfNeeded(ref m_DistanceTexture, rtDesc1Channel);
-
-            CreateGraphicsBufferIfNeeded(ref m_bufferVoxel, GetTotalVoxelCount(),
-                4 * sizeof(float));
-
+            CreateGraphicsBufferIfNeeded(ref m_bufferVoxel, GetTotalVoxelCount(), 4 * sizeof(float));
             InitPrefixSumBuffers();
         }
 
@@ -618,11 +625,11 @@ namespace UnityEngine.VFX.SDF
 
         void GenerateRayMap()
         {
+            m_RayMapUseCounter = 0;
             m_Cmd.BeginSample("BakeSDF.Raymap");
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.generateRayMapLocal, ShaderProperties.accumCounter, m_AccumCounterBuffer);
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.generateRayMapLocal, ShaderProperties.triangleIDs, m_TrianglesInVoxels);
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.generateRayMapLocal, ShaderProperties.trianglesUV, m_TrianglesUV);
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.generateRayMapLocal, ShaderProperties.rayMap, m_RayMap);
 
             m_Cmd.BeginSample("BakeSDF.LocalRaymap");
 
@@ -631,28 +638,39 @@ namespace UnityEngine.VFX.SDF
                 m_OffsetRayMap[0] = i & 1;
                 m_OffsetRayMap[1] = (i & 2) >> 1;
                 m_OffsetRayMap[2] = (i & 4) >> 2;
+                m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.generateRayMapLocal, ShaderProperties.rayMap, GetRayMapPrincipal(m_RayMapUseCounter));
+                m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.generateRayMapLocal, ShaderProperties.rayMapTmp, GetRayMapBis(m_RayMapUseCounter));
                 m_Cmd.SetComputeIntParams(m_computeShader, ShaderProperties.offsetRayMap, m_OffsetRayMap);
                 m_Cmd.DispatchCompute(m_computeShader, m_Kernels.generateRayMapLocal,
-                    Mathf.CeilToInt(m_Dimensions[0] / (2.0f * 8.0f)),
-                    Mathf.CeilToInt(m_Dimensions[1] / (2.0f * 8.0f)),
-                    Mathf.CeilToInt(m_Dimensions[2] / (2.0f * 8.0f)));
+                    Mathf.CeilToInt(m_Dimensions[0] / (2.0f * 4.0f)),
+                    Mathf.CeilToInt(m_Dimensions[1] / (2.0f * 4.0f)),
+                    Mathf.CeilToInt(m_Dimensions[2] / (2.0f * 4.0f)));
+                m_RayMapUseCounter++;
             }
+
             m_Cmd.EndSample("BakeSDF.LocalRaymap");
 
             m_Cmd.BeginSample("BakeSDF.GlobalRaymap");
 
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.rayMapScanX, ShaderProperties.rayMap, m_RayMap);
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.rayMapScanY, ShaderProperties.rayMap, m_RayMap);
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.rayMapScanZ, ShaderProperties.rayMap, m_RayMap);
-
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.rayMapScanX, ShaderProperties.rayMap, GetRayMapPrincipal(m_RayMapUseCounter));
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.rayMapScanX, ShaderProperties.rayMapTmp, GetRayMapBis(m_RayMapUseCounter));
             m_Cmd.DispatchCompute(m_computeShader, m_Kernels.rayMapScanX,
                 1,
                 Mathf.CeilToInt(m_Dimensions[1] / 8.0f),
                 Mathf.CeilToInt(m_Dimensions[2] / 8.0f));
+            m_RayMapUseCounter++;
+
+
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.rayMapScanY, ShaderProperties.rayMap, GetRayMapPrincipal(m_RayMapUseCounter));
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.rayMapScanY, ShaderProperties.rayMapTmp, GetRayMapBis(m_RayMapUseCounter));
             m_Cmd.DispatchCompute(m_computeShader, m_Kernels.rayMapScanY,
                 Mathf.CeilToInt(m_Dimensions[0] / 8.0f),
                 1,
                 Mathf.CeilToInt(m_Dimensions[2] / 8.0f));
+            m_RayMapUseCounter++;
+
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.rayMapScanZ, ShaderProperties.rayMap, GetRayMapPrincipal(m_RayMapUseCounter));
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.rayMapScanZ, ShaderProperties.rayMapTmp, GetRayMapBis(m_RayMapUseCounter));
             m_Cmd.DispatchCompute(m_computeShader, m_Kernels.rayMapScanZ,
                 Mathf.CeilToInt(m_Dimensions[0] / 8.0f),
                 Mathf.CeilToInt(m_Dimensions[1] / 8.0f),
@@ -662,35 +680,20 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.EndSample("BakeSDF.Raymap");
         }
 
-        RenderTexture GetSignMapPrincipal(int step)
-        {
-            if (step % 2 == 0)
-            {
-                return m_SignMap;
-            }
-
-            return m_SignMapBis;
-        }
-
-        RenderTexture GetSignMapBis(int step)
-        {
-            if (step % 2 == 0)
-            {
-                return m_SignMapBis;
-            }
-
-            return m_SignMap;
-        }
+        RenderTexture GetRayMapPrincipal(int step) { return m_RayMaps[step % 2]; }
+        RenderTexture GetRayMapBis(int step) { return m_RayMaps[(step+1) % 2]; }
+        RenderTexture GetSignMapPrincipal(int step) { return m_SignMaps[step % 2]; }
+        RenderTexture GetSignMapBis(int step) { return m_SignMaps[(step+1) % 2]; }
 
         void SignPass()
         {
             m_Cmd.BeginSample("BakeSDF.SignPass");
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.signPass6Rays, ShaderProperties.rayMap, m_RayMap);
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.signPass6Rays, ShaderProperties.rayMap, GetRayMapPrincipal(m_RayMapUseCounter));
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.signPass6Rays, ShaderProperties.signMap, GetSignMapPrincipal(0));
             m_Cmd.DispatchCompute(m_computeShader, m_Kernels.signPass6Rays, Mathf.CeilToInt(m_Dimensions[0] / 4.0f),
                 Mathf.CeilToInt(m_Dimensions[1] / 4.0f), Mathf.CeilToInt(m_Dimensions[2] / 4.0f));
 
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.signPassNeighbors, ShaderProperties.rayMap, m_RayMap);
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.signPassNeighbors, ShaderProperties.rayMap, GetRayMapPrincipal(m_RayMapUseCounter));
             int neighboursCount = 8;
             float normalizeFactor = 6.0f;
             m_Cmd.SetComputeFloatParam(m_computeShader, ShaderProperties.normalizeFactor, normalizeFactor);
@@ -922,9 +925,10 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.BeginSample("BakeSDF.ClearTexturesAndBuffers");
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.voxelsTexture, m_textureVoxel, 0);
             m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.voxelsTmpTexture, m_textureVoxelBis, 0);
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.rayMap, m_RayMap, 0);
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.signMap, m_SignMap, 0);
-            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.signMapTmp, m_SignMapBis);
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.rayMap, m_RayMaps[0], 0);
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.rw_rayMapTmp, m_RayMaps[1], 0);
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.signMap, m_SignMaps[0], 0);
+            m_Cmd.SetComputeTextureParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.signMapTmp, m_SignMaps[1]);
 
             m_Cmd.SetComputeBufferParam(m_computeShader, m_Kernels.clearTexturesAndBuffers, ShaderProperties.voxelsBuffer, m_bufferVoxel);
 
@@ -954,7 +958,6 @@ namespace UnityEngine.VFX.SDF
             m_Cmd.EndSample("BakeSDF.DistanceTransform");
         }
 
-        private RenderTexture RayMap => m_RayMap;
         private void ReleaseBuffersAndTextures()
         {
             //Release  textures.
@@ -964,11 +967,17 @@ namespace UnityEngine.VFX.SDF
             for (var i = 0; i < 3; i++)
             {
                 ReleaseRenderTexture(ref m_RenderTextureViews[i]);
-                Object.Destroy(m_Material[i]);
+                if(Application.isPlaying)
+                    Object.Destroy(m_Material[i]);
+                else
+                    Object.DestroyImmediate(m_Material[i]);
             }
-            ReleaseRenderTexture(ref m_SignMap);
-            ReleaseRenderTexture(ref m_SignMapBis);
-            ReleaseRenderTexture(ref m_RayMap);
+
+            for (int i = 0; i < 2; i++)
+            {
+                ReleaseRenderTexture(ref m_SignMaps[i]);
+                ReleaseRenderTexture(ref m_RayMaps[i]);
+            }
 
             //Release  buffers.
             ReleaseGraphicsBuffer(ref m_bufferVoxel);
@@ -1076,7 +1085,10 @@ namespace UnityEngine.VFX.SDF
             if (rt != null)
             {
                 rt.Release();
-                Object.DestroyImmediate(rt);
+                if(Application.isPlaying)
+                    Object.Destroy(rt);
+                else
+                    Object.DestroyImmediate(rt);
             }
             rt = null;
         }
@@ -1109,6 +1121,8 @@ namespace UnityEngine.VFX.SDF
             internal static int voxelsTexture = Shader.PropertyToID("voxels");
             internal static int voxelsTmpTexture = Shader.PropertyToID("voxelsTmp");
             internal static int rayMap = Shader.PropertyToID("rayMap");
+            internal static int rayMapTmp = Shader.PropertyToID("rayMapTmp");
+            internal static int rw_rayMapTmp = Shader.PropertyToID("rw_rayMapTmp");
             internal static int nTriangles = Shader.PropertyToID("nTriangles");
             internal static int minBoundsExtended = Shader.PropertyToID("minBoundsExtended");
             internal static int maxBoundsExtended = Shader.PropertyToID("maxBoundsExtended");

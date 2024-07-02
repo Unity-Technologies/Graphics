@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-building-for-consoles
+---
 # Building your Project for Closed platforms
 
 If you have a license to develop games for Closed platforms that require you to meet the confidentiality and legal agreements of the platform provider, then check the relevant developer forums for a link to the console specific render pipeline package.

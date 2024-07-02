@@ -43,7 +43,7 @@ static const float3 k_RayDirections[SAMPLE_COUNT] = {
     float3(+k3, -k3, +k3), //  1 -1  1;
 };
 
-UNITY_DECLARE_RT_ACCEL_STRUCT(_AccelStruct);
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(_AccelStruct);
 
 struct ProbeData
 {
@@ -69,7 +69,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
     ray.tMax = probe.tMax;
     ray.tMin = 0.0f;
 
-    UnifiedRT::RayTracingAccelStruct accelStruct = UNITY_GET_RT_ACCEL_STRUCT(_AccelStruct);
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_AccelStruct);
 
     uint validHits = 0;
     for (uint i = 0; i < SAMPLE_COUNT; ++i)
@@ -89,9 +89,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         float distanceDiff = hit.hitDistance - minDist;
         if (distanceDiff < DISTANCE_THRESHOLD)
         {
-            //accelStruct.instanceList[hit.instanceIndex].userMaterialID;
-
-            UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(accelStruct, hit, UnifiedRT::kGeomAttribFaceNormal);
+            UnifiedRT::HitGeomAttributes attributes = UnifiedRT::FetchHitGeomAttributes(hit, UnifiedRT::kGeomAttribFaceNormal);
             float dotSurface = dot(ray.direction, attributes.faceNormal);
 
             // If new distance is smaller by at least kDistanceThreshold, or if ray is at least DOT_THRESHOLD more colinear with normal

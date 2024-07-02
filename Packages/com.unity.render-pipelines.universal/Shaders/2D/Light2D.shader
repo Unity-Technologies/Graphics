@@ -4,7 +4,7 @@ Shader "Hidden/Light2D"
     {
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
-        [Enum(UnityEngine.Rendering.CompareFunction)] _HandleZTest("_HandleZTest", Int) = 4
+        [Enum(UnityEngine.Rendering.CompareFunction)] _HandleZTest("_HandleZTest", Int) = 0
     }
 
     SubShader

@@ -210,6 +210,7 @@ MonoBehaviour:
       - rid: 1748197788746514447
       - rid: 1748197788746514448
       - rid: 1748197788746514449
+      - rid: 6636147933899653120
     m_RuntimeSettings:
       m_List: []
   renderingLayerNames:
@@ -1085,6 +1086,8 @@ MonoBehaviour:
           type: 3}
         m_WaterExclusionMaterial: {fileID: 2100000, guid: 1e520c84f7fd17c46af5586f6632155c,
           type: 2}
+        m_WaterDecalMaterial: {fileID: -876546973899608171, guid: 7e2c0d424490bfc4698c37245b8c63ed,
+          type: 3}
         m_WaterSimulationCS: {fileID: 7200000, guid: 32ac7f445960a854595586a600c24034,
           type: 3}
         m_FourierTransformCS: {fileID: 7200000, guid: bc2ee21836a0b5147900ef35a6e1f508,
@@ -1098,12 +1101,13 @@ MonoBehaviour:
         m_WaterLineCS: {fileID: 7200000, guid: 1e7e38362b5026d44ab4f3ff4a612026, type: 3}
         m_WaterCausticsPS: {fileID: 4800000, guid: 020d64d10886f754e91664d240248c13,
           type: 3}
-        m_WaterDeformationPS: {fileID: 4800000, guid: 575db5571f0ebfb439b332bf5b0a405b,
+        m_WaterDecalPS: {fileID: 4800000, guid: cf863cbd7bbd44a43b414caed214ba29,
           type: 3}
         m_WaterDeformationCS: {fileID: 7200000, guid: 9b8063fa5834d4243bfca8c68a92d9f1,
           type: 3}
-        m_WaterFoamPS: {fileID: 4800000, guid: cf863cbd7bbd44a43b414caed214ba29, type: 3}
         m_WaterFoamCS: {fileID: 7200000, guid: 0d16d14b783e65f4d81dbcece2bd0ef9, type: 3}
+        m_WaterDecalMigrationShader: {fileID: -6465566751694194690, guid: 9f1661ed5b4d6ee4685ad5683b09a903,
+          type: 3}
         m_FoamMask: {fileID: 2800000, guid: ca1d72d84c34dba4390eab4c86e62f62, type: 3}
     - rid: 1748197788746514441
       type: {class: LensSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
@@ -1174,3 +1178,9 @@ MonoBehaviour:
         m_setupCS: {fileID: 7200000, guid: 33be2e9a5506b2843bdb2bdff9cad5e1, type: 3}
         m_preTaaCS: {fileID: 7200000, guid: a679dba8ec4d9ce45884a270b0e22dda, type: 3}
         m_taaCS: {fileID: 7200000, guid: 3923900e2b41b5e47bc25bfdcbcdc9e6, type: 3}
+    - rid: 6636147933899653120
+      type: {class: WaterSystemGlobalSettings, ns: UnityEngine.Rendering.HighDefinition,
+        asm: Unity.RenderPipelines.HighDefinition.Runtime}
+      data:
+        m_Version: 1
+        m_EnableMaskAndCurrentWaterDecals: 1

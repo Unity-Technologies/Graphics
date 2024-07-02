@@ -454,24 +454,30 @@ namespace UnityEngine.Experimental.Rendering
             // XRTODO : remove this line and use XRSettings.useOcclusionMesh instead when it's fixed
             Mesh occlusionMesh = XRGraphicsAutomatedTests.running ? null : renderParameter.occlusionMesh;
 
-            return new XRView(renderParameter.projection, renderParameter.view, viewport, occlusionMesh, renderParameter.textureArraySlice);
+            return new XRView(renderParameter.projection, renderParameter.view, renderParameter.previousView, renderParameter.isPreviousViewValid, viewport, occlusionMesh, renderParameter.textureArraySlice);
         }
 
-        static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters, XRLayout layout)
+        private static RenderTextureDescriptor XrRenderTextureDescToUnityRenderTextureDesc(RenderTextureDescriptor xrDesc)
         {
             // We can't use descriptor directly because y-flip is forced
             // XRTODO : fix root problem
-            RenderTextureDescriptor xrDesc = xrRenderPass.renderTargetDesc;
             RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(xrDesc.width, xrDesc.height, xrDesc.colorFormat, xrDesc.depthBufferBits, xrDesc.mipCount);
-            rtDesc.dimension    = xrRenderPass.renderTargetDesc.dimension;
-            rtDesc.volumeDepth  = xrRenderPass.renderTargetDesc.volumeDepth;
-            rtDesc.vrUsage      = xrRenderPass.renderTargetDesc.vrUsage;
-            rtDesc.sRGB         = xrRenderPass.renderTargetDesc.sRGB;
-            
+            rtDesc.dimension    = xrDesc.dimension;
+            rtDesc.volumeDepth  = xrDesc.volumeDepth;
+            rtDesc.vrUsage      = xrDesc.vrUsage;
+            rtDesc.sRGB         = xrDesc.sRGB;
+            return rtDesc;
+        }
+
+        static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters, XRLayout layout)
+        {    
             XRPassCreateInfo passInfo = new XRPassCreateInfo
             {
                 renderTarget            = xrRenderPass.renderTarget,
-                renderTargetDesc        = rtDesc,
+                renderTargetDesc        = XrRenderTextureDescToUnityRenderTextureDesc(xrRenderPass.renderTargetDesc),
+                hasMotionVectorPass     = xrRenderPass.hasMotionVectorPass,
+                motionVectorRenderTarget = xrRenderPass.motionVectorRenderTarget,
+                motionVectorRenderTargetDesc = XrRenderTextureDescToUnityRenderTextureDesc(xrRenderPass.motionVectorRenderTargetDesc),
                 cullingParameters       = cullingParameters,
                 occlusionMeshMaterial   = s_OcclusionMeshMaterial,
                 occlusionMeshScale      = GetOcclusionMeshScale(),

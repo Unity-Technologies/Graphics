@@ -1,16 +1,20 @@
 {
     "introduction":
 	"""Welcome to the Water System Samples.
-	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/WaterSystem.html">WaterSystem</a> allows you to add water to your scenes.
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/water.html">WaterSystem</a> allows you to add water to your scenes.
 	Multiple surface types are available, this scene showcases the Ocean preset.
 	
 	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
 	
-<h1>General</h1>
-	
-• A Water Mask texture is used on the Water Surface to reduce the water agitation closer to the island.
-• A Current Map Texture is set on the Water Surface to slightly change the direction of the current around the island. The Wrap Mode of the texture is set to Clamp to prevent the texture from repeating.
-	
+The project uses the Mask and Current Water Decal workflow. Make sure it is enabled in the Graphics settings first. 
+    
+<h1>Water Decal</h1>
+
+On this scene, a single <link="Water Decal">Water Decal</link> is used to do multiple things:
+• To mask part of the swell and agitation closer to the island using the "Affect Simulation Mask" checkbox
+• This same water simulation mask texture in also used in the Water Decal <link="Island_WaterDecal.shadergraph">Shader Graph</link> to mask the foam where the simulation is masked.
+• Lastly, a Current Map Texture is applied as well on the Water Surface to slightly change the direction of the current around the island using the "Affect Large Current" checkbox in the <link="Island_WaterDecal.mat">material</link>.
+
 <h1>Exclusion</h1>
 	
 • A <link="Water Excluder">Water Excluder</link> with a specifically authored mesh is set on the boat to exclude water from rendering inside it.

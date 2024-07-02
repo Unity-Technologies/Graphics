@@ -639,6 +639,32 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Check if a slot needs to be updated in the atlas.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="updateCount">The update count.</param>
+        /// <param name="needMips">Texture uses mips.</param>
+        /// <returns>True if slot needs update, false otherwise.</returns>
+        public virtual bool NeedsUpdate(int id, int updateCount, bool needMips = false)
+        {
+            int atlasUpdateCount;
+            if (m_IsGPUTextureUpToDate.TryGetValue(id, out atlasUpdateCount))
+            {
+                if (updateCount != atlasUpdateCount)
+                {
+                    m_IsGPUTextureUpToDate[id] = updateCount;
+                    return true;
+                }
+            }
+            else
+            {
+                m_IsGPUTextureUpToDate[id] = updateCount;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Check if contents of a texture needs to be updated in the atlas.
         /// </summary>
         /// <param name="textureA">Source texture A.</param>

@@ -176,6 +176,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int simulationResolution = 0;
         // The number bands that we will be running the simulation at
         public int numActiveBands = 0;
+        // If we support simulation foam
+        bool foam;
 
         // The type of the surface
         public WaterSurfaceType surfaceType;
@@ -194,12 +196,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // The set of CPU Buffers used to run the simulation
         public WaterSimulationResourcesCPU cpuBuffers = null;
 
-        public void AllocateSimulationBuffersGPU(bool activeWaterFoam)
+        public void AllocateSimulationBuffersGPU()
         {
             gpuBuffers = new WaterSimulationResourcesGPU();
-            gpuBuffers.phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numActiveBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            gpuBuffers.displacementBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numActiveBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            gpuBuffers.additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numActiveBands, dimension: TextureDimension.Tex2DArray, colorFormat: activeWaterFoam ? GraphicsFormat.R16G16B16A16_SFloat : GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
+            gpuBuffers.phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numActiveBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, name: "Phillips Spectrum");
+            gpuBuffers.displacementBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numActiveBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, name: "Displacement");
+            gpuBuffers.additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numActiveBands, dimension: TextureDimension.Tex2DArray, colorFormat: foam ? GraphicsFormat.R16G16B16A16_SFloat : GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false, name: "Normal");
         }
 
         public void ReleaseSimulationBuffersGPU()
@@ -232,19 +234,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Function that allocates the resources and keep track of the resolution and number of bands
-        public void InitializeSimulationResources(int simulationRes, int nbBands)
+        public void InitializeSimulationResources(int simulationRes, int nbBands, bool simulationFoam)
         {
             // Keep track of the values that constraint the texture allocation.
             simulationResolution = simulationRes;
             numActiveBands = nbBands;
+            foam = simulationFoam;
             EnableTimeSteps();
         }
 
         // Function that validates the resources (size and if allocated)
-        public bool ValidResources(int simulationRes, int nbBands)
+        public bool ValidResources(int simulationRes, int nbBands, bool simulationFoam)
         {
             return (simulationRes == simulationResolution)
             && (nbBands == numActiveBands)
+            && (foam == simulationFoam)
             && (gpuBuffers != null);
         }
 
@@ -261,7 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (needsAllocation)
-                    gpuBuffers.causticsBuffer = RTHandles.Alloc(causticsResolution, causticsResolution, 1, dimension: TextureDimension.Tex2D, filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
+                    gpuBuffers.causticsBuffer = RTHandles.Alloc(causticsResolution, causticsResolution, 1, dimension: TextureDimension.Tex2D, filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false, name: "Caustics");
             }
             else
             {
@@ -428,7 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 BindPerSurfaceConstantBuffer(cmd, m_FourierTransformCS, m_ShaderVariablesWaterPerSurface[currentWater.surfaceIndex]);
 
                 // Raise the keyword if it should be raised
-                SetupWaterShaderKeyword(cmd, bandCount, false);
+                SetupWaterShaderKeyword(cmd, m_EnableDecalWorkflow, bandCount, false);
 
                 // Number of tiles we will need to dispatch
                 int tileCount = (int)m_WaterBandResolution / 8;
@@ -462,7 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(m_FourierTransformCS, m_ColPassTi_Kernel, 1, (int)m_WaterBandResolution, bandCount);
 
                 // Evaluate water surface additional data (combining it with the previous values)
-                int kernel = m_ActiveWaterFoam ? m_EvaluateNormalsJacobianKernel : m_EvaluateNormalsKernel;
+                int kernel = currentWater.HasSimulationFoam() ? m_EvaluateNormalsJacobianKernel : m_EvaluateNormalsKernel;
                 cmd.SetComputeTextureParam(m_WaterSimulationCS, kernel, HDShaderIDs._WaterDisplacementBuffer, currentWater.simulation.gpuBuffers.displacementBuffer);
                 cmd.SetComputeTextureParam(m_WaterSimulationCS, kernel, HDShaderIDs._WaterAdditionalDataBufferRW, currentWater.simulation.gpuBuffers.additionalDataBuffer);
                 cmd.DispatchCompute(m_WaterSimulationCS, kernel, tileCount, tileCount, bandCount);

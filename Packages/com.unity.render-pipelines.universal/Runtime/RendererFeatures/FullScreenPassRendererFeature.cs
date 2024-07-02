@@ -220,7 +220,7 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
             {
                 copiedColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorCopyDescriptor, "_FullscreenPassColorCopy", false);
 
-                using (var builder = renderGraph.AddRasterRenderPass<CopyPassData>("FullScreenPass_CopyColor", out var passData, profilingSampler))
+                using (var builder = renderGraph.AddRasterRenderPass<CopyPassData>("Copy Color Full Screen", out var passData, profilingSampler))
                 {
                     passData.inputTexture = resourcesData.activeColorTexture;
                     builder.UseTexture(resourcesData.activeColorTexture, AccessFlags.Read);
@@ -234,7 +234,7 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
                 }
             }
 
-            using (var builder = renderGraph.AddRasterRenderPass<MainPassData>("FullScreenPass", out var passData, profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<MainPassData>(passName, out var passData, profilingSampler))
             {
                 builder.UseAllGlobalTextures(true);
 

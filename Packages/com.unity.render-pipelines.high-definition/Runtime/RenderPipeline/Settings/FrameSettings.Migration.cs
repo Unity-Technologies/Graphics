@@ -455,7 +455,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void MigrateAmethystFeatures(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.Water, true);
-            cameraFrameSettings.SetEnabled(FrameSettingsField.WaterDeformation, true);
+            cameraFrameSettings.SetEnabled(FrameSettingsField.WaterDecals, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.WaterExclusion, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.ComputeThickness, true);
             cameraFrameSettings.SetEnabled(FrameSettingsField.LensFlareScreenSpace, true);

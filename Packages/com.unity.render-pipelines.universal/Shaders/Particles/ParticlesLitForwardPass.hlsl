@@ -40,7 +40,9 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
         inputData.viewDirectionWS,
-        input.clipPos.xy);
+        input.clipPos.xy,
+        input.probeOcclusion,
+        inputData.shadowMask);
 #else
     inputData.bakedGI = SampleSHPixel(input.vertexSH, inputData.normalWS);
 #endif
@@ -84,7 +86,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     output.viewDirWS = viewDirWS;
 #endif
 
-    OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH);
+    OUTPUT_SH4(vertexInput.positionWS, output.normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.vertexSH, output.probeOcclusion);
 
     output.positionWS.xyz = vertexInput.positionWS;
     output.positionWS.w = fogFactor;

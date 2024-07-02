@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-shader-stripping
+---
 # Shader Stripping
 
 The shaders in the Universal Render Pipeline (URP) use [shader keywords](https://docs.unity3d.com/Manual/shader-keywords) to support many different features, which can mean Unity compiles a lot of [shader variants](https://docs.unity3d.com/Manual/shader-variants).

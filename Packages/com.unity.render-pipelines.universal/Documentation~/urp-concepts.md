@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-urp-concepts
+---
 # URP Concepts
 
 This section describes the concepts and settings that let you configure the Universal Render Pipeline.

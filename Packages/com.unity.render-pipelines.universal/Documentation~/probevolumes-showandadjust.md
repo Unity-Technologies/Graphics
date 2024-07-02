@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-showandadjust
+---
 # Display Adaptive Probe Volumes
 
 You can use the Rendering Debugger to check how URP places Light Probes in an Adaptive Probe Volume, then use Adaptive Probe Volume settings to configure the layout.

@@ -188,6 +188,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
 
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.RayTracing, "RayTracing");
+
             if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
                 HDRenderPipelineUI.DisplayRayTracingSupportBox();
 

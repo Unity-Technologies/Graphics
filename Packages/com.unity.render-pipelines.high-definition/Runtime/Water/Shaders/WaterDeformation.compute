@@ -15,7 +15,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterUtilities.hlsl"
 
-// EvaluateNormals UAVS
+// FilterDeformation UAV
 RWTexture2D<float> _WaterDeformationBufferRW;
 
 // LDS to load the data
@@ -102,7 +102,7 @@ void FilterDeformation(uint3 currentThread : SV_DispatchThreadID,
     _WaterDeformationBufferRW[coord] = totalDeformation / sumW;
 }
 
-// EvaluateNormals UAVS
+// EvaluateDeformationSurfaceGradient UAV
 RWTexture2D<float2> _WaterDeformationSGBufferRW;
 
 [numthreads(8, 8, 1)]
@@ -120,7 +120,7 @@ void EvaluateDeformationSurfaceGradient(uint3 currentThread : SV_DispatchThreadI
     float displacementUp = LOAD_TEXTURE2D(_WaterDeformationBuffer, upCoord);
 
     // Evaluate the displacement normalization factor and pixel size
-    float2 pixelSize = 1.0f / (_DeformationRegionResolution * _DeformationRegionScale);
+    float2 pixelSize = 1.0f / (_DeformationRegionResolution * _DecalRegionScale);
 
     // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
     float3 p0 = float3(0, displacementCenter, 0);

@@ -1,7 +1,9 @@
 #ifndef __BUILTINUTILITIES_HLSL__
 #define __BUILTINUTILITIES_HLSL__
 
+#ifndef INCLUDE_ONLY_MV_FUNCTIONS
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+#endif
 
 // Calculate motion vector variant for High Quality Line Rendering, which needs to divide by W much earlier in the pipeline.
 float2 CalculateMotionVector(float4 positionCS, float2 previousPositionSS)
@@ -37,6 +39,8 @@ float2 CalculateMotionVector(float4 positionCS, float4 previousPositionCS)
     return CalculateMotionVector(positionCS, previousPositionCS.xy / previousPositionCS.w);
 }
 
+#ifndef INCLUDE_ONLY_MV_FUNCTIONS
+
 // For builtinData we want to allow the user to overwrite default GI in the surface shader / shader graph.
 // So we perform the following order of operation:
 // 1. InitBuiltinData - Init bakeDiffuseLighting and backBakeDiffuseLighting
@@ -70,7 +74,23 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
-    float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy);
+    float4 shadowMask;
+    #if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
+    // If we are using APV with mixed lighting on a probe-lit renderer, occlusion is stored in APV.
+    float3 unusedDiffuseLighting;
+    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
+        normalWS,
+        backNormalWS,
+        GetWorldSpaceNormalizeViewDir(posInput.positionWS),
+        posInput.positionSS,
+        builtinData.renderingLayers,
+        unusedDiffuseLighting,
+        unusedDiffuseLighting,
+        shadowMask);
+    #else
+    // Otherwise occlusion is stored in shadowmask texture, or in unity_ProbesOcclusion for renderers lit by legacy probes.
+    shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy);
+    #endif
     builtinData.shadowMask0 = shadowMask.x;
     builtinData.shadowMask1 = shadowMask.y;
     builtinData.shadowMask2 = shadowMask.z;
@@ -138,5 +158,7 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
 
     ApplyDebugToBuiltinData(builtinData);
 }
+
+#endif // INCLUDE_ONLY_MV_FUNCTIONS
 
 #endif //__BUILTINUTILITIES_HLSL__

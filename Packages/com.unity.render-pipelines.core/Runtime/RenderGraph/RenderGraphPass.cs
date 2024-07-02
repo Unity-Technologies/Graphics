@@ -329,76 +329,76 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void ComputeTextureHash(ref int hash, in ResourceHandle handle, RenderGraphResourceRegistry resources)
         {
-            if (handle.index != 0)
-            {
-                if (resources.IsRenderGraphResourceImported(handle))
-                {
-                    var res = resources.GetTextureResource(handle);
-                    if (res.graphicsResource.externalTexture != null) // External texture
-                    {
-                        var externalTexture = res.graphicsResource.externalTexture;
-                        hash = hash * 23 + (int)externalTexture.graphicsFormat;
-                        hash = hash * 23 + (int)externalTexture.dimension;
-                        hash = hash * 23 + externalTexture.width;
-                        hash = hash * 23 + externalTexture.height;
-                        if (externalTexture is RenderTexture externalRT)
-                            hash = hash * 23 + externalRT.antiAliasing;
-                    }
-                    else if (res.graphicsResource.rt != null) // Regular RTHandle
-                    {
-                        var rt = res.graphicsResource.rt;
-                        hash = hash * 23 + (int)rt.graphicsFormat;
-                        hash = hash * 23 + (int)rt.dimension;
-                        hash = hash * 23 + rt.antiAliasing;
-                        if (res.graphicsResource.useScaling)
-                        {
-                            if (res.graphicsResource.scaleFunc != null)
-                                hash = hash * 23 + res.graphicsResource.scaleFunc.GetHashCode();
-                            else
-                                hash = hash * 23 + res.graphicsResource.scaleFactor.GetHashCode();
-                        }
-                        else
-                        {
-                            hash = hash * 23 + rt.width;
-                            hash = hash * 23 + rt.height;
-                        }
-                    }
-                    else if (res.graphicsResource.nameID != default(RenderTargetIdentifier)) // External RTI
-                    {
-                        // The only info we have is from the provided desc upon importing.
-                        ref var desc = ref res.desc;
-                        hash = hash * 23 + (int)desc.colorFormat;
-                        hash = hash * 23 + (int)desc.dimension;
-                        hash = hash * 23 + (int)desc.msaaSamples;
-                        hash = hash * 23 + desc.width;
-                        hash = hash * 23 + desc.height;
-                    }
+            if (handle.index == 0)
+                return;
 
-                    // Add the clear/discard buffer flags to the hash (used in all the cases above)
-                    hash = hash * 23 + res.desc.clearBuffer.GetHashCode();
-                    hash = hash * 23 + res.desc.discardBuffer.GetHashCode();
-                }
-                else
+            if (resources.IsRenderGraphResourceImported(handle))
+            {
+                var res = resources.GetTextureResource(handle);
+                if (res.graphicsResource.externalTexture != null) // External texture
                 {
-                    var desc = resources.GetTextureResourceDesc(handle);
+                    var externalTexture = res.graphicsResource.externalTexture;
+                    hash = hash * 23 + (int)externalTexture.graphicsFormat;
+                    hash = hash * 23 + (int)externalTexture.dimension;
+                    hash = hash * 23 + externalTexture.width;
+                    hash = hash * 23 + externalTexture.height;
+                    if (externalTexture is RenderTexture externalRT)
+                        hash = hash * 23 + externalRT.antiAliasing;
+                }
+                else if (res.graphicsResource.rt != null) // Regular RTHandle
+                {
+                    var rt = res.graphicsResource.rt;
+                    hash = hash * 23 + (int)rt.graphicsFormat;
+                    hash = hash * 23 + (int)rt.dimension;
+                    hash = hash * 23 + rt.antiAliasing;
+                    if (res.graphicsResource.useScaling)
+                    {
+                        if (res.graphicsResource.scaleFunc != null)
+                            hash = hash * 23 + CustomGetHashCode(res.graphicsResource.scaleFunc);
+                        else
+                            hash = hash * 23 + res.graphicsResource.scaleFactor.GetHashCode();
+                    }
+                    else
+                    {
+                        hash = hash * 23 + rt.width;
+                        hash = hash * 23 + rt.height;
+                    }
+                }
+                else if (res.graphicsResource.nameID != default) // External RTI
+                {
+                    // The only info we have is from the provided desc upon importing.
+                    ref var desc = ref res.desc;
                     hash = hash * 23 + (int)desc.colorFormat;
                     hash = hash * 23 + (int)desc.dimension;
                     hash = hash * 23 + (int)desc.msaaSamples;
-                    hash = hash * 23 + desc.clearBuffer.GetHashCode();
-                    hash = hash * 23 + desc.discardBuffer.GetHashCode();
-                    switch (desc.sizeMode)
-                    {
-                        case TextureSizeMode.Explicit:
-                            hash = hash * 23 + desc.width;
-                            hash = hash * 23 + desc.height;
-                            break;
-                        case TextureSizeMode.Scale:
-                            hash = hash * 23 + desc.scale.GetHashCode();
-                            break;
-                        case TextureSizeMode.Functor:
-                            hash = hash * 23 + desc.func.GetHashCode();
-                            break;
-                    }
+                    hash = hash * 23 + desc.width;
+                    hash = hash * 23 + desc.height;
+                }
+
+                // Add the clear/discard buffer flags to the hash (used in all the cases above)
+                hash = hash * 23 + res.desc.clearBuffer.GetHashCode();
+                hash = hash * 23 + res.desc.discardBuffer.GetHashCode();
+            }
+            else
+            {
+                var desc = resources.GetTextureResourceDesc(handle);
+                hash = hash * 23 + (int)desc.colorFormat;
+                hash = hash * 23 + (int)desc.dimension;
+                hash = hash * 23 + (int)desc.msaaSamples;
+                hash = hash * 23 + desc.clearBuffer.GetHashCode();
+                hash = hash * 23 + desc.discardBuffer.GetHashCode();
+                switch (desc.sizeMode)
+                {
+                    case TextureSizeMode.Explicit:
+                        hash = hash * 23 + desc.width;
+                        hash = hash * 23 + desc.height;
+                        break;
+                    case TextureSizeMode.Scale:
+                        hash = hash * 23 + desc.scale.GetHashCode();
+                        break;
+                    case TextureSizeMode.Functor:
+                        hash = hash * 23 + CustomGetHashCode(desc.func);
+                        break;
                 }
             }
         }
@@ -426,14 +426,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             for (int i = 0; i < colorBufferMaxIndex + 1; ++i)
             {
-                var handle = colorBufferAccess[i].textureHandle.handle;
+                var colorBufferAccessElement = colorBufferAccess[i];
+                var handle = colorBufferAccessElement.textureHandle.handle;
                 if (handle.IsValid())
                 {
                     ComputeTextureHash(ref hash, handle, resources);
                     hash = hash * 23 + handle.index;
-                    hash = hash * 23 + (int)colorBufferAccess[i].flags;
-                    hash = hash * 23 + colorBufferAccess[i].mipLevel;
-                    hash = hash * 23 + colorBufferAccess[i].depthSlice;
+                    hash = hash * 23 + (int)colorBufferAccessElement.flags;
+                    hash = hash * 23 + colorBufferAccessElement.mipLevel;
+                    hash = hash * 23 + colorBufferAccessElement.depthSlice;
                 }
             }
 
@@ -441,14 +442,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             for (int i = 0; i < fragmentInputMaxIndex + 1; ++i)
             {
-                var handle = fragmentInputAccess[i].textureHandle.handle;
+                var fragmentInputAccessElement = fragmentInputAccess[i];
+                var handle = fragmentInputAccessElement.textureHandle.handle;
                 if (handle.IsValid())
                 {
                     ComputeTextureHash(ref hash, handle, resources);
                     hash = hash * 23 + handle.index;
-                    hash = hash * 23 + (int)fragmentInputAccess[i].flags;
-                    hash = hash * 23 + fragmentInputAccess[i].mipLevel;
-                    hash = hash * 23 + fragmentInputAccess[i].depthSlice;
+                    hash = hash * 23 + (int)fragmentInputAccessElement.flags;
+                    hash = hash * 23 + fragmentInputAccessElement.mipLevel;
+                    hash = hash * 23 + fragmentInputAccessElement.depthSlice;
                 }
             }
 
@@ -500,16 +502,23 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             return hash;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected static int CustomGetHashCode(Delegate del)
+        {
+            return del.Method.GetHashCode() ^ RuntimeHelpers.GetHashCode(del.Target);
+        }
     }
 
     // This used to have an extra generic argument 'RenderGraphContext' abstracting the context and avoiding
     // the RenderGraphPass/ComputeRenderGraphPass/RasterRenderGraphPass/UnsafeRenderGraphPass classes below
     // but this confuses IL2CPP and causes garbage when boxing the context created (even though they are structs)
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    internal abstract class BaseRenderGraphPass<PassData> : RenderGraphPass
+    internal abstract class BaseRenderGraphPass<PassData, TRenderGraphContext> : RenderGraphPass
         where PassData : class, new()
     {
         internal PassData data;
+        internal BaseRenderFunc<PassData, TRenderGraphContext> renderFunc;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize(int passIndex, PassData passData, string passName, RenderGraphPassType passType, ProfilingSampler sampler)
@@ -521,13 +530,32 @@ namespace UnityEngine.Rendering.RenderGraphModule
             type = passType;
             customSampler = sampler;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override void Release(RenderGraphObjectPool pool)
+        {
+            pool.Release(data);
+            data = null;
+            renderFunc = null;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override bool HasRenderFunc()
+        {
+            return renderFunc != null;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override int GetRenderFuncHash()
+        {
+            return renderFunc != null ? CustomGetHashCode(renderFunc) : 0;
+        }
     }
 
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    internal sealed class RenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
+    internal sealed class RenderGraphPass<PassData> : BaseRenderGraphPass<PassData, RenderGraphContext>
         where PassData : class, new()
     {
-        internal BaseRenderFunc<PassData, RenderGraphContext> renderFunc;
         internal static RenderGraphContext c = new RenderGraphContext();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -540,32 +568,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Release(RenderGraphObjectPool pool)
         {
-            pool.Release(data);
-            data = null;
-            renderFunc = null;
+            base.Release(pool);
 
             // We need to do the release from here because we need the final type.
             pool.Release(this);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override bool HasRenderFunc()
-        {
-            return renderFunc != null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetRenderFuncHash()
-        {
-            return (renderFunc != null) ? renderFunc.GetHashCode() : 0;
-        }
     }
 
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    internal sealed class ComputeRenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
+    internal sealed class ComputeRenderGraphPass<PassData> : BaseRenderGraphPass<PassData, ComputeGraphContext>
     where PassData : class, new()
     {
-        internal BaseRenderFunc<PassData, ComputeGraphContext> renderFunc;
         internal static ComputeGraphContext c = new ComputeGraphContext();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -578,32 +591,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Release(RenderGraphObjectPool pool)
         {
-            pool.Release(data);
-            data = null;
-            renderFunc = null;
+            base.Release(pool);
 
             // We need to do the release from here because we need the final type.
             pool.Release(this);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override bool HasRenderFunc()
-        {
-            return renderFunc != null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetRenderFuncHash()
-        {
-            return (renderFunc != null) ? renderFunc.GetHashCode() : 0;
-        }
     }
 
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    internal sealed class RasterRenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
+    internal sealed class RasterRenderGraphPass<PassData> : BaseRenderGraphPass<PassData, RasterGraphContext>
     where PassData : class, new()
     {
-        internal BaseRenderFunc<PassData, RasterGraphContext> renderFunc;
         internal static RasterGraphContext c = new RasterGraphContext();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -616,32 +614,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Release(RenderGraphObjectPool pool)
         {
-            pool.Release(data);
-            data = null;
-            renderFunc = null;
+            base.Release(pool);
 
             // We need to do the release from here because we need the final type.
             pool.Release(this);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override bool HasRenderFunc()
-        {
-            return renderFunc != null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetRenderFuncHash()
-        {
-            return (renderFunc != null) ? renderFunc.GetHashCode() : 0;
-        }
     }
 
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
-    internal sealed class UnsafeRenderGraphPass<PassData> : BaseRenderGraphPass<PassData>
+    internal sealed class UnsafeRenderGraphPass<PassData> : BaseRenderGraphPass<PassData, UnsafeGraphContext>
         where PassData : class, new()
     {
-        internal BaseRenderFunc<PassData, UnsafeGraphContext> renderFunc;
         internal static UnsafeGraphContext c = new UnsafeGraphContext();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -654,24 +637,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Release(RenderGraphObjectPool pool)
         {
-            pool.Release(data);
-            data = null;
-            renderFunc = null;
+            base.Release(pool);
 
             // We need to do the release from here because we need the final type.
             pool.Release(this);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override bool HasRenderFunc()
-        {
-            return renderFunc != null;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetRenderFuncHash()
-        {
-            return (renderFunc != null) ? renderFunc.GetHashCode() : 0;
         }
     }
 }

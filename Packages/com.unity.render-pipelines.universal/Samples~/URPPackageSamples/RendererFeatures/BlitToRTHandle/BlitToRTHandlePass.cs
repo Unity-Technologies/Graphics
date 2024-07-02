@@ -11,10 +11,9 @@ public class BlitToRTHandlePass : ScriptableRenderPass
     {
         public TextureHandle source;
         public Material material;
-        public Vector4 scaleBias;
     }
 
-    private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
+    private static Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("BlitToRTHandle_CopyColor");
     private RTHandle m_InputHandle;
     private RTHandle m_OutputHandle;
@@ -93,7 +92,6 @@ public class BlitToRTHandlePass : ScriptableRenderPass
 
             passData.source = source;
             passData.material = m_Material;
-            passData.scaleBias = m_ScaleBias;
             builder.UseTexture(source, AccessFlags.Read); // Set the camera color as the input
             builder.SetRenderAttachment(destination, 0, AccessFlags.Write); // Set the target texture
             builder.SetGlobalTextureAfterPass(destination, m_OutputId); // Make the output texture available for the shaders in the scene
@@ -101,7 +99,7 @@ public class BlitToRTHandlePass : ScriptableRenderPass
             builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
             {
                 // Blit the input texture to the destination target specified in the SetRenderAttachment method
-                Blitter.BlitTexture(context.cmd, data.source, data.scaleBias, data.material, 0);
+                Blitter.BlitTexture(context.cmd, data.source, m_ScaleBias, data.material, 0);
             });
         }
 

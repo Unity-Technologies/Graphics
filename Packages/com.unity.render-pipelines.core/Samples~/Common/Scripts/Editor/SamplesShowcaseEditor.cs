@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Reflection;
 using UnityEngine.Rendering;
+using UnityEditor.Inspector.GraphicsSettingsInspectors;
 
 [InitializeOnLoad]
 [CustomEditor(typeof(SamplesShowcase))]
@@ -174,6 +175,11 @@ public class SamplesShowcaseEditor : Editor
                     {
                         RequiredSettingBase.showSettingCallback(setting);
                     }
+                    else if (!string.IsNullOrEmpty(setting.globalSettingsType))
+					{
+                        var type = Type.GetType(setting.globalSettingsType);
+                        GraphicsSettingsInspectorUtility.OpenAndScrollTo(type);
+					}
                     else
                     {
                         SettingsService.OpenProjectSettings(setting.projectSettingsPath);

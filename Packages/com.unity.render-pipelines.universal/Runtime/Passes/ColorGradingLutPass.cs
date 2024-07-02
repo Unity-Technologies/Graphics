@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="PostProcessData"/>
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
+            profilingSampler = new ProfilingSampler("Blit Color LUT");
             renderPassEvent = evt;
             overrideCameraTarget = true;
 
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalPostProcessingData postProcessingData= frameData.Get<UniversalPostProcessingData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Color Lut Pass", out var passData, base.profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 this.ConfigureDescriptor(in postProcessingData, out var lutDesc, out var filterMode);
                 internalColorLut = UniversalRenderer.CreateRenderGraphTexture(renderGraph, lutDesc, "_InternalGradingLut", true, filterMode);

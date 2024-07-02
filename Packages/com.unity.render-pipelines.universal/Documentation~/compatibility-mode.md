@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-compatibility-mode
+---
 ## Compatibility Mode
 
 If you enable **Compatibility Mode (Render Graph Disabled)** in URP graphics settings, you can write a Scriptable Render Pass without using the [render graph API](render-graph.md). The setting is in **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **URP** > **Render Graph**.

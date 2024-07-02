@@ -6,7 +6,7 @@ QualitySettings:
   serializedVersion: 5
   m_CurrentQuality: 0
   m_QualitySettings:
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 00->DefaultURPAsset
     pixelLightCount: 4
     shadows: 2
@@ -28,7 +28,11 @@ QualitySettings:
     realtimeReflectionProbes: 1
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -55,7 +59,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 01->Backbuffer
     pixelLightCount: 4
     shadows: 2
@@ -77,7 +81,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -104,7 +112,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 02->140_LightCookie
     pixelLightCount: 4
     shadows: 2
@@ -126,7 +134,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -153,7 +165,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 03->141_LightCookies_SmallAtlas
     pixelLightCount: 4
     shadows: 2
@@ -175,7 +187,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 50
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -202,7 +218,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 04->142_LightCookies_AtlasFull2_deferred
     pixelLightCount: 4
     shadows: 2
@@ -224,7 +240,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 50
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -251,7 +271,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 05->144_LightCookies_FormatConvert_Grayscale
     pixelLightCount: 4
     shadows: 2
@@ -273,7 +293,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 100
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -300,7 +324,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 06->161_HDR_FP16_BackBuffer
     pixelLightCount: 4
     shadows: 2
@@ -322,7 +346,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -349,7 +377,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 07->000_ForwardPlusRenderer
     pixelLightCount: 4
     shadows: 2
@@ -371,7 +399,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -398,7 +430,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 08->248_LOD_CrossFadeURPAsset
     pixelLightCount: 4
     shadows: 2
@@ -420,7 +452,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 1
@@ -447,7 +483,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 09->200_SSAOURPAsset
     pixelLightCount: 4
     shadows: 2
@@ -469,7 +505,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -496,7 +536,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 10->DBufferURPAsset
     pixelLightCount: 4
     shadows: 2
@@ -518,7 +558,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -545,7 +589,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 11->DBufferWithRenderingLayersURPAsset
     pixelLightCount: 4
     shadows: 2
@@ -567,7 +611,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -594,7 +642,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 12->220_ScreenSpaceShadowsURPAsset
     pixelLightCount: 4
     shadows: 2
@@ -616,7 +664,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -643,7 +695,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 13->SoftShadows
     pixelLightCount: 4
     shadows: 2
@@ -665,7 +717,11 @@ QualitySettings:
     realtimeReflectionProbes: 0
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -692,7 +748,7 @@ QualitySettings:
     terrainFadeLength: 5
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
-  - serializedVersion: 3
+  - serializedVersion: 4
     name: 14->280_DebugViews_MipMapMode
     pixelLightCount: 4
     shadows: 2
@@ -714,7 +770,11 @@ QualitySettings:
     realtimeReflectionProbes: 1
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
     vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
     lodBias: 2
     maximumLODLevel: 0
     enableLODCrossFade: 0
@@ -730,6 +790,59 @@ QualitySettings:
     asyncUploadPersistentBuffer: 1
     resolutionScalingFixedDPIFactor: 1
     customRenderPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26,
+      type: 2}
+    terrainQualityOverrides: 0
+    terrainPixelError: 1
+    terrainDetailDensityScale: 1
+    terrainBasemapDistance: 1000
+    terrainDetailDistance: 80
+    terrainTreeDistance: 5000
+    terrainBillboardStart: 50
+    terrainFadeLength: 5
+    terrainMaxTrees: 50
+    excludedTargetPlatforms: []
+  - serializedVersion: 4
+    name: 15->311_DepthCopyTransparent
+    pixelLightCount: 4
+    shadows: 2
+    shadowResolution: 2
+    shadowProjection: 1
+    shadowCascades: 4
+    shadowDistance: 150
+    shadowNearPlaneOffset: 3
+    shadowCascade2Split: 0.33333334
+    shadowCascade4Split: {x: 0.06666667, y: 0.2, z: 0.46666667}
+    shadowmaskMode: 1
+    skinWeights: 4
+    globalTextureMipmapLimit: 0
+    textureMipmapLimitSettings: []
+    anisotropicTextures: 2
+    antiAliasing: 0
+    softParticles: 1
+    softVegetation: 1
+    realtimeReflectionProbes: 1
+    billboardsFaceCameraPosition: 1
+    useLegacyDetailDistribution: 1
+    adaptiveVsync: 0
+    vSyncCount: 1
+    realtimeGICPUUsage: 25
+    adaptiveVsyncExtraA: 0
+    adaptiveVsyncExtraB: 0
+    lodBias: 2
+    maximumLODLevel: 0
+    enableLODCrossFade: 1
+    streamingMipmapsActive: 1
+    streamingMipmapsAddAllCameras: 1
+    streamingMipmapsMemoryBudget: 512
+    streamingMipmapsRenderersPerFrame: 512
+    streamingMipmapsMaxLevelReduction: 2
+    streamingMipmapsMaxFileIORequests: 1024
+    particleRaycastBudget: 4096
+    asyncUploadTimeSlice: 2
+    asyncUploadBufferSize: 4
+    asyncUploadPersistentBuffer: 1
+    resolutionScalingFixedDPIFactor: 1
+    customRenderPipeline: {fileID: 11400000, guid: 45915d8c2ac5c97498527aa9170aa343,
       type: 2}
     terrainQualityOverrides: 0
     terrainPixelError: 1

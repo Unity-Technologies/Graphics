@@ -40,6 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.ContactShadows, "Contact Shadows");
+
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State", "When enabled, HDRP processes Contact Shadows for this Volume."));
 
             if (!m_Enable.value.hasMultipleDifferentValues)

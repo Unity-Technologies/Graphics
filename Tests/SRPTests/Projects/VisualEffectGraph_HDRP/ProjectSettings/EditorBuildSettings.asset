@@ -297,6 +297,9 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/39_SmokeLighting/39_SmokeLighting.unity
     guid: 9a3f325e5c930ca4f8a9c0645aeb6ccb
   - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/39_SmokeLighting/39_SmokeLighting_APV.unity
+    guid: 46f67c8080a056c4390b5aff609be990
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/38_ActivationSlots.unity
     guid: 8aced075b2dfd7c45ac17a7a25368937
   - enabled: 1
@@ -326,5 +329,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/43_OddNegativeScale/43_OddNegativeScale.unity
     guid: 1b0e8bd450fc8f349b6bbd4f9230b3d9
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/44_SDFBakerSlices/44_SDFBakerSlices.unity
+    guid: a19f61b8cadc87a4ab6eb52ee1b093e7
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

@@ -1111,8 +1111,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // We only enable volumetric re projection if we are processing the game view or a scene view with animated materials on
             bool b = camera.cameraType == CameraType.Game || (camera.cameraType == CameraType.SceneView && CoreUtils.AreAnimatedMaterialsEnabled(camera));
             bool c = frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
+            bool d = Fog.IsVolumetricReprojectionEnabled(this);
 
-            return a && b && c;
+            return a && b && c && d;
         }
 
         internal void RequestClearHistoryBuffers()

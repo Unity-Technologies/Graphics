@@ -151,6 +151,7 @@ namespace UnityEngine.Rendering
             {
                 AssetDatabase.DeleteAsset(scenarioData.cellDataAsset.GetAssetPath());
                 AssetDatabase.DeleteAsset(scenarioData.cellOptionalDataAsset.GetAssetPath());
+                AssetDatabase.DeleteAsset(scenarioData.cellProbeOcclusionDataAsset.GetAssetPath());
                 EditorUtility.SetDirty(this);
             }
 
@@ -228,6 +229,7 @@ namespace UnityEngine.Rendering
                     {
                         DeleteAsset(scenarioData.cellDataAsset.GetAssetPath());
                         DeleteAsset(scenarioData.cellOptionalDataAsset.GetAssetPath());
+                        DeleteAsset(scenarioData.cellProbeOcclusionDataAsset.GetAssetPath());
                     }
                 }
             }
@@ -278,9 +280,10 @@ namespace UnityEngine.Rendering
                     }
                 }
 
-                GetCellDataFileNames(name, newName, out string cellDataFileName, out string cellOptionalDataFileName);
+                GetCellDataFileNames(name, newName, out string cellDataFileName, out string cellOptionalDataFileName, out string cellProbeOcclusionDataFileName);
                 data.cellDataAsset.RenameAsset(cellDataFileName);
                 data.cellOptionalDataAsset.RenameAsset(cellOptionalDataFileName);
+                data.cellProbeOcclusionDataAsset.RenameAsset(cellProbeOcclusionDataFileName);
             }
 
             return newName;
@@ -337,32 +340,35 @@ namespace UnityEngine.Rendering
                 var scenarioName = scenario.Key;
                 var scenarioData = scenario.Value;
 
-                GetCellDataFileNames(name, scenarioName, out string cellDataFileName, out string cellOptionalDataFileName);
+                GetCellDataFileNames(name, scenarioName, out string cellDataFileName, out string cellOptionalDataFileName, out string cellProbeOcclusionDataFileName);
 
                 if (!scenarioData.cellDataAsset.GetAssetPath().Contains(cellDataFileName))
                 {
                     scenarioData.cellDataAsset.RenameAsset(cellDataFileName);
                     scenarioData.cellOptionalDataAsset.RenameAsset(cellOptionalDataFileName);
+                    scenarioData.cellProbeOcclusionDataAsset.RenameAsset(cellProbeOcclusionDataFileName);
                 }
             }
         }
 
-        internal void GetCellDataFileNames(string basePath, string scenario, out string cellDataFileName, out string cellOptionalDataFileName)
+        internal void GetCellDataFileNames(string basePath, string scenario, out string cellDataFileName, out string cellOptionalDataFileName, out string cellProbeOcclusionDataFileName)
         {
             cellDataFileName = $"{basePath}-{scenario}.CellData.bytes";
             cellOptionalDataFileName = $"{basePath}-{scenario}.CellOptionalData.bytes";
+            cellProbeOcclusionDataFileName = $"{basePath}-{scenario}.CellProbeOcclusionData.bytes";
         }
 
-        internal void GetBlobFileNames(string scenario, out string cellDataFilename, out string cellBricksDataFilename, out string cellOptionalDataFilename, out string cellSharedDataFilename, out string cellSupportDataFilename)
+        internal void GetBlobFileNames(string scenario, out string cellDataFilename, out string cellBricksDataFilename, out string cellOptionalDataFilename, out string cellProbeOcclusionDataFilename, out string cellSharedDataFilename, out string cellSupportDataFilename)
         {
             string baseDir = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
 
             string basePath = Path.Combine(baseDir, name);
 
-            GetCellDataFileNames(basePath, scenario, out string dataFile, out string optionalDataFile);
+            GetCellDataFileNames(basePath, scenario, out string dataFile, out string optionalDataFile, out string probeOcclusionDataFile);
 
             cellDataFilename = GetOrCreateFileName(scenarios[scenario].cellDataAsset, dataFile);
             cellOptionalDataFilename = GetOrCreateFileName(scenarios[scenario].cellOptionalDataAsset, optionalDataFile);
+            cellProbeOcclusionDataFilename = GetOrCreateFileName(scenarios[scenario].cellProbeOcclusionDataAsset, probeOcclusionDataFile);
             cellBricksDataFilename = GetOrCreateFileName(cellBricksDataAsset, basePath + ".CellBricksData.bytes");
             cellSharedDataFilename = GetOrCreateFileName(cellSharedDataAsset, basePath + ".CellSharedData.bytes");
             cellSupportDataFilename = GetOrCreateFileName(cellSupportDataAsset, basePath + ".CellSupportData.bytes");
@@ -384,7 +390,7 @@ namespace UnityEngine.Rendering
             if (scenario == null || !scenarios.TryGetValue(scenario, out var data) || !data.IsValid())
                 return 0;
 
-            return GetFileSize(data.cellDataAsset.GetAssetPath()) + GetFileSize(data.cellOptionalDataAsset.GetAssetPath());
+            return GetFileSize(data.cellDataAsset.GetAssetPath()) + GetFileSize(data.cellOptionalDataAsset.GetAssetPath()) + GetFileSize(data.cellProbeOcclusionDataAsset.GetAssetPath());
         }
 
         internal void SanitizeScenes()

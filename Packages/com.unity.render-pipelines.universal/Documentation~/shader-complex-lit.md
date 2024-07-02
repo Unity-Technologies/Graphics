@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-shader-complex-lit
+---
 # Complex Lit Shader
 
 The Complex Lit Shader contains all the functionality of the Lit shader and adds advanced material features. Some features in this shader might be considerably more resource-intensive and require [Unity Shader Model 4.5](https://docs.unity3d.com/Manual/SL-ShaderCompileTargets.html) hardware.

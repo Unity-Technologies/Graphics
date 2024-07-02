@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-upgrade-lwrp-to-urp
+---
 # Upgrading from the Lightweight Render Pipeline to the Universal Render Pipeline
 
 The Universal Render Pipeline (URP) replaces the Lightweight Render Pipeline (LWRP) in Unity 2019.3. If your Project uses LWRP, you must upgrade it to use URP to use Unity 2019.3.

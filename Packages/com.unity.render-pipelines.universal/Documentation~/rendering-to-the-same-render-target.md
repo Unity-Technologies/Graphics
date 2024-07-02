@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-rendering-to-the-same-render-target
+---
 # Set up split-screen rendering
 
 In the Universal Render Pipeline (URP), multiple [Base Cameras](camera-types-and-render-type.md#base-camera) or [Camera Stacks](camera-stacking.md) can render to the same render target. This allows you to create effects such as split screen rendering.

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-writing-shaders-urp-basic-unlit-structure
+---
 # URP unlit basic shader
 
 This example shows a basic URP-compatible shader. This shader fills the mesh shape with a color predefined in the shader code.

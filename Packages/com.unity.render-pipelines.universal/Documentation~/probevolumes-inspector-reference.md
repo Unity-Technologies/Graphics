@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-inspector-reference
+---
 # Adaptive Probe Volume Inspector reference
 
 Select an Adaptive Probe Volume and open the Inspector to view its properties.

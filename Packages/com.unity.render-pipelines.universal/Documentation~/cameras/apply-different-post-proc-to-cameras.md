@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-apply-different-post-proc-to-cameras
+---
 # Apply different post processing effects to separate cameras
 
 In the Universal Render Pipeline (URP) you can apply separate post processing effects to different cameras in the same scene.

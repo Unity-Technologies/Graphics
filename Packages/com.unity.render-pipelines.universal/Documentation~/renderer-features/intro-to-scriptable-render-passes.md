@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-intro-to-scriptable-render-passes
+---
 # Introduction to Scriptable Render Passes
 
 Scriptable Render Passes are a way to alter how Unity renders a scene or the objects within a scene. They allow you to fine tune how Unity renders each scene in your project on a scene-by-scene basis.
@@ -11,7 +14,7 @@ You can use Scriptable Renderer Features to inject Scriptable Render Passes into
 
 ## <a name="scriptable-render-pass"></a>What is a Scriptable Render Pass?
 
-You inject a Scriptable Render Pass into the render pipeline to achieve a custom visual effect. To do this, you add the Scriptable Render Pass via a MonoBehavior script with the `EnqueuePass` method and add this script as a component to a renderer, camera, or GameObject.
+You inject a Scriptable Render Pass into the render pipeline to achieve a custom visual effect. For more information, refer to [Adding a Scriptable Render Pass to the frame rendering loop](../inject-a-render-pass.md).
 
 A Scriptable Render Pass lets you to do the following:
 

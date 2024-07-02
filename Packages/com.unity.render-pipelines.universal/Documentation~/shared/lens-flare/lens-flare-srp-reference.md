@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-lens-flare-srp-reference
+---
 # Lens Flare (SRP) component reference
 
 Refer to [Add lens flares](lens-flare-component.md) for information on how to use the Lens Flare (SRP) component.

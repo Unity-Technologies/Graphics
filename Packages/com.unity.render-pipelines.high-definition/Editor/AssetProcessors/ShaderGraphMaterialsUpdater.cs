@@ -19,6 +19,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void OnShaderGraphSaved(Shader shader, object saveContext)
         {
+            #if UNITY_EDITOR
+            // Water decals don't have an HDSaveContext, but this call has no effect if the shader is not a WaterDecal
+            HDRenderPipeline.currentPipeline?.waterSystem?.UpdateWaterDecalAtlas(shader);
+            #endif
+
             // In case the shader is not HDRP
             if (!(saveContext is HDSaveContext hdSaveContext))
                 return;

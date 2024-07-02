@@ -13,25 +13,20 @@ MonoBehaviour:
   m_Name: Water Require Settings
   m_EditorClassIdentifier: 
   m_requiredSettings:
+  - m_name: Mask And Current Water Decals
+    m_description: Required to support simulation mask and current outputs in water
+      decals.
+    propertyPath: m_EnableMaskAndCurrentWaterDecals
+    globalSettingsType: UnityEngine.Rendering.HighDefinition.WaterSystemGlobalSettings,Unity.RenderPipelines.HighDefinition.Runtime
+    valueType: 0
+    targetValue: 1
+    validationType: 0
+    uiSectionInt: 32
+    uiSubSectionInt: 1
   - m_name: Water
     m_description: Enable water rendering.
     propertyPath: m_RenderPipelineSettings.supportWater
-    valueType: 0
-    targetValue: 1
-    validationType: 0
-    uiSectionInt: 16
-    uiSubSectionInt: 8
-  - m_name: Water Deformations
-    m_description: Enable water surface deformers.
-    propertyPath: m_RenderPipelineSettings.supportWaterDeformation
-    valueType: 0
-    targetValue: 1
-    validationType: 0
-    uiSectionInt: 16
-    uiSubSectionInt: 8
-  - m_name: Water Foam
-    m_description: Enable water foam rendering and simulation.
-    propertyPath: m_RenderPipelineSettings.supportWaterFoam
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
@@ -40,14 +35,24 @@ MonoBehaviour:
   - m_name: Water Exclusion
     m_description: Enable support of water excluder objects.
     propertyPath: m_RenderPipelineSettings.supportWaterExclusion
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 8
+  - m_name: Water Decals
+    m_description: Enable Water Decals.
+    propertyPath: m_RenderPipelineSettings.supportWaterDecals
+    valueType: 0
+    targetValue: 1
+    validationType: 0
+    uiSectionInt: 32
+    uiSubSectionInt: 1
   - m_name: Decal Layers
     m_description: Enable decal layers.
     propertyPath: m_RenderPipelineSettings.supportDecalLayers
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
@@ -56,6 +61,7 @@ MonoBehaviour:
   - m_name: Screen Space Reflections
     m_description: Enable SSR.
     propertyPath: m_RenderPipelineSettings.supportSSR
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
@@ -64,6 +70,7 @@ MonoBehaviour:
   - m_name: SSR on Transparent
     m_description: Enable SSR on Transparent.
     propertyPath: m_RenderPipelineSettings.supportSSRTransparent
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
@@ -72,14 +79,7 @@ MonoBehaviour:
   - m_name: Volumetric Clouds
     m_description: Enable Volumetric Clouds.
     propertyPath: m_RenderPipelineSettings.supportVolumetricClouds
-    valueType: 0
-    targetValue: 1
-    validationType: 0
-    uiSectionInt: 32
-    uiSubSectionInt: 1
-  - m_name: Volumetric Fog
-    m_description: Enable Volumetric Fog.
-    propertyPath: m_RenderPipelineSettings.supportVolumetrics
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0

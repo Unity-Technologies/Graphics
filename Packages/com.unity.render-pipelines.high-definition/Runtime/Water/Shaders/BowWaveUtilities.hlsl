@@ -1,5 +1,0 @@
-#ifndef BOW_WAVE_UTILITIES_H
-#define BOW_WAVE_UTILITIES_H
-
-
-#endif // BOW_WAVE_UTILITIES_H

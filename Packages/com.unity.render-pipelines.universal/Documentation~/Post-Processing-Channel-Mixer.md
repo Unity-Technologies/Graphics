@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-channel-mixer
+---
 # Channel Mixer
 
 The Channel Mixer effect modifies the influence of each input color channel on the overall mix of the output channel. For example, if you increase the influence of the green channel on the overall mix of the red channel, all areas of the final image that are green (including neutral/monochrome) tint to a more reddish hue.

@@ -724,7 +724,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             var colorHistoryTarget = renderGraph.ImportTexture(colorHistory.GetCurrentTexture(multipassId));
                             // See pass create in UniversalRenderer() for execution order.
-                            m_HistoryRawColorCopyPass.RenderToExistingTexture(renderGraph, frameData, colorHistoryTarget, resourceData.cameraColor, Downsampling.None, "Copy Raw Color History");
+                            m_HistoryRawColorCopyPass.RenderToExistingTexture(renderGraph, frameData, colorHistoryTarget, resourceData.cameraColor, Downsampling.None);
                         }
                     }
                 }
@@ -750,7 +750,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             var depthHistoryTarget = renderGraph.ImportTexture(depthHistory.GetCurrentTexture(multipassId));
                             // See pass create in UniversalRenderer() for execution order.
-                            m_HistoryRawDepthCopyPass.Render(renderGraph, frameData, depthHistoryTarget, resourceData.cameraDepth, false, "Copy Raw Depth History");
+                            m_HistoryRawDepthCopyPass.Render(renderGraph, frameData, depthHistoryTarget, resourceData.cameraDepth, false);
                         }
                     }
                 }
@@ -996,6 +996,18 @@ namespace UnityEngine.Rendering.Universal
             bool isDeferred = this.renderingModeActual == RenderingMode.Deferred;
 
             bool needsOccluderUpdate = cameraData.useGPUOcclusionCulling;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled && cameraData.xr.hasMotionVectorPass)
+            {
+                // Update prevView and View matrices.
+                m_XRDepthMotionPass?.Update(ref cameraData);
+
+                // Record depthMotion pass and import XR resources into the rendergraph.
+                m_XRDepthMotionPass?.Render(renderGraph, frameData);
+            }
+#endif
+
             if (requiresDepthPrepass)
             {
                 // TODO RENDERGRAPH: is this always a valid assumption for deferred rendering?
@@ -1080,7 +1092,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!renderGraph.nativeRenderPassesEnabled)
                 {
                     TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
-                    m_GBufferCopyDepthPass.Render(renderGraph, frameData, cameraDepthTexture, resourceData.activeDepthTexture, true, "GBuffer Depth Copy");
+                    m_GBufferCopyDepthPass.Render(renderGraph, frameData, cameraDepthTexture, resourceData.activeDepthTexture, true);
                 }
                 else
                 {
@@ -1172,6 +1184,8 @@ namespace UnityEngine.Rendering.Universal
                     m_DrawSkyboxPass.Render(renderGraph, frameData, context, resourceData.activeColorTexture, resourceData.activeDepthTexture, skyboxMaterial, requiresDepthCopyPass && m_CopyDepthMode != CopyDepthMode.AfterTransparents);
             }
 
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingSkybox);
+
             if (requiresColorCopyPass)
             {
                 TextureHandle activeColor = resourceData.activeColorTexture;
@@ -1181,6 +1195,8 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.cameraOpaqueTexture = cameraOpaqueTexture;
             }
 
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingTransparents);
+
 #if UNITY_EDITOR
             {
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
@@ -1188,8 +1204,6 @@ namespace UnityEngine.Rendering.Universal
                 m_ProbeVolumeDebugPass.Render(renderGraph, frameData, cameraDepthTexture, cameraNormalsTexture);
             }
 #endif
-
-            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingSkybox, RenderPassEvent.BeforeRenderingTransparents);
 
             // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -1447,7 +1461,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
                 m_FinalDepthCopyPass.MssaSamples = 0;
-                m_FinalDepthCopyPass.Render(renderGraph, frameData, resourceData.activeDepthTexture, cameraDepthTexture, false, "Final Depth Copy");
+                m_FinalDepthCopyPass.Render(renderGraph, frameData, resourceData.activeDepthTexture, cameraDepthTexture, false);
             }
 #endif
             if (cameraData.isSceneViewCamera)

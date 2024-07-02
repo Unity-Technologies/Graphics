@@ -8,6 +8,7 @@
 #pragma multi_compile_local _ PROBE_VOLUMES_SHARED_DATA
 #pragma multi_compile_local _ PROBE_VOLUMES_SKY_OCCLUSION
 #pragma multi_compile_local _ PROBE_VOLUMES_SKY_SHADING_DIRECTION
+#pragma multi_compile_local _ PROBE_VOLUMES_PROBE_OCCLUSION
 
 RWTexture3D<float4> _Out_L0_L1Rx;
 RWTexture3D<float4> _Out_L1G_L1Ry;
@@ -29,6 +30,10 @@ RWTexture3D<float> _Out_SkyShadingDirectionIndices;
 #endif
 #endif
 
+#ifdef PROBE_VOLUMES_PROBE_OCCLUSION
+RWTexture3D<float4> _Out_ProbeOcclusion;
+#endif
+
 
 [numthreads(64, 1, 1)]
 void UploadData(uint3 dispatchThreadID : SV_DispatchThreadID)
@@ -42,6 +47,7 @@ void UploadData(uint3 dispatchThreadID : SV_DispatchThreadID)
     uint offsetValidity = _ValidityOffset + chunkIndex * _ValiditySize + chunkProbeIndex * _ValidityProbeSize; // 4 x 1 bytes probes.
     uint offsetSkyOcclusion = _SkyOcclusionOffset + chunkIndex * _SkyOcclusionSize + chunkProbeIndex * _SkyOcclusionProbeSize; // 4 x 8 bytes probes.
     uint offsetSkyShadingDirection = _SkyShadingDirectionOffset + chunkIndex * _SkyShadingDirectionSize + chunkProbeIndex * _SkyShadingDirectionProbeSize; // 4 x 1 bytes probes.
+    uint offsetProbeOcclusion = _ProbeOcclusionOffset + chunkIndex * _ProbeOcclusionSize + chunkProbeIndex * _ProbeOcclusionProbeSize; // 4 x 4 bytes probes.
 
     // We extract 4 probes at a time.
     // This is driven by the minimum amount of data that we can load at once with a ByteAddressBuffer
@@ -68,7 +74,7 @@ void UploadData(uint3 dispatchThreadID : SV_DispatchThreadID)
         // Extract Shared Data. 1 probe == 1 byte => 4 probes encoded in 1 uint == 4 bytes
         ExtractByte(_ScratchBuffer.Load(offsetValidity), shared_probe_0_3);
     }
-    else if (_ValidityProbeSize == 4)
+    else
     {
         // When layers are on, 1 probe == 4 byte => 1 probe encoded in 1 uint
         // See LoadValidityMask()
@@ -91,6 +97,11 @@ void UploadData(uint3 dispatchThreadID : SV_DispatchThreadID)
     ExtractByte(_ScratchBuffer.Load(offsetSkyShadingDirection), SkyShadingDirectionIndices_0_3);
 #endif
 #endif
+#endif
+
+#ifdef PROBE_VOLUMES_PROBE_OCCLUSION
+    float4 ProbeOcclusion_probe_0, ProbeOcclusion_probe_1, ProbeOcclusion_probe_2, ProbeOcclusion_probe_3;
+    ExtractByte(_ScratchBuffer.Load4(offsetProbeOcclusion), ProbeOcclusion_probe_0, ProbeOcclusion_probe_1, ProbeOcclusion_probe_2, ProbeOcclusion_probe_3);
 #endif
 
     APVResourcesRW output;
@@ -142,5 +153,12 @@ void UploadData(uint3 dispatchThreadID : SV_DispatchThreadID)
     _Out_SkyShadingDirectionIndices[sharedLoc + probe3Offset] = SkyShadingDirectionIndices_0_3.w;
 #endif
 #endif
+#endif
+
+#ifdef PROBE_VOLUMES_PROBE_OCCLUSION
+    _Out_ProbeOcclusion[loc] = ProbeOcclusion_probe_0;
+    _Out_ProbeOcclusion[loc + probe1Offset] = ProbeOcclusion_probe_1;
+    _Out_ProbeOcclusion[loc + probe2Offset] = ProbeOcclusion_probe_2;
+    _Out_ProbeOcclusion[loc + probe3Offset] = ProbeOcclusion_probe_3;
 #endif
 }

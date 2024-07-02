@@ -36,7 +36,6 @@ HelpBoxRow
 
 .help-box-row-style-warning
 {
-    background-color: #fcd76e;
 }
 
 .help-box-row-style-warning #label
@@ -46,7 +45,6 @@ HelpBoxRow
 
 .help-box-row-style-error
 {
-    background-color: #fc6e6e;
 }
 
 .help-box-row-style-error #label

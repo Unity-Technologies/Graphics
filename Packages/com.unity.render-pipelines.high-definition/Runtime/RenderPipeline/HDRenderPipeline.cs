@@ -2358,6 +2358,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
+                        ScriptableRenderContext.PushDisableApiRenderers();
 
                         // Execute render request graph, in reverse order
                         for (int i = 0; i < renderRequestIndicesToRender.Count; ++i)
@@ -2419,6 +2420,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             CommandBufferPool.Release(cmd);
                             renderContext.Submit();
                         }
+
+                        ScriptableRenderContext.PopDisableApiRenderers();
                     }
                 }
             }
@@ -3089,7 +3092,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Must be called before culling because it emits intermediate renderers via Graphics.DrawInstanced.
             if (currentPipeline.apvIsEnabled)
             {
-                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera, currentPipeline.GetExposureTexture(hdCamera));
+                ProbeReferenceVolume.instance.RenderDebug(hdCamera.camera, hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>(), currentPipeline.GetExposureTexture(hdCamera));
             }
 
             // Set the LOD bias and store current value to be able to restore it.

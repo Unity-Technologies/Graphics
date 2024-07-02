@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-canvas-shader
+---
 # Canvas Shader Graph
 
 The Canvas material type enables you to author Shader Graph shaders that can be applied to [UGUI user interface elements](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/UICanvas.html).

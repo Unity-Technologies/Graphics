@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-lights-2d-intro
+---
 # Introduction to the 2D Lighting system
 The 2D Lighting system included with URP consists of a set of artist friendly tools and runtime components that help you quickly create a lit 2D scene through core Unity components such as the [Sprite Renderer](https://docs.unity3d.com/Manual/class-SpriteRenderer.html), and 2D Light components that act as 2D counterparts to familiar 3D Light components.
 

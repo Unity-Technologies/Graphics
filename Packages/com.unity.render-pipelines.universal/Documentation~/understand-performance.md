@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-understand-performance
+---
 # Understand performance
 
 The performance of your project depends on the Universal Render Pipeline (URP) features you use or enable, what your scenes contain, and which platforms you target. 

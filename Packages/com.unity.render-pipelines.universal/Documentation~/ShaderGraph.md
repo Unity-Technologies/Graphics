@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-shader-graph
+---
 # Create a 2D sprite Shader Graph
 
 Follow the steps below to create a shader that reacts to 2D lights when applied to materials.

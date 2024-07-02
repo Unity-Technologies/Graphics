@@ -27,7 +27,7 @@ RWStructuredBuffer<DilatedProbe> _OutputProbes;
 
 
 // Sampling is copied from SampleAPV()
-void AddProbeSample(APVResources apvRes, float3 uvw, inout DilatedProbe probe, float weight, inout float shWeight, inout float soWeight)
+void AddProbeSample(APVResources apvRes, float3 uvw, inout DilatedProbe probe, float weight, inout float shWeight, inout float soWeight, inout float poWeight)
 {
     // SH data
     float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_point_clamp_sampler, uvw, 0).rgba;
@@ -53,6 +53,13 @@ void AddProbeSample(APVResources apvRes, float3 uvw, inout DilatedProbe probe, f
         probe.L2_4 += float3(l2_C.x, l2_C.y, l2_C.z) * weight;
 
         shWeight += weight;
+    }
+
+    float4 probeOcclusion = SAMPLE_TEXTURE3D_LOD(apvRes.ProbeOcclusion, s_linear_clamp_sampler, uvw, 0).rgba;
+    if (!all(probeOcclusion < 0.0001f))
+    {
+        probe.ProbeOcclusion = probeOcclusion * weight;
+        poWeight += weight;
     }
 
     // Sky occlusion data
@@ -104,7 +111,7 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
 
             float3 uvw;
             uint subdiv;
-            float shWeight = 0, soWeight = 0;
+            float shWeight = 0, soWeight = 0, poWeight = 0;
             float3 uvwDelta = rcp(_APVPoolDim);
 
             float3 biasedPosWS;
@@ -137,7 +144,7 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
                                         {
                                             d *= d;
                                         }
-                                        AddProbeSample(FillAPVResources(), sampleUVW, probe, rcp(d), shWeight, soWeight);
+                                        AddProbeSample(FillAPVResources(), sampleUVW, probe, rcp(d), shWeight, soWeight, poWeight);
                                     }
                                 }
                             }
@@ -152,6 +159,12 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
             if (soWeight > 0)
                 probe.SO_L0L1 *= rcp(soWeight);
             probe.SO_Direction = SafeNormalize(probe.SO_Direction);
+
+            if (poWeight > 0)
+            {
+                probe.ProbeOcclusion *= rcp(poWeight);
+                probe.ProbeOcclusion = saturate(probe.ProbeOcclusion);
+            }
 
             _OutputProbes[probeIdx] = probe;
         }

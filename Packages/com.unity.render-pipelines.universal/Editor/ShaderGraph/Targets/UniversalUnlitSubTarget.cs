@@ -353,7 +353,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     StructFields.Varyings.positionWS,
                     StructFields.Varyings.normalWS,
-                    UniversalStructFields.Varyings.sh   // Satisfy !LIGHTMAP_ON requirements.
+                    UniversalStructFields.Varyings.sh,   // Satisfy !LIGHTMAP_ON requirements.
+                    UniversalStructFields.Varyings.probeOcclusion,
                 };
             }
             #endregion

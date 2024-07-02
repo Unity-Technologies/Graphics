@@ -101,6 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.SSAO, "Screen Space Ambient Occlusion");
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             bool notSupported = currentAsset != null && !currentAsset.currentPlatformRenderPipelineSettings.supportSSAO;
             if (notSupported)
@@ -117,6 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
                 {
+                    HDEditorUtils.EnsureFrameSetting(FrameSettingsField.RayTracing, "RayTracing");
                     // If ray tracing is supported display the content of the volume component
                     if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
                         HDRenderPipelineUI.DisplayRayTracingSupportBox();

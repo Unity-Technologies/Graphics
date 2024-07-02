@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-faq
+---
 # Frequently asked questions (FAQ)
 
 This section answers some frequently asked questions about the Universal Render Pipeline (URP). These questions come from the [General Graphics](https://forum.unity.com/forums/general-graphics.76/) section on our forums, from the [Unity Discord](https://discord.gg/unity) channel, and from our support teams.

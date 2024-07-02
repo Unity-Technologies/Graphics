@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-streaming
+---
 # Streaming Adaptive Probe Volumes
 
 You can enable Adaptive Probe Volume streaming to enable Adaptive Probe Volume lighting in very large worlds. Using streaming means you can bake Adaptive Probe Volume data larger than available CPU or GPU memory, and load it at runtime when it's needed. At runtime, as your camera moves, the Universal Render Pipeline (URP) loads only Adaptive Probe Volume data from cells within the camera's view frustum.

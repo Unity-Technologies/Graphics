@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-render-graph-framebuffer-fetch
+---
 # Get the current framebuffer with framebuffer fetch
 
 To speed up rendering, use framebuffer fetch to read the frame that Unity has rendered so far.

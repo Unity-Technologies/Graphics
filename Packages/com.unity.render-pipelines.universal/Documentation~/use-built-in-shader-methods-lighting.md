@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-use-built-in-shader-methods-lighting
+---
 # Use lighting in a custom URP shader
 
 To use lighting in a custom Universal Render Pipeline (URP) shader, follow these steps:

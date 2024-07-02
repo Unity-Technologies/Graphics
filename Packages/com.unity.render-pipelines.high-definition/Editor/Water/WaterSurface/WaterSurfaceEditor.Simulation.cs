@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditor.EditorGUI;
 using static UnityEditor.Rendering.HighDefinition.HDProbeUI;
@@ -113,9 +114,12 @@ namespace UnityEditor.Rendering.HighDefinition
             #endregion
         }
 
-        static internal void WaterSurfaceLargeCurrent(WaterSurfaceEditor serialized, Editor owner)
+        static internal void WaterSurfaceLargeCurrent(WaterSurfaceEditor serialized)
         {
             EditorGUILayout.PropertyField(serialized.m_LargeCurrentSpeedValue, k_LargeCurrentSpeed);
+
+            if (GraphicsSettings.GetRenderPipelineSettings<WaterSystemGlobalSettings>().waterDecalMaskAndCurrent)
+                return;
 
             using (new BoldLabelScope())
                 MapWithExtent(serialized.m_LargeCurrentMap, k_LargeCurrentMap, serialized.m_LargeCurrentRegionExtent);
@@ -132,23 +136,31 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        static bool HasCustomRipplesCurrent(WaterSurfaceEditor serialized)
+        {
+            return (WaterPropertyOverrideMode)serialized.m_RipplesMotionMode.enumValueIndex == WaterPropertyOverrideMode.Custom;
+        }
+
         static internal void WaterSurfaceRipplesOrientationCurrentInherit(WaterSurfaceEditor serialized, Editor owner, string[] modeNames)
         {
             using (new BoldLabelScope())
                 serialized.m_RipplesMotionMode.enumValueIndex = EditorGUILayout.Popup(k_RipplesMotionInherit, serialized.m_RipplesMotionMode.enumValueIndex, modeNames);
 
-            using (new IndentLevelScope())
+            if (HasCustomRipplesCurrent(serialized))
             {
-                WaterPropertyOverrideMode overrideType = (WaterPropertyOverrideMode)(serialized.m_RipplesMotionMode.enumValueIndex);
-                if (overrideType == WaterPropertyOverrideMode.Custom)
-                    WaterSurfaceRipplesOrientationCurrent(serialized, owner);
+                using (new IndentLevelScope())
+                    WaterSurfaceRipplesOrientationCurrent(serialized);
             }
         }
 
-        static internal void WaterSurfaceRipplesOrientationCurrent(WaterSurfaceEditor serialized, Editor owner)
+        static internal void WaterSurfaceRipplesOrientationCurrent(WaterSurfaceEditor serialized)
         {
             EditorGUILayout.PropertyField(serialized.m_RipplesOrientationValue, k_RipplesOrientation);
             EditorGUILayout.PropertyField(serialized.m_RipplesCurrentSpeedValue, k_RipplesCurrentSpeed);
+
+            if (GraphicsSettings.GetRenderPipelineSettings<WaterSystemGlobalSettings>().waterDecalMaskAndCurrent)
+                return;
+
             using (new BoldLabelScope())
                 MapWithExtent(serialized.m_RipplesCurrentMap, k_RipplesCurrentMap, serialized.m_RipplesCurrentRegionExtent);
 
@@ -164,9 +176,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static internal void WaterSurfaceWaterMask(WaterSurfaceEditor serialized, Editor owner, GUIContent maskContent)
+        static internal void WaterSurfaceWaterMask(WaterSurfaceEditor serialized, GUIContent maskContent)
         {
-            // Water Mask
+            if (GraphicsSettings.GetRenderPipelineSettings<WaterSystemGlobalSettings>().waterDecalMaskAndCurrent)
+                return;
+
             using (new BoldLabelScope())
                 MapWithExtent(serialized.m_WaterMask, maskContent, serialized.m_WaterMaskExtent);
 
@@ -189,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void WaterSurfaceSimulationSection_Ocean(WaterSurfaceEditor serialized, Editor owner)
         {
             // Water masking
-            WaterSurfaceWaterMask(serialized, owner, k_WaterMaskSwell);
+            WaterSurfaceWaterMask(serialized, k_WaterMaskSwell);
 
             // Swell section
             EditorGUILayout.LabelField("Swell", EditorStyles.boldLabel);
@@ -206,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.m_LargeOrientationValue, k_SwellOrientation);
 
                 // Current parameters
-                WaterSurfaceLargeCurrent(serialized, owner);
+                WaterSurfaceLargeCurrent(serialized);
 
                 // Band0 foldout
                 float totalAmplitude = 0.0f;
@@ -317,7 +331,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void WaterSurfaceSimulationSection_River(WaterSurfaceEditor serialized, Editor owner)
         {
             // Water masking
-            WaterSurfaceWaterMask(serialized, owner, k_WaterMaskAgitation);
+            WaterSurfaceWaterMask(serialized, k_WaterMaskAgitation);
 
             // Agitation foldout
             EditorGUILayout.LabelField("Agitation", EditorStyles.boldLabel);
@@ -334,7 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.m_LargeOrientationValue, k_AgitationOrientation);
 
                 // Current parameters
-                WaterSurfaceLargeCurrent(serialized, owner);
+                WaterSurfaceLargeCurrent(serialized);
 
                 // Evaluate the maximal amplitude that this patch size/wind speed allows
                 EditorGUILayout.PropertyField(serialized.m_LargeBand0Multiplier, k_AgitationBandMutliplier);
@@ -399,7 +413,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void WaterSurfaceSimulationSection_Pool(WaterSurfaceEditor serialized, Editor owner)
         {
             // Water Mask
-            WaterSurfaceWaterMask(serialized, owner, k_WaterMaskRipples);
+            WaterSurfaceWaterMask(serialized, k_WaterMaskRipples);
 
             EditorGUILayout.LabelField("Ripples", EditorStyles.boldLabel);
             {
@@ -409,7 +423,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.m_RipplesChaos, k_RipplesChaos);
 
                     // Current
-                    WaterSurfaceRipplesOrientationCurrent(serialized, owner);
+                    WaterSurfaceRipplesOrientationCurrent(serialized);
 
                     if (AdvancedProperties.BeginGroup())
                     {

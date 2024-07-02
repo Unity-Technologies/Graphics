@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-2d-light-batching-debugger
+---
 # Using the Light Batching Debugger
 
 The **Light Batching Debugger** visualizes how Unity batches [2D Lights](2DLightProperties.md) and [Shadow Casters](2DShadows.md) according to the [Sorting Layers](https://docs.unity3d.com/Manual/class-TagManager.html#SortingLayers) they target in the scene. For Unity to batch Sorting Layers, the layers need to fulfill the following conditions:

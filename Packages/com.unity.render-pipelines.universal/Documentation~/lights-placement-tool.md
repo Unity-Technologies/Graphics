@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-lights-placement-tool
+---
 # View and manipulate Lights from their perspective
 
 The Universal Render Pipeline (URP) includes the Light Placement Tool which you can use to view a Scene from a light source’s perspective. You can use this tool to move and modify any type of light source.

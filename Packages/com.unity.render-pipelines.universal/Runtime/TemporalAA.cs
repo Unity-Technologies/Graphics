@@ -327,6 +327,8 @@ namespace UnityEngine.Rendering.Universal
             return taaDesc;
         }
 
+        static uint s_warnCounter = 0;
+
         internal static string ValidateAndWarn(UniversalCameraData cameraData)
         {
             string warning = null;
@@ -344,7 +346,7 @@ namespace UnityEngine.Rendering.Universal
                 if (cameraData.xr != null && cameraData.xr.enabled)
                     warning = "Disabling TAA because MSAA is on. MSAA must be disabled globally for all cameras in XR mode.";
                 else
-                    warning = "Disabling TAA because MSAA is on.";
+                    warning = "Disabling TAA because MSAA is on. Turn MSAA off on the camera or current URP Asset to enable TAA.";
             }
 
             if(warning == null && cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
@@ -363,8 +365,9 @@ namespace UnityEngine.Rendering.Universal
                 warning = "Disabling TAA because the renderer does not implement motion vectors. Motion vectors are required for TAA.";
 
             const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
-            if(Time.frameCount % warningThrottleFrames == 0)
+            if (s_warnCounter % warningThrottleFrames == 0)
                 Debug.LogWarning(warning);
+            s_warnCounter++;
 
             return warning;
         }

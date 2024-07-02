@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public InvokeOnRenderObjectCallbackPass(RenderPassEvent evt)
         {
-            base.profilingSampler = new ProfilingSampler(nameof(InvokeOnRenderObjectCallbackPass));
+            profilingSampler = new ProfilingSampler("Invoke OnRenderObject Callback");
             renderPassEvent = evt;
             //TODO: should we fix and re-enable native render pass for this pass?
             // Currently disabled because when the callback is empty it causes an empty Begin/End RenderPass block, which causes artifacts on Vulkan
@@ -33,8 +33,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Render(RenderGraph renderGraph, TextureHandle colorTarget, TextureHandle depthTarget)
         {
-            using (var builder = renderGraph.AddUnsafePass<PassData>("OnRenderObject Callback Pass", out var passData,
-                base.profilingSampler))
+            using (var builder = renderGraph.AddUnsafePass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.colorTarget = colorTarget;
                 builder.UseTexture(colorTarget, AccessFlags.Write);

@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-renderer-feature-decal
+---
 # Decal Renderer Feature
 
 With the Decal Renderer Feature, Unity can project specific Materials (decals) onto other objects in the scene. The decals interact with the scene's lighting and wrap around Meshes.

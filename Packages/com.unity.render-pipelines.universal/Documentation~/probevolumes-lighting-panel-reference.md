@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-lighting-panel-reference
+---
 # Adaptive Probe Volumes panel properties
 
 This page explains the properties in the **Adaptive Probe Volumes** panel in Lighting settings. To open the panel, from the main menu select **Window** > **Rendering** > **Lighting** > **Adaptive Probe Volumes**.

@@ -36,17 +36,20 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 #if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, input.sh, inputData.normalWS);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     inputData.bakedGI = SAMPLE_GI(input.sh,
         GetAbsolutePositionWS(inputData.positionWS),
         inputData.normalWS,
         inputData.viewDirectionWS,
-        input.positionCS.xy);
+        input.positionCS.xy,
+        input.probeOcclusion,
+        inputData.shadowMask);
 #else
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.sh, inputData.normalWS);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 #endif
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-    inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 
     #if defined(DEBUG_DISPLAY)
     #if defined(DYNAMICLIGHTMAP_ON)

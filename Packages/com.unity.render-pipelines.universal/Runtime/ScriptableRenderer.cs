@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler sortRenderPasses = new ProfilingSampler($"Sort Render Passes");
             public static readonly ProfilingSampler recordRenderGraph = new ProfilingSampler($"On Record Render Graph");
             public static readonly ProfilingSampler setupLights = new ProfilingSampler($"{k_Name}.{nameof(SetupLights)}");
-            public static readonly ProfilingSampler setupCamera = new ProfilingSampler($"Setup Camera Parameters");
+            public static readonly ProfilingSampler setupCamera = new ProfilingSampler($"Setup Camera Properties");
             public static readonly ProfilingSampler vfxProcessCamera = new ProfilingSampler($"VFX Process Camera");
             public static readonly ProfilingSampler addRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(AddRenderPasses)}");
             public static readonly ProfilingSampler setupRenderPasses = new ProfilingSampler($"{k_Name}.{nameof(SetupRenderPasses)}");
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler drawWireOverlay = new ProfilingSampler($"{nameof(DrawWireOverlay)}");
             internal static readonly ProfilingSampler beginXRRendering = new ProfilingSampler($"Begin XR Rendering");
             internal static readonly ProfilingSampler endXRRendering = new ProfilingSampler($"End XR Rendering");
-            internal static readonly ProfilingSampler initRenderGraphFrame = new ProfilingSampler($"Initialize Render Graph frame settings");
+            internal static readonly ProfilingSampler initRenderGraphFrame = new ProfilingSampler($"Initialize Frame");
             internal static readonly ProfilingSampler setEditorTarget = new ProfilingSampler($"Set Editor Target");
 
             public static class RenderBlock
@@ -834,7 +834,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void InitRenderGraphFrame(RenderGraph renderGraph)
         {
-            using (var builder = renderGraph.AddUnsafePass<PassData>("InitFrame", out var passData,
+            using (var builder = renderGraph.AddUnsafePass<PassData>(Profiling.initRenderGraphFrame.name, out var passData,
                 Profiling.initRenderGraphFrame))
             {
                 passData.renderer = this;
@@ -901,7 +901,7 @@ namespace UnityEngine.Rendering.Universal
         }
         internal void SetupRenderGraphCameraProperties(RenderGraph renderGraph, bool isTargetBackbuffer)
         {
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("SetupCameraProperties", out var passData,
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(Profiling.setupCamera.name, out var passData,
                 Profiling.setupCamera))
             {
                 passData.renderer = this;
@@ -1006,7 +1006,7 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.isSceneViewCamera)
                 return;
 
-            using (var builder = renderGraph.AddRasterRenderPass<DrawWireOverlayPassData>("Wire Overlay", out var passData,
+            using (var builder = renderGraph.AddRasterRenderPass<DrawWireOverlayPassData>(Profiling.drawWireOverlay.name, out var passData,
                        Profiling.drawWireOverlay))
             {
                 builder.SetRenderAttachment(color, 0, AccessFlags.Write);

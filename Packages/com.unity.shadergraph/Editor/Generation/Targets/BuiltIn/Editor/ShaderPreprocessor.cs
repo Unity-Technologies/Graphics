@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
+using System.Diagnostics.CodeAnalysis;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.BuiltIn
@@ -89,6 +88,13 @@ namespace UnityEditor.Rendering.BuiltIn
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_EditorVisualization = new ShaderKeyword(ShaderKeywordStrings.EDITOR_VISUALIZATION);
         ShaderTagId m_ShaderGraphShaderTag = new ShaderTagId("ShaderGraphShader");
+        ShaderTagId m_ShaderGraphTargetIdTag = new ShaderTagId("ShaderGraphTargetId");
+
+        static List<string> SubTargetNames = new List<string>
+        {
+            typeof(BuiltInLitSubTarget).Name,
+            typeof(BuiltInUnlitSubTarget).Name,
+        };
 
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
@@ -115,7 +121,42 @@ namespace UnityEditor.Rendering.BuiltIn
             var shaderGraphTag = serializedSubShader.FindTagValue(m_ShaderGraphShaderTag);
             if (shaderGraphTag == ShaderTagId.none)
                 return false;
-            return true;
+
+            var targetIdTag = serializedSubShader.FindTagValue(m_ShaderGraphTargetIdTag);
+            if (targetIdTag == ShaderTagId.none)
+                return false;
+
+            var targetIdString = targetIdTag.name;
+            foreach (var subTargetName in SubTargetNames)
+            {
+                if (targetIdString == subTargetName)
+                    return true;
+            }
+            return false;
+        }
+
+        private static readonly ShaderTagId s_RenderPipelineShaderTagId = new ShaderTagId("RenderPipeline");
+
+        bool IsBiRPShaderGraphVariant([DisallowNull] Shader shader, ShaderSnippetData shaderVariant)
+        {
+            if (!IsShaderGraphShader(shader, shaderVariant))
+                return false;
+
+            var shaderData = ShaderUtil.GetShaderData(shader);
+            if (shaderData == null)
+                return false;
+
+            int subshaderIndex = (int)shaderVariant.pass.SubshaderIndex;
+            if (subshaderIndex < 0 || subshaderIndex >= shader.subshaderCount)
+                return false;
+
+            var subShader = shaderData.GetSerializedSubshader(subshaderIndex);
+            if (subShader == null)
+                return false;
+
+            // A non-existing or empty "RenderPipeline" tag means it's built-in.
+            var shaderTag = subShader.FindTagValue(s_RenderPipelineShaderTagId);
+            return string.IsNullOrEmpty(shaderTag.name);
         }
 
         bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData)
@@ -319,10 +360,8 @@ namespace UnityEditor.Rendering.BuiltIn
             Profiler.BeginSample(k_ProcessShaderTag);
 #endif
 
-            // We only want to perform shader variant stripping if the built-in render pipeline
-            // is the active render pipeline (i.e., there is no SRP asset in place).
             RenderPipelineAsset rpAsset = GraphicsSettings.currentRenderPipeline;
-            if (rpAsset != null || compilerDataList == null || compilerDataList.Count == 0)
+            if (compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
             double stripTimeMs = 0.0;
@@ -330,6 +369,17 @@ namespace UnityEditor.Rendering.BuiltIn
             using (TimedScope.FromRef(ref stripTimeMs))
             {
                 var inputShaderVariantCount = compilerDataList.Count;
+
+                // If the active render pipeline is not built-in, we want to strip all BiRP SG variants
+                // and completely ignore the rest (the other strippers will take care of those).
+                if (rpAsset != null)
+                {
+                    if (IsBiRPShaderGraphVariant(shader, snippetData))
+                        inputShaderVariantCount = 0;
+                    else
+                        return;
+                }
+
                 for (int i = 0; i < inputShaderVariantCount;)
                 {
                     bool removeInput = true;

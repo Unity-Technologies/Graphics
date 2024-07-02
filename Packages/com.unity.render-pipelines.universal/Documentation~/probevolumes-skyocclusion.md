@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-probevolumes-skyocclusion
+---
 # Update light from the sky at runtime with sky occlusion
 
 You can enable sky occlusion when you use Adaptive Probe Volumes. Sky occlusion means that when a GameObject samples a color from the sky, Unity dims the color if the light can't reach the GameObject.

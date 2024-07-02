@@ -46,6 +46,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Although counter-intuitive at first, this call doesn't actually have a dependency on the passed in texture handle. It's only when a subsequent pass has
         /// a dependency on the global texture slot that subsequent pass will get a dependency on the currently set global texture for that slot. This means
         /// globals slots can be set without overhead if you're unsure if a resource will be used or not, the graph will still maintain the correct lifetimes.
+        ///
+        /// NOTE: When the `RENDER_GRAPH_CLEAR_GLOBALS` define is set, all shader bindings set through this function will be cleared once graph execution completes.
         /// </summary>
         /// <param name="input">The texture value to set in the global texture slot. This can be an null handle to clear the global texture slot.</param>
         /// <param name="propertyId">The global texture slot to set the value for. Use Shader.PropertyToID to generate the id.</param>

@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
         XROcclusionMeshPass m_XROcclusionMeshPass;
         CopyDepthPass m_XRCopyDepthPass;
+        XRDepthMotionPass m_XRDepthMotionPass;
 #endif
 #if UNITY_EDITOR
         CopyDepthPass m_FinalDepthCopyPass;
@@ -186,7 +187,10 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>(out var xrResources))
+            {
                 Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, xrResources.xrOcclusionMeshPS, xrResources.xrMirrorViewPS);
+                m_XRDepthMotionPass = new XRDepthMotionPass(RenderPassEvent.BeforeRenderingPrePasses, xrResources.xrMotionVector);
+            }
 #endif
             if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
                     out var shadersResources))
@@ -301,9 +305,9 @@ namespace UnityEngine.Rendering.Universal
                     new ShaderTagId("LightweightForward") // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
                 };
                 int forwardOnlyStencilRef = stencilData.stencilReference | (int)StencilUsage.MaterialUnlit;
-                m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingGbuffer + 1, copyDephPS, true);
+                m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingGbuffer + 1, copyDephPS, true, customPassName: "Copy GBuffer Depth");
                 m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingDeferredLights, m_DeferredLights);
-                m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
+                m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Draw Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
             }
 
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
@@ -320,7 +324,7 @@ namespace UnityEngine.Rendering.Universal
                 copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported() && copyDepthAfterTransparents);
 
             // Motion vectors depend on the (copy) depth texture. Depth is reprojected to calculate motion vectors.
-            m_MotionVectorPass = new MotionVectorRenderPass(copyDepthEvent + 1, m_CameraMotionVecMaterial);
+            m_MotionVectorPass = new MotionVectorRenderPass(copyDepthEvent + 1, m_CameraMotionVecMaterial, data.opaqueLayerMask);
 
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
@@ -335,8 +339,8 @@ namespace UnityEngine.Rendering.Universal
 
             // History generation passes for "raw color/depth". These execute only if explicitly requested by users.
             // VFX system particles uses these. See RawColorHistory.cs.
-            m_HistoryRawColorCopyPass = new CopyColorPass(RenderPassEvent.BeforeRenderingPostProcessing, m_SamplingMaterial, m_BlitMaterial, customPassName: "CopyColorPass.RawColorHistory");
-            m_HistoryRawDepthCopyPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingPostProcessing, copyDephPS, false, RenderingUtils.MultisampleDepthResolveSupported(), customPassName: "CopyDepthPass.RawDepthHistory");
+            m_HistoryRawColorCopyPass = new CopyColorPass(RenderPassEvent.BeforeRenderingPostProcessing, m_SamplingMaterial, m_BlitMaterial, customPassName: "Copy Color Raw History");
+            m_HistoryRawDepthCopyPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingPostProcessing, copyDephPS, false, RenderingUtils.MultisampleDepthResolveSupported(), customPassName: "Copy Depth Raw History");
 
             m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing, true);
             m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
@@ -357,7 +361,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
 
 #if UNITY_EDITOR
-            m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, copyDephPS, false, true);
+            m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, copyDephPS, false, true, customPassName: "Copy Final Depth");
             if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineDebugShaders>(out var debugShaders))
                 m_ProbeVolumeDebugPass = new ProbeVolumeDebugPass(RenderPassEvent.BeforeRenderingTransparents, debugShaders.probeVolumeSamplingDebugComputeShader);
 #endif
@@ -409,6 +413,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XRCopyDepthPass?.Dispose();
+            m_XRDepthMotionPass?.Dispose();
 #endif
 
             m_TargetColorHandle?.Release();
@@ -566,7 +571,7 @@ namespace UnityEngine.Rendering.Universal
             if (!CanCopyDepth(cameraData))
                 return false;
 
-            // Depth Priming causes rendering errors with WebGL on Apple Arm64 GPUs.
+            // Depth Priming causes rendering errors with WebGL and WebGPU on Apple Arm64 GPUs.
             bool isNotWebGL = !IsWebGL();
             bool depthPrimingRequested = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || m_DepthPrimingMode == DepthPrimingMode.Forced;
             bool isForwardRenderingMode = m_RenderingMode == RenderingMode.Forward || m_RenderingMode == RenderingMode.ForwardPlus;
@@ -581,8 +586,9 @@ namespace UnityEngine.Rendering.Universal
 
         bool IsWebGL()
         {
+            // Both WebGL and WebGPU have issues with depth priming on Apple Arm64
 #if PLATFORM_WEBGL
-            return IsGLESDevice();
+            return true;
 #else
             return false;
 #endif
@@ -881,6 +887,11 @@ namespace UnityEngine.Rendering.Universal
 
             if (useRenderPassEnabled || useDepthPriming)
                 createColorTexture |= createDepthTexture;
+
+			// If gfxAPI yflips intermediate texture, we can't mix-use backbuffer(not flipped) and render texture(flipped) due to different flip state/clipspace y. 
+			// This introduces the final blit pass.
+			if(SystemInfo.graphicsUVStartsAtTop)
+				createColorTexture |= createDepthTexture;
 
             //Set rt descriptors so preview camera's have access should it be needed
             var colorDescriptor = cameraTargetDescriptor;

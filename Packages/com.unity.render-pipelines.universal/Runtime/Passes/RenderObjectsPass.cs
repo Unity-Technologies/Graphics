@@ -15,8 +15,7 @@ namespace UnityEngine.Rendering.Universal
         RenderQueueType renderQueueType;
         FilteringSettings m_FilteringSettings;
         RenderObjects.CustomCameraSettings m_CameraSettings;
-        string m_ProfilerTag;
-        static ProfilingSampler s_ProfilingSampler;
+
 
         /// <summary>
         /// The override material to use.
@@ -96,13 +95,20 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderQueueType">The queue type for the objects to render.</param>
         /// <param name="layerMask">The layer mask to use for creating filtering settings that control what objects get rendered.</param>
         /// <param name="cameraSettings">The settings for custom cameras values.</param>
-        public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)            
         {
-            base.profilingSampler = new ProfilingSampler(nameof(RenderObjectsPass));
+            profilingSampler = new ProfilingSampler(profilerTag);
+            Init(renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings);
+        }
 
-            m_ProfilerTag = profilerTag;
-            s_ProfilingSampler = new ProfilingSampler(profilerTag);
+        internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        {
+            profilingSampler = ProfilingSampler.Get(profileId);
+            Init(renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings);
+        }
 
+        internal void Init(RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
+        {
             m_PassData = new PassData();
 
             this.renderPassEvent = renderPassEvent;
@@ -118,8 +124,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (shaderTags != null && shaderTags.Length > 0)
             {
-                foreach (var passName in shaderTags)
-                    m_ShaderTagIdList.Add(new ShaderTagId(passName));
+                foreach (var tag in shaderTags)
+                    m_ShaderTagIdList.Add(new ShaderTagId(tag));
             }
             else
             {
@@ -132,12 +138,6 @@ namespace UnityEngine.Rendering.Universal
             m_CameraSettings = cameraSettings;
         }
 
-        internal RenderObjectsPass(URPProfileId profileId, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
-            : this(profileId.GetType().Name, renderPassEvent, shaderTags, renderQueueType, layerMask, cameraSettings)
-        {
-            s_ProfilingSampler = ProfilingSampler.Get(profileId);
-        }
-
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -146,10 +146,15 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = renderingData.frameData.Get<UniversalLightData>();
 
-            InitPassData(cameraData, ref m_PassData);
-            InitRendererLists(universalRenderingData, lightData, ref m_PassData, context, default(RenderGraph), false);
+            var cmd = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
 
-            ExecutePass(m_PassData, CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData.rendererList, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
+            using (new ProfilingScope(cmd, profilingSampler))
+            {
+                InitPassData(cameraData, ref m_PassData);
+                InitRendererLists(universalRenderingData, lightData, ref m_PassData, context, default(RenderGraph), false);
+
+                ExecutePass(m_PassData, cmd , m_PassData.rendererList, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
+            }
         }
 
         private static void ExecutePass(PassData passData, RasterCommandBuffer cmd, RendererList rendererList, bool isYFlipped)
@@ -159,44 +164,41 @@ namespace UnityEngine.Rendering.Universal
             // In case of camera stacking we need to take the viewport rect from base camera
             Rect pixelRect = passData.cameraData.pixelRect;
             float cameraAspect = (float)pixelRect.width / (float)pixelRect.height;
-
-            using (new ProfilingScope(cmd, s_ProfilingSampler))
+           
+            if (passData.cameraSettings.overrideCamera)
             {
-                if (passData.cameraSettings.overrideCamera)
+                if (passData.cameraData.xr.enabled)
                 {
-                    if (passData.cameraData.xr.enabled)
-                    {
-                        Debug.LogWarning("RenderObjects pass is configured to override camera matrices. While rendering in stereo camera matrices cannot be overridden.");
-                    }
-                    else
-                    {
-                        Matrix4x4 projectionMatrix = Matrix4x4.Perspective(passData.cameraSettings.cameraFieldOfView, cameraAspect,
-                            camera.nearClipPlane, camera.farClipPlane);
-                        projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, isYFlipped);
-
-                        Matrix4x4 viewMatrix = passData.cameraData.GetViewMatrix();
-                        Vector4 cameraTranslation = viewMatrix.GetColumn(3);
-                        viewMatrix.SetColumn(3, cameraTranslation + passData.cameraSettings.offset);
-
-                        RenderingUtils.SetViewAndProjectionMatrices(cmd, viewMatrix, projectionMatrix, false);
-                    }
-                }
-
-                var activeDebugHandler = GetActiveDebugHandler(passData.cameraData);
-                if (activeDebugHandler != null)
-                {
-                    passData.debugRendererLists.DrawWithRendererList(cmd);
+                    Debug.LogWarning("RenderObjects pass is configured to override camera matrices. While rendering in stereo camera matrices cannot be overridden.");
                 }
                 else
                 {
-                    cmd.DrawRendererList(rendererList);
-                }
+                    Matrix4x4 projectionMatrix = Matrix4x4.Perspective(passData.cameraSettings.cameraFieldOfView, cameraAspect,
+                        camera.nearClipPlane, camera.farClipPlane);
+                    projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, isYFlipped);
 
-                if (passData.cameraSettings.overrideCamera && passData.cameraSettings.restoreCamera && !passData.cameraData.xr.enabled)
-                {
-                    RenderingUtils.SetViewAndProjectionMatrices(cmd, passData.cameraData.GetViewMatrix(), GL.GetGPUProjectionMatrix(passData.cameraData.GetProjectionMatrix(0), isYFlipped), false);
+                    Matrix4x4 viewMatrix = passData.cameraData.GetViewMatrix();
+                    Vector4 cameraTranslation = viewMatrix.GetColumn(3);
+                    viewMatrix.SetColumn(3, cameraTranslation + passData.cameraSettings.offset);
+
+                    RenderingUtils.SetViewAndProjectionMatrices(cmd, viewMatrix, projectionMatrix, false);
                 }
             }
+
+            var activeDebugHandler = GetActiveDebugHandler(passData.cameraData);
+            if (activeDebugHandler != null)
+            {
+                passData.debugRendererLists.DrawWithRendererList(cmd);
+            }
+            else
+            {
+                cmd.DrawRendererList(rendererList);
+            }
+
+            if (passData.cameraSettings.overrideCamera && passData.cameraSettings.restoreCamera && !passData.cameraData.xr.enabled)
+            {
+                RenderingUtils.SetViewAndProjectionMatrices(cmd, passData.cameraData.GetViewMatrix(), GL.GetGPUProjectionMatrix(passData.cameraData.GetProjectionMatrix(0), isYFlipped), false);
+            }            
         }
 
         private class PassData
@@ -269,7 +271,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Render Objects Pass", out var passData, s_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 

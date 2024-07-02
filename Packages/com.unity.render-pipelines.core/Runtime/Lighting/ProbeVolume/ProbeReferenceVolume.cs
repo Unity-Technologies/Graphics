@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering
         public bool skyOcclusionShadingDirection;
         public int regionCount;
         public uint4 regionLayerMasks;
+        public Vector3 worldOffset;
     }
 
     /// <summary>
@@ -207,6 +208,7 @@ namespace UnityEngine.Rendering
             public NativeArray<ushort> skyOcclusionDataL0L1 { get; internal set; }
             public NativeArray<byte> skyShadingDirectionIndices { get; internal set; }
 
+
             // Scenario Data
             public struct PerScenarioData
             {
@@ -220,6 +222,9 @@ namespace UnityEngine.Rendering
                 public NativeArray<byte> shL2Data_1;
                 public NativeArray<byte> shL2Data_2;
                 public NativeArray<byte> shL2Data_3;
+
+                // 4 unorm per probe, 1 for each occluded light
+                public NativeArray<byte> probeOcclusion;
             }
 
             public Dictionary<string, PerScenarioData> scenarios = new Dictionary<string, PerScenarioData>();
@@ -249,6 +254,11 @@ namespace UnityEngine.Rendering
                     data.shL2Data_1.Dispose();
                     data.shL2Data_2.Dispose();
                     data.shL2Data_3.Dispose();
+                }
+
+                if (data.probeOcclusion.IsCreated)
+                {
+                    data.probeOcclusion.Dispose();
                 }
             }
 
@@ -614,6 +624,11 @@ namespace UnityEngine.Rendering
             public RenderTexture L2_3;
 
             /// <summary>
+            /// Texture containing 4 light occlusion coefficients for each probe.
+            /// </summary>
+            public RenderTexture ProbeOcclusion;
+
+            /// <summary>
             /// Texture containing packed validity binary data for the neighbourhood of each probe. Only used when L1. Otherwise this info is stored
             /// in the alpha channel of L2_3.
             /// </summary>
@@ -719,6 +734,13 @@ namespace UnityEngine.Rendering
         internal bool gpuStreamingEnabled => m_SupportGPUStreaming;
         internal bool diskStreamingEnabled => m_SupportDiskStreaming && !m_ForceNoDiskStreaming;
 
+        /// <summary>
+        /// Whether APV stores occlusion for mixed lights.
+        /// </summary>
+        public bool probeOcclusion
+        {
+            get => m_CurrentBakingSet ? m_CurrentBakingSet.bakedProbeOcclusion : false;
+        }
 
         /// <summary>
         /// Whether APV handles sky dynamically (with baked sky occlusion) or fully statically.
@@ -1491,6 +1513,10 @@ namespace UnityEngine.Rendering
                     if (!ProbeBrickIndex.BrickOverlapEntry(brickMin, brickMax, entry_min, entry_max))
                         continue;
 
+                    // Bricks can be bigger than entries !
+                    brickMin = Vector3Int.Max(brickMin, entry_min);
+                    brickMax = Vector3Int.Min(brickMax, entry_max);
+
                     if (initialized)
                     {
                         entryInfo.minBrickPos = Vector3Int.Min(brickMin, entryInfo.minBrickPos);
@@ -1558,18 +1584,18 @@ namespace UnityEngine.Rendering
             // If a set without sky occlusion was loaded, and a set with sky occlusion is now loaded,
             // the pools will not have allocated all necessary buffers
             // To support that case, we can force reinit here because we know no scenes are loaded (as we are changing baking set)
-            if (m_ProbeReferenceVolumeInit && !m_Pool.EnsureTextureValidity(useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection))
+            if (m_ProbeReferenceVolumeInit && !m_Pool.EnsureTextureValidity(useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection, probeOcclusion))
             {
                 m_TemporaryDataLocation.Cleanup();
                 m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate",
-                    false, true, useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection, out m_TemporaryDataLocationMemCost);
+                    false, true, useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection, probeOcclusion, out m_TemporaryDataLocationMemCost);
             }
 
             if (!m_ProbeReferenceVolumeInit)
             {
                 Profiler.BeginSample("Initialize Reference Volume");
-                m_Pool = new ProbeBrickPool(m_MemoryBudget, m_SHBands, allocateValidityData: true, useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection);
-                m_BlendingPool = new ProbeBrickBlendingPool(m_BlendingMemoryBudget, m_SHBands);
+                m_Pool = new ProbeBrickPool(m_MemoryBudget, m_SHBands, allocateValidityData: true, useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection, probeOcclusion);
+                m_BlendingPool = new ProbeBrickBlendingPool(m_BlendingMemoryBudget, m_SHBands, probeOcclusion);
 
                 m_Index = new ProbeBrickIndex(m_MemoryBudget);
 
@@ -1581,7 +1607,7 @@ namespace UnityEngine.Rendering
                 InitializeGlobalIndirection();
 
                 m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, m_SHBands, "APV_Intermediate",
-                    false, true, useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection, out m_TemporaryDataLocationMemCost);
+                    false, true, useRenderingLayers, skyOcclusion, skyOcclusionShadingDirection, probeOcclusion, out m_TemporaryDataLocationMemCost);
 
                 // initialize offsets
                 m_PositionOffsets[0] = 0.0f;
@@ -1763,6 +1789,11 @@ namespace UnityEngine.Rendering
                 UpdateDataLocationTexture(m_TemporaryDataLocation.TexL2_3, data.shL2Data_3.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
             }
 
+            if (probeOcclusion && data.probeOcclusion.Length > 0)
+            {
+                UpdateDataLocationTexture(m_TemporaryDataLocation.TexProbeOcclusion, data.probeOcclusion.GetSubArray(chunkIndex * chunkSizeInProbes * 4, chunkSizeInProbes * 4));
+            }
+
             if (poolIndex == -1) // shared data that don't need to be updated per scenario
             {
                 if (validityNeighMaskData.Length > 0)
@@ -1794,9 +1825,9 @@ namespace UnityEngine.Rendering
         {
             // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
             if (poolIndex == -1)
-                m_Pool.Update(cmd, dataBuffer, layout, chunkList, updateSharedData: true, m_Pool.GetValidityTexture(), m_SHBands, skyOcclusion, m_Pool.GetSkyOcclusionTexture(), skyOcclusionShadingDirection, m_Pool.GetSkyShadingDirectionIndicesTexture());
+                m_Pool.Update(cmd, dataBuffer, layout, chunkList, updateSharedData: true, m_Pool.GetValidityTexture(), m_SHBands, skyOcclusion, m_Pool.GetSkyOcclusionTexture(), skyOcclusionShadingDirection, m_Pool.GetSkyShadingDirectionIndicesTexture(), probeOcclusion);
             else
-                m_BlendingPool.Update(cmd, dataBuffer, layout, chunkList, m_SHBands, poolIndex, m_Pool.GetValidityTexture(), skyOcclusion, m_Pool.GetSkyOcclusionTexture(), skyOcclusionShadingDirection, m_Pool.GetSkyShadingDirectionIndicesTexture());
+                m_BlendingPool.Update(cmd, dataBuffer, layout, chunkList, m_SHBands, poolIndex, m_Pool.GetValidityTexture(), skyOcclusion, m_Pool.GetSkyOcclusionTexture(), skyOcclusionShadingDirection, m_Pool.GetSkyShadingDirectionIndicesTexture(), probeOcclusion);
         }
 
         // Updates data shared by all scenarios (validity, sky occlusion, sky direction)
@@ -1946,6 +1977,11 @@ namespace UnityEngine.Rendering
                         data.shL2Data_3 = dataBuffer.stagingBuffer.GetSubArray(layout._L2_3Offset + offsetAdjustment, chunkCount * layout._L2Size);
                     }
 
+                    if (probeOcclusion && layout._ProbeOcclusionSize > 0)
+                    {
+                        data.probeOcclusion = dataBuffer.stagingBuffer.GetSubArray(layout._ProbeOcclusionOffset + offsetAdjustment, chunkCount * layout._ProbeOcclusionSize);
+                    }
+
                     NativeArray<ushort> skyOcclusionData = default;
                     if (skyOcclusion && layout._SkyOcclusionSize > 0)
                     {
@@ -2058,7 +2094,7 @@ namespace UnityEngine.Rendering
             m_CellIndices.GetMinMaxEntry(out Vector3Int minEntry, out Vector3Int _);
             var entriesPerCell = m_CellIndices.entriesPerCellDimension;
             var skyDirectionWeight = parameters.skyOcclusionShadingDirection ? 1.0f : 0.0f;
-            var probeOffset = ProbeOffset();
+            var probeOffset = ProbeOffset() + parameters.worldOffset;
 
             ShaderVariablesProbeVolumes shaderVars;
             shaderVars._Offset_LayerCount = new Vector4(probeOffset.x, probeOffset.y, probeOffset.z, parameters.regionCount);

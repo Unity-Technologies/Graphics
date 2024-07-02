@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             if (isMSAA && !Blitter.CanCopyMSAA())
                 throw new ArgumentException("Target does not support MSAA for AddCopyPass. Please use the blit alternative or use non MSAA textures.");
 
-            using (var builder = graph.AddRasterRenderPass<CopyPassData>(passName, out var passData))
+            using (var builder = graph.AddRasterRenderPass<CopyPassData>(passName, out var passData, file, line))
             {
                 passData.isMSAA = isMSAA;
                 builder.SetInputAttachment(source, 0, AccessFlags.Read, sourceMip, sourceSlice);
@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 throw new ArgumentException($"BlitPass: {passName} attempts to blit too many mips. The pass will be skipped.");
             }
 
-            using (var builder = graph.AddUnsafePass<BlitPassData>(passName, out var passData))
+            using (var builder = graph.AddUnsafePass<BlitPassData>(passName, out var passData, file, line))
             {
                 passData.source = source;
                 passData.destination = destination;
@@ -274,13 +274,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// makes it easier to use the function.
         ///
         /// Use one of the constructor overloads for common use cases.
-        /// 
+        ///
+        ///
+        /// The shader properties defined in the struct or constructors is used for most common usecases but they are not required to be used in the shader.
+        /// By using the <c>MaterialPropertyBlock</c> can you add your shader properties with custom values.
         /// </summary>
         public struct BlitMaterialParameters
         {
-            private static readonly int mainTexProperty = Shader.PropertyToID("_MainTex");
-            private static readonly int sourceSliceProperty = Shader.PropertyToID("_SourceSlice");
-            private static readonly int sourceMipProperty = Shader.PropertyToID("_SourceMip");
+            private static readonly int blitTextureProperty = Shader.PropertyToID("_BlitTexture");
+            private static readonly int blitSliceProperty = Shader.PropertyToID("_BlitTexArraySlice");
+            private static readonly int blitMipProperty = Shader.PropertyToID("_BlitMipLevel");
+            private static readonly int blitScaleBias = Shader.PropertyToID("_BlitScaleBias");
 
             /// <summary>
             /// Simple constructor to set a few amount of parameters to blit.
@@ -290,9 +294,23 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             /// <param name="material">Material used for blitting.</param>
             /// <param name="shaderPass">The shader pass index to use for the material.</param>
             public BlitMaterialParameters(TextureHandle source, TextureHandle destination, Material material, int shaderPass)
+                : this(source, destination, Vector2.one, Vector2.zero, material, shaderPass) { }
+
+            /// <summary>
+            /// Simple constructor to set a few amount of parameters to blit.
+            /// </summary>
+            /// <param name="source">The texture the data is copied from.</param>
+            /// <param name="destination">The texture the data is copied to.</param>
+            /// <param name="scale">Scale for sampling the input texture.</param>
+            /// <param name="offset">Offset also known as bias for sampling the input texture</param>
+            /// <param name="material">Material used for blitting.</param>
+            /// <param name="shaderPass">The shader pass index to use for the material.</param>
+            public BlitMaterialParameters(TextureHandle source, TextureHandle destination, Vector2 scale, Vector2 offset, Material material, int shaderPass)
             {
                 this.source = source;
                 this.destination = destination;
+                this.scale = scale;
+                this.offset = offset;
                 sourceSlice = -1;
                 destinationSlice = 0;
                 numSlices = 1;
@@ -302,10 +320,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 this.material = material;
                 this.shaderPass = shaderPass;
                 propertyBlock = null;
-                sourceTexturePropertyID = mainTexProperty;
-                sourceSlicePropertyID = sourceSliceProperty;
-                sourceMipPropertyID = sourceMipProperty;
-                geometry = FullScreenGeometryType.Mesh;
+                sourceTexturePropertyID = blitTextureProperty;
+                sourceSlicePropertyID = blitSliceProperty;
+                sourceMipPropertyID = blitMipProperty;
+                scaleBiasPropertyID = blitScaleBias;
+                geometry = FullScreenGeometryType.ProceduralTriangle;
             }
 
             /// <summary>
@@ -324,15 +343,15 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             /// <param name="sourceMip"> The first mipmap level to copy from. Must be zero for non-mipmapped textures. Must be a valid index for mipmapped textures. Defaults to -1 to ignore source mips and set it to 0 without looping for each destination mip.</param>
             /// <param name="geometry">Geometry used for blitting the source texture.</param>
             /// <param name="sourceTexturePropertyID">
-            /// The texture property to set with the source texture. If -1 the default "_MainTex" texture property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// The texture property to set with the source texture. If -1 the default "_BlitTexture" texture property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
             /// If propertyBlock is null the texture will be applied directly to the material.
             /// </param>
             /// <param name="sourceSlicePropertyID">
-            /// The scalar property to set with the source slice index. If -1 the default "_SourceSlice" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// The scalar property to set with the source slice index. If -1 the default "_BlitTexArraySlice" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
             /// If more than one slice is rendered using the blit function (numSlices>1) several full screen quads will be rendered for each slice with different sourceSlicePropertyID values set.
             /// </param>
             /// <param name="sourceMipPropertyID">
-            /// The scalar property to set with the source mip index. If -1 the default "_SourceMip" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// The scalar property to set with the source mip index. If -1 the default "_BlitMipLevel" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
             /// If more than one mip is rendered using the blit function (numMips>1) several full screen quads will be rendered for each slice with different sourceMipPropertyID values set.
             /// </param>
             public BlitMaterialParameters(TextureHandle source, TextureHandle destination, Material material, int shaderPass,
@@ -346,7 +365,60 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 FullScreenGeometryType geometry = FullScreenGeometryType.Mesh,
                 int sourceTexturePropertyID = -1,
                 int sourceSlicePropertyID = -1,
-                int sourceMipPropertyID = -1) : this(source, destination, material, shaderPass)
+                int sourceMipPropertyID = -1)
+                : this(source, destination, Vector2.one, Vector2.zero, material, shaderPass,
+                      mpb,
+                      destinationSlice, destinationMip,
+                      numSlices, numMips,
+                      sourceSlice, sourceMip,
+                      geometry,
+                      sourceTexturePropertyID, sourceSlicePropertyID, sourceMipPropertyID) { }
+
+            /// <summary>
+            /// Constructor to set the source and destination mip and slices as well as material property and IDs to interact with it.
+            /// </summary>
+            /// <param name="source">The texture the data is copied from.</param>
+            /// <param name="destination">The texture the data is copied to.</param>
+            /// <param name="scale">Scale for sampling the input texture.</param>
+            /// <param name="offset">Offset also known as bias for sampling the input texture</param>
+            /// <param name="material">Material used for blitting.</param>
+            /// <param name="shaderPass">The shader pass index to use for the material.</param>
+            /// <param name="mpb">Material property block to use to render the blit. This property should contain all data the shader needs.</param>
+            /// <param name="destinationSlice"> The first slice to copy to if the texture is an 3D or array texture. Must be zero for regular textures.</param>
+            /// <param name="destinationMip"> The first mipmap level to copy to. Must be zero for non-mipmapped textures. Must be a valid index for mipmapped textures.</param>
+            /// <param name="numSlices"> The number of slices to copy. -1 to copy all slices until the end of the texture. Arguments that copy invalid slices to be copied will lead to an error.</param>
+            /// <param name="numMips"> The number of mipmaps to copy. -1 to copy all mipmaps. Arguments that copy invalid mips to be copied will lead to an error.</param>
+            /// <param name="sourceSlice"> The first slice to copy from if the texture is an 3D or array texture. Must be zero for regular textures. Default is set to -1 to ignore source slices and set it to 0 without looping for each destination slice</param>
+            /// <param name="sourceMip"> The first mipmap level to copy from. Must be zero for non-mipmapped textures. Must be a valid index for mipmapped textures. Defaults to -1 to ignore source mips and set it to 0 without looping for each destination mip.</param>
+            /// <param name="geometry">Geometry used for blitting the source texture.</param>
+            /// <param name="sourceTexturePropertyID">
+            /// The texture property to set with the source texture. If -1 the default "_BlitTexture" texture property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// If propertyBlock is null the texture will be applied directly to the material.
+            /// </param>
+            /// <param name="sourceSlicePropertyID">
+            /// The scalar property to set with the source slice index. If -1 the default "_BlitTexArraySlice" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// If more than one slice is rendered using the blit function (numSlices>1) several full screen quads will be rendered for each slice with different sourceSlicePropertyID values set.
+            /// </param>
+            /// <param name="sourceMipPropertyID">
+            /// The scalar property to set with the source mip index. If -1 the default "_BlitMipLevel" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// If more than one mip is rendered using the blit function (numMips>1) several full screen quads will be rendered for each slice with different sourceMipPropertyID values set.
+            /// </param>
+            /// <param name="scaleBiasPropertyID">
+            /// The scalar property to set with the scale and bias known as offset. If -1 the default "_BlitScaleBias" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// </param>
+            public BlitMaterialParameters(TextureHandle source, TextureHandle destination, Vector2 scale, Vector2 offset, Material material, int shaderPass,
+                MaterialPropertyBlock mpb,
+                int destinationSlice,
+                int destinationMip,
+                int numSlices = 1,
+                int numMips = 1,
+                int sourceSlice = -1,
+                int sourceMip = -1,
+                FullScreenGeometryType geometry = FullScreenGeometryType.Mesh,
+                int sourceTexturePropertyID = -1,
+                int sourceSlicePropertyID = -1,
+                int sourceMipPropertyID = -1,
+                int scaleBiasPropertyID = -1) : this(source, destination, scale, offset, material, shaderPass)
             {
                 this.propertyBlock = mpb;
                 this.sourceSlice = sourceSlice;
@@ -355,9 +427,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 this.sourceMip = sourceMip;
                 this.destinationMip = destinationMip;
                 this.numMips = numMips;
-                this.sourceTexturePropertyID = sourceTexturePropertyID;
-                this.sourceSlicePropertyID = sourceSlicePropertyID;
-                this.sourceMipPropertyID = sourceMipPropertyID;
+                if (sourceTexturePropertyID != -1)
+                    this.sourceTexturePropertyID = sourceTexturePropertyID;
+                if (sourceSlicePropertyID != -1)
+                    this.sourceSlicePropertyID = sourceSlicePropertyID;
+                if (sourceMipPropertyID != -1)
+                    this.sourceMipPropertyID = sourceMipPropertyID;
+                if (scaleBiasPropertyID != -1)
+                    this.scaleBiasPropertyID = scaleBiasPropertyID;
                 this.geometry = geometry;
             }
 
@@ -371,15 +448,15 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             /// <param name="mpb">Material property block to use to render the blit. This property should contain all data the shader needs.</param>
             /// <param name="geometry">Geometry used for blitting the source texture.</param>
             /// <param name="sourceTexturePropertyID">
-            /// The texture property to set with the source texture. If -1 the default "_MainTex" texture property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// The texture property to set with the source texture. If -1 the default "_BlitTexture" texture property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
             /// If propertyBlock is null the texture will be applied directly to the material.
             /// </param>
             /// <param name="sourceSlicePropertyID">
-            /// The scalar property to set with the source slice index. If -1 the default "_SourceSlice" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// The scalar property to set with the source slice index. If -1 the default "_BlitTexArraySlice" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
             /// If more than one slice is rendered using the blit function (numSlices>1) several full screen quads will be rendered for each slice with different sourceSlicePropertyID values set.
             /// </param>
             /// <param name="sourceMipPropertyID">
-            /// The scalar property to set with the source mip index. If -1 the default "_SourceMip" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// The scalar property to set with the source mip index. If -1 the default "_BlitMipLevel" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
             /// If more than one mip is rendered using the blit function (numMips>1) several full screen quads will be rendered for each slice with different sourceMipPropertyID values set.
             /// </param>
             public BlitMaterialParameters(TextureHandle source, TextureHandle destination, Material material, int shaderPass,
@@ -387,12 +464,56 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 FullScreenGeometryType geometry = FullScreenGeometryType.Mesh,
                 int sourceTexturePropertyID = -1,
                 int sourceSlicePropertyID = -1,
-                int sourceMipPropertyID = -1) : this(source, destination, material, shaderPass)
+                int sourceMipPropertyID = -1)
+                : this(source, destination,
+                      Vector2.one, Vector2.zero,
+                      material, shaderPass,
+                      mpb, geometry,
+                      sourceTexturePropertyID, sourceSlicePropertyID, sourceMipPropertyID) { }
+
+            /// <summary>
+            /// Constructor to set textures, material, shader pass and material property block.
+            /// </summary>
+            /// <param name="source">The texture the data is copied from.</param>
+            /// <param name="destination">The texture the data is copied to.</param>
+            /// <param name="scale">Scale for sampling the input texture.</param>
+            /// <param name="offset">Offset also known as bias for sampling the input texture</param>
+            /// <param name="material">Material used for blitting.</param>
+            /// <param name="shaderPass">The shader pass index to use for the material.</param>
+            /// <param name="mpb">Material property block to use to render the blit. This property should contain all data the shader needs.</param>
+            /// <param name="geometry">Geometry used for blitting the source texture.</param>
+            /// <param name="sourceTexturePropertyID">
+            /// The texture property to set with the source texture. If -1 the default "_BlitTexture" texture property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// If propertyBlock is null the texture will be applied directly to the material.
+            /// </param>
+            /// <param name="sourceSlicePropertyID">
+            /// The scalar property to set with the source slice index. If -1 the default "_BlitSlice" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// If more than one slice is rendered using the blit function (numSlices>1) several full screen quads will be rendered for each slice with different sourceSlicePropertyID values set.
+            /// </param>
+            /// <param name="sourceMipPropertyID">
+            /// The scalar property to set with the source mip index. If -1 the default "_BlitMipLevel" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// If more than one mip is rendered using the blit function (numMips>1) several full screen quads will be rendered for each slice with different sourceMipPropertyID values set.
+            /// </param>
+            /// <param name="scaleBiasPropertyID">
+            /// The scalar property to set with the scale and bias known as offset. If -1 the default "_BlitScaleBias" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// </param>
+            public BlitMaterialParameters(TextureHandle source, TextureHandle destination, Vector2 scale, Vector2 offset, Material material, int shaderPass,
+                MaterialPropertyBlock mpb,
+                FullScreenGeometryType geometry = FullScreenGeometryType.Mesh,
+                int sourceTexturePropertyID = -1,
+                int sourceSlicePropertyID = -1,
+                int sourceMipPropertyID = -1,
+                int scaleBiasPropertyID = -1) : this(source, destination, scale, offset, material, shaderPass)
             {
                 this.propertyBlock = mpb;
-                this.sourceTexturePropertyID = sourceTexturePropertyID;
-                this.sourceSlicePropertyID = sourceSlicePropertyID;
-                this.sourceMipPropertyID = sourceMipPropertyID;
+                if (sourceTexturePropertyID != -1)
+                    this.sourceTexturePropertyID = sourceTexturePropertyID;
+                if (sourceSlicePropertyID != -1)
+                    this.sourceSlicePropertyID = sourceSlicePropertyID;
+                if (sourceMipPropertyID != -1)
+                    this.sourceMipPropertyID = sourceMipPropertyID;
+                if (scaleBiasPropertyID != -1)
+                    this.scaleBiasPropertyID = scaleBiasPropertyID;
                 this.geometry = geometry;
             }
 
@@ -407,6 +528,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             /// The texture to blit into. This subresources (mips,slices) of this texture  texture will be set-up as a render attachment based on the destination argumments.
             /// </summary>
             public TextureHandle destination;
+
+            /// <summary>
+            /// The scale used for the blit operation.
+            /// </summary>
+            public Vector2 scale;
+
+            /// <summary>
+            /// The offset of the blit destination.
+            /// </summary>
+            public Vector2 offset;
 
             /// <summary>
             /// The first slice of the source texture to blit from. -1 to ignore source slices and set it to 0 without looping for each destination slice.
@@ -455,22 +586,27 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             public MaterialPropertyBlock propertyBlock;
 
             /// <summary>
-            /// The texture property to set with the source texture. If -1 the default "_MainTex" texture property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// The texture property to set with the source texture. If -1 the default "_BlitTexture" texture property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
             /// If propertyBlock is null the texture will be applied directly to the material.
             /// </summary>
             public int sourceTexturePropertyID;
 
             /// <summary>
-            /// The scalar property to set with the source slice index. If -1 the default "_SourceSlice" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// The scalar property to set with the source slice index. If -1 the default "_BlitTexArraySlice" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
             /// If more than one slice is rendered using the blit function (numSlices>1) several full screen quads will be rendered for each slice with different sourceSlicePropertyID values set.
             /// </summary>
             public int sourceSlicePropertyID;
 
             /// <summary>
-            /// The scalar property to set with the source mip index. If -1 the default "_SourceMip" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// The scalar property to set with the source mip index. If -1 the default "_BlitMipLevel" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
             /// If more than one mip is rendered using the blit function (numMips>1) several full screen quads will be rendered for each slice with different sourceMipPropertyID values set./// 
             /// </summary>
             public int sourceMipPropertyID;
+
+            /// <summary>
+            /// The scalar property to set with the scale and bias also known as offset from the source to distination. If -1 the default "_BlitScaleBias" property will be used. Note: Use Shader.PropertyToID to convert a string property name to an ID.
+            /// </summary>
+            public int scaleBiasPropertyID;
 
             /// <summary>
             /// The type of full-screen geometry to use when rendering the blit material. See FullScreenGeometryType for details.
@@ -483,6 +619,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             public int sourceTexturePropertyID;
             public TextureHandle source;
             public TextureHandle destination;
+            public Vector2 scale;
+            public Vector2 offset;
             public Material material;
             public int shaderPass;
             public MaterialPropertyBlock propertyBlock;
@@ -495,6 +633,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             public FullScreenGeometryType geometry;
             public int sourceSlicePropertyID;
             public int sourceMipPropertyID;
+            public int scaleBiasPropertyID;
         }
 
         /// <summary>
@@ -522,8 +661,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// renderGraph.AddBlitPass(... material, propertyBlock2, ...);
         ///
         /// Notes on using this function:
-        /// - This function intentionally has no scale and offset this should be implemented in the material's shader.
-        /// - This function intentionally has no source mip or source slice, this can be implemented in the shader by using the appropriate texture sample function.
         /// - If you need special handling of MSAA buffers this can be implemented using the bindMS flag on the source texture and per-sample pixel shader invocation on the destination texture (e.g. using SV_SampleIndex).
         /// - MaterialPropertyBlocks used for this function should not contain any textures added by MaterialPropertyBlock.SetTexture(...) as it will cause untracked textures when using RenderGraph causing uninstended behaviour.
         /// 
@@ -563,11 +700,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             {
                 throw new ArgumentException($"BlitPass: {passName} attempts to blit too many mips. The pass will be skipped.");
             }
-            using (var builder = graph.AddUnsafePass<BlitMaterialPassData>(passName, out var passData))
+
+            using (var builder = graph.AddUnsafePass<BlitMaterialPassData>(passName, out var passData, file, line))
             {
                 passData.sourceTexturePropertyID = blitParameters.sourceTexturePropertyID;
                 passData.source = blitParameters.source;
                 passData.destination = blitParameters.destination;
+                passData.scale = blitParameters.scale;
+                passData.offset = blitParameters.offset;
                 passData.material = blitParameters.material;
                 passData.shaderPass = blitParameters.shaderPass;
                 passData.propertyBlock = blitParameters.propertyBlock;
@@ -580,6 +720,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 passData.geometry = blitParameters.geometry;
                 passData.sourceSlicePropertyID = blitParameters.sourceSlicePropertyID;
                 passData.sourceMipPropertyID = blitParameters.sourceMipPropertyID;
+                passData.scaleBiasPropertyID = blitParameters.scaleBiasPropertyID;
 
                 builder.UseTexture(blitParameters.source);
                 builder.UseTexture(blitParameters.destination, AccessFlags.Write);
@@ -589,13 +730,19 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
 
         static void BlitMaterialRenderFunc(BlitMaterialPassData data, UnsafeGraphContext context)
         {
+            s_BlitScaleBias.x = data.scale.x;
+            s_BlitScaleBias.y = data.scale.y;
+            s_BlitScaleBias.z = data.offset.x;
+            s_BlitScaleBias.w = data.offset.y;
+
             if (data.propertyBlock != null)
             {
-                data.propertyBlock?.SetTexture(data.sourceTexturePropertyID, data.source);
+                data.propertyBlock.SetTexture(data.sourceTexturePropertyID, data.source);
                 if (data.sourceSlice == -1)
                     data.propertyBlock.SetInt(data.sourceSlicePropertyID, 0);
                 if (data.sourceMip == -1)
                     data.propertyBlock.SetInt(data.sourceMipPropertyID, 0);
+                data.propertyBlock.SetVector(data.scaleBiasPropertyID, s_BlitScaleBias);
             }
             else
             {
@@ -604,6 +751,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                     data.material.SetInt(data.sourceSlicePropertyID, 0);
                 if (data.sourceMip == -1)
                     data.material.SetInt(data.sourceMipPropertyID, 0);
+                data.material.SetVector(data.scaleBiasPropertyID, s_BlitScaleBias);
             }
 
 

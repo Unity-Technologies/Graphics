@@ -10,6 +10,9 @@ namespace UnityEngine.Rendering
     {
         private static bool CanRemoveSettings(this List<IStripper> strippers, [DisallowNull] Type settingsType, [DisallowNull] IRenderPipelineGraphicsSettings settings)
         {
+            if (strippers == null)
+                return false;
+
             const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
             var canRemoveSettings = true;
@@ -18,7 +21,7 @@ namespace UnityEngine.Rendering
 
             foreach (var stripperInstance in strippers)
             {
-                var methodInfo = stripperInstance.GetType().GetMethod($"{nameof(IRenderPipelineGraphicsSettingsStripper<IRenderPipelineGraphicsSettings>.CanRemoveSettings)}", flags);
+                var methodInfo = stripperInstance?.GetType().GetMethod($"{nameof(IRenderPipelineGraphicsSettingsStripper<IRenderPipelineGraphicsSettings>.CanRemoveSettings)}", flags);
                 if (methodInfo != null)
                     canRemoveSettings &= (bool)methodInfo.Invoke(stripperInstance, methodArgs);
             }
@@ -36,8 +39,7 @@ namespace UnityEngine.Rendering
             strippersDefined = false;
 
             var settingsType = settings.GetType();
-
-            if (strippersMap.TryGetValue(settingsType, out var strippers))
+            if (strippersMap.TryGetValue(settingsType, out var strippers) && strippers != null)
             {
                 if (!strippers.CanRemoveSettings(settingsType, settings))
                     isAvailableOnPlayerBuild = true;
@@ -80,7 +82,7 @@ namespace UnityEngine.Rendering
                     report.AddStrippedSetting(settings.GetType(), isAvailableOnPlayerBuild, strippersDefined);
                 }
             }
-            
+
         }
     }
 }

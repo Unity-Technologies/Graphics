@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-gpu-culling
+---
 # Use GPU occlusion culling
 
 GPU occlusion culling means Unity uses the GPU instead of the CPU to exclude objects from rendering when they're occluded behind other objects. Unity uses this information to speed up rendering in scenes that have a lot of occlusion.

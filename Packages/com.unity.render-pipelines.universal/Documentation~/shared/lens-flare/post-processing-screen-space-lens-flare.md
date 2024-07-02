@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-post-processing-screen-space-lens-flare
+---
 # Add screen space lens flares
 
 ![](../../Images/shared/lens-flare/screenspacelensflaresurp.png)

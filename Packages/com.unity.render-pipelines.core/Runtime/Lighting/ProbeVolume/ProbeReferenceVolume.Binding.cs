@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering
             public static readonly int _APVResL2_2 = Shader.PropertyToID("_APVResL2_2");
             public static readonly int _APVResL2_3 = Shader.PropertyToID("_APVResL2_3");
 
+            public static readonly int _APVProbeOcclusion = Shader.PropertyToID("_APVProbeOcclusion");
+
             public static readonly int _APVResValidity = Shader.PropertyToID("_APVResValidity");
             public static readonly int _SkyOcclusionTexL0L1 = Shader.PropertyToID("_SkyOcclusionTexL0L1");
             public static readonly int _SkyShadingDirectionIndicesTex = Shader.PropertyToID("_SkyShadingDirectionIndicesTex");
@@ -69,6 +71,8 @@ namespace UnityEngine.Rendering
                         cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_3, rr.L2_3);
                     }
 
+                    cmdBuffer.SetGlobalTexture(ShaderIDs._APVProbeOcclusion, rr.ProbeOcclusion ?? (RenderTargetIdentifier)CoreUtils.whiteVolumeTexture);
+
                     needToBindNeutral = false;
                 }
             }
@@ -101,6 +105,8 @@ namespace UnityEngine.Rendering
                     cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_2, CoreUtils.blackVolumeTexture);
                     cmdBuffer.SetGlobalTexture(ShaderIDs._APVResL2_3, CoreUtils.blackVolumeTexture);
                 }
+
+                cmdBuffer.SetGlobalTexture(ShaderIDs._APVProbeOcclusion, CoreUtils.whiteVolumeTexture);
             }
         }
 
@@ -133,6 +139,7 @@ namespace UnityEngine.Rendering
                 parameters.skyOcclusionShadingDirection = skyOcclusion && skyOcclusionShadingDirection;
                 parameters.regionCount = m_CurrentBakingSet.bakedMaskCount;
                 parameters.regionLayerMasks = supportRenderingLayers ? m_CurrentBakingSet.bakedLayerMasks : 0xFFFFFFFF;
+                parameters.worldOffset = probeVolumeOptions.worldOffset.value;
                 UpdateConstantBuffer(cmd, parameters);
             }
 

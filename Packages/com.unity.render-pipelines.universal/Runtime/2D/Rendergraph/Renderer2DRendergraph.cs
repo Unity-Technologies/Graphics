@@ -333,8 +333,22 @@ namespace UnityEngine.Rendering.Universal
                     var depthDescriptor = cameraData.cameraTargetDescriptor;
                     depthDescriptor.useMipMap = false;
                     depthDescriptor.autoGenerateMips = false;
-                    if (!lastCameraInTheStack && m_UseDepthStencilBuffer)
-                        depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+                    depthDescriptor.bindMS = false;
+
+                    bool hasMSAA = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
+                    bool resolveDepth = RenderingUtils.MultisampleDepthResolveSupported() && renderGraph.nativeRenderPassesEnabled;
+
+                    if (m_CopyDepthPass != null)
+                        m_CopyDepthPass.m_CopyResolvedDepth = resolveDepth;
+
+                    if (hasMSAA)
+                    {
+                        depthDescriptor.bindMS = !resolveDepth;
+                    }
+
+                    // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
+                    if (IsGLDevice())
+                        depthDescriptor.bindMS = false;
 
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
@@ -396,6 +410,31 @@ namespace UnityEngine.Rendering.Universal
 
             var postProcessDesc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
             commonResourceData.afterPostProcessColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, postProcessDesc, "_AfterPostProcessTexture", true);
+
+            if (RequiresDepthCopyPass(cameraData))
+                CreateCameraDepthCopyTexture(renderGraph, cameraTargetDescriptor);
+        }
+
+        bool RequiresDepthCopyPass(UniversalCameraData cameraData)
+        {
+            var renderPassInputs = GetRenderPassInputs(cameraData);
+            bool cameraHasPostProcessingWithDepth = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated && cameraData.postProcessingRequiresDepthTexture;
+            bool requiresDepthCopyPass = (cameraHasPostProcessingWithDepth || renderPassInputs.requiresDepthTexture) && m_CreateDepthTexture;
+
+            return requiresDepthCopyPass;
+        }
+
+        void CreateCameraDepthCopyTexture(RenderGraph renderGraph, RenderTextureDescriptor descriptor)
+        {
+            CommonResourceData resourceData = frameData.Get<CommonResourceData>();
+
+            var depthDescriptor = descriptor;
+            depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+            depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+            depthDescriptor.depthStencilFormat = GraphicsFormat.None;
+            depthDescriptor.depthBufferBits = 0;
+
+            resourceData.cameraDepthTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthTexture", true);
         }
 
         public override void OnBeginRenderGraphFrame()
@@ -447,6 +486,11 @@ namespace UnityEngine.Rendering.Universal
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
             universal2DResourceData.EndFrame();
             commonResourceData.EndFrame();
+        }
+
+        internal override void OnFinishRenderGraphRendering(CommandBuffer cmd)
+        {
+            m_CopyDepthPass?.OnCameraCleanup(cmd);
         }
 
         private void OnBeforeRendering(RenderGraph renderGraph)
@@ -538,6 +582,9 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+
+            if (RequiresDepthCopyPass(cameraData))
+                m_CopyDepthPass?.Render(renderGraph, frameData, commonResourceData.cameraDepthTexture, commonResourceData.activeDepthTexture, true);
 
             bool shouldRenderUI = cameraData.rendersOverlayUI;
             bool outputToHDR = cameraData.isHDROutputActive;

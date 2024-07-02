@@ -182,13 +182,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water))
                         volumetricDensityBuffer = ClearAndHeightFogVoxelizationPass(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, transparentPrepass);
 
+                    // Render Reflections. Due to incorrect resource barriers on some platforms, we have to run SSR before shadow maps to have correct async compute
+                    // However, raytraced reflections don't run async have to be executed after shadows maps to get correct shadowing, so the call is duplicated here
+                    // Evaluate the clear coat mask texture based on the lit shader mode
+                    var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
+                    var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+                    bool rtReflections = EnableRayTracedReflections(hdCamera, settings);
+                    if (!rtReflections)
+                        lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, clearCoatMask, rayCountTexture, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
+
                     RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
 
                     StartXRSinglePass(m_RenderGraph, hdCamera);
-
-                    // Evaluate the clear coat mask texture based on the lit shader mode
-                    var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
-                    lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, default, clearCoatMask, rayCountTexture, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
+                    
+                    if (rtReflections)
+                        lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, clearCoatMask, rayCountTexture, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
                     lightingBuffers.ssgiLightingBuffer = RenderScreenSpaceIndirectDiffuse(hdCamera, prepassOutput, rayCountTexture, historyValidationTexture, gpuLightListOutput.lightList);
 
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingClusterState())
@@ -1631,7 +1639,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ComposeLines(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramid);
 
             // Render the transparent SSR lighting
-            var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, in transparentPrepass, renderGraph.defaultResources.blackTextureXR, rayCountTexture, renderGraph.defaultResources.blackTextureXR, skyTexture, transparent: true);
+            var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, renderGraph.defaultResources.blackTextureXR, skyTexture, transparent: true);
 
             colorBuffer = RaytracingRecursiveRender(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, transparentPrepass.flagMaskBuffer, rayCountTexture);
 

@@ -3,7 +3,7 @@
 #ifndef SPEEDTREE_WIND_8_INCLUDED
 #define SPEEDTREE_WIND_8_INCLUDED
 
-#define SPEEDTREE_VERSION_8
+#define SPEEDTREE_VERSION_8 1
 #include "SpeedTreeCommon.hlsl"
 
 ///////////////////////////////////////////////////////////////////////
@@ -727,7 +727,7 @@ float3 LeafTumble(float3 vPos,
     float fTwitch = 0.0;
     if (bTwitch)
         fTwitch = Twitch(vAnchor.xyz, vTwitch.x, vTwitch.y, vTwitch.z + fOffset);
-
+    
     matTumble = mul_float3x3_float3x3(matTumble, RotationMatrix(vAxis, fScale * (fAngle * fAdherence * fAdherenceScale + fOsc * fFlip + fTwitch)));
 
     vDirection = mul_float3x3_float3(matTumble, vDirection);
@@ -905,41 +905,21 @@ float3 SpeedTreeWind(
     float4 vTexcoord3, 
     int iWindQuality, 
     bool bBillboard,
-    bool bCrossfade,
     bool bHistory
 )
 {
     float3 vReturnPos = vPos;
-
-    // ---------------------------------------------------------------------------------
-    // TODO: move this outside of this function as they have nothing to do with wind
-    // -  DoLeafFacing()
-    // ---------------------------------------------------------------------------------
-    if (!bCrossfade && !bBillboard)
-    {
-        vReturnPos = ApplySmoothLODTransition(vPos, vTexcoord2.xyz);
-    }
-    bool leafTwo = false;
-    int geometryType = GetGeometryType(vTexcoord3, leafTwo);
-    if (leafTwo) // leaf facing is done regardless of wind
-    {   
-        float3 anchor = float3(vTexcoord1.zw, vTexcoord2.w);
-        vReturnPos = DoLeafFacing(vReturnPos, anchor); 
-    }
-    // ---------------------------------------------------------------------------------
-
+    
     // check wind enabled & data available
-    const float3 windVector = Get_WindVector(bHistory).xyz;
-    float3 rotatedWindVector = TransformWorldToObjectDir(windVector);
-    float windLength = length(rotatedWindVector);
-    bool bWindEnabled = (iWindQuality > 0) && (length(windVector) > 1.0e-5);
-    if (!bWindEnabled)
+    float3 windVector = Get_WindVector(bHistory).xyz;
+    float3 rotatedWindVector = TransformWindVectorFromWorldToLocalSpace(windVector);
+    
+    if (iWindQuality == 0 || (length(rotatedWindVector) < 1.0e-5) )
     {
         return vReturnPos; // sanity check that wind data is available
     }
 
-    // do wind    
-    rotatedWindVector /= windLength;
+    // do wind
     float4x4 matObjectToWorld = GetObjectToWorldMatrix();
     float3 treePos = GetAbsolutePositionWS(float3(matObjectToWorld[0].w, matObjectToWorld[1].w, matObjectToWorld[2].w));
     float globalWindTime = Get_WindGlobal(bHistory).x;
@@ -953,13 +933,15 @@ float3 SpeedTreeWind(
 
     // 3D GEOMETRY WIND =====================================================================================================================    
     // leaf
-    bool bDoLeafWind = ((iWindQuality == ST_WIND_QUALITY_FAST) || (iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST))
+    bool leafTwo = false;
+    const int geometryType = GetGeometryType(vTexcoord3, leafTwo);
+    const bool bDoLeafWind = ((iWindQuality == ST_WIND_QUALITY_FAST) || (iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST))
                         && geometryType > ST_GEOM_TYPE_FROND;
     if (bDoLeafWind)
     {
-        float3 anchor = float3(vTexcoord1.zw, vTexcoord2.w);
-        float leafWindTrigOffset = anchor.x + anchor.y;
-        bool bBestWind = (iWindQuality == ST_WIND_QUALITY_BEST);
+        const float3 anchor = float3(vTexcoord1.zw, vTexcoord2.w);
+        const float leafWindTrigOffset = anchor.x + anchor.y;
+        const bool bBestWind = (iWindQuality == ST_WIND_QUALITY_BEST);
 
         vReturnPos -= anchor; // remove anchor position
         vReturnPos = LeafWind(bBestWind, leafTwo, vReturnPos, vNormal, vTexcoord3.x, float3(0, 0, 0), vTexcoord3.y, vTexcoord3.z, leafWindTrigOffset, rotatedWindVector, bHistory);
@@ -967,18 +949,18 @@ float3 SpeedTreeWind(
     }
 
     // frond wind (palm-only)
-    bool bDoPalmWind = iWindQuality == ST_WIND_QUALITY_PALM && geometryType == ST_GEOM_TYPE_FROND;
+    const bool bDoPalmWind = iWindQuality == ST_WIND_QUALITY_PALM && geometryType == ST_GEOM_TYPE_FROND;
     if (bDoPalmWind)
     {
         vReturnPos = RippleFrond(vReturnPos, vNormal, vTexcoord0.x, vTexcoord0.y, vTexcoord3.x, vTexcoord3.y, vTexcoord3.z, bHistory);
     }
 
     // branch wind (applies to all 3D geometry)
-    bool bDoBranchWind = (iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST) || (iWindQuality == ST_WIND_QUALITY_PALM);
+    const bool bDoBranchWind = (iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST) || (iWindQuality == ST_WIND_QUALITY_PALM);
     if (bDoBranchWind)
     {
         const float4 windBranchAnchorHistory = Get_WindBranchAnchor(bHistory);
-        float3 rotatedBranchAnchor = TransformWorldToObjectDir(windBranchAnchorHistory.xyz) * windBranchAnchorHistory.w;
+        const float3 rotatedBranchAnchor = TransformWorldToObjectDir(windBranchAnchorHistory.xyz) * windBranchAnchorHistory.w;
         vReturnPos = BranchWind(bDoPalmWind, vReturnPos, treePos, float4(vTexcoord0.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor, bHistory);
     }
     
@@ -987,12 +969,9 @@ float3 SpeedTreeWind(
     return vReturnPos;
 }
 
-// This version is used by ShaderGraph
-void SpeedTreeWind_float(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bCrossfade, bool bHistory, out float3 outPos)
+// ShaderGraph stub
+void SpeedTreeWind_float(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bHistory, out float3 outPos)
 {
-    if (iWindQuality != ST_WIND_QUALITY_NONE)
-        outPos = SpeedTreeWind(vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade, bHistory);
-    else
-        outPos = vPos;
+    outPos = SpeedTreeWind(vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bHistory);
 }
 #endif // SPEEDTREE_WIND_8_INCLUDED

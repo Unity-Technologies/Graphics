@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-writing-shaders-urp-unlit-texture
+---
 # Drawing a texture
 
 The Unity shader in this example draws a texture on the mesh.

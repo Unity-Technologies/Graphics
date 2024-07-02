@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-scriptable-render-pass-reference
+---
 ## Scriptable Render Pass Compatibility Mode API reference 
 
 You can use the following methods within a Scriptable Render Pass to handle its core functions.

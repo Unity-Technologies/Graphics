@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-cameras-advanced
+---
 # Understand camera render order
 
 This page describes when a Universal Render Pipeline (URP) camera performs the following operations:
@@ -77,7 +80,7 @@ You can use Unity's [Frame Debugger](https://docs.unity3d.com/Manual/FrameDebugg
 
 You can use a render request in a C# script to trigger a camera to render to a render texture, outside the URP rendering loop. You can use two types of render request in URP, which do the following:
 
-* [RenderPipeline.StandardRequest](xref:Rendering.RenderPipeline.StandardRequest) renders the output of a full stack of cameras.
+* [RenderPipeline.StandardRequest](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Rendering.RenderPipeline.StandardRequest.html) renders the output of a full stack of cameras.
 * [UniversalRenderPipeline.SingleCameraRequest](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.0/api/UnityEngine.Rendering.Universal.UniversalRenderPipeline.SingleCameraRequest.html) renders the output of a single camera.
 
-For more information on how to use render requests, refer to [Render Requests](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/manual/User-Render-Requests.html).
+For more information on how to use render requests, refer to [Render a camera outside the rendering loop](User-Render-Requests.md).

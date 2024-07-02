@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var mesh = deformer.m_InternalMesh;
             var tr = deformer.transform;
 
-            if (mesh != null)
+            if (mesh != null && deformer.m_ExclusionRenderer != null)
             {
                 Handles.DrawOutline(new GameObject[] { deformer.m_ExclusionRenderer }, Color.white);
             }

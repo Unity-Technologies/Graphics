@@ -1,3 +1,6 @@
+---
+uid: urp-docfx-hdr-output-implement-custom-overlay
+---
 # Implement an HDR Output compatible custom overlay
 
 This page demonstrates how to create a Scriptable Renderer Feature that does the following:

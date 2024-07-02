@@ -61,15 +61,17 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 // Vertex and Mixed both use Vertex sampling
 
 #if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir)
+half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir, out float4 probeOcclusion)
 {
+    probeOcclusion = 1.0;
+
 #if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
     half3 bakedGI;
     // The screen space position is used for noise, which is irrelevant when doing vertex sampling
     float2 positionSS = float2(0, 0);
     if (_EnableProbeVolumes)
     {
-        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, GetMeshRenderingLayer(), bakedGI);
+        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, GetMeshRenderingLayer(), bakedGI, probeOcclusion);
     }
     else
     {
@@ -84,15 +86,18 @@ half3 SampleProbeVolumeVertex(in float3 absolutePositionWS, in float3 normalWS, 
 #endif
 }
 
-half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir, in float2 positionSS)
+half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir, in float2 positionSS, in float4 vertexProbeOcclusion, out float4 probeOcclusion)
 {
+    probeOcclusion = 1.0;
+
 #if defined(EVALUATE_SH_VERTEX) || defined(EVALUATE_SH_MIXED)
+    probeOcclusion = vertexProbeOcclusion;
     return vertexValue;
 #elif defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     half3 bakedGI;
     if (_EnableProbeVolumes)
     {
-        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, GetMeshRenderingLayer(), bakedGI);
+        EvaluateAdaptiveProbeVolume(absolutePositionWS, normalWS, viewDir, positionSS, GetMeshRenderingLayer(), bakedGI, probeOcclusion);
     }
     else
     {
@@ -106,15 +111,29 @@ half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS,
     return half3(0, 0, 0);
 #endif
 }
+
+half3 SampleProbeVolumePixel(in half3 vertexValue, in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir, in float2 positionSS)
+{
+    float4 unusedProbeOcclusion = 0;
+    return SampleProbeVolumePixel(vertexValue, absolutePositionWS, normalWS, viewDir, positionSS, unusedProbeOcclusion, unusedProbeOcclusion);
+}
 #endif
 
-half3 SampleProbeSHVertex(in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir)
+half3 SampleProbeSHVertex(in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir, out float4 probeOcclusion)
 {
+    probeOcclusion = 1.0;
+
 #if (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
-    return SampleProbeVolumeVertex(absolutePositionWS, normalWS, viewDir);
+    return SampleProbeVolumeVertex(absolutePositionWS, normalWS, viewDir, probeOcclusion);
 #else
     return SampleSHVertex(normalWS);
 #endif
+}
+
+half3 SampleProbeSHVertex(in float3 absolutePositionWS, in float3 normalWS, in float3 viewDir)
+{
+    float4 unusedProbeOcclusion = 0;
+    return SampleProbeSHVertex(absolutePositionWS, normalWS, viewDir, unusedProbeOcclusion);
 }
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(USE_LEGACY_LIGHTMAPS)
@@ -183,7 +202,11 @@ half3 SampleLightmap(float2 staticLightmapUV, half3 normalWS)
 #elif defined(LIGHTMAP_ON)
 #define SAMPLE_GI(staticLmName, shName, normalWSName) SampleLightmap(staticLmName, 0, normalWSName)
 #elif defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
-#define SAMPLE_GI(shName, absolutePositionWS, normalWS, viewDir, positionSS) SampleProbeVolumePixel(shName, absolutePositionWS, normalWS, viewDir, positionSS)
+#ifdef USE_APV_PROBE_OCCLUSION
+    #define SAMPLE_GI(shName, absolutePositionWS, normalWS, viewDir, positionSS, vertexProbeOcclusion, probeOcclusion) SampleProbeVolumePixel(shName, absolutePositionWS, normalWS, viewDir, positionSS, vertexProbeOcclusion, probeOcclusion)
+#else
+    #define SAMPLE_GI(shName, absolutePositionWS, normalWS, viewDir, positionSS, vertexProbeOcclusion, probeOcclusion) SampleProbeVolumePixel(shName, absolutePositionWS, normalWS, viewDir, positionSS)
+#endif
 #else
 #define SAMPLE_GI(staticLmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
