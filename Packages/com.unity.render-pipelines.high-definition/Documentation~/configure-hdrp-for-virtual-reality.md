@@ -2,7 +2,7 @@
 
 To use Virtual Reality (VR) in the High Definition Render Pipeline (HDRP), you must enable VR in your Unity Project. To do this, see the [VR tab](Render-Pipeline-Wizard.md#VRTab) in the Render Pipeline Wizard.
 
-Please refer to [Unity XR](https://docs.unity3d.com/Manual/XR.html) documentation for more information about XR developement with Unity.
+Please refer to [Unity XR](https://docs.unity3d.com/Manual/XR.html) documentation for more information about XR development with Unity.
 
 ## Recommended Settings
 

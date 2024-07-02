@@ -33,7 +33,7 @@ The properties visible in the Inspector change depending on whether you enable r
 | Property                      | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
 | **Intensity**                 | See **Intensity** in [Screen-space](#screen-space).          |
-| **Direct Lighting Strength**  | See **Direct Lighting Strenght** in [Screen-space](#screen-space). |
+| **Direct Lighting Strength**  | See **Direct Lighting Strength** in [Screen-space](#screen-space). |
 | **LayerMask**                 | Defines the layers that HDRP processes this ray-traced effect for. |
 | **Quality**                   | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually. |
 | - **Max Ray Length**          | Controls the maximal ray length of the rays that HDRP uses for ray traced ambient occlusion. This allows you to have smaller scale, local, ambient occlusion. |
