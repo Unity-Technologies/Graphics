@@ -234,6 +234,8 @@
   * [Forward and deferred rendering for lighting](Forward-And-Deferred-Rendering.md)
   * [Alpha channel configuration](Alpha-Output.md)
   * [Deep learning super sampling (DLSS)](deep-learning-super-sampling-in-hdrp.md)
+  * [Spatial-Temporal Post-processing](stp/stp-upscaler.md)
+    * [Spatial-Temporal Post-processing debug views](stp/stp-debug-views.md)
   * [Color grading](color-grading.md)
     * [High Dynamic Range (HDR) and tonemapping](HDR-Output.md)
     * [Lookup textures (LUTs)](Authoring-LUTs.md)

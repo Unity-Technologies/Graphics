@@ -106,6 +106,8 @@
     * [Physical Camera properties](cameras/physical-camera-reference.md)
 * [Post-processing](integration-with-post-processing.md)
   * [How to configure](integration-with-post-processing.md#post-proc-how-to)
+  * [Spatial-Temporal Post-processing](stp/stp-upscaler.md)
+    * [Spatial-Temporal Post-processing debug views](stp/stp-debug-views.md)
   * [HDR Output](post-processing/hdr-output.md)
     * [Custom Passes with HDR Output](post-processing/hdr-custom-pass.md)
     * [Implement an HDR Output compatible custom overlay](post-processing/hdr-output-implement-custom-overlay.md)
