@@ -100,7 +100,7 @@
     * [Set up split-screen rendering](rendering-to-the-same-render-target.md)
     * [Apply different post processing effects to separate cameras](cameras/apply-different-post-proc-to-cameras.md)
     * [Render a camera's output to a Render Texture](rendering-to-a-render-texture.md)
-    * [Render a camera outside the rendering loop](render-requests.md)
+    * [Render a camera outside the rendering loop](User-Render-Requests.md)
   * [Customize a camera](universal-additional-camera-data.md)
   * [Camera component properties](camera-component-reference.md)
     * [Physical Camera properties](cameras/physical-camera-reference.md)
