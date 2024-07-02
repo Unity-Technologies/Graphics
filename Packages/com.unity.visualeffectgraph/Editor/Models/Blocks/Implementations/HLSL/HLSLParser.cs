@@ -41,6 +41,17 @@ namespace UnityEditor.VFX.Block
         public VFXErrorType type => VFXErrorType.Error;
     }
 
+    class HLSLVFXAttributeIsVariadic : IHLSMessage
+    {
+        private string attribute;
+        public HLSLVFXAttributeIsVariadic(string attribute)
+        {
+            this.attribute = attribute;
+        }
+        public string message => $"Variadic attribute \"{attribute}\" is not supported in custom hlsl code, use {attribute}X, {attribute}Y or {attribute}Z";
+        public VFXErrorType type => VFXErrorType.Error;
+    }
+
     class HLSLVFXAttributeAccessError : IHLSMessage
     {
         public string message => "Missing `inout` access modifier before the VFXAttributes type.\nNeeded because your code writes to at least one attribute.";
@@ -398,7 +409,7 @@ namespace UnityEditor.VFX.Block
                 }
             }
 
-            var allAttributes = new List<string>(attributesManager.GetAllNamesOrCombination(true, true, true, true));
+            var allAttributes = new List<string>(attributesManager.GetAllNamesOrCombination(false, true, true, true));
             // Read and Write attributes
             foreach (var readWriteAttribute in writeAttributes)
             {
@@ -407,13 +418,16 @@ namespace UnityEditor.VFX.Block
                     continue;
                 }
 
-                if (attributesManager.TryFindWithMode(readWriteAttribute, VFXAttributeMode.ReadWrite, out var attribute))
+                if (attributesManager.TryFindWithMode(readWriteAttribute, VFXAttributeMode.ReadWrite, out var attribute) && attribute.variadic != VFXVariadic.True)
                 {
                     yield return new VFXAttributeInfo(attribute, VFXAttributeMode.ReadWrite);
                 }
                 else
                 {
-                    errorList.Add(new HLSLAttributeError(readWriteAttribute, allAttributes.FindIndex(x => x == readWriteAttribute) != -1 ? VFXAttributeMode.ReadWrite : VFXAttributeMode.None));
+                    IHLSMessage error = attribute.variadic == VFXVariadic.True
+                        ? new HLSLVFXAttributeIsVariadic(attribute.name)
+                        : new HLSLAttributeError(readWriteAttribute, allAttributes.FindIndex(x => x == readWriteAttribute) != -1 ? VFXAttributeMode.ReadWrite : VFXAttributeMode.None);
+                    errorList.Add(error);
                 }
             }
 
@@ -425,13 +439,16 @@ namespace UnityEditor.VFX.Block
                     continue;
                 }
 
-                if (attributesManager.TryFindWithMode(writeAttribute, VFXAttributeMode.Write, out var attribute))
+                if (attributesManager.TryFindWithMode(writeAttribute, VFXAttributeMode.Write, out var attribute) && attribute.variadic != VFXVariadic.True)
                 {
                     yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Write);
                 }
                 else
                 {
-                    errorList.Add(new HLSLAttributeError(writeAttribute, allAttributes.FindIndex(x => x == writeAttribute) != -1 ? VFXAttributeMode.Write : VFXAttributeMode.None));
+                    IHLSMessage error = attribute.variadic == VFXVariadic.True
+                        ? new HLSLVFXAttributeIsVariadic(attribute.name)
+                        : new HLSLAttributeError(writeAttribute, allAttributes.FindIndex(x => x == writeAttribute) != -1 ? VFXAttributeMode.Write : VFXAttributeMode.None);
+                    errorList.Add(error);
                 }
             }
 
@@ -443,13 +460,16 @@ namespace UnityEditor.VFX.Block
                     continue;
                 }
 
-                if (attributesManager.TryFindWithMode(readAttribute, VFXAttributeMode.Read, out var attribute))
+                if (attributesManager.TryFindWithMode(readAttribute, VFXAttributeMode.Read, out var attribute) && attribute.variadic != VFXVariadic.True)
                 {
                     yield return new VFXAttributeInfo(attribute, VFXAttributeMode.Read);
                 }
                 else
                 {
-                    errorList.Add(new HLSLAttributeError(readAttribute, allAttributes.FindIndex(x => x == readAttribute) != -1 ? VFXAttributeMode.Read : VFXAttributeMode.None));
+                    IHLSMessage error = attribute.variadic == VFXVariadic.True
+                        ? new HLSLVFXAttributeIsVariadic(attribute.name)
+                        : new HLSLAttributeError(readAttribute, allAttributes.FindIndex(x => x == readAttribute) != -1 ? VFXAttributeMode.Read : VFXAttributeMode.None);
+                    errorList.Add(error);
                 }
             }
         }
