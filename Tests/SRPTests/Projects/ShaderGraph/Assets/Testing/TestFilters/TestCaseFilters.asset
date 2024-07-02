@@ -165,3 +165,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 1dc3dc627ca4fff4ba184eb8f939406b, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test is unstable
