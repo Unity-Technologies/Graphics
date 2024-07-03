@@ -153,7 +153,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
                     if (isGameViewFinalTarget)
                         cmd.SetViewport(cameraData.pixelRect);
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+
+                    // cmd.SetWireframe(false) must be used in Scene View for wireframe mode to make the full screen draw with fill mode,
+                    // otherwise, the fullscreen mesh (quad) is rendered in wireframe mode (resulting in 2 black fullscreen triangles).
+                    if (GL.wireframe)
+                    {
+                        cmd.SetWireframe(false);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+                        cmd.SetWireframe(true);
+                    }
+                    else
+                    {
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
+                    }
                 }
             }
 
