@@ -3,6 +3,8 @@ VFXBlackboard.blackboard
     font-size: 11px;
     background-color: rgba(0,0,0,0);
     border-color: rgba(0,0,0,0);
+    min-height: 200px;
+    min-width: 250px;
 }
 
 .blackboard > .mainContainer
