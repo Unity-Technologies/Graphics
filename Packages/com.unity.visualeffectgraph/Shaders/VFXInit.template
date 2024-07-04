@@ -150,7 +150,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
         attributes.seed = WangHash(particleIndex ^ systemSeed);
 #endif
 #if VFX_USE_SPAWNINDEX_CURRENT
-        attributes.spawnIndex = id;
+        attributes.spawnIndex = index;
 #endif
 
 #if VFX_USE_SPAWNER_FROM_GPU && VFX_USE_SPAWNCOUNT_SOURCE
