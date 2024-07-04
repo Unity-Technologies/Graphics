@@ -18,6 +18,8 @@ namespace UnityEngine.Rendering
         /// <summary>The baking set this scene is part of.</summary>
         public ProbeVolumeBakingSet bakingSet => serializedBakingSet;
 
+        // Warning: this is the baking set this scene was part of during last bake
+        // It shouldn't be used while baking as the scene may have been moved since then
         [SerializeField, FormerlySerializedAs("bakingSet")] internal ProbeVolumeBakingSet serializedBakingSet;
         [SerializeField] internal string sceneGUID = "";
 
@@ -86,6 +88,17 @@ namespace UnityEngine.Rendering
 
         void OnEnable()
         {
+            #if UNITY_EDITOR
+            // In the editor, always refresh the GUID as it may become out of date is scene is duplicated or other weird things
+            // This field is serialized, so it will be available in standalones, where it can't change anymore
+            var newGUID = gameObject.scene.GetGUID();
+            if (newGUID != sceneGUID)
+            {
+                sceneGUID = newGUID;
+                EditorUtility.SetDirty(this);
+            }
+            #endif
+
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
         }
 

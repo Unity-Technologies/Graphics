@@ -555,12 +555,7 @@ namespace UnityEngine.Rendering
                     GameObject go = new GameObject("ProbeVolumePerSceneData");
                     go.hideFlags |= HideFlags.HideInHierarchy;
                     var perSceneData = go.AddComponent<ProbeVolumePerSceneData>();
-                    perSceneData.sceneGUID = sceneGUID;
                     SceneManager.MoveGameObjectToScene(go, scene);
-                }
-                else
-                {
-                    data.sceneGUID = sceneGUID; // Upgrade for older scenes.
                 }
             }
         }
@@ -581,7 +576,7 @@ namespace UnityEngine.Rendering
             return bakingSet?.GetSceneBakeData(sceneGUID)?.hasProbeVolume ?? false;
         }
 
-		internal bool DialogNoProbeVolumeInSetShown()
+        internal bool DialogNoProbeVolumeInSetShown()
         {
             return dialogNoProbeVolumeInSetShown;
         }

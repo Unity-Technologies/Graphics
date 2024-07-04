@@ -852,8 +852,8 @@ namespace UnityEngine.Rendering
         /// <param name="scene">The scene for which to load the baking set.</param>
         public void SetActiveScene(Scene scene)
         {
-            if (TryGetBakingSetForLoadedScene(scene, out var set))
-                SetActiveBakingSet(set);
+            if (TryGetPerSceneData(GetSceneGUID(scene), out var perSceneData))
+                SetActiveBakingSet(perSceneData.serializedBakingSet);
         }
 
         /// <summary>
@@ -928,23 +928,6 @@ namespace UnityEngine.Rendering
             perSceneDataList.Remove(data);
             if (perSceneDataList.Count == 0)
                 UnloadBakingSet();
-        }
-
-        internal bool TryGetBakingSetForLoadedScene(Scene scene, out ProbeVolumeBakingSet bakingSet)
-        {
-            bakingSet = null;
-            if (TryGetPerSceneData(GetSceneGUID(scene), out var perSceneData))
-                bakingSet = perSceneData.serializedBakingSet;
-
-            #if UNITY_EDITOR
-            // some scenes in a baking set may not contain a probe volume
-            // Others might not be already baked
-            // We might still want to access the baking set for those in the editor
-            if (bakingSet == null)
-                bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene);
-            #endif
-
-            return bakingSet != null;
         }
 
         internal bool TryGetPerSceneData(string sceneGUID, out ProbeVolumePerSceneData perSceneData)
@@ -1639,16 +1622,18 @@ namespace UnityEngine.Rendering
         }
 
 #if UNITY_EDITOR
-        internal void EnsureCurrentBakingSet(ProbeVolumeBakingSet bakingSet)
+        internal bool EnsureCurrentBakingSet(ProbeVolumeBakingSet bakingSet)
         {
             //Ensure that all currently loaded scenes belong to the same set.
             foreach (var data in perSceneDataList)
             {
-                if (data.serializedBakingSet != null)
-                    Debug.Assert(data.serializedBakingSet == bakingSet);
+                var set = ProbeVolumeBakingSet.GetBakingSetForScene(data.gameObject.scene);
+                if (set != bakingSet)
+                    return false;
             }
 
             SetBakingSetAsCurrent(bakingSet);
+            return true;
         }
 #endif
 

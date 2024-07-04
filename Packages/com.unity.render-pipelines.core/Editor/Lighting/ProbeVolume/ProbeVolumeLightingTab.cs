@@ -839,8 +839,14 @@ namespace UnityEngine.Rendering
             return data;
         }
 
-        internal static ProbeVolumeBakingSet GetSingleSceneSet(Scene scene)
+        internal static ProbeVolumeBakingSet GetSceneBakingSetForUI(Scene scene)
         {
+            // If the set is available, return it
+            var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene);
+            if (bakingSet != null)
+                return bakingSet;
+
+            // Otherwise, a baking set might be created in the UI but not registered yet in the system
             if (instance == null || instance.activeSet == null)
                 return null;
             if (!singleSceneMode || !instance.activeSet.singleSceneMode)

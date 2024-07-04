@@ -33,12 +33,14 @@ namespace UnityEngine.Rendering
             {
                 #if UNITY_EDITOR
                 ProbeVolumeBakingSet.SyncBakingSets();
-                ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(gameObject.scene, out var bakingSet);
-
-                int maxSubdiv = bakingSet != null ? bakingSet.simplificationLevels : 5;
-                int tmpLowest = lowestSubdivLevelOverride;
-                lowestSubdivLevelOverride = Mathf.Clamp(maxSubdiv - highestSubdivLevelOverride, 0, 5);
-                highestSubdivLevelOverride = Mathf.Clamp(maxSubdiv - tmpLowest, 0, 5);
+                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(gameObject.scene);
+                if (bakingSet != null)
+                {
+                    int maxSubdiv = bakingSet != null ? bakingSet.simplificationLevels : 5;
+                    int tmpLowest = lowestSubdivLevelOverride;
+                    lowestSubdivLevelOverride = Mathf.Clamp(maxSubdiv - highestSubdivLevelOverride, 0, 5);
+                    highestSubdivLevelOverride = Mathf.Clamp(maxSubdiv - tmpLowest, 0, 5);
+                }
                 #endif
 
                 version++;

@@ -33,10 +33,9 @@ namespace UnityEditor.Rendering
             {
                 Undo.RecordObject(pv.transform, "Fitting Adaptive Probe Volume");
 
-                // Get minBrickSize from scene profile if available
-                float minBrickSize = ProbeReferenceVolume.instance.MinBrickSize();
-                if (ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(pv.gameObject.scene, out var profile))
-                    minBrickSize = profile.minBrickSize;
+                // Get minBrickSize from scene baking set if available
+                var bakingSet = ProbeVolumeLightingTab.GetSceneBakingSetForUI(pv.gameObject.scene);
+                float minBrickSize = bakingSet != null ? bakingSet.minBrickSize : ProbeReferenceVolume.instance.MinBrickSize();
 
                 var bounds = pv.ComputeBounds(filter.Value, pv.gameObject.scene);
                 pv.transform.position = bounds.center;
@@ -90,10 +89,7 @@ namespace UnityEditor.Rendering
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
         {
             ProbeVolume pv = (serialized.serializedObject.targetObject as ProbeVolume);
-
-            ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(pv.gameObject.scene, out var bakingSet);
-            if (bakingSet == null)
-                bakingSet = ProbeVolumeLightingTab.GetSingleSceneSet(pv.gameObject.scene);
+            var bakingSet = ProbeVolumeLightingTab.GetSceneBakingSetForUI(pv.gameObject.scene);
 
             EditorGUILayout.PropertyField(serialized.mode);
             if (serialized.mode.intValue == (int)ProbeVolume.Mode.Local)

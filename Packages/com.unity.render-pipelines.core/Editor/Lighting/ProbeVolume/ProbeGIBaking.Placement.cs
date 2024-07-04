@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering
             if (!ProbeReferenceVolume.instance.supportLightingScenarios)
                 return false;
 
-            // Check if all the scene datas in the scene have a baking set, if  not then we cannot enable this option.
+            // Check if all the scene datas in the scene have a baking set, if not then we cannot enable this option.
             var sceneDataList = GetPerSceneDataList();
             if (sceneDataList.Count == 0)
                 return false;
