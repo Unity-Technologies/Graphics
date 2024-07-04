@@ -256,15 +256,21 @@ namespace UnityEngine.Rendering.Universal
                 m_Resolution = requiredAtlasSize;
             }
 
+            var skipCount = 0;
             for (var probeIndex = 0; probeIndex < probeCount; probeIndex++)
             {
                 var probe = probes[probeIndex];
                 var id = probe.reflectionProbe.GetInstanceID();
-                if (!m_Cache.TryGetValue(id, out var cachedProbe)) continue;
-                m_BoxMax[probeIndex] = new Vector4(probe.bounds.max.x, probe.bounds.max.y, probe.bounds.max.z, probe.blendDistance);
-                m_BoxMin[probeIndex] = new Vector4(probe.bounds.min.x, probe.bounds.min.y, probe.bounds.min.z, probe.importance);
-                m_ProbePosition[probeIndex] = new Vector4(probe.localToWorldMatrix.m03, probe.localToWorldMatrix.m13, probe.localToWorldMatrix.m23, (probe.isBoxProjection ? 1 : -1) * (cachedProbe.mipCount));
-                for (var i = 0; i < cachedProbe.mipCount; i++) m_MipScaleOffset[probeIndex * k_MaxMipCount + i] = GetScaleOffset(cachedProbe.levels[i], cachedProbe.dataIndices[i], false, false);
+                var dataIndex = probeIndex - skipCount;
+                if (!m_Cache.TryGetValue(id, out var cachedProbe) || !probe.texture)
+                {
+                    skipCount++;
+                    continue;
+                }
+                m_BoxMax[dataIndex] = new Vector4(probe.bounds.max.x, probe.bounds.max.y, probe.bounds.max.z, probe.blendDistance);
+                m_BoxMin[dataIndex] = new Vector4(probe.bounds.min.x, probe.bounds.min.y, probe.bounds.min.z, probe.importance);
+                m_ProbePosition[dataIndex] = new Vector4(probe.localToWorldMatrix.m03, probe.localToWorldMatrix.m13, probe.localToWorldMatrix.m23, (probe.isBoxProjection ? 1 : -1) * (cachedProbe.mipCount));
+                for (var i = 0; i < cachedProbe.mipCount; i++) m_MipScaleOffset[dataIndex * k_MaxMipCount + i] = GetScaleOffset(cachedProbe.levels[i], cachedProbe.dataIndices[i], false, false);
             }
 
             if (showFullWarning)
@@ -295,7 +301,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalVectorArray(ShaderProperties.BoxMax, m_BoxMax);
                 cmd.SetGlobalVectorArray(ShaderProperties.ProbePosition, m_ProbePosition);
                 cmd.SetGlobalVectorArray(ShaderProperties.MipScaleOffset, m_MipScaleOffset);
-                cmd.SetGlobalFloat(ShaderProperties.Count, probeCount);
+                cmd.SetGlobalFloat(ShaderProperties.Count, probeCount - skipCount);
                 cmd.SetGlobalTexture(ShaderProperties.Atlas, m_AtlasTexture0);
             }
 
