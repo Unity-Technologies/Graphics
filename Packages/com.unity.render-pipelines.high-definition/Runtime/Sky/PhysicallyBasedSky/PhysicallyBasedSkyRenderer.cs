@@ -265,6 +265,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     (int)PbrSkyConfig.AtmosphericScatteringLutWidth,
                     (int)PbrSkyConfig.AtmosphericScatteringLutHeight,
                     1);
+
+                // Perform a blur pass on the buffer to reduce resolution artefacts
+                cmd.SetComputeTextureParam(s_SkyLUTGenerator, s_AtmosphericScatteringBlurKernel, HDShaderIDs._AtmosphericScatteringLUT_RW, m_AtmosphericScatteringLut);
+
+                cmd.DispatchCompute(s_SkyLUTGenerator, s_AtmosphericScatteringBlurKernel,
+                    1,
+                    1,
+                    (int)PbrSkyConfig.AtmosphericScatteringLutDepth);
             }
 
             public void BindGlobalBuffers(CommandBuffer cmd)
@@ -323,14 +331,17 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ShaderVariablesPhysicallyBasedSkyID = Shader.PropertyToID("ShaderVariablesPhysicallyBasedSky");
         static GraphicsFormat s_ColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
 
+        // Common resourcse
+        static ComputeShader s_SkyLUTGenerator;
+        static int s_MultiScatteringKernel, s_AtmosphericScatteringBlurKernel;
+
         // Resources for world space sky
         static ComputeShader s_GroundIrradiancePrecomputationCS;
         static ComputeShader s_InScatteredRadiancePrecomputationCS;
         static int s_AtmosphericScatteringKernelWorld;
 
         // Resources for camera space sky
-        static ComputeShader s_SkyLUTGenerator;
-        static int s_MultiScatteringKernel, s_SkyViewKernel, s_AtmosphericScatteringKernelCamera;
+        static int s_SkyViewKernel, s_AtmosphericScatteringKernelCamera;
 
         public override void Build()
         {
@@ -343,6 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Common
             s_SkyLUTGenerator = shaders.skyLUTGenerator;
             s_MultiScatteringKernel = s_SkyLUTGenerator.FindKernel("MultiScatteringLUT");
+            s_AtmosphericScatteringBlurKernel = s_SkyLUTGenerator.FindKernel("AtmosphericScatteringBlur");
 
             // Camera space sky
             s_SkyViewKernel = s_SkyLUTGenerator.FindKernel("SkyViewLUT");

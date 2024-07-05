@@ -7,7 +7,8 @@
 #pragma kernel MultiScatteringLUT   OUTPUT_MULTISCATTERING
 #pragma kernel SkyViewLUT
 #pragma kernel AtmosphericScatteringLUTCamera AtmosphericScatteringLUT=AtmosphericScatteringLUTCamera CAMERA_SPACE
-#pragma kernel AtmosphericScatteringLUTWorld  AtmosphericScatteringLUT=AtmosphericScatteringLUTWorld  DISABLE_ATMOS_EVALUATE_ARTIST_OVERRIDE
+#pragma kernel AtmosphericScatteringLUTWorld  AtmosphericScatteringLUT=AtmosphericScatteringLUTWorld
+#pragma kernel AtmosphericScatteringBlur
 
 #define DIRECTIONAL_SHADOW_ULTRA_LOW  // Different options are too expensive.
 
@@ -286,6 +287,7 @@ void AtmosphericScatteringLUT(uint2 coord : SV_GroupID, uint s : SV_GroupIndex)
     float3 skyTransmittance = 1.0f;
 
     // Following is the loop from EvaluateAtmosphericColor, with each iteration evaluated on a thread
+    // Additionally we sample shadow map for more precise occlusion
 
     float3 P = O + t * V;
 #ifndef CAMERA_SPACE
@@ -311,35 +313,27 @@ void AtmosphericScatteringLUT(uint2 coord : SV_GroupID, uint s : SV_GroupIndex)
     float sunShadow = 1.0f;
     if (_DirectionalShadowIndex >= 0)
     {
-        // See GetDirectionalShadowAttenuation
-        // Load shadowmap twice to get some form of smoothing
-        // We offset by one texel to not depend too much on the resolution of the shadow map
-        // Function call is inlined so share some computations between samples, which is not correct but faster
-        float3 V2 = -GetSkyViewDirWS((uv + 0.5 / res) * _ScreenSize.xy);
         DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
         HDShadowContext shadowContext = InitShadowContext();
 
+        // See GetDirectionalShadowAttenuation, call is inlined for optimization
         // Find if last cascade is usable, we only use this one as we don't need precise occlusion and it's faster
-        // See EvalShadow_GetSplitIndex
         int shadowSplitIndex = _CascadeShadowCount - 1;
         float4 sphere  = shadowContext.directionalShadowData.sphereCascades[shadowSplitIndex];
-        float3 wposDir = P + _PlanetCenterPosition - sphere.xyz;
+        float3 posWS = P + _PlanetCenterPosition;
+        float3 wposDir = posWS - sphere.xyz;
         float  distSq  = dot(wposDir, wposDir);
         if (distSq <= sphere.w)
         {
             HDShadowData sd = shadowContext.shadowDatas[light.shadowIndex];
             LoadDirectionalShadowDatas(sd, shadowContext, light.shadowIndex + shadowSplitIndex);
 
-            float3 posWS = O + _PlanetCenterPosition + sd.cacheTranslationDelta.xyz;
-            float3 posTC1 = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, posWS + t*V, false);
-            float3 posTC2 = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, posWS + t*V2, false);
-
-            sunShadow = (DIRECTIONAL_FILTER_ALGORITHM(sd, 0, posTC1, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, FIXED_UNIFORM_BIAS) +
-                    DIRECTIONAL_FILTER_ALGORITHM(sd, 0, posTC2, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, FIXED_UNIFORM_BIAS)) / 2.0f;
+            float3 posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, posWS + sd.cacheTranslationDelta.xyz, false);
+            sunShadow = DIRECTIONAL_FILTER_ALGORITHM(sd, 0, posTC, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, FIXED_UNIFORM_BIAS);
         }
 
         if (_VolumetricCloudsShadowOriginToggle.w == 1.0)
-            sunShadow *= EvaluateVolumetricCloudsShadows(light, P + _PlanetCenterPosition);
+            sunShadow *= EvaluateVolumetricCloudsShadows(light, posWS);
     }
 
 
@@ -365,6 +359,99 @@ void AtmosphericScatteringLUT(uint2 coord : SV_GroupID, uint s : SV_GroupIndex)
 
     skyColor = Desaturate(skyColor, _ColorSaturation);
     _AtmosphericScatteringLUT_RW[uint3(coord, s)] = skyColor * _IntensityMultiplier * GetCurrentExposureMultiplier();
+}
+
+// Gaussian blur pass to reduce artefacts due to low resolution buffer
+// We have to use LDS in order to blur the buffer in place
+// To reduce lds size, we store floats as fp16 which forces to handle 4 pixel per thread
+
+#define HALF_RES (PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_HEIGHT/2)
+
+groupshared uint gs_cacheR[PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_WIDTH * HALF_RES];
+groupshared uint gs_cacheG[PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_WIDTH * HALF_RES];
+groupshared uint gs_cacheB[PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_WIDTH * HALF_RES];
+
+void Store2Pixels(int index, float3 pixel1, float3 pixel2)
+{
+    gs_cacheR[index] = f32tof16(pixel1.r) | f32tof16(pixel2.r) << 16;
+    gs_cacheG[index] = f32tof16(pixel1.g) | f32tof16(pixel2.g) << 16;
+    gs_cacheB[index] = f32tof16(pixel1.b) | f32tof16(pixel2.b) << 16;
+}
+
+void Load2Pixels(int index, out float3 pixel1, out float3 pixel2)
+{
+    uint rr = gs_cacheR[index];
+    uint gg = gs_cacheG[index];
+    uint bb = gs_cacheB[index];
+    pixel1 = float3(f16tof32(rr      ), f16tof32(gg      ), f16tof32(bb      ));
+    pixel2 = float3(f16tof32(rr >> 16), f16tof32(gg >> 16), f16tof32(bb >> 16));
+}
+
+float3 BlurPixels(float3 a, float3 b, float3 c, float3 d, float3 e)
+{
+    return 0.30364122471313626 * c
+         + 0.23647602357935094 * (b + d)
+         + 0.1117033640640809  * (a + e);
+}
+
+[numthreads(HALF_RES, HALF_RES, 1)]
+void AtmosphericScatteringBlur(int3 coord : SV_DispatchThreadID)
+{
+    int3 coordF = int3(coord.xy * 2, coord.z);
+    float3 p00 = _AtmosphericScatteringLUT_RW[coordF + int3(0, 0, 0)];
+    float3 p10 = _AtmosphericScatteringLUT_RW[coordF + int3(1, 0, 0)];
+    float3 p01 = _AtmosphericScatteringLUT_RW[coordF + int3(0, 1, 0)];
+    float3 p11 = _AtmosphericScatteringLUT_RW[coordF + int3(1, 1, 0)];
+
+    int prev, next;
+    int index = coord.x * 2 + (coord.y * PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_WIDTH);
+    float3 s0, s1, s2, s3;
+
+    Store2Pixels(index + 0, p00, p10);
+    Store2Pixels(index + 1, p01, p11);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Horizontal blur
+
+    prev = max(coord.x - 1, 0)            * 2 + coord.y * PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_WIDTH;
+    next = min(coord.x + 1, HALF_RES - 1) * 2 + coord.y * PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_WIDTH;
+
+    Load2Pixels(prev + 0, s0, s1);
+    Load2Pixels(next + 0, s2, s3);
+
+    float3 blur00 = BlurPixels(s0, s1, p00, p10, s2);
+    float3 blur10 = BlurPixels(s1, p00, p10, s2, s3);
+
+    Load2Pixels(prev + 1, s0, s1);
+    Load2Pixels(next + 1, s2, s3);
+
+    float3 blur01 = BlurPixels(s0, s1, p01, p11, s2);
+    float3 blur11 = BlurPixels(s1, p01, p11, s2, s3);
+
+    // We are probably missing a barrier here
+
+    Store2Pixels(index + 0, blur00, blur01);
+    Store2Pixels(index + 1, blur10, blur11);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Vertical blur
+
+    prev = coord.x * 2 + max(coord.y - 1, 0)            * PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_WIDTH;
+    next = coord.x * 2 + min(coord.y + 1, HALF_RES - 1) * PBRSKYCONFIG_ATMOSPHERIC_SCATTERING_LUT_WIDTH;
+
+    Load2Pixels(prev + 0, s0, s1);
+    Load2Pixels(next + 0, s2, s3);
+
+    _AtmosphericScatteringLUT_RW[coordF + uint3(0,0,0)] = BlurPixels(s0, s1, blur00, blur01, s2);
+    _AtmosphericScatteringLUT_RW[coordF + uint3(0,1,0)] = BlurPixels(s1, blur00, blur01, s2, s3);
+
+    Load2Pixels(prev + 1, s0, s1);
+    Load2Pixels(next + 1, s2, s3);
+
+    _AtmosphericScatteringLUT_RW[coordF + uint3(1,0,0)] = BlurPixels(s0, s1, blur10, blur11, s2);
+    _AtmosphericScatteringLUT_RW[coordF + uint3(1,1,0)] = BlurPixels(s1, blur10, blur11, s2, s3);
 }
 
 #endif

@@ -150,6 +150,7 @@ Compiled compute shader: ScreenSpaceGlobalIllumination, kernel: TraceGlobalIllum
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsReprojection, keywords SSR_APPROX
 Compiled compute shader: ScreenSpaceReflections, kernel: ScreenSpaceReflectionsTracing, keywords SSR_APPROX
 Compiled compute shader: SkyLUTGenerator, kernel: AtmosphericScatteringLUTCamera, keywords <no keywords>
+Compiled compute shader: SkyLUTGenerator, kernel: AtmosphericScatteringBlur, keywords <no keywords>
 Compiled compute shader: SkyLUTGenerator, kernel: MultiScatteringLUT, keywords <no keywords>
 Compiled compute shader: SkyLUTGenerator, kernel: SkyViewLUT, keywords <no keywords>
 Compiled compute shader: StagePrepare, kernel: ClearBins, keywords <no keywords>
