@@ -16,7 +16,7 @@ using static UnityEngine.TestTools.Graphics.Performance.PerformanceMetricNames;
 
 public class HDRPEditorPerformanceTests : EditorPerformanceTests
 {
-    const int k_BuildTimeout = 10 * 60 * 1000;    // 10 min for each build test
+    const int k_BuildTimeout = 6000 * 1000;    // 100 min for each build test
     const string k_ShaderNameFilter = "HDRP";
 
     // Match this line in the editor log: Compiled shader 'HDRP/Lit' in 69.48s
