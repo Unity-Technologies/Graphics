@@ -1,10 +1,10 @@
 #ifndef UNITY_SHADER_VARIABLES_RAY_TRACING_LIGHT_LOOP_INCLUDED
 #define UNITY_SHADER_VARIABLES_RAY_TRACING_LIGHT_LOOP_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.cs.hlsl"
 
-#define CELL_META_DATA_SIZE 5
-// Indices into metadata 
+// Indices into metadata
 #define CELL_META_DATA_TOTAL_INDEX 0
 #define CELL_META_DATA_PUNCTUAL_END_INDEX 1
 #define CELL_META_DATA_AREA_END_INDEX 2

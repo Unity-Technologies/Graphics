@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
@@ -52,6 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             if (!VolumeManager.instance.isInitialized)
                 VolumeManager.instance.Initialize();
 
+            var viewBounds = new Bounds(Vector3.zero, 10.0f * Vector3.one);
             var lightGameObject1 = CreateLight("Light1", LightType.Spot);
             var lightGameObject2 = CreateLight("Light2", LightType.Rectangle);
 
@@ -63,15 +64,21 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             };
             HDLightRenderDatabase.instance.Cleanup();
 
-            WorldLightManager.CollectWorldLights(HdCamera, m_WorldLightsSettings, flagsFunc, m_WorldLights);
+            WorldLightManager.CollectWorldLights(HdCamera, m_WorldLightsSettings, flagsFunc, viewBounds, m_WorldLights);
 
             Debug.Assert(m_WorldLights.normalLightCount == 2);
 
             Object.DestroyImmediate(lightGameObject1);
 
-            WorldLightManager.CollectWorldLights(HdCamera, m_WorldLightsSettings, flagsFunc, m_WorldLights);
+            WorldLightManager.CollectWorldLights(HdCamera, m_WorldLightsSettings, flagsFunc, viewBounds, m_WorldLights);
 
             Debug.Assert(m_WorldLights.normalLightCount == 1);
+
+            lightGameObject2.transform.position = new Vector3(100, 100, 100);
+
+            WorldLightManager.CollectWorldLights(HdCamera, m_WorldLightsSettings, flagsFunc, viewBounds, m_WorldLights);
+
+            Debug.Assert(m_WorldLights.normalLightCount == 0);
 
             Object.DestroyImmediate(lightGameObject2);
 
@@ -88,7 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 
             if (!VolumeManager.instance.isInitialized)
                 VolumeManager.instance.Initialize();
-
+            
+            var viewBounds = new Bounds(Vector3.zero, 10.0f * Vector3.one);
             var lightGameObject1 = CreateLight("Light1", LightType.Spot);
             var lightGameObject2 = CreateLight("Light2", LightType.Rectangle);
 
@@ -100,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             };
             HDLightRenderDatabase.instance.Cleanup();
 
-            WorldLightManager.CollectWorldLights(hdCamera, m_WorldLightsSettings, flagsFunc, m_WorldLights);
+            WorldLightManager.CollectWorldLights(hdCamera, m_WorldLightsSettings, flagsFunc, viewBounds, m_WorldLights);
 
             var renderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             var cmd = CommandBufferPool.Get();

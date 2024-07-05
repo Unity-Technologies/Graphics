@@ -39,10 +39,10 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(PackingRules.Exact, false)]
     struct WorldLightVolume
     {
-        public uint flags;
-        public uint shape;
         public Vector3 position;
+        public uint flags;
         public Vector3 range;
+        public uint shape;
         public uint lightType;
         public uint lightIndex;
     }
@@ -54,43 +54,47 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class WorldLights
     {
-        public NativeList<HDLightRenderEntity> hdPointLightArray = new NativeList<HDLightRenderEntity>(Allocator.Persistent);
-        public NativeList<HDLightRenderEntity> hdLineLightArray = new NativeList<HDLightRenderEntity>(Allocator.Persistent);
-        public NativeList<HDLightRenderEntity> hdRectLightArray = new NativeList<HDLightRenderEntity>(Allocator.Persistent);
-        public NativeList<HDLightRenderEntity> hdDiscLightArray = new NativeList<HDLightRenderEntity>(Allocator.Persistent);
-        public NativeList<HDLightRenderEntity> hdLightEntityArray = new NativeList<HDLightRenderEntity>(Allocator.Persistent);
+        public struct VisibleLight
+        {
+            public HDLightRenderEntity light;
+            public Bounds bounds;
+            public int type;
+        }
+
+        public NativeList<VisibleLight> culledLights = new NativeList<VisibleLight>(Allocator.Persistent);
+        public NativeList<VisibleLight> hdLightEntityArray = new NativeList<VisibleLight>(Allocator.Persistent);
 
         // The list of reflection probes
         public List<HDProbe> reflectionProbeArray = new List<HDProbe>();
 
         // Counter of the total number of lights
-        public int totalLighttCount => normalLightCount + envLightCount + decalCount;
+        public int totalLightCount => normalLightCount + envLightCount + decalCount;
 
         public int normalLightCount => pointLightCount + lineLightCount + rectLightCount + discLightCount;
         public int envLightCount => reflectionProbeArray.Count;
-        public int decalCount = 0;
 
-        public int pointLightCount => hdPointLightArray.Length;
-        public int lineLightCount => hdLineLightArray.Length;
-        public int rectLightCount => hdRectLightArray.Length;
-        public int discLightCount => hdDiscLightArray.Length;
+        public int pointLightCount = 0;
+        public int lineLightCount = 0;
+        public int rectLightCount = 0;
+        public int discLightCount = 0;
+        public int decalCount = 0;
 
         internal void Reset()
         {
-            hdPointLightArray.Clear();
-            hdLineLightArray.Clear();
-            hdRectLightArray.Clear();
-            hdDiscLightArray.Clear();
+            pointLightCount = 0;
+            lineLightCount = 0;
+            rectLightCount = 0;
+            discLightCount = 0;
+            decalCount = 0;
+
+            culledLights.Clear();
             hdLightEntityArray.Clear();
             reflectionProbeArray.Clear();
         }
 
         internal void Release()
         {
-            hdPointLightArray.Dispose();
-            hdLineLightArray.Dispose();
-            hdRectLightArray.Dispose();
-            hdDiscLightArray.Dispose();
+            culledLights.Dispose();
             hdLightEntityArray.Dispose();
         }
     }
@@ -281,9 +285,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void PushToGpu()
         {
             if (m_numLights > 0)
+            {
                 m_LightVolumeGPUArray.SetData(m_LightVolumesCPUArray, 0, 0, m_numLights);
-            if (m_numLights > 0)
                 m_LightFlagsGPUArray.SetData(m_LightFlagsCPUArray, 0, 0, m_numLights);
+            }
         }
 
         public void Bind(CommandBuffer cmd, int lightVolumeShaderID, int lightFlagsShaderID)
@@ -320,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class WorldLightManager
     {
-        public static void CollectWorldLights(in HDCamera hdCamera, in WorldLightsSettings settings, in Func<HDCamera, HDAdditionalLightData, Light, uint> flagFunc, WorldLights worldLights)
+        public static void CollectWorldLights(in HDCamera hdCamera, in WorldLightsSettings settings, in Func<HDCamera, HDAdditionalLightData, Light, uint> flagFunc, in Bounds bounds, WorldLights worldLights)
         {
             // Refresh the entire structure every frame for now
             worldLights.Reset();
@@ -329,8 +334,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             using var profilerScope = k_ProfilerMarkerCollect.Auto();
+            Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
-            // fetch all the lights in the scene
+            // Fetch all visible lights in the scene
             HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
             for (int lightIdx = 0; lightIdx < lightEntities.lightCount; ++lightIdx)
             {
@@ -348,56 +354,144 @@ namespace UnityEngine.Rendering.HighDefinition
                     //          this to ensure that we don't process more lights than before
                     if ((flagFunc(hdCamera, hdLight, light) & 0xfffffffe) == 0)
                         continue;
+                    
+                    // TODO-WL: Directional lights
+                    if (hdLight.legacyLight.type == LightType.Directional)
+                        continue;
+                    
+                    // Compute the camera relative position
+                    Vector3 lightPositionRWS = hdLight.gameObject.transform.position;
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        lightPositionRWS -= camPosWS;
+                    
+                    var lightType = hdLight.legacyLight.type;
+                    float lightRange = light.range;
+                    bool isAreaLight = lightType.IsArea();
+                    bool isBoxLight = lightType == LightType.Box;
+
+                    var visibleLight = new WorldLights.VisibleLight();
+                    visibleLight.light = lightRenderEntity;
+
+                    // Compute light bounds and cull
+                    if (!isAreaLight && !isBoxLight)
+                    {
+                        if (!WorldLightCulling.IntersectSphereAABB(lightPositionRWS, lightRange, bounds.min, bounds.max))
+                            continue;
+
+                        visibleLight.bounds = new Bounds(lightPositionRWS, new Vector3(2.0f * lightRange, 2.0f * lightRange, 2.0f * lightRange));
+                    }
+                    else
+                    {
+                        // let's compute the oobb of the light influence volume first
+                        Vector3 oobbDimensions = new Vector3(hdLight.shapeWidth + 2 * lightRange, hdLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
+                        Vector3 extents = 0.5f * oobbDimensions;
+                        Vector3 oobbCenter = lightPositionRWS;
+
+                        // Tube lights don't have forward / backward facing and have full extents on all directions as a consequence, since their OOBB is centered
+                        if (lightType == LightType.Tube)
+                        {
+                            oobbDimensions.z *= 2;
+                            extents.z *= 2;
+                        }
+                        else
+                        {
+                            oobbCenter += extents.z * hdLight.gameObject.transform.forward;
+                        }
+
+                        // Let's now compute an AABB that matches the previously defined OOBB
+                        Bounds lightBounds = new Bounds();
+                        OOBBToAABBBounds(oobbCenter, extents, hdLight.gameObject.transform.up, hdLight.gameObject.transform.right, hdLight.gameObject.transform.forward, ref lightBounds);
+                        
+                        if (!bounds.Intersects(lightBounds))
+                            continue;
+                        
+                        visibleLight.bounds = lightBounds;
+                    }
 
                     switch (hdLight.legacyLight.type)
                     {
-                        case LightType.Directional:
-                            // TODO-WL: Directional lights
-                            break;
                         case LightType.Point:
                         case LightType.Spot:
                         case LightType.Pyramid:
                         case LightType.Box:
-                            worldLights.hdPointLightArray.Add(lightRenderEntity);
-                            break;
-                        case LightType.Rectangle:
-                            worldLights.hdRectLightArray.Add(lightRenderEntity);
+                            worldLights.pointLightCount++;
+                            visibleLight.type = 0;
                             break;
                         case LightType.Tube:
-                            worldLights.hdLineLightArray.Add(lightRenderEntity);
+                            worldLights.lineLightCount++;
+                            visibleLight.type = 1;
+                            break;
+                        case LightType.Rectangle:
+                            worldLights.rectLightCount++;
+                            visibleLight.type = 2;
                             break;
                         case LightType.Disc:
-                            worldLights.hdDiscLightArray.Add(lightRenderEntity);
+                            worldLights.discLightCount++;
+                            visibleLight.type = 3;
                             break;
                     }
+
+                    worldLights.culledLights.Add(visibleLight);
                 }
             }
 
-            // Add the lights to the structure
-            worldLights.hdLightEntityArray.AddRange(worldLights.hdPointLightArray.AsArray());
-            worldLights.hdLightEntityArray.AddRange(worldLights.hdLineLightArray.AsArray());
-            worldLights.hdLightEntityArray.AddRange(worldLights.hdRectLightArray.AsArray());
-            worldLights.hdLightEntityArray.AddRange(worldLights.hdDiscLightArray.AsArray());
+            // We now have to sort the lights by type
+            Span<int> indices = stackalloc int[4];
+            indices[0] = 0;
+            indices[1] = indices[0] + worldLights.pointLightCount;
+            indices[2] = indices[1] + worldLights.lineLightCount;
+            indices[3] = indices[2] + worldLights.rectLightCount;
 
-            // Process the lights
-            HDAdditionalReflectionData[] reflectionProbeArray = UnityEngine.GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.None);
-            for (int reflIdx = 0; reflIdx < reflectionProbeArray.Length; ++reflIdx)
+            worldLights.hdLightEntityArray.Resize(worldLights.normalLightCount, NativeArrayOptions.UninitializedMemory);
+            for (int i = 0; i < worldLights.hdLightEntityArray.Length; i++)
             {
-                HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
+                int type = worldLights.culledLights[i].type;
 
-                // Add it to the list if enabled
-                // Skip the probe if the probe has never rendered (in real time cases) or if texture is null
-                if (reflectionProbe != null
-                    && reflectionProbe.enabled
-                    && reflectionProbe.ReflectionProbeIsEnabled()
-                    && reflectionProbe.gameObject.activeSelf
-                    && reflectionProbe.HasValidRenderedData())
+                worldLights.hdLightEntityArray[indices[type]] = worldLights.culledLights[i];
+                indices[type]++;
+            }
+
+            // Process the reflection probes; skip when pathtracer is on to avoid filling the reflection probe atlas
+            if (!hdCamera.IsPathTracingEnabled())
+            {
+                HDAdditionalReflectionData[] reflectionProbeArray = GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.None);
+                for (int reflIdx = 0; reflIdx < reflectionProbeArray.Length; ++reflIdx)
                 {
+                    HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];
+
+                    // Add it to the list if enabled
+                    // Skip the probe if the probe has never rendered (in real time cases) or if texture is null
+                    if (!(reflectionProbe != null
+                        && reflectionProbe.enabled
+                        && reflectionProbe.ReflectionProbeIsEnabled()
+                        && reflectionProbe.gameObject.activeSelf
+                        && reflectionProbe.HasValidRenderedData()))
+                        continue;
+
+                    // Compute the camera relative position
+                    Vector3 probePositionRWS = reflectionProbe.influenceToWorld.GetColumn(3);
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        probePositionRWS -= camPosWS;
+
+                    // Cull the probe
+                    if (reflectionProbe.influenceVolume.shape == InfluenceShape.Sphere)
+                    {
+                        var range = reflectionProbe.influenceVolume.sphereRadius;
+                        if (!WorldLightCulling.IntersectSphereAABB(probePositionRWS, range, bounds.min, bounds.max))
+                            continue;
+                    }
+                    else
+                    {
+                        if (!bounds.Intersects(new Bounds(probePositionRWS, reflectionProbe.influenceVolume.boxSize)))
+                            continue;
+                    }
+
                     worldLights.reflectionProbeArray.Add(reflectionProbe);
                 }
             }
 
             // Decals
+            // We don't do any CPU culling, they are all uploaded to GPU and culled during clustering
             worldLights.decalCount = DecalSystem.GetDecalCount(hdCamera);
         }
 
@@ -428,7 +522,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int lightIdx = 0; lightIdx < worldLights.hdLightEntityArray.Length; ++lightIdx)
                 {
                     // Grab the additinal light data to process
-                    int dataIndex = lightEntities.GetEntityDataIndex(worldLights.hdLightEntityArray[lightIdx]);
+                    int dataIndex = lightEntities.GetEntityDataIndex(worldLights.hdLightEntityArray[lightIdx].light);
                     HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
 
                     ref LightData lightData = ref worldLightsGpu.GetRef(lightIdx);
@@ -450,8 +544,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDRenderPipeline.EvaluateGPULightType(lightType, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
                     // Fetch the light component for this light
-                    Light lightComponent;
-                    additionalLightData.gameObject.TryGetComponent(out lightComponent);
+                    additionalLightData.gameObject.TryGetComponent(out Light lightComponent);
 
                     ref HDLightRenderData lightRenderData = ref lightEntities.GetLightDataAsRef(dataIndex);
 
@@ -478,7 +571,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     visibleLight.spotAngle = lightComponent.spotAngle;
 
                     int shadowIndex = additionalLightData.shadowIndex;
-                    Vector3 lightDimensions = new Vector3(0.0f, 0.0f, 0.0f);
 
                     // Use the shared code to build the light data
                     HDGpuLightsBuilder.CreateGpuLightDataJob.ConvertLightToGPUFormat(
@@ -540,20 +632,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static void BuildWorldLightVolumes(in HDCamera hdCamera, in HDRenderPipeline renderPipeline, in WorldLights worldLights, in Func<HDCamera, HDAdditionalLightData, Light, uint> flagFunc, WorldLightsVolumes worldLightsVolumes)
         {
-            int totalNumLights = worldLights.totalLighttCount;
-
+            int totalNumLights = worldLights.totalLightCount;
             worldLightsVolumes.ResizeVolumeBuffer(totalNumLights);
 
-            if (totalNumLights < 1)
+            if (totalNumLights == 0)
                 return;
 
             using var profilerScope = k_ProfilerMarkerVolume.Auto();
+            Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
             int realIndex = 0;
             HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
             for (int lightIdx = 0; lightIdx < worldLights.hdLightEntityArray.Length; ++lightIdx)
             {
-                int dataIndex = lightEntities.GetEntityDataIndex(worldLights.hdLightEntityArray[lightIdx]);
+                var visibleLight = worldLights.hdLightEntityArray[lightIdx];
+                int dataIndex = lightEntities.GetEntityDataIndex(visibleLight.light);
                 HDAdditionalLightData currentLight = lightEntities.hdAdditionalLightData[dataIndex];
 
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
@@ -567,13 +660,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reserve space in the cookie atlas
                     renderPipeline.ReserveCookieAtlasTexture(currentLight, light, lightType);
 
-                    // Compute the camera relative position
-                    Vector3 lightPositionRWS = currentLight.gameObject.transform.position;
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                    {
-                        lightPositionRWS -= hdCamera.camera.transform.position;
-                    }
-
                     // Grab the light range
                     float lightRange = light.range;
 
@@ -583,62 +669,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ref WorldLightVolume lightVolume = ref worldLightsVolumes.GetRef(realIndex);
 
-                    // Common volume data
-                    lightVolume.flags = lightFlags;
-                    lightVolume.lightIndex = (uint)lightIdx;
-
                     bool isAreaLight = lightType.IsArea();
                     bool isBoxLight = lightType == LightType.Box;
 
-                    if (!isAreaLight && !isBoxLight)
-                    {
-                        lightVolume.range = new Vector3(lightRange, lightRange, lightRange);
-                        lightVolume.position = lightPositionRWS;
-                        lightVolume.shape = 0;
-                        lightVolume.lightType = 0;
-
-                        worldLightsVolumes.bounds.Encapsulate(new Bounds(lightPositionRWS, lightVolume.range));
-                    }
-                    // Area lights and box spot lights require AABB intersection data
-                    else
-                    {
-                        // let's compute the oobb of the light influence volume first
-                        Vector3 oobbDimensions = new Vector3(currentLight.shapeWidth + 2 * lightRange, currentLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
-                        Vector3 extents = 0.5f * oobbDimensions;
-                        Vector3 oobbCenter = lightPositionRWS;
-
-                        // Tube lights don't have forward / backward facing and have full extents on all directions as a consequence, since their OOBB is centered
-                        if (lightType == LightType.Tube)
-                        {
-                            oobbDimensions.z *= 2;
-                            extents.z *= 2;
-                        }
-                        else
-                        {
-                            oobbCenter += extents.z * currentLight.gameObject.transform.forward;
-                        }
-
-                        // Let's now compute an AABB that matches the previously defined OOBB
-                        Bounds bounds = new Bounds();
-                        OOBBToAABBBounds(oobbCenter, extents, currentLight.gameObject.transform.up, currentLight.gameObject.transform.right, currentLight.gameObject.transform.forward, ref bounds);
-
-                        worldLightsVolumes.bounds.Encapsulate(bounds);
-
-                        // Fill the volume data
-                        lightVolume.range = bounds.extents;
-                        lightVolume.position = bounds.center;
-                        lightVolume.shape = 1;
-                        lightVolume.lightType = 1;
-
-                        if (isAreaLight)
-                        {
-                            lightVolume.lightType = 1;
-                        }
-                        else
-                        {
-                            lightVolume.lightType = 0;
-                        }
-                    }
+                    // Common volume data
+                    lightVolume.flags = lightFlags;
+                    lightVolume.lightIndex = (uint)lightIdx;
+                    lightVolume.range = visibleLight.bounds.extents;
+                    lightVolume.position = visibleLight.bounds.center;
+                    lightVolume.lightType = isAreaLight ? 1u : 0u;
+                    lightVolume.shape = isAreaLight || isBoxLight ? 1u : 0u;
+                        
+                    worldLightsVolumes.bounds.Encapsulate(visibleLight.bounds);
                     realIndex++;
                 }
             }
@@ -651,9 +693,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Compute the camera relative position
                 Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
                 if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    probePositionRWS -= hdCamera.camera.transform.position;
-                }
+                    probePositionRWS -= camPosWS;
 
                 ref WorldLightVolume lightVolume = ref worldLightsVolumes.GetRef(realIndex);
 
@@ -666,7 +706,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     lightVolume.shape = 1;
-                    lightVolume.range = new Vector3(currentEnvLight.influenceVolume.boxSize.x / 2.0f, currentEnvLight.influenceVolume.boxSize.y / 2.0f, currentEnvLight.influenceVolume.boxSize.z / 2.0f);
+                    lightVolume.range = currentEnvLight.influenceVolume.boxSize * 0.5f;
                     lightVolume.position = probePositionRWS;
                 }
 
@@ -691,9 +731,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Compute the camera relative position
                 Vector3 decalPositionRWS = DecalSystem.instance.GetClusteredDecalPosition(decalIdx);
                 if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    decalPositionRWS -= hdCamera.camera.transform.position;
-                }
+                        decalPositionRWS -= camPosWS;
+
                 lightVolume.position = decalPositionRWS;
                 lightVolume.range = DecalSystem.instance.GetClusteredDecalRange(decalIdx);
                 lightVolume.lightIndex = (uint)decalIdx;

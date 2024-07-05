@@ -39,13 +39,15 @@ bool PointInsideCluster(float3 positionWS)
         || positionWS.x > _MaxClusterPos.x || positionWS.y > _MaxClusterPos.y || positionWS.z > _MaxClusterPos.z);
 }
 
+uint GetClusterCellIndex(uint width, uint height, uint depth)
+{
+    return depth + height * CLUSTER_SIZE.z + width * CLUSTER_SIZE.z * CLUSTER_SIZE.y;
+}
+
 uint GetClusterCellIndex(float3 positionWS)
 {
-    // Compute the grid position
-    uint3 gridPosition = (uint3)((positionWS - _MinClusterPos) / (_MaxClusterPos - _MinClusterPos) * float3(64.0, 64.0, 32.0));
-
-    // Deduce the cell index
-    return gridPosition.z + gridPosition.y * 32 + gridPosition.x * 2048;
+    uint3 gridPosition = (uint3)((positionWS - _MinClusterPos) / (_MaxClusterPos - _MinClusterPos) * (float3)CLUSTER_SIZE);
+    return GetClusterCellIndex(gridPosition.x, gridPosition.y, gridPosition.z);
 }
 
 
@@ -61,7 +63,7 @@ void GetLightCountAndStartCluster(float3 positionWS, uint lightCategory, out uin
         // Deduce the cell index
         cellIndex = GetClusterCellIndex(positionWS);
 
-        // Grab the light count -- in principle all invocations take the same branch 
+        // Grab the light count -- in principle all invocations take the same branch
         switch (lightCategory)
         {
             case 0: // LIGHTCATEGORY_PUNCTUAL
@@ -80,7 +82,6 @@ void GetLightCountAndStartCluster(float3 positionWS, uint lightCategory, out uin
                 lightStart = GetEnvLightEndIndexInClusterCell(cellIndex);
                 lightEnd = GetDecalEndIndexInClusterCell(cellIndex);
                 break;
-                
         }
     }
 }

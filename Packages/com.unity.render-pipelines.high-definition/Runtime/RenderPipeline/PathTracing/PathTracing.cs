@@ -473,9 +473,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check lights dirtiness
-            if (m_CacheLightCount != m_WorldLights.totalLighttCount)
+            if (m_CacheLightCount != m_WorldLights.totalLightCount)
             {
-                m_CacheLightCount = (uint)m_WorldLights.totalLighttCount;
+                m_CacheLightCount = (uint)m_WorldLights.totalLightCount;
                 isSceneDirty = true;
             }
 

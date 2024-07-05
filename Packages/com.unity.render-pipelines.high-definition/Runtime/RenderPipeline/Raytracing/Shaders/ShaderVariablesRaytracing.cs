@@ -1,5 +1,14 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [GenerateHLSL]
+    class HDLightClusterDefinitions
+    {
+        public static Vector3Int s_ClusterSize = new Vector3Int(64, 32, 64);
+        public static int s_ClusterCellCount = s_ClusterSize.x * s_ClusterSize.y * s_ClusterSize.z;
+
+        public static int s_CellMetaDataSize = 5;
+    }
+
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.RayTracing)]
     unsafe struct ShaderVariablesRaytracing
     {

@@ -2719,8 +2719,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_WorldLightsSettings.enabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
 
-                WorldLightManager.CollectWorldLights(hdCamera, m_WorldLightsSettings, flagsFunc, m_WorldLights);
-                WorldLightManager.BuildWorldLightVolumes(hdCamera, HDRenderPipeline.currentPipeline, m_WorldLights, flagsFunc, m_WorldLightsVolumes);
+                var lightCluster = HDRaytracingLightCluster.GetLightClusterBounds(hdCamera);
+                WorldLightManager.CollectWorldLights(hdCamera, m_WorldLightsSettings, flagsFunc, lightCluster, m_WorldLights);
+                WorldLightManager.BuildWorldLightVolumes(hdCamera, this, m_WorldLights, flagsFunc, m_WorldLightsVolumes);
                 m_WorldLightsVolumes.Bind(cmd, HDShaderIDs._WorldLightVolumes, HDShaderIDs._WorldLightFlags);
 
                 if (m_RayTracingSupported)
