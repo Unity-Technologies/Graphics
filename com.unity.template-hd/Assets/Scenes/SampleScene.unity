@@ -9609,7 +9609,7 @@ MonoBehaviour:
     mask:
       data1: 2361488491552
       data2: 2357667418784
-  defaultFrameSettings: -268599808
+  defaultFrameSettings: 0
   m_Version: 0
   m_ObsoleteRenderingPath: 0
   m_ObsoleteFrameSettings:
