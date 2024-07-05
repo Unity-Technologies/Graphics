@@ -230,10 +230,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        void CheckBufferResource(BufferResource bufferResoruce)
+        void CheckBufferResource(BufferResource bufferResource)
         {
-            if (bufferResoruce.graphicsResource == null)
-                throw new InvalidOperationException("Trying to use a graphics buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+            if (bufferResource.graphicsResource == null)
+                throw new InvalidOperationException($"Trying to use a graphics buffer ({bufferResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
         }
 
         internal GraphicsBuffer GetBuffer(in BufferHandle handle)
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             var resource = accelStructureResource.graphicsResource;
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (resource == null)
-                throw new InvalidOperationException("Trying to use a acceleration structure ({accelStructureResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
+                throw new InvalidOperationException($"Trying to use a acceleration structure ({accelStructureResource.GetName()}) that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
 #endif
 
             return resource;
