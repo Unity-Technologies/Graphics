@@ -49,7 +49,7 @@ public class TimeOfDay : MonoBehaviour
 
     void Update()
     {
-        time = time.AddSeconds(timeSpeed * Time.deltaTime);
+        timeOfDay += timeSpeed * Time.deltaTime;
 
         //This is for the variable to loop for easier use.
         if(timeOfDay > 24f)
