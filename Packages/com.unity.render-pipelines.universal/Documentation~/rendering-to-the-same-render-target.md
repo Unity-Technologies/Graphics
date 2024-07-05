@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-rendering-to-the-same-render-target
+uid: urp-rendering-to-the-same-render-target
 ---
 # Set up split-screen rendering
 

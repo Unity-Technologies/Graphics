@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-writing-shaders-urp-unlit-normals
+uid: urp-writing-shaders-urp-unlit-normals
 ---
 # Visualizing normal vectors
 

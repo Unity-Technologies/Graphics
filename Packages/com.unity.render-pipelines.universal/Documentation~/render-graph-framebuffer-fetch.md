@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-framebuffer-fetch
+uid: urp-render-graph-framebuffer-fetch
 ---
 # Get the current framebuffer with framebuffer fetch
 

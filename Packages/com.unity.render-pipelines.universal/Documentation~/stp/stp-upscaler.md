@@ -1,3 +1,6 @@
+---
+uid: urp-stp-upscaler
+---
 # Spatial-Temporal Post-processing
 
 Spatial-Temporal Post-Processing (STP) uses spatial and temporal upsampling techniques to produce a high quality, anti-aliased image.

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-draw-objects-in-a-pass
+uid: urp-render-graph-draw-objects-in-a-pass
 ---
 # Draw objects in a render pass
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-lighting-panel-reference
+uid: urp-probevolumes-lighting-panel-reference
 ---
 # Adaptive Probe Volumes panel properties
 

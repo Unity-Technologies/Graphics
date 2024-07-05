@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-configure-for-better-performance
+uid: urp-configure-for-better-performance
 ---
 # Configure for better performance
 

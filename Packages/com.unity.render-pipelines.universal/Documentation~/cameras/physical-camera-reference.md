@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-physical-camera-reference
+uid: urp-physical-camera-reference
 ---
 # Physical Camera reference
 

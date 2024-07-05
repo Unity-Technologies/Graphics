@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-prep-shader
+uid: urp-prep-shader
 ---
 # Prepare and upgrade sprites and projects for lighting
 

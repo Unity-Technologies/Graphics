@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-camera-stacking-concepts
+uid: urp-camera-stacking-concepts
 ---
 # Understand camera stacking
 

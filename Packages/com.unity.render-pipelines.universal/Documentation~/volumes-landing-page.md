@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-volumes-landing-page
+uid: urp-volumes-landing-page
 ---
 # Volumes
 

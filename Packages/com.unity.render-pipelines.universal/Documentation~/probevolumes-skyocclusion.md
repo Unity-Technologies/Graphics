@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-skyocclusion
+uid: urp-probevolumes-skyocclusion
 ---
 # Update light from the sky at runtime with sky occlusion
 

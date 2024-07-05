@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-urp-config-package
+uid: urp-urp-config-package
 ---
 # Configure settings with the URP Config package
 

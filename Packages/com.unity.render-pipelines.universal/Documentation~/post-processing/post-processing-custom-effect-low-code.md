@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-custom-effect-low-code
+uid: urp-post-processing-custom-effect-low-code
 ---
 # How to create a custom post-processing effect
 

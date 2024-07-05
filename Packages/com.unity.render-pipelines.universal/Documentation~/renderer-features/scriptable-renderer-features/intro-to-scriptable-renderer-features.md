@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-intro-to-scriptable-renderer-features
+uid: urp-intro-to-scriptable-renderer-features
 ---
 # Introduction to Scriptable Renderer Features
 

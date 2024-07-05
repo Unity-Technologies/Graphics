@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-renderer-feature-full-screen-pass-landing
+uid: urp-renderer-feature-full-screen-pass-landing
 ---
 # Full Screen Pass Renderer Feature
 

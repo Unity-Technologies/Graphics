@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-how-to-custom-effect-render-objects
+uid: urp-how-to-custom-effect-render-objects
 ---
 # Example: How to create a custom rendering effect using the Render Objects Renderer Feature
 

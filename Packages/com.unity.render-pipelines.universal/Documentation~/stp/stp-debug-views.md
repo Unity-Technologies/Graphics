@@ -1,3 +1,6 @@
+---
+uid: urp-stp-debug-views
+---
 # Spatial-Temporal Post-processing debug views
 
 There are six debug views for Spatial-Temporal Post-processing (STP). To access them, open the Rendering Debugger window  and navigate to **Rendering** > **Map Overlays** and select **STP**. Unity shows the **STP Debug Views** property where you can select one of the views.

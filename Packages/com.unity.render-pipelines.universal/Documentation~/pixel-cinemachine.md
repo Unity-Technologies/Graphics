@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-pixel-cinemachine
+uid: urp-pixel-cinemachine
 ---
 # Using the Cinemachine Pixel Perfect extension
 

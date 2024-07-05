@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-cameras-multiple
+uid: urp-cameras-multiple
 ---
 # Use multiple cameras
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-forward-plus-rendering-path
+uid: urp-forward-plus-rendering-path
 ---
 # Forward+ Rendering Path
 

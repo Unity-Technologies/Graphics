@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-2d-light-properties
+uid: urp-2d-light-properties
 ---
 # Common 2D Light Type properties
 Each 2D **Light Type** has various properties and options to customize their appearance and behavior. This page documents the properties that are common to all 2D **Light Types**. Select from the list below to refer to the specific properties of each of the available **Light Types**:

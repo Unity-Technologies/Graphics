@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-create-custom-renderer-feature-compatibility-mode
+uid: urp-create-custom-renderer-feature-compatibility-mode
 ---
 # Example of a complete Scriptable Renderer Feature in Compatibility Mode
 

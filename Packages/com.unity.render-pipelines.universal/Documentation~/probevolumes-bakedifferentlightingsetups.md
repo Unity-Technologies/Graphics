@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-bakedifferentlightingsetups
+uid: urp-probevolumes-bakedifferentlightingsetups
 ---
 # Bake different lighting setups with Lighting Scenarios
 

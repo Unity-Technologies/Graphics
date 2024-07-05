@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-urp-renderer-feature
+uid: urp-urp-renderer-feature
 ---
 # Pre-built effects (Renderer Features)
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-2d-customlit
+uid: urp-2d-customlit
 ---
 # Custom Lighting in 2D
 

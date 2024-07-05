@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-customizing-urp
+uid: urp-customizing-urp
 ---
 # Custom rendering and post-processing 
 

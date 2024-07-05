@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-changedensity
+uid: urp-probevolumes-changedensity
 ---
 # Configure the size and density of Adaptive Probe Volumes
 

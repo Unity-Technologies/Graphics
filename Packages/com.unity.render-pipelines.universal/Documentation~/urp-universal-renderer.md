@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-urp-universal-renderer
+uid: urp-urp-universal-renderer
 ---
 # Universal Renderer
 

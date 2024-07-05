@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-add-and-remove-cameras-in-a-stack
+uid: urp-add-and-remove-cameras-in-a-stack
 ---
 # Add and remove cameras in a camera stack
 

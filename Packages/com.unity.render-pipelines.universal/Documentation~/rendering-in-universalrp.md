@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-rendering-in-universalrp
+uid: urp-rendering-in-universalrp
 ---
 # Rendering in the Universal Render Pipeline
 

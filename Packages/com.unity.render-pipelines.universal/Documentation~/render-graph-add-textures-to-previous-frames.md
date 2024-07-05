@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-add-textures-to-previous-frames
+uid: urp-render-graph-add-textures-to-previous-frames
 ---
 # Add data to previous frames
 

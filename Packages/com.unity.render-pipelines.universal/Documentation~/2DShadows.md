@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-2d-shadows
+uid: urp-2d-shadows
 ---
 ## Create shadows with Shadow Caster 2D
 

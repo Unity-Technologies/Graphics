@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-lens-flare-component
+uid: urp-lens-flare-component
 ---
 # Add lens flares
 

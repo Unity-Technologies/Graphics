@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrade-guide-2021-2
+uid: urp-upgrade-guide-2021-2
 ---
 # Upgrading to version 12 of the Universal Render Pipeline
 

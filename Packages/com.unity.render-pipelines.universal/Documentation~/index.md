@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-index
+uid: urp-index
 ---
 # Universal Render Pipeline overview
 

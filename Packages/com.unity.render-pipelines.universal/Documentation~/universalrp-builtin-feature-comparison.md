@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-universalrp-builtin-feature-comparison
+uid: urp-universalrp-builtin-feature-comparison
 ---
 # Feature comparison table
 

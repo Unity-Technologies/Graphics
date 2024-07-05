@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-decal-shader
+uid: urp-decal-shader
 ---
 # Decal Shader Graph
 

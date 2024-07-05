@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-writing-custom-shaders-urp
+uid: urp-writing-custom-shaders-urp
 ---
 # Writing custom shaders
 

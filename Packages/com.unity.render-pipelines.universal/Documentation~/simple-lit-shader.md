@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-simple-lit-shader
+uid: urp-simple-lit-shader
 ---
 # Simple Lit Shader
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-universalrp-asset
+uid: urp-universalrp-asset
 ---
 # Universal Render Pipeline Asset
 

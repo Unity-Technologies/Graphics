@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-urp-renderer-feature-how-to-add
+uid: urp-urp-renderer-feature-how-to-add
 ---
 # How to add a Renderer Feature to a Renderer
 

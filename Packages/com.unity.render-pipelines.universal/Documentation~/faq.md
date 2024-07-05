@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-faq
+uid: urp-faq
 ---
 # Frequently asked questions (FAQ)
 

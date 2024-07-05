@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrade-guide-2023-2
+uid: urp-upgrade-guide-2023-2
 ---
 # Upgrading to URP 16 (Unity 2023.2)
 

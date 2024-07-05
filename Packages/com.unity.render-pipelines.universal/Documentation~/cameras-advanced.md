@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-cameras-advanced
+uid: urp-cameras-advanced
 ---
 # Understand camera render order
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-requirements
+uid: urp-requirements
 ---
 # Requirements and compatibility
 

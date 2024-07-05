@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-urp-global-settings
+uid: urp-urp-global-settings
 ---
 # Graphics settings window reference in URP 
 

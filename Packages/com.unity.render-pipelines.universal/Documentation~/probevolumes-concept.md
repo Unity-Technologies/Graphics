@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-concept
+uid: urp-probevolumes-concept
 ---
 # Understanding Adaptive Probe Volumes
 

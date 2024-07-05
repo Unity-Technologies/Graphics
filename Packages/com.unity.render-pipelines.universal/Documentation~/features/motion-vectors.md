@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-motion-vectors
+uid: urp-motion-vectors
 ---
 # Motion vectors in URP
 

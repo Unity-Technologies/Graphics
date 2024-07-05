@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrade-guides
+uid: urp-upgrade-guides
 ---
 # Upgrade guides
 

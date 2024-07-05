@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrade-guide-10-1-x
+uid: urp-upgrade-guide-10-1-x
 ---
 # Upgrading to version 10.1.x of the Universal Render Pipeline
 

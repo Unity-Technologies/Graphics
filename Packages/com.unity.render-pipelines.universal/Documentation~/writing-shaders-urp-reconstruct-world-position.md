@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-writing-shaders-urp-reconstruct-world-position
+uid: urp-writing-shaders-urp-reconstruct-world-position
 ---
 # Reconstruct the world space positions of pixels from the depth texture
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-writing-shaders-urp-unlit-color
+uid: urp-writing-shaders-urp-unlit-color
 ---
 # URP unlit shader with color input
 

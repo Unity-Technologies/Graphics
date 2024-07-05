@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-scene-templates
+uid: urp-scene-templates
 ---
 # Universal Render Pipeline Scene Templates
 

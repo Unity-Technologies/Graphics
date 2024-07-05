@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-2d-pixelperfect
+uid: urp-2d-pixelperfect
 ---
 # 2D Pixel Perfect
 

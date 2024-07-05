@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-lift-gamma-gain
+uid: urp-post-processing-lift-gamma-gain
 ---
 # Lift Gamma Gain
 

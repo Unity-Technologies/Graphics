@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-make-object-compatible-gpu-rendering
+uid: urp-make-object-compatible-gpu-rendering
 ---
 # Make a GameObject compatible with the GPU Resident Drawer
 

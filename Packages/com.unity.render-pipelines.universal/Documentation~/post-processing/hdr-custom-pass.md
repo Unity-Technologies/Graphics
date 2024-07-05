@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-hdr-custom-pass
+uid: urp-hdr-custom-pass
 ---
 # Scriptable Render Passes with HDR Output
 

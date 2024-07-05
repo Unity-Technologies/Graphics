@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrade-guide-2022-2
+uid: urp-upgrade-guide-2022-2
 ---
 # Upgrading to URP 14 (Unity 2022.2)
 

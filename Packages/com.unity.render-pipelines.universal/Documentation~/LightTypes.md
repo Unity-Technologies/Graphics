@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-light-types
+uid: urp-light-types
 ---
 # Specific 2D Light Type properties
 

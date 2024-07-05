@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-introduction
+uid: urp-render-graph-introduction
 ---
 # Introduction to the render graph system
 

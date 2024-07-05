@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-tonemapping
+uid: urp-post-processing-tonemapping
 ---
 # Tonemapping
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-user-render-requests
+uid: urp-user-render-requests
 ---
 # Render Requests
 

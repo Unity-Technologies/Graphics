@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-split-toning
+uid: urp-post-processing-split-toning
 ---
 # Split Toning
 

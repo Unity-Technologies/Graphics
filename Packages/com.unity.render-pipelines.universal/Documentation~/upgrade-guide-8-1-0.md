@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrade-guide-8-1-0
+uid: urp-upgrade-guide-8-1-0
 ---
 # Upgrading to version 8.1.x of the Universal Render Pipeline
 

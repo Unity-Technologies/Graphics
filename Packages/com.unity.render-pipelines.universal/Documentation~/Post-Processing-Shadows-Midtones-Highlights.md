@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-shadows-midtones-highlights
+uid: urp-post-processing-shadows-midtones-highlights
 ---
 # Shadows Midtones Highlights
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-unlit-shader
+uid: urp-unlit-shader
 ---
 # Unlit Shader
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-renderer-feature-screen-space-shadows
+uid: urp-renderer-feature-screen-space-shadows
 ---
 # Screen Space Shadows Renderer Feature
 

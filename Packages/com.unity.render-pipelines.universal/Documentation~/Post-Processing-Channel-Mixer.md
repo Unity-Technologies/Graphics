@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-channel-mixer
+uid: urp-post-processing-channel-mixer
 ---
 # Channel Mixer
 

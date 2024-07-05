@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-universal-additional-camera-data
+uid: urp-universal-additional-camera-data
 ---
 # The Universal Additional Camera Data component
 

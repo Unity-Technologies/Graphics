@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-lens-flare-srp-reference
+uid: urp-lens-flare-srp-reference
 ---
 # Lens Flare (SRP) component reference
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-use-built-in-shader-methods-transformations
+uid: urp-use-built-in-shader-methods-transformations
 ---
 # Transform positions in a custom URP shader
 

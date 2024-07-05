@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-shader-stripping
+uid: urp-shader-stripping
 ---
 # Shader Stripping
 

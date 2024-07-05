@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-camera-stacking
+uid: urp-camera-stacking
 ---
 # Set up a camera stack
 

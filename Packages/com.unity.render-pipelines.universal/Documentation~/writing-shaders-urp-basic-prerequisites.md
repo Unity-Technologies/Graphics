@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-writing-shaders-urp-basic-prerequisites
+uid: urp-writing-shaders-urp-basic-prerequisites
 ---
 # Creating a sample scene
 

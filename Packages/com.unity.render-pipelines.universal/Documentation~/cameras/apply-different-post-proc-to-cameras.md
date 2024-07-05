@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-apply-different-post-proc-to-cameras
+uid: urp-apply-different-post-proc-to-cameras
 ---
 # Apply different post processing effects to separate cameras
 

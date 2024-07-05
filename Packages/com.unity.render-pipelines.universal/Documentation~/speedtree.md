@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-speedtree
+uid: urp-speedtree
 ---
 # SpeedTree Shaders
 

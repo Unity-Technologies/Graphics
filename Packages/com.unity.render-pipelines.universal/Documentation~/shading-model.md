@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-shading-model
+uid: urp-shading-model
 ---
 # Shading models in Universal Render Pipeline
 

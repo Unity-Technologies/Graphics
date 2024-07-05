@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-shadows-in-urp
+uid: urp-shadows-in-urp
 ---
 # Shadows in the Universal Render Pipeline
 

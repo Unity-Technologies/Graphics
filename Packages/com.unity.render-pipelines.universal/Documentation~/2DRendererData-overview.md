@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-2d-renderer-data-overview
+uid: urp-2d-renderer-data-overview
 ---
 # Configure the 2D Renderer Asset
 

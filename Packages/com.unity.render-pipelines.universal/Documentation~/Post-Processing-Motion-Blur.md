@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-motion-blur
+uid: urp-post-processing-motion-blur
 ---
 # Motion Blur
 

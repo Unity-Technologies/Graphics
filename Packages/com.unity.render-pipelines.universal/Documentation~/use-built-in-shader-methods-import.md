@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-use-built-in-shader-methods-import
+uid: urp-use-built-in-shader-methods-import
 ---
 # Import a file from the URP shader library
 

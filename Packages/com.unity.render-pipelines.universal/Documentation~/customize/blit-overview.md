@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-blit-overview
+uid: urp-blit-overview
 ---
 # URP blit best practices
 

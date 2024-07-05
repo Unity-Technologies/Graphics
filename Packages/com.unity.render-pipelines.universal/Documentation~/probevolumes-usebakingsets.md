@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-usebakingsets
+uid: urp-probevolumes-usebakingsets
 ---
 # Bake multiple scenes together with Baking Sets
 

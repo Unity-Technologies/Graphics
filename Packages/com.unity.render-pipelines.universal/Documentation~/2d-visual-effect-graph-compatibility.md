@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-2d-visual-effect-graph-compatibility
+uid: urp-2d-visual-effect-graph-compatibility
 ---
 # Light a Visual Effect Graph asset 
 

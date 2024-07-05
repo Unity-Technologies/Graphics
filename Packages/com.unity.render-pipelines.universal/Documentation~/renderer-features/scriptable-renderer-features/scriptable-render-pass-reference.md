@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-scriptable-render-pass-reference
+uid: urp-scriptable-render-pass-reference
 ---
 ## Scriptable Render Pass Compatibility Mode API reference 
 

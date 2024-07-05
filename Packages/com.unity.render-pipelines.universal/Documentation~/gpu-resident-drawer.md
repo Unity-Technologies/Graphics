@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-gpu-resident-drawer
+uid: urp-gpu-resident-drawer
 ---
 
 # Use the GPU Resident Drawer

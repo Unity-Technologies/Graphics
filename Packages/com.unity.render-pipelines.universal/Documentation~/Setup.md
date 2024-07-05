@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-setup
+uid: urp-setup
 ---
 # Requirements and setup
 

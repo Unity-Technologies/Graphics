@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-color-curves
+uid: urp-post-processing-color-curves
 ---
 # Color Curves
 

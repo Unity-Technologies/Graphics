@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-showandadjust
+uid: urp-probevolumes-showandadjust
 ---
 # Display Adaptive Probe Volumes
 

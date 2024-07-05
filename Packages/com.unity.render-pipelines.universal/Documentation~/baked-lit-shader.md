@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-baked-lit-shader
+uid: urp-baked-lit-shader
 ---
 # Baked Lit Shader
 

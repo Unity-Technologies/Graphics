@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-2d-light-batching-debugger
+uid: urp-2d-light-batching-debugger
 ---
 # Using the Light Batching Debugger
 

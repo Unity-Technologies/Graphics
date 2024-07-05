@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrade-lwrp-to-urp
+uid: urp-upgrade-lwrp-to-urp
 ---
 # Upgrading from the Lightweight Render Pipeline to the Universal Render Pipeline
 

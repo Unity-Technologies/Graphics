@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-lighting
+uid: urp-lighting
 ---
 # Lighting in the Universal Render Pipeline
 

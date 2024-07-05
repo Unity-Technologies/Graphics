@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-integration-with-post-processing
+uid: urp-integration-with-post-processing
 ---
 # Post-processing in the Universal Render Pipeline
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-shader-terrain-lit
+uid: urp-shader-terrain-lit
 ---
 # Terrain Lit shader
 

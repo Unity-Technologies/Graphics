@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-use
+uid: urp-probevolumes-use
 ---
 # Use Adaptive Probe Volumes
 

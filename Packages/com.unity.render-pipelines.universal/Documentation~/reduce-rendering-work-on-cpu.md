@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-reduce-rendering-work-on-cpu
+uid: urp-reduce-rendering-work-on-cpu
 ---
 # Reduce rendering work on the CPU
 

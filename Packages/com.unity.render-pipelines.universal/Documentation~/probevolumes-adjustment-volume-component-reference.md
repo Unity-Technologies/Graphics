@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-adjustment-volume-component-reference
+uid: urp-probevolumes-adjustment-volume-component-reference
 ---
 # Probe Adjustment Volume component reference
 

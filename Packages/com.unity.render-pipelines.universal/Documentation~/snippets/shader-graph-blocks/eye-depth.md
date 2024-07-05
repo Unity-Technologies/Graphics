@@ -1,6 +1,3 @@
----
-uid: urp-docfx-eye-depth
----
 <tr>
 <td>**Eye Depth**</td>
 <td>Scales a value to world space to represent the depth from the near plane. This value represents a point in world space, determined by the platform you use. For more information, refer to [The Depth (Z) direction in Shaders](https://docs.unity3d.com/Manual/SL-PlatformDifferences.html).</td>

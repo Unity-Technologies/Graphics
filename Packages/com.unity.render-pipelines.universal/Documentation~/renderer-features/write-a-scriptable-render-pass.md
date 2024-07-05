@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-write-a-scriptable-render-pass
+uid: urp-write-a-scriptable-render-pass
 ---
 # Write a Scriptable Render Pass in Compatibility Mode
 

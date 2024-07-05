@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-shaders-in-universalrp
+uid: urp-shaders-in-universalrp
 ---
 # Shaders and Materials
 

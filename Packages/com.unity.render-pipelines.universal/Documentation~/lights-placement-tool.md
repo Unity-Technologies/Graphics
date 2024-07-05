@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-lights-placement-tool
+uid: urp-lights-placement-tool
 ---
 # View and manipulate Lights from their perspective
 

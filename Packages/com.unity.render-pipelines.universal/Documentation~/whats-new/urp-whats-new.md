@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-urp-whats-new
+uid: urp-urp-whats-new
 ---
 # What's new in URP 17 (Unity 6 Preview)
 

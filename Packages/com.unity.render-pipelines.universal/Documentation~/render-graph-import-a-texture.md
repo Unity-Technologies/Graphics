@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-import-a-texture
+uid: urp-render-graph-import-a-texture
 ---
 # Import a texture into the render graph system
 

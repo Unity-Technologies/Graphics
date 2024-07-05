@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-custom-post-processing
+uid: urp-custom-post-processing
 ---
 # Custom post-processing
 

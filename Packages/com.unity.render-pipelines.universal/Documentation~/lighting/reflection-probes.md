@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-reflection-probes
+uid: urp-reflection-probes
 ---
 # Reflection probes
 
