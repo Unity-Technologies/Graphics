@@ -5,6 +5,12 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using System.Collections.Generic;
 using UnityEngine.TestTools;
+using System.Collections;
+using Unity.Collections;
+using System.Linq;
+using System.IO;
+using System.Drawing.Drawing2D;
+using System.Runtime.ConstrainedExecution;
 
 #if UNITY_EDITOR
 using UnityEditor.Rendering;
@@ -74,7 +80,7 @@ namespace UnityEngine.Rendering.Tests
                     m_RenderGraph.BeginRecording(rgParams);
 
                     asset.recordRenderGraphBody?.Invoke(renderContext, camera, cmd);
-                
+
                     m_RenderGraph.EndRecordingAndExecute();
 
                     renderContext.ExecuteCommandBuffer(cmd);
@@ -121,7 +127,7 @@ namespace UnityEngine.Rendering.Tests
             QualitySettings.renderPipeline = m_OldQualityRenderPipeline;
             m_OldQualityRenderPipeline = null;
 
-            m_RenderGraph.Cleanup();    
+            m_RenderGraph.Cleanup();
 
             Object.DestroyImmediate(m_RenderGraphTestPipeline);
 
@@ -710,7 +716,7 @@ namespace UnityEngine.Rendering.Tests
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.UseColorBuffer(texture1, 0);
-                builder.SetRenderFunc< RenderGraphTestPassData>(RenderFunc);
+                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
             }
 
             var hash1 = m_RenderGraph.ComputeGraphHash();
@@ -1062,5 +1068,128 @@ namespace UnityEngine.Rendering.Tests
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
             }
         }*/
+
+        class RenderGraphAsyncRequestTestData
+        {
+            public TextureHandle texture;
+            public NativeArray<byte> pixels;
+        }
+
+        private bool m_AsyncReadbackDone = false;
+
+        [Test]
+        public void RequestAsyncReadbackIntoNativeArrayWorks()
+        {
+            const int kWidth = 4;
+            const int kHeight = 4;
+            const GraphicsFormat format = GraphicsFormat.R8G8B8A8_SRGB;
+
+            // We need a real ScriptableRenderContext and a camera to execute the render graph
+            // add the default camera
+            var gameObject = new GameObject("testGameObject")
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+                tag = "MainCamera"
+            };
+            var camera = gameObject.AddComponent<Camera>();
+
+            NativeArray<byte> pixels = default;
+            bool passExecuted = false;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                // Avoid performing the same request multiple frames for nothing
+                if (passExecuted)
+                    return;
+
+                passExecuted = true;
+
+                var redTexture = CreateRedTexture(kWidth, kHeight);
+                var texture0 = m_RenderGraph.ImportTexture(redTexture);
+
+                pixels = new NativeArray<byte>(kWidth * kHeight * 4, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+                using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphAsyncRequestTestData>("ReadbackPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    builder.UseTexture(texture0, AccessFlags.ReadWrite);
+
+                    passData.texture = texture0;
+                    passData.pixels = pixels;
+
+                    builder.SetRenderFunc((RenderGraphAsyncRequestTestData data, UnsafeGraphContext context) =>
+                    {
+                        context.cmd.RequestAsyncReadbackIntoNativeArray(ref data.pixels, data.texture, 0, format, RenderGraphTest_AsyncReadbackCallback);
+                    });
+                }
+            };
+
+            camera.Render();
+
+            AsyncGPUReadback.WaitAllRequests();
+
+            Assert.True(m_AsyncReadbackDone);
+
+            for (int i = 0; i < kWidth * kHeight; i += 4)
+            {
+                Assert.True(pixels[i] / 255.0f == Color.red.r);
+                Assert.True(pixels[i+1] / 255.0f == Color.red.g);
+                Assert.True(pixels[i+2] / 255.0f == Color.red.b);
+                Assert.True(pixels[i+3] / 255.0f == Color.red.a);
+            }
+
+            pixels.Dispose();
+            GameObject.DestroyImmediate(gameObject);
+        }
+
+        void RenderGraphTest_AsyncReadbackCallback(AsyncGPUReadbackRequest request)
+        {
+            if (request.hasError)
+            {
+                // We shouldn't have any error, asserting.
+                Assert.True(m_AsyncReadbackDone);
+            }
+            else if (request.done)
+            {
+                m_AsyncReadbackDone = true;
+            }
+        }
+
+        RTHandle CreateRedTexture(int width, int height)
+        {
+            // Create a red color
+            Color redColor = Color.red;
+
+            // Initialize the RTHandle system if necessary
+            RTHandles.Initialize(width, height);
+
+            // Create a new RTHandle texture
+            var redTextureHandle = RTHandles.Alloc(width, height,
+                                               colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
+                                               dimension: TextureDimension.Tex2D,
+                                               useMipMap: false,
+                                               autoGenerateMips: false,
+                                               name: "RedTexture");
+
+            // Set the texture to red
+            Texture2D tempTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            for (int y = 0; y < tempTexture.height; y++)
+            {
+                for (int x = 0; x < tempTexture.width; x++)
+                {
+                    tempTexture.SetPixel(x, y, redColor);
+                }
+            }
+            tempTexture.Apply();
+
+            // Copy the temporary Texture2D to the RTHandle
+            Graphics.Blit(tempTexture, redTextureHandle.rt);
+
+            Texture2D.DestroyImmediate(tempTexture);
+
+            // Cleanup the temporary texture
+            return redTextureHandle;
+        }
     }
 }
