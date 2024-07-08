@@ -536,6 +536,9 @@ float3 NeutralCurve(float3 x, real a, real b, real c, real d, real e, real f)
 
 real3 NeutralTonemap(real3 x)
 {
+	// Make sure negative channels are clamped to 0.0 as this neutral tonemapper can't deal with them properly (unlike ACES)
+    x = max((0.0).xxx, x);
+
     // Tonemap
     const real a = 0.2;
     const real b = 0.29;
