@@ -12,10 +12,26 @@ If you want to examine the code that strips shaders in HDRP, see the following f
 
 The files use the [IPreprocessShaders](https://docs.unity3d.com/ScriptReference/Build.IPreprocessShaders.html) API.
 
-You can also do the following:
+## Check how many shader variants your build has
 
-- [Check how many shader variants you have](https://docs.unity3d.com/Manual/shader-how-many-variants.html).
-- See the [standard guidance about shader stripping](https://docs.unity3d.com/Manual/shader-variant-stripping.html), which applies to all render pipelines.
+To log how many variants Unity compiles and strips in total, follow these steps:
+
+1. Open the [Graphics settings window](Default-Settings-Window.md).
+2. In the **Additional Shader Stripping Settings** section, select a logging level other than **Disabled**.
+3. Build your project.
+4. To see the logged information, open the `Editor.log` log file and search for `ShaderStrippingReport`. For the location of `Editor.log`, refer to [log files](xref:LogFiles).
+
+To log more detailed shader variant information, follow these steps:
+
+1. Open the [Graphics settings window](Default-Settings-Window.md).
+2. In the **Additional Shader Stripping Settings** section, select **Export Shader Variants**.
+3. Build your project.
+4. In the folder with your project files, open `Temp/graphics-settings-stripping.json` and `Temp/shader-stripping.json`. 
+
+For more information, refer to the following in the Unity User Manual:
+
+- [Check how many shader variants you have](xref:shader-how-many-variants)
+- [Shader variant stripping](xref:shader-variant-stripping)
 
 ## Strip feature shader variants
 
