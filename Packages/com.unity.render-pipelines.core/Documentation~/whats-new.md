@@ -6,3 +6,4 @@ The list of pages is as follows:
 
 - [12](whats-new-12.md)
 - [13](whats-new-13.md)
+- [17](whats-new-17.md)

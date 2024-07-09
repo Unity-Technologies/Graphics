@@ -1,6 +1,6 @@
 # The render graph system
 
-The render graph system sits on top of Unity's Scriptable Render Pipeline (SRP). It allows you to author a custom SRP in a maintainable and modular way. Unity's High Definition Render Pipeline (HDRP) uses the render graph system.
+The render graph system sits on top of Unity's Scriptable Render Pipeline (SRP). It allows you to author a custom SRP in a maintainable and modular way. Both Unity's High Definition Render Pipeline (HDRP) and Unity's Universal Render Pipeline (URP) use the render graph system.
 
 You use the [RenderGraph](../api/UnityEngine.Rendering.RenderGraphModule.RenderGraph.html) API to create a render graph. A render graph is a high-level representation of the custom SRP's render passes, which explicitly states how the render passes use resources.
 
