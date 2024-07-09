@@ -26,6 +26,12 @@ float3 WaterSimulationPosition(float3 objectPosition, uint instanceID = 0)
     // Scale and offset the position to where it should be
     simulationPos.xz = simulationPos.xz * gridSize + _PatchOffset;
 
+    #ifndef WATER_DISPLACEMENT
+    // Clamp the mesh inside the region so that it's never empty
+    simulationPos.xz = max(simulationPos.xz, -_RegionExtent);
+    simulationPos.xz = min(simulationPos.xz,  _RegionExtent);
+    #endif
+
     // Return the simulation position
     return simulationPos;
 }

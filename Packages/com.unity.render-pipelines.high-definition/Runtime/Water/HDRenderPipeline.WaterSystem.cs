@@ -41,12 +41,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // We can't name it simply GBuffer otherwise it's stripped in forward only
         internal const string k_WaterGBufferPass = "WaterGBuffer";
-        internal const string k_WaterMaskPass = "WaterMask";
+        internal const string k_WaterDebugPass = "WaterMask";
         internal const string k_LowResGBufferPass = "LowRes";
         internal const string k_TessellationPass = "Tessellation";
         readonly static string[] k_PassesGBuffer = new string[] { k_WaterGBufferPass, k_LowResGBufferPass };
         readonly static string[] k_PassesGBufferTessellation = new string[] { k_WaterGBufferPass + k_TessellationPass, k_LowResGBufferPass };
-        readonly static string[] k_PassesWaterMask = new string[] { k_WaterMaskPass + k_TessellationPass, k_WaterMaskPass + k_LowResGBufferPass };
+        readonly static string[] k_PassesWaterDebug = new string[] { k_WaterDebugPass + k_TessellationPass, k_WaterDebugPass + k_LowResGBufferPass };
 
         // Other internal rendering data
         MaterialPropertyBlock m_WaterMaterialPropertyBlock;
@@ -933,7 +933,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool ShouldRenderSurface(HDCamera hdCamera, WaterSurface currentWater, ref bool debugRequired)
         {
             // At least one surface will need to be rendered as a debug view.
-            if (currentWater.debugMode != WaterDebugMode.None)
+            if (m_RenderPipeline.NeedDebugDisplay() || currentWater.debugMode != WaterDebugMode.None)
             {
                 debugRequired = true;
                 return false;

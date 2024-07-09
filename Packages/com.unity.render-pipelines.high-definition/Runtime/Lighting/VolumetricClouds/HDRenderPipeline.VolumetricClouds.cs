@@ -832,7 +832,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return math.max(tOuter.x, 0.0f);
         }
     }
-  
+
     [Serializable]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [Categorization.CategoryInfo(Name = "R: Volumetric Clouds", Order = 1000), HideInInspector]

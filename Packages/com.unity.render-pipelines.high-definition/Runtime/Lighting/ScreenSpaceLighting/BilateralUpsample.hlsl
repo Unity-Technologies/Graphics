@@ -124,8 +124,7 @@ void BilUpColor3x3(float highDepth, in NeighborhoodUpsampleData3x3 data, out flo
 
     float TotalWeight = combinedWeightsA.x + combinedWeightsA.y + combinedWeightsA.z + combinedWeightsA.w
                     + combinedWeightsB.x + combinedWeightsB.y + combinedWeightsB.z + combinedWeightsB.w
-                    + combinedWeightsC
-                    + _NoiseFilterStrength;
+                    + combinedWeightsC;
 
     float4 WeightedSum = data.lowValue0 * combinedWeightsA.x
                         + data.lowValue1 * combinedWeightsA.y
@@ -143,8 +142,17 @@ void BilUpColor3x3(float highDepth, in NeighborhoodUpsampleData3x3 data, out flo
                         + data.lowDepthValueC * combinedWeightsC
                         + _NoiseFilterStrength;
 
-    outColor = WeightedSum / TotalWeight;
-    outDepth = WeightedDepth / TotalWeight;
+    // This branch shouldn't be needed if we do the neighbor analysis mentionned in BuildRay
+    if (TotalWeight == 0.0f)
+    {
+        outColor = float4(0, 0, 0, 1);
+        outDepth = UNITY_NEAR_CLIP_VALUE;
+    }
+    else
+    {
+        outColor = WeightedSum / (TotalWeight + _NoiseFilterStrength);
+        outDepth = WeightedDepth / (TotalWeight + _NoiseFilterStrength);
+    }
 }
 
 // Due to compiler issues, it is not possible to use arrays to store the neighborhood values, we then store them in this structure

@@ -14,13 +14,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesWaterDebug[] waterDebugCBs;
         }
 
-        internal void RenderWaterMask(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
+        internal void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, WaterGBuffer waterGBuffer)
         {
             if (waterGBuffer.debugRequired)
-                RenderWaterDebug(renderGraph, hdCamera, colorBuffer, depthBuffer, false);
+                RenderWaterDebug(renderGraph, hdCamera, colorBuffer, depthBuffer);
         }
 
-        internal void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, bool debugDisplay)
+        internal void RenderWaterDebug(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
         {
             if (!ShouldRenderWater(hdCamera))
                 return;
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     WaterSurface currentWater = waterSurfaces[surfaceIdx];
                     ref var surfaceData = ref passData.surfaces[surfaceIdx];
 
-                    surfaceData.renderDebug = debugDisplay || currentWater.debugMode != WaterDebugMode.None;
+                    surfaceData.renderDebug = m_RenderPipeline.NeedDebugDisplay() || currentWater.debugMode != WaterDebugMode.None;
                     if (!surfaceData.renderDebug) continue;
 
                     // Prepare all the internal parameters
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ConstantBuffer.Push(ctx.cmd, data.waterDebugCBs[surfaceIdx], surfaceData.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
 
                                 SetupWaterShaderKeyword(ctx.cmd, data.decalWorkflow, surfaceData.numActiveBands, surfaceData.activeCurrent);
-                                DrawWaterSurface(ctx.cmd, k_PassesWaterMask, data, ref surfaceData);
+                                DrawWaterSurface(ctx.cmd, k_PassesWaterDebug, data, ref surfaceData);
                                 ResetWaterShaderKeyword(ctx.cmd);
                             }
 

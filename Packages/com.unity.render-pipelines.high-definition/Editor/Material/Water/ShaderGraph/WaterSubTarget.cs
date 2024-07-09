@@ -279,7 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
-        public static DefineCollection WaterMaskDefines = new DefineCollection
+        public static DefineCollection WaterDebugDefines = new DefineCollection
         {
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
             { CoreKeywordDescriptors.HasLightloop, 1 },
@@ -371,16 +371,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #endregion
 
         #region MaskWater
-        public static RenderStateCollection WaterMask = new RenderStateCollection
+        public static RenderStateCollection WaterDebug = new RenderStateCollection
         {
             { RenderState.Cull($"[{k_CullWaterMask}]") },
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.ZTest(ZTest.LEqual) },
         };
 
-        public static PassDescriptor GenerateWaterMaskPass(bool lowRes, bool useTessellation, bool useDebugSymbols)
+        public static PassDescriptor GenerateWaterDebugPass(bool lowRes, bool useTessellation, bool useDebugSymbols)
         {
-            string passName = WaterSystem.k_WaterMaskPass;
+            string passName = WaterSystem.k_WaterDebugPass;
             if (lowRes)
                 passName += WaterSystem.k_LowResGBufferPass;
             if (useTessellation)
@@ -397,9 +397,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = GenerateStructs(null, false, useTessellation),
                 requiredFields = BasicWaterGBuffer,
-                renderStates = WaterMask,
+                renderStates = WaterDebug,
                 pragmas = GeneratePragmas(useTessellation, useDebugSymbols),
-                defines = GenerateDefines(WaterMaskDefines, false, useTessellation, lowRes),
+                defines = GenerateDefines(WaterDebugDefines, false, useTessellation, lowRes),
                 includes = GenerateIncludes(),
                 fieldDependencies = CoreFieldDependencies.Default,
 
@@ -462,8 +462,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     // Low res gbuffer
                     GenerateWaterGBufferPass(true, false, systemData.debugSymbols),
                     // Debug pass, always use tessellation to reduce variants
-                    GenerateWaterMaskPass(false, true, systemData.debugSymbols),
-                    GenerateWaterMaskPass(true, false, systemData.debugSymbols),
+                    GenerateWaterDebugPass(false, true, systemData.debugSymbols),
+                    GenerateWaterDebugPass(true, false, systemData.debugSymbols),
                 };
                 return passes;
             }
@@ -529,7 +529,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (lightingData.receiveDecals)
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
             }
-            else if (pass.displayName.StartsWith(WaterSystem.k_WaterMaskPass))
+            else if (pass.displayName.StartsWith(WaterSystem.k_WaterDebugPass))
             {
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
             }
