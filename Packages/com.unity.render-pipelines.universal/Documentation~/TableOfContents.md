@@ -206,6 +206,7 @@
       * [Scriptable Renderer Feature API reference](renderer-features/scriptable-renderer-features/scriptable-renderer-feature-reference.md)
     * [Inject a render pass via scripting](customize/inject-render-pass-via-script.md)    
     * [Injection points reference](customize/custom-pass-injection-points.md)
+  * [Custom URP post-processing effect](post-processing/custom-post-processing-with-volume.md)
   * [Compatibility mode](compatibility-mode.md)
       * [Write a Scriptable Render Pass in Compatibility Mode](renderer-features/write-a-scriptable-render-pass.md)
       * [Example of a complete Scriptable Renderer Feature in Compatibility Mode](renderer-features/create-custom-renderer-feature-compatibility-mode.md)  
