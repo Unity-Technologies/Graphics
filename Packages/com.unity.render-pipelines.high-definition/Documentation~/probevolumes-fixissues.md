@@ -155,7 +155,7 @@ Seams are artefacts that appear when one lighting condition transitions immediat
 Two seams.
 <br/>
 
-The seam reduction feature should automatically fix most issues.
+URP fixes seams automatically.
 
 If a seam issue persists, add noise as follows:
 
