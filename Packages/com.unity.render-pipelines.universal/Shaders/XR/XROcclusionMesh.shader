@@ -58,7 +58,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XROcclusionMesh"
 
         Pass
         {
-            ZWrite On ZTest Always Blend Off Cull Off
+            ZWrite On ZTest LEqual Blend Off Cull Off
             ColorMask 0
 
             HLSLPROGRAM
