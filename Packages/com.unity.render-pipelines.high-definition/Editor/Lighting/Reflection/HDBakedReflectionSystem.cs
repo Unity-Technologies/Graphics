@@ -735,13 +735,19 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void ImportAssetAt(HDProbe probe, string file)
         {
             var hd = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+            var type = probe.settings.type;
+
+            if (type != ProbeSettings.ProbeType.ReflectionProbe && type != ProbeSettings.ProbeType.PlanarProbe)
+                return;
+
+            var importer = AssetImporter.GetAtPath(file) as TextureImporter;
+            if (importer == null)
+                return;
+
             switch (probe.settings.type)
             {
                 case ProbeSettings.ProbeType.ReflectionProbe:
                 {
-                    var importer = AssetImporter.GetAtPath(file) as TextureImporter;
-                    if (importer == null)
-                        return;
                     var settings = new TextureImporterSettings();
                     importer.ReadTextureSettings(settings);
                     settings.sRGBTexture = false;
@@ -757,23 +763,30 @@ namespace UnityEditor.Rendering.HighDefinition
                         ? TextureImporterCompression.Compressed
                         : TextureImporterCompression.Uncompressed;
                     importer.textureShape = TextureImporterShape.TextureCube;
-                    importer.SaveAndReimport();
                     break;
                 }
                 case ProbeSettings.ProbeType.PlanarProbe:
                 {
-                    var importer = AssetImporter.GetAtPath(file) as TextureImporter;
-                    if (importer == null)
-                        return;
                     importer.sRGBTexture = false;
                     importer.filterMode = FilterMode.Bilinear;
                     importer.mipmapEnabled = false;
                     importer.textureCompression = TextureImporterCompression.Uncompressed;
                     importer.textureShape = TextureImporterShape.Texture2D;
-                    importer.SaveAndReimport();
                     break;
                 }
             }
+
+            // Any matching presets were already applied once during the creation of each asset. We apply it again in
+            // order to be able to apply the preset on top of the Reflection Probe importer defaults.
+            // Ideally we should not apply presets twice. The reason we chose this compromise solution anyway was that
+            // 1) it is fast enough, and 2) an ideal solution required a large and risky refactor.
+            var defaultPresets = Presets.Preset.GetDefaultPresetsForObject(importer);
+            foreach (var p in defaultPresets)
+            {
+                p.ApplyTo(importer);
+            }
+
+            importer.SaveAndReimport();
         }
 
         static bool AreAllOpenedSceneSaved()
