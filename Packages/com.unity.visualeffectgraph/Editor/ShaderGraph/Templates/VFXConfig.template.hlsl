@@ -252,7 +252,7 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
 
 #if VFX_LOCAL_SPACE
     elementToWorld = mul(GetSGVFXUnityObjectToWorld(), elementToWorld);
-#else
+#elif !defined(VFX_HAS_PICKING_MATRIX_CORRECTION)
     elementToWorld = ApplyCameraTranslationToMatrix(elementToWorld);
 #endif
 
@@ -269,7 +269,7 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
 
 #if VFX_LOCAL_SPACE
     worldToElement = mul(worldToElement,GetSGVFXUnityWorldToObject());
-#else
+#elif !defined(VFX_HAS_PICKING_MATRIX_CORRECTION)
     worldToElement = ApplyCameraTranslationToInverseMatrix(worldToElement);
 #endif
 
