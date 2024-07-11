@@ -94,8 +94,9 @@ namespace UnityEngine.Rendering
             DLSSPerfQualitySetting = 0,
             DLSSSharpness = 0.5f,
             DLSSInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
-
             FSR2InjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
+            TAAUInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
+            defaultInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.AfterPost,
             advancedUpscalersByPriority = new List<AdvancedUpscalers>() { AdvancedUpscalers.STP },
 
             fsrOverrideSharpness = false,
@@ -115,6 +116,15 @@ namespace UnityEngine.Rendering
 
         /// <summary>The injection point at which to apply DLSS upscaling.</summary>
         public DynamicResolutionHandler.UpsamplerScheduleType DLSSInjectionPoint;
+
+        /// <summary>The injection point at which to apply TAAU upsampling.</summary>
+        public DynamicResolutionHandler.UpsamplerScheduleType TAAUInjectionPoint;
+
+        /// <summary>The injection point at which to apply STP upsampling.</summary>
+        public DynamicResolutionHandler.UpsamplerScheduleType STPInjectionPoint;
+
+        /// <summary>The injection point at which to apply the fallback upsampling.</summary>
+        public DynamicResolutionHandler.UpsamplerScheduleType defaultInjectionPoint;
 
         /// <summary>Toggle NVIDIA Deep Learning Super Sampling (DLSS) automatic recommendation system for scaling and sharpness.
         /// If this is on, the manually established scale callback for Dynamic Resolution Scaling is ignored. The sharpness setting of DLSS is also ignored.

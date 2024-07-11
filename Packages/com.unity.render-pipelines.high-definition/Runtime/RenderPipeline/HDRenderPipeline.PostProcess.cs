@@ -386,6 +386,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EnabledAdvancedUpscalerPassMask = 0;
             m_EnabledAdvancedUpscalerPassMask |= m_DLSSPass != null && camera.IsDLSSEnabled() ? (1 << (int)AdvancedUpscalers.DLSS): 0;
             m_EnabledAdvancedUpscalerPassMask |= m_FSR2Pass != null && camera.IsFSR2Enabled() ? (1 << (int)AdvancedUpscalers.FSR2): 0;
+            m_EnabledAdvancedUpscalerPassMask |= camera.IsSTPEnabled() ? (1 << (int)AdvancedUpscalers.STP): 0;
 
             m_DebugExposureCompensation = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -494,6 +495,130 @@ namespace UnityEngine.Rendering.HighDefinition
             return validHistory;
         }
 
+        struct CurrentUpsamplerData
+        {
+            public bool isAdvancedUpsampler;
+            public AdvancedUpscalers advancedUpsampler;
+            public DynamicResUpscaleFilter regularUpsampler;
+            public DynamicResolutionHandler.UpsamplerScheduleType schedule;
+
+            public bool PerformsAntiAliasing()
+            {
+                return isAdvancedUpsampler || (!isAdvancedUpsampler && regularUpsampler == DynamicResUpscaleFilter.TAAU);
+            }
+        }
+
+        CurrentUpsamplerData? GetCurrentUpsamplerData(HDCamera hdCamera)
+        {
+            // Check if DLSS or FSR can run:
+            int dlssMask = (1 << (int)AdvancedUpscalers.DLSS);
+            int fsrMask = (1 << (int)AdvancedUpscalers.FSR2);
+
+            // Quick safety check: If we have one or more upscaler that is not DLSS running, we avoid running DLSS.
+            // This should be taken care in the HDRenderPipeline.cs script when we pick the upscaler by priority.
+            if (((dlssMask - 1) & m_EnabledAdvancedUpscalerPassMask) == 0 && (m_EnabledAdvancedUpscalerPassMask & dlssMask) != 0)
+            {
+                return new CurrentUpsamplerData
+                {
+                    isAdvancedUpsampler = true,
+                    advancedUpsampler = AdvancedUpscalers.DLSS,
+                    schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
+                };
+            }
+
+            // Quick safety check: If we have one or more upscaler that is not FSR running, we avoid running FSR.
+            // This should be taken care in the HDRenderPipeline.cs script when we pick the upscaler by priority.
+            if (((fsrMask - 1) & m_EnabledAdvancedUpscalerPassMask) == 0 && (m_EnabledAdvancedUpscalerPassMask & fsrMask) != 0)
+            {
+                return new CurrentUpsamplerData
+                {
+                    isAdvancedUpsampler = true,
+                    advancedUpsampler = AdvancedUpscalers.FSR2,
+                    schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
+                };
+            }
+
+            if (m_AntialiasingFS)
+            {
+                if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
+                {
+                    if (hdCamera.IsSTPEnabled())
+                    {
+                        return new CurrentUpsamplerData
+                        {
+                            isAdvancedUpsampler = true,
+                            advancedUpsampler = AdvancedUpscalers.STP,
+                            schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
+                        };
+                    }
+                    if (hdCamera.IsTAAUEnabled())
+                    {
+                        return new CurrentUpsamplerData
+                        {
+                            isAdvancedUpsampler = false,
+                            regularUpsampler = DynamicResUpscaleFilter.TAAU,
+                            schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
+                        };
+                    }
+                }
+            }
+
+            if (hdCamera.DynResRequest.enabled)
+            {
+                if (hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+                {
+                    return new CurrentUpsamplerData
+                    {
+                        isAdvancedUpsampler = false,
+                        regularUpsampler = DynamicResUpscaleFilter.ContrastAdaptiveSharpen,
+                        schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
+                    };
+                }
+                if (hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres)
+                {
+                    return new CurrentUpsamplerData
+                    {
+                        isAdvancedUpsampler = false,
+                        regularUpsampler = DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres,
+                        schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
+                    };
+                }
+            }
+
+            // Catmull Rom is always executed during the final pass so we don't need to handle the injection point
+            return null;
+        }
+
+        TextureHandle DoUpscalingAndAntiAliasing(RenderGraph renderGraph, HDCamera hdCamera, CurrentUpsamplerData upsamplerDataData,
+            TextureHandle source, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle stencilBuffer, TextureHandle depthBufferMipChain)
+        {
+            bool taaUsesCAS = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing && hdCamera.taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.ContrastAdaptiveSharpening;
+
+            source = upsamplerDataData switch
+            {
+                { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.STP }
+                    => DoStpPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
+                { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.DLSS}
+                    => DoDLSSPasses(renderGraph, hdCamera, upsamplerDataData.schedule, source, depthBuffer, motionVectors),
+                { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.FSR2}
+                    => DoFSR2Passes(renderGraph, hdCamera, upsamplerDataData.schedule, source, depthBuffer, motionVectors),
+                { isAdvancedUpsampler: false, regularUpsampler: DynamicResUpscaleFilter.TAAU}
+                    => DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, stencilBuffer, postDoF: false, "TAA Destination"),
+                { isAdvancedUpsampler: false, regularUpsampler: DynamicResUpscaleFilter.ContrastAdaptiveSharpen}
+                    => ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source, taaUsesCAS),
+                { isAdvancedUpsampler: false, regularUpsampler: DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres}
+                    => EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source),
+                _ => source
+            };
+
+            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+
+            if (hdCamera.RequiresCameraJitter())
+                RestoreNonjitteredMatrices(renderGraph, hdCamera);
+
+            return source;
+        }
+
         TextureHandle RenderPostProcess(RenderGraph renderGraph,
             in PrepassOutput prepassOutput,
             TextureHandle inputColor,
@@ -536,45 +661,43 @@ namespace UnityEngine.Rendering.HighDefinition
             // Note: whether a pass is really executed or not is generally inside the Do* functions.
             // with few exceptions.
 
+            var upsamplerData = GetCurrentUpsamplerData(hdCamera);
+
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
-
-                source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
-
+                // Keep the "Before TAA" injection point before any temporal resolve algorithm, it doesn't have to be TAA only and also can perform upsampling.
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_CustomPostProcessOrdersSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
 
-                // Temporal anti-aliasing goes first
-                if (m_AntialiasingFS)
+                // Handle upsamplers, note that upsamplers also performs anti-aliasing.
+                if (upsamplerData != null && upsamplerData.Value.schedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 {
-                    if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
+                    source = DoUpscalingAndAntiAliasing(renderGraph, hdCamera, upsamplerData.Value, source, depthBuffer, motionVectors, prepassOutput.stencilBuffer, depthBufferMipChain);
+                }
+
+                // if upsampling is disabled or the selected upsampler doesn't perform anti-aliasing we handle AA here
+                if (upsamplerData == null || !upsamplerData.Value.PerformsAntiAliasing())
+                {
+                    // Note that FXAA is not handled here as we have integrated it inside the final pass.
+                    if (m_AntialiasingFS)
                     {
-                        if (hdCamera.IsSTPEnabled())
-                        {
-                            source = DoStpPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, prepassOutput.stencilBuffer);
-                        }
-                        else
+                        if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
                         {
                             source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, prepassOutput.stencilBuffer, postDoF: false, "TAA Destination");
-                        }
-                        if (hdCamera.IsTAAUEnabled())
-                        {
-                            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
-                        }
-                        RestoreNonjitteredMatrices(renderGraph, hdCamera);
+                            RestoreNonjitteredMatrices(renderGraph, hdCamera);
 
-                        if (hdCamera.taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.PostSharpen)
-                        {
-                            source = SharpeningPass(renderGraph, hdCamera, source);
+                            if (hdCamera.taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.PostSharpen)
+                            {
+                                source = SharpeningPass(renderGraph, hdCamera, source);
+                            }
                         }
-                    }
-                    else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
-                    {
-                        source = SMAAPass(renderGraph, hdCamera, depthBuffer, source);
+                        else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+                        {
+                            source = SMAAPass(renderGraph, hdCamera, depthBuffer, source);
+                        }
                     }
                 }
 
@@ -582,13 +705,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = BeforeCustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_CustomPostProcessOrdersSettings.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
-                source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
+                source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer, upsamplerData);
 
                 ComposeLines(renderGraph, hdCamera, source, prepassOutput.depthBuffer, motionVectors, (int)LineRendering.CompositionMode.AfterDepthOfField);
 
-                source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
-
-                source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
+                if (upsamplerData != null && upsamplerData.Value.schedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField)
+                    source = DoUpscalingAndAntiAliasing(renderGraph, hdCamera, upsamplerData.Value, source, depthBuffer, motionVectors, prepassOutput.stencilBuffer, depthBufferMipChain);
 
                 if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !hdCamera.IsPathTracingEnabled())
                 {
@@ -638,31 +760,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 hdCamera.resetPostProcessingHistory = false;
             }
-            else
+            else if (upsamplerData != null) // if post process and anti-aliasing are disabled, we still perform the upsampling
             {
-                source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
-                source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
-                source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.BeforePost, source, depthBuffer, motionVectors);
-                source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField, source, depthBuffer, motionVectors);
+                // Note that in this case, anti-aliasing can still be performed even when disabled because upsamplers also performs AA.
+                if (upsamplerData.Value.schedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost ||
+                    upsamplerData.Value.schedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterDepthOfField)
+                    source = DoUpscalingAndAntiAliasing(renderGraph, hdCamera, upsamplerData.Value, source, depthBuffer, motionVectors, prepassOutput.stencilBuffer, depthBufferMipChain);
             }
 
-            if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost)
+            if (upsamplerData != null && upsamplerData.Value.schedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost)
             {
-                if (hdCamera.IsDLSSEnabled())
-                {
-                    source = DoDLSSPasses(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterPost, source, depthBuffer, motionVectors);
-                }
-                else if (hdCamera.IsFSR2Enabled())
-                {
-                    source = DoFSR2Passes(renderGraph, hdCamera, DynamicResolutionHandler.UpsamplerScheduleType.AfterPost, source, depthBuffer, motionVectors);
-                }
-                else
-                {
-                    // AMD Fidelity FX passes
-                    bool taaUsesCAS = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing && hdCamera.taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.ContrastAdaptiveSharpening;
-                    source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source, taaUsesCAS);
-                    source = EdgeAdaptiveSpatialUpsampling(renderGraph, hdCamera, source);
-                }
+                source = DoUpscalingAndAntiAliasing(renderGraph, hdCamera, upsamplerData.Value, source, depthBuffer, motionVectors, prepassOutput.stencilBuffer, depthBufferMipChain);
             }
 
             FinalPass(renderGraph, hdCamera, afterPostProcessBuffer, alphaTexture, dest, source, uiBuffer, m_BlueNoise, flipYInPostProcess, cubemapFace, postProcessIsFinalPass);
@@ -3132,7 +3240,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool taaEnabled;
         }
 
-        TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source, TextureHandle depthMinMaxAvgMSAA, TextureHandle stencilTexture)
+        TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source, TextureHandle depthMinMaxAvgMSAA, TextureHandle stencilTexture, CurrentUpsamplerData? upsamplerData)
         {
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
@@ -3140,7 +3248,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool isOrtho = hdCamera.camera.orthographic;
 
             // If DLSS is enabled, we need to stabilize the CoC buffer (because the upsampled depth is jittered)
-            if (isAnyAdvancedUpscalerActive && currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+            if (hdCamera.RequiresCameraJitter())
                 stabilizeCoC = true;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
@@ -3337,9 +3445,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
                 if (stabilizeCoC && m_DepthOfField.physicallyBased)
                 {
-                    source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, stencilTexture, postDoF: true, "Post-DoF TAA Destination");
-                    hdCamera.dofHistoryIsValid = true;
+                    // In case dynamic resolution is enabled, we don't perform another TAA pass if the upsampling will be executed after the DoF
+                    bool postDofTAA = true;
+                    if (upsamplerData != null && upsamplerData.Value.PerformsAntiAliasing() && upsamplerData.Value.schedule != DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+                        postDofTAA = false;
+
+                    // In case the TAA is after the DoF, history is also valid but we don't need to perform the specific DoF TAA pass
                     postDoFTAAEnabled = true;
+                    hdCamera.dofHistoryIsValid = true;
+
+                    if (postDofTAA)
+                        source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, stencilTexture, postDoF: true, "Post-DoF TAA Destination");
                 }
                 else
                 {
@@ -5433,59 +5549,54 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle EdgeAdaptiveSpatialUpsampling(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            if (hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres)
+            using (var builder = renderGraph.AddRenderPass<EASUData>("Edge Adaptive Spatial Upsampling", out var passData, ProfilingSampler.Get(HDProfileId.EdgeAdaptiveSpatialUpsampling)))
             {
-                using (var builder = renderGraph.AddRenderPass<EASUData>("Edge Adaptive Spatial Upsampling", out var passData, ProfilingSampler.Get(HDProfileId.EdgeAdaptiveSpatialUpsampling)))
+                passData.easuCS = runtimeShaders.edgeAdaptiveSpatialUpsamplingCS;
+                passData.easuCS.shaderKeywords = null;
+                if (PostProcessEnableAlpha(hdCamera))
+                    passData.easuCS.EnableKeyword("ENABLE_ALPHA");
+
+                if (HDROutputActiveForCameraType(hdCamera))
+                    passData.easuCS.EnableKeyword("HDR_INPUT");
+
+                passData.mainKernel = passData.easuCS.FindKernel("KMain");
+                passData.viewCount = hdCamera.viewCount;
+                passData.inputWidth = hdCamera.actualWidth;
+                passData.inputHeight = hdCamera.actualHeight;
+                passData.outputWidth = Mathf.RoundToInt(hdCamera.finalViewport.width);
+                passData.outputHeight = Mathf.RoundToInt(hdCamera.finalViewport.height);
+                passData.source = builder.ReadTexture(source);
+                passData.destination = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(hdCamera, renderGraph, "Edge Adaptive Spatial Upsampling"));
+
+                if (HDROutputActiveForCameraType(hdCamera))
                 {
-                    passData.easuCS = runtimeShaders.edgeAdaptiveSpatialUpsamplingCS;
-                    passData.easuCS.shaderKeywords = null;
-                    if (PostProcessEnableAlpha(hdCamera))
-                        passData.easuCS.EnableKeyword("ENABLE_ALPHA");
-
-                    if (HDROutputActiveForCameraType(hdCamera))
-                        passData.easuCS.EnableKeyword("HDR_INPUT");
-
-                    passData.mainKernel = passData.easuCS.FindKernel("KMain");
-                    passData.viewCount = hdCamera.viewCount;
-                    passData.inputWidth = hdCamera.actualWidth;
-                    passData.inputHeight = hdCamera.actualHeight;
-                    passData.outputWidth = Mathf.RoundToInt(hdCamera.finalViewport.width);
-                    passData.outputHeight = Mathf.RoundToInt(hdCamera.finalViewport.height);
-                    passData.source = builder.ReadTexture(source);
-                    passData.destination = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(hdCamera, renderGraph, "Edge Adaptive Spatial Upsampling"));
-
-                    if (HDROutputActiveForCameraType(hdCamera))
-                    {
-                        Vector4 hdroutParameters2;
-                        GetHDROutputParameters(HDRDisplayInformationForCamera(hdCamera), HDRDisplayColorGamutForCamera(hdCamera), m_Tonemapping, out passData.hdroutParams, out hdroutParameters2);
-                    }
-
-                    builder.SetRenderFunc(
-                        (EASUData data, RenderGraphContext ctx) =>
-                        {
-                            var sourceTexture = (RenderTexture)data.source;
-                            var inputTextureSize = new Vector4(sourceTexture.width, sourceTexture.height);
-                            if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
-                            {
-                                var maxScaledSz = DynamicResolutionHandler.instance.ApplyScalesOnSize(new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight));
-                                inputTextureSize = new Vector4(maxScaledSz.x, maxScaledSz.y);
-                            }
-                            ctx.cmd.SetComputeTextureParam(data.easuCS, data.mainKernel, HDShaderIDs._InputTexture, data.source);
-                            FSRUtils.SetEasuConstants(ctx.cmd, new Vector2(data.inputWidth, data.inputHeight), inputTextureSize, new Vector2(data.outputWidth, data.outputHeight));
-                            ctx.cmd.SetComputeTextureParam(data.easuCS, data.mainKernel, HDShaderIDs._OutputTexture, data.destination);
-                            ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUOutputSize, new Vector4(data.outputWidth, data.outputHeight, 1.0f / data.outputWidth, 1.0f / data.outputHeight));
-                            ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._HDROutputParams, data.hdroutParams);
-
-                            int dispatchX = HDUtils.DivRoundUp(data.outputWidth, 8);
-                            int dispatchY = HDUtils.DivRoundUp(data.outputHeight, 8);
-
-                            ctx.cmd.DispatchCompute(data.easuCS, data.mainKernel, dispatchX, dispatchY, data.viewCount);
-                        });
-
-                    source = passData.destination;
+                    Vector4 hdroutParameters2;
+                    GetHDROutputParameters(HDRDisplayInformationForCamera(hdCamera), HDRDisplayColorGamutForCamera(hdCamera), m_Tonemapping, out passData.hdroutParams, out hdroutParameters2);
                 }
 
-                SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+                builder.SetRenderFunc(
+                    (EASUData data, RenderGraphContext ctx) =>
+                    {
+                        var sourceTexture = (RenderTexture)data.source;
+                        var inputTextureSize = new Vector4(sourceTexture.width, sourceTexture.height);
+                        if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                        {
+                            var maxScaledSz = DynamicResolutionHandler.instance.ApplyScalesOnSize(new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight));
+                            inputTextureSize = new Vector4(maxScaledSz.x, maxScaledSz.y);
+                        }
+                        ctx.cmd.SetComputeTextureParam(data.easuCS, data.mainKernel, HDShaderIDs._InputTexture, data.source);
+                        FSRUtils.SetEasuConstants(ctx.cmd, new Vector2(data.inputWidth, data.inputHeight), inputTextureSize, new Vector2(data.outputWidth, data.outputHeight));
+                        ctx.cmd.SetComputeTextureParam(data.easuCS, data.mainKernel, HDShaderIDs._OutputTexture, data.destination);
+                        ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._EASUOutputSize, new Vector4(data.outputWidth, data.outputHeight, 1.0f / data.outputWidth, 1.0f / data.outputHeight));
+                        ctx.cmd.SetComputeVectorParam(data.easuCS, HDShaderIDs._HDROutputParams, data.hdroutParams);
+
+                        int dispatchX = HDUtils.DivRoundUp(data.outputWidth, 8);
+                        int dispatchY = HDUtils.DivRoundUp(data.outputHeight, 8);
+
+                        ctx.cmd.DispatchCompute(data.easuCS, data.mainKernel, dispatchX, dispatchY, data.viewCount);
+                    });
+
+                source = passData.destination;
             }
             return source;
         }
@@ -5599,9 +5710,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     case DynamicResUpscaleFilter.CatmullRom:
                                         finalPassMaterial.EnableKeyword("CATMULL_ROM_4");
                                         break;
-                                    case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
-                                        finalPassMaterial.EnableKeyword("BYPASS");
-                                        break;
                                     case DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres:
                                         // The RCAS half of the FSR technique (EASU + RCAS) is merged into FinalPass instead of
                                         // running it inside a separate compute shader. This allows us to avoid an additional
@@ -5626,6 +5734,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                         {
                                             finalPassMaterial.EnableKeyword("BYPASS");
                                         }
+                                        break;
+                                    default:
+                                        finalPassMaterial.EnableKeyword("BYPASS");
                                         break;
                                 }
                             }

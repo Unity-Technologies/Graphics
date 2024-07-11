@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyPBRDofResolution(m_Resolution);
                 else
                     PropertyField(m_Resolution);
-                
+
                 PropertyField(m_HighQualityFiltering);
                 if (m_PhysicallyBased.value.boolValue)
                 {
