@@ -54,12 +54,22 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void AllowPassCulling(bool value)
         {
+            // This pass cannot be culled if it allows global state modifications
+            if (value && m_RenderPass.allowGlobalState)
+                return;
+
             m_RenderPass.AllowPassCulling(value);
         }
 
         public void AllowGlobalStateModification(bool value)
         {
             m_RenderPass.AllowGlobalState(value);
+
+            // This pass cannot be culled if it allows global state modifications
+            if (value)
+            {
+                AllowPassCulling(false);
+            }
         }
 
         /// <summary>
