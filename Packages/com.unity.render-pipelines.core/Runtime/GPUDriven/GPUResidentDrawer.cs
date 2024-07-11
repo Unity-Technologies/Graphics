@@ -311,7 +311,10 @@ namespace UnityEngine.Rendering
             }
         }
 
+        IntPtr m_ContextIntPtr = IntPtr.Zero;
+
         internal GPUResidentBatcher batcher { get => m_Batcher; }
+
         internal GPUResidentDrawerSettings settings { get => m_Settings; }
 
         private GPUResidentDrawerSettings m_Settings;
@@ -450,6 +453,8 @@ namespace UnityEngine.Rendering
 
             m_BatchersContext.Dispose();
             m_GPUDrivenProcessor.Dispose();
+
+            m_ContextIntPtr = IntPtr.Zero;
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -469,11 +474,15 @@ namespace UnityEngine.Rendering
             if (s_Instance is null)
                 return;
 
+            // This logic ensures that EditorFrameUpdate is not called more than once after calling BeginContextRendering, unless EndContextRendering has also been called.
+            if (m_ContextIntPtr == IntPtr.Zero)
+            {
+                m_ContextIntPtr = context.Internal_GetPtr();
 #if UNITY_EDITOR
-            EditorFrameUpdate(cameras);
+                EditorFrameUpdate(cameras);
 #endif
-
-            m_Batcher.OnBeginContextRendering();
+                m_Batcher.OnBeginContextRendering();
+            }
         }
 
 #if UNITY_EDITOR
@@ -534,8 +543,12 @@ namespace UnityEngine.Rendering
         {
             if (s_Instance is null)
                 return;
-
-            m_Batcher.OnEndContextRendering();
+            
+            if (m_ContextIntPtr == context.Internal_GetPtr())
+            {
+                m_ContextIntPtr = IntPtr.Zero;
+                m_Batcher.OnEndContextRendering();
+            }
         }
 
         private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)

@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
 
         internal UniversalRenderPipelineRuntimeTextures runtimeTextures { get; private set; }
-
+        
         /// <summary>
         /// The default Render Pipeline Global Settings.
         /// </summary>

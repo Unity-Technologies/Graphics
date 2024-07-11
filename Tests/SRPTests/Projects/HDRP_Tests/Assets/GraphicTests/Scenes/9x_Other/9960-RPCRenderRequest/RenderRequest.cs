@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -7,11 +6,17 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 // Non-graphics related parts of the RenderRequest API are tested in HDRP_PlayMode
+[RequireComponent(typeof(Camera))]
 [RequireComponent(typeof(HDAdditionalCameraData))]
 public class RenderRequest : MonoBehaviour
 {
-    [SerializeField]
-    RenderTexture texture2D, texture2DArray, cubeMap, texture3D;
+    public Camera renderRequestCamera;
+    
+    public RenderTexture texture2D;
+    public RenderTexture texture2DArray;
+    public RenderTexture cubeMap;
+    public RenderTexture texture3D;
+
     Texture2D blackTexture;
     RTHandle aovDepthTexture;
 
@@ -19,12 +24,15 @@ public class RenderRequest : MonoBehaviour
 
     void CheckSubmitRenderRequestAPI(Camera cam)
     {
+        if (cam == null)
+            throw new Exception("Null Camera");
+
         RenderPipeline.StandardRequest request = new RenderPipeline.StandardRequest();
         
         if (RenderPipeline.SupportsRenderRequest(cam, request))
         {
             // Adding AOV request to HDRP in parallel to SRP render requests, it should not be triggered by them
-            GetComponent<HDAdditionalCameraData>().SetAOVRequests(BuildAovRequest());
+            cam.gameObject.GetComponent<HDAdditionalCameraData>().SetAOVRequests(BuildAovRequest());
 
             request.destination = texture2D;
             RenderPipeline.SubmitRenderRequest(cam, request);
@@ -108,7 +116,7 @@ public class RenderRequest : MonoBehaviour
                 AOVBuffers.DepthStencil,
             },
             AovCallback
-            ).Build();
+        ).Build();
     }
 
     public void OnDisable()
@@ -122,14 +130,12 @@ public class RenderRequest : MonoBehaviour
     // Update is called once per frame
     public void Update()
     {
-        if(m_TriggerOnce)
-        {       
-            Camera cam = GetComponent<Camera>();
+        if (!m_TriggerOnce)
+            return;
 
-            // Check if the texture transfers from SRP to user project can be done
-            CheckSubmitRenderRequestAPI(cam);
+        // Check if the texture transfers from SRP to user project can be done
+        CheckSubmitRenderRequestAPI(renderRequestCamera);
 
-            m_TriggerOnce = false;
-        }
+        m_TriggerOnce = false;
     }
 }

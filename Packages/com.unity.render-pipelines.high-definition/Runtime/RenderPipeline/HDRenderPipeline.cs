@@ -1568,9 +1568,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderContext.Submit();
                 m_CullingResultsPool.Release(cullingResults);
                 if (xrPass.isLastCameraPass)
-                {
                     EndCameraRendering(renderContext, camera);
-                }
                 return false;
             }
 
