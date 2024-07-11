@@ -165,10 +165,10 @@ namespace UnityEngine.Rendering
         [ReadOnly] public uint cullingLayerMask;
         [ReadOnly] public ulong sceneCullingMask;
 
-        [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<FrustumPlaneCuller.PlanePacket4> frustumPlanePackets;
-        [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<FrustumPlaneCuller.SplitInfo> frustumSplitInfos;
-        [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Plane> lightFacingFrustumPlanes;
-        [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<ReceiverSphereCuller.SplitInfo> receiverSplitInfos;
+        [ReadOnly] public NativeArray<FrustumPlaneCuller.PlanePacket4> frustumPlanePackets;
+        [ReadOnly] public NativeArray<FrustumPlaneCuller.SplitInfo> frustumSplitInfos;
+        [ReadOnly] public NativeArray<Plane> lightFacingFrustumPlanes;
+        [ReadOnly] public NativeArray<ReceiverSphereCuller.SplitInfo> receiverSplitInfos;
         public float3x3 worldToLightSpaceRotation;
 
         [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
@@ -1528,7 +1528,26 @@ namespace UnityEngine.Rendering
             m_CommandBuffer.name = "EnsureValidOcclusionTestResults";
         }
 
-        private JobHandle CreateFrustumCullingJob(
+        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
+        private unsafe struct SetupCullingJobInput : IJob
+        {
+            public float lodBias;
+            [NativeDisableUnsafePtrRestriction] public BatchCullingContext* context;
+            [NativeDisableUnsafePtrRestriction] public ReceiverPlanes* receiverPlanes;
+            [NativeDisableUnsafePtrRestriction] public ReceiverSphereCuller* receiverSphereCuller;
+            [NativeDisableUnsafePtrRestriction] public FrustumPlaneCuller* frustumPlaneCuller;
+            [NativeDisableUnsafePtrRestriction] public float* screenRelativeMetric;
+
+            public void Execute()
+            {
+                *receiverPlanes = ReceiverPlanes.Create(*context, Allocator.TempJob);
+                *receiverSphereCuller = ReceiverSphereCuller.Create(*context, Allocator.TempJob);
+                *frustumPlaneCuller = FrustumPlaneCuller.Create(*context, receiverPlanes->planes.AsArray(), *receiverSphereCuller, Allocator.TempJob);
+                *screenRelativeMetric = LODGroupRenderingUtils.CalculateScreenRelativeMetric(context->lodParameters, lodBias); 
+            }
+        }
+
+        private unsafe JobHandle CreateFrustumCullingJob(
             in BatchCullingContext cc,
             in CPUInstanceData.ReadOnly instanceData,
             in CPUSharedInstanceData.ReadOnly sharedInstanceData,
@@ -1541,24 +1560,36 @@ namespace UnityEngine.Rendering
         {
             Assert.IsTrue(cc.cullingSplits.Length <= 6, "InstanceCullingBatcher supports up to 6 culling splits.");
 
-            var receiverPlanes = ReceiverPlanes.Create(cc, Allocator.Temp);
-            var receiverSphereCuller = ReceiverSphereCuller.Create(cc, Allocator.TempJob);
-            var frustumPlaneCuller = FrustumPlaneCuller.Create(cc, receiverPlanes.planes.AsArray(), receiverSphereCuller, Allocator.TempJob);
-            var lightFacingFrustumPlanes = receiverPlanes.CopyLightFacingFrustumPlanes(Allocator.TempJob);
+            ReceiverPlanes receiverPlanes;
+            ReceiverSphereCuller receiverSphereCuller;
+            FrustumPlaneCuller frustumPlaneCuller;
+            float screenRelativeMetric;
+
+            fixed (BatchCullingContext* contextPtr = &cc)
+            {
+                new SetupCullingJobInput()
+                {
+                    lodBias = QualitySettings.lodBias,
+                    context = contextPtr,
+                    frustumPlaneCuller = &frustumPlaneCuller,
+                    receiverPlanes = &receiverPlanes,
+                    receiverSphereCuller = &receiverSphereCuller,
+                    screenRelativeMetric = &screenRelativeMetric,
+
+                }.Run();
+            }
+
             if (occlusionCullingCommon != null)
                 occlusionCullingCommon.UpdateSilhouettePlanes(cc.viewID.GetInstanceID(), receiverPlanes.SilhouettePlaneSubArray());
-            receiverPlanes.planes.Dispose();
-
-            float screenRelativeMetric = LODGroupRenderingUtils.CalculateScreenRelativeMetric(cc.lodParameters);
 
             var cullingJob = new CullingJob
             {
                 binningConfig = binningConfig,
                 viewType = cc.viewType,
-                frustumPlanePackets = frustumPlaneCuller.planePackets,
-                frustumSplitInfos = frustumPlaneCuller.splitInfos,
-                lightFacingFrustumPlanes = lightFacingFrustumPlanes,
-                receiverSplitInfos = receiverSphereCuller.splitInfos,
+                frustumPlanePackets = frustumPlaneCuller.planePackets.AsArray(),
+                frustumSplitInfos = frustumPlaneCuller.splitInfos.AsArray(),
+                lightFacingFrustumPlanes = receiverPlanes.LightFacingFrustumPlaneSubArray(),
+                receiverSplitInfos = receiverSphereCuller.splitInfos.AsArray(),
                 worldToLightSpaceRotation = receiverSphereCuller.worldToLightSpaceRotation,
                 cullLightmappedShadowCasters = (cc.cullingFlags & BatchCullingFlags.CullLightmappedShadowCasters) != 0,
                 cameraPosition = cc.lodParameters.cameraPosition,
@@ -1574,9 +1605,14 @@ namespace UnityEngine.Rendering
                 maxLOD = QualitySettings.maximumLODLevel,
                 cullingLayerMask = cc.cullingLayerMask,
                 sceneCullingMask = cc.sceneCullingMask,
-            };
 
-            return cullingJob.Schedule(instanceData.instancesLength, CullingJob.k_BatchSize);
+            }.Schedule(instanceData.instancesLength, CullingJob.k_BatchSize);
+
+            receiverPlanes.Dispose(cullingJob);
+            frustumPlaneCuller.Dispose(cullingJob);
+            receiverSphereCuller.Dispose(cullingJob);
+
+            return cullingJob;
         }
 
         private int ComputeWorstCaseDrawCommandCount(

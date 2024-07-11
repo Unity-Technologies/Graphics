@@ -1,4 +1,5 @@
 using Unity.Collections;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace UnityEngine.Rendering
@@ -43,17 +44,14 @@ namespace UnityEngine.Rendering
             return (i >> 31) != 0;
         }
 
+        internal NativeArray<Plane> LightFacingFrustumPlaneSubArray()
+        {
+            return planes.AsArray().GetSubArray(0, lightFacingPlaneCount);
+        }
+
         internal NativeArray<Plane> SilhouettePlaneSubArray()
         {
             return planes.AsArray().GetSubArray(lightFacingPlaneCount, planes.Length - lightFacingPlaneCount);
-        }
-
-        internal NativeArray<Plane> CopyLightFacingFrustumPlanes(Allocator allocator)
-        {
-            var facingPlanes = new NativeArray<Plane>(lightFacingPlaneCount, allocator, NativeArrayOptions.UninitializedMemory);
-            for (int i = 0; i < lightFacingPlaneCount; ++i)
-                facingPlanes[i] = planes[i];
-            return facingPlanes;
         }
 
         internal static ReceiverPlanes CreateEmptyForTesting(Allocator allocator)
@@ -65,9 +63,9 @@ namespace UnityEngine.Rendering
             };
         }
 
-        internal void Dispose()
+        internal void Dispose(JobHandle job)
         {
-            planes.Dispose();
+            planes.Dispose(job);
         }
 
         internal static ReceiverPlanes Create(in BatchCullingContext cc, Allocator allocator)
@@ -230,8 +228,14 @@ namespace UnityEngine.Rendering
             public int packetCount;
         }
 
-        public NativeArray<PlanePacket4> planePackets;
-        public NativeArray<SplitInfo> splitInfos;
+        public NativeList<PlanePacket4> planePackets;
+        public NativeList<SplitInfo> splitInfos;
+
+        internal void Dispose(JobHandle job)
+        {
+            planePackets.Dispose(job);
+            splitInfos.Dispose(job);
+        }
 
         internal static FrustumPlaneCuller Create(in BatchCullingContext cc, NativeArray<Plane> receiverPlanes, in ReceiverSphereCuller receiverSphereCuller, Allocator allocator)
         {
@@ -246,9 +250,12 @@ namespace UnityEngine.Rendering
 
             FrustumPlaneCuller result = new FrustumPlaneCuller()
             {
-                planePackets = new NativeArray<PlanePacket4>(totalPacketCount, allocator, NativeArrayOptions.UninitializedMemory),
-                splitInfos = new NativeArray<SplitInfo>(splitCount, allocator, NativeArrayOptions.UninitializedMemory),
+                planePackets = new NativeList<PlanePacket4>(totalPacketCount, allocator),
+                splitInfos = new NativeList<SplitInfo>(splitCount, allocator),
             };
+            result.planePackets.ResizeUninitialized(totalPacketCount);
+            result.splitInfos.ResizeUninitialized(splitCount);
+
             var tmpPlanes = new NativeList<Plane>(Allocator.Temp);
             int packetBase = 0;
             for (int splitIndex = 0; splitIndex < splitCount; ++splitIndex)
@@ -324,21 +331,21 @@ namespace UnityEngine.Rendering
             public float cascadeBlendCullingFactor;
         }
 
-        public NativeArray<SplitInfo> splitInfos;
+        public NativeList<SplitInfo> splitInfos;
         public float3x3 worldToLightSpaceRotation;
 
         internal static ReceiverSphereCuller CreateEmptyForTesting(Allocator allocator)
         {
             return new ReceiverSphereCuller()
             {
-                splitInfos = new NativeArray<SplitInfo>(0, allocator),
+                splitInfos = new NativeList<SplitInfo>(0, allocator),
                 worldToLightSpaceRotation = float3x3.identity,
             };
         }
 
-        internal void Dispose()
+        internal void Dispose(JobHandle job)
         {
-            splitInfos.Dispose();
+            splitInfos.Dispose(job);
         }
 
         internal bool UseReceiverPlanes()
@@ -366,9 +373,10 @@ namespace UnityEngine.Rendering
             float3x3 lightToWorldSpaceRotation = (float3x3)(float4x4)cc.localToWorldMatrix;
             ReceiverSphereCuller result = new ReceiverSphereCuller()
             {
-                splitInfos = new NativeArray<SplitInfo>(splitCount, allocator, NativeArrayOptions.UninitializedMemory),
+                splitInfos = new NativeList<SplitInfo>(splitCount, allocator),
                 worldToLightSpaceRotation = math.transpose(lightToWorldSpaceRotation),
             };
+            result.splitInfos.ResizeUninitialized(splitCount);
 
             for (int splitIndex = 0; splitIndex < splitCount; ++splitIndex)
             {

@@ -724,6 +724,8 @@ namespace UnityEngine.Rendering
 
         private OnCullingCompleteCallback m_OnCompleteCallback;
 
+        public NativeParallelHashMap<int, BatchMaterialID> batchMaterialHash => m_BatchMaterialHash;
+
         public InstanceCullingBatcher(RenderersBatchersContext batcherContext, InstanceCullingBatcherDesc desc, BatchRendererGroup.OnFinishedCulling onFinishedCulling)
         {
             m_BatchersContext = batcherContext;

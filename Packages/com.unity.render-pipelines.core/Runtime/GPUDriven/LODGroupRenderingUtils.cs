@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering
             return Mathf.Tan(Mathf.Deg2Rad * fieldOfView * 0.5f);
         }
 
-       public static float CalculateScreenRelativeMetric(LODParameters lodParams)
+       public static float CalculateScreenRelativeMetric(LODParameters lodParams, float lodBias)
        {
            float screenRelativeMetric;
            if (lodParams.isOrthographic)
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering
                screenRelativeMetric = 2.0f * halfAngle;
            }
 
-           return screenRelativeMetric / QualitySettings.lodBias;
+           return screenRelativeMetric / lodBias;
        }
 
         public static float CalculatePerspectiveDistance(Vector3 objPosition, Vector3 camPosition, float sqrScreenRelativeMetric)

@@ -717,6 +717,8 @@ namespace UnityEngine.Rendering
                 var gameObjectLayer = rendererData.gameObjectLayer[index];
                 var lightmapIndex = rendererData.lightmapIndex[index];
                 var localAABB = rendererData.localBounds[index].ToAABB();
+                int materialOffset = rendererData.materialsOffset[index];
+                int materialCount = rendererData.materialsCount[index];
 
                 int meshID = rendererData.meshID[meshIndex];
 
@@ -790,7 +792,15 @@ namespace UnityEngine.Rendering
                     SharedInstanceHandle sharedInstance = instanceData.Get_SharedInstance(instance);
                     Assert.IsTrue(sharedInstance.valid);
 
-                    sharedInstanceData.Set(sharedInstance, rendererGroupID, meshID, localAABB, transformUpdateFlags, instanceFlags, lodGroupAndMask, gameObjectLayer,
+                    var materialIDs = new SmallIntegerArray(materialCount, Allocator.Persistent);
+                    for (int i = 0; i < materialCount; i++)
+                    {
+                        int matIndex = rendererData.materialIndex[materialOffset + i];
+                        int materialInstanceID = rendererData.materialID[matIndex];
+                        materialIDs[i] = materialInstanceID;
+                    }
+
+                    sharedInstanceData.Set(sharedInstance, rendererGroupID, materialIDs, meshID, localAABB, transformUpdateFlags, instanceFlags, lodGroupAndMask, gameObjectLayer,
                         sharedInstanceData.Get_RefCount(sharedInstance));
 
                     for (int i = 0; i < instancesCount; ++i)
