@@ -33,6 +33,23 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
 
     inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
+
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+
+    #if defined(DEBUG_DISPLAY)
+    #if defined(DYNAMICLIGHTMAP_ON)
+    inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
+    #endif
+    #if defined(LIGHTMAP_ON)
+    inputData.staticLightmapUV = input.staticLightmapUV;
+    #else
+    inputData.vertexSH = input.sh;
+    #endif
+    #endif
+}
+
+void InitializeBakedGIData(Varyings input, inout InputData inputData)
+{
 #if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV.xy, input.sh, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
@@ -48,18 +65,6 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.sh, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 #endif
-    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-
-    #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
-    inputData.dynamicLightmapUV = input.dynamicLightmapUV.xy;
-    #endif
-    #if defined(LIGHTMAP_ON)
-    inputData.staticLightmapUV = input.staticLightmapUV;
-    #else
-    inputData.vertexSH = input.sh;
-    #endif
-    #endif
 }
 
 PackedVaryings vert(Attributes input)
@@ -107,7 +112,7 @@ FragmentOutput frag(PackedVaryings packedInput)
         float metallic = surfaceDescription.Metallic;
     #endif
 
-#ifdef _DBUFFER
+#if defined(_DBUFFER)
     ApplyDecal(unpacked.positionCS,
         surfaceDescription.BaseColor,
         specular,
@@ -116,6 +121,8 @@ FragmentOutput frag(PackedVaryings packedInput)
         surfaceDescription.Occlusion,
         surfaceDescription.Smoothness);
 #endif
+
+    InitializeBakedGIData(unpacked, inputData);
 
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer

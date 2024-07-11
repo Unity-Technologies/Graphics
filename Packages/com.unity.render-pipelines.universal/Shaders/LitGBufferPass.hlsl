@@ -107,6 +107,11 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
         inputData.vertexLighting = half3(0, 0, 0);
     #endif
 
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+}
+
+void InitializeBakedGIData(Varyings input, inout InputData inputData)
+{
 #if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
@@ -122,8 +127,6 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 #endif
-
-    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -217,9 +220,11 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, UNDO_TRANSFORM_TEX(input.uv, _BaseMap));
 
-#ifdef _DBUFFER
+#if defined(_DBUFFER)
     ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
 #endif
+
+    InitializeBakedGIData(input, inputData);
 
     // Stripped down version of UniversalFragmentPBR().
 

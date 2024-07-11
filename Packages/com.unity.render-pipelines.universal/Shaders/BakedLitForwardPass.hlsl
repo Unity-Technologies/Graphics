@@ -65,7 +65,20 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.shadowCoord = float4(0, 0, 0, 0);
     inputData.fogCoord = input.uv0AndFogCoord.z;
     inputData.vertexLighting = half3(0, 0, 0);
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
+    inputData.shadowMask = half4(1, 1, 1, 1);
 
+    #if defined(DEBUG_DISPLAY)
+    #if defined(LIGHTMAP_ON)
+    inputData.staticLightmapUV = input.staticLightmapUV;
+    #else
+    inputData.vertexSH = input.vertexSH;
+    #endif
+    #endif
+}
+
+void InitializeBakedGIData(Varyings input, inout InputData inputData)
+{
 #if !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
     inputData.bakedGI = SAMPLE_GI(input.vertexSH,
         GetAbsolutePositionWS(input.positionWS),
@@ -77,16 +90,6 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #else
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
 #endif
-    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
-    inputData.shadowMask = half4(1, 1, 1, 1);
-
-    #if defined(DEBUG_DISPLAY)
-    #if defined(LIGHTMAP_ON)
-    inputData.staticLightmapUV = input.staticLightmapUV;
-    #else
-    inputData.vertexSH = input.vertexSH;
-    #endif
-    #endif
 }
 
 Varyings BakedLitForwardPassVertex(Attributes input)
@@ -158,9 +161,11 @@ void BakedLitForwardPassFragment(
     LODFadeCrossFade(input.positionCS);
 #endif
 
-#ifdef _DBUFFER
+#if defined(_DBUFFER)
     ApplyDecalToBaseColorAndNormal(input.positionCS, color, inputData.normalWS);
 #endif
+
+    InitializeBakedGIData(input, inputData);
 
     half4 finalColor = UniversalFragmentBakedLit(inputData, color, alpha, normalTS);
 
