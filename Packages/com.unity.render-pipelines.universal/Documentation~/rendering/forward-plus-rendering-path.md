@@ -7,7 +7,7 @@ The Forward+ Rendering Path lets you avoid the per object limit of the Forward R
 
 The Forward+ Rendering Path has the following advantages compared with the Forward Rendering Path:
 
-* There is no per-object limit for the number of Lights that affect GameObjects, the [per-Camera limit still applies](../urp-universal-renderer.md#real-time-lights-limitations).<br/>This implementation lets you avoid splitting big meshes when more than 8 lights affect them.
+* There is no per-object limit for the number of Lights that affect GameObjects, the [per-Camera limit still applies](../urp-universal-renderer.md#per-camera-limit).<br/>This implementation lets you avoid splitting big meshes when more than 8 lights affect them.
 
 * Blending of more than 2 reflection probes.
 
