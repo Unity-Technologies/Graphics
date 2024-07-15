@@ -6,7 +6,7 @@ This document describes the main principles of a render graph and an overview of
 
 Before you can write render passes with the [RenderGraph](../api/UnityEngine.Experimental.Rendering.RenderGraphModule.RenderGraph.html) API, you need to know the following foundational principles:
 
-- You no longer handle resources directly and instead use render graph system-specific handles. All RenderGraph APIs use these handles to manipulate resources. The resource types a render graph manages are [RTHandles](rthandle-system.md), [ComputeBuffers](https://docs.unity3d.com/ScriptReference/ComputeBuffer.html), and [RendererLists](../api/UnityEngine.Experimental.Rendering.RendererList.html).
+- You no longer handle resources directly and instead use render graph system-specific handles. All RenderGraph APIs use these handles to manipulate resources. The resource types a render graph manages are [RTHandles](rthandle-system.md), [ComputeBuffers](xref:UnityEngine.ComputeBuffer), and [RendererLists](xref:UnityEngine.Rendering.RendererList).
 - Actual resource references are only accessible within the execution code of a render pass.
 - The framework requires an explicit declaration of render passes. Each render pass must state which resources it reads from and/or writes to.
 - There is no persistence between each execution of a render graph. This means that the resources you create inside one execution of the render graph cannot carry over to the next execution.
