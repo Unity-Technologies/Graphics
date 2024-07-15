@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
     /// A global manager that tracks all the Volumes in the currently loaded Scenes and does all the
     /// interpolation work.
     /// </summary>
-    public sealed class VolumeManager
+    public sealed partial class VolumeManager
     {
         static readonly ProfilerMarker k_ProfilerMarkerUpdate = new ("VolumeManager.Update");
         static readonly ProfilerMarker k_ProfilerMarkerReplaceData = new ("VolumeManager.ReplaceData");
@@ -143,17 +143,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ReadOnlyCollection<VolumeProfile> customDefaultProfiles { get; private set; }
 
-        // Max amount of layers available in Unity
-        const int k_MaxLayerCount = 32;
-
-        // Cached lists of all volumes (sorted by priority) by layer mask
-        readonly Dictionary<int, List<Volume>> m_SortedVolumes = new();
-
-        // Holds all the registered volumes
-        readonly List<Volume> m_Volumes = new();
-
-        // Keep track of sorting states for layer masks
-        readonly Dictionary<int, bool> m_SortNeeded = new();
+        private readonly VolumeCollection m_VolumeCollection = new VolumeCollection();
 
         // Internal list of default state for each component type - this is used to reset component
         // states on update instead of having to implement a Reset method on all components (which
@@ -500,21 +490,10 @@ namespace UnityEngine.Rendering
         /// that is currently disabled.
         /// </summary>
         /// <param name="volume">The volume to register.</param>
-        /// <param name="layer">The LayerMask that this volume is in.</param>
         /// <seealso cref="Unregister"/>
-        public void Register(Volume volume, int layer)
+        public void Register(Volume volume)
         {
-            m_Volumes.Add(volume);
-
-            // Look for existing cached layer masks and add it there if needed
-            foreach (var kvp in m_SortedVolumes)
-            {
-                // We add the volume to sorted lists only if the layer match and if it doesn't contain the volume already.
-                if ((kvp.Key & (1 << layer)) != 0 && !kvp.Value.Contains(volume))
-                    kvp.Value.Add(volume);
-            }
-
-            SetLayerDirty(layer);
+            m_VolumeCollection.Register(volume, volume.gameObject.layer);
         }
 
         /// <summary>
@@ -523,20 +502,10 @@ namespace UnityEngine.Rendering
         /// that you added manually while it was disabled.
         /// </summary>
         /// <param name="volume">The Volume to unregister.</param>
-        /// <param name="layer">The LayerMask that this Volume is in.</param>
         /// <seealso cref="Register"/>
-        public void Unregister(Volume volume, int layer)
+        public void Unregister(Volume volume)
         {
-            m_Volumes.Remove(volume);
-
-            foreach (var kvp in m_SortedVolumes)
-            {
-                // Skip layer masks this volume doesn't belong to
-                if ((kvp.Key & (1 << layer)) == 0)
-                    continue;
-
-                kvp.Value.Remove(volume);
-            }
+            m_VolumeCollection.Unregister(volume, volume.gameObject.layer);
         }
 
         /// <summary>
@@ -549,44 +518,17 @@ namespace UnityEngine.Rendering
         public bool IsComponentActiveInMask<T>(LayerMask layerMask)
             where T : VolumeComponent
         {
-            int mask = layerMask.value;
-
-            foreach (var kvp in m_SortedVolumes)
-            {
-                if (kvp.Key != mask)
-                    continue;
-
-                foreach (var volume in kvp.Value)
-                {
-                    if (!volume.enabled || volume.profileRef == null)
-                        continue;
-
-                    if (volume.profileRef.TryGet(out T component) && component.active)
-                        return true;
-                }
-            }
-
-            return false;
+            return m_VolumeCollection.IsComponentActiveInMask<T>(layerMask);
         }
 
         internal void SetLayerDirty(int layer)
         {
-            Assert.IsTrue(layer >= 0 && layer <= k_MaxLayerCount, "Invalid layer bit");
-
-            foreach (var kvp in m_SortedVolumes)
-            {
-                var mask = kvp.Key;
-
-                if ((mask & (1 << layer)) != 0)
-                    m_SortNeeded[mask] = true;
-            }
+            m_VolumeCollection.SetLayerIndexDirty(layer);
         }
 
         internal void UpdateVolumeLayer(Volume volume, int prevLayer, int newLayer)
         {
-            Assert.IsTrue(prevLayer >= 0 && prevLayer <= k_MaxLayerCount, "Invalid layer bit");
-            Unregister(volume, prevLayer);
-            Register(volume, newLayer);
+            m_VolumeCollection.ChangeLayer(volume, prevLayer, newLayer);
         }
 
         // Go through all listed components and lerp overridden values in the global state
@@ -672,7 +614,7 @@ namespace UnityEngine.Rendering
         // Returns true if must execute Update() in full, and false if we can early exit.
         bool CheckUpdateRequired(VolumeStack stack)
         {
-            if (m_Volumes.Count == 0)
+            if (m_VolumeCollection.count == 0)
             {
                 if (stack.requiresReset)
                 {
@@ -827,58 +769,7 @@ namespace UnityEngine.Rendering
 
         List<Volume> GrabVolumes(LayerMask mask)
         {
-            List<Volume> list;
-
-            if (!m_SortedVolumes.TryGetValue(mask, out list))
-            {
-                // New layer mask detected, create a new list and cache all the volumes that belong
-                // to this mask in it
-                list = new List<Volume>();
-
-                var numVolumes = m_Volumes.Count;
-                for (int i = 0; i < numVolumes; i++)
-                {
-                    var volume = m_Volumes[i];
-                    if ((mask & (1 << volume.gameObject.layer)) == 0)
-                        continue;
-
-                    list.Add(volume);
-                    m_SortNeeded[mask] = true;
-                }
-
-                m_SortedVolumes.Add(mask, list);
-            }
-
-            // Check sorting state
-            bool sortNeeded;
-            if (m_SortNeeded.TryGetValue(mask, out sortNeeded) && sortNeeded)
-            {
-                m_SortNeeded[mask] = false;
-                SortByPriority(list);
-            }
-
-            return list;
-        }
-
-        // Stable insertion sort. Faster than List<T>.Sort() for our needs.
-        static void SortByPriority(List<Volume> volumes)
-        {
-            Assert.IsNotNull(volumes, "Trying to sort volumes of non-initialized layer");
-
-            for (int i = 1; i < volumes.Count; i++)
-            {
-                var temp = volumes[i];
-                int j = i - 1;
-
-                // Sort order is ascending
-                while (j >= 0 && volumes[j].priority > temp.priority)
-                {
-                    volumes[j + 1] = volumes[j];
-                    j--;
-                }
-
-                volumes[j + 1] = temp;
-            }
+            return m_VolumeCollection.GrabVolumes(mask);
         }
 
         static bool IsVolumeRenderedByCamera(Volume volume, Camera camera)
