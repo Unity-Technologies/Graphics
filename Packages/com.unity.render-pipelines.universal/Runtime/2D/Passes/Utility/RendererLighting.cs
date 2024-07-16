@@ -145,8 +145,6 @@ namespace UnityEngine.Rendering.Universal
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 0;
             descriptor.msaaSamples = 1;
-            descriptor.graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-            descriptor.dimension = TextureDimension.Tex2D;
 
             RenderingUtils.ReAllocateHandleIfNeeded(ref pass.rendererData.cameraSortingLayerRenderTarget, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_CameraSortingLayerTexture");
             cmd.SetGlobalTexture(pass.rendererData.cameraSortingLayerRenderTarget.name, pass.rendererData.cameraSortingLayerRenderTarget.nameID);
@@ -559,7 +557,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RTHandle depthTarget, ref bool bFirstClear)
+        internal static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RTHandle depthTarget)
         {
             var cmd = renderingData.commandBuffer;
 
@@ -578,8 +576,6 @@ namespace UnityEngine.Rendering.Universal
                 var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
                 var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
                 var clearFlag = pass.rendererData.useDepthStencilBuffer ? ClearFlag.All : ClearFlag.Color;
-                clearFlag = bFirstClear ? clearFlag : ClearFlag.Color;
-                bFirstClear = false;
 
                 if (depthTarget != null)
                 {
