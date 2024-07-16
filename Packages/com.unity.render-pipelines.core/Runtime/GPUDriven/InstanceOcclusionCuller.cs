@@ -651,7 +651,7 @@ namespace UnityEngine.Rendering
 
         void AllocateDrawBuffers(int maxDrawCount)
         {
-            m_ArgsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.IndirectArguments, maxDrawCount * (GraphicsBuffer.IndirectDrawIndexedArgs.size / sizeof(int)), sizeof(int));
+            m_ArgsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured | GraphicsBuffer.Target.IndirectArguments, (maxDrawCount + kExtraDrawAllocationCount) * (GraphicsBuffer.IndirectDrawIndexedArgs.size / sizeof(int)), sizeof(int));
             m_DrawInfoBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxDrawCount, System.Runtime.InteropServices.Marshal.SizeOf<IndirectDrawInfo>());
             m_DrawInfoStaging = new NativeArray<IndirectDrawInfo>(maxDrawCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             m_BufferLimits.maxDrawCount = maxDrawCount;
