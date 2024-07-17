@@ -325,10 +325,20 @@ MonoBehaviour:
     Reason: crash on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 0acf4cd0f0aaa4b42b69cb92491da8bd, type: 3}
+    - {fileID: 102900000, guid: 7bfca6ee4fa5bfa42b7011f1b8dc1372, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 18
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: missing CPU marker
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0acf4cd0f0aaa4b42b69cb92491da8bd, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
     Architecture: 0
     XrSdk: 
     StereoModes: 0

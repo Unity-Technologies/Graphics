@@ -231,6 +231,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1804_Depth_Pre_Post_SG.unity
     guid: c06476e87db333449ace0bd8c088c530
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1806_BatchCount.unity
+    guid: 7bfca6ee4fa5bfa42b7011f1b8dc1372
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1900_AlphaTest_SG_a.unity
     guid: c566b460a3674184da6c102196a1a888
   - enabled: 1

@@ -16,6 +16,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 || pass.lightMode == HDShaderPassNames.s_MotionVectorsStr;
         }
 
+        public static bool IsMotionVector(this PassDescriptor pass) =>
+            pass.lightMode == HDShaderPassNames.s_MotionVectorsStr;
+
+        public static bool IsShadow(this PassDescriptor pass)
+            => pass.lightMode == HDShaderPassNames.s_ShadowCasterStr;
+
         public static bool IsLightingOrMaterial(this PassDescriptor pass)
         {
             if (pass.lightMode == null)
@@ -33,6 +39,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 || pass.lightMode == HDShaderPassNames.s_ForwardStr
                 || pass.lightMode == HDShaderPassNames.s_LineRenderingOffscreenShading
                 || pass.lightMode == HDShaderPassNames.s_TransparentBackfaceStr;
+        }
+
+        public static bool RequiresTransparentSurfaceTypeKeyword(this PassDescriptor pass)
+        {
+            return pass.IsForward()
+                   || pass.lightMode == HDShaderPassNames.s_TransparentDepthPrepassStr
+                   || pass.lightMode == HDShaderPassNames.s_TransparentDepthPostpassStr
+                   || pass.lightMode == HDShaderPassNames.s_GBufferStr
+                   || pass.lightMode == HDShaderPassNames.s_MetaStr
+                   || pass.lightMode == HDShaderPassNames.s_MotionVectorsStr
+                   || pass.lightMode == HDShaderPassNames.s_RayTracingVisibilityStr
+                   || pass.lightMode == HDShaderPassNames.s_RayTracingIndirectStr
+                   || pass.lightMode == HDShaderPassNames.s_RayTracingForwardStr
+                   || pass.lightMode == HDShaderPassNames.s_PathTracingDXRStr;
+        }
+
+        public static bool RequiresTransparentMVKeyword(this PassDescriptor pass)
+        {
+            return pass.IsMotionVector()
+                   || pass.IsForward()
+                   || pass.lightMode == HDShaderPassNames.s_TransparentDepthPrepassStr
+                   || pass.lightMode == HDShaderPassNames.s_TransparentDepthPostpassStr;
+        }
+
+        public static bool RequiresFogOnTransparentKeyword(this PassDescriptor pass)
+        {
+            return pass.IsForward()
+                   || pass.lightMode == HDShaderPassNames.s_MetaStr;
         }
 
         public static bool NeedsDebugDisplay(this PassDescriptor pass)

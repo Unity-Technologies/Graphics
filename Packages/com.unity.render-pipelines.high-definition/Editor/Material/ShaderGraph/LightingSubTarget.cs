@@ -102,10 +102,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CollectPassKeywords(ref pass);
 
-            pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
-            pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
-            pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
-            // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
+            if (!pass.IsShadow())
+                pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
 
             if (pass.lightMode == HDShaderPassNames.s_MotionVectorsStr)
                 pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBufferMotionVector);
@@ -114,6 +112,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (pass.IsLightingOrMaterial())
             {
+                pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
+                if (pass.lightMode != HDShaderPassNames.s_GBufferStr)
+                    pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
                 pass.keywords.Add(CoreKeywordDescriptors.Lightmap);
                 pass.keywords.Add(CoreKeywordDescriptors.DirectionalLightmapCombined);
                 pass.keywords.Add(CoreKeywordDescriptors.ProbeVolumes);
