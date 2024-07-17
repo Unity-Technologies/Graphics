@@ -8,6 +8,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         Renderer2DDefaultMaterialType m_DefaultMaterialType = Renderer2DDefaultMaterialType.Lit;
 
+        [SerializeField] Material m_DefaultCustomMaterial = null;
+
         internal override Shader GetDefaultShader()
         {
             if (!GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var resources))
@@ -30,7 +32,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         Renderer2DDefaultMaterialType.Lit => resources.defaultLitMaterial,
                         Renderer2DDefaultMaterialType.Unlit => resources.defaultUnlitMaterial,
-                        _ => resources.defaultCustomMaterial
+                        _ => m_DefaultCustomMaterial
                     };
                 }
                 case DefaultMaterialType.SpriteMask:

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -198,7 +199,16 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
             if (m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
+            {
+                // If the user selected a custom material as the default material when creating sprites,
+                // the reference will be null. We need to put something not null as default, therefore, initialize it  to
+                // the default lit material instead.
+                // (GraphicsSettings can return null, if the user is inspecting the 2DRenderer asset without URP selected on Project Settings)
+                if (m_DefaultCustomMaterial.objectReferenceValue == null && GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var resources))
+                    m_DefaultCustomMaterial.objectReferenceValue = resources.defaultLitMaterial;
+
                 EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);
+            }
 
             EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
 

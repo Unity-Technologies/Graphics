@@ -89,14 +89,6 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
         [SerializeField, ResourcePath("Runtime/Materials/Sprite-Lit-Default.mat")]
-        Material m_DefaultCustomMaterial = null;
-        internal Material defaultCustomMaterial
-        {
-            get => m_DefaultCustomMaterial;
-            set => this.SetValueAndNotify(ref m_DefaultCustomMaterial, value, nameof(m_DefaultCustomMaterial));
-        }
-
-        [SerializeField, ResourcePath("Runtime/Materials/Sprite-Lit-Default.mat")]
         Material m_DefaultLitMaterial = null;
         internal Material defaultLitMaterial
         {
