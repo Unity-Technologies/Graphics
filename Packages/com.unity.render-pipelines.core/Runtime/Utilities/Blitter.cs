@@ -235,8 +235,10 @@ namespace UnityEngine.Rendering
         /// <returns>The default blit material for specified arguments.</returns>
         static public Material GetBlitMaterial(TextureDimension dimension, bool singleSlice = false)
         {
-            bool useTexArray = dimension == TextureDimension.Tex2DArray;
-            return useTexArray ? (singleSlice ? s_BlitTexArraySingleSlice : s_BlitTexArray) : s_Blit;
+            var material = (dimension == TextureDimension.Tex2DArray)
+                ? (singleSlice ? s_BlitTexArraySingleSlice : s_BlitTexArray)
+                : null;
+            return material == null ? s_Blit : material;
         }
 
         static internal void DrawTriangle(RasterCommandBuffer cmd, Material material, int shaderPass)
