@@ -6,6 +6,9 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
 using System;
+using System.IO;
+using System.Text.RegularExpressions;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -24,10 +27,50 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent fullScreenPassMaterial = new GUIContent("FullScreen Material", "FullScreen Material used for the full screen DrawProcedural.");
             public static GUIContent materialPassName = new GUIContent("Pass Name", "The shader pass to use for your fullscreen pass.");
             public static GUIContent fetchColorBuffer = new GUIContent("Fetch Color Buffer", "Tick this if your effect sample/fetch the camera color buffer");
+            public static GUIContent newMaterialButton = new GUIContent("New", "Creates a new Shader and Material asset using the fullscreen templates.");
 
             public readonly static string writeAndFetchColorBufferWarning = "Fetching and Writing to the camera color buffer at the same time is not supported on most platforms.";
             public readonly static string stencilWriteOverReservedBits = "The Stencil Write Mask of your material overwrites the bits reserved by HDRP. To avoid rendering errors, set the Write Mask to " + (int)(UserStencilUsage.AllUserBits);
             public readonly static string stencilHelpInfo = $"Stencil is enabled on the material. To help you configure the stencil operations, use these values for the bits available in HDRP: User Bit 0: {(int)UserStencilUsage.UserBit0} User Bit 1: {(int)UserStencilUsage.UserBit1}";
+        }
+
+        class CreateFullscreenMaterialAction : ProjectWindowCallback.EndNameEditAction
+        {
+            public bool createShaderGraphShader; // TODO
+            public FullScreenCustomPass customPass;
+
+            static Regex s_ShaderNameRegex = new(@"(Material$|Mat$)", RegexOptions.IgnoreCase);
+
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(pathName);
+                string directoryName = Path.GetDirectoryName(pathName);
+                // Clean up name to create shader file:
+                var shaderName = s_ShaderNameRegex.Replace(fileName, "") + "Shader";
+                shaderName += createShaderGraphShader ? "." + ShaderGraphImporter.Extension : ".shader";
+                string shaderPath = Path.Combine(directoryName, shaderName);
+                shaderPath = AssetDatabase.GenerateUniqueAssetPath(shaderPath);
+                pathName = AssetDatabase.GenerateUniqueAssetPath(pathName);
+
+                string templateFolder = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass";
+                string templatePath = createShaderGraphShader ? $"{templateFolder}/CustomPassFullScreenShader.shadergraph" : $"{templateFolder}/CustomPassFullScreenShader.template";
+
+                // Load template code and replace shader name with current file name
+                string templateCode = File.ReadAllText(templatePath);
+                templateCode = templateCode.Replace("#SCRIPTNAME#", fileName);
+                File.WriteAllText(shaderPath, templateCode);
+
+                AssetDatabase.Refresh();
+                AssetDatabase.ImportAsset(shaderPath);
+                var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
+                shader.name = Path.GetFileName(pathName);
+                var material = new Material(shader);
+
+                customPass.fullscreenPassMaterial = material;
+
+                AssetDatabase.CreateAsset(material, pathName);
+                ProjectWindowUtil.ShowCreatedAsset(material);
+            }
         }
 
         // Fullscreen pass
@@ -39,6 +82,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool m_ShowStencilWriteWarning = false;
         bool m_ShowStencilInfoBox = false;
+
+        static readonly float k_NewMaterialButtonWidth = 60;
+        static readonly string k_DefaultMaterialName = "New FullScreen Material.mat";
 
         CustomPass.TargetBuffer targetColorBuffer => (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue;
         CustomPass.TargetBuffer targetDepthBuffer => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue;
@@ -66,7 +112,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 rect.y += Styles.helpBoxHeight;
             }
 
-            EditorGUI.PropertyField(rect, m_FullScreenPassMaterial, Styles.fullScreenPassMaterial);
+            Rect materialField = rect;
+            Rect newMaterialField = rect;
+            if (m_FullScreenPassMaterial.objectReferenceValue == null)
+                materialField.xMax -= k_NewMaterialButtonWidth;
+            newMaterialField.xMin += materialField.width;
+            EditorGUI.PropertyField(materialField, m_FullScreenPassMaterial, Styles.fullScreenPassMaterial);
             rect.y += Styles.defaultLineSpace;
             if (m_FullScreenPassMaterial.objectReferenceValue is Material mat)
             {
@@ -126,6 +177,33 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+            else if (m_FullScreenPassMaterial.objectReferenceValue == null)
+            {
+                // null material, show the button to create a new material & associated shaders
+                ShowNewMaterialButton(newMaterialField);
+            }
+        }
+
+        void ShowNewMaterialButton(Rect buttonRect)
+        {
+            // Small padding to separate both fields:
+            buttonRect.xMin += 2;
+            if (!EditorGUI.DropdownButton(buttonRect, Styles.newMaterialButton, FocusType.Keyboard))
+                return;
+
+            void CreateMaterial(bool shaderGraph)
+            {
+                var materialIcon = AssetPreview.GetMiniTypeThumbnail(typeof(Material));
+                var action = ScriptableObject.CreateInstance<CreateFullscreenMaterialAction>();
+                action.createShaderGraphShader = shaderGraph;
+                action.customPass = target as FullScreenCustomPass;
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, k_DefaultMaterialName, materialIcon, null);
+            }
+
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent("ShaderGraph"), false, () => CreateMaterial(true));
+            menu.AddItem(new GUIContent("Handwritten Shader"), false, () => CreateMaterial(false));
+            menu.DropDown(buttonRect);
         }
 
         bool DoesWriteMaskContainsReservedBits(int writeMask)
