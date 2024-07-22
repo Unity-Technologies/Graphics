@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
         public int endLayerValue;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
+        public bool hasSpriteMask;
         private unsafe fixed int renderTargetIds[4];
         private unsafe fixed bool renderTargetUsed[4];
 
@@ -174,6 +175,7 @@ namespace UnityEngine.Rendering.Universal
                 layerBatch.endLayerValue = endLayerValue;
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;
+                layerBatch.hasSpriteMask = SpriteMaskUtility.HasSpriteMaskInLayerRange(lowerBound, upperBound);
 
                 i = upperLayerInBatch + 1;
             }

@@ -8,7 +8,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         Renderer2DDefaultMaterialType m_DefaultMaterialType = Renderer2DDefaultMaterialType.Lit;
 
-        [SerializeField] Material m_DefaultCustomMaterial = null;
+        [SerializeField, Reload("Runtime/Materials/Sprite-Lit-Default.mat")]
+        Material m_DefaultCustomMaterial = null;
 
         internal override Shader GetDefaultShader()
         {

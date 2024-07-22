@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
 
                     batchesDrawn++;
 
-                    if (layerBatch.lightStats.totalNormalMapUsage > 0)
+                    if (layerBatch.lightStats.totalNormalMapUsage > 0 || layerBatch.hasSpriteMask)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
                         var depthTarget = m_NeedsDepth ? depthAttachmentHandle : null;
