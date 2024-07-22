@@ -2,7 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.Tests
+namespace UnityEngine.Rendering.Tests
 {
     internal class CopyPasteTestComponent1 : VolumeComponent
     {

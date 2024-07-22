@@ -1,6 +1,6 @@
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.Tests
+namespace UnityEngine.Rendering.Tests
 {
     [VolumeComponentMenu("SupportedOnTests/SupportedOnCustomSRP")]
     [SupportedOnRenderPipeline(typeof(CustomRenderPipelineAsset))]

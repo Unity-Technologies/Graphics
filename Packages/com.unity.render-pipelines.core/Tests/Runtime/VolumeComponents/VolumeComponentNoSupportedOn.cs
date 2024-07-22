@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.Tests
+namespace UnityEngine.Rendering.Tests
 {
     [HideInInspector]
     [VolumeComponentMenu("Supported On Tests/No supported on")]

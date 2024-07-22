@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.Tests
+namespace UnityEngine.Rendering.Tests
 {
     internal class CopyPasteTestComponent3 : CopyPasteTestComponent1
     {
