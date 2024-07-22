@@ -39,15 +39,30 @@ namespace UnityEditor.Rendering.Universal
             });
         }
 
-        internal static void QualitySettingsHelpBox(string message, MessageType type, string propertyPath)
+        internal static void QualitySettingsHelpBox(string message, MessageType type, UniversalRenderPipelineAssetUI.Expandable expandable, string propertyPath)
         {
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
                 var currentPipeline = UniversalRenderPipeline.asset;
-                EditorUtility.OpenPropertyEditor(currentPipeline);
 
-                CoreEditorUtils.Highlight(currentPipeline.name, propertyPath, HighlightSearchMode.Identifier);
-                GUIUtility.ExitGUI();
+                // Make sure we open a new window if the user has already selected Open
+                var windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+
+                if (windows.Length != 0)
+                {
+                    foreach (var window in windows)
+                    {
+                        if (currentPipeline.name.Equals(window.titleContent.text))
+                            window.Close();
+                    }
+                }
+
+                EditorUtility.OpenPropertyEditor(currentPipeline);
+                UniversalRenderPipelineAssetUI.Expand(expandable, true);
+
+                EditorApplication.delayCall += () =>
+                    EditorApplication.delayCall += () =>
+                        CoreEditorUtils.Highlight(currentPipeline.name, propertyPath, HighlightSearchMode.Identifier);
             });
         }
 

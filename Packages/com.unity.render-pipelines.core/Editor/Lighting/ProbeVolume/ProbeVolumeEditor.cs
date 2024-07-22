@@ -1,10 +1,13 @@
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditorInternal;
 
 using Object = UnityEngine.Object;
+
+[assembly: InternalsVisibleTo("SRPSmoke.Editor.Tests")]
 
 namespace UnityEditor.Rendering
 {
@@ -34,42 +37,75 @@ namespace UnityEditor.Rendering
         internal static void APVDisabledHelpBox()
         {
             var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
-            var messageType = MessageType.Warning;
-
-            // HDRP
-            if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
+            switch (renderPipelineAssetType)
             {
-                static int IndexOf(string[] names, string name) { for (int i = 0; i < names.Length; i++) { if (name == names[i]) return i; } return -1; }
+                case { Name: "HDRenderPipelineAsset" }:
+                {
+                    var lightingGroup = GetHDRPLightingGroup();
+                    var probeVolume = GetHDRPProbeVolumeEnum();
+                    var k_QualitySettingsHelpBox = GetHDRPQualitySettingsHelpBox();
 
-                var k_ExpandableGroup = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableGroup,Unity.RenderPipelines.HighDefinition.Editor");
-                var lightingGroup = k_ExpandableGroup.GetEnumValues().GetValue(IndexOf(k_ExpandableGroup.GetEnumNames(), "Lighting"));
+                    k_QualitySettingsHelpBox.Invoke(null, new []
+                    {
+                        "The current HDRP Asset does not support Adaptive Probe Volumes.", MessageType.Warning, lightingGroup, probeVolume, "m_RenderPipelineSettings.lightProbeSystem"
+                    });
+                    break;
+                }
+                case { Name: "UniversalRenderPipelineAsset" }:
+                {
+                    var k_QualitySettingsHelpBox = GetURPQualitySettingsHelpBox();
+                    var lightingValue = GetURPLightingGroup();
 
-                var k_LightingSection = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableLighting,Unity.RenderPipelines.HighDefinition.Editor");
-                var probeVolume = k_LightingSection.GetEnumValues().GetValue(IndexOf(k_LightingSection.GetEnumNames(), "ProbeVolume"));
-
-                var k_QualitySettingsHelpBox = Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
-                    .GetMethod("QualitySettingsHelpBoxForReflection", BindingFlags.Static | BindingFlags.NonPublic);
-
-                string apvDisabledErrorMsg = "The current HDRP Asset does not support Adaptive Probe Volumes.";
-                k_QualitySettingsHelpBox.Invoke(null, new object[] { apvDisabledErrorMsg, messageType, lightingGroup, probeVolume, "m_RenderPipelineSettings.lightProbeSystem" });
+                    k_QualitySettingsHelpBox.Invoke(null, new[]
+                    {
+                        "The current URP Asset does not support Adaptive Probe Volumes.", MessageType.Warning, lightingValue, "m_LightProbeSystem"
+                    });
+                    break;
+                }
+                default:
+                {
+                    EditorGUILayout.HelpBox("The current SRP does not support Adaptive Probe Volumes.", MessageType.Warning);
+                    break;
+                }
             }
+        }
 
-            // URP
-            else if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "UniversalRenderPipelineAsset")
-            {
-                var k_QualitySettingsHelpBox = Type.GetType("UnityEditor.Rendering.Universal.EditorUtils,Unity.RenderPipelines.Universal.Editor")
-                    .GetMethod("QualitySettingsHelpBox", BindingFlags.Static | BindingFlags.NonPublic);
+        internal static object GetHDRPLightingGroup()
+        {
+            var k_ExpandableGroup = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableGroup,Unity.RenderPipelines.HighDefinition.Editor");
+            return k_ExpandableGroup.GetEnumValues().GetValue(IndexOf(k_ExpandableGroup.GetEnumNames(), "Lighting"));
+        }
 
-                string apvDisabledErrorMsg = "The current URP Asset does not support Adaptive Probe Volumes.";
-                k_QualitySettingsHelpBox.Invoke(null, new object[] { apvDisabledErrorMsg, messageType, "m_LightProbeSystem" });
-            }
+        internal static object GetHDRPProbeVolumeEnum()
+        {
+            var k_LightingSection = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableLighting,Unity.RenderPipelines.HighDefinition.Editor");
+            return k_LightingSection.GetEnumValues().GetValue(IndexOf(k_LightingSection.GetEnumNames(), "ProbeVolume"));
+        }
 
-            // Custom pipelines
-            else
-            {
-                string apvDisabledErrorMsg = "The current SRP does not support Adaptive Probe Volumes.";
-                EditorGUILayout.HelpBox(apvDisabledErrorMsg, messageType);
-            }
+        internal static MethodInfo GetHDRPQualitySettingsHelpBox()
+        {
+            return Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
+                .GetMethod("QualitySettingsHelpBoxForReflection", BindingFlags.Static | BindingFlags.NonPublic);
+        }
+
+        internal static MethodInfo GetURPQualitySettingsHelpBox()
+        {
+            return Type.GetType("UnityEditor.Rendering.Universal.EditorUtils,Unity.RenderPipelines.Universal.Editor")
+                .GetMethod("QualitySettingsHelpBox", BindingFlags.Static | BindingFlags.NonPublic);
+        }
+
+        internal static object GetURPLightingGroup()
+        {
+            var k_LightingSection = Type.GetType("UnityEditor.Rendering.Universal.UniversalRenderPipelineAssetUI+Expandable,Unity.RenderPipelines.Universal.Editor");
+            return k_LightingSection.GetEnumValues().GetValue(IndexOf(k_LightingSection.GetEnumNames(), "Lighting"));
+        }
+
+        internal static int IndexOf(string[] names, string name)
+        {
+            for (int i = 0; i < names.Length; i++)
+                if (name == names[i])
+                    return i;
+            return -1;
         }
 
         internal static void FrameSettingDisabledHelpBox()

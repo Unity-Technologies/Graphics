@@ -283,7 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
                 SettingsService.OpenProjectSettings("Project/Quality/HDRP");
-                HDRenderPipelineUI.SubInspectors[uiGroupSection].Expand(uiSection);
+                HDRenderPipelineUI.SubInspectors[uiGroupSection].Expand(uiSection == -1 ? (int)uiGroupSection : uiSection);
 
                 CoreEditorUtils.Highlight("Project Settings", propertyPath, HighlightSearchMode.Identifier);
                 GUIUtility.ExitGUI();
@@ -326,7 +326,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDRenderPipelineUI.ExpandableGroup.PostProcess, HDRenderPipelineUI.ExpandablePostProcess.LensFlare, "m_RenderPipelineSettings.supportDataDrivenLensFlare");
                 return false;
             }
-            
+
             HDEditorUtils.EnsureFrameSetting(FrameSettingsField.LensFlareDataDriven, "Lens Flare Data Driven");
             return true;
         }
