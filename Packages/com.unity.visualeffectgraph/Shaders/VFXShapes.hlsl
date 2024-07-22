@@ -8,18 +8,22 @@ float DistanceToBox(float3 p, float3 extents)
 bool RayBoxIntersection(float3 o, float3 d, float3 extents, float colliderSign, out float tHit, out float3 hitNormal)
 {
     bool hit = false;
-    float3 faceSelection = - colliderSign * float3(FastSign(d.x), FastSign(d.y), FastSign(d.z));
 
-    float3 ts = (faceSelection * extents - o)/d;
-    float3 posTx = o + ts.x*d;
-    float3 posTy = o + ts.y*d;
-    float3 posTz = o + ts.z*d;
+    float3 dSigns = float3(FastSign(d.x), FastSign(d.y), FastSign(d.z));
+    d = dSigns * max(d * dSigns, VFX_EPSILON);
 
-    bool hitx = ts.x >= 0 && ts.x < 1 && all(abs(posTx.yz) < extents.yz);
-    bool hity = ts.y >= 0 && ts.y < 1 && all(abs(posTy.xz) < extents.xz);
-    bool hitz = ts.z >= 0 && ts.z < 1 && all(abs(posTz.xy) < extents.xy);
+    float3 faceSelection = - colliderSign * dSigns;
+    float3 ts = (faceSelection * extents - o) / d ;
+    float3 posTx = o + ts.x * d;
+    float3 posTy = o + ts.y * d;
+    float3 posTz = o + ts.z * d;
 
-    if(!(hitx || hity || hitz))
+    bool3 potentialHits;
+    potentialHits.x =  ts.x >= 0 && ts.x < 1 && all(abs(posTx.yz) < extents.yz);
+    potentialHits.y =  ts.y >= 0 && ts.y < 1 && all(abs(posTy.xz) < extents.xz);
+    potentialHits.z =  ts.z >= 0 && ts.z < 1 && all(abs(posTz.xy) < extents.xy);
+
+    if(!any(potentialHits))
     {
         hit = false;
         tHit = 0.0f;
@@ -30,7 +34,7 @@ bool RayBoxIntersection(float3 o, float3 d, float3 extents, float colliderSign, 
         hit = true;
 
         //Take the minimal valid t
-        float3 tFiltered = float3(abs(ts.x) + !hitx, abs(ts.y) + !hity, abs(ts.z) + !hitz);
+        float3 tFiltered = abs(ts) + !potentialHits;
         tHit = min(tFiltered.x, min(tFiltered.y, tFiltered.z));
         if (tFiltered.x < tFiltered.y && tFiltered.x < tFiltered.z)
             hitNormal = float3(faceSelection.x, 0.0f, 0.0f);
@@ -41,6 +45,7 @@ bool RayBoxIntersection(float3 o, float3 d, float3 extents, float colliderSign, 
 
         hitNormal *= colliderSign;
     }
+
     return hit;
 }
 
