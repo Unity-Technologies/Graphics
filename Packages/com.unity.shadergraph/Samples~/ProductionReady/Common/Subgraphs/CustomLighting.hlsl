@@ -92,7 +92,7 @@ void AddAdditionalLights_float(float Smoothness, float3 WorldPosition, float3 Wo
         Specular += thisSpecular;
         #if defined(_LIGHT_COOKIES)
             float3 cookieColor = SampleAdditionalLightCookie(lightIndex, WorldPosition);
-            light.color *= cookieColor
+            light.color *= cookieColor;
         #endif
         Color += light.color * (thisDiffuse + thisSpecular);
     LIGHT_LOOP_END
@@ -131,7 +131,7 @@ void AddAdditionalLights_half(half Smoothness, half3 WorldPosition, half3 WorldN
         Specular += thisSpecular;
         #if defined(_LIGHT_COOKIES)
             half3 cookieColor = SampleAdditionalLightCookie(lightIndex, WorldPosition);
-            light.color *= cookieColor
+            light.color *= cookieColor;
         #endif
         Color += light.color * (thisDiffuse + thisSpecular);
     LIGHT_LOOP_END

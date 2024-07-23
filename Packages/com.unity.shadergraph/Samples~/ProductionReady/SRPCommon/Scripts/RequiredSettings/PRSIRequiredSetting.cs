@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering
 { 
-    public interface IRequiredSetting
+    public interface PRSIRequiredSetting
     {
         public bool state { get; }
         public string name { get; }

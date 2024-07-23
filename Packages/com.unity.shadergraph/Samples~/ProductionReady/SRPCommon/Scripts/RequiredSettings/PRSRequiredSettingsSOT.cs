@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering
 {
-    public class RequiredSettingsSOT<T> : RequiredSettingsSO where T : RequiredSettingBase
+    public class PRSRequiredSettingsSOT<T> : PRSRequiredSettingsSO where T : PRSRequiredSettingBase
     {
         [SerializeField]
         public List<T> m_requiredSettings;
 
-        public override List<RequiredSettingBase> requiredSettings => new List<RequiredSettingBase>(m_requiredSettings);
+        public override List<PRSRequiredSettingBase> requiredSettings => new List<PRSRequiredSettingBase>(m_requiredSettings);
 
 
         public bool allGood
@@ -31,14 +31,14 @@ namespace UnityEngine.Rendering
         }
     }
 
-    public abstract class RequiredSettingsSO : ScriptableObject, RequiredSettingsSOI
+    public abstract class PRSRequiredSettingsSO : ScriptableObject, PRSRequiredSettingsSOI
     {
-        public abstract List<RequiredSettingBase> requiredSettings { get; }
+        public abstract List<PRSRequiredSettingBase> requiredSettings { get; }
     }
 
-    public interface RequiredSettingsSOI
+    public interface PRSRequiredSettingsSOI
     {
-        public List<RequiredSettingBase> requiredSettings { get; }
+        public List<PRSRequiredSettingBase> requiredSettings { get; }
     }
 }
 #endif

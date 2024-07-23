@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Rendering
 {
     [System.Serializable]
-    public class RequiredSettingBase : IRequiredSetting
+    public class PRSRequiredSettingBase : PRSIRequiredSetting
     {
         [SerializeField]
         private string m_name = "Property Name";
@@ -20,9 +20,9 @@ namespace UnityEngine.Rendering
         public string name => m_name;
         public string description => m_description;
 
-        public ValueType valueType = ValueType.Bool;
+        public PREValueType valueType = PREValueType.Bool;
         public float targetValue = 1f;
-        public ValidationType validationType = ValidationType.Equal;
+        public PREValidationType validationType = PREValidationType.Equal;
 
         private string m_propertyPath;
         private string[] m_propertyPathHierarchyCache;
@@ -80,10 +80,10 @@ namespace UnityEngine.Rendering
 
                 switch(valueType)
                 {
-                    case ValueType.Float:
+                    case PREValueType.Float:
                         floatValue = property.floatValue;
                         break;
-                    case ValueType.Int:
+                    case PREValueType.Int:
                         floatValue = property.intValue;
                         comparedValue = (int)comparedValue;
                         break;
@@ -93,15 +93,15 @@ namespace UnityEngine.Rendering
 
                 switch (validationType)
                 {
-                    case ValidationType.Greater:
+                    case PREValidationType.Greater:
                         return floatValue > comparedValue;
-                    case ValidationType.Lower:
+                    case PREValidationType.Lower:
                         return floatValue < comparedValue;
-                    case ValidationType.GreaterEqual:
+                    case PREValidationType.GreaterEqual:
                         return floatValue >= comparedValue;
-                    case ValidationType.LowerEqual:
+                    case PREValidationType.LowerEqual:
                         return floatValue <= comparedValue;
-                    case ValidationType.Different:
+                    case PREValidationType.Different:
                         return floatValue != comparedValue;
                     default:
                         return floatValue == comparedValue;
@@ -110,14 +110,14 @@ namespace UnityEngine.Rendering
         }
     }
 
-    public enum ValueType
+    public enum PREValueType
     {
         Bool,
         Int,
         Float
     };
 
-    public enum ValidationType
+    public enum PREValidationType
     {
         Equal,
         Greater,

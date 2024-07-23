@@ -15,7 +15,7 @@ using UnityEngine.InputSystem;
 
 
 [ExecuteInEditMode]
-public class SamplesShowcase : MonoBehaviour
+public class PRSSamplesShowcase : MonoBehaviour
 {
     
     public string headline = "Headline Goes Here";
@@ -43,7 +43,7 @@ public class SamplesShowcase : MonoBehaviour
 
     #if UNITY_EDITOR
     [SerializeField]
-    public RequiredSettingsSO requiredSettingsSO;
+    public PRSRequiredSettingsSO requiredSettingsSO;
     #endif
 
     //Variable containing TMPPro compatible sanitized text
@@ -80,23 +80,23 @@ public class SamplesShowcase : MonoBehaviour
         {
             string jsonText = CleanupJson(SamplesDescriptionsJson.text);
 
-            Samples sampleJsonObject = Samples.CreateFromJSON(jsonText, samplesPrefabs);
+            PRSSamples sampleJsonObject = PRSSamples.CreateFromJSON(jsonText, samplesPrefabs);
 
             //Introduction, it's the first part of the Samples Description text asset
             string introText = sampleJsonObject.introduction;
-            SamplesShowcase.SanitizedIntroduction = SanitizeText(introText);
+            PRSSamplesShowcase.SanitizedIntroduction = SanitizeText(introText);
 
-            SamplesShowcase.SanitizedDescriptions = new Dictionary<string, string>();
-            SamplesShowcase.SanitizedTitles = new Dictionary<string, string>();
+            PRSSamplesShowcase.SanitizedDescriptions = new Dictionary<string, string>();
+            PRSSamplesShowcase.SanitizedTitles = new Dictionary<string, string>();
             foreach(GameObject prefab in samplesPrefabs)
             {
-                Sample currentSample = sampleJsonObject.FindSampleWithPrefab(prefab);
+                PRSSample currentSample = sampleJsonObject.FindSampleWithPrefab(prefab);
                 if (currentSample == null)
                     continue;
 
                 string description = SanitizeText(currentSample.description);
-                SamplesShowcase.SanitizedDescriptions.Add(prefab.name, description);
-                SamplesShowcase.SanitizedTitles.Add(prefab.name, currentSample.title);
+                PRSSamplesShowcase.SanitizedDescriptions.Add(prefab.name, description);
+                PRSSamplesShowcase.SanitizedTitles.Add(prefab.name, currentSample.title);
             }
 		}
 	}
