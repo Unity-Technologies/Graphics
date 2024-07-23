@@ -1016,6 +1016,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (mode == MotionBlurMode.CameraAndObjects)
                 {
+                    Debug.Assert(ScriptableRenderer.current.SupportsMotionVectors(), "Current renderer does not support motion vectors.");
                     Debug.Assert(motionVectorColor.IsValid(), "Motion vectors are invalid. Per-object motion blur requires a motion vector texture.");
 
                     passData.motionVectors = motionVectorColor;
@@ -1026,6 +1027,7 @@ namespace UnityEngine.Rendering.Universal
                     passData.motionVectors = TextureHandle.nullHandle;
                 }
 
+                Debug.Assert(cameraDepthTexture.IsValid(), "Camera depth texture is invalid. Per-camera motion blur requires a depth texture.");
                 builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
                 passData.material = material;
                 passData.passIndex = passIndex;
