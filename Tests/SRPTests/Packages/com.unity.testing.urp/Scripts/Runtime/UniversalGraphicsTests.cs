@@ -159,7 +159,20 @@ public class UniversalGraphicsTests
 #else
         // Log the frame we are comparing to catch/debug waitFrame differences.
         Debug.Log($"ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(cameras)}");
+
+#if UNITY_2023_2_OR_NEWER
+        if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.WebGPU)
+        {
+            yield return ImageAssert.AreEqualAsync(testCase.ReferenceImage, cameras.Where(x => x != null), (res) => { }, settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+
+        } else
+        {
+            ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+        }
+#else
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+#endif
+
 #endif
         // Does it allocate memory when it renders what's on the main camera?
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
