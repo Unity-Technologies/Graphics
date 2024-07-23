@@ -365,6 +365,7 @@ VFXColorField .colorcontainer
     padding: 0;
     padding-left: 4px;
     color: #888888;
+    white-space: pre;
 }
 
 #settings .propertyrm .unity-base-field > Label {
