@@ -2427,7 +2427,18 @@ namespace UnityEditor.VFX.UI
                 {
                     yield return new VFXCopyPasteCommon.Attribute { name = attribute.name, type = attribute.type, description = attribute.description, canDuplicate = true };
                 }
-                else if (element is VFXBlockUI block && block.controller.model is IVFXAttributeUsage attributeUsage)
+                else if (element is VFXContextUI context)
+                {
+                    foreach (var ctxBlock in context.controller.blockControllers)
+                    {
+                        var ctxAttributeUsage = (IVFXAttributeUsage)ctxBlock.model;
+                        foreach (var customAttribute in ctxAttributeUsage.usedAttributes.Where(x => controller.graph.attributesManager.IsCustom(x.name)))
+                        {
+                            yield return new VFXCopyPasteCommon.Attribute { name = customAttribute.name, type = customAttribute.type, description = customAttribute.description, canDuplicate = false };
+                        }
+                    }
+                }
+                else if (element is VFXNodeUI nodeUI && nodeUI.controller.model is IVFXAttributeUsage attributeUsage)
                 {
                     foreach (var customAttribute in attributeUsage.usedAttributes.Where(x => controller.graph.attributesManager.IsCustom(x.name)))
                     {

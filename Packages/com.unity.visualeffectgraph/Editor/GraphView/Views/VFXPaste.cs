@@ -249,6 +249,9 @@ namespace UnityEditor.VFX.UI
 
             m_NodesInTheSameOrder = new VFXNodeID[serializableGraph.controllerCount];
 
+            // Paste custom attributes first so they are already available to nodes using them
+            PasteVFXAttributes(viewController, serializableGraph);
+
             // Can't paste context within subgraph block/operator
             if (viewController.model.visualEffectObject is VisualEffectSubgraphOperator || viewController.model.visualEffectObject is VisualEffectSubgraphBlock)
             {
@@ -264,7 +267,6 @@ namespace UnityEditor.VFX.UI
                 PasteContexts(viewController, center, serializableGraph);
             }
 
-            PasteVFXAttributes(viewController, serializableGraph);
             PasteOperators(viewController, center, serializableGraph);
             PasteParameters(viewController, serializableGraph, center);
             PasteCategories(viewController);
