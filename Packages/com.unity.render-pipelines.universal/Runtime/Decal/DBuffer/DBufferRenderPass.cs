@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.Universal
         {
             renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
 
-            var scriptableRenderPassInput = ScriptableRenderPassInput.Normal;
+            var scriptableRenderPassInput = ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal;
             ConfigureInput(scriptableRenderPassInput);
 
             m_DrawSystem = drawSystem;

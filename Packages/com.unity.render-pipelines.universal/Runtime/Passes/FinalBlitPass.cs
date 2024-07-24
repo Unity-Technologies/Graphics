@@ -243,7 +243,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             internal TextureHandle source;
             internal TextureHandle destination;
-            internal TextureHandle depthTexture;
             internal int sourceID;
             internal Vector4 hdrOutputLuminanceParams;
             internal bool requireSrgbConversion;
@@ -270,22 +269,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
 
-                if (cameraData.requiresDepthTexture && renderer != null)
-                {
-                    if (renderer.renderingModeActual != RenderingMode.Deferred)
-                    {
-                        builder.UseGlobalTexture(s_CameraDepthTextureID);
-                        passData.depthTexture = resourceData.activeDepthTexture;
-                    }
+                // Only the UniversalRenderer guarantees that global textures will be available at this point
+                bool isUniversalRenderer = (cameraData.renderer as UniversalRenderer) != null;
 
-                    else if (renderer.deferredLights.GbufferDepthIndex != -1)
-                    {
-                        builder.UseTexture(resourceData.gBuffer[renderer.deferredLights.GbufferDepthIndex]);
-                        passData.depthTexture = resourceData.gBuffer[renderer.deferredLights.GbufferDepthIndex];
-                    }
-                }
+                if (cameraData.requiresDepthTexture && isUniversalRenderer)
+                    builder.UseGlobalTexture(s_CameraDepthTextureID);
 
                 bool outputsToHDR = cameraData.isHDROutputActive;
                 bool outputsAlpha = cameraData.isAlphaOutputEnabled;
@@ -324,9 +313,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     context.cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, data.requireSrgbConversion);
                     data.blitMaterialData.material.SetTexture(data.sourceID, data.source);
-
-                    if(data.depthTexture.IsValid())
-                        data.blitMaterialData.material.SetTexture(s_CameraDepthTextureID, data.depthTexture);
 
                     DebugHandler debugHandler = GetActiveDebugHandler(data.cameraData);
                     bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(data.cameraData.resolveFinalTarget);

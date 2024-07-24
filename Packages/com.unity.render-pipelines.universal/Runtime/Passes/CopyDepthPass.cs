@@ -27,7 +27,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool m_ShouldClear;
         private PassData m_PassData;
 
-        static readonly int k_ZWriteShaderHandle = Shader.PropertyToID("_ZWrite");
+        /// <summary>
+        /// Shader resource ids used to communicate with the shader implementation
+        /// </summary>
+        static class ShaderConstants
+        {
+            public static readonly int _CameraDepthAttachment = Shader.PropertyToID("_CameraDepthAttachment");
+            public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
+            public static readonly int _ZWriteShaderHandle = Shader.PropertyToID("_ZWrite");
+        }
 
         /// <summary>
         /// Creates a new <c>CopyDepthPass</c> instance.
@@ -100,7 +108,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal int msaaSamples;
             internal bool copyResolvedDepth;
             internal bool copyToDepth;
-            internal int zWriteShaderHandle;
         }
 
         /// <inheritdoc/>
@@ -115,7 +122,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.copyToDepth = CopyToDepth;
             m_PassData.cameraData = cameraData;
             var cmd = renderingData.commandBuffer;
-            cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
+            cmd.SetGlobalTexture(ShaderConstants._CameraDepthAttachment, source.nameID);
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (m_PassData.cameraData.xr.enabled)
             {
@@ -183,7 +190,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 bool outputDepth = copyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None;
                 cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, outputDepth);
-                copyDepthMaterial.SetFloat(k_ZWriteShaderHandle, outputDepth ? 1.0f : 0.0f);
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 // We y-flip if
@@ -201,7 +207,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (isGameViewFinalTarget)
                     cmd.SetViewport(passData.cameraData.pixelRect);
 
-                copyDepthMaterial.SetTexture(Shader.PropertyToID("_CameraDepthAttachment"), source);
+                copyDepthMaterial.SetTexture(ShaderConstants._CameraDepthAttachment, source);
+                copyDepthMaterial.SetFloat(ShaderConstants._ZWriteShaderHandle, outputDepth ? 1.0f : 0.0f);
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
             }
         }
@@ -282,7 +289,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.UseTexture(source, AccessFlags.Read);
 
                 if (bindAsCameraDepth && destination.IsValid())
-                    builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraDepthTexture"));
+                    builder.SetGlobalTextureAfterPass(destination, ShaderConstants._CameraDepthTexture);
 
                 // TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);

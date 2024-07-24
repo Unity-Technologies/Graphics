@@ -1778,7 +1778,6 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle destinationTexture;
             internal TextureHandle sourceTexture;
             internal TextureHandle lutTexture;
-            internal TextureHandle depthTexture;
             internal Vector4 lutParams;
             internal TextureHandle userLutTexture;
             internal Vector4 userLutParams;
@@ -1812,24 +1811,15 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>("Blit Post Processing", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPost)))
             {
-                UniversalRenderer renderer = cameraData.renderer as UniversalRenderer;
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-                if (cameraData.requiresDepthTexture && renderer != null)
-                {
-                    if (renderer.renderingModeActual != RenderingMode.Deferred)
-                    {
-                        builder.UseGlobalTexture(s_CameraDepthTextureID);
-                        passData.depthTexture = resourceData.activeDepthTexture;
-                    }
-                    else if (renderer.deferredLights.GbufferDepthIndex != -1)
-                    {
-                        builder.UseTexture(resourceData.gBuffer[renderer.deferredLights.GbufferDepthIndex]);
-                        passData.depthTexture = resourceData.gBuffer[renderer.deferredLights.GbufferDepthIndex];
-                    }
-                }
+                // Only the UniversalRenderer guarantees that global textures will be available at this point
+                bool isUniversalRenderer = (cameraData.renderer as UniversalRenderer) != null;
 
-                if (cameraData.requiresOpaqueTexture && renderer != null)
+                if (cameraData.requiresDepthTexture && isUniversalRenderer)
+                    builder.UseGlobalTexture(s_CameraDepthTextureID);
+
+                if (cameraData.requiresOpaqueTexture && isUniversalRenderer)
                     builder.UseGlobalTexture(s_CameraOpaqueTextureID);
 
                 builder.AllowGlobalStateModification(true);
@@ -1865,8 +1855,6 @@ namespace UnityEngine.Rendering.Universal
                     var material = data.material;
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
-                    if(data.depthTexture.IsValid())
-                        material.SetTexture(s_CameraDepthTextureID, data.depthTexture);
                     material.SetTexture(ShaderConstants._InternalLut, data.lutTexture);
                     material.SetVector(ShaderConstants._Lut_Params, data.lutParams);
                     material.SetTexture(ShaderConstants._UserLut, data.userLutTexture);

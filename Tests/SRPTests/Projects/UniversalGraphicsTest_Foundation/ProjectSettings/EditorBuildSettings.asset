@@ -522,10 +522,16 @@ EditorBuildSettings:
     path: Assets/Scenes/311_DepthCopyTransparent.unity
     guid: 7bddce5f702841a4792e89284712401a
   - enabled: 1
-    path: Assets/Scenes/315_CoreCopyAndBlit.unity
-    guid: 233f6d76572eee0439080cc4973b42ee
-  - enabled: 1
     path: Assets/Scenes/320_CameraCaptureBridge.unity
     guid: fc0920afa6040434f8002c78a6fe3c5f
+  - enabled: 1
+    path: Assets/Scenes/325_DepthCopy.unity
+    guid: be832583f26c3eb48a8c4985109e55ce
+  - enabled: 1
+    path: Assets/Scenes/326_DepthCopy_MSAA.unity
+    guid: 578f5bf6a89578b49b9fd589567a6247
+  - enabled: 1
+    path: Assets/Scenes/327_DepthCopy_Deferred.unity
+    guid: 8c107b50d24369d44a7830358e05422a
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
