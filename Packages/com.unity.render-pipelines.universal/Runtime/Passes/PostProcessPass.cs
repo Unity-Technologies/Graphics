@@ -1104,6 +1104,7 @@ namespace UnityEngine.Rendering.Universal
         void LensFlareDataDriven(ref UniversalCameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
             Camera camera = cameraData.camera;
+            var pixelRect = new Rect(Vector2.zero, new Vector2(m_Descriptor.width, m_Descriptor.height));
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             // Not VR or Multi-Pass
@@ -1115,7 +1116,7 @@ namespace UnityEngine.Rendering.Universal
                 var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
 
                 LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                    m_Materials.lensFlareDataDriven, camera, camera.pixelRect, cameraData.xr, cameraData.xr.multipassId,
+                    m_Materials.lensFlareDataDriven, camera, pixelRect, cameraData.xr, cameraData.xr.multipassId,
                     (float)m_Descriptor.width, (float)m_Descriptor.height,
                     usePanini, paniniDistance, paniniCropToFit, true,
                     camera.transform.position,
@@ -1135,7 +1136,7 @@ namespace UnityEngine.Rendering.Universal
                     Matrix4x4 gpuVPXR = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrixNoJitter(xrIdx), true) * cameraData.GetViewMatrix(xrIdx);
 
                     LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                    m_Materials.lensFlareDataDriven, camera, camera.pixelRect, cameraData.xr, cameraData.xr.multipassId,
+                    m_Materials.lensFlareDataDriven, camera, pixelRect, cameraData.xr, cameraData.xr.multipassId,
                     (float)m_Descriptor.width, (float)m_Descriptor.height,
                     usePanini, paniniDistance, paniniCropToFit, true,
                     camera.transform.position,
