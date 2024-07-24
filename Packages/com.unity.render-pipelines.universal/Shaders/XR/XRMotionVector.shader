@@ -19,9 +19,9 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
                 ReadMask 1
                 Ref 1
                 Comp NotEqual
-            
+
                 // Fail Zero
-                // Pass Zero 
+                // Pass Zero
             }
 
             HLSLPROGRAM
@@ -63,7 +63,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
                 output.position.z = depth;
 
                 // Reconstruct world position
-                output.posWS = ComputeWorldSpacePosition(output.position, depth, UNITY_MATRIX_I_VP);
+                output.posWS = ComputeWorldSpacePosition(output.position.xy, depth, UNITY_MATRIX_I_VP);
 
                 return output;
             }
@@ -85,7 +85,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
 
                 // Calculate forward velocity
                 float3 velocity = (posNDC - prevPosNDC);
-                
+
                 return float4(velocity.xyz, 0);
             }
             ENDHLSL
