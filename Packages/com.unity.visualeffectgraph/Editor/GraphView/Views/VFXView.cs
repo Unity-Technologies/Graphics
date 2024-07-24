@@ -3463,14 +3463,6 @@ namespace UnityEditor.VFX.UI
             selectedBlackboardCategories.ForEach(x => blackboard.DuplicateCategory(x.title));
         }
 
-        public void DuplicateBlackboardAttributeSelection()
-        {
-            var selectedBlackboardAttributes = selection
-                .OfType<VFXBlackboardAttributeField>()
-                .ToList();
-            selectedBlackboardAttributes.ForEach(x => blackboard.DuplicateAttribute(x));
-        }
-
         void OnSceneGUI(SceneView sv)
         {
             try // make sure we don't break the whole scene

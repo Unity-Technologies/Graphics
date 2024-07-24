@@ -98,9 +98,15 @@ namespace UnityEditor.VFX.UI
                 evt.menu.AppendAction("Rename", (a) => Rename(), DropdownMenuAction.AlwaysEnabled);
                 evt.menu.AppendAction("Duplicate %d", (a) => Duplicate(), DropdownMenuAction.AlwaysEnabled);
                 evt.menu.AppendAction("Delete", (a) => Delete(), DropdownMenuAction.AlwaysEnabled);
+                evt.menu.AppendAction("Copy Name", (a) => CopyName(), DropdownMenuAction.AlwaysEnabled);
 
                 evt.StopPropagation();
             }
+        }
+
+        private void CopyName()
+        {
+            EditorGUIUtility.systemCopyBuffer = m_Property.title;
         }
 
         private void Delete()

@@ -11,9 +11,12 @@ namespace UnityEditor.VFX.UI
         protected Label m_Label;
         protected TextField m_TextField;
 
+        protected VFXView View => m_View;
+
         protected VFXBlackboardFieldBase(string dataKey)
         {
             viewDataKey = dataKey;
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
 
         public abstract IParameterItem item { get; }
@@ -33,7 +36,7 @@ namespace UnityEditor.VFX.UI
 
         public override void OnSelected()
         {
-            GetView().blackboard.UpdateSelection();
+            m_View.blackboard.UpdateSelection();
         }
 
         protected virtual void OnMouseDown(MouseDownEvent evt)
@@ -74,9 +77,10 @@ namespace UnityEditor.VFX.UI
             GetFirstAncestorOfType<TreeView>().Focus();
         }
 
-        protected VFXView GetView()
+        private void OnAttachToPanel(AttachToPanelEvent evt)
         {
-            return m_View ??= GetFirstAncestorOfType<VFXView>();
+            m_View = GetFirstAncestorOfType<VFXView>();
+            UnregisterCallback<AttachToPanelEvent>(OnAttachToPanel);
         }
     }
 }

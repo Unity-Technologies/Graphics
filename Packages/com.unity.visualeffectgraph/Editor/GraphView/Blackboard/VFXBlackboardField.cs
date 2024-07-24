@@ -111,10 +111,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnDetachFromPanel(DetachFromPanelEvent evt)
         {
-            if (GetView() is {} view)
-            {
-                UpdateHover(view, false);
-            }
+            UpdateHover(View, false);
         }
 
         void OnMouseHover(EventBase evt)
@@ -124,10 +121,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (panel.GetCapturingElement(PointerId.mousePointerId) != null)
                     return;
-                if (GetView() is {} view)
-                {
-                    UpdateHover(view, evt.eventTypeId == MouseEnterEvent.TypeId());
-                }
+                UpdateHover(View, evt.eventTypeId == MouseEnterEvent.TypeId());
             }
             finally
             {

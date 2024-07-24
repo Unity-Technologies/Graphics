@@ -66,10 +66,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnDetachFromPanel(DetachFromPanelEvent evt)
         {
-            if (GetView() is {} view)
-            {
-                UpdateHover(view, false);
-            }
+            UpdateHover(View, false);
         }
 
         private void OnMouseHover(EventBase evt)
@@ -80,10 +77,7 @@ namespace UnityEditor.VFX.UI
                 if (panel.GetCapturingElement(PointerId.mousePointerId) != null)
                     return;
 
-                if (GetView() is {} view)
-                {
-                    UpdateHover(view, evt.eventTypeId == MouseEnterEvent.TypeId());
-                }
+                UpdateHover(View, evt.eventTypeId == MouseEnterEvent.TypeId());
             }
             finally
             {
@@ -134,7 +128,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_TextField.style.display == DisplayStyle.Flex
                 && text != m_TextField.value
-                && GetView().controller.graph.TryRenameCustomAttribute(text, m_TextField.value))
+                && View.controller.graph.TryRenameCustomAttribute(text, m_TextField.value))
             {
                 attribute.title = m_TextField.value;
                 text = m_TextField.value;

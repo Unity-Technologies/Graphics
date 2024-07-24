@@ -242,7 +242,7 @@ namespace UnityEditor.VFX
             if (!VFXGraph.explicitCompile)
             {
                 MarkOutputExpressionsAsOutOfDate();
-                ResyncSlots(true);        
+                ResyncSlots(true);
                 ResyncCustomAttributes();
             }
         }
