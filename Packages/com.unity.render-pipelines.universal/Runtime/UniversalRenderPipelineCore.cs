@@ -2001,5 +2001,7 @@ namespace UnityEngine.Rendering.Universal
 
             return mode;
         }
+
+        internal static bool isRunningOnPowerVRGPU = SystemInfo.graphicsDeviceName.Contains("PowerVR");
     }
 }
