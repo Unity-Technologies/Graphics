@@ -1,17 +1,19 @@
 #if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
-using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
+
 using NUnit.Framework;
+
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Experimental.VFX.Utility;
 using UnityEditor.VFX.Block;
+using UnityEditor.VFX.Operator;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
@@ -539,6 +541,51 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(customAttributeDescriptor);
             Assert.AreEqual(CustomAttributeUtility.Signature.Vector3, customAttributeDescriptor.type);
         }
+        [UnityTest, Description("UUM-75893")]
+        public IEnumerator CopyPasteMultipleParametersWithEdges()
+        {
+            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+            VFXView view = window.graphView;
+            view.controller = m_ViewController;
+
+            // Create a parameter and add a two nodes to the graph
+            var parameter = m_ViewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(x => x.modelType == typeof(float)).variant);
+            m_ViewController.LightApplyChanges();
+
+            var parameterController = m_ViewController.GetParameterController(parameter);
+            parameterController.model.AddNode(new Vector2(123, 456));
+            parameterController.model.AddNode(new Vector2(123, 556));
+            m_ViewController.LightApplyChanges();
+            var parameterNode1 = parameterController.nodes.First();
+            var parameterNode2 = parameterController.nodes.Last();
+            Assert.AreNotEqual(parameterNode1, parameterNode2);
+            yield return null;
+
+            // Create a Add operator
+            var addOperator = VFXLibrary.GetOperators().Single(x => x.modelType == typeof(Add));
+            m_ViewController.AddNode(new Vector2(300, 500), addOperator.variant, null);
+            m_ViewController.LightApplyChanges();
+            var addOperatorController = m_ViewController.nodes.OfType<VFXOperatorController>().Last();
+            yield return null;
+
+            // Create links
+            m_ViewController.CreateLink(addOperatorController.inputPorts.First(), parameterNode1.outputPorts.Single());
+            m_ViewController.CreateLink(addOperatorController.inputPorts.Skip(1).First(), parameterNode2.outputPorts.Single());
+            m_ViewController.LightApplyChanges();
+            yield return null;
+
+            Assert.AreEqual(2, m_ViewController.dataEdges.Count);
+
+            // Select all and copy/paste
+            window.graphView.ExecuteCommand(ExecuteCommandEvent.GetPooled("SelectAll"));
+            window.graphView.CopySelectionCallback();
+            window.graphView.GetType().GetProperty(nameof(VFXView.pasteCenter), BindingFlags.Instance|BindingFlags.NonPublic)?.SetValue(window.graphView, window.graphView.contentViewContainer.LocalToWorld(new Vector2(123, 650)));
+            window.graphView.PasteCallback();
+            yield return null;
+
+            Assert.AreEqual(4, m_ViewController.dataEdges.Count);
+        }
+
     }
 }
 #endif
