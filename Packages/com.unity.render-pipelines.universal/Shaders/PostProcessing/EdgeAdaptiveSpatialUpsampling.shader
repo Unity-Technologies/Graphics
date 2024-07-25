@@ -54,4 +54,6 @@ Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
             ENDHLSL
         }
     }
+
+    Fallback Off
 }
