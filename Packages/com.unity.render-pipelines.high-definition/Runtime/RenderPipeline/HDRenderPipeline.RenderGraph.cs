@@ -1014,7 +1014,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.ClearRenderTarget(false, true, Color.clear);
                         context.renderContext.ExecuteCommandBuffer(context.cmd);
                         context.cmd.Clear();
-                        context.renderContext.DrawUIOverlay(data.camera);
+                        if (data.camera.targetTexture == null)
+                            context.renderContext.DrawUIOverlay(data.camera);
                     });
                 }
             }
