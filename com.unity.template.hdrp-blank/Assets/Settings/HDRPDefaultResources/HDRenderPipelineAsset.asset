@@ -34,12 +34,11 @@ MonoBehaviour:
     supportWater: 0
     waterSimulationResolution: 128
     supportWaterExclusion: 0
-    supportWaterDeformation: 0
-    deformationAtlasSize: 512
-    maximumDeformerCount: 64
-    supportWaterFoam: 0
-    foamAtlasSize: 512
-    waterCPUSimulation: 0
+    supportWaterDecals: 1
+    waterDecalAtlasSize: 1024
+    maximumWaterDecalCount: 48
+    waterScriptInteractionsMode: 0
+    waterFullCPUSimulation: 0
     supportComputeThickness: 0
     computeThicknessResolution: 1
     computeThicknessLayerMask:
@@ -166,9 +165,12 @@ MonoBehaviour:
     dynamicResolutionSettings:
       enabled: 0
       useMipBias: 0
-      advancedUpscalersByPriority: 0001
+      advancedUpscalersByPriority: 
       DLSSPerfQualitySetting: 0
       DLSSInjectionPoint: 0
+      TAAUInjectionPoint: 0
+      STPInjectionPoint: 0
+      defaultInjectionPoint: 2
       DLSSUseOptimalSettings: 0
       DLSSSharpness: 0
       FSR2EnableSharpness: 0
@@ -186,6 +188,8 @@ MonoBehaviour:
       forcedPercentage: 100
       lowResTransparencyMinimumThreshold: 0
       rayTracingHalfResThreshold: 50
+      lowResSSGIMinimumThreshold: 0
+      lowResVolumetricCloudsMinimumThreshold: 50
       enableDLSS: 0
     lowresTransparentSettings:
       enabled: 1
@@ -263,10 +267,6 @@ MonoBehaviour:
       - 50
       - 50
       RTGIFullResolution: 000001
-      RTGIClampValue:
-      - 0.5
-      - 0.8
-      - 1.5
       RTGIRaySteps: 200000003000000040000000
       RTGIDenoise: 010101
       RTGIHalfResDenoise: 010000
@@ -287,10 +287,6 @@ MonoBehaviour:
       - 50
       - 50
       - 50
-      RTRClampValue:
-      - 0.8
-      - 1
-      - 1.2
       RTRFullResolution: 000001
       RTRRayMaxIterations: 200000003000000040000000
       RTRDenoise: 010101
@@ -313,6 +309,9 @@ MonoBehaviour:
       - 0.5
     gpuResidentDrawerSettings:
       mode: 0
+      smallMeshScreenPercentage: 0
+      enableOcclusionCullingInCameras: 0
+      useDepthPrepassForOccluders: 1
     m_ObsoleteLightLayerName0: 
     m_ObsoleteLightLayerName1: 
     m_ObsoleteLightLayerName2: 
@@ -347,7 +346,7 @@ MonoBehaviour:
   m_CompositorCustomVolumeComponentsList:
     m_InjectionPoint: 1
     m_CustomPostProcessTypesAsString: []
-  m_Version: 24
+  m_Version: 25
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -533,8 +532,6 @@ MonoBehaviour:
     sssCustomDownsampleSteps: 0
     msaaMode: 0
     materialQuality: 0
-  m_ObsoleteRenderPipelineResources: {fileID: 0}
-  m_ObsoleteRenderPipelineRayTracingResources: {fileID: 0}
   m_ObsoleteBeforeTransparentCustomPostProcesses: []
   m_ObsoleteBeforePostProcessCustomPostProcesses: []
   m_ObsoleteAfterPostProcessCustomPostProcesses: []
@@ -542,3 +539,4 @@ MonoBehaviour:
   m_ObsoleteShaderVariantLogLevel: 0
   m_ObsoleteLensAttenuation: 0
   m_ObsoleteDiffusionProfileSettingsList: []
+  m_PrefilterUseLegacyLightmaps: 0
