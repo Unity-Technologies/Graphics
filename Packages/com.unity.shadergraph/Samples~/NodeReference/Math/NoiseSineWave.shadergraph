@@ -396,6 +396,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "25e9494d14f44320806ef2b50b6651d3"
@@ -811,6 +812,7 @@
     "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.BuiltIn.ShaderGraph.BuiltInTarget",
     "m_ObjectId": "25e9494d14f44320806ef2b50b6651d3",
+    "m_Datas": [],
     "m_ActiveSubTarget": {
         "m_Id": "a28b2e03c25743f697c6664cf4399d2b"
     },
@@ -2137,7 +2139,7 @@
     },
     "m_DefaultValue": {
         "x": 0.0,
-        "y": 0.0
+        "y": 1.0
     },
     "m_Labels": []
 }
@@ -2187,8 +2189,8 @@
         "y": 0.10000000149011612
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0
+        "x": -0.5,
+        "y": 0.5
     },
     "m_Labels": []
 }
@@ -2534,6 +2536,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_DisableTint": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
@@ -2720,8 +2723,8 @@
         "y": 0.5
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0
+        "x": -0.5,
+        "y": 0.5
     },
     "m_Labels": []
 }
@@ -2993,8 +2996,8 @@
         "y": 1.0
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0
+        "x": -1.0,
+        "y": 1.0
     },
     "m_Labels": []
 }

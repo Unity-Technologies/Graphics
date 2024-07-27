@@ -272,6 +272,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "c162780a06e8494480fc6d19761c744a"
@@ -1004,6 +1005,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_DisableTint": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
@@ -1629,6 +1631,7 @@
     "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.BuiltIn.ShaderGraph.BuiltInTarget",
     "m_ObjectId": "c162780a06e8494480fc6d19761c744a",
+    "m_Datas": [],
     "m_ActiveSubTarget": {
         "m_Id": "99053f4644e748f6b7e15168bec0c740"
     },

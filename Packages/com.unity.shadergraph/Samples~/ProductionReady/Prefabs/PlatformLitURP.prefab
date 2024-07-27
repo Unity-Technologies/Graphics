@@ -2234,7 +2234,8 @@ PrefabInstance:
       value: "In order to be able to use this shader, you\u2019ll need to increase
         the Shader Variant Limit to at least 513.  This should be done on both the
         Shader Graph tab in Project Settings as well as the Shader Graph tab in the
-        Preferences.\r\n\r"
+        Preferences.\n\nAfter increasing the variant limit, reimport the Lit/URPLit
+        Shader Graph asset. \r\n\r"
       objectReference: {fileID: 0}
     - target: {fileID: 3930991725020610956, guid: 96048391e5bc0af49b1edfa6e3a2427c, type: 3}
       propertyPath: m_StaticEditorFlags
