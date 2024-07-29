@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -176,15 +178,75 @@ namespace UnityEngine.Rendering
             /// </summary>
             public List<ContextMenuItem> contextMenuItems = null;
 
+            private bool m_Dirty;
+            private string[] m_ColumnLabels;
+            private string[] m_ColumnTooltips;
+
             /// <summary>
             /// List of columns labels.
             /// </summary>
-            public string[] columnLabels { get; set; } = null;
+            public string[] columnLabels
+            {
+                get => m_ColumnLabels;
+                set
+                {
+                    m_ColumnLabels = value;
+                    m_Dirty = true;
+                }
+            }
 
             /// <summary>
             /// List of columns label tooltips.
             /// </summary>
-            public string[] columnTooltips { get; set; } = null;
+            public string[] columnTooltips
+            {
+                get => m_ColumnTooltips;
+                set
+                {
+                    m_ColumnTooltips = value;
+                    m_Dirty = true;
+                }
+            }
+
+            private List<GUIContent> m_RowContents = new();
+            internal List<GUIContent> rowContents
+            {
+                get
+                {
+                    if (m_Dirty)
+                    {
+                        if (m_ColumnTooltips == null)
+                        {
+                            m_ColumnTooltips = new string[m_ColumnLabels.Length];
+                            Array.Fill(columnTooltips, string.Empty);
+                        }
+                        else
+                        {
+                            if (m_ColumnTooltips.Length != m_ColumnLabels.Length)
+                                throw new Exception(
+                                    $"Dimension for labels and tooltips on {nameof(DebugUI.Foldout)} - {displayName}, do not match");
+                        }
+
+                        m_RowContents.Clear();
+                        for (int i = 0; i < m_ColumnLabels.Length; ++i)
+                        {
+                            string label = columnLabels[i] ?? string.Empty;
+                            string tooltip = m_ColumnTooltips[i] ?? string.Empty;
+                            m_RowContents.Add(
+#if UNITY_EDITOR
+                            EditorGUIUtility.TrTextContent(label, tooltip)
+#else
+                            new GUIContent(label, tooltip)
+#endif
+                            );
+                        }
+
+                        m_Dirty = false;
+                    }
+
+                    return m_RowContents;
+                }
+            }
 
             /// <summary>
             /// Constructor.
