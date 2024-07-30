@@ -179,6 +179,9 @@ namespace UnityEngine.Rendering.Universal
             var batchesDrawn = 0;
             var rtCount = 0U;
 
+            // Account for sprite mask interaction with normals. Only clear normals at the start as we require stencil for sprite mask in different layer batches
+            bool normalsFirstClear = true;
+
             // Draw lights
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
@@ -201,11 +204,12 @@ namespace UnityEngine.Rendering.Universal
 
                     batchesDrawn++;
 
-                    if (layerBatch.lightStats.totalNormalMapUsage > 0 || layerBatch.hasSpriteMask)
+                    if (layerBatch.useNormals)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
                         var depthTarget = m_NeedsDepth ? depthAttachmentHandle : null;
-                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget);
+                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, normalsFirstClear);
+						normalsFirstClear = false;
                     }
 
                     using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))

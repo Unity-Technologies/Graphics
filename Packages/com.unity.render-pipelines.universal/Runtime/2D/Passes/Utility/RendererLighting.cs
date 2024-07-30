@@ -558,7 +558,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RTHandle depthTarget)
+        internal static void RenderNormals(this IRenderPass2D pass, ScriptableRenderContext context, RenderingData renderingData, DrawingSettings drawSettings, FilteringSettings filterSettings, RTHandle depthTarget, bool bFirstClear)
         {
             var cmd = renderingData.commandBuffer;
 
@@ -576,7 +576,7 @@ namespace UnityEngine.Rendering.Universal
 
                 var msaaEnabled = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
                 var storeAction = msaaEnabled ? RenderBufferStoreAction.Resolve : RenderBufferStoreAction.Store;
-                var clearFlag = pass.rendererData.useDepthStencilBuffer ? ClearFlag.All : ClearFlag.Color;
+                var clearFlag = pass.rendererData.useDepthStencilBuffer && bFirstClear ? ClearFlag.All : ClearFlag.Color;
 
                 if (depthTarget != null)
                 {
