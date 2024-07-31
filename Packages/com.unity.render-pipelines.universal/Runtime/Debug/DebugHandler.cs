@@ -416,15 +416,28 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<DebugFinalValidationPassData>(nameof(UpdateShaderGlobalPropertiesForFinalValidationPass), out var passData, s_DebugFinalValidationSampler))
             {
                 InitDebugFinalValidationPassData(passData, cameraData, isFinalPass);
-                passData.debugRenderTargetHandle = renderGraph.ImportTexture(m_DebugRenderTarget);
-                passData.debugFontTextureHandle = renderGraph.ImportTexture(m_DebugFontTexture);
+
+                if (m_DebugRenderTarget != null)
+                    passData.debugRenderTargetHandle = renderGraph.ImportTexture(m_DebugRenderTarget);
+
+                if (m_DebugFontTexture != null)
+                    passData.debugFontTextureHandle = renderGraph.ImportTexture(m_DebugFontTexture);
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
-                builder.SetGlobalTextureAfterPass(passData.debugRenderTargetHandle, passData.debugTexturePropertyId);
-                builder.SetGlobalTextureAfterPass(passData.debugFontTextureHandle, k_DebugFontId);
-                builder.UseTexture(passData.debugRenderTargetHandle);
-                builder.UseTexture(passData.debugFontTextureHandle);
+
+                if (passData.debugRenderTargetHandle.IsValid())
+                {
+                    builder.UseTexture(passData.debugRenderTargetHandle);
+                    builder.SetGlobalTextureAfterPass(passData.debugRenderTargetHandle, passData.debugTexturePropertyId);
+                }
+
+                if (passData.debugFontTextureHandle.IsValid())
+                {
+                    builder.UseTexture(passData.debugFontTextureHandle);
+                    builder.SetGlobalTextureAfterPass(passData.debugFontTextureHandle, k_DebugFontId);
+                }
+
                 builder.SetRenderFunc(static (DebugFinalValidationPassData data, RasterGraphContext context) =>
                 {
                     UpdateShaderGlobalPropertiesForFinalValidationPass(context.cmd, data);
