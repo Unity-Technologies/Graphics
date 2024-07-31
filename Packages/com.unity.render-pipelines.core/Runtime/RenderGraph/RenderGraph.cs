@@ -1368,7 +1368,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.immediateMode)
             {
-                ExecutePassImmediatly(pass);
+                ExecutePassImmediately(pass);
             }
         }
 
@@ -1389,11 +1389,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             using (new ProfilingScope(ProfilingSampler.Get(RenderGraphProfileId.ComputeHashRenderGraph)))
             {
-                int hash = 0;
+                var hash128 = HashFNV1A32.Create();
                 for (int i = 0; i < m_RenderPasses.Count; ++i)
-                    hash = hash * 23 + m_RenderPasses[i].ComputeHash(m_Resources);
+                    m_RenderPasses[i].ComputeHash(ref hash128, m_Resources);
 
-                return hash;
+                return hash128.value;
             }
         }
 
@@ -2093,7 +2093,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return ref passInfo;
         }
 
-        void ExecutePassImmediatly(RenderGraphPass pass)
+        void ExecutePassImmediately(RenderGraphPass pass)
         {
             ExecuteCompiledPass(ref CompilePassImmediatly(pass));
         }
@@ -2106,9 +2106,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             var pass = m_RenderPasses[passInfo.index];
 
             if (!pass.HasRenderFunc())
-            {
-                throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
-            }
+                throw new InvalidOperationException($"RenderPass {pass.name} was not provided with an execute function.");
 
             try
             {
@@ -2210,7 +2208,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             // Need to save the command buffer to restore it later as the one in the context can changed if running a pass async.
             m_PreviousCommandBuffer = rgContext.cmd;
-            
+
             bool executedWorkDuringResourceCreation = false;
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {

@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         // The list needs to be sorted otherwise you could get inconsistent resource usage from one frame to another.
 
         protected Dictionary<int, SortedList<int, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (Type resource, int frameIndex)>>();
-       
+
         // This list allows us to determine if all resources were correctly released in the frame when validity checks are enabled.
         // This is useful to warn in case of user error or avoid leaks when a render graph execution errors occurs for example.
         List<(int, Type)> m_FrameAllocatedResources = new List<(int, Type)>();
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_ResourcePool.Add(hash, list);
             }
 
-           list.Add(GetSortIndex(resource), (resource, currentFrameIndex));
+            list.Add(GetSortIndex(resource), (resource, currentFrameIndex));
         }
 
         public bool TryGetResource(int hashCode, out Type resource)
