@@ -285,8 +285,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             foreach (ref readonly var nativePassData in ctx.NativePasses)
             {
                 List<int> mergedPassIds = new List<int>();
-                for (int passOffset = 0; passOffset < nativePassData.numGraphPasses; ++passOffset)
-                    mergedPassIds.Add(nativePassData.firstGraphPass + passOffset);
+                for (int graphPassId = nativePassData.firstGraphPass; graphPassId < nativePassData.lastGraphPass + 1; ++graphPassId)
+                    mergedPassIds.Add(graphPassId);
 
                 if (nativePassData.numGraphPasses > 0)
                 {

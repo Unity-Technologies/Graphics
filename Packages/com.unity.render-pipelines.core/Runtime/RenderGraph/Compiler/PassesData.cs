@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
     {
         None = -1, // this pass is "standalone", it will begin and end the NRP
         Begin = 0, // Only Begin NRP is done by this pass, sequential passes will End the NRP (after 0 or more additional subpasses)
-        SubPass = 1, // This pass is a subpass only. Begin has been called by a previous pass and end will be called be a pass after this one
+        SubPass = 1, // This pass is a subpass only. Begin has been called by a previous pass and end will be called by a pass after this one
         End = 2 // This pass is both a subpass and will end the current NRP
     }
 
@@ -517,6 +517,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         // Index of the first graph pass this native pass encapsulates
         public int firstGraphPass; // Offset+count in context pass array
+        public int lastGraphPass;
         public int numGraphPasses;
 
         public int firstNativeSubPass; // Offset+count in context subpass array
@@ -531,6 +532,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativePassData(ref PassData pass, CompilerContextData ctx)
         {
             firstGraphPass = pass.passId;
+            lastGraphPass = pass.passId;
             numGraphPasses = 1;
             firstNativeSubPass = -1;// Set up during compile
             numNativeSubPasses = 0;
@@ -580,7 +582,27 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<PassData> GraphPasses(CompilerContextData ctx) => ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
+        public readonly ReadOnlySpan<PassData> GraphPasses(CompilerContextData ctx)
+        {
+            // When there's no pass being culled, we can directly return a Span of the Native List
+            if (lastGraphPass - firstGraphPass + 1 == numGraphPasses)
+            {
+                return ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
+            }
+
+            var actualPasses = new PassData[numGraphPasses];
+
+            for (int i = firstGraphPass, index = 0; i < lastGraphPass + 1; ++i)
+            {
+                var pass = ctx.passData[i];
+                if (!pass.culled)
+                {
+                    actualPasses[index++] = pass;
+                }
+            }
+
+            return actualPasses;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void GetGraphPassNames(CompilerContextData ctx, DynamicArray<Name> dest)
@@ -649,7 +671,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 var inputResource = input.resource;
                 var writingPassId = contextData.resources[inputResource].writePassId;
                 // Is the writing pass enclosed in the current native renderpass
-                if (writingPassId >= nativePass.firstGraphPass && writingPassId < nativePass.firstGraphPass + nativePass.numGraphPasses)
+                if (writingPassId >= nativePass.firstGraphPass && writingPassId < nativePass.lastGraphPass + 1)
                 {
                     // If it's not used as a fragment, it's used as some sort of texture read of load so we need so sync it out
                     if (!passToMerge.IsUsedAsFragment(inputResource, contextData))
@@ -975,17 +997,26 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             int lastVisitedNativeSubpassIdx = -1;
             ref readonly var fragmentList = ref nativePass.fragments;
 
+            var countPasses = nativePass.lastGraphPass - nativePass.firstGraphPass + 1;
+
             // Do not iterate over the last graph pass as it is the one we are currently adding
-            for (var graphPassIdx = 0; graphPassIdx < nativePass.numGraphPasses - 1; ++graphPassIdx)
+            for (var graphPassIdx = 0; graphPassIdx < countPasses - 1; ++graphPassIdx)
             {
                 // We only check the first graph pass of each existing native subpass - if other graph passes
                 // have been merged into a native subpass, it's because they had the same attachments.
                 ref readonly var currGraphPass =
                     ref contextData.passData.ElementAt(nativePass.firstGraphPass + graphPassIdx);
 
+                // Already updated this native subpass
                 if (currGraphPass.nativeSubPassIndex + nativePass.firstNativeSubPass == lastVisitedNativeSubpassIdx)
                 {
-                    // Already updated this native subpass
+                    continue;
+                }
+
+                // Shouldn't be necessary since we only check the first graph pass of each existing native subpass
+                // But let's be safe and check anyway if the pass has been culled or not.
+                if (currGraphPass.culled)
+                {
                     continue;
                 }
 
@@ -1050,7 +1081,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             var passBreakAudit = CanMerge(contextData, activeNativePassId, passIdToMerge);
 
             // Pass cannot be merged into active native pass
-            if(passBreakAudit.reason != PassBreakReason.Merged)
+            if (passBreakAudit.reason != PassBreakReason.Merged)
                 return passBreakAudit;
 
             ref var passToMerge = ref contextData.passData.ElementAt(passIdToMerge);
@@ -1060,7 +1091,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             if (passToMerge.nativePassIndex >= 0)
                 contextData.nativePassData.ElementAt(passToMerge.nativePassIndex).Clear();
             passToMerge.nativePassIndex = activeNativePassId;
+
             nativePass.numGraphPasses++;
+            nativePass.lastGraphPass = passIdToMerge;
 
             // Depth needs special handling if the native pass doesn't have depth and merges with a pass that does
             // as we require the depth attachment to be at index 0
@@ -1133,6 +1166,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
 
             TryMergeNativeSubPass(contextData, ref nativePass, ref passToMerge);
+
             SetPassStatesForNativePass(contextData, activeNativePassId);
 
             return passBreakAudit;
@@ -1145,11 +1179,24 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             if (nativePass.numGraphPasses > 1)
             {
                 contextData.passData.ElementAt(nativePass.firstGraphPass).mergeState = PassMergeState.Begin;
-                for (int i = 1; i < nativePass.numGraphPasses - 1; i++)
+
+                var countPasses = nativePass.lastGraphPass - nativePass.firstGraphPass + 1;
+
+                for (int i = 1; i < countPasses; i++)
                 {
+                    var indexPass = nativePass.firstGraphPass + i;
+
+                    // This pass was culled and should not be considere
+                    if (contextData.passData.ElementAt(indexPass).culled)
+                    {
+                        contextData.passData.ElementAt(indexPass).mergeState = PassMergeState.None;
+                        continue;
+                    }
+
                     contextData.passData.ElementAt(nativePass.firstGraphPass + i).mergeState = PassMergeState.SubPass;
                 }
-                contextData.passData.ElementAt(nativePass.firstGraphPass + nativePass.numGraphPasses - 1).mergeState = PassMergeState.End;
+
+                contextData.passData.ElementAt(nativePass.lastGraphPass).mergeState = PassMergeState.End;
             }
             else
             {

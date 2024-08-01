@@ -768,7 +768,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_PrepareNativePass)))
             {
                 ref readonly var firstGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass);
-                ref readonly var lastGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass + nativePass.numGraphPasses - 1);
+                ref readonly var lastGraphPass = ref contextData.passData.ElementAt(nativePass.lastGraphPass);
 
                 // Some passes don't do any rendering only state changes so just skip them
                 // If these passes trigger any drawing the raster command buffer will warn users no render targets are set-up for their rendering
@@ -864,10 +864,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         // Simple non-msaa case
                         if (nativePass.samples <= 1)
                         {
-                            // The resource is still used after this renderpass so we need to store it imported resources always need to be sored
+                            // The resource is still used after this renderpass so we need to store it imported resources always need to be stored
                             // as we don't know what happens with them and assume the contents are somewhow used outside the graph
                             int destroyPassID = resourceData.lastUsePassID;
-                            if (destroyPassID >= nativePass.firstGraphPass + nativePass.numGraphPasses)
+                            if (destroyPassID >= nativePass.lastGraphPass + 1)
                             {
                                 currAttachment.storeAction = RenderBufferStoreAction.Store;
 #if UNITY_EDITOR

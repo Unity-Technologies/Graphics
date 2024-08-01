@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -290,6 +291,61 @@ namespace UnityEngine.Rendering.Tests
 
             Assert.AreEqual(2, passes.Count);
             Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.DifferentDepthTextures, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void VerifyMergeStateAfterMergingPasses()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // First pass, not culled.
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+                builder.Dispose();
+            }
+
+            // Second pass, culled.
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+                builder.Dispose();
+            }
+
+            // Third pass, not culled.
+            {
+                var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData);
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+                builder.Dispose();
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.IsTrue(passes != null && passes.Count > 0);
+            var firstNativePass = passes[0];
+
+            var firstGraphPass = result.contextData.passData.ElementAt(firstNativePass.firstGraphPass);
+            var lastGraphPass = result.contextData.passData.ElementAt(firstNativePass.lastGraphPass);
+            var middleGraphPass = result.contextData.passData.ElementAt(firstNativePass.lastGraphPass - 1);
+
+            // Only 2 passes since one have been culled
+            Assert.IsTrue(firstNativePass.numGraphPasses == 2);
+
+            // All 3 passes including the culled one. We need to add +1 to obtain the correct passes count
+            // e.g lastGraphPass index = 2, firstGraphPass index = 0, so 2 - 0 = 2 passes, but we have 3 passes to consider
+            // (index 0, 1 and 2) so we add +1 for the correct count.
+            Assert.IsTrue(firstNativePass.lastGraphPass - firstNativePass.firstGraphPass + 1 == 3);
+
+            Assert.IsTrue(firstGraphPass.mergeState == PassMergeState.Begin);
+            Assert.IsTrue(lastGraphPass.mergeState == PassMergeState.End);
+            Assert.IsTrue(middleGraphPass.mergeState == PassMergeState.None);
         }
 
         [Test]
