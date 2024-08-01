@@ -312,16 +312,12 @@ namespace UnityEditor.VFX
 
             if (supportsUV && uvMode != UVMode.Default)
             {
-                VFXExpression flipBookSizeXExp;
-                VFXExpression flipBookSizeYExp;
                 switch (uvMode)
                 {
                     case UVMode.Flipbook:
                         if (flipbookLayout == FlipbookLayout.Texture2D)
                         {
-                            flipBookSizeXExp = slotExpressions.First(o => o.name == "flipBookSize_x").exp;
-                            flipBookSizeYExp = slotExpressions.First(o => o.name == "flipBookSize_y").exp;
-                            VFXExpression flipBookSizeExp = new VFXExpressionCombine(new VFXExpressionCastIntToFloat(flipBookSizeXExp), new VFXExpressionCastIntToFloat(flipBookSizeYExp));
+                            var flipBookSizeExp = slotExpressions.FirstOrDefault(o => o.name == "flipBookSize").exp;
                             yield return new VFXNamedExpression(flipBookSizeExp, "flipBookSize");
                             yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp, "invFlipBookSize");
                         }

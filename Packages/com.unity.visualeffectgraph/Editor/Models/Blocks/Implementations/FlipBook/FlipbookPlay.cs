@@ -274,13 +274,10 @@ namespace UnityEditor.VFX.Block
                             {
                                 foreach (var p in GetExpressionsFromSlots(context))
                                 {
-                                    if (p.name == "flipBookSize_x")
+                                    if (p.name == "flipBookSize")
                                     {
-                                        flipBookSizeXExp = p.exp;
-                                    }
-                                    if (p.name == "flipBookSize_y")
-                                    {
-                                        flipBookSizeYExp = p.exp;
+                                        flipBookSizeXExp = p.exp.x;
+                                        flipBookSizeYExp = p.exp.y;
                                     }
                                     if (flipBookSizeXExp != null && flipBookSizeYExp != null)
                                     {
@@ -294,21 +291,21 @@ namespace UnityEditor.VFX.Block
 
                     if (flipBookSizeXExp == null || flipBookSizeYExp == null)
                     {
-                        flipBookSizeXExp = new VFXValue<int>(1);
-                        flipBookSizeYExp = new VFXValue<int>(1);
+                        flipBookSizeXExp = new VFXValue<float>(1);
+                        flipBookSizeYExp = new VFXValue<float>(1);
                     }
 
                     // FrameRange variable: (startFrame, frameCount, [stride])
                     switch (animationRange)
                     {
                         case AnimationRange.EntireFlipbook:
-                            yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXValue<float>(0), new VFXExpressionCastIntToFloat(flipBookSizeXExp * flipBookSizeYExp), new VFXValue<float>(1)), "frameRange");
+                            yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXValue<float>(0), flipBookSizeXExp * flipBookSizeYExp, new VFXValue<float>(1)), "frameRange");
                             break;
                         case AnimationRange.FlipbookRow:
-                            yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpressionCastIntToFloat(flipBookIndexExp * flipBookSizeXExp), new VFXExpressionCastIntToFloat(flipBookSizeXExp), new VFXValue<float>(1)), "frameRange");
+                            yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpressionCastIntToFloat(flipBookIndexExp) * flipBookSizeXExp, flipBookSizeXExp, new VFXValue<float>(1)), "frameRange");
                             break;
                         case AnimationRange.FlipbookColumn:
-                            yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpressionCastIntToFloat(flipBookIndexExp), new VFXExpressionCastIntToFloat(flipBookSizeYExp), new VFXExpressionCastIntToFloat(flipBookSizeXExp)), "frameRange");
+                            yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpressionCastIntToFloat(flipBookIndexExp), flipBookSizeYExp, flipBookSizeXExp), "frameRange");
                             break;
                         case AnimationRange.StartEndFrames:
                             yield return new VFXNamedExpression(new VFXExpressionCombine(frameRangeExp.x, frameRangeExp.y - frameRangeExp.x + new VFXValue<float>(1), new VFXValue<float>(1)), "frameRange");

@@ -7,15 +7,21 @@ namespace UnityEditor.VFX
     [VFXInfo(type = typeof(Vector2))]
     class VFXSlotFloat2 : VFXSlot
     {
-        sealed protected override bool CanConvertFrom(Type type)
+        static public bool CanConvertFromVector2(Type type)
         {
-            return base.CanConvertFrom(type)
+            return type == typeof(Vector2)
                 || type == typeof(float)
                 || type == typeof(uint)
                 || type == typeof(int)
                 || type == typeof(Vector3)
                 || type == typeof(Vector4)
                 || type == typeof(Color);
+        }
+
+        sealed protected override bool CanConvertFrom(Type type)
+        {
+            return base.CanConvertFrom(type)
+                || CanConvertFromVector2(type);
         }
 
         sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
