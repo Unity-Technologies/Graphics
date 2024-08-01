@@ -1,11 +1,13 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.Universal.Internal;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 
 namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderer
     {
+        Material m_DebugBlitMaterial = Blitter.GetBlitMaterial(TextureXR.dimension);
+
         bool DebugHandlerRequireDepthPass(UniversalCameraData cameraData)
         {
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
@@ -100,20 +102,20 @@ namespace UnityEngine.Rendering.Universal
                         ImportResourceParams importParams = new ImportResourceParams();
                         importParams.clearOnFirstUse = false;
                         importParams.discardOnLastUse = false;
-                        TextureHandle debugDepthTexture = renderGraph.ImportTexture(m_RenderGraphDebugTextureHandle, importParams);
+                        TextureHandle debugTexture = renderGraph.ImportTexture(m_RenderGraphDebugTextureHandle, importParams);
+
 
                         switch (fullScreenDebugMode)
                         {
                             case DebugFullScreenMode.Depth:
                             {
-                                CopyToDebugTexture(renderGraph, resourceData.cameraDepthTexture, debugDepthTexture);
+                                BlitToDebugTexture(renderGraph, resourceData.cameraDepthTexture, debugTexture);
                                 supportsStereo = true;
-
                                 break;
                             }
                             case DebugFullScreenMode.MotionVector:
                             {
-                                CopyToDebugTexture(renderGraph, resourceData.motionVectorColor, debugDepthTexture);
+                                BlitToDebugTexture(renderGraph, resourceData.motionVectorColor, debugTexture, isSourceTextureColor: true);
                                 supportsStereo = true;
                                 // Motion vectors are in signed UV space, zoom in and normalize for visualization. (note: maybe add an option to use (angle, mag) visualization)
                                 const float zoom = 0.01f;
@@ -125,34 +127,37 @@ namespace UnityEngine.Rendering.Universal
                             }
                             case DebugFullScreenMode.AdditionalLightsShadowMap:
                             {
-                                CopyToDebugTexture(renderGraph, resourceData.additionalShadowsTexture, debugDepthTexture);
+                                BlitToDebugTexture(renderGraph, resourceData.additionalShadowsTexture, debugTexture);
                                 break;
                             }
                             case DebugFullScreenMode.MainLightShadowMap:
                             {
-                                CopyToDebugTexture(renderGraph, resourceData.mainShadowsTexture, debugDepthTexture);
-
+                                BlitToDebugTexture(renderGraph, resourceData.mainShadowsTexture, debugTexture);
                                 break;
                             }
                             case DebugFullScreenMode.AdditionalLightsCookieAtlas:
                             {
-                                if (m_LightCookieManager != null)
-                                {
-                                    // Copy atlas texture to make it "readonly". Direct reference (debug=atlas) can lead to handle->texture reallocation.
-                                    var texHdl = renderGraph.ImportTexture(m_LightCookieManager.AdditionalLightsCookieAtlasTexture);
-                                    CopyToDebugTexture(renderGraph, texHdl, debugDepthTexture);
-                                }
+                                // Copy atlas texture to make it "readonly". Direct reference (debug=atlas) can lead to handle->texture reallocation.
+                                var textureHandle =
+                                    m_LightCookieManager is { AdditionalLightsCookieAtlasTexture: not null }
+                                        ? renderGraph.ImportTexture(m_LightCookieManager
+                                            .AdditionalLightsCookieAtlasTexture)
+                                        : TextureHandle.nullHandle;
+
+                                BlitToDebugTexture(renderGraph, textureHandle, debugTexture);
                                 break;
                             }
 
                             case DebugFullScreenMode.ReflectionProbeAtlas:
                             {
-                                if (m_ForwardLights.reflectionProbeManager.atlasRT != null)
-                                {
-                                    // Copy atlas texture to make it "readonly". Direct reference (debug=atlas) can lead to handle->texture reallocation.
-                                    var texHdl = renderGraph.ImportTexture(RTHandles.Alloc(m_ForwardLights.reflectionProbeManager.atlasRT, transferOwnership: true));
-                                    CopyToDebugTexture(renderGraph, texHdl, debugDepthTexture);
-                                }
+                                // Copy atlas texture to make it "readonly". Direct reference (debug=atlas) can lead to handle->texture reallocation.
+                                var textureHandle =
+                                    m_ForwardLights.reflectionProbeManager.atlasRT != null
+                                        ? renderGraph.ImportTexture(RTHandles.Alloc(
+                                            m_ForwardLights.reflectionProbeManager.atlasRT, transferOwnership: true))
+                                        : TextureHandle.nullHandle;
+
+                                BlitToDebugTexture(renderGraph, textureHandle, debugTexture);
                                 break;
                             }
                             default:
@@ -162,7 +167,7 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
 
-                    // Textures that are not in screen aspect ration need to be corrected
+                    // Textures that are not in screen aspect ratio need to be corrected
                     {
                         RenderTexture source = null;
                         switch (fullScreenDebugMode)
@@ -222,8 +227,7 @@ namespace UnityEngine.Rendering.Universal
                     importParams.clearOnFirstUse = false;
                     importParams.discardOnLastUse = false;
                     TextureHandle debugTexture = renderGraph.ImportTexture(m_RenderGraphDebugTextureHandle, importParams);
-
-                    CopyToDebugTexture(renderGraph, resourceData.stpDebugView, debugTexture);
+                    BlitToDebugTexture(renderGraph, resourceData.stpDebugView, debugTexture);
 
                     Rect uvRect = CalculateUVRect(cameraData, textureHeightPercent);
                     Vector4 rangeRemap = Vector4.zero; // Off
@@ -238,26 +242,39 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle dest;
         }
 
+        private void BlitToDebugTexture(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, bool isSourceTextureColor = false)
+        {
+            if (source.IsValid())
+            {
+                if (isSourceTextureColor) // Use AddCopyPass (RasterRenderPass) when we can
+                {
+                    renderGraph.AddCopyPass(source, destination);
+                }
+                else // Use direct blit (UnsafePass)
+                {
+                    var blitMaterialParameters =
+                        new RenderGraphModule.Util.RenderGraphUtils.BlitMaterialParameters(
+                            source, destination,
+                            m_DebugBlitMaterial, 0);
 
-        private void CopyToDebugTexture(RenderGraph renderGraph, TextureHandle source, TextureHandle destination, string passName = "Copy To Debug Texture")
+                    renderGraph.AddBlitPass(blitMaterialParameters);
+                }
+            }
+            else // Texture is invalid, just show a black view
+            {
+                BlitEmptyTexture(renderGraph, destination);
+            }
+        }
+
+        private void BlitEmptyTexture(RenderGraph renderGraph, TextureHandle destination, string passName = "Copy To Debug Texture")
         {
             using (var builder = renderGraph.AddRasterRenderPass<CopyToDebugTexturePassData>(passName, out var passData))
             {
-                if (source.IsValid())
-                {
-                    passData.src = source;
-                    builder.UseTexture(source);
-                }
-                else
-                {
-                    passData.src = renderGraph.defaultResources.blackTexture;
-                }
-
+                passData.src = renderGraph.defaultResources.blackTexture;
                 passData.dest = destination;
                 builder.SetRenderAttachment(destination, 0);
 
                 builder.AllowPassCulling(false);
-
                 builder.SetRenderFunc((CopyToDebugTexturePassData data, RasterGraphContext context) =>
                 {
                     Blitter.BlitTexture(context.cmd, data.src, new Vector4(1,1,0,0), 0, false);
