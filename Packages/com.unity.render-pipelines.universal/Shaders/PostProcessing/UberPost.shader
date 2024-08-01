@@ -15,6 +15,8 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_fragment _ SCREEN_COORD_OVERRIDE
         #pragma multi_compile_local_fragment _ HDR_INPUT HDR_ENCODING
 
+        #pragma dynamic_branch_local_fragment _ _HDR_OVERLAY
+
         #ifdef HDR_ENCODING
         #define HDR_INPUT 1 // this should be defined when HDR_ENCODING is defined
         #endif
@@ -282,8 +284,11 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #ifdef HDR_ENCODING
             {
                 // HDR UI composition
-                float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
-                color.rgb = SceneUIComposition(uiSample, color.rgb, PaperWhite, MaxNits);
+                UNITY_BRANCH if(_HDR_OVERLAY)
+                {
+                    float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
+                    color.rgb = SceneUIComposition(uiSample, color.rgb, PaperWhite, MaxNits);
+                }
             }
             #endif
 

@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="blitMaterial">The <c>Material</c> to use for copying the executing the final blit.</param>
         /// <param name="blitHDRMaterial">The <c>Material</c> to use for copying the executing the final blit when HDR output is active.</param>
         /// <seealso cref="RenderPassEvent"/>
-        public FinalBlitPass(RenderPassEvent evt, Material blitMaterial, Material blitHDRMaterial)            
+        public FinalBlitPass(RenderPassEvent evt, Material blitMaterial, Material blitHDRMaterial)
         {
             profilingSampler = ProfilingSampler.Get(URPProfileId.BlitFinalToBackBuffer);
             base.useNativeRenderPass = false;
@@ -96,10 +96,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_Source = colorHandle;
         }
 
-        static void SetupHDROutput(ColorGamut hdrDisplayColorGamut, Material material, HDROutputUtils.Operation hdrOperation, Vector4 hdrOutputParameters)
+        static void SetupHDROutput(ColorGamut hdrDisplayColorGamut, Material material, HDROutputUtils.Operation hdrOperation, Vector4 hdrOutputParameters, bool rendersOverlayUI)
         {
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputParameters);
             HDROutputUtils.ConfigureHDROutput(material, hdrDisplayColorGamut, hdrOperation);
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings.HDROverlay, rendersOverlayUI);
         }
 
         /// <inheritdoc/>
@@ -176,7 +177,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!cameraData.postProcessEnabled)
                         hdrOperation |= HDROutputUtils.Operation.ColorConversion;
 
-                    SetupHDROutput(cameraData.hdrDisplayColorGamut, m_PassData.blitMaterialData.material, hdrOperation, hdrOutputLuminanceParams);
+                    SetupHDROutput(cameraData.hdrDisplayColorGamut, m_PassData.blitMaterialData.material, hdrOperation, hdrOutputLuminanceParams, cameraData.rendersOverlayUI);
                 }
 
                 if (resolveToDebugScreen)
@@ -329,7 +330,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         if (!data.cameraData.postProcessEnabled)
                             hdrOperation |= HDROutputUtils.Operation.ColorConversion;
 
-                        SetupHDROutput(data.cameraData.hdrDisplayColorGamut, data.blitMaterialData.material, hdrOperation, data.hdrOutputLuminanceParams);
+                        SetupHDROutput(data.cameraData.hdrDisplayColorGamut, data.blitMaterialData.material, hdrOperation, data.hdrOutputLuminanceParams, data.cameraData.rendersOverlayUI);
                     }
 
                     if (resolveToDebugScreen)

@@ -681,7 +681,7 @@ namespace UnityEngine.Rendering.Universal
                     // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
                     // Otherwise encoding will happen in the final post process pass or the final blit pass
                     HDROutputUtils.Operation hdrOperation = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
-                    SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperation);
+                    SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperation, cameraData.rendersOverlayUI);
                 }
 
                 if (m_UseFastSRGBLinearConversion)
@@ -1628,13 +1628,14 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
 #region HDR Output
-        void SetupHDROutput(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Material material, HDROutputUtils.Operation hdrOperations)
+        void SetupHDROutput(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Material material, HDROutputUtils.Operation hdrOperations, bool rendersOverlayUI)
         {
             Vector4 hdrOutputLuminanceParams;
             UniversalRenderPipeline.GetHDROutputLuminanceParameters(hdrDisplayInformation, hdrDisplayColorGamut, m_Tonemapping, out hdrOutputLuminanceParams);
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
 
             HDROutputUtils.ConfigureHDROutput(material, hdrDisplayColorGamut, hdrOperations);
+            CoreUtils.SetKeyword(m_Materials.uber, ShaderKeywordStrings.HDROverlay, rendersOverlayUI);
         }
 #endregion
 
@@ -1667,7 +1668,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!cameraData.postProcessEnabled)
                     hdrOperations |= HDROutputUtils.Operation.ColorConversion;
 
-                SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
+                SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations, cameraData.rendersOverlayUI);
             }
 
             CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
@@ -1725,7 +1726,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (requireHDROutput)
                     {
-                        SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.scalingSetup, hdrOperations);
+                        SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.scalingSetup, hdrOperations, cameraData.rendersOverlayUI);
                     }
 
                     if (isFxaaEnabled)

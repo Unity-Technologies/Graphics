@@ -1274,6 +1274,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for HDR Color Grading. </summary>
         public const string HDRGrading = "_HDR_GRADING";
 
+        /// <summary> Keyword used for HDR UI Overlay compositing. </summary>
+        public const string HDROverlay = "_HDR_OVERLAY";
+
         /// <summary> Keyword used for ACES Tonemapping. </summary>
         public const string TonemapACES = "_TONEMAP_ACES";
 
