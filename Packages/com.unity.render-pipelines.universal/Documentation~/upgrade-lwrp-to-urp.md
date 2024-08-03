@@ -17,7 +17,7 @@ Unity upgrades any existing string references to LWRP automatically as part of t
 
 For each Assembly Definition Asset in your Project:
 
-* Select the Assembly Defintion Asset
+* Select the Assembly Definition Asset
 * In the Inspector, enable **Use GUIDs**
 
 For information on using Assembly Definition files, refer to the [documentation on Assembly Definitions](https://docs.unity3d.com/Manual/ScriptCompilationAssemblyDefinitionFiles.html).
