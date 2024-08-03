@@ -1,4 +1,4 @@
-# Keyboard shortcuts reference
+# Shader Graph keyboard shortcuts reference
 
 Shader Graph provides several keyboard shortcuts to help you work more efficiently. This page lists the keyboard shortcuts available in Shader Graph. You can use the keyboard shortcuts to perform many tasks, such as the following:
 
@@ -13,7 +13,7 @@ You can also use the Shortcuts Manager to customize the keyboard shortcuts to su
 
 The following table lists the built-in keyboard shortcuts available in Shader Graph. You can't customize the built-in keyboard shortcuts. 
 
-| Command               | Windows   | MacOS    | Description      |
+| Command               | Windows   | macOS    | Description      |
 |:----------------------|:----------|:---------|:-----------------|
 | Frame All             | A         | A        | Display the entire graph in the [Shader Graph window](Shader-Graph-Window.md). |
 | Frame Selection       | F         | F        | Display the selected nodes of the graph in the [Shader Graph window](Shader-Graph-Window.md). |
@@ -29,7 +29,7 @@ The following table lists the built-in keyboard shortcuts available in Shader Gr
 
 The following table lists the keyboard shortcuts available in Shader Graph that you can customize with [Shortcuts Manager](https://docs.unity3d.com/Manual/ShortcutsManager.html).
 
-| Command               | Windows          | MacOS           | Description      |
+| Command               | Windows          | macOS           | Description      |
 |:----------------------|:-----------------|:----------------|:-----------------|
 | Close Tab             | Ctrl + F4        | Cmd + F4        | Close the selected tab. |
 | Cycle Color Mode      | Shift + 4        | Shift + 4       | Cycle through the different color modes. |
@@ -49,7 +49,7 @@ The following table lists the keyboard shortcuts available in Shader Graph that 
 
 The following table lists the keyboard shortcuts you can use to add nodes in Shader Graph. You can also customize these keyboard shortcuts with the [Shortcuts Manager](https://docs.unity3d.com/Manual/ShortcutsManager.html).
 
-| Node              | Windows   | MacOS       |
+| Node              | Windows   | macOS       |
 |:------------------|:----------|:------------|
 | Absolute          | Alt + \\  | Option + \\ |   
 | Add               | Alt + A   | Option + A  | 
