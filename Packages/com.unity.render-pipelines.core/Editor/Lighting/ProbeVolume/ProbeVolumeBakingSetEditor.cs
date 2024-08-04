@@ -595,7 +595,7 @@ namespace UnityEditor.Rendering
             {
                 if (m_Scenarios.count == 1)
                 {
-                    EditorUtility.DisplayDialog("Can't delete scenario", "You can't delete the last scenario. You need to have at least one.", "Ok");
+                    EditorUtility.DisplayDialog("Can't delete scenario", "You can't delete the last scenario. You need to have at least one.", "OK");
                     return;
                 }
                 var scenario = bakingSet.m_LightingScenarios[list.index];

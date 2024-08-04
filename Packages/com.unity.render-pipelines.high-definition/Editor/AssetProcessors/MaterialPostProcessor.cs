@@ -151,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorUtility.DisplayDialog("HDRP ShaderGraph scan for upgrade", "The ShaderGraphs with HDRP SubTarget in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
                                 " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
                                 " Unity will re-import all of the HDRP ShaderGraphs in your project, save them to disk, and check them out in source control if needed.\n" +
-                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
+                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "OK");
                         }
 
                         // When we open a project from scratch all the material have been converted and we don't need to do it two time.
@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
                                 " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
                                 " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
-                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
+                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "OK");
                         }
 
                         // When we open a project from scratch all the material have been converted and we don't need to do it two time.

@@ -36,7 +36,7 @@ namespace UnityEditor.Rendering
 
             Component firstDependency = dependencies.First();
             string error = $"Can't remove {component.GetType().Name} because {firstDependency.GetType().Name} depends on it.";
-            EditorUtility.DisplayDialog("Can't remove component", error, "Ok");
+            EditorUtility.DisplayDialog("Can't remove component", error, "OK");
             return false;
         }
 

@@ -138,7 +138,7 @@ public class DocChecker : EditorWindow
     {
         if (!Directory.Exists(outputFolder))
         {
-            EditorUtility.DisplayDialog("Invalid Output Folder", "Please provide a valid output folder", "Ok");
+            EditorUtility.DisplayDialog("Invalid Output Folder", "Please provide a valid output folder", "OK");
             return;
         }
 
