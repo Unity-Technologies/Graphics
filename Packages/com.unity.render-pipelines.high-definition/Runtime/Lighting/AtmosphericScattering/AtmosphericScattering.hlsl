@@ -262,6 +262,9 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER || _DebugLightingMode == DEBUGLIGHTINGMODE_LUMINANCE_METER)
         return;
+
+    if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+        return;
 #endif
 
     // TODO: do not recompute this, but rather pass it directly.

@@ -1187,6 +1187,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
 #endif
+
+            // This is for texture streaming
+            m_DebugDisplaySettings.UpdateMaterials();
 #endif
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 

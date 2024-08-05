@@ -2207,7 +2207,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetDebugLightingMode() == DebugLightingMode.IndirectDiffuseLighting ||
                 GetDebugLightingMode() == DebugLightingMode.ReflectionLighting ||
                 GetDebugLightingMode() == DebugLightingMode.RefractionLighting ||
-                GetDebugLightingMode() == DebugLightingMode.ProbeVolumeSampledSubdivision
+                GetDebugLightingMode() == DebugLightingMode.ProbeVolumeSampledSubdivision ||
+                GetDebugMipMapMode() != DebugMipMapMode.None
             );
         }
 
