@@ -251,6 +251,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_BinCount = (int)(camera.farClipPlane * m_ZBinScale + m_ZBinOffset);
                 }
 
+                // Necessary to avoid negative bin count when the farClipPlane is set to Infinity in the editor.
+                m_BinCount = Math.Max(m_BinCount, 0);
+
                 var worldToViews = new Fixed2<float4x4>(cameraData.GetViewMatrix(0), cameraData.GetViewMatrix(math.min(1, viewCount - 1)));
                 var viewToClips = new Fixed2<float4x4>(cameraData.GetProjectionMatrix(0), cameraData.GetProjectionMatrix(math.min(1, viewCount - 1)));
 
