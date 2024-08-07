@@ -110,8 +110,11 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>
         /// If true, is the last pass of a xr camera
+        /// Multipass last pass: pass ID == 1, viewCount == 1
+        /// Singlepass last pass: pass ID == 0, viewCount ==2
+        /// Emptypass(non-XR) last pass: pass ID == 0, viewCount == 0
         /// </summary>
-        public bool isLastCameraPass => (multipassId == 0 && viewCount <= 1) || (multipassId == 1 && viewCount > 1);
+        public bool isLastCameraPass => (multipassId == 1 && viewCount <= 1) || (multipassId == 0 && viewCount > 1) || (multipassId == 0 && viewCount == 0) /* ViewCount 0 handles the empty pass*/;
 
         /// <summary>
         /// Index of the pass inside the frame.
