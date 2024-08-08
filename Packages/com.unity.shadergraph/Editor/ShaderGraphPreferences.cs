@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
         internal delegate void PreferenceChangedDelegate();
 
         internal static PreferenceChangedDelegate onVariantLimitChanged;
-        static int m_VariantLimit = 128;
+        static int m_VariantLimit = 2048;
 
         internal static PreferenceChangedDelegate onAllowDeprecatedChanged;
         internal static int variantLimit
@@ -76,6 +76,7 @@ namespace UnityEditor.ShaderGraph
 
             EditorGUI.BeginChangeCheck();
             var variantLimitValue = EditorGUILayout.DelayedIntField("Shader Variant Limit", variantLimit);
+            variantLimitValue = Mathf.Max(0, variantLimitValue);
             if (EditorGUI.EndChangeCheck())
             {
                 variantLimit = variantLimitValue;
