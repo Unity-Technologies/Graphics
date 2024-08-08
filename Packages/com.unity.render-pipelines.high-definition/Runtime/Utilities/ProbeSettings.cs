@@ -287,8 +287,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public PlanarReflectionAtlasResolutionScalableSettingValue resolutionScalable;
         [SerializeField]
         internal PlanarReflectionAtlasResolution resolution;
+        /// <summary>The resolution of the cube probe.</summary>
         [SerializeField]
-        internal CubeReflectionResolutionScalableSettingValue cubeResolution;
+        public CubeReflectionResolutionScalableSettingValue cubeResolution;
         /// <summary>Probe camera settings.</summary>
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;

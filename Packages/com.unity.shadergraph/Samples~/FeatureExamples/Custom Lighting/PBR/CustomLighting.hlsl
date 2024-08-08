@@ -4,33 +4,45 @@
 void MainLight_float(float3 worldPos, out float3 direction, out float3 color, out float shadowAtten)
 {
 #ifdef SHADERGRAPH_PREVIEW
-    direction = normalize(float3(-0.5,0.5,-0.5));
-    color = float3(1,1,1);
+    direction = normalize(float3(-0.5, 0.5, -0.5));
+    color = float3(1, 1, 1);
     shadowAtten = 1;
 #else
-    float4 shadowCoord = TransformWorldToShadowCoord(worldPos);
-    Light mainLight = GetMainLight(shadowCoord);
-    direction = mainLight.direction;
-    color = mainLight.color;
-    shadowAtten = mainLight.shadowAttenuation;
+    #ifdef UNIVERSAL_PIPELINE_CORE_INCLUDED //only define these values if URP is active
+        float4 shadowCoord = TransformWorldToShadowCoord(worldPos);
+        Light mainLight = GetMainLight(shadowCoord);
+        direction = mainLight.direction;
+        color = mainLight.color;
+        shadowAtten = mainLight.shadowAttenuation;
+    #else
+        direction = normalize(float3(-0.5, 0.5, -0.5));
+        color = float3(1, 1, 1);
+        shadowAtten = 1;
+    #endif
 #endif
 }
 
 void MainLight_half(half3 worldPos, out half3 direction, out half3 color, out half shadowAtten)
 {
 #ifdef SHADERGRAPH_PREVIEW
-    direction = normalize(half3(-0.5,0.5,0.5));
-    color = half3(1,1,1);
+    direction = normalize(half3(-0.5, 0.5, 0.5));
+    color = half3(1, 1, 1);
     shadowAtten = 1;
 #else
-    half4 shadowCoord = TransformWorldToShadowCoord(worldPos);
-    Light mainLight = GetMainLight(shadowCoord);
-    direction = mainLight.direction;
-    color = mainLight.color;
-    shadowAtten = mainLight.shadowAttenuation;
+    #ifdef UNIVERSAL_PIPELINE_CORE_INCLUDED //only define these values if URP is active
+        half4 shadowCoord = TransformWorldToShadowCoord(worldPos);
+        Light mainLight = GetMainLight(shadowCoord);
+        direction = mainLight.direction;
+        color = mainLight.color;
+        shadowAtten = mainLight.shadowAttenuation;
+    #else
+        direction = normalize(half3(-0.5, 0.5, 0.5));
+        color = half3(1, 1, 1);
+        shadowAtten = 1;
+    #endif
 #endif
 }
-
+#ifdef UNIVERSAL_PIPELINE_CORE_INCLUDED //only define these values if URP is active
 #ifndef SHADERGRAPH_PREVIEW
 
 // This function gets additional light data and calculates realtime shadows
@@ -196,4 +208,5 @@ void AddAdditionalLightsSimple_half(half Smoothness, half3 WorldPosition, half3 
 #endif
 }
 
+#endif
 #endif

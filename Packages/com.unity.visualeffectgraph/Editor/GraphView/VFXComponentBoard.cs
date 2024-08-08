@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.SceneManagement;
 
-using UnityEditor.VFX.UIElements;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
@@ -20,7 +18,7 @@ namespace UnityEditor.VFX.UI
         public enum Board
         {
             blackboard,
-            componentBoard
+            componentBoard,
         }
 
 
@@ -68,40 +66,27 @@ namespace UnityEditor.VFX.UI
             EditorPrefs.SetString(string.Format(rectPreferenceFormat, board), string.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
         }
 
-        public static readonly Vector2 sizeMargin = Vector2.one * 30;
-
-        public static bool ValidatePosition(GraphElement element, VFXView view, Rect defaultPosition)
+        public static void ValidatePosition(GraphElement element, VFXView view, Rect defaultPosition)
         {
-            Rect viewrect = view.contentRect;
-            Rect rect = element.GetPosition();
-            bool changed = false;
+            var viewrect = view.contentRect;
+            var rect = element.GetPosition();
+            var changed = false;
 
-            if (!viewrect.Contains(rect.position))
+            if (rect.xMin > viewrect.xMax || rect.xMax > viewrect.xMax)
             {
-                Vector2 newPosition = defaultPosition.position;
-                if (!viewrect.Contains(defaultPosition.position))
-                {
-                    newPosition = sizeMargin;
-                }
-
-                rect.position = newPosition;
-
+                var width = Math.Max(Math.Min(rect.width, viewrect.width), element.resolvedStyle.minWidth.value);
+                rect.xMax = viewrect.xMax;
+                rect.xMin = Math.Max(0, rect.xMax - width);
+                rect.width = width;
                 changed = true;
             }
 
-            Vector2 maxSizeInView = viewrect.max - rect.position - sizeMargin;
-            float newWidth = Mathf.Max(element.resolvedStyle.minWidth.value, Mathf.Min(rect.width, maxSizeInView.x));
-            float newHeight = Mathf.Max(element.resolvedStyle.minHeight.value, Mathf.Min(rect.height, maxSizeInView.y));
-
-            if (Mathf.Abs(newWidth - rect.width) > 1)
+            if (rect.yMin > viewrect.yMax || rect.yMax > viewrect.yMax)
             {
-                rect.width = newWidth;
-                changed = true;
-            }
-
-            if (Mathf.Abs(newHeight - rect.height) > 1)
-            {
-                rect.height = newHeight;
+                var height = Math.Max(Math.Min(rect.height, viewrect.height), element.resolvedStyle.minHeight.value);
+                rect.yMax = viewrect.yMax;
+                rect.yMin = Math.Max(0, rect.yMax - height);
+                rect.height = height;
                 changed = true;
             }
 
@@ -109,8 +94,6 @@ namespace UnityEditor.VFX.UI
             {
                 element.SetPosition(rect);
             }
-
-            return false;
         }
     }
 

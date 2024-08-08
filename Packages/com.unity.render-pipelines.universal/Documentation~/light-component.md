@@ -50,10 +50,6 @@ The Light Inspector includes the following groups of properties:
 
 | Property:| Function: |
 |:---|:---|
-| **Render Mode**| Use this drop-down to set the rendering priority of the selected Light. This can affect lighting fidelity and performance (refer to the **Performance Considerations** below). |
-|&nbsp;&nbsp;&nbsp;&nbsp;**Auto**| The rendering method is determined at run time, depending on the brightness of nearby lights and the current [Quality](https://docs.unity3d.com/Manual/class-QualitySettings.html) settings. |
-|&nbsp;&nbsp;&nbsp;&nbsp;**Important**| The light is always rendered at per-pixel quality. Use **Important** mode only for the most noticeable visual effects (for example, the headlights of a player’s car). |
-|&nbsp;&nbsp;&nbsp;&nbsp;**Not Important**| The light is always rendered in a faster, vertex/object light mode.  |
 | **Culling Mask**| Use this to selectively exclude groups of objects from being affected by the Light. For more information, refer to [Layers](https://docs.unity3d.com/Manual/Layers.html).|
 
 ## <a name="Shadows"></a>Shadows

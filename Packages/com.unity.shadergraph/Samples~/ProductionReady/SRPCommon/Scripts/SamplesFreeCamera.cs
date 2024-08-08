@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
     /// Utility Free Camera component.
     /// </summary>
     [CoreRPHelpURLAttribute("Free-Camera")]
-    public class SamplesFreeCamera : MonoBehaviour
+    public class PRSSamplesFreeCamera : MonoBehaviour
     {
         const float k_MouseSensitivityMultiplier = 0.01f;
 

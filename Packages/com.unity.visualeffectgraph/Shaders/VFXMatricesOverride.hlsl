@@ -30,8 +30,11 @@ static float4x4 vfxWorldToLocal;
 #else //SHADER_STAGE_COMPUTE
 
 //Store the previous definition of UNITY_MATRIX_M/I_M
-float4x4 GetSGVFXUnityObjectToWorld()     { return UNITY_MATRIX_M; }
-float4x4 GetSGVFXUnityWorldToObject()     { return UNITY_MATRIX_I_M; }
+float4x4 GetSGVFXUnityObjectToWorldBackup()     { return UNITY_MATRIX_M; }
+float4x4 GetSGVFXUnityWorldToObjectBackup()     { return UNITY_MATRIX_I_M; }
+
+float4x4 GetSGVFXUnityObjectToWorld()     { return GetSGVFXUnityObjectToWorldBackup(); }
+float4x4 GetSGVFXUnityWorldToObject()     { return GetSGVFXUnityWorldToObjectBackup(); }
 
 // Abstraction of Unity matrices for VFX element/particles.
 #undef  UNITY_MATRIX_M

@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void Create(bool useProjectSettingsFolder, bool activateAsset)
         {
-            HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: true, assignToActiveAsset: true);
+            HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: useProjectSettingsFolder, assignToActiveAsset: activateAsset);
         }
 
         protected override void Ensure()

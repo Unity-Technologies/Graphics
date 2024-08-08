@@ -632,6 +632,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             for (int i = 0; i < m_Datas.Count; i++)
             {
                 var data = m_Datas[i];
+                if (data.value is null)
+                    continue;
+                
                 var type = data.value.GetType();
 
                 // Data requirement interfaces need generic type arguments
@@ -648,7 +651,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return;
 
             // Ensure data object exists in list
-            var data = m_Datas.SelectValue().FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
+            T data = null;
+            foreach (var x in m_Datas.SelectValue())
+            {
+                if (x is T y)
+                {
+                    data = y;
+                    break;
+                }
+            }
+
             if (data == null)
             {
                 data = Activator.CreateInstance(typeof(T)) as T;

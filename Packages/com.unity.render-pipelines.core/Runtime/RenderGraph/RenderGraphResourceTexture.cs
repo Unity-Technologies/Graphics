@@ -241,49 +241,43 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>The texture descriptor hash.</returns>
         public override int GetHashCode()
         {
-            int hashCode = 17;
-
-            unchecked
+            var hashCode = HashFNV1A32.Create();
+            switch (sizeMode)
             {
-                switch (sizeMode)
-                {
-                    case TextureSizeMode.Explicit:
-                        hashCode = hashCode * 23 + width;
-                        hashCode = hashCode * 23 + height;
-                        break;
-                    case TextureSizeMode.Functor:
-                        if (func != null)
-                            hashCode = hashCode * 23 + func.GetHashCode();
-                        break;
-                    case TextureSizeMode.Scale:
-                        hashCode = hashCode * 23 + scale.x.GetHashCode();
-                        hashCode = hashCode * 23 + scale.y.GetHashCode();
-                        break;
-                }
-
-                hashCode = hashCode * 23 + mipMapBias.GetHashCode();
-                hashCode = hashCode * 23 + slices;
-                hashCode = hashCode * 23 + (int)depthBufferBits;
-                hashCode = hashCode * 23 + (int)colorFormat;
-                hashCode = hashCode * 23 + (int)filterMode;
-                hashCode = hashCode * 23 + (int)wrapMode;
-                hashCode = hashCode * 23 + (int)dimension;
-                hashCode = hashCode * 23 + (int)memoryless;
-                hashCode = hashCode * 23 + (int)vrUsage;
-                hashCode = hashCode * 23 + anisoLevel;
-                hashCode = hashCode * 23 + (enableRandomWrite ? 1 : 0);
-                hashCode = hashCode * 23 + (useMipMap ? 1 : 0);
-                hashCode = hashCode * 23 + (autoGenerateMips ? 1 : 0);
-                hashCode = hashCode * 23 + (isShadowMap ? 1 : 0);
-                hashCode = hashCode * 23 + (bindTextureMS ? 1 : 0);
-                hashCode = hashCode * 23 + (useDynamicScale ? 1 : 0);
-                hashCode = hashCode * 23 + (int)msaaSamples;
-#if UNITY_2020_2_OR_NEWER
-                hashCode = hashCode * 23 + (fastMemoryDesc.inFastMemory ? 1 : 0);
-#endif
+                case TextureSizeMode.Explicit:
+                    hashCode.Append(width);
+                    hashCode.Append(height);
+                    break;
+                case TextureSizeMode.Functor:
+                    if (func != null)
+                        hashCode.Append(func);
+                    break;
+                case TextureSizeMode.Scale:
+                    hashCode.Append(scale);
+                    break;
             }
 
-            return hashCode;
+            hashCode.Append(mipMapBias);
+            hashCode.Append(slices);
+            hashCode.Append((int) depthBufferBits);
+            hashCode.Append((int) colorFormat);
+            hashCode.Append((int) filterMode);
+            hashCode.Append((int) wrapMode);
+            hashCode.Append((int) dimension);
+            hashCode.Append((int) memoryless);
+            hashCode.Append((int) vrUsage);
+            hashCode.Append(anisoLevel);
+            hashCode.Append(enableRandomWrite);
+            hashCode.Append(useMipMap);
+            hashCode.Append(autoGenerateMips);
+            hashCode.Append(isShadowMap);
+            hashCode.Append(bindTextureMS);
+            hashCode.Append(useDynamicScale);
+            hashCode.Append((int) msaaSamples);
+#if UNITY_2020_2_OR_NEWER
+            hashCode.Append(fastMemoryDesc.inFastMemory);
+#endif
+            return hashCode.value;
         }
     }
 

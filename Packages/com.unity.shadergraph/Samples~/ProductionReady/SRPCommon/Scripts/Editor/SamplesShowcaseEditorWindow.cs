@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 using System.Reflection;
 
 
-public class SamplesWindow : EditorWindow
+public class PRSSamplesWindow : EditorWindow
 {
      [InitializeOnLoadMethod]
     static void Init() 
@@ -23,9 +23,9 @@ public class SamplesWindow : EditorWindow
 
     }
 
-    public static SamplesWindow OpenSamplesShowcaseWindow()
+    public static PRSSamplesWindow OpenSamplesShowcaseWindow()
     {
-        SamplesWindow window = GetWindow<SamplesWindow>("Samples Showcase", true, System.Type.GetType("UnityEditor.InspectorWindow,UnityEditor.dll"));
+        PRSSamplesWindow window = GetWindow<PRSSamplesWindow>("Samples Showcase", true, System.Type.GetType("UnityEditor.InspectorWindow,UnityEditor.dll"));
         return window;
     }
 
@@ -37,7 +37,7 @@ public class SamplesWindow : EditorWindow
     private void UpdateSamplesWindow()
     {
         VisualElement root = rootVisualElement;
-        var currentShowcase = (SamplesShowcase)FindFirstObjectByType(typeof(SamplesShowcase));
+        var currentShowcase = (PRSSamplesShowcase)FindFirstObjectByType(typeof(PRSSamplesShowcase));
         root.Clear();
         if (currentShowcase != null)
         {

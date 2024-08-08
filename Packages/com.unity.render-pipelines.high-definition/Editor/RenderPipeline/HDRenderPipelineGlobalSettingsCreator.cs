@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using System.Reflection;
+using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -18,14 +20,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
             static HDRenderPipelineGlobalSettings settings;
             static bool updateGraphicsSettings = false;
+
+            private static string GetCurrentOpenedPath()
+            {
+                Type projectWindowUtilType = typeof(ProjectWindowUtil);
+                MethodInfo getActiveFolderPath = projectWindowUtilType.GetMethod("GetActiveFolderPath", BindingFlags.Static | BindingFlags.NonPublic);
+                object obj = getActiveFolderPath.Invoke(null, new object[0]);
+                return obj.ToString();
+            }
+
             public static void Clone(HDRenderPipelineGlobalSettings src, bool assignToActiveAsset)
             {
                 settings = src;
                 updateGraphicsSettings = assignToActiveAsset;
                 var assetCreator = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>();
 
-                string path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{src.name}.asset";
+                var path = GetCurrentOpenedPath() + $"/{src.name}.asset";
                 CoreUtils.EnsureFolderTreeInAssetFilePath(path);
+
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, path, CoreEditorStyles.globalSettingsIcon, null);
             }
 
@@ -34,12 +46,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings = null;
                 updateGraphicsSettings = assignToActiveAsset;
 
-                var path = "HDRenderPipelineGlobalSettings.asset";
-                if (useProjectSettingsFolder)
-                {
-                    path = $"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset";
-                    CoreUtils.EnsureFolderTreeInAssetFilePath(path);
-                }
+                string path = (useProjectSettingsFolder) ?
+                    $"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset" :
+                    GetCurrentOpenedPath() + "/HDRenderPipelineGlobalSettings.asset";
+                CoreUtils.EnsureFolderTreeInAssetFilePath(path);
+
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>(), path, CoreEditorStyles.globalSettingsIcon, null);
             }
         }

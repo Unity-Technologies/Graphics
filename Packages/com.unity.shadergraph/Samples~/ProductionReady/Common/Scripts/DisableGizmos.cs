@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 [ExecuteInEditMode]
-public class DisableGizmos : MonoBehaviour
+public class PRSDisableGizmos : MonoBehaviour
 {
     // Start is called before the first frame update
     void Awake()

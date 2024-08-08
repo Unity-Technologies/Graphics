@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class Samples
+public class PRSSamples
 {
     public string introduction;
-    public Sample[] samples;
+    public PRSSample[] samples;
     private Dictionary<GameObject, int> prefabToSample;
 
-    public static Samples CreateFromJSON(string jsonString, GameObject[] prefabs = null)
+    public static PRSSamples CreateFromJSON(string jsonString, GameObject[] prefabs = null)
     {
-        var newSamples = JsonUtility.FromJson<Samples>(jsonString);
+        var newSamples = JsonUtility.FromJson<PRSSamples>(jsonString);
 
         if (prefabs != null)
         {
@@ -27,12 +27,12 @@ public class Samples
         return newSamples;
     }
     
-    public Sample FindSampleWithPrefab(GameObject prefab)
+    public PRSSample FindSampleWithPrefab(GameObject prefab)
     {
         if ( prefabToSample.ContainsKey(prefab) )
             return samples[prefabToSample[prefab]];
 
-        foreach(Sample sample in samples)
+        foreach(PRSSample sample in samples)
             if (sample.prefabName == prefab.name)
                 return sample;
         
@@ -42,7 +42,7 @@ public class Samples
 }
 
 [System.Serializable]
-public class Sample
+public class PRSSample
 {
     public string title;
     public string prefabName;

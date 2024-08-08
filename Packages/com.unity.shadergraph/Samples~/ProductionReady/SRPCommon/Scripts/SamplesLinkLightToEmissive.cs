@@ -4,7 +4,7 @@ using UnityEngine;
 
 
 [ExecuteInEditMode]
-public class SamplesLinkLightToEmissive : MonoBehaviour
+public class PRSSamplesLinkLightToEmissive : MonoBehaviour
 {
 
     public GameObject emissiveObject;

@@ -55,49 +55,6 @@ float2 VFXGetNormalizedScreenSpaceUV(float4 clipPos)
     return clipPos.xy * frac(_ScreenParams.zw);
 }
 
-float4 VFXTransformPositionWorldToClip(float3 posWS)
-{
-#if VFX_WORLD_SPACE
-    posWS = GetCameraRelativePositionWS(posWS);
-#endif
-    return TransformWorldToHClip(posWS);
-}
-
-float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
-{
-    float3 posWS = TransformObjectToWorld(posOS);
-    return mul(UNITY_MATRIX_UNJITTERED_VP, float4(posWS, 1.0f));
-}
-
-float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
-{
-    float3 posWS = TransformPreviousObjectToWorld(posOS);
-    return mul(UNITY_MATRIX_PREV_VP, float4(posWS, 1.0f));
-}
-
-float4 VFXTransformPositionObjectToClip(float3 posOS)
-{
-    float3 posWS = TransformObjectToWorld(posOS);
-    return VFXTransformPositionWorldToClip(posWS);
-}
-
-float3 VFXTransformPositionWorldToView(float3 posWS)
-{
-#if VFX_WORLD_SPACE
-    posWS = GetCameraRelativePositionWS(posWS);
-#endif
-    return TransformWorldToView(posWS);
-}
-
-float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
-{
-#if VFX_WORLD_SPACE
-    return GetCameraRelativePositionWS(posWS);
-#else
-    return posWS;
-#endif
-}
-
 float4x4 VFXGetObjectToWorldMatrix()
 {
 // NOTE: If using the new generation path, explicitly call the object matrix (since the particle matrix is now baked into UNITY_MATRIX_M)
@@ -115,6 +72,50 @@ float4x4 VFXGetWorldToObjectMatrix()
     return GetSGVFXUnityWorldToObject();
 #else
     return GetWorldToObjectMatrix();
+#endif
+}
+
+
+float4 VFXTransformPositionWorldToClip(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    posWS = GetCameraRelativePositionWS(posWS);
+#endif
+    return TransformWorldToHClip(posWS);
+}
+
+float4 VFXTransformPositionObjectToNonJitteredClip(float3 posOS)
+{
+    float3 posWS = mul(VFXGetObjectToWorldMatrix(), float4(posOS,1)).xyz;
+    return mul(UNITY_MATRIX_UNJITTERED_VP, float4(posWS, 1.0f));
+}
+
+float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
+{
+    float3 posWS = TransformPreviousObjectToWorld(posOS);
+    return mul(UNITY_MATRIX_PREV_VP, float4(posWS, 1.0f));
+}
+
+float4 VFXTransformPositionObjectToClip(float3 posOS)
+{
+    float3 posWS = mul(VFXGetObjectToWorldMatrix(), float4(posOS,1)).xyz;
+    return VFXTransformPositionWorldToClip(posWS);
+}
+
+float3 VFXTransformPositionWorldToView(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    posWS = GetCameraRelativePositionWS(posWS);
+#endif
+    return TransformWorldToView(posWS);
+}
+
+float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    return GetCameraRelativePositionWS(posWS);
+#else
+    return posWS;
 #endif
 }
 

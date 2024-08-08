@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal
         public int endLayerValue;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
+        public bool useNormals;
         private unsafe fixed int renderTargetIds[4];
         private unsafe fixed bool renderTargetUsed[4];
 
@@ -134,6 +135,7 @@ namespace UnityEngine.Rendering.Universal
             var cachedSortingLayers = Light2DManager.GetCachedSortingLayer();
             InitializeBatchInfos(cachedSortingLayers);
 
+            bool anyNormals = false;
             batchCount = 0;
             for (var i = 0; i < cachedSortingLayers.Length;)
             {
@@ -164,7 +166,17 @@ namespace UnityEngine.Rendering.Universal
                 layerBatch.layerRange = sortingLayerRange;
                 layerBatch.lightStats = lightStats;
 
+                anyNormals |= layerBatch.lightStats.useNormalMap;
+
                 i = upperLayerInBatch + 1;
+            }
+
+            // Account for Sprite Mask and normal map usage as there might be masks on a different layer that need to mask out the normals
+            for (var i = 0; i < batchCount; ++i)
+            {
+                ref var layerBatch = ref s_LayerBatches[i];
+                var hasSpriteMask = SpriteMaskUtility.HasSpriteMaskInLayerRange(layerBatch.layerRange);
+                layerBatch.useNormals = layerBatch.lightStats.useNormalMap || (anyNormals && hasSpriteMask);
             }
 
             return s_LayerBatches;

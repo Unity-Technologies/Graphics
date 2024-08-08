@@ -12,8 +12,8 @@ using System.Reflection;
 using UnityEngine.Rendering;
 
 [InitializeOnLoad]
-[CustomEditor(typeof(SamplesShowcase))]
-public class SamplesShowcaseEditor : Editor
+[CustomEditor(typeof(PRSSamplesShowcase))]
+public class PRSSamplesShowcaseEditor : Editor
 {
     private static readonly string UXMLPath = "SamplesSelectionUXML";
     public static readonly string[] supportedExtensions = {".shadergraph", ".vfx", ".cs", ".hlsl", ".shader", ".asset",".mat",".fbx",".prefab"};
@@ -32,12 +32,12 @@ public class SamplesShowcaseEditor : Editor
 
 
     private VisualElement requiredSettingsBox;
-    private Dictionary<RequiredSettingBase, VisualElement> requiredSettingsVE = new Dictionary<RequiredSettingBase, VisualElement>();
+    private Dictionary<PRSRequiredSettingBase, VisualElement> requiredSettingsVE = new Dictionary<PRSRequiredSettingBase, VisualElement>();
 
 
     private void OnEnable()
     {
-        SamplesShowcase.OnUpdateSamplesInspector += UpdateSamplesInspector;
+        PRSSamplesShowcase.OnUpdateSamplesInspector += UpdateSamplesInspector;
         currentIndex = serializedObject.FindProperty("currentIndex");
         RenderPipelineManager.activeRenderPipelineCreated += UpdateRequiredSettingsDisplay;
     }
@@ -45,15 +45,15 @@ public class SamplesShowcaseEditor : Editor
     private void OnDisable()
     {
         RenderPipelineManager.activeRenderPipelineCreated -= UpdateRequiredSettingsDisplay;
-        SamplesShowcase.OnUpdateSamplesInspector -= UpdateSamplesInspector;
+        PRSSamplesShowcase.OnUpdateSamplesInspector -= UpdateSamplesInspector;
     }
 
         public void UpdateSamplesInspector()
     {
-        SamplesShowcase self;
+        PRSSamplesShowcase self;
         try
         {
-            self = (SamplesShowcase)target;
+            self = (PRSSamplesShowcase)target;
         }
         catch
         {
@@ -74,7 +74,7 @@ public class SamplesShowcaseEditor : Editor
         VisualElement inspectorUI = visualTree.CloneTree();
         root.Add(inspectorUI);
 
-        var self = (SamplesShowcase)target;
+        var self = (PRSSamplesShowcase)target;
 
         //colors
         headlineColor =  EditorGUIUtility.isProSkin ? self.headlineDarkColor : self.headlineLightColor;
@@ -83,35 +83,35 @@ public class SamplesShowcaseEditor : Editor
         codeColor = EditorGUIUtility.isProSkin ? self.codeDarkColor : self.codeLightColor;
         root.Q<Label>("headline").style.color = headlineColor;
 
-        bool isTextOnly = self.PresentationMode == SamplesShowcase.Mode.TextOnly ? true : false;
+        bool isTextOnly = self.PresentationMode == PRSSamplesShowcase.Mode.TextOnly ? true : false;
         root.Q<VisualElement>("SamplesSelection").style.display = isTextOnly ? UnityEngine.UIElements.DisplayStyle.None : UnityEngine.UIElements.DisplayStyle.Flex;
 
         // JSon data of the samples
         if (self.SamplesDescriptionsJson != null)
         {
-            string jsonText = SamplesShowcase.CleanupJson(self.SamplesDescriptionsJson.text);
+            string jsonText = PRSSamplesShowcase.CleanupJson(self.SamplesDescriptionsJson.text);
 
-            Samples sampleJsonObject = Samples.CreateFromJSON(jsonText, self.samplesPrefabs);
+            PRSSamples sampleJsonObject = PRSSamples.CreateFromJSON(jsonText, self.samplesPrefabs);
 
             //Introduction, it's the first part of the Samples Description text asset
             var introElement = root.Q<VisualElement>("intro");
             string introText = sampleJsonObject.introduction;
-            SamplesShowcase.SanitizedIntroduction = SamplesShowcase.SanitizeText(introText);
+            PRSSamplesShowcase.SanitizedIntroduction = PRSSamplesShowcase.SanitizeText(introText);
 
 
             CreateMarkdown(introElement, introText);
 
-            SamplesShowcase.SanitizedDescriptions = new Dictionary<string, string>();
-            SamplesShowcase.SanitizedTitles = new Dictionary<string, string>();
+            PRSSamplesShowcase.SanitizedDescriptions = new Dictionary<string, string>();
+            PRSSamplesShowcase.SanitizedTitles = new Dictionary<string, string>();
             foreach(GameObject prefab in self.samplesPrefabs)
             {
-                Sample currentSample = sampleJsonObject.FindSampleWithPrefab(prefab);
+                PRSSample currentSample = sampleJsonObject.FindSampleWithPrefab(prefab);
                 if (currentSample == null)
                     continue;
 
-                string description = SamplesShowcase.SanitizeText(currentSample.description);
-                SamplesShowcase.SanitizedDescriptions.Add(prefab.name, description);
-                SamplesShowcase.SanitizedTitles.Add(prefab.name, currentSample.title);
+                string description = PRSSamplesShowcase.SanitizeText(currentSample.description);
+                PRSSamplesShowcase.SanitizedDescriptions.Add(prefab.name, description);
+                PRSSamplesShowcase.SanitizedTitles.Add(prefab.name, currentSample.title);
             }
 
             //Create Samples Dropdown
@@ -123,7 +123,7 @@ public class SamplesShowcaseEditor : Editor
                 choices = new List<string>();
                 foreach (GameObject prefab in self.samplesPrefabs)
                 {
-                    Sample sample = sampleJsonObject.FindSampleWithPrefab(prefab);
+                    PRSSample sample = sampleJsonObject.FindSampleWithPrefab(prefab);
                     if (sample != null)
                     {
                         choices.Add(sample.title);
@@ -162,7 +162,7 @@ public class SamplesShowcaseEditor : Editor
         // Hide reference button
         requiredSettingsList.Q(name = null, "requiredSettingButton").style.display = DisplayStyle.None;
 
-        var requiredSettingsSO = (target as SamplesShowcase).requiredSettingsSO;
+        var requiredSettingsSO = (target as PRSSamplesShowcase).requiredSettingsSO;
         if (requiredSettingsSO != null && requiredSettingsSO.requiredSettings != null && requiredSettingsSO.requiredSettings.Count > 0)
         {
             foreach (var setting in requiredSettingsSO.requiredSettings)
@@ -202,7 +202,7 @@ public class SamplesShowcaseEditor : Editor
         UpdateRequiredSettingsDisplay();
 
         // Add open window behaviour
-        root.Q<Button>(name = "OpenInWindowButton").clicked += () => {EditorWindow.GetWindow<SamplesWindow>("Samples Showcase", true, System.Type.GetType("UnityEditor.InspectorWindow,UnityEditor.dll"));};
+        root.Q<Button>(name = "OpenInWindowButton").clicked += () => {EditorWindow.GetWindow<PRSSamplesWindow>("Samples Showcase", true, System.Type.GetType("UnityEditor.InspectorWindow,UnityEditor.dll"));};
 
 
         return root;
@@ -234,7 +234,7 @@ public class SamplesShowcaseEditor : Editor
 
     private void UpdateRequiredSettingsDisplay()
     {
-        var samplesShowcase = target as SamplesShowcase;
+        var samplesShowcase = target as PRSSamplesShowcase;
         if (samplesShowcase == null)
             return;
 
@@ -253,14 +253,14 @@ public class SamplesShowcaseEditor : Editor
         requiredSettingsBox.style.display = (displayBox) ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
-    private void GoToSample(SamplesShowcase self, VisualElement root, int index, Samples sampleJsonObject)
+    private void GoToSample(PRSSamplesShowcase self, VisualElement root, int index, PRSSamples sampleJsonObject)
     {
         serializedObject.Update();
         currentIndex.intValue = index; //Send the new index value to the monobehaviour
         var sampleInfosElement = root.Q<VisualElement>("sampleInfosContainer");
 
         // Finding the sample in question
-        Sample currentSample = sampleJsonObject.FindSampleWithPrefab(self.samplesPrefabs[index]);
+        PRSSample currentSample = sampleJsonObject.FindSampleWithPrefab(self.samplesPrefabs[index]);
 
         string currentSampleText = currentSample.description;
         if (self.gameobjectSamplesName != null)

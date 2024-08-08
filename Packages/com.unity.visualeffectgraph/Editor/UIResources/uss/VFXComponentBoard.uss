@@ -2,16 +2,14 @@ VFXComponentBoard.graphElement
 {
     position:Absolute;
     padding: 0;
-
-
-
-
     min-width: 286px;
     min-height: 100px;
+    margin: 0;
 }
 
 VFXComponentBoard.graphElement > .mainContainer
 {
+    margin: 4px;
     flex: 1 1 auto;
     background-color: #2b2b2b;
     border-color: #191919;

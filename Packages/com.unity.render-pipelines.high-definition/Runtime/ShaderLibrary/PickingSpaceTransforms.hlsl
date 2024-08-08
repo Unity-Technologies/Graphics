@@ -115,7 +115,11 @@ float4x4 ScenePickingGetCameraViewProjMatrix()
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
 #if defined(HAVE_VFX_MODIFICATION)
-#define VFX_APPLY_CAMERA_POSITION_IN_ELEMENT_MATRIX 1
+#define VFX_HAS_PICKING_MATRIX_CORRECTION 1
+#define GetSGVFXUnityObjectToWorld     GetSGVFXUnityObjectToWorld_Picking
+#define GetSGVFXUnityWorldToObject     GetSGVFXUnityWorldToObject_Picking
+float4x4 GetSGVFXUnityObjectToWorld()     { return RevertCameraTranslationFromMatrix(GetSGVFXUnityObjectToWorldBackup()); }
+float4x4 GetSGVFXUnityWorldToObject()     { return RevertCameraTranslationFromInverseMatrix(GetSGVFXUnityWorldToObjectBackup()); }
 #endif
 
 #endif
