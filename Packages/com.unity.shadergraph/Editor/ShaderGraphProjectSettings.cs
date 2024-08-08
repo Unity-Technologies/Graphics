@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
     internal class ShaderGraphProjectSettings : ScriptableSingleton<ShaderGraphProjectSettings>
     {
         [SerializeField]
-        internal int shaderVariantLimit = 128;        
+        internal int shaderVariantLimit = 2048;        
         [SerializeField]
         internal int customInterpolatorErrorThreshold = 32;
         [SerializeField]
@@ -62,10 +62,12 @@ namespace UnityEditor.ShaderGraph
             EditorGUI.BeginChangeCheck();
             
             var newValue = EditorGUILayout.DelayedIntField(Styles.shaderVariantLimitLabel, m_shaderVariantLimit.intValue);
+            newValue = Mathf.Max(0, newValue);
             if (newValue != m_shaderVariantLimit.intValue)
             {
                 m_shaderVariantLimit.intValue = newValue;
-                ShaderGraphPreferences.onVariantLimitChanged();
+                if (ShaderGraphPreferences.onVariantLimitChanged != null)
+                    ShaderGraphPreferences.onVariantLimitChanged();
             }
 
             EditorGUILayout.LabelField(Styles.CustomInterpLabel, EditorStyles.boldLabel);
