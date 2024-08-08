@@ -172,6 +172,7 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 320
     TargetHeight: 180
+    TargetMSAASamples: 1
     PerPixelCorrectnessThreshold: 0
     PerPixelGammaThreshold: 0
     PerPixelAlphaThreshold: 0
@@ -184,8 +185,11 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: -1
   WaitFrames: 0
-  XRCompatible: 1
+  XRCompatible: 0
+  gpuDrivenCompatible: 1
   CheckMemoryAllocation: 1
+  renderBackendCompatibility: 2
+  SetBackBufferResolution: 0
 --- !u!20 &380492253
 Camera:
   m_ObjectHideFlags: 0

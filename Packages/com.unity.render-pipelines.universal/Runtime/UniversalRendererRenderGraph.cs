@@ -1702,8 +1702,7 @@ namespace UnityEngine.Rendering.Universal
 
             var normalDescriptor = descriptor;
             normalDescriptor.depthBufferBits = 0;
-            // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
-            normalDescriptor.msaaSamples = useDepthPriming ? descriptor.msaaSamples : 1;// Depth-Only passes don't use MSAA, unless depth priming is enabled
+            normalDescriptor.msaaSamples = 1; // Never use MSAA for the normal texture!
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
             // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
