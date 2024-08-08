@@ -63,8 +63,8 @@ static float2 NeighbourOffsets[8];
 
 void SetNeighbourOffsets(float4 neighbourOffsets[4])
 {
-    UNITY_UNROLL for (int i = 0; i < 16; ++i)
-        NeighbourOffsets[i/2][i%2] = neighbourOffsets[i/4][i%4];
+    UNITY_UNROLL for (uint i = 0; i < 16; ++i)
+        NeighbourOffsets[i / 2][i % 2] = neighbourOffsets[i / 4][i % 4];
 }
 
 float2 ClampAndScaleForBilinearWithCustomScale(float2 uv, float2 scale)
@@ -587,9 +587,9 @@ CTYPE FilterCentralColor(NeighbourhoodSamples samples, float centralWeight, floa
 {
     CTYPE filtered = samples.central * centralWeight;
 
-    for (int i = 0; i < NEIGHBOUR_COUNT; ++i)
+    for (uint i = 0; i < NEIGHBOUR_COUNT; ++i)
     {
-        float w = weights[i/4][i%4];
+        float w = weights[i / 4][i % 4];
         filtered += samples.neighbours[i] * w;
     }
 
