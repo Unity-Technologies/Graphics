@@ -21,6 +21,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
         // So this variable needs to be set to true to enable the correct copy shader semantic
         internal bool CopyToDepth { get; set; }
+        // In XR CopyDepth, we need a special workaround to handle dummy color issue in RenderGraph.
+        internal bool CopyToDepthXR { get; set; }
         Material m_CopyDepthMaterial;
 
         internal bool m_CopyResolvedDepth;
@@ -56,6 +58,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = evt;
             m_CopyResolvedDepth = copyResolvedDepth;
             m_ShouldClear = shouldClear;
+            CopyToDepthXR = false;
         }
 
         /// <summary>
@@ -263,19 +266,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.msaaSamples = MssaSamples;
                 passData.cameraData = cameraData;
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
-                passData.copyToDepth = CopyToDepth;
+                passData.copyToDepth = CopyToDepth || CopyToDepthXR;
 
                 if (CopyToDepth)
                 {
                     // Writes depth using custom depth output
                     passData.destination = destination;
                     builder.SetRenderAttachmentDepth(destination, AccessFlags.Write);
-
 #if UNITY_EDITOR
                     // binding a dummy color target as a workaround to an OSX issue in Editor scene view (UUM-47698).
                     // Also required for preview camera rendering for grid drawn with builtin RP (UUM-55171).
                     if (cameraData.isSceneViewCamera || cameraData.isPreviewCamera)
                         builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
+#endif
+                }
+                else if (CopyToDepthXR)
+                {
+                    // Writes depth using custom depth output
+                    passData.destination = destination;
+                    builder.SetRenderAttachmentDepth(destination, AccessFlags.Write);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    // binding a dummy color target as a workaround to NRP depth only rendering limitation:
+                    // "Attempting to render to a depth only surface with no dummy color attachment"
+                    if (cameraData.xr.enabled && cameraData.xr.copyDepth)
+                        builder.SetRenderAttachment(resourceData.backBufferColor, 0);
 #endif
                 }
                 else

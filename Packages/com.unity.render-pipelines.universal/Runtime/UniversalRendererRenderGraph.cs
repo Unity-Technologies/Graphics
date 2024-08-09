@@ -479,6 +479,13 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.isSceneViewCamera)
                 importBackbufferDepthParams.discardOnLastUse = false;
 #endif
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // some XR devices require depth data to composite the final image. In such case, we need to preserve the eyetexture(backbuffer) depth.
+            if (cameraData.xr.enabled && cameraData.xr.copyDepth)
+            {
+                importBackbufferDepthParams.discardOnLastUse = false;
+            }
+#endif
 
             // For BuiltinRenderTextureType wrapping RTHandles RenderGraph can't know what they are so we have to pass it in.
             RenderTargetInfo importInfo = new RenderTargetInfo();
@@ -1418,6 +1425,8 @@ namespace UnityEngine.Rendering.Universal
 
             bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
             bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget);
+            bool xrDepthTargetResolved = resourceData.activeDepthID == UniversalResourceData.ActiveID.BackBuffer;
+            
 
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
@@ -1567,6 +1576,19 @@ namespace UnityEngine.Rendering.Universal
 
                 m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, in target, in depthBuffer);
             }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                // Populate XR depth as requested by XR provider.
+                if (!xrDepthTargetResolved && cameraData.xr.copyDepth)
+                {
+                    m_XRCopyDepthPass.CopyToDepthXR = true;
+                    m_XRCopyDepthPass.MssaSamples = 1;
+                    m_XRCopyDepthPass.Render(renderGraph, frameData, resourceData.backBufferDepth, resourceData.cameraDepth, bindAsCameraDepth: false, "XR Depth Copy");
+                }
+            }
+#endif
 
             if (debugHandler != null)
             {
