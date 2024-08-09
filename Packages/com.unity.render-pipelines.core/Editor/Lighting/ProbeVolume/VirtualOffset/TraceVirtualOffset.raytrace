@@ -1,3 +1,0 @@
-#define UNIFIED_RT_BACKEND_HARDWARE
-#include "TraceVirtualOffset.hlsl"
-#include_with_pragmas "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Hardware/HardwareRaygenShader.hlsl"

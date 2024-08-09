@@ -1,3 +1,7 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRay.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Common.hlsl"
@@ -146,3 +150,46 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
         _SkyOcclusionOut[probeId].yzw *= lerp(1.0f, radianceToIrradianceFactor, pow(windowL1, 1.125f));
     }
 }
+
+#ifdef UNIFIED_RT_BACKEND_COMPUTE
+
+#pragma kernel EncodeShadingDirection
+
+StructuredBuffer<float3> _SkyShadingPrecomputedDirection;
+StructuredBuffer<float3> _SkyShadingDirections;
+RWStructuredBuffer<uint> _SkyShadingIndices;
+
+uint _ProbeCount;
+
+uint LinearSearchClosestDirection(float3 direction)
+{
+    int indexMax = 255;
+    float bestDot = -10.0f;
+    int bestIndex = 0;
+
+    for (int index=0; index< indexMax; index++)
+    {
+        float currentDot = dot(direction, _SkyShadingPrecomputedDirection[index]);
+        if (currentDot > bestDot)
+        {
+            bestDot = currentDot;
+            bestIndex = index;
+        }
+    }
+    return bestIndex;
+}
+
+[numthreads(64, 1, 1)]
+void EncodeShadingDirection(uint probeId : SV_DispatchThreadID)
+{
+    if (probeId >= _ProbeCount)
+        return;
+
+    uint bestDirectionIndex = 255;
+    float norm = length(_SkyShadingDirections[probeId]);
+    if (norm > 0.0001f)
+        bestDirectionIndex = LinearSearchClosestDirection(_SkyShadingDirections[probeId] / norm);
+
+    _SkyShadingIndices[probeId] = bestDirectionIndex;
+}
+#endif

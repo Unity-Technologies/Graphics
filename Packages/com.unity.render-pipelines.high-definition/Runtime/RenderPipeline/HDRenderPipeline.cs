@@ -94,9 +94,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ShadowmaskMode m_PreviousShadowMaskMode;
 
         bool m_FrameSettingsHistoryEnabled = false;
-#if UNITY_EDITOR
-        bool m_PreviousEnableCookiesInLightmapper = true;
-#endif
 
 #if UNITY_SWITCH
         internal static bool k_PreferFragment = true;
@@ -799,10 +796,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
 
 #if UNITY_EDITOR
-            // HDRP always enable baking of cookie by default
-            m_PreviousEnableCookiesInLightmapper = UnityEditor.EditorSettings.enableCookiesInLightmapper;
-            UnityEditor.EditorSettings.enableCookiesInLightmapper = true;
-
             SceneViewDrawMode.SetupDrawMode();
 
             if (UnityEditor.PlayerSettings.colorSpace == ColorSpace.Gamma)
@@ -872,10 +865,6 @@ namespace UnityEngine.Rendering.HighDefinition
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
 
             Lightmapping.ResetDelegate();
-
-#if UNITY_EDITOR
-            UnityEditor.EditorSettings.enableCookiesInLightmapper = m_PreviousEnableCookiesInLightmapper;
-#endif
         }
 
         void CleanupRenderGraph()

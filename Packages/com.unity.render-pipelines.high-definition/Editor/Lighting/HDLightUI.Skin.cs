@@ -33,7 +33,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent cookieTextureTypeError = EditorGUIUtility.TrTextContent("HDRP does not support the Cookie Texture type, only Default is supported.", EditorGUIUtility.IconContent("console.warnicon").image);
             public readonly string cookieNonPOT = "HDRP does not support non power of two cookie textures.";
             public readonly string cookieTooSmall = "Min texture size for cookies is 2x2 pixels.";
-            public readonly string cookieBaking = "Light Baking for cookies disabled on the Project Settings.";
             public readonly GUIContent includeLightForRayTracing = EditorGUIUtility.TrTextContent("Include For Ray Tracing", "When enabled, the light affects the scene for cameras with the Ray-Tracing frame setting enabled.");
             public readonly GUIContent includeLightForPathTracing = EditorGUIUtility.TrTextContent("Include For Path Tracing", "When enabled, the light affects the scene for cameras with Path Tracing enabled.");
 

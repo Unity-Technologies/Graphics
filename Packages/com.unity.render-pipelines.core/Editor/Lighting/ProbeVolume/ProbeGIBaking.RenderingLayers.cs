@@ -121,14 +121,14 @@ namespace UnityEngine.Rendering
                     Array.Fill(matIndices, renderer.component.renderingLayerMask); // repurpose the material id as we don't need it here
                     var perSubMeshMask = new uint[subMeshCount];
                     Array.Fill(perSubMeshMask, GetInstanceMask(renderer.component.shadowCastingMode));
-                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, perSubMeshMask, matIndices);
+                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, perSubMeshMask, matIndices, 1);
                 }
 
                 foreach (var terrain in contributors.terrains)
                 {
                     uint mask = GetInstanceMask(terrain.component.shadowCastingMode);
                     uint materialID = terrain.component.renderingLayerMask; // repurpose the material id as we don't need it here
-                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { mask }, new uint[1] { materialID });
+                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { mask }, new uint[1] { materialID }, 1);
                 }
 
                 return accelStruct;
