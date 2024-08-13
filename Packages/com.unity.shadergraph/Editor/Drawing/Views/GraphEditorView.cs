@@ -731,7 +731,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
 
             previewManager.HandleGraphChanges();
-            if(Time.realtimeSinceStartup - lastUpdate >= 0.03f && EditorWindow.focusedWindow == m_EditorWindow && m_UserViewSettings.isPreviewVisible)
+
+            var windowReceivesUpdates = (m_EditorWindow as MaterialGraphEditWindow)?.isVisible ?? false;
+            if (Time.realtimeSinceStartup - lastUpdate >= 0.03f && windowReceivesUpdates && m_UserViewSettings.isPreviewVisible)
             {
                 lastUpdate = Time.realtimeSinceStartup;
                 previewManager.UpdateMasterPreview(ModificationScope.Node);
