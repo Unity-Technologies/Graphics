@@ -123,7 +123,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
         private static MaterialPropertyBlock s_SharedPropertyBlock = new MaterialPropertyBlock();
 
         // This constant is meant to showcase how to create a copy color pass that is needed for most post-processing effects
-        private static readonly bool kCopyActiveColor = true;
+        private static readonly bool kSampleActiveColor = true;
 
         // This constant is meant to showcase how you can add dept-stencil support to your main pass
         private static readonly bool kBindDepthStencilAttachment = false;
@@ -143,7 +143,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
             //   the active color buffer
             // * This will make sure that URP will not apply the optimization of rendering the entire frame to the write-only backbuffer,
             //   but will instead render to intermediate textures that can be sampled, which is typically needed for post-processing
-            requiresIntermediateTexture = kCopyActiveColor;
+            requiresIntermediateTexture = kSampleActiveColor;
         }
 
         #region PASS_SHARED_RENDERING_CODE
@@ -207,7 +207,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
             ResetTarget();
 
             // This allocates our intermediate texture for the non-RG path and makes sure it's reallocated if some settings on the camera target change (e.g. resolution)
-            if (kCopyActiveColor)
+            if (kSampleActiveColor)
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_CopiedColor, GetCopyPassTextureDescriptor(renderingData.cameraData.cameraTargetDescriptor), name: "_CustomPostPassCopyColor");
         }
 
@@ -224,7 +224,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
             using (new ProfilingScope(cmd, profilingSampler))
             {
                 RasterCommandBuffer rasterCmd = CommandBufferHelpers.GetRasterCommandBuffer(cmd);
-                if (kCopyActiveColor)
+                if (kSampleActiveColor)
                 {
                     CoreUtils.SetRenderTarget(cmd, m_CopiedColor);
                     ExecuteCopyColorPass(rasterCmd, cameraData.renderer.cameraColorTargetHandle);
@@ -235,7 +235,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
                 else
                     CoreUtils.SetRenderTarget(cmd, cameraData.renderer.cameraColorTargetHandle);
 
-                ExecuteMainPass(rasterCmd, kCopyActiveColor ? m_CopiedColor : null, m_Material);
+                ExecuteMainPass(rasterCmd, kSampleActiveColor ? m_CopiedColor : null, m_Material);
             }
 
             context.ExecuteCommandBuffer(cmd);
@@ -282,55 +282,56 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
         }
 
         // Here you can implement the rendering logic for the render graph path
+        // The implementation diverges from the non-rendergraph path because we don't need a copy here when sampling the active color. However, this means that every pixel needs to be written in your material, a partial write (eg using stencil) will not be visually correct and requires a copy first.
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             UniversalResourceData resourcesData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            UniversalRenderer renderer = (UniversalRenderer) cameraData.renderer;
-            var colorCopyDescriptor = GetCopyPassTextureDescriptor(cameraData.cameraTargetDescriptor);
-            TextureHandle copiedColor = TextureHandle.nullHandle;
-
-            // Below is an example of a typical post-processing effect which first copies the active color and uses it as input in the second pass.
+            // Below is an example of a typical post-processing effect which samples from the current color 
             // Feel free modify/rename/add additional or remove the existing passes based on the needs of your custom post-processing effect
 
-            // Intermediate color copy pass
-            // * This pass makes a temporary copy of the active color target for sampling
-            // * This is needed as GPU graphics pipelines don't allow to sample the texture bound as the active color target
-            // * This copy can be avoided if you won't need to sample the color target or will only need to render/blend on top of it
-            if (kCopyActiveColor)
-            {
-                copiedColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorCopyDescriptor, "_CustomPostPassColorCopy", false);
-
-                using (var builder = renderGraph.AddRasterRenderPass<CopyPassData>("CustomPostPass_CopyColor", out var passData, profilingSampler))
-                {
-                    passData.inputTexture = resourcesData.activeColorTexture;
-                    builder.UseTexture(resourcesData.activeColorTexture, AccessFlags.Read);
-                    builder.SetRenderAttachment(copiedColor, 0, AccessFlags.Write);
-                    builder.SetRenderFunc((CopyPassData data, RasterGraphContext context) => ExecuteCopyColorPass(data, context));
-                }
-            }
-
-            // Main pass
-            // * This pass samples the previously created screen color texture and applies the example post-processing effect to it
-            using (var builder = renderGraph.AddRasterRenderPass<MainPassData>("CustomPostPass", out var passData, profilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<MainPassData>(passName, out var passData, profilingSampler))
             {
                 passData.material = m_Material;
 
-                // You must declare the intent to sample the previously generated color copy texture explicitly for render graph to know
-                if (kCopyActiveColor)
+                TextureHandle destination;
+
+                // GPU graphics pipelines don't allow to sample the texture bound as the active color target, ie the cameraColor cannot both be an input and the render target.
+                // Before, this required us to first copy the cameraColor to then blit back to it while sampling from the copy. Now that we have the ContextContainer, we can swap the cameraColor to 
+                // another (temp) resource so that the next pass uses the temp resource. We don't need the copy anymore. However, this only works if you are writing to every 
+                // pixel of the frame, a partial write will need the copy first to add to the existing content. See FullScreenPassRendererFeature.cs for an example. 
+                if (kSampleActiveColor)
                 {
-                    passData.inputTexture = copiedColor;
-                    builder.UseTexture(copiedColor, AccessFlags.Read);
+                    var cameraColorDesc = renderGraph.GetTextureDesc(resourcesData.cameraColor);
+                    cameraColorDesc.name = "_CameraColorCustomPostProcessing";
+                    cameraColorDesc.clearBuffer = false;
+
+                    destination = renderGraph.CreateTexture(cameraColorDesc);
+                    passData.inputTexture = resourcesData.cameraColor;
+
+                    //If you use framebuffer fetch in your material then you need to use builder.SetInputAttachment. If the pass can be merged then this will reduce GPU bandwidth usage / power consumption and improve GPU performance. 
+                    builder.UseTexture(passData.inputTexture, AccessFlags.Read);
+                }
+                else
+                {
+                    destination = resourcesData.cameraColor;
+                    passData.inputTexture = TextureHandle.nullHandle;
                 }
 
-                builder.SetRenderAttachment(resourcesData.activeColorTexture, 0, AccessFlags.Write);
+                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
-                // This branch is currently not taken, but if your main pass needed the depth and/or stencil buffer to be bound this is how you would do it
-                if(kBindDepthStencilAttachment)
+                // This branch is currently not taken, but if your pass needed the depth and/or stencil buffer to be bound this is how you would do it
+                if (kBindDepthStencilAttachment)
                     builder.SetRenderAttachmentDepth(resourcesData.activeDepthTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc((MainPassData data, RasterGraphContext context) => ExecuteMainPass(data, context));
+
+                //Swap cameraColor to the new temp resource (destination) for the next pass
+                if (kSampleActiveColor)
+                {
+                    resourcesData.cameraColor = destination;
+                }
             }
         }
 
