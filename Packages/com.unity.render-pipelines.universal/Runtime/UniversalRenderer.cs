@@ -1602,7 +1602,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
             //     asset.maxAdditionalLightsCount == 0)
-            if (renderingModeActual == RenderingMode.ForwardPlus)
+            if (renderingModeActual == RenderingMode.ForwardPlus && UniversalRenderPipeline.asset.reflectionProbeBlending)
             {
                 cullingParameters.cullingOptions |= CullingOptions.DisablePerObjectCulling;
             }

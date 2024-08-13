@@ -343,19 +343,12 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
     return irradiance;
 }
 
-#if !USE_FORWARD_PLUS
-half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positionWS, half perceptualRoughness)
-{
-    return CalculateIrradianceFromReflectionProbes(reflectVector, positionWS, perceptualRoughness, float2(0.0f, 0.0f));
-}
-#endif
-
 half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion, float2 normalizedScreenSpaceUV)
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half3 irradiance;
 
-#if defined(_REFLECTION_PROBE_BLENDING) || USE_FORWARD_PLUS
+#if defined(_REFLECTION_PROBE_BLENDING)
     irradiance = CalculateIrradianceFromReflectionProbes(reflectVector, positionWS, perceptualRoughness, normalizedScreenSpaceUV);
 #else
 #ifdef _REFLECTION_PROBE_BOX_PROJECTION
