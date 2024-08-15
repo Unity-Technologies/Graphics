@@ -307,10 +307,18 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     float shadowMapRes = scale.x * shadowAtlasInfo.x; // atlas is square
     float resIndepenentMaxSoftness = 0.04 * (shadowMapRes / 512);
 
+    real halfTexelOffset = 0.5 * shadowAtlasInfo.y;
+
+    real UMin = offset.x + halfTexelOffset;
+    real UMax = offset.x + scale.x - halfTexelOffset;
+
+    real VMin = offset.y + halfTexelOffset;
+    real VMax = offset.y + scale.y - halfTexelOffset;
+
     //1) Blocker Search
     float averageBlockerDepth = 0.0;
     float numBlockers         = 0.0;
-    bool blockerFound = BlockerSearch(averageBlockerDepth, numBlockers, min((shadowSoftness + 0.000001), resIndepenentMaxSoftness) * atlasResFactor, tcs, sampleJitter, tex, samp, blockerSampleCount);
+    bool blockerFound = BlockerSearch(averageBlockerDepth, numBlockers, min((shadowSoftness + 0.000001), resIndepenentMaxSoftness) * atlasResFactor, tcs, UMin, UMax, VMin, VMax, sampleJitter, tex, samp, blockerSampleCount);
 
     // We scale the softness also based on the distance between the occluder if we assume that the light is a sphere source.
     // Also, we don't bother if the blocker has not been found.
@@ -336,7 +344,7 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
 
     //3) Filter
     // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
-    return PCSS(tcs, filterSize, scale, offset, sampleJitter, tex, compSamp, filterSampleCount);
+    return PCSS(tcs, UMin, UMax, VMin, VMax, filterSize, sampleJitter, tex, compSamp, filterSampleCount);
 }
 
 
