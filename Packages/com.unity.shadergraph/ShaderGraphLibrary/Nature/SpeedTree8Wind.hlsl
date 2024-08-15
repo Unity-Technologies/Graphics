@@ -802,23 +802,6 @@ float3 SpeedTreeWind(
 {
     float3 vReturnPos = vPos;
 
-    // ---------------------------------------------------------------------------------
-    // TODO: move this outside of this function as they have nothing to do with wind
-    // -  ApplySmoothLODTransition()
-    // -  DoLeafFacing()
-    // ---------------------------------------------------------------------------------
-    if (!bCrossfade && !bBillboard)
-    {
-        vReturnPos = ApplySmoothLODTransition(vPos, vTexcoord2.xyz);
-    }
-    bool leafTwo = false;
-    int geometryType = GetGeometryType(vTexcoord3, leafTwo);
-    if (leafTwo) // leaf facing is done regardless of wind
-    {   
-        vReturnPos = DoLeafFacing(vReturnPos, vTexcoord1, vTexcoord2); 
-    }
-    // ---------------------------------------------------------------------------------
-
     // check wind enabled & data available
     const float3 windVector = GetCBuffer_WindVector(bHistory).xyz;
     float3 rotatedWindVector = TransformWorldToObjectDir(windVector);
@@ -829,7 +812,9 @@ float3 SpeedTreeWind(
         return vReturnPos; // sanity check that wind data is available
     }
 
-    // do wind    
+    bool leafTwo = false;
+    int geometryType = GetGeometryType(vTexcoord3, leafTwo);
+    
     rotatedWindVector /= windLength;
     float4x4 matObjectToWorld = GetObjectToWorldMatrix();
     float3 treePos = GetAbsolutePositionWS(float3(matObjectToWorld[0].w, matObjectToWorld[1].w, matObjectToWorld[2].w));
@@ -872,7 +857,7 @@ float3 SpeedTreeWind(
         float3 rotatedBranchAnchor = TransformWorldToObjectDir(windBranchAnchorHistory.xyz) * windBranchAnchorHistory.w;
         vReturnPos = BranchWind(bDoPalmWind, vReturnPos, treePos, float4(vTexcoord0.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor, bHistory);
     }
-    
+
     // global wind
     vReturnPos = GlobalWind(vReturnPos, treePos, true, rotatedWindVector, globalWindTime, bHistory);
     return vReturnPos;
@@ -882,12 +867,33 @@ float3 SpeedTreeWind(
 // This version is used by ShaderGraph
 void SpeedTreeWind_float(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bCrossfade, bool bHistory, out float3 outPos)
 {
+    outPos = vPos;
+
+    // determine geometry type
+    bool leafTwo = false;
+    int geometryType = GetGeometryType(vTexcoord3, leafTwo);
+    
+    // apply 3D SpeedTree FX
+    if (!bBillboard) 
+    {
+        // lod transition
+        if (!bCrossfade)
+        {
+            outPos = ApplySmoothLODTransition(vPos, vTexcoord2.xyz);
+        }
+
+        // leaf facing
+        if (geometryType == ST_GEOM_TYPE_FACINGLEAF)
+        {
+            float3 anchor = float3(vTexcoord1.zw, vTexcoord2.w);
+            outPos = DoLeafFacing(outPos, anchor);
+        }
+    }
+
+    // do wind
     if (iWindQuality != ST_WIND_QUALITY_NONE)
     {
-        outPos = SpeedTreeWind(vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade, bHistory);
+        outPos = SpeedTreeWind(outPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade, bHistory);
     }
-    else
-        outPos = vPos;
-
 }
 #endif // SPEEDTREE_WIND_INCLUDED
