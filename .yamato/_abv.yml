@@ -6,7 +6,7 @@
 ---
 
 graphics_repo_nightly_trunk:
-    name: Graphics repo nightly on trunk
+    name: Templates and PPV2 on trunk
     variables:
         CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
@@ -14,7 +14,7 @@ graphics_repo_nightly_trunk:
     triggers:
         recurring:
           -  branch: master
-             frequency: 1 * * ?
+             frequency: 23 ? * 7 # At 11pm every Saturday
     dependencies:
       -  path: .yamato/_templates.yml#all_template_ci_trunk
          rerun: on_new_revision
