@@ -9,7 +9,7 @@ PostProcessing_Linux_Vulkan_playmode_mono_Linear_trunk:
     name: PostProcessing on Linux_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
     variables:
         CUSTOM_REVISION: 'trunk'
@@ -46,7 +46,7 @@ PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: PostProcessing on Linux_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
     variables:
         CUSTOM_REVISION: 'trunk'
@@ -77,7 +77,7 @@ Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build PostProcessing on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.xlarge
     variables:
         CUSTOM_REVISION: 'trunk'

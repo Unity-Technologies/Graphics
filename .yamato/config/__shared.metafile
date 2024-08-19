@@ -248,15 +248,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.xlarge
       editmode:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
     agent_package:
       type: Unity::VM
@@ -303,12 +303,12 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: graphics-foundation/mac-10.15:v0.1.0-841394
+        image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
@@ -393,7 +393,7 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: slough-ops/macos-11-base:stable
+        image: automation-tooling/macos-11:v2.1987114
         model: M1
         flavor: m1.mac
     agent_package:
@@ -433,15 +433,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:stable
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.xlarge
     commands:
       [OpenGlCore, Vulkan]:
@@ -490,7 +490,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -558,7 +558,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -635,24 +635,25 @@ platforms:
         log_parser:
           - command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
           - command: find_instabilities || exit 0
+
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   package_ci_ubuntu_xlarge:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.xlarge
   package_ci_ubuntu_small:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
-    image: package-ci/win10:v2.2.1-1064078
+    image: package-ci/win10:v4
     flavor: b1.large
   package_ci_mac:
     type: Unity::VM::osx
-    image: package-ci/mac:v1.18.4-test.1-1062904
+    image: package-ci/macos-13:v4
     flavor: m1.mac

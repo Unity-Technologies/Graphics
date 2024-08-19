@@ -9,7 +9,7 @@ PostProcessing_OSX_Metal_playmode_mono_Linear_trunk:
     name: PostProcessing on OSX_Metal_playmode_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
     variables:
         CUSTOM_REVISION: 'trunk'
@@ -50,7 +50,7 @@ PostProcessing_OSX_Metal_Standalone_mono_Linear_trunk:
     name: PostProcessing on OSX_Metal_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
     variables:
         CUSTOM_REVISION: 'trunk'
