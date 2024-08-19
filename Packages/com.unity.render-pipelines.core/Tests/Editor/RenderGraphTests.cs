@@ -1,18 +1,13 @@
 using NUnit.Framework;
 using System;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using System.Collections.Generic;
 using UnityEngine.TestTools;
-using System.Collections;
 using Unity.Collections;
-using System.Linq;
-using System.IO;
-using System.Drawing.Drawing2D;
-using System.Runtime.ConstrainedExecution;
 
 #if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.Rendering;
 #endif
 namespace UnityEngine.Rendering.Tests
@@ -1190,6 +1185,89 @@ namespace UnityEngine.Rendering.Tests
 
             // Cleanup the temporary texture
             return redTextureHandle;
+        }
+
+        class TestBuffersImport
+        {
+            public BufferHandle bufferHandle;
+            public ComputeShader computeShader;
+
+        }
+
+        private const string kPathToComputeShader = "Packages/com.unity.render-pipelines.core/Tests/Editor/BufferCopyTest.compute";
+
+        [Test]
+        public void ImportingBufferWorks()
+        {
+            // We need a real ScriptableRenderContext and a camera to execute the render graph
+            // add the default camera
+            var gameObject = new GameObject("testGameObject")
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+                tag = "MainCamera"
+            };
+            var camera = gameObject.AddComponent<Camera>();
+#if UNITY_EDITOR
+            var computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(kPathToComputeShader);
+#else
+            var computeShader = Resources.Load<ComputeShader>("_" + Path.GetFileNameWithoutExtension(kPathToComputeShader));
+#endif
+            // Check if the compute shader was loaded successfully
+            if (computeShader == null)
+            {
+                Debug.LogError("Compute Shader not found!");
+                return;
+            }
+
+            // Define the size of the buffer (number of elements)
+            int bufferSize = 4; // We are only interested in the first four values
+
+            // Allocate the buffer with the given size and format
+            var buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, bufferSize, sizeof(float));
+
+            // Initialize the buffer with zeros
+            float[] initialData = new float[bufferSize];
+            buffer.SetData(initialData);
+
+            // Ensure the data is set to 0.0f
+            for (int i = 0; i < bufferSize; i++)
+            {
+                Assert.IsTrue(initialData[i] == 0.0f);
+            }
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddComputePass<TestBuffersImport>("TestPass0", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    passData.bufferHandle = m_RenderGraph.ImportBuffer(buffer);
+
+                    builder.UseBuffer(passData.bufferHandle, AccessFlags.Write);
+
+                    passData.computeShader = computeShader;
+
+                    builder.SetRenderFunc((TestBuffersImport data, ComputeGraphContext ctx) =>
+                    {
+                        int kernel = data.computeShader.FindKernel("CSMain");
+
+                        ctx.cmd.SetComputeBufferParam(data.computeShader, kernel, "resultBuffer", data.bufferHandle);
+                        ctx.cmd.DispatchCompute(data.computeShader, kernel, 1, 1, 1);
+                    });
+                }
+            };
+
+            camera.Render();
+
+            // Read back the data from the buffer
+            float[] result2 = new float[bufferSize];
+            buffer.GetData(result2);
+
+            // Ensure the data has been updated
+            for (int i = 0; i < bufferSize; i++)
+            {
+                Assert.IsTrue(result2[i] == 1.0f);
+            }
         }
     }
 }
