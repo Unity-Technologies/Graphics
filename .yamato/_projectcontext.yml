@@ -241,7 +241,7 @@ test_all_project_Win_trunk:
             paths:
               -  "**/test-results/**"
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
 test_all_project_OSX_trunk:
     name: Test all packages [project context] OSX trunk
     agent:
@@ -261,7 +261,7 @@ test_all_project_OSX_trunk:
             paths:
               -  "**/test-results/**"
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
 test_all_project_Win_min_editor:
     name: Test minimum editor version - all packages [project context] Win
     agent:
@@ -308,7 +308,7 @@ all_package_ci_project_trunk:
       -  .yamato/_projectcontext.yml#test_all_project_Win_trunk
       -  .yamato/_projectcontext.yml#test_all_project_OSX_trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t

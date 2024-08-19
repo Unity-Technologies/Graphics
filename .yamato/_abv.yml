@@ -8,7 +8,7 @@
 graphics_repo_nightly_trunk:
     name: Graphics repo nightly on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     triggers:

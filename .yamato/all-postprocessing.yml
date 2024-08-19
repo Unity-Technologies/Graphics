@@ -8,7 +8,7 @@
 PR_PostProcessing_trunk:
     name: PR PostProcessing on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
@@ -31,7 +31,7 @@ PR_PostProcessing_trunk:
 Extra_PostProcessing_trunk:
     name: Extra PostProcessing on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:
@@ -44,7 +44,7 @@ Extra_PostProcessing_trunk:
 PostProcessing_trunk:
     name: PostProcessing on trunk
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
         UTR_VERSION: "current"
     dependencies:

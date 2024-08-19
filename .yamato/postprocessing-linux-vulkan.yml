@@ -12,7 +12,7 @@ PostProcessing_Linux_Vulkan_playmode_mono_Linear_trunk:
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -49,7 +49,7 @@ PostProcessing_Linux_Vulkan_editmode_mono_Linear_trunk:
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -86,7 +86,7 @@ PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
         image: package-ci/ubuntu:stable
         flavor: b1.large
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -117,7 +117,7 @@ Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
         image: package-ci/ubuntu:stable
         flavor: b1.xlarge
     variables:
-        CUSTOM_REVISION: '{{trunk.changeset.id}}'
+        CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
