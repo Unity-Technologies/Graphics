@@ -11,20 +11,9 @@ editors: # applied for all yml files
     rerun_strategy: on_new_revision
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
-      enabled: True
+      enabled: False
       nr_commits_to_retrieve: 1
     allow_triggers: True
-    variables:
-      CACHE_ARGS: '{{cache.flags}}'
-  - track: CUSTOM-REVISION
-    name: CUSTOM-REVISION
-    rerun_strategy: on_new_revision
-    editor_pinning:
-      enabled: False
-    fast: False
-    allow_triggers: False
-    variables:
-      CACHE_ARGS: '{{cache.flags}}'
 build_configs:
   - name: il2cpp_apiNet2
     scripting_backend: IL2CPP
@@ -52,7 +41,6 @@ test_platforms:
     allow_cache: False
     disable_split_build_run_for: [OSX_Metal, OSX_Apple_Silicon_Metal]
     utr_flags:
-      - [OSX_Metal, OSX_Apple_Silicon_Metal]: '%CACHE_ARGS%'
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       # - [all]: --reruncount=2
