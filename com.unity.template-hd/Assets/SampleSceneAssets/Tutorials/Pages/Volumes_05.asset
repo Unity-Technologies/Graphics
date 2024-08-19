@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: Volumes_05
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Explore Local Volumes II
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -20,7 +22,7 @@ MonoBehaviour:
       Text:
         m_Untranslated: 
       m_Tutorial: {fileID: 0}
-      m_Image: {fileID: 2800000, guid: 6cfc0d71bf2fabc42b0d827e348e6320, type: 3}
+      m_Image: {fileID: 2800000, guid: 954c855810cc7784fbc73fdcb6fca989, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -35,16 +37,19 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Congratulations!
+        m_Untranslated: 
       Text:
-        m_Untranslated: "In this tutorial, you learned how Global and Local volumes
-          can be used to override the HDRP effects based on the camera position.\n\nYou
-          can also watch  a<a href=\"https://youtu.be/yqCHiZrgKzs?t=771\">video</a>
-          tutorial to learn more about the Volume framework.\n\nFor more details,
-          check out the corresponding documentation:\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Volumes.html\">Volume
-          Framework</a>\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Render-Pipeline-Debug-Window.html#VolumePanel\">Volume
-          Debugging</a>\n\n<b>Note:</b> You do not need to save your changes in order
-          to follow other tutorials.\r"
+        m_Untranslated: "Now let's see how the Camera's Exposure is affected when
+          entering <b>Volume Room 3.</b>\n\n1. With <b>Volume Room 3</b> selected,
+          disable the Exposure override. Notice that the Scene gets darker.\n\n2.
+          Undo your change.\n\nWhen the Exposure override for Room 3 is disabled,
+          this area of the Scene inherits its Exposure settings directly from the
+          <b>Default Volume Profile.</b> \n\nHowever, these particular settings might
+          not be acceptable for a relatively dark room, such as Room 3. Therefore,
+          a <b>Local</b> Volume for Room 3 has been created, with dedicated Exposure
+          overrides, among others.\n\nWhen the camera leaves <b>Volume Room 3,</b>
+          the overrides that were set for this room will no longer be applied to
+          the Camera."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -64,8 +69,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 9.263008
-    m_Pivot: {x: 70.71272, y: 4.2327666, z: 5.6688685}
-    m_Rotation: {x: 0, y: 0.57357645, z: 0, w: 0.81915206}
+    m_Pivot: {x: 70.57888, y: 4.7853203, z: 5.1217413}
+    m_Rotation: {x: -0.029264731, y: 0.5817689, z: 0.02095274, w: 0.8125587}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -74,7 +79,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 0
+    m_Enabled: 1
   NextButton:
     m_Untranslated: Next
   DoneButton:

@@ -9,6 +9,12 @@ templates:
       - config
       - hdrp
     include_prepack_step: False
+  - name: HDRP Blank Template
+    id: hdrp_blank_template
+    packagename: com.unity.template.hdrp-blank
+    dependencies:
+      - hdrp
+    include_prepack_step: False
   - name: Universal Template
     id: universal_template
     packagename: com.unity.template-universal

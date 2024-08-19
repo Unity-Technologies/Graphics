@@ -39,16 +39,18 @@ MonoBehaviour:
       Text:
         m_Untranslated: "A <b>Reflection Probe</b> captures the surrounding environment
           and stores the result in a texture. These textures are then used to produce
-          reflections on objects within the boundary of the <b>Reflection Probe</b>
-          volume. \r\n\r\n<b>Reflection Probes</b> are very important to ensure proper
-          material reproduction, notably in interiors and areas that aren\u2019t
-          directly affected by the sky.\r\n\r\nIn addition, they can overlap and
+          per-pixel reflections on objects within the boundary of the <b>Reflection
+          Probe</b> volume. \n\n<b>Reflection Probes</b> are very important to ensure
+          proper material reproduction, notably in interiors and areas that aren\u2019t
+          directly affected by the sky. Without them, interiors will look washed
+          out and metallic, because the sky reflections will be unnecessarily applied
+          to the interior.\n\nIn addition, <b>Reflection Probes</b> can overlap and
           have smooth fades at their boundaries. Objects will automatically blend
           between the <b>Reflection Probes</b> based on their location and the fade
-          distances set on each <b>Reflection Probe.</b>\r\n\nFinally, their type
-          can either be <b>Baked</b> or <b>Realtime.</b> The former will bake the
-          results into a texture on disk, whereas the latter will constantly update
-          at runtime to produce true realtime reflections, but at a much higher computational
+          distances set on each <b>Reflection Probe.</b>\n\nFinally, their type can
+          either be <b>Baked</b> or <b>Realtime.</b> The former will bake the results
+          into a texture on disk, whereas the latter will constantly update at runtime
+          to produce true realtime reflections, but at a much higher computational
           cost. "
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}

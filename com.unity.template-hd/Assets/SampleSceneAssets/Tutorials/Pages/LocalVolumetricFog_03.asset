@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
   m_Name: LocalVolumetricFog_03
   m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Congratulations!
   m_Paragraphs:
     m_Items:
     - m_Type: 6
@@ -35,13 +37,19 @@ MonoBehaviour:
       m_TutorialButtonText: 
     - m_Type: 0
       Title:
-        m_Untranslated: Congratulations!
+        m_Untranslated: 
       Text:
-        m_Untranslated: "In this tutorial, you learned how to control the local fog
+        m_Untranslated: 'In this tutorial, you learned how to control the local fog
           more precisely by adding density variations to create a more realistic
-          fog effect.\r\n\r\nFor more information, you can check out the<a href=\"https://youtu.be/yqCHiZrgKzs?t=3204\">video</a>
-          or the related <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Local-Volumetric-Fog.html\">documentation.</a>\r\n\r\n<b>Note:</b>
-          You do not need to save your changes in order to follow other tutorials.\r"
+          fog effect.
+
+
+          For more information, you can check out the<a href="https://youtu.be/yqCHiZrgKzs?t=3204">video</a>
+          or the related <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/local-volumetric-fog-volume-reference.html">documentation.</a>
+
+
+          <b>Note:</b>
+          You do not need to save your changes in order to follow other tutorials.'
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -76,19 +84,37 @@ MonoBehaviour:
     m_Untranslated: Next
   DoneButton:
     m_Untranslated: Done
-  m_NextButton: 
-  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
-  m_autoAdvance: 0
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
     m_PersistentCalls:
       m_Calls: []
-  m_OnBeforeTutorialQuit:
-    m_PersistentCalls:
-      m_Calls: []
   m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 

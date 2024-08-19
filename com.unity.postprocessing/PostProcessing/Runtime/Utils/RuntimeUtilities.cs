@@ -859,6 +859,35 @@ namespace UnityEngine.Rendering.PostProcessing
         }
 
         /// <summary>
+        /// Returns <c>true</c> if the target platform is WebGL,
+        /// <c>false</c> otherwise.
+        /// </summary>
+        public static bool isWebNonWebGPU
+        {
+            get
+            {
+#if UNITY_EDITOR
+    #if UNITY_WEBGL
+        #if UNITY_2023_2_OR_NEWER
+                return PlayerSettings.GetGraphicsAPIs(BuildTarget.WebGL).First() != GraphicsDeviceType.WebGPU;
+        #else
+                return true;
+        #endif
+    #else
+                return false;
+    #endif
+#else
+                return Application.platform == RuntimePlatform.WebGLPlayer
+    #if UNITY_2023_2_OR_NEWER
+                    && SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU
+    #endif
+                    ;
+#endif
+
+            }
+        }
+
+        /// <summary>
         /// Gets the default HDR render texture format for the current target platform.
         /// </summary>
         public static RenderTextureFormat defaultHDRRenderTextureFormat
@@ -1009,7 +1038,17 @@ namespace UnityEngine.Rendering.PostProcessing
                 && layer.antialiasingMode == PostProcessLayer.Antialiasing.TemporalAntialiasing
                 && layer.temporalAntialiasing.IsSupported();
         }
-
+#if UNITY_2017_3_OR_NEWER
+        /// <summary>
+        /// Checks if dynamic resolution is enabled on a given camera.
+        /// </summary>
+        /// <param name="camera">The camera to check</param>
+        /// <returns><c>true</c> if dynamic resolution is enabled, <c>false</c> otherwise</returns>
+        public static bool IsDynamicResolutionEnabled(Camera camera)
+        {
+            return camera.allowDynamicResolution || (camera.targetTexture != null && camera.targetTexture.useDynamicScale);
+        }
+#endif
         /// <summary>
         /// Gets all scene objects in the hierarchy, including inactive objects. This method is slow
         /// on large scenes and should be used with extreme caution.
@@ -1025,9 +1064,8 @@ namespace UnityEngine.Rendering.PostProcessing
             foreach (var root in roots)
             {
                 queue.Enqueue(root.transform);
-                var comp = root.GetComponent<T>();
-
-                if (comp != null)
+                
+                if (root.TryGetComponent<T>(out var comp))
                     yield return comp;
             }
 
@@ -1036,9 +1074,8 @@ namespace UnityEngine.Rendering.PostProcessing
                 foreach (Transform child in queue.Dequeue())
                 {
                     queue.Enqueue(child);
-                    var comp = child.GetComponent<T>();
-
-                    if (comp != null)
+                    
+                    if (child.TryGetComponent<T>(out var comp))
                         yield return comp;
                 }
             }

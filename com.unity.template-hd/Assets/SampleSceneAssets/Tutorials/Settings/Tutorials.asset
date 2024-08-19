@@ -121,9 +121,9 @@ MonoBehaviour:
     Tutorial: {fileID: 11400000, guid: b4e4869767e279b4aa35c5b0d2f9872b, type: 2}
   - OrderInView: 12
     Heading:
-      m_Untranslated: Light Probes
+      m_Untranslated: Probe Volumes
     Text:
-      m_Untranslated: Learn how Light Probes produce indirect lighting for dynamic
+      m_Untranslated: Learn how Probes Volumes produce indirect lighting for dynamic
         objects
     Metadata: 
     Url: 

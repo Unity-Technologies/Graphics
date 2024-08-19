@@ -38,17 +38,20 @@ MonoBehaviour:
         m_Untranslated: Quality Levels
       Text:
         m_Untranslated: "It is good practice to create several HDRP assets with different
-          settings for specific performance targets and platforms.\r\n\r\n1. Go to
-          <b>Edit</b> > <b>Project Settings</b> > <b>Quality.</b> We already provide
-          3 quality levels: <b>High, Medium,</b> and <b>Low.</b> <b>Medium</b> is
-          currently active and marked as the default one. \r\n\r\n2. Switch to <b>Low
-          Quality</b> and observe the Fog disappeared. \n\nThis occurs because in
-          the <b>Low Quality</b> level, the Volumetric Fog is disabled. \r\n\r\n3.
-          Change back to <b>Medium Quality.</b>\r\n\r\nAlternatively, you can locate
-          the <b>Low</b> asset in the Settings folder and verify that indeed <b>Lighting</b>
-          > <b>Volumetrics</b> is off in the <b>Low Quality</b> level. You can also
-          switch to the <b>High Quality</b> level and see how it affects the overall
-          shadow filtering quality and resolution.\r"
+          settings for specific performance targets and platforms, and assigned them
+          to dedicated <b>Quality Levels</b>. \n\n1. Go to <b>Edit</b> > <b>Project
+          Settings</b> > <b>Quality.</b>\n\nSee that this project offers 5 quality
+          levels: <b>Low</b>, <b>Medium</b> and <b>High,</b> as well as 2 quality
+          levels with Ray Tracing enabled called <b>Ray Tracing</b> and <b>Ray Tracing
+          (Realtime GI).</b>\n\n2. Switch to <b>Low Quality</b> and notice that the
+          Fog will disappear. \n\nThis occurs because in the <b>Low</b> quality level,
+          the Volumetric Fog is disabled. You can also locate the <b>1HDRPLowQuality</b>
+          asset in the <i>Project</i> Window and verify that indeed <b>Lighting</b>
+          > <b>Volumetrics</b> > <b>Volumetric Fog</b> is turned off. \n\n3. Change
+          back to <b>Medium Quality.</b>\n\n\n<b>Important</b>\n\nIf you have a Ray
+          Tracing capable GPU, you can try the <b>Ray Tracing</b> and <b>Ray Tracing
+          (Realtime GI)</b> quality levels. Depending on your GPU's performance,
+          the framerate might be heavily impacted. "
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

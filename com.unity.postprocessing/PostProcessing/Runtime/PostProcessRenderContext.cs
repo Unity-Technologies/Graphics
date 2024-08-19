@@ -319,7 +319,7 @@ namespace UnityEngine.Rendering.PostProcessing
             modifiedDesc.shadowSamplingMode = m_sourceDescriptor.shadowSamplingMode;
 
 #if UNITY_2019_1_OR_NEWER
-            if (m_Camera.allowDynamicResolution)
+            if (RuntimeUtilities.IsDynamicResolutionEnabled(m_Camera))
                 modifiedDesc.useDynamicScale = true;
 #endif
 
@@ -368,7 +368,7 @@ namespace UnityEngine.Rendering.PostProcessing
 #if UNITY_2019_1_OR_NEWER
             cmd.GetTemporaryRT(nameID, desc, filter);
 #elif UNITY_2017_3_OR_NEWER
-            cmd.GetTemporaryRT(nameID, desc.width, desc.height, desc.depthBufferBits, filter, desc.colorFormat, readWrite, desc.msaaSamples, desc.enableRandomWrite, desc.memoryless, m_Camera.allowDynamicResolution);
+            cmd.GetTemporaryRT(nameID, desc.width, desc.height, desc.depthBufferBits, filter, desc.colorFormat, readWrite, desc.msaaSamples, desc.enableRandomWrite, desc.memoryless, RuntimeUtilities.IsDynamicResolutionEnabled(m_Camera));
 #else
             cmd.GetTemporaryRT(nameID, desc.width, desc.height, desc.depthBufferBits, filter, desc.colorFormat, readWrite, desc.msaaSamples, desc.enableRandomWrite, desc.memoryless);
 #endif

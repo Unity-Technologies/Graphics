@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.PostProcessing
         SerializedParameterOverride m_Color;
         SerializedParameterOverride m_AmbientOnly;
         SerializedParameterOverride m_ThicknessModifier;
+        SerializedParameterOverride m_ZBias;
         SerializedParameterOverride m_DirectLightingStrength;
         SerializedParameterOverride m_Quality;
         SerializedParameterOverride m_Radius;
@@ -22,6 +23,7 @@ namespace UnityEditor.Rendering.PostProcessing
             m_Color = FindParameterOverride(x => x.color);
             m_AmbientOnly = FindParameterOverride(x => x.ambientOnly);
             m_ThicknessModifier = FindParameterOverride(x => x.thicknessModifier);
+            m_ZBias = FindParameterOverride(x => x.zBias);
             m_DirectLightingStrength = FindParameterOverride(x => x.directLightingStrength);
             m_Quality = FindParameterOverride(x => x.quality);
             m_Radius = FindParameterOverride(x => x.radius);
@@ -48,9 +50,20 @@ namespace UnityEditor.Rendering.PostProcessing
             else if (aoMode == (int)AmbientOcclusionMode.MultiScaleVolumetricObscurance)
             {
                 if (!SystemInfo.supportsComputeShaders)
-                    EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support.", MessageType.Warning);
+                {
+                    EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support which is not available on this platform.", MessageType.Error);
+                }
+                else if (EditorUtilities.isTargetingWebGL)
+                {
+                    EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support (WebGPU) when running on Web.", MessageType.Warning);
+                }
+                else if(EditorUtilities.isTargetingAndroid)
+                {
+                    EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support (Vulkan) when running on Android.", MessageType.Warning);
+                }
 
                 PropertyField(m_ThicknessModifier);
+                PropertyField(m_ZBias);
 
                 if (RuntimeUtilities.scriptableRenderPipelineActive)
                     PropertyField(m_DirectLightingStrength);

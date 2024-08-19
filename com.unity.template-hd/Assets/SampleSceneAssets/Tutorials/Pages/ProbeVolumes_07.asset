@@ -1,0 +1,136 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
+  m_Name: ProbeVolumes_07
+  m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Layer Mask
+  m_Paragraphs:
+    m_Items:
+    - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
+      m_Tutorial: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: 0cd9fd45ee4df7d408cbeb3b6c796fcb, type: 3}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: "In certain situations, some objects should be prevented
+          from influencing the placement of probes. This is often the case for proxy
+          geometries or distance objects. Indeed, these objects usually do not require
+          more probes to be placed around them, as this would increase the baking
+          time and the size of the Probe Volumes' data on disk.\n\nFor example, we
+          have an object called <b>ShadowProxy</b> in the scene that is used to enforce
+          correct light baking and real-time shadowing indoors. However, we do not
+          need this object to be filled with probes, as they would be wastefully
+          placed outside the playable area.\n\nTo prevent this object from getting
+          probes generated around it, we have already used the <b>Layer Mask</b>
+          system.\n\n\nTo understand how the <b>ShadowProxy</b> is excluded from
+          the Probe Placement calculation, follow these steps:\n\n1. Enable the Probe
+          Volumes debug visualization in <b>Window</b> > <b>Analysis</b> > <b>Rendering
+          Debugger</b> > <b>Probe Volumes</b> > <b>Probe Visualization</b> > <b>Display
+          Probes.</b>\n\n2. Take a look at the probe count currently visible on the
+          screen. Unlike in the image above, probes do not fill entirely the space
+          within <b>ShadowProxy.</b>\n\n3. In the <i>Hierarchy</i> window, select
+          <b>Lighting</b> > <b>ShadowProxy.</b>\n\n4. At the top right of the <i>Inspector</i>
+          window, you can see that the Layer is set arbitrarily to \"PostProcessing\".
+          \n\n5. In the <i>Lighting</i> window, under the <b>Probe Volumes</b> tab,
+          see that <b>Probe Placement</b> > <b>Renderer Filter Settings</b> > <b>Layer
+          Mask</b> omits the \"PostProcessing\" layer.\n\nThis means that the <b>ShadowProxy</b>
+          won't be part of the probe placement calculations.\n\n6. Optionally, if
+          you wanted to force the <b>ShadowProxy</b> to be surrounded by probes,
+          you would need to assign it to the \"Default\" Layer for instance, and
+          click on <b>Generate Lighting</b> at the bottom of the <i>Lighting</i>
+          window."
+      m_Tutorial: {fileID: 0}
+      m_Image: {fileID: 0}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+  m_CameraSettings:
+    m_CameraMode: 1
+    m_FocusMode: 0
+    m_Orthographic: 0
+    m_Size: 10
+    m_Pivot: {x: 36.22716, y: 2.8278656, z: 6.8633847}
+    m_Rotation: {x: 0.014302389, y: -0.74125624, z: 0.015794965, w: 0.6708839}
+    m_FrameObject:
+      m_SceneGuid: 
+      m_GameObjectGuid: 
+      m_SerializedComponentType:
+        m_TypeName: 
+      m_ComponentIndex: 0
+      m_AssetObject: {fileID: 0}
+      m_Prefab: {fileID: 0}
+    m_Enabled: 1
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_CompletedSound: {fileID: 0}
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforePageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 

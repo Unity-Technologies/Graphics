@@ -39,19 +39,19 @@ MonoBehaviour:
       Text:
         m_Untranslated: "1. Expand the GameObject <b>Spotlight_01a.</b>\n\n2. Select
           <b>Light_Spot_1600lm,</b> the light illuminating the wall, and inspect
-          its properties.\r\n\r\nThe intensity of this lamp is <b>1600 Lumen</b>
-          and the temperature is <b>3500 Kelvin.</b> This corresponds to the intensity
-          of a powerful 100W halogen bulb, with a warm tint. \r\n\r\nThe intensity
-          of the light bulbs is usually provided by the manufacturer, in Lumen or
-          Candela.\r\n\nCreating realistic lighting is as simple as looking up bulb
-          values online, or using the handy sliders and presets in the Light's inspector.\r\n\r\n\n<b>Expert
+          its properties.\n\nThe intensity of this lamp is <b>1600 Lumen</b> and
+          the temperature is <b>3500 Kelvin.</b> This corresponds to the intensity
+          of a powerful 100W halogen bulb, with a warm tint. \n\nThe intensity of
+          the light bulbs is usually provided by the manufacturer, in Lumen or Candela.\n\nCreating
+          realistic lighting is as simple as looking up bulb values online, or using
+          the handy sliders and presets in the Light's inspector.\n\n\n<b>Expert
           tips</b>\n\n\u2022 When using Lumens with a Spot light, use the <b>Reflector</b>
           mode (enabled by default), in order to have a correct simulation of the
           light intensity based on the cone angle of the Spot light. If you cannot
           see this checkbox, \"Show Additional Properties\" via the 3-dots menu in
           the Emission foldout.\n\n\u2022 To optimize performance, keep the Emission
           and Shadow <b>Fade Distance</b> properties as low as possible, so that
-          the light and its shadows disappear beyond a certain distance (in meters).\r"
+          the light and its shadows disappear beyond a certain distance (in meters)."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
@@ -71,8 +71,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 66.775154, y: 5.4623795, z: 17.463161}
-    m_Rotation: {x: -0.044763867, y: 0.24502043, z: 0.011321361, w: 0.9684186}
+    m_Pivot: {x: 65.399185, y: 1.121933, z: 16.2816}
+    m_Rotation: {x: 0.074304186, y: 0.24890557, z: -0.019160373, w: 0.9654848}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

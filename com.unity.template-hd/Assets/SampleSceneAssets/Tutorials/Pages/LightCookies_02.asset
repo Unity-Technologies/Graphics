@@ -70,12 +70,12 @@ MonoBehaviour:
       m_InstructionText: 
       m_TutorialButtonText: 
   m_CameraSettings:
-    m_CameraMode: 0
+    m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0
-    m_Pivot: {x: 0, y: 0, z: 0}
-    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_Size: 9.699485
+    m_Pivot: {x: 65.9899, y: 2.7230291, z: 15.868444}
+    m_Rotation: {x: 0.027452428, y: 0.26806796, z: -0.0076420433, w: 0.9629793}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -84,7 +84,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 0
+    m_Enabled: 1
   NextButton:
     m_Untranslated: Next
   DoneButton:

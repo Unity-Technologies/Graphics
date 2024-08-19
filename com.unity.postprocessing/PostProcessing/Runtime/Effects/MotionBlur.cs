@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.PostProcessing
 #if UNITY_2019_1_OR_NEWER
             cmd.GetTemporaryRT(nameID, rtDesc, FilterMode.Point);
 #elif UNITY_2017_3_OR_NEWER
-            cmd.GetTemporaryRT(nameID, rtDesc.width, rtDesc.height, rtDesc.depthBufferBits, FilterMode.Point, rtDesc.colorFormat, RenderTextureReadWrite.Linear, rtDesc.msaaSamples, rtDesc.enableRandomWrite, rtDesc.memoryless, context.camera.allowDynamicResolution);
+            cmd.GetTemporaryRT(nameID, rtDesc.width, rtDesc.height, rtDesc.depthBufferBits, FilterMode.Point, rtDesc.colorFormat, RenderTextureReadWrite.Linear, rtDesc.msaaSamples, rtDesc.enableRandomWrite, rtDesc.memoryless, RuntimeUtilities.IsDynamicResolutionEnabled(context.camera));
 #else
             cmd.GetTemporaryRT(nameID, rtDesc.width, rtDesc.height, rtDesc.depthBufferBits, FilterMode.Point, rtDesc.colorFormat, RenderTextureReadWrite.Linear, rtDesc.msaaSamples, rtDesc.enableRandomWrite, rtDesc.memoryless);
 #endif
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.PostProcessing
             cmd.ReleaseTemporaryRT(tile4);
 
             // Pass 5 - Fourth TileMax filter (reduce to tileSize)
-            var tileMaxOffs = Vector2.one * (tileSize / 8f - 1f) * -0.5f;
+            var tileMaxOffs = (tileSize / 8f - 1f) * -0.5f * Vector2.one;
             sheet.properties.SetVector(ShaderIDs.TileMaxOffs, tileMaxOffs);
             sheet.properties.SetFloat(ShaderIDs.TileMaxLoop, (int)(tileSize / 8f));
 

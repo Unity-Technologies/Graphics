@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+#if UNITY_2021_3_OR_NEWER
+using UnityEditor.Build;
+#endif
 
 namespace UnityEditor.Rendering.PostProcessing
 {
@@ -17,7 +20,12 @@ namespace UnityEditor.Rendering.PostProcessing
 
             foreach (var target in targets)
             {
+#if UNITY_2021_3_OR_NEWER
+                var namedTarget = NamedBuildTarget.FromBuildTargetGroup(target);
+                var defines = PlayerSettings.GetScriptingDefineSymbols(namedTarget).Trim();
+#else
                 var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(target).Trim();
+#endif
 
                 var list = defines.Split(';', ' ')
                     .Where(x => !string.IsNullOrEmpty(x))
@@ -29,9 +37,14 @@ namespace UnityEditor.Rendering.PostProcessing
                 list.Add(k_Define);
                 defines = list.Aggregate((a, b) => a + ";" + b);
 
+#if UNITY_2021_3_OR_NEWER
+                PlayerSettings.SetScriptingDefineSymbols(namedTarget, defines);
+#else
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(target, defines);
+#endif
             }
         }
+
 
         static bool IsObsolete(BuildTargetGroup group)
         {

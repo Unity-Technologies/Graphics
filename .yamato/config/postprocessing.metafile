@@ -4,8 +4,6 @@ project:
 test_platforms:
   - type: playmode
     allow_cache: False
-  - type: editmode
-    allow_cache: False
   - type: Standalone
     allow_cache: False
     utr_flags:
@@ -24,21 +22,21 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win10-21H1:v2.1577390
         flavor: b1.xlarge
         model: rtx2080
       editmode:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win10-21H1:v2.1577390
         flavor: b1.xlarge
       standalone:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win10-21H1:v2.1577390
         flavor: b1.xlarge
         model: rtx2080
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win10-21H1:v2.1577390
         flavor: b1.xlarge
   - name: OSX
     apis:
@@ -67,7 +65,6 @@ jobs:
         test_platforms:
           - Standalone
           - playmode
-          - editmode
       - platform: Win
         api: DX12
         build_config: mono
@@ -85,7 +82,6 @@ jobs:
         build_config: mono
         color_space: Linear
         test_platforms:
-          # - Standalone
           - playmode
       - platform: Linux
         api: Vulkan
@@ -94,8 +90,6 @@ jobs:
         test_platforms:
           - Standalone
           - playmode
-    # triggers:
-    #   expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.postprocessing/**/*",  "TestProjects/PostProcessing_Tests/**/*"] AND NOT pull_request.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
   - name: Extra <PROJECT_NAME>
     dependencies:
       - platform: Win
@@ -110,12 +104,6 @@ jobs:
         color_space: Linear
         test_platforms:
           - Standalone
-      - platform: Linux
-        api: Vulkan
-        build_config: mono
-        color_space: Linear
-        test_platforms:
-          - editmode
 
   - name: <PROJECT_NAME>
     dependencies:

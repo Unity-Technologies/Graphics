@@ -39,11 +39,11 @@ MonoBehaviour:
       Text:
         m_Untranslated: "It is highly recommended to turn off unused features in
           your project to reduce the impact on performance, memory consumption and
-          build time.\r\n\r\n1. Go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> 
-          > <b>HDRP.</b>\r\n\r\n2. Select the <i>HDRPMediumQuality</i> asset. \r\n\r\n3.
-          In the <b>Lighting</b> foldout, disable the <b>Screen Space Ambient Occlusion.</b>\r\n\r\n4.
-          Notice the darkening effect on the plant, among others, disappears.\r\n\r\n5.
-          Re-enable the <b>Screen Space Ambient Occlusion.</b>\r"
+          build time.\n\n1. Go to <b>Edit</b> > <b>Project Settings</b> > <b>Quality</b> 
+          > <b>HDRP.</b>\n\n2. Select the <i>2HDRPMediumQuality</i> asset. \n\n3.
+          In the <b>Lighting</b> foldout, disable the <b>Screen Space Ambient Occlusion.</b>\n\n4.
+          Notice the darkening effect on the plant, among others, disappears.\n\n5.
+          Re-enable the <b>Screen Space Ambient Occlusion.</b>"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}

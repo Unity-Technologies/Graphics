@@ -1,0 +1,133 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
+  m_Name: ProbeVolumes_05
+  m_EditorClassIdentifier: 
+  Title:
+    m_Untranslated: Sampling Noise
+  m_Paragraphs:
+    m_Items:
+    - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
+      m_Tutorial: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: 399229ca25d9e574583d583500a1afbe, type: 3}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+    - m_Type: 0
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: "We'll now cover indirect lighting sampling issues between
+          probes having different spacing distances, also called <b>Subdivision Levels.</b>
+          \n\nProbes are placed automatically using the <b>Min and Max Probe Spacing</b>
+          properties in the <i>Lighting</i> window, under the Probe Volumes tab, 
+          depending on the geometrical complexity. In this particular Scene, the
+          spacing between Probes will fluctuate between different <b>Subdivision
+          Levels</b> at 0.6 m, 1.8 m and 5.4 m. Empty areas may receive fewer probes,
+          whereas geometrically dense areas may have more probes. \n\nWhile it may
+          be necessary to reduce the total number of probes in the scene by increasing
+          the <b>Probe Spacing</b> properties, some unwanted lighting seams may appear
+          when sampling happens between different <b>Subdivision Levels,</b> as seen
+          in the image above.\n\nTo prevent these unwanted indirect lighting seams
+          in this scenario, we can use the <b>Sampling Noise</b> feature in the Volume
+          system, in conjunction with <b>Temporal Anti Aliasing.</b>\n\n\nTo reproduce
+          the artifact seen in the image above, follow these steps:\n\n1. Add a Cube
+          at <b>X:5 Y:5.5 Z:0</b>\n\n2. In the <i>Hierarchy</i> window, select <b>Lighting</b>
+          > <b>Volumes</b> > <b>Volume Room 1.</b>\n\n3. In the <i>Inspector</i>
+          window, under <b>Probe Volume Options,</b> set the <b>Sampling Noise</b>
+          to <b>0.</b> The indirect lighting seam will become obvious. As you can
+          see, this feature is fully real-time, therefore it does not require the
+          rebaking of the lighting.\n\nIf you do not see the <b>Sampling Noise</b>
+          property in the <i>Inspector,</i> click the 3-dots menu on the Probe Volumes
+          Options and enable \"Show Additional Properties\".\n\n4. Set the <b>Sampling
+          Noise</b> back to <b>0.45.</b>"
+      m_Tutorial: {fileID: 0}
+      m_Image: {fileID: 0}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+  m_CameraSettings:
+    m_CameraMode: 1
+    m_FocusMode: 0
+    m_Orthographic: 0
+    m_Size: 10
+    m_Pivot: {x: 5.094, y: 12.54435, z: -17.047869}
+    m_Rotation: {x: -0, y: 0.9811074, z: 0.19346379, w: 0}
+    m_FrameObject:
+      m_SceneGuid: 
+      m_GameObjectGuid: 
+      m_SerializedComponentType:
+        m_TypeName: 
+      m_ComponentIndex: 0
+      m_AssetObject: {fileID: 0}
+      m_Prefab: {fileID: 0}
+    m_Enabled: 1
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_CompletedSound: {fileID: 0}
+  m_AutoAdvance: 0
+  Showing:
+    m_PersistentCalls:
+      m_Calls: []
+  Shown:
+    m_PersistentCalls:
+      m_Calls: []
+  Staying:
+    m_PersistentCalls:
+      m_Calls: []
+  CriteriaValidated:
+    m_PersistentCalls:
+      m_Calls: []
+  MaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  NonMaskingSettingsChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforePageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_NextButton: 
+  m_DoneButton: 
