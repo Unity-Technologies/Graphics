@@ -6,7 +6,7 @@ editor_priming_config:
     CUSTOM_REVISION: "2021.3"
   agent:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.small
   skip_checkout: true
   commands:
