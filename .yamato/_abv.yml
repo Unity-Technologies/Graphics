@@ -6,7 +6,7 @@
 ---
 
 graphics_repo_nightly_trunk:
-    name: Templates and PPV2 on trunk
+    name: Graphics repo nightly on trunk on trunk
     variables:
         CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
