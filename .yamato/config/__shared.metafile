@@ -305,6 +305,7 @@ platforms:
         type: Unity::metal::macmini
         image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
+        model: 2018-i3-macos11
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx

@@ -11,6 +11,7 @@ PostProcessing_OSX_Metal_playmode_mono_Linear_trunk:
         type: Unity::metal::macmini
         image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
+        model: 2018-i3-macos11
     variables:
         CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
@@ -52,6 +53,7 @@ PostProcessing_OSX_Metal_Standalone_mono_Linear_trunk:
         type: Unity::metal::macmini
         image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
+        model: 2018-i3-macos11
     variables:
         CUSTOM_REVISION: 'trunk'
         TEST_FILTER: .*
