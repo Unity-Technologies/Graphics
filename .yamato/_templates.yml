@@ -9,7 +9,7 @@ pre_pack_hdrp_template_Win_2021.3:
     name: Pre-Pack HDRP Template Win 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v1.21.0-1103460
+        image: package-ci/win10:v4
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -44,7 +44,7 @@ test_hdrp_template_Win_2021.3:
     name: Test HDRP Template Win 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v1.21.0-1103460
+        image: package-ci/win10:v4
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_Win_2021.3
@@ -62,7 +62,7 @@ pre_pack_hdrp_template_OSX_2021.3:
     name: Pre-Pack HDRP Template OSX 2021.3
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:v1.20.0-1079282
+        image: macos-13:v4
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -96,7 +96,7 @@ test_hdrp_template_OSX_2021.3:
     name: Test HDRP Template OSX 2021.3
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:v1.20.0-1079282
+        image: macos-13:v4
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_template_OSX_2021.3
@@ -151,7 +151,7 @@ pre_pack_hdrp_blank_template_Win_2021.3:
     name: Pre-Pack HDRP Blank Template Win 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v1.21.0-1103460
+        image: package-ci/win10:v4
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -186,7 +186,7 @@ test_hdrp_blank_template_Win_2021.3:
     name: Test HDRP Blank Template Win 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v1.21.0-1103460
+        image: package-ci/win10:v4
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_blank_template_Win_2021.3
@@ -204,7 +204,7 @@ pre_pack_hdrp_blank_template_OSX_2021.3:
     name: Pre-Pack HDRP Blank Template OSX 2021.3
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:v1.20.0-1079282
+        image: macos-13:v4
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -238,7 +238,7 @@ test_hdrp_blank_template_OSX_2021.3:
     name: Test HDRP Blank Template OSX 2021.3
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:v1.20.0-1079282
+        image: macos-13:v4
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_hdrp_blank_template_OSX_2021.3
@@ -293,7 +293,7 @@ pre_pack_universal_template_Win_2021.3:
     name: Pre-Pack Universal Template Win 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v1.21.0-1103460
+        image: package-ci/win10:v4
         flavor: b1.large
     commands:
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -328,7 +328,7 @@ test_universal_template_Win_2021.3:
     name: Test Universal Template Win 2021.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v1.21.0-1103460
+        image: package-ci/win10:v4
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_Win_2021.3
@@ -346,7 +346,7 @@ pre_pack_universal_template_OSX_2021.3:
     name: Pre-Pack Universal Template OSX 2021.3
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:v1.20.0-1079282
+        image: macos-13:v4
         flavor: m1.mac
     commands:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -380,7 +380,7 @@ test_universal_template_OSX_2021.3:
     name: Test Universal Template OSX 2021.3
     agent:
         type: Unity::VM::osx
-        image: package-ci/mac:v1.20.0-1079282
+        image: macos-13:v4
         flavor: m1.mac
     dependencies:
       -  .yamato/_templates.yml#pack_universal_template_OSX_2021.3

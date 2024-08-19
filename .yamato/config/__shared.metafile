@@ -196,7 +196,7 @@ platforms:
         flavor: b1.large
     agent_package:
       type: Unity::VM
-      image: package-ci/win10:v1.21.0-1103460
+      image: package-ci/win10:v4
       flavor: b1.large
     copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
     editorpath: .\.Editor
@@ -243,7 +243,7 @@ platforms:
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
-      image: package-ci/mac:v1.20.0-1079282
+      image: macos-13:v4
       flavor: m1.mac
     copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
@@ -310,15 +310,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.xlarge
     commands:
       [OpenGlCore, Vulkan]:
