@@ -3,7 +3,7 @@ editor_pin_agent: package_ci_ubuntu_small
 
 editor_priming_config:
   variables:
-    CUSTOM-REVISION: "2021.3"
+    CUSTOM_REVISION: "2021.3"
   agent:
     type: Unity::VM
     image: package-ci/ubuntu:v2.0.0-947723

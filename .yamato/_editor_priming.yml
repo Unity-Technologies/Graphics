@@ -13,7 +13,7 @@ editor:priming:2021.3:Win:
         flavor: b1.small
     skip_checkout: true
     variables:
-        CUSTOM-REVISION: '2021.3'
+        CUSTOM_REVISION: '2021.3'
     commands:
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
@@ -56,7 +56,7 @@ editor:priming:2021.3:OSX:
         flavor: b1.small
     skip_checkout: true
     variables:
-        CUSTOM-REVISION: '2021.3'
+        CUSTOM_REVISION: '2021.3'
     commands:
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
@@ -99,7 +99,7 @@ editor:priming:2021.3:Linux:
         flavor: b1.small
     skip_checkout: true
     variables:
-        CUSTOM-REVISION: '2021.3'
+        CUSTOM_REVISION: '2021.3'
     commands:
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
