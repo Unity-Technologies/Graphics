@@ -230,19 +230,19 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win-10:v0.0.1-971269
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.xlarge
       editmode:
         type: Unity::VM
-        image: automation-tooling/win-10:v0.0.1-971268
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
     agent_package:
       type: Unity::VM
-      image: package-ci/win10:v4
+      image: package-ci/win11:v4
       flavor: b1.large
     copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
     editorpath: .\.Editor
@@ -285,7 +285,7 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
+        image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
@@ -348,12 +348,12 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: slough-ops/macos-11-base:stable
+        image: automation-tooling/macos-11:v2.1987114
         model: M1
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
-      image: package-ci/macos-13:v4
+      image: macos-13-arm64:v4
       flavor: m1.mac
     commands:
       [Metal]:
@@ -432,15 +432,15 @@ platforms:
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
-    image: desktop/ubuntu-20.04-desktop:v2.1348791
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   package_ci_ubuntu_xlarge:
     type: Unity::VM
-    image: desktop/ubuntu-20.04-desktop:v2.1348791
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.xlarge
   package_ci_ubuntu_small:
     type: Unity::VM
-    image: desktop/ubuntu-20.04-desktop:v2.1348791
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.small
   package_ci_win_large:
     type: Unity::VM

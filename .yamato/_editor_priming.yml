@@ -9,7 +9,7 @@ editor:priming:2022.3:Win:
     name: '[2022.3,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: package-ci/ubuntu-22.04:v4
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -32,7 +32,7 @@ editor:priming:test_min_editor:Win:
     name: '[Min_Editor,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: desktop/ubuntu-20.04-desktop:v2.1348791
+        image: package-ci/ubuntu-22.04:v4
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -55,7 +55,7 @@ editor:priming:2022.3:OSX:
     name: '[2022.3,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: package-ci/ubuntu-22.04:v4
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -78,7 +78,7 @@ editor:priming:test_min_editor:OSX:
     name: '[Min_Editor,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: desktop/ubuntu-20.04-desktop:v2.1348791
+        image: package-ci/ubuntu-22.04:v4
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -101,7 +101,7 @@ editor:priming:2022.3:OSX_Apple_Silicon:
     name: '[2022.3,OSX_Apple_Silicon] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: package-ci/ubuntu-22.04:v4
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -124,7 +124,7 @@ editor:priming:test_min_editor:OSX_Apple_Silicon:
     name: '[Min_Editor,OSX_Apple_Silicon] Editor priming'
     agent:
         type: Unity::VM
-        image: desktop/ubuntu-20.04-desktop:v2.1348791
+        image: package-ci/ubuntu-22.04:v4
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -147,7 +147,7 @@ editor:priming:2022.3:Linux:
     name: '[2022.3,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: package-ci/ubuntu-22.04:v4
         flavor: b1.small
     skip_checkout: true
     variables:
@@ -170,7 +170,7 @@ editor:priming:test_min_editor:Linux:
     name: '[Min_Editor,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: desktop/ubuntu-20.04-desktop:v2.1348791
+        image: package-ci/ubuntu-22.04:v4
         flavor: b1.small
     variables:
         DISPLAY: ":0"
