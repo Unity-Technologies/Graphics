@@ -32,7 +32,7 @@ editor:priming:test_min_editor:Win:
     name: '[Min_Editor,Win] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -78,7 +78,7 @@ editor:priming:test_min_editor:OSX:
     name: '[Min_Editor,OSX] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -124,7 +124,7 @@ editor:priming:test_min_editor:OSX_Apple_Silicon:
     name: '[Min_Editor,OSX_Apple_Silicon] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.small
     variables:
         DISPLAY: ":0"
@@ -170,7 +170,7 @@ editor:priming:test_min_editor:Linux:
     name: '[Min_Editor,Linux] Editor priming'
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:v2.0.0-947723
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.small
     variables:
         DISPLAY: ":0"

@@ -30,7 +30,7 @@ pack_hdrp_template_Win_2022.3:
     name: Pack HDRP Template Win 2022.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -82,7 +82,7 @@ pack_hdrp_template_OSX_2022.3:
     name: Pack HDRP Template OSX 2022.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -112,7 +112,7 @@ test_hdrp_template_OSX_2022.3:
 publish_hdrp_template_2022.3:
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     name: Publish HDRP Template 2022.3
     commands:
@@ -131,7 +131,7 @@ publish_hdrp_template_2022.3:
 publish_hdrp_template_2022.3_dry_run:
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     name: Publish HDRP Template 2022.3 Dry Run
     commands:
@@ -172,7 +172,7 @@ pack_hdrp_blank_template_Win_2022.3:
     name: Pack HDRP Blank Template Win 2022.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -224,7 +224,7 @@ pack_hdrp_blank_template_OSX_2022.3:
     name: Pack HDRP Blank Template OSX 2022.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -254,7 +254,7 @@ test_hdrp_blank_template_OSX_2022.3:
 publish_hdrp_blank_template_2022.3:
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     name: Publish HDRP Blank Template 2022.3
     commands:
@@ -273,7 +273,7 @@ publish_hdrp_blank_template_2022.3:
 publish_hdrp_blank_template_2022.3_dry_run:
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     name: Publish HDRP Blank Template 2022.3 Dry Run
     commands:
@@ -314,7 +314,7 @@ pack_universal_template_Win_2022.3:
     name: Pack Universal Template Win 2022.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -366,7 +366,7 @@ pack_universal_template_OSX_2022.3:
     name: Pack Universal Template OSX 2022.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -396,7 +396,7 @@ test_universal_template_OSX_2022.3:
 publish_universal_template_2022.3:
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     name: Publish Universal Template 2022.3
     commands:
@@ -415,7 +415,7 @@ publish_universal_template_2022.3:
 publish_universal_template_2022.3_dry_run:
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     name: Publish Universal Template 2022.3 Dry Run
     commands:
@@ -435,7 +435,7 @@ all_template_ci_2022.3:
     name: Pack and test all templates - 2022.3
     agent:
         type: Unity::VM
-        image: package-ci/win10:v2.2.1-1064078
+        image: package-ci/win10:v4
         flavor: b1.large
     dependencies:
       -  .yamato/_templates.yml#test_hdrp_template_Win_2022.3
