@@ -651,7 +651,7 @@ namespace UnityEditor.VFX
 
             var cos = new VFXExpressionCos(dt * VFXOperatorUtility.TauExpression[VFXValueType.Float]) as VFXExpression;
             var sin = new VFXExpressionSin(dt * VFXOperatorUtility.TauExpression[VFXValueType.Float]) as VFXExpression;
-            var left = VFXOperatorUtility.Normalize(VFXOperatorUtility.Cross(normal, up));
+            var left = VFXOperatorUtility.SafeNormalize(VFXOperatorUtility.Cross(normal, up));
 
             radius = new VFXExpressionCombine(radius, radius, radius);
             sin = new VFXExpressionCombine(sin, sin, sin);
