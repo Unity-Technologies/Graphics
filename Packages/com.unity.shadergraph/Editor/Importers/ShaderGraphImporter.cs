@@ -128,16 +128,19 @@ Shader ""Hidden/GraphErrorShader2""
 
                     ReportErrors(graph, shader, path, importErrorLog);
 
-                    EditorMaterialUtility.SetShaderDefaults(
-                        shader,
-                        generatedShader.assignedTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
-                        generatedShader.assignedTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+                    if (generatedShader.assignedTextures != null)
+                    {
+                        EditorMaterialUtility.SetShaderDefaults(
+                            shader,
+                            generatedShader.assignedTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
+                            generatedShader.assignedTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
 
-                    EditorMaterialUtility.SetShaderNonModifiableDefaults(
-                        shader,
-                        generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
-                        generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-
+                        EditorMaterialUtility.SetShaderNonModifiableDefaults(
+                            shader,
+                            generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
+                            generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+                    }
+                    
                     if (first)
                     {
                         // first shader is always the primary shader
@@ -228,7 +231,11 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 #endif
-
+            if (mainObject == null)
+            {
+                mainObject = ShaderUtil.CreateShaderAsset(ctx, k_ErrorShader, false);
+            }
+            
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon");
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
             ctx.SetMainObject(mainObject);
