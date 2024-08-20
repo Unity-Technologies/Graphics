@@ -64,19 +64,19 @@ namespace UnityEngine.Rendering
         [ResourcePath("Editor/Lighting/ProbeVolume/VoxelizeScene.shader")]
         public Shader voxelizeSceneShader;
 
-        [ResourcePath("Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.compute")]
+        [ResourcePath("Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.urtshader")]
         public ComputeShader traceVirtualOffsetCS;
-        [ResourcePath("Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.raytrace")]
+        [ResourcePath("Editor/Lighting/ProbeVolume/VirtualOffset/TraceVirtualOffset.urtshader")]
         public RayTracingShader traceVirtualOffsetRT;
 
-        [ResourcePath("Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.compute")]
+        [ResourcePath("Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.urtshader")]
         public ComputeShader skyOcclusionCS;
-        [ResourcePath("Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.raytrace")]
+        [ResourcePath("Editor/Lighting/ProbeVolume/DynamicGI/DynamicGISkyOcclusion.urtshader")]
         public RayTracingShader skyOcclusionRT;
 
-        [ResourcePath("Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.compute")]
+        [ResourcePath("Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.urtshader")]
         public ComputeShader renderingLayerCS;
-        [ResourcePath("Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.raytrace")]
+        [ResourcePath("Editor/Lighting/ProbeVolume/RenderingLayerMask/TraceRenderingLayerMask.urtshader")]
         public RayTracingShader renderingLayerRT;
     }
 

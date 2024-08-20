@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-universal-additional-light-data
+uid: urp-universal-additional-light-data
 ---
 # The Universal Additional Light Data component
 

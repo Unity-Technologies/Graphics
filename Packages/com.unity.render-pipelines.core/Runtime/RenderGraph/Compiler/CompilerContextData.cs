@@ -32,7 +32,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return new ReadOnlySpan<T>(&list.GetUnsafeReadOnlyPtr()[first], numElements);
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int LastIndex<T>(this ref NativeList<T> list) where T : unmanaged
         {

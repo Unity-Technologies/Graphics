@@ -48,6 +48,8 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 
     inputData.positionWS = input.posWSShininess.xyz;
 
+    inputData.positionCS = input.clipPos;
+
     half3 viewDirWS = input.viewDir;
     viewDirWS = SafeNormalize(viewDirWS);
 

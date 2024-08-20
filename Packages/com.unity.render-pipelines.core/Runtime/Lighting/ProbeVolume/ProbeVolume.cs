@@ -217,7 +217,8 @@ namespace UnityEngine.Rendering
             var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
             if (debugDisplay.realtimeSubdivision)
             {
-                if (!ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(gameObject.scene, out var bakingSet))
+                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(gameObject.scene);
+                if (bakingSet == null)
                     return true;
 
                 // Use the non-backed data to display real-time info
@@ -274,7 +275,8 @@ namespace UnityEngine.Rendering
             var probeOffset = ProbeReferenceVolume.instance.ProbeOffset() + ProbeVolumeDebug.currentOffset;
             if (debugDisplay.realtimeSubdivision)
             {
-                if (!ProbeReferenceVolume.instance.TryGetBakingSetForLoadedScene(gameObject.scene, out var bakingSet))
+                var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(gameObject.scene);
+                if (bakingSet == null)
                     return;
 
                 // Overwrite settings with data from profile

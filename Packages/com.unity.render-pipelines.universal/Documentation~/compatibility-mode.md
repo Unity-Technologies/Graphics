@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-compatibility-mode
+uid: urp-compatibility-mode
 ---
 ## Compatibility Mode
 

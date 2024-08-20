@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-white-balance
+uid: urp-post-processing-white-balance
 ---
 # White Balance
 

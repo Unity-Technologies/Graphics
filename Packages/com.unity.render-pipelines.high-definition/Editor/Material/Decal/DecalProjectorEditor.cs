@@ -731,8 +731,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             m_DecalLayerMask.intValue = unchecked((int) mask);
                             EditorUtility.SetDirty(m_DecalLayerMask.serializedObject.targetObject);
                         }
-                        if (RenderingLayerMask.GetLastDefinedRenderingLayerIndex() > 16)
-                            EditorGUILayout.HelpBox($"One or more of the Rendering Layers is defined outside of 16 limit. HDRP supports only 16 layers.", MessageType.Warning);
                     }
                 }
 

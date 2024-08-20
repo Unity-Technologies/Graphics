@@ -5,6 +5,8 @@ Shader "Hidden/Universal/BlitHDROverlay"
         #pragma editor_sync_compilation
         #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION HDR_ENCODING HDR_COLORSPACE_CONVERSION_AND_ENCODING
 
+        #pragma dynamic_branch_local_fragment _ _HDR_OVERLAY
+
         // Core.hlsl for XR dependencies
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
@@ -38,6 +40,10 @@ Shader "Hidden/Universal/BlitHDROverlay"
         float4 FragBlitHDR(Varyings input, SamplerState s)
         {
             float4 color = FragBlit(input, s);
+            UNITY_BRANCH if(!_HDR_OVERLAY)
+            {
+                return color;
+            }
 
             float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
             return SceneComposition(color, uiSample);

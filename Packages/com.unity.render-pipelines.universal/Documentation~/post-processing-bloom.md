@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-bloom
+uid: urp-post-processing-bloom
 ---
 # Bloom
 

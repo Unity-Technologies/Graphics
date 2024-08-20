@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
         internal delegate void PreferenceChangedDelegate();
 
         internal static PreferenceChangedDelegate onVariantLimitChanged;
-        static int m_PreviewVariantLimit = 128;
+        static int m_PreviewVariantLimit = 2048;
         internal static int previewVariantLimit
         {
             get { return m_PreviewVariantLimit; }
@@ -102,6 +102,7 @@ namespace UnityEditor.ShaderGraph
                 : new GUIContent("Preview Variant Limit");
 
             var variantLimitValue = EditorGUILayout.DelayedIntField(variantLimitLabel, previewVariantLimit);
+            variantLimitValue = Mathf.Max(0, variantLimitValue);
             if (EditorGUI.EndChangeCheck())
             {
                 previewVariantLimit = variantLimitValue;

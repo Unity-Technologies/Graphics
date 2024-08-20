@@ -6,6 +6,8 @@ Shader "Hidden/Universal/HDRDebugView"
     #pragma multi_compile_fragment _ DEBUG_DISPLAY
     #pragma multi_compile_local_fragment _ HDR_ENCODING
 
+    #pragma dynamic_branch_local_fragment _ _HDR_OVERLAY
+
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -236,8 +238,12 @@ Shader "Hidden/Universal/HDRDebugView"
                     RenderDebugHDR(col, uv, outColor);
 
 #if defined(HDR_ENCODING)
-                    float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
-                    outColor.rgb = SceneUIComposition(uiSample, outColor.rgb, _PaperWhite, _MaxNits);
+                    UNITY_BRANCH if(_HDR_OVERLAY)
+                    {
+                        float4 uiSample = SAMPLE_TEXTURE2D_X(_OverlayUITexture, sampler_PointClamp, input.texcoord);
+                        outColor.rgb = SceneUIComposition(uiSample, outColor.rgb, _PaperWhite, _MaxNits);
+                    }
+
                     outColor.rgb = OETF(outColor.rgb, _MaxNits);
 #endif
 

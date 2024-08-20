@@ -1,7 +1,0 @@
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
-
-#define UNIFIED_RT_BACKEND_COMPUTE
-#define UNIFIED_RT_GROUP_SIZE_X 64
-#define UNIFIED_RT_GROUP_SIZE_Y 1
-#include "TraceVirtualOffset.hlsl"
-#include_with_pragmas "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Compute/ComputeRaygenShader.hlsl"

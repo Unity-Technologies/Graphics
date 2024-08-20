@@ -2688,11 +2688,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var directionalLights = HDLightRenderDatabase.instance.directionalLights;
                     if (lightData.cachedLightType == LightType.Directional)
+                    {
                         directionalLights.Add(lightData);
+                    }
                     else if (lightData.legacyLight.type != LightType.Directional)
                     {
-                        int idx = directionalLights.FindIndex((x) => ReferenceEquals(x, lightData));
-                        if (idx != -1) directionalLights.RemoveAt(idx);
+                        // Remove the light from directionalLights, We use a loop to avoid a GC allocation (UUM-69806)
+                        for (int k = 0; k < directionalLights.Count; ++k)
+                        {
+                            if (ReferenceEquals(directionalLights[k], lightData))
+                            {
+                                directionalLights.RemoveAt(k);
+                                break;
+                            }
+                        }
                     }
 
 #if UNITY_EDITOR

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-set-up-a-volume
+uid: urp-set-up-a-volume
 ---
 # Set up a volume
 

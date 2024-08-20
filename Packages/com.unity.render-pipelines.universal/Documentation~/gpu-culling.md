@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-gpu-culling
+uid: urp-gpu-culling
 ---
 # Use GPU occlusion culling
 

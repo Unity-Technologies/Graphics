@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-quality-presets
+uid: urp-quality-presets
 ---
 # Update graphics quality levels for URP
 

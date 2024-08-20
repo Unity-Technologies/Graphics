@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-building-for-consoles
+uid: urp-building-for-consoles
 ---
 # Building your Project for Closed platforms
 

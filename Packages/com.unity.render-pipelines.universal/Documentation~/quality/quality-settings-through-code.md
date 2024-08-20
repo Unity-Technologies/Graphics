@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-quality-settings-through-code
+uid: urp-quality-settings-through-code
 ---
 # Control URP Quality settings through code
 

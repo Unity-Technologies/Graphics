@@ -120,6 +120,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!shadowData.mainLightShadowsEnabled)
                 return false;
 
+#if UNITY_EDITOR
+            if (CoreUtils.IsSceneLightingDisabled(cameraData.camera))
+                return false;
+#endif
+
             using var profScope = new ProfilingScope(m_ProfilingSetupSampler);
 
             if (!shadowData.supportsMainLightShadows)
@@ -188,8 +193,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
+
             if (m_CreateEmptyShadowmap && !m_EmptyShadowmapNeedsClear)
+            {
+                // UUM-63146 - glClientWaitSync: Expected application to have kicked everything until job: 96089 (possibly by calling glFlush)" are thrown in the Android Player on some devices with PowerVR Rogue GE8320
+                // Resetting of target would clean up the color attachment buffers and depth attachment buffers, which inturn is preventing the leak in the said platform. This is likely a symptomatic fix, but is solving the problem for now.
+
+                if (Application.platform == RuntimePlatform.Android && PlatformAutoDetect.isRunningOnPowerVRGPU)
+                    ResetTarget();
+
                 return;
+            }
 
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618

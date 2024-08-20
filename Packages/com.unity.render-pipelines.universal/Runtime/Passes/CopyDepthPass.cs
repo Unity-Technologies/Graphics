@@ -21,13 +21,23 @@ namespace UnityEngine.Rendering.Universal.Internal
         // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
         // So this variable needs to be set to true to enable the correct copy shader semantic
         internal bool CopyToDepth { get; set; }
+        // In XR CopyDepth, we need a special workaround to handle dummy color issue in RenderGraph.
+        internal bool CopyToDepthXR { get; set; }
         Material m_CopyDepthMaterial;
 
         internal bool m_CopyResolvedDepth;
         internal bool m_ShouldClear;
         private PassData m_PassData;
 
-        static readonly int k_ZWriteShaderHandle = Shader.PropertyToID("_ZWrite");
+        /// <summary>
+        /// Shader resource ids used to communicate with the shader implementation
+        /// </summary>
+        static class ShaderConstants
+        {
+            public static readonly int _CameraDepthAttachment = Shader.PropertyToID("_CameraDepthAttachment");
+            public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
+            public static readonly int _ZWriteShaderHandle = Shader.PropertyToID("_ZWrite");
+        }
 
         /// <summary>
         /// Creates a new <c>CopyDepthPass</c> instance.
@@ -48,6 +58,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = evt;
             m_CopyResolvedDepth = copyResolvedDepth;
             m_ShouldClear = shouldClear;
+            CopyToDepthXR = false;
         }
 
         /// <summary>
@@ -100,7 +111,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal int msaaSamples;
             internal bool copyResolvedDepth;
             internal bool copyToDepth;
-            internal int zWriteShaderHandle;
         }
 
         /// <inheritdoc/>
@@ -115,7 +125,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.copyToDepth = CopyToDepth;
             m_PassData.cameraData = cameraData;
             var cmd = renderingData.commandBuffer;
-            cmd.SetGlobalTexture("_CameraDepthAttachment", source.nameID);
+            cmd.SetGlobalTexture(ShaderConstants._CameraDepthAttachment, source.nameID);
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (m_PassData.cameraData.xr.enabled)
             {
@@ -183,7 +193,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 bool outputDepth = copyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None;
                 cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, outputDepth);
-                copyDepthMaterial.SetFloat(k_ZWriteShaderHandle, outputDepth ? 1.0f : 0.0f);
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 // We y-flip if
@@ -201,7 +210,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (isGameViewFinalTarget)
                     cmd.SetViewport(passData.cameraData.pixelRect);
 
-                copyDepthMaterial.SetTexture(Shader.PropertyToID("_CameraDepthAttachment"), source);
+                copyDepthMaterial.SetTexture(ShaderConstants._CameraDepthAttachment, source);
+                copyDepthMaterial.SetFloat(ShaderConstants._ZWriteShaderHandle, outputDepth ? 1.0f : 0.0f);
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
             }
         }
@@ -256,19 +266,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.msaaSamples = MssaSamples;
                 passData.cameraData = cameraData;
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
-                passData.copyToDepth = CopyToDepth;
+                passData.copyToDepth = CopyToDepth || CopyToDepthXR;
 
                 if (CopyToDepth)
                 {
                     // Writes depth using custom depth output
                     passData.destination = destination;
                     builder.SetRenderAttachmentDepth(destination, AccessFlags.Write);
-
 #if UNITY_EDITOR
                     // binding a dummy color target as a workaround to an OSX issue in Editor scene view (UUM-47698).
                     // Also required for preview camera rendering for grid drawn with builtin RP (UUM-55171).
                     if (cameraData.isSceneViewCamera || cameraData.isPreviewCamera)
                         builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
+#endif
+                }
+                else if (CopyToDepthXR)
+                {
+                    // Writes depth using custom depth output
+                    passData.destination = destination;
+                    builder.SetRenderAttachmentDepth(destination, AccessFlags.Write);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    // binding a dummy color target as a workaround to NRP depth only rendering limitation:
+                    // "Attempting to render to a depth only surface with no dummy color attachment"
+                    if (cameraData.xr.enabled && cameraData.xr.copyDepth)
+                        builder.SetRenderAttachment(resourceData.backBufferColor, 0);
 #endif
                 }
                 else
@@ -282,7 +304,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.UseTexture(source, AccessFlags.Read);
 
                 if (bindAsCameraDepth && destination.IsValid())
-                    builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraDepthTexture"));
+                    builder.SetGlobalTextureAfterPass(destination, ShaderConstants._CameraDepthTexture);
 
                 // TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);

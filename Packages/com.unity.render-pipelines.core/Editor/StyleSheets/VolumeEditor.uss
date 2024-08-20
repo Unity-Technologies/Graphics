@@ -1,9 +1,9 @@
 .volume-profile-header__container {
-    margin: 4px -6px 2px -16px;
+    margin: 4px -6px 2px -15px;
     border-top-width: 1px;
     border-bottom-width: 1px;
     border-color: #1f1f1f;
-    padding-left: 12px;
+    padding-left: 13px;
     padding-top: 4px;
     padding-bottom: 4px;
     flex-direction: row;
@@ -67,8 +67,9 @@
 }
 
 #volume-profile-component-container {
-    margin-left: -16px;
+    margin-left: -15px;
     margin-top: 1px;
+    margin-right: -3px;
 }
 
 #volume-profile-blend-distance {

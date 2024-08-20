@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (inputData.shaderKeywordSet.IsEnabled(m_SupportWaterAbsorption))
                     return true;
 
-                if (stripDebugVariants && snippet.passName.StartsWith(WaterSystem.k_WaterMaskPass))
+                if (stripDebugVariants && snippet.passName.StartsWith(WaterSystem.k_WaterDebugPass))
                     return true;
             }
             if (HDRPBuildData.instance.waterDecalMaskAndCurrent)

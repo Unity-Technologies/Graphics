@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-particles-lit-shader
+uid: urp-particles-lit-shader
 ---
 # Particles Lit Shader
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-pass-textures-between-passes
+uid: urp-render-graph-pass-textures-between-passes
 ---
 # Transfer a texture between render passes
 

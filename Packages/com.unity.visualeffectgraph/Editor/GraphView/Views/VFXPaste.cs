@@ -249,6 +249,9 @@ namespace UnityEditor.VFX.UI
 
             m_NodesInTheSameOrder = new VFXNodeID[serializableGraph.controllerCount];
 
+            // Paste custom attributes first so they are already available to nodes using them
+            PasteVFXAttributes(viewController, serializableGraph);
+
             // Can't paste context within subgraph block/operator
             if (viewController.model.visualEffectObject is VisualEffectSubgraphOperator || viewController.model.visualEffectObject is VisualEffectSubgraphBlock)
             {
@@ -264,7 +267,6 @@ namespace UnityEditor.VFX.UI
                 PasteContexts(viewController, center, serializableGraph);
             }
 
-            PasteVFXAttributes(viewController, serializableGraph);
             PasteOperators(viewController, center, serializableGraph);
             PasteParameters(viewController, serializableGraph, center);
             PasteCategories(viewController);
@@ -313,21 +315,15 @@ namespace UnityEditor.VFX.UI
                     if (dataEdge.input.targetIndex == InvalidID || dataEdge.output.targetIndex == InvalidID)
                         continue;
 
-                    VFXModel inputModel = newControllers.ContainsKey(dataEdge.input.targetIndex) ? newControllers[dataEdge.input.targetIndex].model : null;
-
-                    VFXNodeController outputController = newControllers.ContainsKey(dataEdge.output.targetIndex) ? newControllers[dataEdge.output.targetIndex] : null;
-                    VFXModel outputModel = outputController != null ? outputController.model : null;
-                    if (inputModel != null && outputModel != null)
+                    if (newControllers.TryGetValue(dataEdge.input.targetIndex, out var inputController) && inputController.model is IVFXSlotContainer inputModel &&
+                        newControllers.TryGetValue(dataEdge.output.targetIndex, out var outputController) && outputController.model is IVFXSlotContainer outputModel)
                     {
-                        VFXSlot outputSlot = FetchSlot(outputModel as IVFXSlotContainer, dataEdge.output.slotPath, false);
-                        VFXSlot inputSlot = FetchSlot(inputModel as IVFXSlotContainer, dataEdge.input.slotPath, true);
+                        var outputSlot = FetchSlot(outputModel, dataEdge.output.slotPath, false);
+                        var inputSlot = FetchSlot(inputModel, dataEdge.input.slotPath, true);
+                        inputSlot?.Link(outputSlot);
 
-                        inputSlot.Link(outputSlot);
-
-                        if (outputController is VFXParameterNodeController)
+                        if (outputController is VFXParameterNodeController parameterNodeController)
                         {
-                            var parameterNodeController = outputController as VFXParameterNodeController;
-
                             parameterNodeController.infos.linkedSlots.Add(new VFXParameter.NodeLinkedSlot { inputSlot = inputSlot, outputSlot = outputSlot });
                         }
                     }

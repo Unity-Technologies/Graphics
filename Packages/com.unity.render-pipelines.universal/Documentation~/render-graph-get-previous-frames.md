@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-get-previous-frames
+uid: urp-render-graph-get-previous-frames
 ---
 # Get data from previous frames
 

@@ -243,20 +243,18 @@ namespace UnityEditor.VFX.UI
             n.collapsed = controller.superCollapsed;
             n.expandedOutput = controller.infos.expandedSlots.Select(t => t.path).ToArray();
             n.indexInClipboard = indexInClipboard;
+            modelIndices[controller] = GetParameterNodeID((uint)parameterIndex, (uint)nodeIndex);
 
-            if (parameterIndex < (1 << 18) && nodeIndex < (1 << 11))
-                modelIndices[controller] = GetParameterNodeID((uint)parameterIndex, (uint)nodeIndex);
-            else
-                modelIndices[controller] = InvalidID;
             return n;
         }
 
         void CopyParameterNodeControllers(ref SerializableGraph serializableGraph)
         {
-            int cpt = 0;
+            int cpt = -1;
             serializableGraph.parameterNodes = parameterNodeControllers.GroupBy(t => t.parentController, t => t, (p, c) =>
             {
-                return CreateParameter(p.model, c.Select((u, i) => CopyParameterNode(++cpt - 1, i, u, parameterIndices[Array.IndexOf(parameterNodeControllers, u)])).ToArray());
+                cpt++;
+                return CreateParameter(p.model, c.Select((u, i) => CopyParameterNode(cpt, i, u, parameterIndices[Array.IndexOf(parameterNodeControllers, u)])).ToArray());
             }).ToArray();
         }
 

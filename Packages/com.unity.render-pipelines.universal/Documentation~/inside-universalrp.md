@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-inside-universalrp
+uid: urp-inside-universalrp
 ---
 # Insid the Universal Render Pipeline
 

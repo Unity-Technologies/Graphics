@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-renderer-feature-decal-landing
+uid: urp-renderer-feature-decal-landing
 ---
 # Decal Renderer Feature
 

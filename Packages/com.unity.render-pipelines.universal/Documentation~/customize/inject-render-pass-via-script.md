@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-inject-render-pass-via-script
+uid: urp-inject-render-pass-via-script
 ---
 # Inject a render pass via scripting
 

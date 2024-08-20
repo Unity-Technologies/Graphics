@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-volume-profile
+uid: urp-volume-profile
 ---
 # Create a Volume Profile
 

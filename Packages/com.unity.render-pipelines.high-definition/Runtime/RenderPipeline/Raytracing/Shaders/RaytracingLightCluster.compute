@@ -5,10 +5,11 @@
 
 // SRP & HDRP includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/WorldLightManager.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
 
 #define CLUSTER_GROUP_SIZE 8
 
@@ -34,8 +35,6 @@ static const float3 CornerSubDirections[8] = {
     float3(0.5f, 0.5f, 0.5f)
 };
 
-#define CULL_GROUP_SIZE 16
-
 // The target data that this computer shader must fill
 RWStructuredBuffer<uint>                _RaytracingLightCullResult;
 float3                                  _ClusterCenterPosition;
@@ -48,15 +47,15 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
     uint3 targetCellIndex = groupId * CLUSTER_GROUP_SIZE + threadID;
 
     // Get its global cell index
-    uint cellIndex = targetCellIndex.z + targetCellIndex.y * 32 + targetCellIndex.x * 2048;
+    uint cellIndex = GetClusterCellIndex(targetCellIndex.x, targetCellIndex.y, targetCellIndex.z);
 
     // The size of a cell data-wise
-	uint cellDataSize = _LightPerCellCount + CELL_META_DATA_SIZE; // Each cell contains a number of lights plus meta data counting the number of each light type. 
+	uint cellDataSize = _LightPerCellCount + CELL_META_DATA_SIZE; // Each cell contains a number of lights plus meta data counting the number of each light type.
 
     // Diagonal direction of the cluster
     float3 bottomCorner = _MinClusterPos + float3(0.5f, 0.5f, 0.5f) * _ClusterCellSize;
     // Let's compute the position of this cell
-    float3 cellCenterPosition = bottomCorner + (_MaxClusterPos - _MinClusterPos) * targetCellIndex / float3(64.0, 64.0, 32.0);
+    float3 cellCenterPosition = bottomCorner + (_MaxClusterPos - _MinClusterPos) * targetCellIndex / (float3)CLUSTER_SIZE;
 
     // The actual light count that intersects with this cell
     uint currentLightCount = 0;
@@ -137,10 +136,10 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
 	_RaytracingLightClusterRW[cellIndex * cellDataSize + CELL_META_DATA_AREA_END_INDEX]       = punctualLightCount + areaLightCount;
 	_RaytracingLightClusterRW[cellIndex * cellDataSize + CELL_META_DATA_ENV_END_INDEX]        = punctualLightCount + areaLightCount + envLightCount;
 	_RaytracingLightClusterRW[cellIndex * cellDataSize + CELL_META_DATA_DECAL_END_INDEX]      = punctualLightCount + areaLightCount + envLightCount + decalCount;
-        
 }
 
 // TODO Dead code
+#define CULL_GROUP_SIZE 16
 [numthreads(CULL_GROUP_SIZE, 1, 1)]
 void RaytracingLightCull(uint2 threadID : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {

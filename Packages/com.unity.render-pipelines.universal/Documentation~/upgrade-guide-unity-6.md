@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrade-guide-unity-6
+uid: urp-upgrade-guide-unity-6
 ---
 # Upgrading to URP 17 (Unity 6 Preview)
 

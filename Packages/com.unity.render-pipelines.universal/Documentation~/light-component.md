@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-light-component
+uid: urp-light-component
 ---
 # Light component reference
 

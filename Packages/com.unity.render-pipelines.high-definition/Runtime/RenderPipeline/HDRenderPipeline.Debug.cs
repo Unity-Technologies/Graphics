@@ -111,6 +111,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal bool NeedDebugDisplay()
+        {
+             return m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
+        }
+
         bool NeedColorPickerDebug(DebugDisplaySettings debugSettings)
         {
             return debugSettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None
@@ -1531,7 +1536,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle depth = CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples);
 
                 // Render the debug water
-                m_WaterSystem.RenderWaterDebug(renderGraph, hdCamera, output, depth, true);
+                m_WaterSystem.RenderWaterDebug(renderGraph, hdCamera, output, depth);
 
                 // Render the debug lines.
                 RenderLines(renderGraph, depthBuffer, hdCamera, lightLists);

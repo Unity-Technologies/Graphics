@@ -309,114 +309,115 @@ namespace UnityEditor.Rendering
                 return;
 
             if (m_MaskList == null)
-            {
-                m_MaskList = new ReorderableList(serializedObject, m_RenderingLayerMasks, true, false, true, true)
-                {
-                    multiSelect = false,
-                    elementHeightCallback = _ => EditorGUIUtility.singleLineHeight,
-                    onCanAddCallback = _ => m_RenderingLayerMasks.arraySize < APVDefinitions.probeMaxRegionCount,
-                    onAddCallback = _ =>
-                    {
-                        int index = Mathf.Min(m_MaskList.index + 1, m_MaskList.count);
-                        m_RenderingLayerMasks.InsertArrayElementAtIndex(index);
-                        m_RenderingLayerMasks.GetArrayElementAtIndex(index).FindPropertyRelative("mask").intValue = 0;
-                        m_RenderingLayerMasks.GetArrayElementAtIndex(index).FindPropertyRelative("name").stringValue = "Mask " + (index + 1);
-                        m_MaskList.index = index;
-                    },
-                    drawElementCallback = (rect, index, active, focused) =>
-                    {
-                        var mask = m_RenderingLayerMasks.GetArrayElementAtIndex(index).FindPropertyRelative("mask");
-                        var name = m_RenderingLayerMasks.GetArrayElementAtIndex(index).FindPropertyRelative("name");
+                m_MaskList = CreateRenderingLayersList();
 
-                        // Fixup alignment
-                        rect.yMin++;
-                        rect.yMax--;
-
-                        // Name
-                        if (RenameEvent(rect, active, focused, index, ref renamingMask))
-                        {
-                            Rect labelPosition = new Rect(rect.x, rect.y, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
-                            Rect fieldPosition = new Rect(rect.x + EditorGUIUtility.labelWidth + 2, rect.y, rect.width - EditorGUIUtility.labelWidth - 2, rect.height);
-
-                            // Renaming
-                            EditorGUI.BeginChangeCheck();
-                            var newName = EditorGUI.DelayedTextField(labelPosition, name.stringValue, EditorStyles.boldLabel);
-                            if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newName))
-                            {
-                                renamingMask = -1;
-                                name.stringValue = newName;
-                            }
-
-                            EditorGUI.RenderingLayerMaskField(fieldPosition, "", mask.intValue);
-                        }
-                        else
-                            EditorGUI.RenderingLayerMaskField(rect, EditorGUIUtility.TrTextContent(name.stringValue, Styles.maskTooltip), mask);
-                    }
-                };
-            }
-
-            bool supportsLayers = true;
-            var currentPipeline = GraphicsSettings.currentRenderPipeline;
-            var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
-
-            // HDRP
-            if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
-            {
-                var settings = renderPipelineAssetType.GetField("m_RenderPipelineSettings", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(currentPipeline);
-                supportsLayers = (bool)settings.GetType().GetField("supportLightLayers").GetValue(settings);
-            }
-
-            // URP
-            else if (renderPipelineAssetType != null && renderPipelineAssetType.Name == "UniversalRenderPipelineAsset")
-            {
-                supportsLayers = (bool)renderPipelineAssetType.GetField("m_SupportsLightLayers", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(currentPipeline);
-            }
-
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUILayout.PropertyField(m_RenderingLayers, Styles.renderingLayerMasks);
-                if (m_RenderingLayers.boolValue)
-                {
-                    using (new EditorGUI.IndentLevelScope())
-                    {
-                        // HDRP
-                        if (!supportsLayers && renderPipelineAssetType != null && renderPipelineAssetType.Name == "HDRenderPipelineAsset")
-                        {
-                            static int IndexOf(string[] names, string name) { for (int i = 0; i < names.Length; i++) { if (name == names[i]) return i; } return -1; }
-
-                            var k_ExpandableGroup = Type.GetType("UnityEditor.Rendering.HighDefinition.HDRenderPipelineUI+ExpandableGroup,Unity.RenderPipelines.HighDefinition.Editor");
-                            var lightingGroup = k_ExpandableGroup.GetEnumValues().GetValue(IndexOf(k_ExpandableGroup.GetEnumNames(), "Lighting"));
-
-                             var k_QualitySettingsHelpBox = Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
-                            .GetMethod("QualitySettingsHelpBoxForReflection", BindingFlags.Static | BindingFlags.NonPublic);
-
-                            string message = "The current HDRP Asset does not support Light Layers.";
-                            k_QualitySettingsHelpBox.Invoke(null, new object[] { message, MessageType.Warning, lightingGroup, 0, "m_RenderPipelineSettings.supportLightLayers" });
-                        }
-
-                        // URP
-                        else if (!supportsLayers && renderPipelineAssetType != null && renderPipelineAssetType.Name == "UniversalRenderPipelineAsset")
-                        {
-                            string message = "The current URP Asset does not support Light Layers.";
-
-                            CoreEditorUtils.DrawFixMeBox(message, MessageType.Warning, "Open", () =>
-                            {
-                                EditorUtility.OpenPropertyEditor(currentPipeline);
-                                GUIUtility.ExitGUI();
-                            });
-                        }
-
-                        // Regular inspector
-                        else
-                        {
-                            ProbeVolumeLightingTab.DrawListWithIndent(m_MaskList);
-                        }
-                    }
-                }
-            }
+            DrawRenderingLayersList();
 
             EditorGUILayout.Space();
         }
+
+        ReorderableList CreateRenderingLayersList()
+        {
+            return new ReorderableList(serializedObject, m_RenderingLayerMasks, true, false, true, true)
+            {
+                multiSelect = false,
+                elementHeightCallback = _ => EditorGUIUtility.singleLineHeight,
+                onCanAddCallback = _ => m_RenderingLayerMasks.arraySize < APVDefinitions.probeMaxRegionCount,
+                onAddCallback = _ =>
+                {
+                    int index = Mathf.Min(m_MaskList.index + 1, m_MaskList.count);
+                    m_RenderingLayerMasks.InsertArrayElementAtIndex(index);
+                    m_RenderingLayerMasks.GetArrayElementAtIndex(index).FindPropertyRelative("mask").intValue = 0;
+                    m_RenderingLayerMasks.GetArrayElementAtIndex(index).FindPropertyRelative("name").stringValue = "Mask " + (index + 1);
+                    m_MaskList.index = index;
+                },
+                drawElementCallback = (rect, index, active, focused) =>
+                {
+                    var mask = m_RenderingLayerMasks.GetArrayElementAtIndex(index).FindPropertyRelative("mask");
+                    var name = m_RenderingLayerMasks.GetArrayElementAtIndex(index).FindPropertyRelative("name");
+
+                    // Fixup alignment
+                    rect.yMin++;
+                    rect.yMax--;
+
+                    // Name
+                    if (RenameEvent(rect, active, focused, index, ref renamingMask))
+                    {
+                        Rect labelPosition = new Rect(rect.x, rect.y, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
+                        Rect fieldPosition = new Rect(rect.x + EditorGUIUtility.labelWidth + 2, rect.y, rect.width - EditorGUIUtility.labelWidth - 2, rect.height);
+
+                        // Renaming
+                        EditorGUI.BeginChangeCheck();
+                        var newName = EditorGUI.DelayedTextField(labelPosition, name.stringValue, EditorStyles.boldLabel);
+                        if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newName))
+                        {
+                            renamingMask = -1;
+                            name.stringValue = newName;
+                        }
+
+                        EditorGUI.RenderingLayerMaskField(fieldPosition, "", mask.intValue);
+                    }
+                    else
+                        EditorGUI.RenderingLayerMaskField(rect, EditorGUIUtility.TrTextContent(name.stringValue, Styles.maskTooltip), mask);
+                }
+            };
+        }
+
+        void DrawRenderingLayersList()
+        {
+            var renderPipelineAssetType = GraphicsSettings.currentRenderPipelineAssetType;
+            var supportsLayers = GraphicsSettings.currentRenderPipelineAssetType switch
+            {
+                { Name: "HDRenderPipelineAsset" } => GetHDRPSupportsLayers(renderPipelineAssetType, GraphicsSettings.currentRenderPipeline),
+                { Name: "UniversalRenderPipelineAsset" } => GetURPSupportsLayers(renderPipelineAssetType, GraphicsSettings.currentRenderPipeline),
+                _ => true
+            };
+
+            using var indentLevelScope = new EditorGUI.IndentLevelScope();
+            EditorGUILayout.PropertyField(m_RenderingLayers, Styles.renderingLayerMasks);
+            if (!m_RenderingLayers.boolValue)
+                return;
+
+            using var scope = new EditorGUI.IndentLevelScope();
+            switch (supportsLayers)
+            {
+                case false when renderPipelineAssetType is { Name: "HDRenderPipelineAsset" }:
+                {
+                    var lightingGroup = ProbeVolumeEditor.GetHDRPLightingGroup();
+                    var k_QualitySettingsHelpBox = ProbeVolumeEditor.GetHDRPQualitySettingsHelpBox();
+                    k_QualitySettingsHelpBox.Invoke(null, new[]
+                    {
+                        "The current HDRP Asset does not support Light Layers.", MessageType.Warning, lightingGroup, -1, "m_RenderPipelineSettings.supportLightLayers"
+                    });
+                    break;
+                }
+                case false when renderPipelineAssetType is { Name: "UniversalRenderPipelineAsset" }:
+                {
+                    var k_QualitySettingsHelpBox = ProbeVolumeEditor.GetURPQualitySettingsHelpBox();
+                    var lightingValue = ProbeVolumeEditor.GetURPLightingGroup();
+                    k_QualitySettingsHelpBox.Invoke(null, new[]
+                    {
+                        "The current URP Asset does not support Light Layers.", MessageType.Warning, lightingValue, "m_SupportsLightLayers"
+                    });
+                    break;
+                }
+                default:
+                    ProbeVolumeLightingTab.DrawListWithIndent(m_MaskList);
+                    break;
+            }
+        }
+
+        internal static bool GetURPSupportsLayers(Type renderPipelineAssetType, RenderPipelineAsset currentPipeline)
+        {
+            return (bool)renderPipelineAssetType.GetField("m_SupportsLightLayers", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(currentPipeline);
+        }
+
+        internal static bool GetHDRPSupportsLayers(Type renderPipelineAssetType, RenderPipelineAsset currentPipeline)
+        {
+            var settings = renderPipelineAssetType.GetField("m_RenderPipelineSettings", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(currentPipeline);
+            return (bool)settings.GetType().GetField("supportLightLayers").GetValue(settings);
+        }
+
         #endregion
 
         #region Sky occlusion
@@ -594,7 +595,7 @@ namespace UnityEditor.Rendering
             {
                 if (m_Scenarios.count == 1)
                 {
-                    EditorUtility.DisplayDialog("Can't delete scenario", "You can't delete the last scenario. You need to have at least one.", "Ok");
+                    EditorUtility.DisplayDialog("Can't delete scenario", "You can't delete the last scenario. You need to have at least one.", "OK");
                     return;
                 }
                 var scenario = bakingSet.m_LightingScenarios[list.index];

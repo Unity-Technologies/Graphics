@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-view
+uid: urp-render-graph-view
 ---
 # Analyze a render graph
 

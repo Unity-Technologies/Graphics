@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-particles-unlit-shader
+uid: urp-particles-unlit-shader
 ---
 # Particles Unlit Shader
 

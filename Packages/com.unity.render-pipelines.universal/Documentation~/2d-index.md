@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-2d-index
+uid: urp-2d-index
 ---
 # 2D Graphics Features
 

@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering
                     var maskAndMatDummy = new uint[subMeshCount];
                     System.Array.Fill(maskAndMatDummy, 0xFFFFFFFF);
 
-                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, maskAndMatDummy, maskAndMatDummy);
+                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, maskAndMatDummy, maskAndMatDummy, 1);
                 }
 
                 foreach (var terrain in contributors.terrains)
@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering
                     if ((layerMask & mask) == 0)
                         continue;
 
-                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF });
+                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, 1);
                 }
 
                 return accelStruct;

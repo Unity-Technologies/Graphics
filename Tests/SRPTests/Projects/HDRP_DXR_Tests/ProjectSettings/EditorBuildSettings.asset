@@ -408,9 +408,6 @@ EditorBuildSettings:
     path: Assets/Scenes/5004_PathTracing_arealight.unity
     guid: 0bd00ddb543475c41bdd787c636d904f
   - enabled: 1
-    path: Assets/Scenes/5005_PathTracing_Fog.unity
-    guid: 9f38d7cbc64ad534485db5107427e269
-  - enabled: 1
     path: Assets/Scenes/5006_PathTracing_DoFVolume.unity
     guid: c163eeeb7af1c194590ab367fb84a376
   - enabled: 1
@@ -429,9 +426,6 @@ EditorBuildSettings:
     path: Assets/Scenes/5009_PathTracing_FabricMaterial.unity
     guid: a3bbd23b214970c48b64c949a4bf476b
   - enabled: 1
-    path: Assets/Scenes/5010_PathTracingAlpha.unity
-    guid: 99680d74d8a49be44bd19065fae3d569
-  - enabled: 1
     path: Assets/Scenes/5011_PathTracing_ShadowMatte.unity
     guid: a2a018bd807332e419183347eebc8a0c
   - enabled: 1
@@ -446,9 +440,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5015_PathTracing_DoFCamera.unity
     guid: 9fc75d906f08e784ab1183b8153659f0
-  - enabled: 1
-    path: Assets/Scenes/5016_PathTracingTiledRendering.unity
-    guid: 02397f4078a0d654d8441ef84f750cc5
   - enabled: 1
     path: Assets/Scenes/5017_PathTracing_Decals.unity
     guid: 4ebed9008822d1949be7a2e7aeaf6a5f

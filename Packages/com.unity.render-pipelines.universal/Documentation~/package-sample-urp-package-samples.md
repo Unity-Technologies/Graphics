@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-package-sample-urp-package-samples
+uid: urp-package-sample-urp-package-samples
 ---
 # URP Package Samples
 

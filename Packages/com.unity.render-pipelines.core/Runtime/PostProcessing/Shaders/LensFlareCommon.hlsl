@@ -122,6 +122,9 @@ void Rotate(out float2 rot, float2 v, float cos0, float sin0)
                  v.x * sin0 + v.y * cos0);
 }
 
+// Disables LOAD_TEXTURE2D_ARRAY_LOD-related implicit vector-truncation warnings.
+#pragma warning (disable : 3206)
+
 #if defined(FLARE_COMPUTE_OCCLUSION) || defined(FLARE_OPENGL3_OR_OPENGLCORE)
 float GetLinearDepthValue(float2 uv)
 {
@@ -331,6 +334,9 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
     return output;
 }
 #endif
+
+// Resets LOAD_TEXTURE2D_ARRAY_LOD-related implicit vector-truncation warnings.
+#pragma warning (default : 3206)
 
 // Constrains: x in [0.0f, 1.0f]
 float InverseGradient(float x)

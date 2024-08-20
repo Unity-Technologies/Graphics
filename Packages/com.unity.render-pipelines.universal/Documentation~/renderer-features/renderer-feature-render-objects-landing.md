@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-renderer-feature-render-objects-landing
+uid: urp-renderer-feature-render-objects-landing
 ---
 # Render Objects Renderer Feature
 

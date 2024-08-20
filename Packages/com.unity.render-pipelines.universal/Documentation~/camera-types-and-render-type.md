@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-camera-types-and-render-type
+uid: urp-camera-types-and-render-type
 ---
 # Camera render types
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-rendering-debugger-add-controls
+uid: urp-rendering-debugger-add-controls
 ---
 ## Add controls to the Rendering Debugger
 

@@ -579,7 +579,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (candidateMainPart == null)
                 {
-                    int spaceIndex = candidateName.LastIndexOf(' ');
+                    int spaceIndex = candidateName.LastIndexOf(allowSpace ? ' ' : '_');
                     if (spaceIndex == -1)
                     {
                         candidateMainPart = candidateName;

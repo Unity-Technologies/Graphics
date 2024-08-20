@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-use-built-in-shader-methods-camera
+uid: urp-use-built-in-shader-methods-camera
 ---
 # Use the camera in a custom URP shader
 

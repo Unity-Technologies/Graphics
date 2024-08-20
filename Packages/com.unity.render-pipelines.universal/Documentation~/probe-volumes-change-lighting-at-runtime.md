@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probe-volumes-change-lighting-at-runtime
+uid: urp-probe-volumes-change-lighting-at-runtime
 ---
 # Changing lighting at runtime
 

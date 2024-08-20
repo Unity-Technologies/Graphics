@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-writing-shaders-urp-basic-unlit-structure
+uid: urp-writing-shaders-urp-basic-unlit-structure
 ---
 # URP unlit basic shader
 

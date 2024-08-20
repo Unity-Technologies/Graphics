@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-scriptable-render-passes
+uid: urp-scriptable-render-passes
 ---
 # Scriptable Render Passes
 

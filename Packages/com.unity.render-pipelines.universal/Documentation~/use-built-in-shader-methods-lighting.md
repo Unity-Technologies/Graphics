@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-use-built-in-shader-methods-lighting
+uid: urp-use-built-in-shader-methods-lighting
 ---
 # Use lighting in a custom URP shader
 

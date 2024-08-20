@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-rp-converter
+uid: urp-rp-converter
 ---
 # Render Pipeline Converter
 

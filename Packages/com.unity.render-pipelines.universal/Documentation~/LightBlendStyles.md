@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-light-blend-styles
+uid: urp-light-blend-styles
 ---
 # Light Blend Styles
 

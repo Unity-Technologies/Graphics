@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering
         /// <summary>Material Upgrader proceed.</summary>
         public static readonly string proceed = "Proceed";
         /// <summary>Material Upgrader Ok.</summary>
-        public static readonly string ok = "Ok";
+        public static readonly string ok = "OK";
         /// <summary>Material Upgrader cancel.</summary>
         public static readonly string cancel = "Cancel";
         /// <summary>Material Upgrader no selection message.</summary>

@@ -781,6 +781,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Reflect the data down
             graph.ValidateGraph();
             editorView.colorManager.UpdateNodeViews(nodes);
+            m_InspectorUpdateDelegate?.Invoke();
 
             // Update the views
             foreach (MaterialNodeView selectedNode in nodes)

@@ -681,7 +681,7 @@ namespace UnityEngine.Rendering.Universal
                     // Color space conversion is already applied through color grading, do encoding if uber post is the last pass
                     // Otherwise encoding will happen in the final post process pass or the final blit pass
                     HDROutputUtils.Operation hdrOperation = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
-                    SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperation);
+                    SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperation, cameraData.rendersOverlayUI);
                 }
 
                 if (m_UseFastSRGBLinearConversion)
@@ -776,23 +776,11 @@ namespace UnityEngine.Rendering.Universal
 
         void DoSubpixelMorphologicalAntialiasing(ref CameraData cameraData, CommandBuffer cmd, RTHandle source, RTHandle destination)
         {
-            var camera = cameraData.camera;
             var pixelRect = new Rect(Vector2.zero, new Vector2(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height));
             var material = m_Materials.subpixelMorphologicalAntialiasing;
             const int kStencilBit = 64;
 
-            // Intermediate targets
-            RTHandle stencil; // We would only need stencil, no depth. But Unity doesn't support that.
-            if (m_Depth.nameID == BuiltinRenderTextureType.CameraTarget || m_Descriptor.msaaSamples > 1)
-            {
-                // In case m_Depth is CameraTarget it may refer to the backbuffer and we can't use that as an attachment on all platforms
-                RenderingUtils.ReAllocateHandleIfNeeded(ref m_EdgeStencilTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.None, DepthBits.Depth24), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeStencilTexture");
-                stencil = m_EdgeStencilTexture;
-            }
-            else
-            {
-                stencil = m_Depth;
-            }
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_EdgeStencilTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.None, DepthBits.Depth24), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeStencilTexture");
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_EdgeColorTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeColorTexture");
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_BlendTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point, TextureWrapMode.Clamp, name: "_BlendTexture");
 
@@ -823,14 +811,14 @@ namespace UnityEngine.Rendering.Universal
             // Pass 1: Edge detection
             RenderingUtils.Blit(cmd, source, pixelRect,
                 m_EdgeColorTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                stencil, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                m_EdgeStencilTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 ClearFlag.ColorStencil, Color.clear,  // implicit depth=1.0f stencil=0x0
                 material, 0);
 
             // Pass 2: Blend weights
             RenderingUtils.Blit(cmd, m_EdgeColorTexture, pixelRect,
                 m_BlendTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                stencil, RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare,
+                m_EdgeStencilTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare,
                 ClearFlag.Color, Color.clear, material, 1);
 
             // Pass 3: Neighborhood blending
@@ -1116,6 +1104,7 @@ namespace UnityEngine.Rendering.Universal
         void LensFlareDataDriven(ref UniversalCameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, bool usePanini, float paniniDistance, float paniniCropToFit)
         {
             Camera camera = cameraData.camera;
+            var pixelRect = new Rect(Vector2.zero, new Vector2(m_Descriptor.width, m_Descriptor.height));
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             // Not VR or Multi-Pass
@@ -1127,7 +1116,7 @@ namespace UnityEngine.Rendering.Universal
                 var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
 
                 LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                    m_Materials.lensFlareDataDriven, camera, camera.pixelRect, cameraData.xr, cameraData.xr.multipassId,
+                    m_Materials.lensFlareDataDriven, camera, pixelRect, cameraData.xr, cameraData.xr.multipassId,
                     (float)m_Descriptor.width, (float)m_Descriptor.height,
                     usePanini, paniniDistance, paniniCropToFit, true,
                     camera.transform.position,
@@ -1147,7 +1136,7 @@ namespace UnityEngine.Rendering.Universal
                     Matrix4x4 gpuVPXR = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrixNoJitter(xrIdx), true) * cameraData.GetViewMatrix(xrIdx);
 
                     LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
-                    m_Materials.lensFlareDataDriven, camera, camera.pixelRect, cameraData.xr, cameraData.xr.multipassId,
+                    m_Materials.lensFlareDataDriven, camera, pixelRect, cameraData.xr, cameraData.xr.multipassId,
                     (float)m_Descriptor.width, (float)m_Descriptor.height,
                     usePanini, paniniDistance, paniniCropToFit, true,
                     camera.transform.position,
@@ -1639,13 +1628,14 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
 #region HDR Output
-        void SetupHDROutput(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Material material, HDROutputUtils.Operation hdrOperations)
+        void SetupHDROutput(HDROutputUtils.HDRDisplayInformation hdrDisplayInformation, ColorGamut hdrDisplayColorGamut, Material material, HDROutputUtils.Operation hdrOperations, bool rendersOverlayUI)
         {
             Vector4 hdrOutputLuminanceParams;
             UniversalRenderPipeline.GetHDROutputLuminanceParameters(hdrDisplayInformation, hdrDisplayColorGamut, m_Tonemapping, out hdrOutputLuminanceParams);
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
 
             HDROutputUtils.ConfigureHDROutput(material, hdrDisplayColorGamut, hdrOperations);
+            CoreUtils.SetKeyword(m_Materials.uber, ShaderKeywordStrings.HDROverlay, rendersOverlayUI);
         }
 #endregion
 
@@ -1678,7 +1668,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!cameraData.postProcessEnabled)
                     hdrOperations |= HDROutputUtils.Operation.ColorConversion;
 
-                SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations);
+                SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, hdrOperations, cameraData.rendersOverlayUI);
             }
 
             CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
@@ -1736,7 +1726,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (requireHDROutput)
                     {
-                        SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.scalingSetup, hdrOperations);
+                        SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.scalingSetup, hdrOperations, cameraData.rendersOverlayUI);
                     }
 
                     if (isFxaaEnabled)

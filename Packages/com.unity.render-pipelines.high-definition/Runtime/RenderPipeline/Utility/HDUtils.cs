@@ -678,6 +678,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2Int hardwareTextureSize = isHardwareDrsOn ? DynamicResolutionHandler.instance.ApplyScalesOnSize(viewportSize) : viewportSize;
                 Vector2 textureScale = isHardwareDrsOn ? new Vector2((float)viewportSize.x / (float)hardwareTextureSize.x, (float)viewportSize.y / (float)hardwareTextureSize.y) : new Vector2(1.0f, 1.0f);
 
+                // We need to mark the buffer dirty in case another camera has a different viewport size
+                m_OffsetBufferWillNeedUpdate = true;
+
                 // No work needed.
                 if (cachedHardwareTextureSize == hardwareTextureSize && cachedTextureScale == textureScale && cachedCheckerboardMipCount == checkerboardMipCount)
                     return;
@@ -746,7 +749,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 mipLevelCount = mipLevel + 1;
                 mipLevelCountCheckerboard = hasCheckerboard ? (1 + checkerboardMipCount) : 0;
-                m_OffsetBufferWillNeedUpdate = true;
             }
 
             public ComputeBuffer GetOffsetBufferData(ComputeBuffer mipLevelOffsetsBuffer)

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-lens-flare
+uid: urp-lens-flare
 ---
 # Lens flares
 

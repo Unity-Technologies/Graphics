@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-hdr-output-implement-custom-overlay
+uid: urp-hdr-output-implement-custom-overlay
 ---
 # Implement an HDR Output compatible custom overlay
 

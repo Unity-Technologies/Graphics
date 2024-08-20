@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-lens-distortion
+uid: urp-post-processing-lens-distortion
 ---
 # Lens Distortion
 

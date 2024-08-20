@@ -1057,13 +1057,26 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.FSR2InjectionPoint;
             }
+            else if (IsSTPEnabled())
+            {
+                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.STPInjectionPoint;
+            }
             else if (IsTAAUEnabled())
             {
-                return DynamicResolutionHandler.UpsamplerScheduleType.BeforePost;
+                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.TAAUInjectionPoint;
+            }
+            else if (DynResRequest.filter == DynamicResUpscaleFilter.CatmullRom)
+            {
+                return DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+            }
+            else if (DynResRequest.filter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres)
+            {
+                // FSR 1.0 specifically asks for an input image in perceptual space, so we can only inject it after post processes.
+                return DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
             }
             else
             {
-                return DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
+                return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.defaultInjectionPoint;
             }
         }
 
@@ -1538,7 +1551,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!ShaderConfig.s_GlobalMipBias)
                 return;
-            
+
             cb._GlobalMipBias = mipBias;
             cb._GlobalMipBiasPow2 = (float)Math.Pow(2.0f, mipBias);
         }

@@ -98,6 +98,28 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     inputData.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactor);
     #endif
 
+    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
+
+    #if defined(DEBUG_DISPLAY)
+    #if defined(DYNAMICLIGHTMAP_ON)
+    inputData.dynamicLightmapUV = IN.dynamicLightmapUV;
+    #endif
+    #if defined(LIGHTMAP_ON)
+    inputData.staticLightmapUV = IN.uvMainAndLM.zw;
+    #else
+    inputData.vertexSH = SH;
+    #endif
+    #endif
+}
+
+void InitializeBakedGIData(Varyings IN, inout InputData inputData)
+{
+    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+    half3 SH = 0;
+    #else
+    half3 SH = IN.vertexSH;
+    #endif
+
 #if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
@@ -113,18 +135,6 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
 #endif
-    inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
-
-    #if defined(DEBUG_DISPLAY)
-    #if defined(DYNAMICLIGHTMAP_ON)
-    inputData.dynamicLightmapUV = IN.dynamicLightmapUV;
-    #endif
-    #if defined(LIGHTMAP_ON)
-    inputData.staticLightmapUV = IN.uvMainAndLM.zw;
-    #else
-    inputData.vertexSH = SH;
-    #endif
-    #endif
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -444,6 +454,8 @@ void SplatmapFragment(
         occlusion,
         smoothness);
 #endif
+
+    InitializeBakedGIData(IN, inputData);
 
 #ifdef TERRAIN_GBUFFER
 

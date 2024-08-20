@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-unsafe-pass
+uid: urp-render-graph-unsafe-pass
 ---
 # Use Compatibility Mode APIs in render graph render passes
 

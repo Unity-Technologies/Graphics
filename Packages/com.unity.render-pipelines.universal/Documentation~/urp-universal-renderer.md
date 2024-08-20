@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-urp-universal-renderer
+uid: urp-urp-universal-renderer
 ---
 # Universal Renderer
 
@@ -19,27 +19,37 @@ The URP Universal Renderer implements the following Rendering Paths:
 
 ### Rendering Path comparison
 
-The following table shows the differences between the Forward and the Deferred Rendering Paths in URP.
+This section shows the differences between the Rendering Paths in URP.
 
 | Feature | Forward | Forward+ | Deferred |
 |---------|---------|----------|----------|
-| Maximum number of real-time lights per object. | 9 (1 Main Light, and 8 Additional Lights) | Unlimited. [The per-Camera limit applies](#real-time-lights-limitations). | Unlimited. [The per-Camera limit applies](#real-time-lights-limitations).<br/>Transparent objects are rendered using the Forward pass, where the maximum number of real-time lights is 9 (1 Main Light, and 8 Additional Lights). |
+| Maximum number of real-time lights per object. | 9 (1 Main Light, and 8 Additional Lights) | Unlimited. The [per-Camera limit](#per-camera-limit) applies. | Unlimited. The [per-Camera limit](#per-camera-limit) applies.<br/>Transparent objects are rendered using the Forward pass, where the maximum number of real-time lights is 9 (1 Main Light, and 8 Additional Lights). |
 | Per-pixel normal encoding | No encoding (accurate normal values). | No encoding (accurate normal values). | Two options:<ul><li>Quantization of normals in G-buffer (loss of accuracy, better performance).</li><li>Octahedron encoding (accurate normals, might have significant performance impact on mobile GPUs).</li></ul>For more information, refer to [Encoding of normals in G-buffer](rendering/deferred-rendering-path.md#accurate-g-buffer-normals). |
 | MSAA | Yes | Yes | No |
 | Vertex lighting | Yes | No | No |
 | Camera stacking | Yes | Yes | Supported with a limitation: Unity renders only the base Camera using the Deferred Rendering Path. Unity renders all overlay Cameras using the Forward Rendering Path. |
 
-#### Real-time lights limitations
+#### <a name="per-camera-limit"></a>Per-camera visible real-time light limit
 
-There is a per-Camera limit which applies to the number of real-time lights in all rendering paths.
+There are per-camera limits on the number of visible lights in all rendering paths.
 
-As for the Additional Lights, the limit applies only to the Lights visible to the Camera.
+The Main Light always counts as visible.
 
-The per-Camera limits for different platforms are:
+The per-camera limits for different Rendering Paths and platforms are:
+
+**Forward and Deferred Rendering Paths**:
 
 * Desktop and console platforms: 1 Main Light, and 256 Additional Lights.
 
 * Mobile platforms: 1 Main Light, and 32 Additional Lights.<br/>OpenGL ES 3.0 and earlier: 1 Main Light, and 16 Additional Lights.
+
+**Forward+ Rendering Path**:
+
+The Forward+ Rendering Path treats all lights (the Main Light and Additional Lights) the same way, which is why the per-camera limits are one light less than in the Forward and Deferred Rendering Paths.
+
+* Desktop and console platforms: 256 lights (including the Main Light).
+
+* Mobile platforms: 32 lights (including the Main Light).<br/>OpenGL ES 3.0 and earlier: 16 lights (including the Main Light).
 
 ## How to find the Universal Renderer asset
 

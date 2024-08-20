@@ -31,6 +31,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty lowResSSGIMinimumThreshold;
         public SerializedProperty lowResVolumetricCloudsMinimumThreshold;
         public SerializedProperty advancedUpscalersByPriority;
+        public SerializedProperty TAAUInjectionPoint;
+        public SerializedProperty STPInjectionPoint;
+        public SerializedProperty defaultInjectionPoint;
 
         public SerializedDynamicResolutionSettings(SerializedProperty root)
         {
@@ -40,6 +43,9 @@ namespace UnityEditor.Rendering.HighDefinition
             useMipBias = root.Find((GlobalDynamicResolutionSettings s) => s.useMipBias);
             DLSSPerfQualitySetting = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSPerfQualitySetting);
             DLSSInjectionPoint = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSInjectionPoint);
+            TAAUInjectionPoint = root.Find((GlobalDynamicResolutionSettings s) => s.TAAUInjectionPoint);
+            STPInjectionPoint = root.Find((GlobalDynamicResolutionSettings s) => s.STPInjectionPoint);
+            defaultInjectionPoint = root.Find((GlobalDynamicResolutionSettings s) => s.defaultInjectionPoint);
             DLSSUseOptimalSettings = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSUseOptimalSettings);
             DLSSSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSSharpness);
             advancedUpscalersByPriority = root.Find((GlobalDynamicResolutionSettings s) => s.advancedUpscalersByPriority);

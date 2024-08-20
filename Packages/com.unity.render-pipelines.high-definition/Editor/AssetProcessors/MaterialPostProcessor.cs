@@ -25,48 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void OnWillCreateAsset(string asset)
         {
             if (asset.HasExtension(k_MaterialExtension))
-            {
                 MaterialPostprocessor.s_CreatedAssets.Add(asset);
-                return;
-            }
-
-            // For .shadergraph assets, this is tricky since the callback will be for the .meta
-            // file only as we don't create it with AssetDatabase.CreateAsset but later AddObjectToAsset
-            // to the .shadergraph via the importer context.
-            // At the time the meta file is created, the .shadergraph is already present
-            // but Load*AtPAth(), GetMainAssetTypeAtPath() etc. won't find anything.
-            // The GUID is already present though, and we actually use those facts to infer we
-            // have a newly created shadergraph.
-
-            //
-            // HDMetaData subasset will be included after SG creation anyway so unlike for materials
-            // (cf .mat with AssetVersion in OnPostprocessAllAssets) we dont need to manually add a subasset.
-            // For adding them to MaterialPostprocessor.s_ImportedAssetThatNeedSaving for SaveAssetsToDisk()
-            // to make them editable (flag for checkout), we still detect those here, but not sure this is
-            // helpful as right now, even on re-import, a .shadergraph multijson is not rewritten, so only
-            // /Library side serialized data is actually changed (including the generated .shader that can
-            // also change which is why we run shadergraph reimports), and re-import from the same .shadergraph
-            // should be idempotent.
-            // In other words, there shouldn't be anything to checkout for the .shadergraph per se.
-            //
-            if (asset.HasExtension(s_ShaderGraphExtensionMeta))
-            {
-                var sgPath = System.IO.Path.ChangeExtension(asset, null);
-                var importer = AssetImporter.GetAtPath(sgPath);
-                var guid = AssetDatabase.AssetPathToGUID(sgPath);
-                if (!String.IsNullOrEmpty(guid) && importer == null)
-                {
-                    MaterialPostprocessor.s_CreatedAssets.Add(sgPath);
-                    return;
-                }
-            }
-
-            // Like stated above, doesnt happen:
-            if (asset.HasExtension(s_ShaderGraphExtension))
-            {
-                MaterialPostprocessor.s_CreatedAssets.Add(asset);
-                return;
-            }
         }
     }
 
@@ -192,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorUtility.DisplayDialog("HDRP ShaderGraph scan for upgrade", "The ShaderGraphs with HDRP SubTarget in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
                                 " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
                                 " Unity will re-import all of the HDRP ShaderGraphs in your project, save them to disk, and check them out in source control if needed.\n" +
-                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
+                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "OK");
                         }
 
                         // When we open a project from scratch all the material have been converted and we don't need to do it two time.
@@ -212,7 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
                                 " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
                                 " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
-                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
+                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "OK");
                         }
 
                         // When we open a project from scratch all the material have been converted and we don't need to do it two time.
@@ -292,23 +251,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 foreach (var asset in importedAssets)
                 {
-                    // We intercept shadergraphs just to add them to s_ImportedAssetThatNeedSaving to make them editable when we save assets
-                    if (asset.HasExtension(s_ShaderGraphExtension))
-                    {
-                        bool justCreated = s_CreatedAssets.Contains(asset);
-
-                        if (!justCreated)
-                        {
-                            s_ImportedAssetThatNeedSaving.Add(asset);
-                            s_NeedsSavingAssets = true;
-                        }
-                        else
-                        {
-                            s_CreatedAssets.Remove(asset);
-                        }
-                        continue;
-                    }
-                    else if (!asset.HasExtension(k_MaterialExtension))
+                    if (!asset.HasExtension(k_MaterialExtension))
                         continue;
 
                     // Materials (.mat) post processing

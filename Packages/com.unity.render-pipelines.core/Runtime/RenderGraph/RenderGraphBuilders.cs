@@ -54,12 +54,22 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void AllowPassCulling(bool value)
         {
+            // This pass cannot be culled if it allows global state modifications
+            if (value && m_RenderPass.allowGlobalState)
+                return;
+
             m_RenderPass.AllowPassCulling(value);
         }
 
         public void AllowGlobalStateModification(bool value)
         {
             m_RenderPass.AllowGlobalState(value);
+
+            // This pass cannot be culled if it allows global state modifications
+            if (value)
+            {
+                AllowPassCulling(false);
+            }
         }
 
         /// <summary>
@@ -288,7 +298,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
             else
             {
-                throw new ArgumentException("Trying to read global texture property {globalPropertyID} but no previous pass in the graph assigned a value to this global.");
+                throw new ArgumentException($"Trying to read global texture property {propertyId} but no previous pass in the graph assigned a value to this global.");
             }
         }
 
@@ -367,7 +377,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 {
                     if (globalTex.Item1.handle.index == tex.handle.index)
                     {
-                        throw new InvalidOperationException($"Trying to SetRenderAttachment on a texture that is currently set on a global texture slot. Shaders might be using the texture using samplers. You should ensure textures are not set as globals when using them as fragment attachments.");
+                        throw new InvalidOperationException("Trying to SetRenderAttachment on a texture that is currently set on a global texture slot. Shaders might be using the texture using samplers. You should ensure textures are not set as globals when using them as fragment attachments.");
                     }
                 }
             }

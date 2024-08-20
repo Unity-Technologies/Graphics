@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-custom-rendering-pass-workflow-in-urp
+uid: urp-custom-rendering-pass-workflow-in-urp
 ---
 # Custom render pass workflow in URP
 

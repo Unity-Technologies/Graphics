@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-anti-aliasing
+uid: urp-anti-aliasing
 ---
 # Anti-aliasing in the Universal Render Pipeline
 

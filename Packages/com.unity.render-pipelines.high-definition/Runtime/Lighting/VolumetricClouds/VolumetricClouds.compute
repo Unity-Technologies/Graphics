@@ -275,6 +275,17 @@ void UPSCALE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
 
     finalColor.a = EvaluateFinalTransmittance(finalCoord.xy, finalColor.a);
 
+    // Optimized conversion of scene depth to infinite depth
+    //sceneDepth = EncodeInfiniteDepth(LinearEyeDepth(sceneDepth, _ZBufferParams), _CloudNearPlane);
+    float finalSceneDepth = (_ZBufferParams.z * sceneDepth + _ZBufferParams.w) * _CloudNearPlane;
+
+    // Manual ztest as upscaling can produce clouds behind geometry
+    if (sceneDepth != UNITY_RAW_FAR_CLIP_VALUE && finalCloudDepth <= finalSceneDepth)
+    {
+        finalColor.a = 1.0f;
+        finalCloudDepth = UNITY_NEAR_CLIP_VALUE;
+    }
+
     // Store the upscaled result only, composite in later pass.
     _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = finalColor.rgb;
     _VolumetricCloudsDepthTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float2(finalCloudDepth, finalColor.a);
@@ -293,11 +304,20 @@ void COMBINE_CLOUDS(uint3 finalCoord : SV_DispatchThreadID,
         return;
 
     float3 color = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, finalCoord.xy).xyz;
-    float2 depthTransmittance = LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).zw;
+    float3 data = LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).yzw;
 
-    depthTransmittance.y = EvaluateFinalTransmittance(finalCoord.xy, depthTransmittance.y);
+    float cloudDepth = data.y;
+    float transmittance = EvaluateFinalTransmittance(finalCoord.xy, data.z);
+
+    // Manual ztest as upscaling can produce clouds behind geometry
+    float sceneDepth = (_ZBufferParams.z * data.x + _ZBufferParams.w) * _CloudNearPlane;
+    if (data.x != UNITY_RAW_FAR_CLIP_VALUE && cloudDepth <= sceneDepth)
+    {
+        transmittance = 1.0f;
+        cloudDepth = UNITY_NEAR_CLIP_VALUE;
+    }
 
     // Store the upscaled result only, composite in later pass.
     _VolumetricCloudsLightingTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = color;
-    _VolumetricCloudsDepthTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = depthTransmittance;
+    _VolumetricCloudsDepthTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = float2(cloudDepth, transmittance);
 }

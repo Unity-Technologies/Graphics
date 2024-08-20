@@ -476,13 +476,13 @@ namespace UnityEngine.Rendering
                 if (skyOcclusionJob is DefaultSkyOcclusion defaultSOJob)
                     defaultSOJob.jobs = jobs;
 
-                lightingJob = lightingOverride ?? new DefaultLightTransport();
-                lightingJob.Initialize(ProbeVolumeLightingTab.GetLightingSettings().mixedBakeMode != MixedLightingMode.IndirectOnly, sortedPositions);
-                if (lightingJob is DefaultLightTransport defaultLightingJob)
-                    defaultLightingJob.jobs = jobs;
-
                 layerMaskJob = renderingLayerOverride ?? new DefaultRenderingLayer();
                 layerMaskJob.Initialize(bakingSet, sortedPositions.GetSubArray(0, probeCount));
+
+                lightingJob = lightingOverride ?? new DefaultLightTransport();
+                lightingJob.Initialize(ProbeVolumeLightingTab.GetLightingSettings().mixedBakeMode != MixedLightingMode.IndirectOnly, sortedPositions, layerMaskJob.renderingLayerMasks);
+                if (lightingJob is DefaultLightTransport defaultLightingJob)
+                    defaultLightingJob.jobs = jobs;
 
                 cellIndex = 0;
 
@@ -764,12 +764,6 @@ namespace UnityEngine.Rendering
                 bakingSet.SetActiveScenario(bakingSet.lightingScenario, verbose: false); // Ensure we are not blending any other scenario.
                 bakingSet.BlendLightingScenario(null, 0.0f);
 
-                // In case a scene is duplicated, we need to store the right scene GUID
-                if (data.sceneGUID != sceneGUID)
-                {
-                    data.sceneGUID = sceneGUID;
-                }
-
                 if (i == 0)
                     m_BakingSet = bakingSet;
                 else if (!m_BakingSet.IsEquivalent(bakingSet))
@@ -784,7 +778,7 @@ namespace UnityEngine.Rendering
             var prv = ProbeReferenceVolume.instance;
             var activeScene = SceneManager.GetActiveScene();
 
-            prv.TryGetBakingSetForLoadedScene(activeScene, out var activeSet);
+            var activeSet = ProbeVolumeBakingSet.GetBakingSetForScene(activeScene);
             if (activeSet == null && ProbeVolumeBakingSet.SceneHasProbeVolumes(ProbeReferenceVolume.GetSceneGUID(activeScene)))
             {
                 Debug.LogError($"Active scene at {activeScene.path} is not part of any baking set.");
@@ -801,11 +795,11 @@ namespace UnityEngine.Rendering
                     continue;
 
                 ProbeVolumeBakingSet.OnSceneSaving(scene); // We need to perform the same actions we do when the scene is saved.
-                prv.TryGetBakingSetForLoadedScene(scene, out var sceneBakingSet);
+                var sceneBakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene);
 
                 if (sceneBakingSet != null && sceneBakingSet != activeSet && ProbeVolumeBakingSet.SceneHasProbeVolumes(ProbeReferenceVolume.GetSceneGUID(scene)))
                 {
-                    Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking sets.");
+                    Debug.LogError($"Scene at {scene.path} is loaded and has probe volumes, but not part of the same baking set as the active scene. This will result in an error. Please make sure all loaded scenes are part of the same baking set.");
                     return false;
                 }
             }
@@ -984,7 +978,8 @@ namespace UnityEngine.Rendering
             CellCountInDirections(out minCellPosition, out maxCellPosition, m_ProfileInfo.cellSizeInMeters, m_ProfileInfo.probeOffset);
             cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
 
-            ProbeReferenceVolume.instance.EnsureCurrentBakingSet(m_BakingSet);
+            if (!ProbeReferenceVolume.instance.EnsureCurrentBakingSet(m_BakingSet))
+                return false;
 
             if (!Lightmapping.TryGetLightingSettings(out var lightingSettings) || lightingSettings ==null || lightingSettings.lightmapper == LightingSettings.Lightmapper.ProgressiveCPU)
             {
@@ -1227,7 +1222,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static void FixSeams(NativeArray<int> positionRemap, NativeArray<Vector3> positions, NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity)
+        static void FixSeams(NativeArray<int> positionRemap, NativeArray<Vector3> positions, NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity, NativeArray<uint> renderingLayerMasks)
         {
             // Seams are caused are caused by probes on the boundary between two subdivision levels
             // The idea is to find first them and do a kind of dilation to smooth the values on the boundary
@@ -1290,6 +1285,12 @@ namespace UnityEngine.Rendering
                     int brick_size = ProbeReferenceVolume.CellSize(largestBrick.subdivisionLevel);
                     Vector3Int brickOffset = largestBrick.position * ProbeBrickPool.kBrickCellCount;
 
+                    // We need to check if rendering layers masks were baked, since it happens in separate job
+                    bool bakedRenderingLayerMasks = (renderingLayerMasks.IsCreated & renderingLayerMasks.Length > 0);
+                    uint probeRenderingLayerMask = 0;
+
+                    if (bakedRenderingLayerMasks) probeRenderingLayerMask = renderingLayerMasks[i];
+
                     float weightSum = 0.0f;
                     SphericalHarmonicsL2 trilinear = default;
                     for (int o = 0; o < 8; o++)
@@ -1305,6 +1306,13 @@ namespace UnityEngine.Rendering
                         {
                             bool valid = validity[positionRemap[index]] <= k_MinValidityForLeaking;
                             if (!valid) continue;
+
+                            if (bakedRenderingLayerMasks)
+                            {
+                                uint renderingLayerMask = renderingLayerMasks[positionRemap[index]];
+                                bool commonRenderingLayer = (renderingLayerMask & probeRenderingLayerMask) != 0;
+                                if (!commonRenderingLayer) continue; // We do not use this probe contribution if it does not share at least a common rendering layer 
+                            }
 
                             // Do the lerp in compressed format to match result on GPU
                             var sample = sh[positionRemap[index]];
@@ -1362,7 +1370,7 @@ namespace UnityEngine.Rendering
                 WriteBakingCells(m_BakedCells.Values.ToArray());
 
             // Reset internal structures depending on current bake.
-            probeRefVolume.EnsureCurrentBakingSet(m_BakingSet);
+            Debug.Assert(probeRefVolume.EnsureCurrentBakingSet(m_BakingSet));
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

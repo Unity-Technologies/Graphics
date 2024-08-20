@@ -136,12 +136,13 @@ namespace UnityEngine.Rendering.Universal
                 int numSamples = Mathf.Max(Screen.msaaSamples, 1);
 
                 // Handle edge cases regarding numSamples setup
-                // On OSX player, the Screen API MSAA samples change request is only applied in the following frame,
+                // On OSX & IOS player, the Screen API MSAA samples change request is only applied in the following frame,
                 // as a workaround we keep the old MSAA sample count for the previous frame
                 // this workaround can be removed once the Screen API issue (UUM-42825) is fixed
+                // UPDATE: UUM-42825 is fixed already, but by supplementing relevant document. Thus, this behaviour must be maintained until next plan comes
                 // The editor always allocates the system rendertarget with a single msaa sample
                 // See: ConfigureTargetTexture in PlayModeView.cs
-                if (msaaSamplesChangedThisFrame && Application.platform == RuntimePlatform.OSXPlayer)
+                if (msaaSamplesChangedThisFrame && (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.IPhonePlayer))
                     numSamples = cameraData.cameraTargetDescriptor.msaaSamples;
                 else if (Application.isEditor)
                     numSamples = 1;

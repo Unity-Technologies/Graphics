@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-use-built-in-shader-methods
+uid: urp-use-built-in-shader-methods
 ---
 # Shader methods in URP
 

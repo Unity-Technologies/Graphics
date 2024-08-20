@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-writing-shaders-urp-unlit-texture
+uid: urp-writing-shaders-urp-unlit-texture
 ---
 # Drawing a texture
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-lens-flare-asset
+uid: urp-lens-flare-asset
 ---
 # Lens Flare (SRP) Data Asset
 

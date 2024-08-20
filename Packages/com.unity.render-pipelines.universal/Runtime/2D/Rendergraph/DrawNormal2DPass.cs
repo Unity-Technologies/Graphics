@@ -32,8 +32,7 @@ namespace UnityEngine.Rendering.Universal
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             int lastBatchIndex = universal2DResourceData.normalsTexture.Length - 1;
 
-            // Account for Sprite Mask and normal map usage where the first and last layer has to render the stencil pass
-            if (!layerBatch.lightStats.useNormalMap)
+            if (!layerBatch.useNormals)
                 return;
 
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();

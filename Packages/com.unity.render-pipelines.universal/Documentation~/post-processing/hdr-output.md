@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-hdr-output
+uid: urp-hdr-output
 ---
 # High Dynamic Range (HDR) Output
 

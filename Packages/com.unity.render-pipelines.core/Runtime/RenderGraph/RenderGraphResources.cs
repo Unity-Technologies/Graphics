@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             int hashCode = GetDescHashCode();
 
             if (graphicsResource != null)
-                throw new InvalidOperationException(string.Format("RenderGraphResource: Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
+                throw new InvalidOperationException($"RenderGraphResource: Trying to create an already created resource ({GetName()}). Resource was probably declared for writing more than once in the same pass.");
 
             // If the pool doesn't have any available resource that we can use, we will create one
             // In any case, we will update the graphicsResource name based on the RenderGraph resource name

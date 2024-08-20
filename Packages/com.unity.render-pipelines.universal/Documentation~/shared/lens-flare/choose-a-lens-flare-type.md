@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-choose-a-lens-flare-type
+uid: urp-choose-a-lens-flare-type
 ---
 # Choose a lens flare type
 

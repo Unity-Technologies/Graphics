@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-installing-and-configuring-urp
+uid: urp-installing-and-configuring-urp
 ---
 # Getting started
 

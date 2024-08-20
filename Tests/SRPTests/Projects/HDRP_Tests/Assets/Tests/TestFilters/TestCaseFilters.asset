@@ -325,11 +325,41 @@ MonoBehaviour:
     Reason: crash on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 0acf4cd0f0aaa4b42b69cb92491da8bd, type: 3}
+    - {fileID: 102900000, guid: 7bfca6ee4fa5bfa42b7011f1b8dc1372, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 18
     Architecture: 0
     XrSdk: 
     StereoModes: 0
+    Reason: missing CPU marker
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0acf4cd0f0aaa4b42b69cb92491da8bd, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
     Reason: image difference
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: instability https://jira.unity3d.com/browse/UUM-75549
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: instability https://jira.unity3d.com/browse/UUM-75549

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -92,14 +93,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>The texture descriptor hash.</returns>
         public override int GetHashCode()
         {
-            int hashCode = 17;
-
-            hashCode = hashCode * 23 + count;
-            hashCode = hashCode * 23 + stride;
-            hashCode = hashCode * 23 + (int)target;
-            hashCode = hashCode * 23 + (int)usageFlags;
-
-            return hashCode;
+            var hashCode = HashFNV1A32.Create();
+            hashCode.Append(count);
+            hashCode.Append(stride);
+            hashCode.Append((int) target);
+            hashCode.Append((int) usageFlags);
+            return hashCode.value;
         }
     }
 

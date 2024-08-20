@@ -34,6 +34,7 @@ HlslFunctionView > #Row {
     overflow: hidden;
 }
 
-.unity-base-text-field__input--multiline {
+.sg-hlsl-function-view__body {
     align-self: stretch;
+    flex-shrink: 1;
 }

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-secondary-textures
+uid: urp-secondary-textures
 ---
 # Setting up normal map and mask Textures
 

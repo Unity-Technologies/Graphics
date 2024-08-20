@@ -50,8 +50,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RenderQueueRange"/>
         /// <seealso cref="LayerMask"/>
         /// <seealso cref="StencilState"/>
-        public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)            
-        { 
+        public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
+        {
             Init(opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference, shaderTagIds);
 
             profilingSampler = new ProfilingSampler(profilerTag);
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             : this(profilerTag, null, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
         { }
 
-        internal DrawObjectsPass(URPProfileId profileId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)            
+        internal DrawObjectsPass(URPProfileId profileId, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
         {
             Init(opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference);
 

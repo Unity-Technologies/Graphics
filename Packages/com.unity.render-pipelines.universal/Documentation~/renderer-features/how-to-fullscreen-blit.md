@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-how-to-fullscreen-blit
+uid: urp-how-to-fullscreen-blit
 ---
 # Perform a full screen blit in URP in Compatibility Mode
 

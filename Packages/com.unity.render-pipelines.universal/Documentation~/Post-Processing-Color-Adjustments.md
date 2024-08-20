@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-color-adjustments
+uid: urp-post-processing-color-adjustments
 ---
 # Color Adjustments
 

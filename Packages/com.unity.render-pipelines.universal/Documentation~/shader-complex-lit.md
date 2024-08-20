@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-shader-complex-lit
+uid: urp-shader-complex-lit
 ---
 # Complex Lit Shader
 

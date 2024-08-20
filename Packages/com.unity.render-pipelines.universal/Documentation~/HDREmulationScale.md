@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-hdr-emulation-scale
+uid: urp-hdr-emulation-scale
 ---
 ## HDR emulation scale
 

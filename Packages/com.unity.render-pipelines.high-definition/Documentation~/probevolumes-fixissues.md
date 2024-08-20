@@ -155,7 +155,9 @@ Seams are artefacts that appear when one lighting condition transitions immediat
 Two seams.
 <br/>
 
-To fix seams, do the following:
+URP fixes seams automatically.
+
+If a seam issue persists, add noise as follows:
 
 1. Add a [Volume](scene-setup.md) to your scene and make sure its area overlaps the position of the camera.
 2. Select **Add Override**, then select **Lighting** > **Adaptive Probe Volumes Options**.

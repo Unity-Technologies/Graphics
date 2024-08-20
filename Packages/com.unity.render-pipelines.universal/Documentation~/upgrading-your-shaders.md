@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrading-your-shaders
+uid: urp-upgrading-your-shaders
 ---
 # Converting your shaders
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -56,8 +56,8 @@ namespace UnityEngine.Rendering.Tests
         static IEnumerable TestCaseSources()
         {
             yield return new TestCaseData(
-                    new Action<VolumeManager, Volume>((vm, v) => vm.Unregister(v, v.gameObject.layer)),
-                    new Action<VolumeManager, Volume>((vm, v) => vm.Register(v, v.gameObject.layer)))
+                    new Action<VolumeManager, Volume>((vm, v) => vm.Unregister(v)),
+                    new Action<VolumeManager, Volume>((vm, v) => vm.Register(v)))
                 .SetName("Parameter evaluation is correct when volume is unregistered and registered");
 
             yield return new TestCaseData(
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Tests
         {
             var volume = CreateVolume("Volume");
             volume.sharedProfile = m_VolumeProfile;
-            volumeManager.Register(volume, volume.gameObject.layer);
+            volumeManager.Register(volume);
 
             volumeManager.Update(camera.transform, k_defaultLayer);
             Assert.AreEqual(true, stack.requiresReset); // Local volume present - stack reset needed
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Tests
             var volume = CreateVolume("Volume");
             volume.priority = 0f;
             volume.sharedProfile = m_VolumeProfile;
-            volumeManager.Register(volume, volume.gameObject.layer);
+            volumeManager.Register(volume);
 
             volumeManager.Update(camera.transform, k_defaultLayer);
             Assert.AreEqual(TestVolume.k_OverrideValue, stack.GetComponent<TestVolume>().param.value);
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.Tests
             var volume1 = CreateVolume("Volume Priority 1");
             volume1.priority = 1f;
             volume1.sharedProfile = priorityVolumeProfile;
-            volumeManager.Register(volume1, volume1.gameObject.layer);
+            volumeManager.Register(volume1);
 
             volumeManager.Update(camera.transform, k_defaultLayer);
             Assert.AreEqual(PriorityOverrideValue, stack.GetComponent<TestVolume>().param.value);

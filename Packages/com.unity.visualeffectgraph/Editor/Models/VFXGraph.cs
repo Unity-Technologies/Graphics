@@ -621,7 +621,7 @@ namespace UnityEditor.VFX
 
             if (m_AttributesManager.TryRegisterCustomAttribute(attributeName, signature, description, out newAttribute))
             {
-                var customAttribute = ScriptableObject.CreateInstance<VFXCustomAttributeDescriptor>();
+                var customAttribute = CreateInstance<VFXCustomAttributeDescriptor>();
                 customAttribute.attributeName = newAttribute.name;
                 customAttribute.type = CustomAttributeUtility.GetSignature(type);
                 customAttribute.description = description;
@@ -667,9 +667,19 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public bool TryFindCustomAttributeDescriptor(string name, out VFXCustomAttributeDescriptor attributeDescriptor)
+        public void SetCustomAttributeOrder(string attributeName, int order)
         {
-            attributeDescriptor = customAttributes.SingleOrDefault(x => string.Compare(name, x.attributeName, StringComparison.OrdinalIgnoreCase) == 0);
+            if (TryFindCustomAttributeDescriptor(attributeName, out var attributeDescriptor))
+            {
+                m_CustomAttributes.Remove(attributeDescriptor);
+                m_CustomAttributes.Insert(order, attributeDescriptor);
+                Invalidate(InvalidationCause.kStructureChanged);
+            }
+        }
+
+        public bool TryFindCustomAttributeDescriptor(string attributeName, out VFXCustomAttributeDescriptor attributeDescriptor)
+        {
+            attributeDescriptor = customAttributes.SingleOrDefault(x => string.Compare(attributeName, x.attributeName, StringComparison.OrdinalIgnoreCase) == 0);
             return attributeDescriptor != null;
         }
 
@@ -691,7 +701,12 @@ namespace UnityEditor.VFX
         public VFXAttribute DuplicateCustomAttribute(string attributeName)
         {
             var newAttribute = m_AttributesManager.Duplicate(attributeName);
-            this.TryAddCustomAttribute(newAttribute.name, newAttribute.type, newAttribute.description, false, out var attribute);
+            var currentIndex = m_CustomAttributes.FindIndex(x => x.attributeName == attributeName);
+            var order = currentIndex >= 0 ? currentIndex + 1 : -1;
+            if (TryAddCustomAttribute(newAttribute.name, newAttribute.type, newAttribute.description, false, out var attribute))
+            {
+                SetCustomAttributeOrder(attribute.name, order);
+            }
 
             return attribute;
         }

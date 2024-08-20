@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-gpu-resident-drawer
+uid: urp-gpu-resident-drawer
 ---
 
 # Use the GPU Resident Drawer
@@ -9,7 +9,7 @@ The GPU Resident Drawer automatically uses the [`BatchRendererGroup`](https://do
 The GPU Resident Drawer works only with the following:
 
 - The [Forward+](rendering/forward-plus-rendering-path.md) rendering path.
-- [Graphics APIs](https://docs.unity3d.com/6000.0/Documentation/Manual/GraphicsAPIs.html) and platforms that support compute shaders.
+- [Graphics APIs](https://docs.unity3d.com/6000.0/Documentation/Manual/GraphicsAPIs.html) and platforms that support compute shaders, except OpenGL ES. 
 - GameObjects that have a [Mesh Renderer component](https://docs.unity3d.com/Manual/class-MeshRenderer.html).
 
 Otherwise, Unity falls back to drawing the GameObject without GPU instancing.

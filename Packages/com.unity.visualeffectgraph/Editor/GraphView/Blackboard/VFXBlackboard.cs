@@ -120,6 +120,13 @@ namespace UnityEditor.VFX.UI
         public override bool canRename => false;
     }
 
+    class AttributeSeparator : AttributeCategory
+    {
+        public AttributeSeparator(string title, int id, bool isRoot, bool isExpanded) : base(title, id, isRoot, isExpanded)
+        {
+        }
+    }
+
     class CustomAttributeCategory : AttributeCategory
     {
         public const string Title = "Custom Attributes";
@@ -337,6 +344,7 @@ namespace UnityEditor.VFX.UI
                 {
                     m_IsChangingSelection = true;
                     m_View.ClearSelectionFast();
+                    IParameterItem lastPendingItem = null;
                     foreach (var item in newSelection)
                     {
                         if (item is IParameterItem parameterItem)
@@ -347,10 +355,15 @@ namespace UnityEditor.VFX.UI
                             }
                             else
                             {
-                                m_pendingSelectionItems.Add(parameterItem.title);
-                                m_Treeview.ScrollToItemById(parameterItem.id);
+                                lastPendingItem = parameterItem;
                             }
                         }
+                    }
+
+                    if (lastPendingItem != null)
+                    {
+                        m_pendingSelectionItems.Add(lastPendingItem.title);
+                        m_Treeview.ScrollToItemById(lastPendingItem.id);
                     }
                 }
                 finally
@@ -372,8 +385,17 @@ namespace UnityEditor.VFX.UI
             // Reorder
             if (arg.dropPosition == DragAndDropPosition.BetweenItems)
             {
+                // Moving an attribute
+                if (m_Treeview.selectedItem is AttributeItem)
+                {
+                    foreach (var currentItem in m_Treeview.selectedItems.OfType<AttributeItem>())
+                    {
+                        fieldId.Add(currentItem.id);
+                        currentItem.graph.SetCustomAttributeOrder(currentItem.title, arg.childIndex);
+                    }
+                }
                 // Moving a property
-                if (m_Treeview.selectedItem is PropertyItem)
+                else if (m_Treeview.selectedItem is PropertyItem)
                 {
                     foreach (var currentItem in m_Treeview.selectedItems.OfType<PropertyItem>())
                     {
@@ -408,13 +430,8 @@ namespace UnityEditor.VFX.UI
                     var parentItem = m_Treeview.GetItemDataForId<IParameterItem>(arg.parentId);
                     if (arg.parentId < 0 || parentItem is PropertyCategory { isRoot: true } and not OutputCategory)
                     {
-                        var categoryInfo = controller.graph.UIInfos.categories.SingleOrDefault(x => x.name == category.title);
-                        var index = controller.graph.UIInfos.categories.IndexOf(categoryInfo);
-                        controller.MoveCategory(category.title, index);
                         fieldId.Add(category.id);
-                        var propertiesTreeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, PropertiesCategoryTitle, StringComparison.OrdinalIgnoreCase) == 0);
-                        var lastNoCategoryChildIndex = propertiesTreeviewItem.children.TakeWhile(x => x.data is PropertyItem).Count();
-                        childIndex = Math.Max(childIndex, lastNoCategoryChildIndex);
+                        controller.MoveCategory(category.title, childIndex);
                     }
                 }
             }
@@ -512,7 +529,17 @@ namespace UnityEditor.VFX.UI
                     }
                 }
             }
-            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is PropertyCategory && m_Treeview.selectedItems.All(x => x is PropertyItem or PropertyCategory))
+            // Allow properties or categories to be moved inside the root category
+            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is PropertyCategory { isRoot: true})
+            {
+                return DragVisualMode.Move;
+            }
+            // Allow properties only to be moved inside a non-root category
+            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is PropertyCategory && m_Treeview.selectedItems.All(x => x is PropertyAttribute))
+            {
+                return DragVisualMode.Move;
+            }
+            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is CustomAttributeCategory && m_Treeview.selectedItems.All(x => x is AttributeItem))
             {
                 return DragVisualMode.Move;
             }
@@ -526,7 +553,7 @@ namespace UnityEditor.VFX.UI
 
         private bool OnCanDragStart(CanStartDragArgs arg)
         {
-            return m_Treeview.selectedItems.Any(x => x is PropertyItem or AttributeItem);
+            return m_Treeview.selectedItems.Any(x => x is PropertyItem or AttributeItem or PropertyCategory);
         }
 
         private void OnTabChanged(ChangeEvent<bool> evt, ViewMode viewMode)
@@ -550,6 +577,7 @@ namespace UnityEditor.VFX.UI
             element.parent.parent.RemoveFromClassList("last");
             element.parent.parent.RemoveFromClassList("built-in");
             element.parent.parent.RemoveFromClassList("sub-graph");
+            element.parent.parent.RemoveFromClassList("separator");
             element.ClearClassList();
             element.Clear();
         }
@@ -589,6 +617,13 @@ namespace UnityEditor.VFX.UI
                     parameterItem.selectable = bbRow.field;
                     element.Add(bbRow);
                     break;
+                case AttributeSeparator separator:
+                {
+                    rootElement.AddToClassList("separator");
+                    separator.selectable = null;
+                    element.Add(new Label(separator.title));
+                    break;
+                }
                 case AttributeCategory category when m_ViewMode.HasFlag(ViewMode.Attributes):
                 {
                     rootElement.AddToClassList(category.isRoot ? "category" : "sub-category");
@@ -847,23 +882,6 @@ namespace UnityEditor.VFX.UI
             }
 
             return false;
-        }
-
-        public string DuplicateAttribute(VFXBlackboardAttributeField attributeField)
-        {
-            var newAttribute = m_Controller.graph.DuplicateCustomAttribute(attributeField.attribute.title);
-
-            var parentTreeviewItem = m_ParametersController.SelectMany(GetDataRecursive).Single(x => string.Compare(x.data.title, CustomAttributeCategory.Title, StringComparison.OrdinalIgnoreCase) == 0);
-
-            var lastParentChild = parentTreeviewItem.children.LastOrDefault(x => x.data is AttributeItem);
-            var insertIndex = lastParentChild.data == null ? -1 : m_Treeview.viewController.GetIndexForId(lastParentChild.id);
-            var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
-            var attributeData = new AttributeItem(newAttribute.name, CustomAttributeUtility.GetSignature(newAttribute.type), newId, newAttribute.description, false, true, null) { isLast = true };
-            m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, attributeData), parentTreeviewItem.id, insertIndex, true);
-            UpdateLastCategoryItem(parentTreeviewItem.id);
-            m_Treeview.selectedIndex = m_Treeview.viewController.GetIndexForId(newId);
-
-            return newAttribute.name;
         }
 
         public bool RemoveCustomAttribute(IParameterItem attributeItem)
@@ -1129,25 +1147,29 @@ namespace UnityEditor.VFX.UI
             }
 
             var menu = new GenericMenu();
+            var showProperties = m_ViewMode.HasFlag(ViewMode.Properties);
+            var showAttributes = m_ViewMode.HasFlag(ViewMode.Attributes);
 
             // Properties
-            if (m_ViewMode.HasFlag(ViewMode.Properties))
+            if (showProperties)
             {
-                menu.AddItem(EditorGUIUtility.TrTextContent("Property/Category"), false, OnAddCategory);
-                menu.AddSeparator("Property/");
+                var prexif = showAttributes ? "Property/" : string.Empty;
+                menu.AddItem(EditorGUIUtility.TrTextContent($"{prexif}Category"), false, OnAddCategory);
+                menu.AddSeparator(prexif);
                 var parameters = GetSortedParameters().ToArray();
                 foreach (var parameter in parameters)
                 {
-                    menu.AddItem(EditorGUIUtility.TextContent($"Property/{parameter.name}"), false, OnAddParameter, parameter);
+                    menu.AddItem(EditorGUIUtility.TextContent($"{prexif}{parameter.name}"), false, OnAddParameter, parameter);
                 }
             }
 
             // Attributes
-            if (m_ViewMode.HasFlag(ViewMode.Attributes))
+            if (showAttributes)
             {
+                var prefix = showProperties ? "Attribute/" : string.Empty;
                 foreach (var type in Enum.GetValues(typeof(CustomAttributeUtility.Signature)).Cast<CustomAttributeUtility.Signature>())
                 {
-                    menu.AddItem(EditorGUIUtility.TextContent($"Attribute/{type.ToString()}"), false, OnAddCustomAttribute, CustomAttributeUtility.GetValueType(type));
+                    menu.AddItem(EditorGUIUtility.TextContent($"{prefix}{type.ToString()}"), false, OnAddCustomAttribute, CustomAttributeUtility.GetValueType(type));
                 }
             }
 
@@ -1296,18 +1318,24 @@ namespace UnityEditor.VFX.UI
                 // Attributes
                 if (m_ViewMode.HasFlag(ViewMode.Attributes))
                 {
-                    var builtInAttributes = VFXAttributesManager
+                    var builtInAttributeCategories = VFXAttributesManager
                         .GetBuiltInAttributesOrCombination(true, false, true, true)
                         .Except(new []{ VFXAttribute.EventCount })
-                        .OrderBy(x => x.name).ToArray();
-                    var builtInAttributesItems = new List<TreeViewItemData<IParameterItem>>(builtInAttributes.Length);
-                    for (var i = 0; i < builtInAttributes.Length; i++)
+                        .GroupBy(x => x.category)
+                        .OrderBy(x => x.Key).ToArray();
+                    var builtInAttributeCategoryItems = new List<TreeViewItemData<IParameterItem>>(builtInAttributeCategories.Length);
+                    for (var i = 0; i < builtInAttributeCategories.Length; i++)
                     {
-                        var attribute = builtInAttributes[i];
-                        builtInAttributesItems.Add(new TreeViewItemData<IParameterItem>(groupId, new AttributeItem(attribute.name, CustomAttributeUtility.GetSignature(attribute.type), groupId++, attribute.description, false, false, null)));
+                        var categoryItems = new List<TreeViewItemData<IParameterItem>>(builtInAttributeCategories[i].Count());
+                        foreach (var attribute in builtInAttributeCategories[i].OrderBy(x => x.name))
+                        {
+                            categoryItems.Add(new TreeViewItemData<IParameterItem>(groupId, new AttributeItem(attribute.name, CustomAttributeUtility.GetSignature(attribute.type), groupId++, attribute.description, false, false, null)));
+                        }
+                        var category = builtInAttributeCategories[i].Key;
+                        builtInAttributeCategoryItems.Add(new TreeViewItemData<IParameterItem>(groupId, new AttributeSeparator(category.Substring(2, category.Length - 2), groupId++, false, true), categoryItems));
                     }
 
-                    var builtInAttributesRoot = new TreeViewItemData<IParameterItem>(groupId, new AttributeCategory(BuiltInAttributesCategoryTitle, groupId++, false, isBuiltInAttributesCategoryExpanded), builtInAttributesItems);
+                    var builtInAttributesRoot = new TreeViewItemData<IParameterItem>(groupId, new AttributeCategory(BuiltInAttributesCategoryTitle, groupId++, false, isBuiltInAttributesCategoryExpanded), builtInAttributeCategoryItems);
 
                     var customAttributes = m_View.controller.graph.customAttributes.ToArray();
                     var customAttributesItems = new List<TreeViewItemData<IParameterItem>>(customAttributes.Length);
@@ -1324,7 +1352,7 @@ namespace UnityEditor.VFX.UI
                     }
 
                     var allAttributes = new List<TreeViewItemData<IParameterItem>> { customAttributesRoot, builtInAttributesRoot };
-                    m_ParametersController.Add(new TreeViewItemData<IParameterItem>(groupId, new AttributeCategory(AttributesCategoryTitle, groupId++, true, isAttributesCategoryExpanded), allAttributes));
+                    m_ParametersController.Add(new TreeViewItemData<IParameterItem>(groupId, new AttributeCategory(AttributesCategoryTitle, groupId, true, isAttributesCategoryExpanded), allAttributes));
                 }
 
                 m_Treeview.SetRootItems(m_ParametersController);

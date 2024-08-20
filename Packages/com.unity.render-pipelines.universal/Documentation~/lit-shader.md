@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-lit-shader
+uid: urp-lit-shader
 ---
 # Lit Shader
 

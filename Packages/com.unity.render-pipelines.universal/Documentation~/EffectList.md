@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-effect-list
+uid: urp-effect-list
 ---
 # Effect List
 

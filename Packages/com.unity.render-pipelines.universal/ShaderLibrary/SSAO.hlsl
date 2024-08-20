@@ -571,24 +571,26 @@ half GaussianBlur(half2 uv, half2 pixelOffset)
     return colOut;
 }
 
-half HorizontalGaussianBlur(Varyings input) : SV_Target
+half4 HorizontalGaussianBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.texcoord;
     half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE), HALF_ZERO);
 
-    return GaussianBlur(uv, delta);
+    half g = GaussianBlur(uv, delta);
+    return half4(g, g, g, 1);
 }
 
-half VerticalGaussianBlur(Varyings input) : SV_Target
+half4 VerticalGaussianBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.texcoord;
     half2 delta = half2(HALF_ZERO, _SourceSize.w * rcp(DOWNSAMPLE));
 
-    return HALF_ONE - GaussianBlur(uv, delta);
+    half g = HALF_ONE - GaussianBlur(uv, delta);
+    return half4(g, g, g, 1);
 }
 
 
@@ -638,7 +640,7 @@ half KawaseBlurFilter( half2 texCoord, half2 pixelSize, half iteration )
     return cOut;
 }
 
-half KawaseBlur(Varyings input) : SV_Target
+half4 KawaseBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -648,7 +650,7 @@ half KawaseBlur(Varyings input) : SV_Target
     half col = KawaseBlurFilter(uv, texelSize, 0);
     col = HALF_ONE - col;
 
-    return col;
+    return half4(col, col, col, 1);
 }
 
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-streaming
+uid: urp-probevolumes-streaming
 ---
 # Streaming Adaptive Probe Volumes
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-inject-a-pass-using-a-scriptable-renderer-feature
+uid: urp-inject-a-pass-using-a-scriptable-renderer-feature
 ---
 # Inject a render pass using a Scriptable Renderer Feature
 

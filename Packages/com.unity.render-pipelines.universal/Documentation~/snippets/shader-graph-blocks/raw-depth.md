@@ -1,6 +1,3 @@
----
-uid: urp-docfx-raw-depth
----
 <tr>
 <td>**Raw Depth**</td>
 <td>Samples the depth value from the depth buffer. You can also use this setting with a nonlinear depth value.</td>

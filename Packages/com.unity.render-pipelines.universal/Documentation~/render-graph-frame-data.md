@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-frame-data
+uid: urp-render-graph-frame-data
 ---
 # Use frame data
 

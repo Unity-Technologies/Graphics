@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-ssao
+uid: urp-post-processing-ssao
 ---
 # Ambient Occlusion
 

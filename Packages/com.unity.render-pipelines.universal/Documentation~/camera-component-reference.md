@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-camera-component-reference
+uid: urp-camera-component-reference
 ---
 # Camera component reference
 

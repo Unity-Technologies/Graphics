@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-working-with-textures
+uid: urp-working-with-textures
 ---
 # Using textures
 

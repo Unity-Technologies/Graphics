@@ -74,7 +74,6 @@ Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant8, keyw
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant9, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_OFF
 Compiled compute shader: Deferred, kernel: Deferred_Indirect_Fptl_Variant9, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON
 Compiled compute shader: DepthPyramid, kernel: KDepthDownsample8DualUav, keywords <no keywords>
-Compiled compute shader: DepthPyramid, kernel: KDepthDownsample8DualUav, keywords ENABLE_CHECKERBOARD
 Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterColor, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: BilateralFilterSingle, keywords <no keywords>
 Compiled compute shader: DiffuseDenoiser, kernel: GatherColor, keywords <no keywords>
@@ -589,26 +588,22 @@ Uploaded shader variant to the GPU driver: HDRP/Decal, pass: DBufferProjector, s
 Uploaded shader variant to the GPU driver: HDRP/Decal, pass: DBufferProjector, stage: all, keywords INSTANCING_ON
 Uploaded shader variant to the GPU driver: HDRP/Decal, pass: DBufferProjector, stage: all, keywords INSTANCING_ON _NORMALMAP
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _ENABLE_GEOMETRIC_SPECULAR_AA _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
+Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _ENABLE_GEOMETRIC_SPECULAR_AA _LAYEREDLIT_3_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _LAYEREDLIT_3_LAYERS
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _LAYEREDLIT_3_LAYERS
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _LAYEREDLIT_3_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _LAYEREDLIT_3_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _ENABLE_GEOMETRIC_SPECULAR_AA _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
+Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ENABLE_GEOMETRIC_SPECULAR_AA _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _LAYEREDLIT_3_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords _ALPHATEST_ON _LAYEREDLIT_3_LAYERS
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBuffer, stage: all, keywords _LAYEREDLIT_3_LAYERS
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: GBufferDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
@@ -617,14 +612,8 @@ Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: IndirectDXR, s
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _LAYEREDLIT_3_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _ENABLE_GEOMETRIC_SPECULAR_AA _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _LAYEREDLIT_3_LAYERS
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ShadowCaster, stage: all, keywords _LAYEREDLIT_3_LAYERS
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ShadowCaster, stage: all, keywords _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ShadowCaster, stage: all, keywords _LAYEREDLIT_3_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ShadowCaster, stage: all, keywords _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
-Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: ShadowCaster, stage: all, keywords _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: SubSurfaceDXR, stage: raytracing, keywords _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: VisibilityDXR, stage: raytracing, keywords _ALPHATEST_ON _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLit, pass: VisibilityDXR, stage: raytracing, keywords _DISABLE_SSR _LAYEREDLIT_3_LAYERS _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
@@ -639,35 +628,24 @@ Uploaded shader variant to the GPU driver: HDRP/LayeredLitTessellation, pass: GB
 Uploaded shader variant to the GPU driver: HDRP/LayeredLitTessellation, pass: GBuffer, stage: all, keywords _LAYEREDLIT_3_LAYERS _TESSELLATION_PHONG
 Uploaded shader variant to the GPU driver: HDRP/LayeredLitTessellation, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _LAYEREDLIT_3_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLitTessellation, pass: ShadowCaster, stage: all, keywords _LAYEREDLIT_3_LAYERS
-Uploaded shader variant to the GPU driver: HDRP/LayeredLitTessellation, pass: ShadowCaster, stage: all, keywords _LAYEREDLIT_3_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
 Uploaded shader variant to the GPU driver: HDRP/LayeredLitTessellation, pass: ShadowCaster, stage: all, keywords _LAYEREDLIT_3_LAYERS _TESSELLATION_PHONG
 Uploaded shader variant to the GPU driver: HDRP/LayeredLitTessellation, pass: VisibilityDXR, stage: raytracing, keywords _LAYEREDLIT_3_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords INSTANCING_ON WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords INSTANCING_ON WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _HEIGHTMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _HEIGHTMAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _IRIDESCENCE_THICKNESSMAP _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_ANISOTROPY _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SPECULAR_COLOR _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SPECULAR_COLOR _NORMALMAP_TANGENT_SPACE _SPECULARCOLORMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE _THICKNESSMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_NORMAL_BUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _EMISSIVE_COLOR_MAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords <no keywords>
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords INSTANCING_ON WRITE_DECAL_BUFFER _ALPHATEST_ON _DOUBLESIDED_ON
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords INSTANCING_ON WRITE_DECAL_BUFFER _ALPHATEST_ON _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _HEIGHTMAP
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _HEIGHTMAP _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _NORMALMAP
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _NORMALMAP _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_NORMAL_BUFFER
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_NORMAL_BUFFER _NORMALMAP
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_NORMAL_BUFFER _NORMALMAP _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords WRITE_NORMAL_BUFFER _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: DepthOnly, stage: all, keywords _NORMALMAP_TANGENT_SPACE
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
@@ -710,37 +688,35 @@ Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ForwardDXR, stage: ra
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_3RT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_3RT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE _THICKNESSMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY _DISABLE_SSR_TRANSPARENT _NORMALMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_3RT _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _EMISSIVE_COLOR_MAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT DIRLIGHTMAP_COMBINED LIGHTMAP_ON _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT INSTANCING_ON _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _HEIGHTMAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _IRIDESCENCE_THICKNESSMAP _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_ANISOTROPY _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SPECULAR_COLOR _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SPECULAR_COLOR _NORMALMAP_TANGENT_SPACE _SPECULARCOLORMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE _THICKNESSMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DIRLIGHTMAP_COMBINED LIGHTMAP_ON _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords INSTANCING_ON _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords _DISABLE_SSR_TRANSPARENT _HEIGHTMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords <no keywords>
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_3RT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_3RT _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE _THICKNESSMAP
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DEBUG_DISPLAY _NORMALMAP
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_3RT _DISABLE_SSR _EMISSIVE_COLOR_MAP _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_3RT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_3RT _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT DIRLIGHTMAP_COMBINED LIGHTMAP_ON _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT INSTANCING_ON _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _HEIGHTMAP _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _IRIDESCENCE_THICKNESSMAP _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _MATERIAL_FEATURE_ANISOTROPY _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _MATERIAL_FEATURE_SPECULAR_COLOR _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _MATERIAL_FEATURE_SPECULAR_COLOR _NORMALMAP_TANGENT_SPACE _SPECULARCOLORMAP
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE _THICKNESSMAP
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _NORMALMAP_TANGENT_SPACE
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords DIRLIGHTMAP_COMBINED LIGHTMAP_ON
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords INSTANCING_ON _DOUBLESIDED_ON
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords _HEIGHTMAP
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBuffer, stage: all, keywords _NORMALMAP
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBufferDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_3RT MINIMAL_GBUFFER _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBufferDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_3RT MINIMAL_GBUFFER _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: GBufferDXR, stage: raytracing, keywords DECALS_3RT MINIMAL_GBUFFER _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _EMISSIVE_COLOR_MAP _NORMALMAP_TANGENT_SPACE
@@ -787,60 +763,24 @@ Uploaded shader variant to the GPU driver: HDRP/Lit, pass: IndirectDXR, stage: r
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: RayTracingPrepass, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: RayTracingPrepass, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: RayTracingPrepass, stage: all, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: RayTracingPrepass, stage: all, keywords _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: RayTracingPrepass, stage: all, keywords _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: RayTracingPrepass, stage: all, keywords _DOUBLESIDED_ON _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: RayTracingPrepass, stage: all, keywords <no keywords>
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: RayTracingPrepass, stage: all, keywords _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords INSTANCING_ON _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords INSTANCING_ON _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _EMISSIVE_COLOR_MAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _HEIGHTMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _HEIGHTMAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _IRIDESCENCE_THICKNESSMAP _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_ANISOTROPY _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SPECULAR_COLOR _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SPECULAR_COLOR _NORMALMAP_TANGENT_SPACE _SPECULARCOLORMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE _THICKNESSMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DOUBLESIDED_ON _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords INSTANCING_ON _ALPHATEST_ON _DOUBLESIDED_ON
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _DOUBLESIDED_ON
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: ShadowCaster, stage: all, keywords _HEIGHTMAP
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: SubSurfaceDXR, stage: raytracing, keywords DEBUG_DISPLAY _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: SubSurfaceDXR, stage: raytracing, keywords DEBUG_DISPLAY _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: SubSurfaceDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION _NORMALMAP_TANGENT_SPACE
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: SubSurfaceDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _DOUBLESIDED_ON _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _NORMALMAP_TANGENT_SPACE _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
@@ -860,31 +800,27 @@ Uploaded shader variant to the GPU driver: HDRP/Lit, pass: VisibilityDXR, stage:
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: VisibilityDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: VisibilityDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Lit, pass: VisibilityDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _ENABLE_FOG_ON_TRANSPARENT _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: Forward, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _SURFACE_TYPE_TRANSPARENT _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: GBuffer, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: GBuffer, stage: all, keywords _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _ENABLE_FOG_ON_TRANSPARENT _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _SURFACE_TYPE_TRANSPARENT _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
-Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: ShadowCaster, stage: all, keywords _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _SURFACE_TYPE_TRANSPARENT _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Uploaded shader variant to the GPU driver: HDRP/LitTessellation, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _NORMALMAP_TANGENT_SPACE _TESSELLATION_DISPLACEMENT _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
 Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: HDRP/SG_Eye, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: HDRP/TerrainLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _MASKMAP _NORMALMAP _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 Uploaded shader variant to the GPU driver: HDRP/TerrainLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 Uploaded shader variant to the GPU driver: HDRP/TerrainLit, pass: ForwardDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _MASKMAP _NORMALMAP _TERRAIN_INSTANCED_PERPIXEL_NORMAL
@@ -918,7 +854,6 @@ Uploaded shader variant to the GPU driver: HDRP/Unlit, pass: IndirectDXR, stage:
 Uploaded shader variant to the GPU driver: HDRP/Unlit, pass: MotionVectors, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: HDRP/Unlit, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: HDRP/Unlit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON
-Uploaded shader variant to the GPU driver: HDRP/Unlit, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: HDRP/Unlit, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
 Uploaded shader variant to the GPU driver: HDRP/Unlit, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: HDRP/Unlit, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON
@@ -1038,11 +973,9 @@ Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Outpu
 Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: Forward, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: IndirectDXR, stage: raytracing, keywords DECALS_3RT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: TransparentDepthPrepass, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN
 Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: TransparentDepthPrepass, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Hidden/VFX/RefractiveEye/System/Output Particle|Shader Graph Quad - Lit, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DOUBLESIDED_ON _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: DepthOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Hidden/VFX/TriangleOpaque/System/Output Particle|HDRP Lit Triangle, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM USE_FPTL_LIGHTLIST
@@ -1094,7 +1027,7 @@ Uploaded shader variant to the GPU driver: Shader Graphs/ElipseSG, pass: MotionV
 Uploaded shader variant to the GPU driver: Shader Graphs/ElipseSG, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER
 Uploaded shader variant to the GPU driver: Shader Graphs/ElipseSG, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
@@ -1103,16 +1036,14 @@ Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: GBufferDXR
 Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: IndirectDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/EyeSG, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricGraphSubSurface, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/FabricGraphSubSurface, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/FabricGraphSubSurface, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricGraphSubSurface, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricGraphSubSurface, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricGraphSubSurface, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/FabricGraphSubSurface, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricGraphSubSurface, pass: SubSurfaceDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
@@ -1121,9 +1052,8 @@ Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: GBuffer
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: IndirectDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/FabricSG, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: ForwardOnly, stage: all, keywords <no keywords>
@@ -1133,40 +1063,34 @@ Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: DepthForwardOnly, stage: all, keywords _ALPHATEST_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: ForwardDXR, stage: raytracing, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: ForwardOnly, stage: all, keywords _ALPHATEST_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_AlphaClip, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_SSS, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_CottonWool_Transmission, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: ForwardOnly, stage: all, keywords <no keywords>
@@ -1176,40 +1100,34 @@ Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: Forw
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: DepthForwardOnly, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: ForwardDXR, stage: raytracing, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: ForwardOnly, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_AlphaClip_DS, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_SSS, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Fabric_Silk_Transmission, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/FontShader, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/FontShader, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/FontShader, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Ground SG, pass: DepthOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Ground SG, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/Ground SG, pass: GBuffer, stage: all, keywords <no keywords>
@@ -1219,15 +1137,14 @@ Uploaded shader variant to the GPU driver: Shader Graphs/Ground SG, pass: Motion
 Uploaded shader variant to the GPU driver: Shader Graphs/Ground SG, pass: MotionVectors, stage: all, keywords WRITE_DECAL_BUFFER_AND_RENDERING_LAYER
 Uploaded shader variant to the GPU driver: Shader Graphs/Ground SG, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/HairSG, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/HairSG, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/HairSG, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/HairSG, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/HairSG, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/HairSG, pass: GBufferDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/HairSG, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/HairSG, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/HairSG, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: ForwardOnly, stage: all, keywords <no keywords>
@@ -1237,13 +1154,10 @@ Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: Fo
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
+Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON
+Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _ALPHATEST_ON _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: DepthForwardOnly, stage: all, keywords _ALPHATEST_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: DepthForwardOnly, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: ForwardDXR, stage: raytracing, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
@@ -1255,42 +1169,36 @@ Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: ShadowCaster, stage: all, keywords _ALPHATEST_ON _DOUBLESIDED_ON
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
+Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON
+Uploaded shader variant to the GPU driver: Shader Graphs/Hair_Standard_AlphaClip, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _ALPHATEST_ON _DOUBLESIDED_ON
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: DepthOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: GBufferDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT MINIMAL_GBUFFER _DISABLE_SSR _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: GBufferDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit Shader, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitGraphSubSurface, pass: DepthOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/LitGraphSubSurface, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/LitGraphSubSurface, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/LitGraphSubSurface, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/LitGraphSubSurface, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/LitGraphSubSurface, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitGraphSubSurface, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/LitGraphSubSurface, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitGraphSubSurface, pass: SubSurfaceDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: DepthOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: GBufferDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/LitSG, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitSGVariableSmoothness, pass: DepthOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/LitSGVariableSmoothness, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/LitSGVariableSmoothness, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/LitSGVariableSmoothness, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/LitSGVariableSmoothness, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/LitSGVariableSmoothness, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitSGVariableSmoothness, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitSGVariableSmoothness, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/LitSGVariableSmoothness, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/LitTesselation_Standard, pass: DepthOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/LitTesselation_Standard, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/LitTesselation_Standard, pass: ForwardDXR, stage: raytracing, keywords <no keywords>
@@ -1351,36 +1259,28 @@ Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pa
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pass: Forward, stage: all, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pass: ForwardDXR, stage: raytracing, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pass: ShadowCaster, stage: all, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pass: ShadowCaster, stage: all, keywords _REFRACTION_PLANE
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pass: TransparentDepthPrepass, stage: all, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Box, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: Forward, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: ForwardDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_None, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: Forward, stage: all, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: ForwardDXR, stage: raytracing, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: ShadowCaster, stage: all, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: ShadowCaster, stage: all, keywords _REFRACTION_SPHERE
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: TransparentDepthPrepass, stage: all, keywords _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Sphere, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: Forward, stage: all, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: ForwardDXR, stage: raytracing, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: ShadowCaster, stage: all, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: ShadowCaster, stage: all, keywords _REFRACTION_THIN
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: TransparentDepthPrepass, stage: all, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Lit_Transparent_Thin, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Metal Decal, pass: AtlasProjector, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _MATERIAL_AFFECTS_MASKMAP
@@ -1440,74 +1340,60 @@ Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refra
 Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: Forward, stage: all, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: RayTracingPrepass, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: RayTracingPrepass, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: RayTracingPrepass, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: RayTracingPrepass, stage: all, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: ShadowCaster, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: ShadowCaster, stage: all, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: RayTracingPrepass, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE
+Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: RayTracingPrepass, stage: all, keywords _REFRACTION_THIN
+Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: ShadowCaster, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE
+Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: ShadowCaster, stage: all, keywords _REFRACTION_THIN
+Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: TransparentDepthPrepass, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: TransparentDepthPrepass, stage: all, keywords _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SGLit_Transparent_Refraction_1, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _REFRACTION_THIN _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: DepthOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: DepthOnly, stage: all, keywords _TESSELLATION_PHONG
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: GBuffer, stage: all, keywords _TESSELLATION_PHONG
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: GBufferDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationLit, pass: ShadowCaster, stage: all, keywords _TESSELLATION_PHONG
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: DepthOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: DepthOnly, stage: all, keywords _TESSELLATION_PHONG
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: GBuffer, stage: all, keywords _TESSELLATION_PHONG
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: GBufferDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SGTessellationUnlit, pass: ShadowCaster, stage: all, keywords _TESSELLATION_PHONG
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: TransparentDepthPrepass, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROff, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROn, pass: ForwardDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROn, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROn, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROn, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROn, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Fabric_RTRT_OpaqueSSROn, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_GradualRoughSurface, pass: DepthOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_GradualRoughSurface, pass: DepthOnly, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_GradualRoughSurface, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_GradualRoughSurface, pass: GBuffer, stage: all, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_GradualRoughSurface, pass: GBuffer, stage: all, keywords DECALS_3RT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_GradualRoughSurface, pass: GBufferDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_GradualRoughSurface, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_GradualRoughSurface, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROff, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROff, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROff, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROff, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROff, pass: TransparentDepthPrepass, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROff, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROn, pass: ForwardDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROn, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROn, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROn, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROn, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Hair_RTRT_OpaqueSSROn, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitOpaque, pass: DepthOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitOpaque, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
@@ -1539,25 +1425,18 @@ Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRenderin
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: ForwardDXR, stage: raytracing, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: IndirectDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: RayTracingPrepass, stage: all, keywords _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: RayTracingPrepass, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: ShadowCaster, stage: all, keywords _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: ShadowCaster, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: TransparentDepthPrepass, stage: all, keywords _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: RayTracingPrepass, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: ShadowCaster, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitRecursiveRendering, pass: TransparentDepthPrepass, stage: all, keywords _DOUBLESIDED_ON _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransmission, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransmission, pass: Forward, stage: all, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransmission, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransmission, pass: ShadowCaster, stage: all, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransmission, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransmission, pass: ShadowCaster, stage: all, keywords _REFRACTION_PLANE
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransmission, pass: TransparentDepthPrepass, stage: all, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransmission, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransmission, pass: VisibilityDXR, stage: raytracing, keywords _REFRACTION_PLANE _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransparent, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransparent, pass: Forward, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransparent, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransparent, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransparent, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransparent, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransparent, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransparent, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_LitTransparent, pass: VisibilityDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
@@ -1565,25 +1444,20 @@ Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROf
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROff, pass: Forward, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROff, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROff, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROff, pass: TransparentDepthPrepass, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROff, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROn, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROn, pass: Forward, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROn, pass: ForwardDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROn, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROn, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_RTRT_OpaqueSSROn, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_SmoothReflection, pass: DepthOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_SmoothReflection, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_SmoothReflection, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_SmoothReflection, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_SmoothReflection, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_SmoothReflection, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_SmoothReflection, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_SmoothReflection, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_Lit_SmoothReflection, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte, pass: DepthForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST
@@ -1594,49 +1468,39 @@ Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte, pass: V
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte_Transparent, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte_Transparent, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte_Transparent, pass: IndirectDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte_Transparent, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte_Transparent, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte_Transparent, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_ShadowMatte_Transparent, pass: VisibilityDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: DepthForwardOnly, stage: all, keywords _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_3RT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: IndirectDXR, stage: raytracing, keywords DECALS_3RT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: VisibilityDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit, pass: VisibilityDXR, stage: raytracing, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROff, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROff, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROff, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROff, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROff, pass: TransparentDepthPrepass, stage: all, keywords _DISABLE_SSR _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROff, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROff, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROn, pass: ForwardDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROn, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROn, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROn, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROn, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROn, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_StackLit_RTRT_OpaqueSSROn, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmooth, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmooth, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmooth, pass: Forward, stage: all, keywords DEBUG_DISPLAY _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmooth, pass: Forward, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmooth, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmooth, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmooth, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmoothSSR, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmoothSSR, pass: Forward, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_CLUSTERED_LIGHTLIST _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmoothSSR, pass: Forward, stage: all, keywords DEBUG_DISPLAY _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmoothSSR, pass: Forward, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmoothSSR, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmoothSSR, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmoothSSR, pass: TransparentDepthPrepass, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmoothSSR, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_TransparentSmoothSSR, pass: TransparentDepthPrepass, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitOpaque, pass: DepthForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitOpaque, pass: ForwardOnly, stage: all, keywords <no keywords>
@@ -1645,8 +1509,7 @@ Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitOpaque, pass: V
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitOpaque, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitTransparent, pass: ForwardOnly, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitTransparent, pass: ForwardOnly, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitTransparent, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitTransparent, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitTransparent, pass: ShadowCaster, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitTransparent, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_UnlitTransparent, pass: VisibilityDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/SG_ZWTexCoord_0, pass: DepthForwardOnly, stage: all, keywords <no keywords>
@@ -1670,7 +1533,7 @@ Uploaded shader variant to the GPU driver: Shader Graphs/Smoothness Decal, pass:
 Uploaded shader variant to the GPU driver: Shader Graphs/Smoothness Decal, pass: DBufferProjector, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT INSTANCING_ON _MATERIAL_AFFECTS_MASKMAP
 Uploaded shader variant to the GPU driver: Shader Graphs/Smoothness Decal, pass: DBufferProjector, stage: all, keywords DECALS_4RT INSTANCING_ON _MATERIAL_AFFECTS_MASKMAP
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
@@ -1679,63 +1542,56 @@ Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: GBuff
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: IndirectDXR, stage: raytracing, keywords DEBUG_DISPLAY DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT MULTI_BOUNCE_INDIRECT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLitSG, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Anisotropy, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Coat, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_DualSpecLobe_Hazy, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Iridescence, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Spec, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: ForwardOnly, stage: all, keywords <no keywords>
@@ -1745,29 +1601,24 @@ Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_SubSurface, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: DepthForwardOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: DepthForwardOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: ForwardDXR, stage: raytracing, keywords _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: ForwardOnly, stage: all, keywords AREA_SHADOW_MEDIUM DECALS_4RT DECAL_SURFACE_GRADIENT DIRECTIONAL_SHADOW_MEDIUM PUNCTUAL_SHADOW_MEDIUM SCREEN_SPACE_SHADOWS_ON USE_FPTL_LIGHTLIST _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: IndirectDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/StackLit_Transmission, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/Unlit Shader, pass: DepthForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Unlit Shader, pass: ForwardOnly, stage: all, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Unlit Shader, pass: GBufferDXR, stage: raytracing, keywords <no keywords>
@@ -1796,14 +1647,11 @@ Uploaded shader variant to the GPU driver: Shader Graphs/Unlit_Standard, pass: F
 Uploaded shader variant to the GPU driver: Shader Graphs/Unlit_Standard, pass: IndirectDXR, stage: raytracing, keywords <no keywords>
 Uploaded shader variant to the GPU driver: Shader Graphs/Unlit_Standard, pass: IndirectDXR, stage: raytracing, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Unlit_Standard, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/Unlit_Standard, pass: ShadowCaster, stage: all, keywords _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
-Uploaded shader variant to the GPU driver: Shader Graphs/Unlit_Standard, pass: ShadowCaster, stage: all, keywords _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/Unlit_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW
 Uploaded shader variant to the GPU driver: Shader Graphs/Unlit_Standard, pass: VisibilityDXR, stage: raytracing, keywords TRANSPARENT_COLOR_SHADOW _SURFACE_TYPE_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/VertexColorShader, pass: DepthOnly, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/VertexColorShader, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/VertexColorShader, pass: DepthOnly, stage: all, keywords WRITE_DECAL_BUFFER
 Uploaded shader variant to the GPU driver: Shader Graphs/VertexColorShader, pass: GBuffer, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/VertexColorShader, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
+Uploaded shader variant to the GPU driver: Shader Graphs/VertexColorShader, pass: GBuffer, stage: all, keywords DECALS_4RT DECAL_SURFACE_GRADIENT
 Uploaded shader variant to the GPU driver: Shader Graphs/VertexColorShader, pass: GBufferDXR, stage: raytracing, keywords DECALS_4RT DECAL_SURFACE_GRADIENT _DISABLE_SSR_TRANSPARENT
 Uploaded shader variant to the GPU driver: Shader Graphs/VertexColorShader, pass: ShadowCaster, stage: all, keywords <no keywords>
-Uploaded shader variant to the GPU driver: Shader Graphs/VertexColorShader, pass: ShadowCaster, stage: all, keywords _DISABLE_SSR_TRANSPARENT

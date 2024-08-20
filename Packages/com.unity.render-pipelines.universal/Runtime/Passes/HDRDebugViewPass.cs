@@ -102,15 +102,15 @@ namespace UnityEngine.Rendering.Universal
             Vector2 viewportScale = sourceTexture.useScaling ? new Vector2(sourceTexture.rtHandleProperties.rtHandleScale.x, sourceTexture.rtHandleProperties.rtHandleScale.y) : Vector2.one;
             Blitter.BlitTexture(cmd, sourceTexture, viewportScale, data.material, 0);
 
-            cmd.ClearRandomWriteTargets();            
+            cmd.ClearRandomWriteTargets();
         }
 
         private static void ExecuteHDRDebugViewFinalPass(RasterCommandBuffer cmd, PassDataDebugView data, RTHandle sourceTexture, RTHandle destination, RTHandle xyTarget)
         {
-            
             if (data.cameraData.isHDROutputActive)
             {
                 HDROutputUtils.ConfigureHDROutput(data.material, data.cameraData.hdrDisplayColorGamut, HDROutputUtils.Operation.ColorEncoding);
+                CoreUtils.SetKeyword(data.material, ShaderKeywordStrings.HDROverlay, data.cameraData.rendersOverlayUI);
             }
 
             data.material.SetTexture(ShaderConstants._xyTextureId, xyTarget);

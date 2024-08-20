@@ -8,10 +8,10 @@
 // PackingRules = Exact
 struct WorldLightVolume
 {
-    uint flags;
-    uint shape;
     float3 position;
+    uint flags;
     float3 range;
+    uint shape;
     uint lightType;
     uint lightIndex;
 };

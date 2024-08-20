@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-inspector-reference
+uid: urp-probevolumes-inspector-reference
 ---
 # Adaptive Probe Volume Inspector reference
 

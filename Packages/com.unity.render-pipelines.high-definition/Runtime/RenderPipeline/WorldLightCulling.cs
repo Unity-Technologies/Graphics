@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
             worldLightSubSet.PushToGpu();
         }
 
-        private static bool IntersectSphereAABB(Vector3 position, float radius, Vector3 aabbMin, Vector3 aabbMax)
+        internal static bool IntersectSphereAABB(Vector3 position, float radius, Vector3 aabbMin, Vector3 aabbMax)
         {
             float x = Mathf.Max(aabbMin.x, Mathf.Min(position.x, aabbMax.x));
             float y = Mathf.Max(aabbMin.y, Mathf.Min(position.y, aabbMax.y));

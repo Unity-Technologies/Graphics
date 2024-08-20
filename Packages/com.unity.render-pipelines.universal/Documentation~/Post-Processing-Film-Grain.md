@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-film-grain
+uid: urp-post-processing-film-grain
 ---
 # Film Grain
 

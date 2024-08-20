@@ -376,6 +376,26 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(typeof(int), parameters[1].type);
             Assert.AreEqual(HLSLAccess.NONE, parameters[1].access);
         }
+
+        [Test, Description("Covers issue UUM-74375")]
+        public void HLSL_Variadic_Attributes()
+        {
+            // Arrange
+            var hlslCode =
+                $"void Repro(inout VFXAttributes attributes)" +
+                "{\n" +
+                "    attributes.scale = float3(1, 2, 3);\n" +
+                "}\n";
+
+            // Act
+            var functions = HLSLFunction.Parse(this.attributesManager, hlslCode).ToArray();
+
+            // Assert
+            CollectionAssert.IsNotEmpty(functions);
+            var errors = functions[0].errorList.ToArray();
+            Assert.AreEqual(1, errors.Length, "Missing error feedback when using variadic attribute in custom hlsl code");
+            Assert.IsInstanceOf<HLSLVFXAttributeIsVariadic>(errors[0]);
+        }
     }
 }
 #endif

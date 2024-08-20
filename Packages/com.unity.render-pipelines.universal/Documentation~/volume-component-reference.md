@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-volume-component-reference
+uid: urp-volume-component-reference
 ---
 # Volume component reference
 

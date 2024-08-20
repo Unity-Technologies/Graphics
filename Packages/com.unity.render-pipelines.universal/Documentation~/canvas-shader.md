@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-canvas-shader
+uid: urp-canvas-shader
 ---
 # Canvas Shader Graph
 

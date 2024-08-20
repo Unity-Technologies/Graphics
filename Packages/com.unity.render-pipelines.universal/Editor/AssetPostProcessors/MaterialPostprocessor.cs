@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.Universal
                             EditorUtility.DisplayDialog("URP Material upgrade", "The Materials in your Project were created using an older version of the Universal Render Pipeline (URP)." +
                                 " Unity must upgrade them to be compatible with your current version of URP. \n" +
                                 " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
-                                " Please see the Material upgrade guide in the URP documentation for more information.", "Ok");
+                                " Please see the Material upgrade guide in the URP documentation for more information.", "OK");
                         }
 
                         ReimportAllMaterials();

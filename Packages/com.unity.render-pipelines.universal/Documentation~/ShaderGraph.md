@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-shader-graph
+uid: urp-shader-graph
 ---
 # Create a 2D sprite Shader Graph
 

@@ -230,5 +230,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/078_TilemapRenderer_ShaderGraph_LightMapTexture.unity
     guid: 0fa034d17c4f8814398528f265d2c60f
+  - enabled: 1
+    path: Assets/Scenes/079_SpriteRenderer_MaterialPropertyBlock.unity
+    guid: fffc724089bd24f5d84c962cb11aeb4d
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

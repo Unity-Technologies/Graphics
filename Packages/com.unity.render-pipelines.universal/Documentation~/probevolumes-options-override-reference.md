@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-options-override-reference
+uid: urp-probevolumes-options-override-reference
 ---
 # Probe Volumes Options Override reference
 

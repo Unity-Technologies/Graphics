@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-install-urp-into-a-project
+uid: urp-install-urp-into-a-project
 ---
 # Installing the Universal Render Pipeline into an existing Project
 

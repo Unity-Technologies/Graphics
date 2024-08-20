@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-create-a-texture
+uid: urp-render-graph-create-a-texture
 ---
 # Create a texture in the render graph system
 

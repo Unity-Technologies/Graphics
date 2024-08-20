@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-camera-differences-in-urp
+uid: urp-camera-differences-in-urp
 ---
 # Cameras in URP
 

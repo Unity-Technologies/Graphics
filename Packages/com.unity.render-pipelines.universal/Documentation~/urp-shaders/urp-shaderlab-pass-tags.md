@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-urp-shaderlab-pass-tags
+uid: urp-urp-shaderlab-pass-tags
 ---
 # URP ShaderLab Pass tags
 

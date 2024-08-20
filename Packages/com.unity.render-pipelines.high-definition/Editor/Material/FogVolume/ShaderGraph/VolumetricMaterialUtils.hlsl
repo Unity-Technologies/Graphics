@@ -9,6 +9,11 @@ float VBufferDistanceToSliceIndex(uint sliceIndex)
     return DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
 }
 
+// Linear view space (eye) depth to Z buffer depth.
+// Does NOT correctly handle oblique view frustums.
+// Does NOT work with orthographic projection.
+// zBufferParam (UNITY_REVERSED_Z) = { f/n - 1,   1, (1/n - 1/f), 1/f }
+// zBufferParam                    = { 1 - f/n, f/n, (1/f - 1/n), 1/n }
 float EyeDepthToLinear(float linearDepth, float4 zBufferParam)
 {
     linearDepth = rcp(linearDepth);

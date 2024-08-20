@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-accessing-frame-data
+uid: urp-accessing-frame-data
 ---
 # Get data from the current frame
 

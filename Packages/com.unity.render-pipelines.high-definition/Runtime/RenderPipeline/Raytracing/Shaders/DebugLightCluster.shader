@@ -127,7 +127,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 // Compute the csize of each cell
-                float3 clusterCellSize = (_MaxClusterPos - _MinClusterPos) * float3(1.0 / 64.0, 1.0 / 64.0, 1.0 / 32.0);
+                float3 clusterCellSize = (_MaxClusterPos - _MinClusterPos) * rcp((float3)CLUSTER_SIZE);
 
                 // Compute the camera relative position
                 float3 positionOS = cubeVertices[cubeTriangles[vertID % 48]];
@@ -135,15 +135,15 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 float3 positionRWS = TransformObjectToWorld(positionOS);
 
                 // Compute the grid coordinates of this cell
-                int width = instanceID % 64;
-                int height = (instanceID / 64) % 64;
-                int depth = instanceID / 4096;
+                int width = instanceID % CLUSTER_SIZE.x;
+                int height = (instanceID / CLUSTER_SIZE.x) % CLUSTER_SIZE.y;
+                int depth = instanceID / (CLUSTER_SIZE.x * CLUSTER_SIZE.y);
 
                 // Compute the world space coordinate of this cell
                 positionRWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
 
                 // Given that we have the cell index, get the number of lights
-                uint numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);
+                uint numLights = GetTotalLightClusterCellCount(GetClusterCellIndex(width, height, depth));
                 output.cellColor.xyz = lerp(float3(0.0, 0.0, 0.0), float3(1.0, 1.0, 0.0), clamp((float) numLights / _LightPerCellCount, 0.0, 1.0));
                 output.cellColor.w = numLights == 0 ? 0.0 : 1.0;
                 output.cellColor.xyz = numLights >= _LightPerCellCount ?  float3(5.0, 0.0, 0.0) : output.cellColor.xyz;
@@ -197,7 +197,7 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 // Compute the csize of each cell
-                float3 clusterCellSize = (_MaxClusterPos - _MinClusterPos) * float3(1.0 / 64.0, 1.0 / 64.0, 1.0 / 32.0);
+                float3 clusterCellSize = (_MaxClusterPos - _MinClusterPos) * rcp((float3)CLUSTER_SIZE);
 
                 // Compute the camera relative position
                 float3 positionOS = cubeVertices[cubeLines[vertID % 48]];
@@ -205,15 +205,15 @@ Shader "Hidden/HDRP/DebugLightCluster"
                 float3 positionRWS = TransformObjectToWorld(positionOS);
 
                 // Compute the grid coordinates of this cell
-                int width = instanceID % 64;
-                int height = (instanceID / 64) % 64;
-                int depth = instanceID / 4096;
+                int width = instanceID % CLUSTER_SIZE.x;
+                int height = (instanceID / CLUSTER_SIZE.x) % CLUSTER_SIZE.y;
+                int depth = instanceID / (CLUSTER_SIZE.x * CLUSTER_SIZE.y);
 
                 // Compute the world space coordinate of this cell
                 positionRWS = _MinClusterPos + float3( clusterCellSize.x * width, clusterCellSize.y * height, clusterCellSize.z * depth) + GetAbsolutePositionWS(positionRWS);
 
                 // Given that we have the cell index, get the number of lights
-                uint numLights = GetTotalLightClusterCellCount(depth + height * 32 + width * 2048);
+                uint numLights = GetTotalLightClusterCellCount(GetClusterCellIndex(width, height, depth));
                 output.cellColor.xyz = lerp(float3(0.0, 1.0, 0.0), float3(1.0, 1.0, 0.0), clamp((float) numLights / _LightPerCellCount, 0.0, 1.0));
                 output.cellColor.w = numLights == 0 ? 0.0 : 1.0;
                 output.cellColor.xyz = numLights >= _LightPerCellCount ?  float3(1.0, 0.0, 0.0) : output.cellColor.xyz;

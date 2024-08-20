@@ -763,6 +763,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     ++EditorGUI.indentLevel;
                 }
 #endif
+                bool containsSTP = ((1 << (int)AdvancedUpscalers.STP) & advancedUpscalersEnabledMask) != 0;
+                if (containsSTP)
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        // Draw STP settings
+                        int value = EditorGUILayout.IntPopup(Styles.STPInjectionPoint, serialized.renderPipelineSettings.dynamicResolutionSettings.STPInjectionPoint.intValue, Styles.UpscalerInjectionPointNames, Styles.UpscalerInjectionPointValues);
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.STPInjectionPoint.intValue = value;
+                    }
+                }
+
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
                 bool isHwDrs = (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.intValue == (int)DynamicResolutionType.Hardware);
                 bool gfxDeviceSupportsHwDrs = HDUtils.IsHardwareDynamicResolutionSupportedByDevice(SystemInfo.graphicsDeviceType);
@@ -800,6 +811,22 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
+                using (new EditorGUI.IndentLevelScope())
+                {
+                    if (currentUpscaleFilter == DynamicResUpscaleFilter.TAAU)
+                    {
+                        int ip = EditorGUILayout.IntPopup(Styles.TAAUInjectionPoint, serialized.renderPipelineSettings.dynamicResolutionSettings.TAAUInjectionPoint.intValue, Styles.UpscalerInjectionPointNames, Styles.UpscalerInjectionPointValues);
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.TAAUInjectionPoint.intValue = ip;
+                    }
+                    // Catmull-Rom is combined to the final pass, so we can't change it's injection point
+                    // FSR 1.0 (EdgeAdaptiveScalingUpres) only works with perceptual data, so we can't change it's injection point.
+                    else if (currentUpscaleFilter != DynamicResUpscaleFilter.CatmullRom && currentUpscaleFilter != DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres)
+                    {
+                        int ip = EditorGUILayout.IntPopup(Styles.defaultInjectionPoint, serialized.renderPipelineSettings.dynamicResolutionSettings.defaultInjectionPoint.intValue, Styles.UpscalerInjectionPointNames, Styles.UpscalerInjectionPointValues);
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.defaultInjectionPoint.intValue = ip;
+                    }
+                }
+
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.useMipBias, Styles.useMipBias);
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.forcePercentage, Styles.forceScreenPercentage);
@@ -834,10 +861,12 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 
                         // Show a warning if STP is selected with software DRS and a dynamic scaling range
-                        bool containsSTP = ((1 << (int)AdvancedUpscalers.STP) & advancedUpscalersEnabledMask) != 0;
-                        if (containsSTP && (!isHwDrs || !gfxDeviceSupportsHwDrs))
+                        if (containsSTP)
                         {
-                            EditorGUILayout.HelpBox($"{Styles.STPSwDrsWarningMsg}", MessageType.Warning, wide: true);
+                            if (!isHwDrs || !gfxDeviceSupportsHwDrs)
+                            {
+                                EditorGUILayout.HelpBox($"{Styles.STPSwDrsWarningMsg}", MessageType.Warning, wide: true);
+                            }
                         }
 
                         float minPercentage = serialized.renderPipelineSettings.dynamicResolutionSettings.minPercentage.floatValue;

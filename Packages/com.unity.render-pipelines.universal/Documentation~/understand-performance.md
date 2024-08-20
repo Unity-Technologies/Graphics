@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-understand-performance
+uid: urp-understand-performance
 ---
 # Understand performance
 

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-chromatic-aberration
+uid: urp-post-processing-chromatic-aberration
 ---
 # Chromatic Aberration
 

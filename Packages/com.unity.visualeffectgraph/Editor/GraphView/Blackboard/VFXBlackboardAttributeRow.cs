@@ -50,9 +50,15 @@ namespace UnityEditor.VFX.UI
                 evt.menu.AppendAction("Rename", (a) => m_Field.OpenTextEditor(), IsMenuVisible);
                 evt.menu.AppendAction("Duplicate %d", (a) => Duplicate());
                 evt.menu.AppendAction("Delete", (a) => Delete(), IsMenuVisible);
+                evt.menu.AppendAction("Copy Name", (a) => CopyName(), DropdownMenuAction.AlwaysEnabled);
 
                 evt.StopPropagation();
             }
+        }
+
+        private void CopyName()
+        {
+            EditorGUIUtility.systemCopyBuffer = attribute.title;
         }
 
         private void Duplicate()

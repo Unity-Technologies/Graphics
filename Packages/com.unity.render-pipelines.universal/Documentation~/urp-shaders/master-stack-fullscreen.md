@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-master-stack-fullscreen
+uid: urp-master-stack-fullscreen
 ---
 # Fullscreen
 

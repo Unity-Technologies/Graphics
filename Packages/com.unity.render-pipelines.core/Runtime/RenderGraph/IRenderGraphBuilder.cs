@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public void EnableAsyncCompute(bool value);
 
         /// <summary>
-        /// Allow or not pass culling
+        /// Allow or not pass culling.
         /// By default all passes can be culled out if the render graph detects it's not actually used.
         /// In some cases, a pass may not write or read any texture but rather do something with side effects (like setting a global texture parameter for example).
         /// This function can be used to tell the system that it should not cull this pass.

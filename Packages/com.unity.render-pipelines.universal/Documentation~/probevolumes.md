@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes
+uid: urp-probevolumes
 ---
 # Adaptive Probe Volumes (APV)
 

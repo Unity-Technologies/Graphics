@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-urp-lighting-mode
+uid: urp-urp-lighting-mode
 ---
 # Lighting Mode
 

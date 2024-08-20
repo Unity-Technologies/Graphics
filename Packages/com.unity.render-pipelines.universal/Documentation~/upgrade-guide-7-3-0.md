@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-upgrade-guide-7-3-0
+uid: urp-upgrade-guide-7-3-0
 ---
 # Upgrading to version 7.3.0 of the Universal Render Pipeline
 

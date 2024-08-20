@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-rendering-layers
+uid: urp-rendering-layers
 ---
 # Rendering Layers
 

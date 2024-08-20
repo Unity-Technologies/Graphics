@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-compute-shader
+uid: urp-render-graph-compute-shader
 ---
 # Use a compute shader in a render pass
 

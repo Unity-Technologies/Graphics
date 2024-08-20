@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-volume-overrides
+uid: urp-volume-overrides
 ---
 # Configure Volume Overrides
 

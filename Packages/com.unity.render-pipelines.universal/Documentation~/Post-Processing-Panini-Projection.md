@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-panini-projection
+uid: urp-post-processing-panini-projection
 ---
 # Panini Projection
 

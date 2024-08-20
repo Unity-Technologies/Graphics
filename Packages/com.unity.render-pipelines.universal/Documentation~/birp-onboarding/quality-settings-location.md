@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-quality-settings-location
+uid: urp-quality-settings-location
 ---
 # Find graphics quality settings in URP
 

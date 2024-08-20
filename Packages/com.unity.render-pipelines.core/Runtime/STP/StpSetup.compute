@@ -5,7 +5,12 @@
 #pragma multi_compile _ ENABLE_LARGE_KERNEL
 
 #pragma multi_compile _ UNITY_DEVICE_SUPPORTS_NATIVE_16BIT
-#pragma multi_compile _ UNITY_DEVICE_SUPPORTS_WAVE_ANY
+
+// TODO: Re-enable support for wave reductions (usage of UNITY_DEVICE_SUPPORTS_WAVE_ANY keyword)
+//
+// We've run into many platform specific problems when trying to use wave operations for STP's reductions so they're being
+// disabled for now. Enabling support for wave operations also causes us to use DXC on the 32-bit path on some Qualcomm Android
+// devices and this triggers visual artifacts that we have no other way to work around at the moment.
 
 #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
 

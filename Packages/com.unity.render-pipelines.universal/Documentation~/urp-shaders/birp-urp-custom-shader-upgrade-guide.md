@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-birp-urp-custom-shader-upgrade-guide
+uid: urp-birp-urp-custom-shader-upgrade-guide
 ---
 # Upgrade custom shaders for URP compatibility
 

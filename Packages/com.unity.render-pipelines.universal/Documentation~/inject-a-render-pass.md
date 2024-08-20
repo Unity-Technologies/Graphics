@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-inject-a-render-pass
+uid: urp-inject-a-render-pass
 ---
 # Adding a Scriptable Render Pass to the frame rendering loop
 

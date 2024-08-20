@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-fixissues
+uid: urp-probevolumes-fixissues
 ---
 # Fix issues with Adaptive Probe Volumes
 

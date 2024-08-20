@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-custom-pass-injection-points
+uid: urp-custom-pass-injection-points
 ---
 # Injection points
 

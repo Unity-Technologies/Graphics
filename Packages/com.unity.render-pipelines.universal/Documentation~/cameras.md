@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-cameras
+uid: urp-cameras
 ---
 # Cameras
 

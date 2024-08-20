@@ -30,6 +30,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
         public DrawNormalPass()
         {
             m_ProfilingSampler = new ProfilingSampler("Render Normals");
+            ConfigureInput(ScriptableRenderPassInput.Depth);
             renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
         }
 
@@ -115,9 +116,11 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
 
                 TextureHandle color = resourceData.activeColorTexture;
                 passData.color = color;
-                builder.SetRenderAttachment(color, 0, AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(color, 0, AccessFlags.Write);
                 passData.cameraData = cameraData;
                 builder.AllowGlobalStateModification(true);
+
+                builder.UseTexture(resourceData.cameraDepthTexture);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {

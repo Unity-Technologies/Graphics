@@ -159,8 +159,14 @@ EditorBuildSettings:
     path: Assets/Scenes/056_SoftShadowQuality_Custom_8K_4Cascades.unity
     guid: db7018b6563a7684fa69876b4864c270
   - enabled: 1
-    path: Assets/Scenes/057_SoftShadowQuality_SpotLight_ShadowsNearPlane.unity
+    path: Assets/Scenes/057_ShadowsNearPlane_SpotLight.unity
     guid: 9d08dfe3c5f589d458eddf27b7141993
+  - enabled: 1
+    path: Assets/Scenes/057_ShadowsNearPlane_PointLight.unity
+    guid: f28f15ee50dd41e4c90ae7fba33245e6
+  - enabled: 1
+    path: Assets/Scenes/057_ShadowsNearPlane_DirectionalLight.unity
+    guid: e03ea58f281c1774ba3aa9a93f77114c
   - enabled: 1
     path: Assets/Scenes/060_Deferred_GBuffer.unity
     guid: f42c387ccdc6840159743027165e1b7c
@@ -522,10 +528,16 @@ EditorBuildSettings:
     path: Assets/Scenes/311_DepthCopyTransparent.unity
     guid: 7bddce5f702841a4792e89284712401a
   - enabled: 1
-    path: Assets/Scenes/315_CoreCopyAndBlit.unity
-    guid: 233f6d76572eee0439080cc4973b42ee
-  - enabled: 1
     path: Assets/Scenes/320_CameraCaptureBridge.unity
     guid: fc0920afa6040434f8002c78a6fe3c5f
+  - enabled: 1
+    path: Assets/Scenes/325_DepthCopy.unity
+    guid: be832583f26c3eb48a8c4985109e55ce
+  - enabled: 1
+    path: Assets/Scenes/326_DepthCopy_MSAA.unity
+    guid: 578f5bf6a89578b49b9fd589567a6247
+  - enabled: 1
+    path: Assets/Scenes/327_DepthCopy_Deferred.unity
+    guid: 8c107b50d24369d44a7830358e05422a
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
                     ConfigureInput(ScriptableRenderPassInput.Depth);
                     break;
                 case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
-                    ConfigureInput(ScriptableRenderPassInput.Normal); // need depthNormal prepass for forward-only geometry
+                    ConfigureInput(ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal); // need depthNormal prepass for forward-only geometry
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

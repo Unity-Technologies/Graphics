@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-create-custom-renderer-feature
+uid: urp-create-custom-renderer-feature
 ---
 # Example of a complete Scriptable Renderer Feature
 

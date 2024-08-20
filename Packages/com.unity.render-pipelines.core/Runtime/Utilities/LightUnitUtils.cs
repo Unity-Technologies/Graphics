@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering
         /// <returns>Projected surface area.</returns>
         public static float GetAreaFromDiscLight(float discRadius)
         {
-            return discRadius * discRadius * Mathf.PI;
+            return discRadius * discRadius * Mathf.PI * Mathf.PI;
         }
 
         /// <summary>

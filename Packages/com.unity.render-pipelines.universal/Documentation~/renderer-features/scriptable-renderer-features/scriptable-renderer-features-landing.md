@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-scriptable-renderer-features-landing
+uid: urp-scriptable-renderer-features-landing
 ---
 # Scriptable Renderer Features
 

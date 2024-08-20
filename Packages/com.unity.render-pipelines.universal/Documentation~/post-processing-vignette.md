@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-post-processing-vignette
+uid: urp-post-processing-vignette
 ---
 # Vignette
 

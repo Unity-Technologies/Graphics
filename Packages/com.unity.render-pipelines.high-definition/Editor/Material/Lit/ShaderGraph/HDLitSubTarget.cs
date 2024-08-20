@@ -245,34 +245,40 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CollectPassKeywords(ref pass);
             pass.keywords.Add(RefractionKeyword);
 
-            foreach (var featureDefine in materialFeatureSuffixes)
+            if (pass.IsLightingOrMaterial())
             {
-                pass.keywords.Add(new KeywordDescriptor
+                foreach (var featureDefine in materialFeatureSuffixes)
                 {
-                    displayName = "Material Type",
-                    referenceName = "_MATERIAL_FEATURE",
-                    type = KeywordType.Enum,
-                    definition = KeywordDefinition.ShaderFeature,
-                    scope = KeywordScope.Local,
-                    stages = KeywordShaderStage.Fragment | (supportRaytracing ? KeywordShaderStage.RayTracing : 0),
-                    entries = new KeywordEntry[]
+                    pass.keywords.Add(new KeywordDescriptor
                     {
-                        new() { displayName = featureDefine, referenceName = featureDefine },
-                    }
-                });
+                        displayName = "Material Type",
+                        referenceName = "_MATERIAL_FEATURE",
+                        type = KeywordType.Enum,
+                        definition = KeywordDefinition.ShaderFeature,
+                        scope = KeywordScope.Local,
+                        stages = KeywordShaderStage.Fragment | (supportRaytracing ? KeywordShaderStage.RayTracing : 0),
+                        entries = new KeywordEntry[]
+                        {
+                            new() { displayName = featureDefine, referenceName = featureDefine },
+                        }
+                    });
+                }
             }
 
-            if (litData.clearCoat && litData.HasMaterialType(~HDLitData.MaterialTypeMask.ColoredTranslucent))
+            if (!pass.IsShadow())
             {
-                pass.keywords.Add(new KeywordDescriptor
+                if (litData.clearCoat && litData.HasMaterialType(~HDLitData.MaterialTypeMask.ColoredTranslucent))
                 {
-                    displayName = "Cleat Coat",
-                    referenceName = "_MATERIAL_FEATURE_CLEAR_COAT",
-                    type = KeywordType.Boolean,
-                    definition = KeywordDefinition.ShaderFeature,
-                    scope = KeywordScope.Local,
-                    stages = KeywordShaderStage.Fragment | (supportRaytracing ? KeywordShaderStage.RayTracing : 0),
-                });
+                    pass.keywords.Add(new KeywordDescriptor
+                    {
+                        displayName = "Cleat Coat",
+                        referenceName = "_MATERIAL_FEATURE_CLEAR_COAT",
+                        type = KeywordType.Boolean,
+                        definition = KeywordDefinition.ShaderFeature,
+                        scope = KeywordScope.Local,
+                        stages = KeywordShaderStage.Fragment | (supportRaytracing ? KeywordShaderStage.RayTracing : 0),
+                    });
+                }
             }
         }
 

@@ -169,14 +169,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (pass.IsDepthOrMV())
                 pass.keywords.Add(CoreKeywordDescriptors.WriteMsaaDepth);
 
-            pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
+            if (pass.RequiresTransparentSurfaceTypeKeyword())
+                pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
             pass.keywords.Add(CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false));
             pass.keywords.Add(CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true));
             pass.keywords.Add(CoreKeywordDescriptors.ConservativeDepthOffset, new FieldCondition(HDFields.ConservativeDepthOffset, true));
 
-            pass.keywords.Add(CoreKeywordDescriptors.AddPrecomputedVelocity);
-            pass.keywords.Add(CoreKeywordDescriptors.TransparentWritesMotionVector);
-            pass.keywords.Add(CoreKeywordDescriptors.FogOnTransparent);
+            if (pass.IsMotionVector() || pass.IsForward())
+                pass.keywords.Add(CoreKeywordDescriptors.AddPrecomputedVelocity);
+
+            if (pass.RequiresTransparentMVKeyword())
+                pass.keywords.Add(CoreKeywordDescriptors.TransparentWritesMotionVector);
+            if (pass.RequiresFogOnTransparentKeyword())
+                pass.keywords.Add(CoreKeywordDescriptors.FogOnTransparent);
 
             if (pass.NeedsDebugDisplay())
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);

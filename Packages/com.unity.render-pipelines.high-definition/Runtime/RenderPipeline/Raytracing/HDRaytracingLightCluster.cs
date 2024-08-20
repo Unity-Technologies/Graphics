@@ -48,10 +48,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector3 clusterCenter = new Vector3(0.0f, 0.0f, 0.0f);
         Vector3 clusterDimension = new Vector3(0.0f, 0.0f, 0.0f);
 
-        Vector3 minBounds = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
-        Vector3 maxBounds = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue);
-        Light lightComponent;
-
         public void Initialize(HDRenderPipeline renderPipeline)
         {
             // Keep track of the render pipeline
@@ -59,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the light cluster buffer at the right size
             m_NumLightsPerCell = renderPipeline.asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLightsPerClusterCell;
-            int bufferSize = 64 * 64 * 32 * (m_NumLightsPerCell + 5); // This +5 is to account for the meta data in each cluster cell.
+            int bufferSize = HDLightClusterDefinitions.s_ClusterCellCount * (m_NumLightsPerCell + HDLightClusterDefinitions.s_CellMetaDataSize);
             ResizeClusterBuffer(bufferSize);
 
             // Create the material required for debug
@@ -120,41 +116,37 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void EvaluateClusterVolume(HDCamera hdCamera, in WorldLightSubSet subset)
+        static internal Bounds GetLightClusterBounds(HDCamera hdCamera)
         {
             var settings = hdCamera.volumeStack.GetComponent<LightCluster>();
 
-            if (ShaderConfig.s_CameraRelativeRendering != 0)
-                clusterCenter.Set(0, 0, 0);
-            else
-                clusterCenter = hdCamera.camera.gameObject.transform.position;
+            Vector3 camPosWS = Vector3.zero;
+            if (ShaderConfig.s_CameraRelativeRendering == 0)
+                camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
-            minClusterPos = subset.bounds.min;
-            maxClusterPos = subset.bounds.max;
-
-            float cameraClusterRange;
+            float range = settings.cameraClusterRange.value;
             if (hdCamera.IsPathTracingEnabled())
             {
                 // For path tracing we use the max extent of the extended culling frustum as the light cluster size
                 Vector3 extendedFrustumExtent = (hdCamera.camera.transform.up + hdCamera.camera.transform.right + hdCamera.camera.transform.forward) * hdCamera.camera.farClipPlane;
-                cameraClusterRange = Mathf.Max(Mathf.Max(Mathf.Abs(extendedFrustumExtent.x), Mathf.Abs(extendedFrustumExtent.y)), Mathf.Abs(extendedFrustumExtent.z));
+                range = Mathf.Max(Mathf.Max(Mathf.Abs(extendedFrustumExtent.x), Mathf.Abs(extendedFrustumExtent.y)), Mathf.Abs(extendedFrustumExtent.z));
             }
-            else
-                cameraClusterRange = settings.cameraClusterRange.value;
 
-            minClusterPos.x = Mathf.Max(minClusterPos.x, clusterCenter.x - cameraClusterRange);
-            minClusterPos.y = Mathf.Max(minClusterPos.y, clusterCenter.y - cameraClusterRange);
-            minClusterPos.z = Mathf.Max(minClusterPos.z, clusterCenter.z - cameraClusterRange);
+            return new Bounds(camPosWS, 2.0f * new Vector3(range, range, range));
+        }
 
-            maxClusterPos.x = Mathf.Min(maxClusterPos.x, clusterCenter.x + cameraClusterRange);
-            maxClusterPos.y = Mathf.Min(maxClusterPos.y, clusterCenter.y + cameraClusterRange);
-            maxClusterPos.z = Mathf.Min(maxClusterPos.z, clusterCenter.z + cameraClusterRange);
+        void EvaluateClusterVolume(HDCamera hdCamera, in WorldLightSubSet subset)
+        {
+            var cluster = GetLightClusterBounds(hdCamera);
+            
+            minClusterPos = Vector3.Max(subset.bounds.min, cluster.min);
+            maxClusterPos = Vector3.Min(subset.bounds.max, cluster.max);
 
             // Compute the cell size per dimension
             clusterCellSize = (maxClusterPos - minClusterPos);
-            clusterCellSize.x /= 64.0f;
-            clusterCellSize.y /= 64.0f;
-            clusterCellSize.z /= 32.0f;
+            clusterCellSize.x /= HDLightClusterDefinitions.s_ClusterSize.x;
+            clusterCellSize.y /= HDLightClusterDefinitions.s_ClusterSize.y;
+            clusterCellSize.z /= HDLightClusterDefinitions.s_ClusterSize.z;
 
             // Compute the bounds of the cluster volume3
             clusterCenter = (maxClusterPos + minClusterPos) / 2.0f;
@@ -211,9 +203,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterKernel, _RaytracingLightCullResult, m_LightCullResult);
 
                 // Dispatch a compute
-                int numGroupsX = 8;
-                int numGroupsY = 8;
-                int numGroupsZ = 4;
+                int numGroupsX = CoreUtils.DivRoundUp(HDLightClusterDefinitions.s_ClusterSize.x, 8);
+                int numGroupsY = CoreUtils.DivRoundUp(HDLightClusterDefinitions.s_ClusterSize.y, 8);
+                int numGroupsZ = CoreUtils.DivRoundUp(HDLightClusterDefinitions.s_ClusterSize.z, 8);
                 cmd.DispatchCompute(lightClusterCS, lightClusterKernel, numGroupsX, numGroupsY, numGroupsZ);
             }
         }
@@ -289,8 +281,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         debugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
 
                         // Draw the faces
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugMaterial, 1, MeshTopology.Lines, 48, 64 * 64 * 32, debugMaterialProperties);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugMaterial, 0, MeshTopology.Triangles, 36, 64 * 64 * 32, debugMaterialProperties);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugMaterial, 1, MeshTopology.Lines, 48, HDLightClusterDefinitions.s_ClusterCellCount, debugMaterialProperties);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugMaterial, 0, MeshTopology.Triangles, 36, HDLightClusterDefinitions.s_ClusterCellCount, debugMaterialProperties);
                     });
 
                 debugTexture = passData.outputBuffer;
@@ -339,7 +331,7 @@ namespace UnityEngine.Rendering.HighDefinition
             WorldLightCulling.GetLightSubSetUsingFlags(worldLightsVolumes, filter, m_WorldLightSubSet);
 
             // If there is no lights to process or no environment not the shader is missing
-            if (worldLights.totalLighttCount == 0 || !m_RenderPipeline.GetRayTracingState())
+            if (worldLights.totalLightCount == 0 || !m_RenderPipeline.GetRayTracingState())
             {
                 InvalidateCluster();
                 return;
@@ -374,11 +366,11 @@ namespace UnityEngine.Rendering.HighDefinition
             HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
             for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightEntityArray.Length; ++lightIdx)
             {
-                int dataIndex = lightEntities.GetEntityDataIndex(rayTracingLights.hdLightEntityArray[lightIdx]);
+                int dataIndex = lightEntities.GetEntityDataIndex(rayTracingLights.hdLightEntityArray[lightIdx].light);
                 HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
                 // Grab the additional light data to process
                 // Fetch the light component for this light
-                additionalLightData.gameObject.TryGetComponent(out lightComponent);
+                additionalLightData.gameObject.TryGetComponent(out Light lightComponent);
 
                 // Reserve the cookie resolution in the 2D atlas
                 m_RenderPipeline.ReserveCookieAtlasTexture(additionalLightData, lightComponent, additionalLightData.legacyLight.type);

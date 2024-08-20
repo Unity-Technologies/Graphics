@@ -334,6 +334,20 @@ VFXBlackboard VFXBlackboardPropertyView .propertyrm.hasDepth {
 /*-- End of BlackboardField UI --*/
 
 /* VFX Attribute UI */
+VFXBlackboard .separator Toggle {
+    display: none;
+}
+
+VFXBlackboard .separator:checked {
+    background-color: transparent;
+}
+
+VFXBlackboard .separator .blackboardRowContainer {
+    color: var(--unity-colors-app_toolbar_button-background-checked);
+    border-color: var(--unity-colors-app_toolbar_button-background-checked);
+    border-bottom-width: 1px;
+}
+
 VFXBlackboard VFXBlackboardAttributeRow.blackboardRow.expanded .pill #node-border
 {
     border-radius: 5px 5px 0 0;

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-xr-untethered-device-optimization
+uid: urp-xr-untethered-device-optimization
 ---
 # Optimization techniques for untethered XR devices
 

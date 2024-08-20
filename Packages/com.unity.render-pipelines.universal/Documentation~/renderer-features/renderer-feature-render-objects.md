@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-renderer-feature-render-objects
+uid: urp-renderer-feature-render-objects
 ---
 # <a name="render-objects-renderer-feature"></a>Render Objects Renderer Feature reference
 

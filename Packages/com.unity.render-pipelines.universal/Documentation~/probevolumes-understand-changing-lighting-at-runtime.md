@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-probevolumes-understand-changing-lighting-at-runtime
+uid: urp-probevolumes-understand-changing-lighting-at-runtime
 ---
 # Choose how to change lighting at runtime
 

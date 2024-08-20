@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-render-graph-read-write-texture
+uid: urp-render-graph-read-write-texture
 ---
 # Use a texture in a render pass
 

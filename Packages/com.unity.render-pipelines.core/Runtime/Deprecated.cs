@@ -110,4 +110,47 @@ namespace UnityEngine.Rendering
     public class ProbeTouchupVolume : ProbeAdjustmentVolume
     {
     }
+
+    public sealed partial class VolumeManager
+    {
+        /// <summary>
+        /// Registers a new Volume in the manager. Unity does this automatically when a new Volume is
+        /// enabled, or its layer changes, but you can use this function to force-register a Volume
+        /// that is currently disabled.
+        /// </summary>
+        /// <param name="volume">The volume to register.</param>
+        /// <param name="layer">The LayerMask that this volume is in.</param>
+        /// <seealso cref="Unregister"/>
+        [Obsolete("Please use the Register without a given layer index #from(6000.0)", false)]
+        public void Register(Volume volume, int layer)
+        {
+            if (volume.gameObject.layer != layer)
+            {
+                Debug.LogWarning($"Trying to register Volume {volume.name} on layer index {layer}, when the GameObject {volume.gameObject.name} is on layer index {volume.gameObject.layer}." +
+                                 $"{Environment.NewLine}The Volume Manager will respect the GameObject's layer.");
+            }
+
+            Register(volume);
+        }
+
+        /// <summary>
+        /// Unregisters a Volume from the manager. Unity does this automatically when a Volume is
+        /// disabled or goes out of scope, but you can use this function to force-unregister a Volume
+        /// that you added manually while it was disabled.
+        /// </summary>
+        /// <param name="volume">The Volume to unregister.</param>
+        /// <param name="layer">The LayerMask that this volume is in.</param>
+        /// <seealso cref="Register"/>
+        [Obsolete("Please use the Register without a given layer index #from(6000.0)", false)]
+        public void Unregister(Volume volume, int layer)
+        {
+            if (volume.gameObject.layer != layer)
+            {
+                Debug.LogWarning($"Trying to unregister Volume {volume.name} on layer index {layer}, when the GameObject {volume.gameObject.name} is on layer index {volume.gameObject.layer}." +
+                                 $"{Environment.NewLine}The Volume Manager will respect the GameObject's layer.");
+            }
+
+            Unregister(volume);
+        }
+    }
 }

@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-materialvariant-urp
+uid: urp-materialvariant-urp
 ---
 # Material Variants
 

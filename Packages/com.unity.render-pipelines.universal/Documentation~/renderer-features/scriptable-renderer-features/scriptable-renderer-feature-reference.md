@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-scriptable-renderer-feature-reference
+uid: urp-scriptable-renderer-feature-reference
 ---
 # Scriptable Renderer Feature API reference
 

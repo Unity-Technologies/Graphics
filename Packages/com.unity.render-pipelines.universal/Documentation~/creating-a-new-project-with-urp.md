@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-creating-a-new-project-with-urp
+uid: urp-creating-a-new-project-with-urp
 ---
 # Create a project with URP
 

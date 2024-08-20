@@ -1120,7 +1120,18 @@ namespace UnityEditor.Rendering
 
                 if (field.IsStatic)
                 {
-                    if (fieldType.IsPrimitive)
+                    string value = null;
+                    if (fieldType == typeof(float))
+                        value = ((float)field.GetValue(null)).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    else if (fieldType == typeof(Vector3Int))
+                    {
+                        Vector3Int val = (Vector3Int)field.GetValue(null);
+                        value = $"int3({val.x}, {val.y}, {val.z})";
+                    }
+                    else if (fieldType.IsPrimitive)
+                        value = field.GetValue(null).ToString();
+
+                    if (!string.IsNullOrEmpty(value))
                     {
                         // Unity convention is to start static of constant with k_ or s_, remove this part
                         string name = InsertUnderscore(field.Name);
@@ -1129,11 +1140,6 @@ namespace UnityEditor.Rendering
                             name = name.Substring(2);
                         }
                         string defineName = name.ToUpper();
-                        string value;
-                        if (fieldType == typeof(float))
-                            value = ((float)field.GetValue(null)).ToString(System.Globalization.CultureInfo.InvariantCulture);
-                        else
-                            value = field.GetValue(null).ToString();
 
                         m_Statics[defineName] = value;
                     }

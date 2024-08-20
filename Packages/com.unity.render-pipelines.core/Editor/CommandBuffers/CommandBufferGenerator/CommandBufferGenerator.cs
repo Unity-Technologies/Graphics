@@ -115,7 +115,8 @@ namespace UnityEditor.Rendering
         // Functions for unsafe (wrapper around Commandbuffer) only
         static List<FunctionInfo> unsafeFunctions = new List<FunctionInfo> {
                 "SetRenderTarget",
-                "Clear"
+                "Clear",
+                "RequestAsyncReadbackIntoNativeArray",
             };
         // Generated file header
         static string preamble =

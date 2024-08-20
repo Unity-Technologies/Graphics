@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-rendering-to-a-render-texture
+uid: urp-rendering-to-a-render-texture
 ---
 # Render a camera's output to a Render Texture
 

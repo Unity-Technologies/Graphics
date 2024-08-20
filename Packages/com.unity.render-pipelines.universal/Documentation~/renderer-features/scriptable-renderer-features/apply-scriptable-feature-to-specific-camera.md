@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-apply-scriptable-feature-to-specific-camera
+uid: urp-apply-scriptable-feature-to-specific-camera
 ---
 # Apply a Scriptable Renderer Feature to a specific camera type
 

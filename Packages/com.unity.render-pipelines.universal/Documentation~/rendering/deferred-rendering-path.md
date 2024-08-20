@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-deferred-rendering-path
+uid: urp-deferred-rendering-path
 ---
 # Deferred Rendering Path in URP
 

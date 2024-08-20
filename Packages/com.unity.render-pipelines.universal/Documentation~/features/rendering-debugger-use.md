@@ -1,5 +1,5 @@
 ---
-uid: urp-docfx-rendering-debugger-use
+uid: urp-rendering-debugger-use
 ---
 # Use the Rendering Debugger
 

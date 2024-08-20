@@ -7,12 +7,13 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
             "RenderType" = "Opaque"
             "RenderPipeline" = "UniversalPipeline"
             "IgnoreProjector" = "True"
+            "ShaderModel" = "4.5"
         }
 
         Pass
         {
             HLSLPROGRAM
-            #pragma target 2.0
+            #pragma target 4.5
             #pragma editor_sync_compilation
 
             // -------------------------------------
@@ -23,6 +24,7 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             //--------------------------------------
             // GPU Instancing
