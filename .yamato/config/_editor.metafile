@@ -3,9 +3,11 @@ editor_pin_agent: package_ci_ubuntu_small
 
 editor_priming_config:
   use_predefined_variables: True
+  variables:
+    CUSTOM_REVISION: "2022.3"
   agent:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.small
   skip_checkout: true
   commands:
@@ -17,31 +19,3 @@ editor_priming_config:
     - unity-downloader-cli -u $CUSTOM_REVISION -o <PLATFORM_OS> --wait --skip-download <COMPONENTS> > unity_revision.txt
   add_artifacts:
     - artifacts.revisions.paths: "unity_revision.txt"
-
-# EDITOR PINNING
-
-editor_versions_file: .yamato/_latest_editor_versions_TRACK.metafile
-editor_pinning_config:
-  agent:
-    type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
-    flavor: b1.small
-  use_predefined_variables: True
-  commands:
-    - pip3 config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-    - pip3 install ruamel.yaml
-    - sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
-    - curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
-    - sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
-    - sudo apt update
-    - sudo apt install unity-downloader-cli
-    - git config --global user.name "noreply@unity3d.com"
-    - git config --global user.email "noreply@unity3d.com"
-    - git checkout $GIT_BRANCH
-    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git
-    - cd gfx-sdet-tools && git rev-parse HEAD
-    - python3 gfx-sdet-tools/scripts/update_revisions.py --track 2022.3 --unity-branch 2022.3/staging --api-key $CDS_GITHUB_SERVICE_TOKEN --commit-and-push --nr-commits-to-retrieve 1 --vcs git
-  triggers:
-    recurring:
-      - branch: 2022.3/staging
-        frequency: 21 ? * 7 # At 9pm every Saturday - must happen before the ABV (abv.metafile). 2hrs before is arbitrary
