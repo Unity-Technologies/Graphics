@@ -11,18 +11,9 @@ editors: # applied for all yml files
     rerun_strategy: on_new_revision
     ono_branch_var: ONO_BRANCH_2021_3
     editor_pinning:
-      enabled: True
+      enabled: False
       nr_commits_to_retrieve: 1
     allow_triggers: True
-    variables:
-      CACHE_ARGS: '{{cache.flags}}'
-  - track: CUSTOM-REVISION
-    name: CUSTOM-REVISION
-    rerun_strategy: on_new_revision
-    editor_pinning:
-      enabled: False
-    fast: False
-    allow_triggers: False
     variables:
       CACHE_ARGS: '{{cache.flags}}'
 build_configs:
@@ -193,19 +184,19 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:v0.5.0-453553
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:v0.5.0-453553
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.xlarge
       editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:v0.5.0-453553
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
     agent_package:
       type: Unity::VM
-      image: package-ci/win10:v1.21.0-1103460
+      image: package-ci/win11:v4
       flavor: b1.large
     copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
     editorpath: .\.Editor
@@ -248,11 +239,11 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:v0.3.4-687060
+        image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
     agent_package:
       type: Unity::VM::osx
-      image: package-ci/mac:v1.20.0-1079282
+      image: package-ci/macos-13:v4
       flavor: m1.mac
     copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
@@ -319,15 +310,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: package-ci/ubuntu:v3.5.0-1088620
+        image: desktop/ubuntu-20.04-desktop:v2.1348791
         flavor: b1.xlarge
     commands:
       [OpenGlCore, Vulkan]:
@@ -355,21 +346,21 @@ platforms:
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: automation-tooling/macos-11:v2.1987114
     flavor: b1.large
   package_ci_ubuntu_xlarge:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: automation-tooling/macos-11:v2.1987114
     flavor: b1.xlarge
   package_ci_ubuntu_small:
     type: Unity::VM
-    image: package-ci/ubuntu:v2.0.0-947723
+    image: automation-tooling/macos-11:v2.1987114
     flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
-    image: package-ci/win10:v2.2.1-1064078
+    image: package-ci/win10:v4
     flavor: b1.large
   package_ci_mac:
     type: Unity::VM::osx
-    image: package-ci/mac:v1.18.4-test.1-1062904
+    image: package-ci/macos-13:v4
     flavor: m1.mac
