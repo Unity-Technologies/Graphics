@@ -11,20 +11,9 @@ editors: # applied for all yml files
     rerun_strategy: on_new_revision
     ono_branch_var: ONO_BRANCH_TRUNK
     editor_pinning:
-      enabled: True
+      enabled: False
       nr_commits_to_retrieve: 1
     allow_triggers: True
-    variables:
-      CACHE_ARGS: '{{cache.flags}}'
-  - track: CUSTOM-REVISION
-    name: CUSTOM-REVISION
-    rerun_strategy: on_new_revision
-    editor_pinning:
-      enabled: False
-    fast: False
-    allow_triggers: False
-    variables:
-      CACHE_ARGS: '{{cache.flags}}'
 build_configs:
   - name: il2cpp_apiNet2
     scripting_backend: IL2CPP
@@ -50,8 +39,8 @@ color_spaces:
 test_platforms:
   - type: Standalone
     allow_cache: False
+    disable_split_build_run_for: [OSX_Metal]
     utr_flags:
-      - [OSX_Metal]: '%CACHE_ARGS%'
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       # - [all]: --reruncount=2
@@ -60,9 +49,8 @@ test_platforms:
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
       - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal,Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_OpenGlCore]: --player-load-path=players
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_OpenGlCore]: --player-load-path=players
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
@@ -72,12 +60,10 @@ test_platforms:
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
       - [OSX_Metal]: --testfilter=%TEST_FILTER%
 
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto
 
     utr_flags_build:
-      - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
       - [all]: --suite=playmode
       - [all]: --build-only
@@ -86,57 +72,29 @@ test_platforms:
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
-      - [OSX_OpenGlCore, OSX_Metal]: --platform=StandaloneOSX
       - [iPhone_Metal]: --platform=iOS
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
-      - [XRQuest_Vulkan, XRQuest_OpenGLES3]: --extra-editor-arg="-enabledxrtargets=OculusXRSDK"
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, OSX_OpenGlCore]: --player-save-path=players
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=players
 
       - [all]: --timeout=1200
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --timeout=2700
-      - [iPhone]: --timeout=1800
 
       ### The method and values live in /com.unity.testframework.graphics/.../Editor/SetupProject.cs
       - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
       - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
-      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
-      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
-      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
-      - [iPhone_Metal, OSX_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
-
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
     commands:
-      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
-      - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
-      - [all]: <shared.platform.commands.call_utr>
-        env_vars:
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
-          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
-          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
-          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
-          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
-          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
-          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
-          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
-    commands_build:
       - [all]: <shared.platform.commands.setup_utr>
-      - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
         env_vars:
           - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
@@ -148,11 +106,24 @@ test_platforms:
           - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-          - [OSX_Metal]: UTR_VERSION='$UTR_VERSION'
+    commands_build:
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.call_utr>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
     after_build:
-      - [OSX_OpenGlCore, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
     allow_cache: False
     utr_flags:
@@ -167,8 +138,7 @@ test_platforms:
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
-      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
+      - [OSX_Metal]: --editor-location=/Users/bokken/Graphics/.Editor
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
@@ -178,8 +148,8 @@ test_platforms:
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
     commands:
-      - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.call_utr>
         env_vars:
           - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
@@ -191,9 +161,8 @@ test_platforms:
           - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-          - [OSX_Metal]: UTR_VERSION='$UTR_VERSION'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
 
   - type: editmode
     allow_cache: False
@@ -205,14 +174,11 @@ test_platforms:
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
       - [all]: --platform=editmode
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --platform=Android
-      - [iPhone_Metal]: --platform=iOS
 
       - [all]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
 
       - [all]: --editor-location=.Editor
-      - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
 
       - [all]: --artifacts_path=TestProjects/<PROJECT_FOLDER>/test-results
@@ -226,12 +192,11 @@ test_platforms:
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
-      - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
-      - [iPhone_Metal, OSX_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [OSX_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
     commands:
-      - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.call_utr>
         env_vars:
           - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
@@ -243,9 +208,8 @@ test_platforms:
           - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-          - [OSX_Metal]: UTR_VERSION='$UTR_VERSION'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
 
 platforms:
   Win:
@@ -257,19 +221,19 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: automation-tooling/win10-21H1:v2.1577390
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: automation-tooling/win10-21H1:v2.1577390
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.xlarge
       editmode:
         type: Unity::VM
-        image: automation-tooling/win10-21H1:v2.1577390
+        image: automation-tooling/win10-21H1:v2.2309361
         flavor: b1.large
     agent_package:
       type: Unity::VM
-      image: package-ci/win10:v4.30.0
+      image: package-ci/win11:v4
       flavor: b1.large
     copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
     editorpath: .\.Editor
@@ -279,25 +243,11 @@ platforms:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
             retries: 2
         call_utr:
-          - command: |5-
-                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                    set /p GIT_REVISIONDATE=<revdate.tmp
-                    echo %GIT_REVISIONDATE%
-                    del revdate.tmp
-                    utr <UTR_FLAGS>
-        call_utr_without_git:
           - command: utr <UTR_FLAGS>
-        call_utr_and_exit_0:
-          - command: |5-
-                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                    set /p GIT_REVISIONDATE=<revdate.tmp
-                    echo %GIT_REVISIONDATE%
-                    del revdate.tmp
-                    utr <UTR_FLAGS> & exit 0
         unity_downloader_cli:
-          - command: gsudo choco install unity-downloader-cli -y -s https://artifactory-slo.bf.unity3d.com/artifactory/api/nuget/choco
+          - command: gsudo choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
             retries: 2
-          - command: unity-downloader-cli <EDITOR_REVISION_CMD> <COMPONENTS>  --wait --published-only
+          - command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
             retries: 2
         log_parser:
           - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -312,36 +262,22 @@ platforms:
     agents_project_Metal:
       default:
         type: Unity::metal::macmini
-        image: automation-tooling/macos-11:v2.1225910
+        image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
         model: 2018-i3-macos11
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: automation-tooling/macos-11:v2.1225910
+        image: automation-tooling/macos-11:v2.1987114
         flavor: m1.mac
-        model: 2018-i3-macos11
     agent_package:
       type: Unity::VM::osx
-      image: package-ci/macos-13:v4.30.0
+      image: package-ci/macos-13:v4
       flavor: m1.mac
     copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
     commands:
       [Metal]:
-        setup_remote_ssh_keys_for_github_cds:
-          - command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
-          - command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
-          - command: |
-                     ssh bokken@$BOKKEN_DEVICE_IP "echo \"
-                     host github.cds.internal.unity3d.com
-                       HostName github.cds.internal.unity3d.com
-                       IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
-                       StrictHostKeyChecking no
-                       User git\" >> ~/.ssh/config"
-          - command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
-          - command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
-          - command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
@@ -350,25 +286,15 @@ platforms:
             retries: 2
           - command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
             retries: 2
+        unity_downloader_cli:
+          - pip3 install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+          - unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
         call_utr:
           - command: |5-
-                    export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                    ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; <env_vars> ~/Graphics/utr  <UTR_FLAGS> "
-                    UTR_RESULT=$?
-                    scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>
-                    exit $UTR_RESULT
-        call_utr_without_git:
-          - command: |5-
-                    ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; <env_vars> ~/Graphics/utr  <UTR_FLAGS> "
-                    UTR_RESULT=$?
-                    scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>
-                    exit $UTR_RESULT
-        unity_downloader_cli:
-          - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-            retries: 2
-          - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only'
-            retries: 2
-          - command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
+                  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; <env_vars> ~/Graphics/utr  <UTR_FLAGS> "
+                  UTR_RESULT=$?
+                  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>
+                  exit $UTR_RESULT
         log_parser:
           - command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
           - command: find_instabilities || exit 0
@@ -378,19 +304,11 @@ platforms:
             retries: 2
           - chmod +x utr
         call_utr:
-          - command: |5-
-                    export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                    ./utr <UTR_FLAGS>
-            retries: 2
-        call_utr_without_git:
           - command: ./utr <UTR_FLAGS>
             retries: 2
         unity_downloader_cli:
-          - command: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-          - command: brew install unity-downloader-cli
-            retries: 2
-          - command: unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
-            retries: 2
+          - pip3 install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+          - unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
         log_parser:
           - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
           - command: find_instabilities || exit 0
@@ -427,10 +345,6 @@ platforms:
           - command: sudo mv 2560x1440.bin /etc/edid.txt
           - command: sudo pkill Xorg && sudo systemctl restart gdm3
         call_utr:
-          - command: |5-
-                    export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                    DISPLAY=:0.0 ./utr <UTR_FLAGS>
-        call_utr_without_git:
           - command: DISPLAY=:0.0 ./utr <UTR_FLAGS>
         unity_downloader_cli:
           - command: sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
@@ -439,31 +353,30 @@ platforms:
           - command: sudo apt update
           - command: sudo apt install unity-downloader-cli
             retries: 2
-          - command: sudo unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
+          - command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
             retries: 2
         log_parser:
           - command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
           - command: find_instabilities || exit 0
 
-
 non_project_agents:
   package_ci_ubuntu_large:
     type: Unity::VM
-    image: package-ci/ubuntu-22.04:v4.30.0
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   package_ci_ubuntu_xlarge:
     type: Unity::VM
-    image: package-ci/ubuntu-22.04:v4.30.0
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.xlarge
   package_ci_ubuntu_small:
     type: Unity::VM
-    image: package-ci/ubuntu-22.04:v4.30.0
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
-    image: package-ci/win10:v4.30.0
+    image: package-ci/win10:v4
     flavor: b1.large
   package_ci_mac:
     type: Unity::VM::osx
-    image: package-ci/macos-13:v4.30.0
+    image: package-ci/macos-13:v4
     flavor: m1.mac
