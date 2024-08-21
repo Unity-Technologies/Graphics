@@ -375,8 +375,10 @@ namespace UnityEngine.Rendering.Universal
                     throw new ArgumentOutOfRangeException();
             }
 
-            int tw = m_Descriptor.width >> downres;
-            int th = m_Descriptor.height >> downres;
+            //We should set the limit the downres result to ensure we dont turn 1x1 textures, which should technically be valid
+            //into 0x0 textures which will be invalid
+            int tw = Mathf.Max(1, m_Descriptor.width >> downres);
+            int th = Mathf.Max(1, m_Descriptor.height >> downres);
 
             // Determine the iteration count
             int maxSize = Mathf.Max(tw, th);

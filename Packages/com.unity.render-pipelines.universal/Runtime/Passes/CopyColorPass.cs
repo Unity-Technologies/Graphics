@@ -62,13 +62,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.depthBufferBits = 0;
             if (downsamplingMethod == Downsampling._2xBilinear)
             {
-                descriptor.width /= 2;
-                descriptor.height /= 2;
+                descriptor.width = Mathf.Max(1, descriptor.width / 2);
+                descriptor.height = Mathf.Max(1, descriptor.height / 2);
             }
             else if (downsamplingMethod == Downsampling._4xBox || downsamplingMethod == Downsampling._4xBilinear)
             {
-                descriptor.width /= 4;
-                descriptor.height /= 4;
+                descriptor.width = Mathf.Max(1, descriptor.width / 4);
+                descriptor.height = Mathf.Max(1, descriptor.height / 4);
             }
 
             filterMode = downsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear;

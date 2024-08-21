@@ -664,6 +664,12 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            if (camera.targetTexture.width == 0 || camera.targetTexture.height == 0 || camera.pixelWidth == 0 || camera.pixelHeight == 0)
+            {
+                Debug.LogWarning($"Camera '{camera.name}' has an invalid render target size (width: {camera.targetTexture.width}, height: {camera.targetTexture.height}) or pixel dimensions (width: {camera.pixelWidth}, height: {camera.pixelHeight}). Camera will be skipped.");
+                return;
+            }
+
             var frameData = GetRenderer(camera, additionalCameraData).frameData;
             var cameraData = CreateCameraData(frameData, camera, additionalCameraData, true);
             InitializeAdditionalCameraData(camera, additionalCameraData, true, cameraData);
