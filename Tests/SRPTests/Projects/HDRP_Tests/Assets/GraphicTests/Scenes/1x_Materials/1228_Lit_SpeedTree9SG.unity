@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.047204234, g: 0.06655259, b: 0.10552482, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1083,6 +1082,90 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4127dd82c78aeff4796be820cfa5e167, type: 3}
+--- !u!1001 &1848529624
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -7434008128576307933, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_Name
+      value: Stylized_Broadleaf_Forest_Sapling_Alone
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.569
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.0000009536743
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.192
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -453750087388946865, guid: 6a9de61cc2b05104195bc82abe389fce,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: -7498925157353702193, guid: 6a9de61cc2b05104195bc82abe389fce,
+    type: 3}
 --- !u!1 &1944080599
 GameObject:
   m_ObjectHideFlags: 0
@@ -1579,3 +1662,4 @@ SceneRoots:
   - {fileID: 1845614181}
   - {fileID: 1774524287}
   - {fileID: 112594946}
+  - {fileID: 1848529624}
