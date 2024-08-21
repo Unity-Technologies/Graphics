@@ -383,7 +383,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests, Styles.maxRequestContent);
             if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests.intValue = Mathf.Max(1, serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests.intValue);
+                serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests.intValue = Mathf.Max(1, Mathf.Min(65536, serialized.renderPipelineSettings.hdShadowInitParams.maxShadowRequests.intValue));
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {

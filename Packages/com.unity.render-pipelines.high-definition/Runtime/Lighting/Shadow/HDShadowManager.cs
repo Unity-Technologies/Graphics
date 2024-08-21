@@ -702,6 +702,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Even when shadows are disabled (maxShadowRequests == 0) we need to allocate compute buffers to avoid having
             // resource not bound errors when dispatching a compute shader.
+            if (initParams.maxShadowRequests > 65536)
+            {
+                initParams.maxShadowRequests = 65536;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.LogWarning("The 'Maximum Shadows on Screen' value has been clamped to 65536 in order not to exceed the maximum size of the buffer.");
+#endif
+            }
             m_ShadowDataBuffer = new ComputeBuffer(Mathf.Max(initParams.maxShadowRequests, 1), System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
             m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
             m_MaxShadowRequests = initParams.maxShadowRequests;
