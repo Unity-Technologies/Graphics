@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShortcutManagement;
@@ -83,30 +84,34 @@ namespace UnityEditor.ShaderGraph
             {
                 if (reservedShortcuts.Contains((keyCombo.keyCode, keyCombo.modifiers)))
                 {
-                    string shortcut = "";
-                    bool isOSXEditor = Application.platform == RuntimePlatform.OSXEditor; // maybe not correct.
-                    if (keyCombo.action) shortcut += $"{(isOSXEditor ? "Cmd" : "Ctrl")} + ";
-                    if (keyCombo.shift) shortcut += "Shift + ";
-                    if (keyCombo.alt) shortcut += "Alt + ";
-                    shortcut += keyCombo.keyCode;
-                    throw new Exception($"The binding for {name} ({shortcut}) conflicts with a built-in shortcut. Please go to Edit->Shortcuts... and change the binding.");
+                    throw new Exception($"The binding for {name} ({keyCombo}) conflicts with a built-in shortcut. Please go to Edit->Shortcuts... and change the binding.");
                 }
             }
         }
 
         internal static string GetKeycodeForContextMenu(string id)
         {
+            const string kKeycodePrefixAlt = "&";
+            const string kKeycodePrefixShift = "#";
+            const string kKeycodePrefixAction = "%";
+            const string kKeycodePrefixControl = "^";
+            const string kKeycodePrefixNoModifier = "_";
+
             var binding = ShortcutManager.instance.GetShortcutBinding(id);
-            bool isOSXEditor = Application.platform == RuntimePlatform.OSXEditor;  // maybe not correct.
             foreach (var keyCombo in binding.keyCombinationSequence)
             {
-                    string shortcut = "";
-                    if (keyCombo.action) shortcut += $"{(isOSXEditor ? "Cmd" : "Ctrl")}+";
-                    if (keyCombo.shift) shortcut += "Shift+";
-                    if (keyCombo.alt) shortcut += "Alt+";
-                    shortcut += keyCombo.keyCode;
-                    return shortcut;
+                var sb = new StringBuilder();
+
+                if (keyCombo.alt) sb.Append(kKeycodePrefixAlt);
+                if (keyCombo.shift) sb.Append(kKeycodePrefixShift);
+                if (keyCombo.action) sb.Append(kKeycodePrefixAction);
+                if (keyCombo.control) sb.Append(kKeycodePrefixControl);
+                if (keyCombo.modifiers == ShortcutModifiers.None) sb.Append(kKeycodePrefixNoModifier);
+
+                sb.Append(keyCombo.keyCode);
+                return sb.ToString();
             }
+
             return "";
         }
 

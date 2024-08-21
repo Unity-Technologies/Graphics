@@ -321,7 +321,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     evt.menu.AppendSeparator();
                     var sc = ShaderGraphShortcuts.GetKeycodeForContextMenu(ShaderGraphShortcuts.summonDocumentationShortcutID);
-                    evt.menu.AppendAction($"Open Documentation _{sc}", SeeDocumentation, SeeDocumentationStatus);
+                    evt.menu.AppendAction($"Open Documentation {sc}", SeeDocumentation, SeeDocumentationStatus);
                 }
                 if (selection.OfType<IShaderNodeView>().Count() == 1 && selection.OfType<IShaderNodeView>().First().node is SubGraphNode)
                 {
