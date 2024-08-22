@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_StreakTmpTexture;
         RTHandle m_StreakTmpTexture2;
         RTHandle m_ScreenSpaceLensFlareResult;
+        RTHandle m_UserLut;
 
         const string k_RenderPostProcessingTag = "Blit PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Blit Final PostProcessing";
@@ -265,6 +266,7 @@ namespace UnityEngine.Rendering.Universal
             m_StreakTmpTexture?.Release();
             m_StreakTmpTexture2?.Release();
             m_ScreenSpaceLensFlareResult?.Release();
+            m_UserLut?.Release();
         }
 
         /// <summary>

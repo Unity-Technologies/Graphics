@@ -1791,6 +1791,27 @@ namespace UnityEngine.Rendering.Universal
             internal bool enableAlphaOutput;
         }
 
+        TextureHandle TryGetCachedUserLutTextureHandle(RenderGraph renderGraph)
+        {
+            if (m_ColorLookup.texture.value == null)
+            {
+                if (m_UserLut != null)
+                {
+                    m_UserLut.Release();
+                    m_UserLut = null;
+                }
+            }
+            else
+            {
+                if (m_UserLut == null || m_UserLut.externalTexture != m_ColorLookup.texture.value)
+                {
+                    m_UserLut?.Release();
+                    m_UserLut = RTHandles.Alloc(m_ColorLookup.texture.value);
+                }
+            }
+            return m_UserLut != null ? renderGraph.ImportTexture(m_UserLut) : TextureHandle.nullHandle;
+        }
+
         public void RenderUberPost(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, bool requireHDROutput, bool enableAlphaOutput, bool resolveToDebugScreen)
         {
             var material = m_Materials.uber;
@@ -1802,8 +1823,7 @@ namespace UnityEngine.Rendering.Universal
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
             Vector4 lutParams = new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear);
 
-            RTHandle userLutRThdl = m_ColorLookup.texture.value ? RTHandles.Alloc(m_ColorLookup.texture.value) : null;
-            TextureHandle userLutTexture = userLutRThdl != null ? renderGraph.ImportTexture(userLutRThdl) : TextureHandle.nullHandle;
+            TextureHandle userLutTexture = TryGetCachedUserLutTextureHandle(renderGraph);
             Vector4 userLutParams = !m_ColorLookup.IsActive()
                 ? Vector4.zero
                 : new Vector4(1f / m_ColorLookup.texture.value.width,
