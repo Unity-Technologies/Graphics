@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 54544361953a298479fa5405cc82e86c
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: db2778f6d440c47ddacff25997d7c062, type: 3}
+  primaryLibrary: {instanceID: 0}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 190721
+  packageName: Dragon Crashers - 2D Sample Project
+  packageVersion: 1.1
+  assetPath: Assets/Art/Characters/Base/SpriteLibrary_Character_Base_Bipedal.spriteLib
+  uploadId: 467401

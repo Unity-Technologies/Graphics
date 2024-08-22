@@ -166,7 +166,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 Varyings o = (Varyings)0;
                 UNITY_SETUP_INSTANCE_ID(attributes);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                UNITY_SKINNED_VERTEX_COMPUTE(v);
+                UNITY_SKINNED_VERTEX_COMPUTE(attributes);
 
                 attributes.positionOS = UnityFlipSprite(attributes.positionOS, unity_SpriteProps.xy);
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);

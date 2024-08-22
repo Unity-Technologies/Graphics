@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1a52c39416d7a3d4dbc0e5eb57c0dc7e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 190721
+  packageName: Dragon Crashers - 2D Sample Project
+  packageVersion: 1.1
+  assetPath: Assets/Animations/Characters/AnimClips/Shared_Bipeds/Anim_Character_Bipedal_Die.anim
+  uploadId: 467401
