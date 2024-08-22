@@ -725,8 +725,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (shadowSlicesCount > 0)
                     cmd.SetKeyword(ShaderGlobalKeywords.CastingPunctualLightShadow, true);
 
-                float lastDepthBias = -10f;
-                float lastNormalBias = -10f;
+                Vector4 lastShadowBias = new Vector4(-10f, -10f, -10f, -10f);
                 for (int globalShadowSliceIndex = 0; globalShadowSliceIndex < shadowSlicesCount; ++globalShadowSliceIndex)
                 {
                     int additionalLightIndex = m_ShadowSliceToAdditionalLightIndex[globalShadowSliceIndex];
@@ -743,13 +742,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex, data.shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
 
                     // Update the bias when rendering the first slice or when the bias has changed
-                    if (   globalShadowSliceIndex == 0
-                        || !ShadowUtils.FastApproximately(shadowBias.x, lastDepthBias)
-                        || !ShadowUtils.FastApproximately(shadowBias.y, lastNormalBias))
+                    if (globalShadowSliceIndex == 0 || !ShadowUtils.FastApproximately(shadowBias, lastShadowBias))
                     {
                         ShadowUtils.SetShadowBias(cmd, shadowBias);
-                        lastDepthBias = shadowBias.x;
-                        lastNormalBias = shadowBias.y;
+                        lastShadowBias = shadowBias;
                     }
 
                     // Update light position
