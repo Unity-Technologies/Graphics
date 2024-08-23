@@ -343,13 +343,7 @@ namespace UnityEngine.Rendering.Universal
                         m_CopyDepthPass.m_CopyResolvedDepth = resolveDepth;
 
                     if (hasMSAA)
-                    {
                         depthDescriptor.bindMS = !resolveDepth;
-                    }
-
-                    // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
-                    if (IsGLDevice())
-                        depthDescriptor.bindMS = false;
 
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
