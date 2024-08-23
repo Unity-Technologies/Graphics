@@ -682,10 +682,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             get
             {
-                return selection.Any(x => !(x is IShaderNodeView nodeView) || nodeView.node.canDeleteNode);
+                return selection.Any(x =>
+                {
+                    if (x is ContextView) return false; //< context view must not be deleted. ( eg, Vertex, Fragment )
+                    return !(x is IShaderNodeView nodeView) || nodeView.node.canDeleteNode;
+                });
             }
         }
-
         public void GroupSelection()
         {
             var title = "New Group";
