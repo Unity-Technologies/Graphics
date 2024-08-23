@@ -796,7 +796,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.immediateMode)
             {
-                ExecutePassImmediatly(pass);
+                ExecutePassImmediately(pass);
             }
         }
 
@@ -1323,7 +1323,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return ref passInfo;
         }
 
-        void ExecutePassImmediatly(RenderGraphPass pass)
+        void ExecutePassImmediately(RenderGraphPass pass)
         {
             ExecuteCompiledPass(ref CompilePassImmediatly(pass), m_CurrentImmediatePassIndex - 1);
         }
@@ -1421,7 +1421,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             // Need to save the command buffer to restore it later as the one in the context can changed if running a pass async.
             m_PreviousCommandBuffer = rgContext.cmd;
-            
+
             bool executedWorkDuringResourceCreation = false;
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
