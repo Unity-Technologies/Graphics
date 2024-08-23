@@ -231,16 +231,36 @@ namespace UnityEditor.ShaderGraph
         {
             CheckBindings(nodePreviewShortcutID);
             bool shouldHide = false;
-            foreach (var selected in GetGraphView().selection)
-                if (selected is IShaderNodeView nodeView)
-                {
-                    if (nodeView.node.previewExpanded && nodeView.node.hasPreview)
+            // Toggle all node previews if none are selected. Otherwise, update only the selected node previews.
+            var selection = GetGraphView().selection;
+            if (selection.Count == 0)
+            {
+                var graph = GetGraphView().graph;
+                var nodes = graph.GetNodes<AbstractMaterialNode>();
+                foreach (AbstractMaterialNode node in nodes)
+                    if (node.previewExpanded && node.hasPreview)
                     {
                         shouldHide = true;
                         break;
                     }
-                }
-            GetGraphView().SetPreviewExpandedForSelectedNodes(!shouldHide);
+                
+                graph.owner.RegisterCompleteObjectUndo("Toggle Previews");
+                foreach (AbstractMaterialNode node in nodes)
+                    node.previewExpanded = !shouldHide;
+            }
+            else
+            {
+                foreach (var selected in selection)
+                    if (selected is IShaderNodeView nodeView)
+                    {
+                        if (nodeView.node.previewExpanded && nodeView.node.hasPreview)
+                        {
+                            shouldHide = true;
+                            break;
+                        }
+                    }
+                GetGraphView().SetPreviewExpandedForSelectedNodes(!shouldHide);
+            }
         }
 
         internal const string nodeCollapsedShortcutID = "ShaderGraph/Selection: Toggle Node Collapsed";
