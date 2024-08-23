@@ -204,7 +204,8 @@ namespace UnityEditor.ShaderGraph
             CheckBindings(nodeGroupShortcutID);
             var graphView = GetGraphView();
             foreach(var selected in graphView.selection)
-                if (selected is IShaderNodeView nodeView && nodeView.node is AbstractMaterialNode)
+                if ((selected is IShaderNodeView nodeView && nodeView.node is AbstractMaterialNode)
+                    || selected.GetType() == typeof(Drawing.StickyNote))
                 {
                     graphView.GroupSelection();
                     break;
@@ -218,7 +219,8 @@ namespace UnityEditor.ShaderGraph
             CheckBindings(nodeUnGroupShortcutID);
             var graphView = GetGraphView();
             foreach (var selected in graphView.selection)
-                if (selected is IShaderNodeView nodeView && nodeView.node is AbstractMaterialNode)
+                if ((selected is IShaderNodeView nodeView && nodeView.node is AbstractMaterialNode)
+                    || selected.GetType() == typeof(Drawing.StickyNote))
                 {
                     graphView.RemoveFromGroupNode();
                     break;
