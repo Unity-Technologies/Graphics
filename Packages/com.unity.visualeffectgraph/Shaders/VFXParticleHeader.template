@@ -39,7 +39,7 @@ StructuredBuffer<uint> indirectBuffer;
 StructuredBuffer<uint> deadList;
 #endif
 
-#if HAS_STRIPS
+#if HAS_STRIPS_DATA
 StructuredBuffer<uint> stripDataBuffer;
 #endif
 

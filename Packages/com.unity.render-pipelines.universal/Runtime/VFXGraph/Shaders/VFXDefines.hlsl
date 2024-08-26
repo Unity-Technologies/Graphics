@@ -39,3 +39,7 @@
 #else
 #define CULL_VERTEX(o) { o.VFX_VARYING_POSCS.x = VFX_NAN; return o; }
 #endif
+
+#if HAS_STRIPS
+#define HAS_STRIPS_DATA 1
+#endif

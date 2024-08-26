@@ -127,6 +127,20 @@ namespace UnityEditor.VFX
                 {
                     report.RegisterError("TooManyContexts", VFXErrorType.Error, $"Too many contexts within the same system, maximum is {VFXData.kMaxContexts}", this);
                 }
+
+                if (data.hasStrip)
+                {
+                    bool hasDynamicStripIndex = inputSlots.Any(inputSlot => inputSlot.name == "stripIndex" && inputSlot.HasLink() && inputSlot.LinkedSlots.First().GetExpression().Is(VFXExpression.Flags.PerElement));
+                    if (hasDynamicStripIndex)
+                    {
+                        bool hasParticleCountInStripAttribute = data.GetAttributesForContext(this).Any(attribute => attribute.attrib.Equals(VFXAttribute.ParticleCountInStrip));
+                        if (hasParticleCountInStripAttribute)
+                        {
+                            report.RegisterError("WrongParticleCountInStrip", VFXErrorType.Warning,
+                                "Using \"Get Particle Count In Strip\" or \"Get Ratio Over Strip\" in this context will only return the correct value if \"Strip Index\" is constant for all particles.", this);
+                        }
+                    }
+                }
             }
         }
 

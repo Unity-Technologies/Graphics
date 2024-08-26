@@ -234,9 +234,10 @@ namespace UnityEditor.VFX
                 }
             }
         }
-        public bool NeedsDeadListCount() { return HasIndirectDraw() && !HasStrips() && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
+        public bool NeedsDeadListCount() { return HasIndirectDraw() && !HasStrips(true) && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
 
         public bool HasStrips(bool data = false) { return (data ? GetData().type : ownedType) == VFXDataType.ParticleStrip; }
+        public bool HasStripsData() { return GetData().type == VFXDataType.ParticleStrip; }
 
         protected VFXAbstractParticleOutput(bool strip = false) : base(strip ? VFXDataType.ParticleStrip : VFXDataType.Particle) { }
 
@@ -596,6 +597,9 @@ namespace UnityEditor.VFX
 
                 if (HasStrips(false))
                     yield return "HAS_STRIPS";
+                else if (HasStrips(true)) // Output is not strip type, but data is
+                    yield return "HAS_STRIPS_DATA";
+
                 if (isRayTraced)
                 {
                     foreach (var define in rayTracingDefines)

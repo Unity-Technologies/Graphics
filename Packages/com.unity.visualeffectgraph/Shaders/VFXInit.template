@@ -33,7 +33,7 @@ RWStructuredBuffer<uint> deadList;
 StructuredBuffer<uint> eventList;
 #endif
 
-#if HAS_STRIPS
+#if HAS_STRIPS_DATA
 RWStructuredBuffer<uint> stripDataBuffer;
 #endif
 

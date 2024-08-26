@@ -1070,7 +1070,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             }
             else
             {
-                if (particleData.IsAttributeStored(VFXAttribute.Alive))
+                if (particleData.IsAttributeStored(VFXAttribute.Alive) || particleData.hasStrip)
                 {
                     yield return "#define VFX_INSTANCING_FIXED_SIZE " + Math.Max(particleData.alignedCapacity, nbThreadsPerGroup);
                 }

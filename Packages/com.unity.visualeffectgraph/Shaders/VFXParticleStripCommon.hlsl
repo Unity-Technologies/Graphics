@@ -27,7 +27,7 @@ struct StripData
     uint prevNextIndex;
 };
 
-#if HAS_STRIPS
+#if HAS_STRIPS_DATA
 const StripData GetStripDataFromStripIndex(uint stripIndex, uint instanceIndex)
 {
     StripData stripData = (StripData)0;
@@ -59,19 +59,30 @@ uint GetRelativeIndex(uint particleIndex, const StripData data)
 
 bool FindIndexInStrip(inout uint index, uint id, uint instanceIndex, out uint relativeIndexInStrip, out StripData stripData)
 {
-#if VFX_HAS_INDIRECT_DRAW
-    // In indirect mode, index is global particle index
-    uint stripIndex = index / (PARTICLE_PER_STRIP_COUNT);
-    stripData = GetStripDataFromStripIndex(stripIndex, instanceIndex);
-    uint relativeParticleIndex = GetRelativeIndex(index, stripData);
-#else
-    // By default, index is the relative particle index (skipping last one per strip as an optimization)
-    uint stripIndex = index / (PARTICLE_PER_STRIP_COUNT - 1);
-    stripData = GetStripDataFromStripIndex(stripIndex, instanceIndex);
-    uint relativeParticleIndex = index - stripIndex * (PARTICLE_PER_STRIP_COUNT - 1);
+    uint particlePerStripCount = PARTICLE_PER_STRIP_COUNT;
+
+#if HAS_STRIPS && !VFX_HAS_INDIRECT_DRAW
+    // skipping last particle per strip as an optimization
+    particlePerStripCount--;
 #endif
 
-    relativeIndexInStrip = relativeParticleIndex + STRIP_PARTICLE_IN_EDGE; // vertex index in the strip
+    uint stripIndex = index / particlePerStripCount;
+    stripData = GetStripDataFromStripIndex(stripIndex, instanceIndex);
+
+#if VFX_HAS_INDIRECT_DRAW
+    // In indirect mode, index is global particle index
+    uint relativeParticleIndex = GetRelativeIndex(index, stripData);
+#else
+    // By default, index is the relative particle index
+    uint relativeParticleIndex = index - stripIndex * particlePerStripCount;
+#endif
+
+    relativeIndexInStrip = relativeParticleIndex; // vertex index in the strip
+#if HAS_STRIPS
+    // For strip outputs, particle index belongs to one segment or another depending of the edge
+    relativeIndexInStrip += STRIP_PARTICLE_IN_EDGE;
+#endif
+
     index = GetParticleIndex(relativeIndexInStrip, stripData);
 
     uint maxEdgeIndex = relativeParticleIndex + 1;
