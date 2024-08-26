@@ -10,8 +10,13 @@ namespace UnityEditor.Rendering
     /// </summary>
     public abstract class DefaultVolumeProfileSettingsPropertyDrawer : PropertyDrawer
     {
+        // UUM-77758: Due to how PropertyDrawers are created and cached, there is no way to retrieve them reliably
+        // later. We know that only one DefaultVolumeProfile exists at any given time, so we can access it through
+        // static variables.
+        static SerializedProperty s_DefaultVolumeProfileSerializedProperty;
+        static DefaultVolumeProfileEditor s_DefaultVolumeProfileEditor;
+
         VisualElement m_Root;
-        DefaultVolumeProfileEditor m_Editor;
 
         /// <summary>SerializedObject representing the settings object</summary>
         protected SerializedObject m_SettingsSerializedObject;
@@ -76,8 +81,12 @@ namespace UnityEditor.Rendering
             if (profile == VolumeManager.instance.globalDefaultProfile)
                 VolumeProfileUtils.EnsureAllOverridesForDefaultProfile(profile);
 
-            m_Editor = new DefaultVolumeProfileEditor(profile, m_SettingsSerializedObject);
-            m_EditorContainer.Add(m_Editor.Create());
+            if (s_DefaultVolumeProfileSerializedProperty != m_VolumeProfileSerializedProperty)
+            {
+                s_DefaultVolumeProfileSerializedProperty = m_VolumeProfileSerializedProperty;
+                s_DefaultVolumeProfileEditor = new DefaultVolumeProfileEditor(profile, m_SettingsSerializedObject);
+            }
+            m_EditorContainer.Add(s_DefaultVolumeProfileEditor.Create());
             m_EditorContainer.Q<HelpBox>("volume-override-info-box").text = volumeInfoBoxLabel.text;
         }
 
@@ -86,9 +95,10 @@ namespace UnityEditor.Rendering
         /// </summary>
         protected void DestroyDefaultVolumeProfileEditor()
         {
-            if (m_Editor != null)
-                m_Editor.Destroy();
-            m_Editor = null;
+            if (s_DefaultVolumeProfileEditor != null)
+                s_DefaultVolumeProfileEditor.Destroy();
+            s_DefaultVolumeProfileEditor = null;
+            s_DefaultVolumeProfileSerializedProperty = null;
             m_EditorContainer?.Clear();
         }
 
@@ -112,21 +122,20 @@ namespace UnityEditor.Rendering
             /// </summary>
             protected abstract string defaultVolumeProfilePath { get; }
 
-            void IRenderPipelineGraphicsSettingsContextMenu<TSetting>.PopulateContextMenu(TSetting setting, PropertyDrawer drawer, ref GenericMenu menu)
+            void IRenderPipelineGraphicsSettingsContextMenu<TSetting>.PopulateContextMenu(TSetting setting, PropertyDrawer _, ref GenericMenu menu)
             {
                 menu.AddSeparator("");
 
-                var volumeDrawer = drawer as DefaultVolumeProfileSettingsPropertyDrawer;
                 bool canCreateNewAsset = RenderPipelineManager.currentPipeline is TRenderPipeline;
                 VolumeProfileUtils.AddVolumeProfileContextMenuItems(ref menu,
                     setting.volumeProfile,
-                    volumeDrawer.m_Editor.allEditors,
+                    s_DefaultVolumeProfileEditor.allEditors,
                     overrideStateOnReset: true,
                     defaultVolumeProfilePath: defaultVolumeProfilePath,
                     onNewVolumeProfileCreated: createdProfile =>
                     {
-                        volumeDrawer.m_VolumeProfileSerializedProperty.objectReferenceValue = createdProfile;
-                        volumeDrawer.m_VolumeProfileSerializedProperty.serializedObject.ApplyModifiedProperties();
+                        s_DefaultVolumeProfileSerializedProperty.objectReferenceValue = createdProfile;
+                        s_DefaultVolumeProfileSerializedProperty.serializedObject.ApplyModifiedProperties();
 
                         VolumeProfile initialAsset = null;
 
@@ -139,7 +148,7 @@ namespace UnityEditor.Rendering
                         }
                         VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<TRenderPipeline>(createdProfile, initialAsset);
                     },
-                    onComponentEditorsExpandedCollapsed: volumeDrawer.m_Editor.RebuildListViews,
+                    onComponentEditorsExpandedCollapsed: s_DefaultVolumeProfileEditor.RebuildListViews,
                     canCreateNewAsset);
             }
         }
