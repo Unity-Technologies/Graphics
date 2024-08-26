@@ -39,6 +39,12 @@ MonoBehaviour:
   tilingParameters:
     m_OverrideState: 0
     m_Value: {x: 1, y: 1, z: 0, w: 0}
+  seedMode:
+    m_OverrideState: 1
+    m_Value: 2
+  customSeed:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &-5222500504578869696
 MonoBehaviour:
   m_ObjectHideFlags: 3

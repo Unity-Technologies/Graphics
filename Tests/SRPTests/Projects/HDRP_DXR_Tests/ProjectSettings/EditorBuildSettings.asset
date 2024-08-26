@@ -518,5 +518,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/9000_VFX_RayTracing/9007_VFX_DecimationCullingSG.unity
     guid: 58c5f860d60bbeb40928ebf6c92a47f4
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10004_TerrainPathTracing/10004_TerrainPathTracing_NoDecalSurfaceGradient.unity
+    guid: 2d49cf94a5ddb124e8a71bf71a029192
+  - enabled: 1
+    path: Assets/Scenes/TerrainTests/10004_TerrainPathTracing/10004_TerrainPathTracing.unity
+    guid: 17783bea5cb403942948935bef51f927
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
