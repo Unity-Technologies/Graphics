@@ -1110,7 +1110,7 @@ namespace UnityEngine.Rendering.Universal
                 renderPassInputs.requiresNormalsTexture = true;
 
 #if UNITY_EDITOR
-            if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled())
+            if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled() && cameraData.isSceneViewCamera)
                 renderPassInputs.requiresNormalsTexture = true;
 #endif
 
