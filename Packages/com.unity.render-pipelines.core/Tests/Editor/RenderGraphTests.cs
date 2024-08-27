@@ -12,6 +12,23 @@ using UnityEditor.Rendering;
 #endif
 namespace UnityEngine.Rendering.Tests
 {
+    [InitializeOnLoad]
+    class RenderGraphTestsOnLoad
+    {
+        static bool IsGraphicsAPISupported()
+        {
+            var gfxAPI = SystemInfo.graphicsDeviceType;
+            if (gfxAPI == GraphicsDeviceType.OpenGLCore)
+                return false;
+            return true;
+        }
+
+        static RenderGraphTestsOnLoad()
+        {
+            ConditionalIgnoreAttribute.AddConditionalIgnoreMapping("IgnoreGraphicsAPI", !IsGraphicsAPISupported());
+        }
+    }
+
     class RenderGraphTests
     {
         // For RG Record/Hash/Compile testing, use m_RenderGraph
@@ -1191,12 +1208,11 @@ namespace UnityEngine.Rendering.Tests
         {
             public BufferHandle bufferHandle;
             public ComputeShader computeShader;
-
         }
 
         private const string kPathToComputeShader = "Packages/com.unity.render-pipelines.core/Tests/Editor/BufferCopyTest.compute";
 
-        [Test]
+        [Test, ConditionalIgnore("IgnoreGraphicsAPI", "Compute Shaders are not supported for this Graphics API.")]
         public void ImportingBufferWorks()
         {
             // We need a real ScriptableRenderContext and a camera to execute the render graph
