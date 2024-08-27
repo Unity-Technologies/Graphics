@@ -2383,12 +2383,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetInvertCulling(false);
                             }
 
-                            if (renderRequest.xrPass.isLastCameraPass)
-                            {
-                                //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
-                                EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
-                            }
-
                             EndRenderRequest(renderRequest, cmd);
 
                             // Render XR mirror view once all render requests have been completed
@@ -2406,6 +2400,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             renderContext.ExecuteCommandBuffer(cmd);
                             CommandBufferPool.Release(cmd);
                             renderContext.Submit();
+
+                            if (renderRequest.xrPass.isLastCameraPass)
+                            {
+                                //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
+                                EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
+                            }
                         }
 
                         ScriptableRenderContext.PopDisableApiRenderers();
