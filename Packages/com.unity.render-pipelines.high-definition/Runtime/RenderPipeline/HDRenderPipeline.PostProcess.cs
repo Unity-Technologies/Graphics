@@ -560,6 +560,17 @@ namespace UnityEngine.Rendering.HighDefinition
                             schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
                         };
                     }
+                    // TAA can use CAS for sharpening without upsampling.
+                    if (hdCamera.taaSharpenMode == HDAdditionalCameraData.TAASharpenMode.ContrastAdaptiveSharpening && !hdCamera.DynResRequest.enabled)
+                    {
+                        Assertions.Assert.AreEqual(DynamicResolutionHandler.UpsamplerScheduleType.AfterPost, DynamicResolutionHandler.instance.upsamplerSchedule);
+                        return new CurrentUpsamplerData
+                        {
+                            isAdvancedUpsampler = false,
+                            regularUpsampler = DynamicResUpscaleFilter.ContrastAdaptiveSharpen,
+                            schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
+                        };
+                    }
                 }
             }
 
