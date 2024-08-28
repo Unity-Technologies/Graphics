@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering
             EditorSceneManager.sceneOpened -= OnSceneOpened;
 
             // We keep allocated acceleration structures while the Lighting window is open in order to make subsequent bakes faster, but when the window closes we dispose of them
-            // Unless a bake is running, in which case we leave disposing to CleanBakeData() 
+            // Unless a bake is running, in which case we leave disposing to CleanBakeData()
             if (!AdaptiveProbeVolumes.isRunning && !Lightmapping.isRunning)
                 AdaptiveProbeVolumes.Dispose();
         }
@@ -869,7 +869,9 @@ namespace UnityEngine.Rendering
             else
             {
                 if (GUILayout.Button(Styles.generateAPV))
-                    AdaptiveProbeVolumes.BakeAsync();
+                {
+                    EditorApplication.delayCall += () => AdaptiveProbeVolumes.BakeAsync();
+                }
             }
         }
         #endregion
@@ -1010,7 +1012,7 @@ namespace UnityEngine.Rendering
 
             if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario))
                 activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
-            
+
             // Layout has changed and is incompatible.
             if (activeSet.HasValidSharedData() && !activeSet.freezePlacement && !activeSet.CheckCompatibleCellLayout())
             {
