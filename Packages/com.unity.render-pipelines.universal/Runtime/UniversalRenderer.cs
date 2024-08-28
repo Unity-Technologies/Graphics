@@ -567,6 +567,20 @@ namespace UnityEngine.Rendering.Universal
 
         bool IsDepthPrimingEnabled(UniversalCameraData cameraData)
         {
+#if UNITY_EDITOR
+            // We need to disable depth-priming for DrawCameraMode.Wireframe, since depth-priming forces ZTest to Equal
+            // for opaques rendering, which breaks wireframe rendering.
+            if (cameraData.isSceneViewCamera)
+            {
+                foreach (var sceneViewObject in UnityEditor.SceneView.sceneViews)
+                {
+                    var sceneView = sceneViewObject as UnityEditor.SceneView;
+                    if (sceneView != null && sceneView.camera == cameraData.camera && sceneView.cameraMode.drawMode == UnityEditor.DrawCameraMode.Wireframe)
+                        return false;
+                }
+            }
+#endif
+
             // depth priming requires an extra depth copy, disable it on platforms not supporting it (like GLES when MSAA is on)
             if (!CanCopyDepth(cameraData))
                 return false;
@@ -889,7 +903,7 @@ namespace UnityEngine.Rendering.Universal
             if (useRenderPassEnabled || useDepthPriming)
                 createColorTexture |= createDepthTexture;
 
-			// If gfxAPI yflips intermediate texture, we can't mix-use backbuffer(not flipped) and render texture(flipped) due to different flip state/clipspace y. 
+			// If gfxAPI yflips intermediate texture, we can't mix-use backbuffer(not flipped) and render texture(flipped) due to different flip state/clipspace y.
 			// This introduces the final blit pass.
 			if(SystemInfo.graphicsUVStartsAtTop)
 				createColorTexture |= createDepthTexture;
@@ -1487,7 +1501,7 @@ namespace UnityEngine.Rendering.Universal
                 // Turning off unnecessary NRP in Editor because of MSAA mistmatch between CameraTargetDescriptor vs camera backbuffer
                 // NRP layer considers this being a pass with MSAA samples by checking CameraTargetDescriptor taken from RP asset
                 // while the camera backbuffer has a single sample
-                m_FinalDepthCopyPass.useNativeRenderPass = false; 
+                m_FinalDepthCopyPass.useNativeRenderPass = false;
                 EnqueuePass(m_FinalDepthCopyPass);
             }
 #endif
