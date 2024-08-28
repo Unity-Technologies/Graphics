@@ -97,6 +97,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!renderingData.shadowData.mainLightShadowsEnabled)
                 return false;
 
+#if UNITY_EDITOR
+            if (CoreUtils.IsSceneLightingDisabled(renderingData.cameraData.camera))
+                return false;
+#endif
+
             using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
 
             if (!renderingData.shadowData.supportsMainLightShadows)
