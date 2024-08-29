@@ -8,8 +8,17 @@ namespace UnityEditor.VFX
     [Serializable]
     class ParticleTopologyPlanarPrimitive : ParticleTopology
     {
+        public ParticleTopologyPlanarPrimitive() : this(VFXPrimitiveType.Quad)
+        {
+        }
+
+        public ParticleTopologyPlanarPrimitive(VFXPrimitiveType primitiveType)
+        {
+            this.primitiveType = primitiveType;
+        }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what primitive type to use for this output. Triangle outputs have fewer vertices, octagons can be used to conform the geometry closer to the texture to avoid overdraw, and quads are a good middle ground.")]
-        protected VFXPrimitiveType primitiveType = VFXPrimitiveType.Quad;
+        protected VFXPrimitiveType primitiveType;
 
         public override TraitDescription GetDescription(VFXAbstractComposedParticleOutput parent)
         {
