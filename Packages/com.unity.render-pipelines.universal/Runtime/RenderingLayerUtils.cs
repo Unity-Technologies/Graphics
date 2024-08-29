@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
             // Make sure texture has enough bits to encode all rendering layers in urp global settings
             if (UniversalRenderPipelineGlobalSettings.instance)
             {
-                int count =  RenderingLayerMask.GetLastDefinedRenderingLayerIndex();
+                int count =  RenderingLayerMask.GetRenderingLayerCount();
                 MaskSize maskSize = GetMaskSize(count);
                 combinedMaskSize = Combine(combinedMaskSize, maskSize);
             }
