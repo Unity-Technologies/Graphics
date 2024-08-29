@@ -447,6 +447,47 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Maskfield enumeration field.
+        /// </summary>
+        public class MaskField : EnumField<uint>
+        {
+            /// <summary>
+            /// Fills the enum using the provided names
+            /// </summary>
+            /// <param name="names">names to fill the enum</param>
+            public void Fill(string[] names)
+            {
+                using (ListPool<GUIContent>.Get(out var tmpNames))
+                using (ListPool<int>.Get(out var tmpValues))
+                {
+                    for (int i=0; i<(names.Length); ++i)
+                    {
+                        tmpNames.Add(new GUIContent(names[i]));
+                        tmpValues.Add(i);
+                    }
+                    enumNames = tmpNames.ToArray();
+                    enumValues = tmpValues.ToArray();
+                }
+            }
+
+            /// <summary>
+            /// Assigns a value to the maskfield.
+            /// </summary>
+            /// <param name="value">value for the maskfield</param>
+            public override void SetValue(uint value)
+            {
+                Assert.IsNotNull(setter);
+                var validValue = ValidateValue(value);
+
+                if (!validValue.Equals(getter()))
+                {
+                    setter(validValue);
+                    onValueChanged?.Invoke(this, validValue);
+                }
+            }
+        }
+
+        /// <summary>
         /// Color field.
         /// </summary>
         public class ColorField : Field<Color>

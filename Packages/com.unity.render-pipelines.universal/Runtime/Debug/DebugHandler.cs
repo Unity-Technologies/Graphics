@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -88,6 +89,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_DebugRenderTarget;
 
         RTHandle m_DebugFontTexture;
+
+        private GraphicsBuffer m_debugDisplayConstant;
 
         readonly UniversalRenderPipelineDebugDisplaySettings m_DebugDisplaySettings;
 
@@ -178,6 +181,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DebugFontTexture = RTHandles.Alloc(m_RuntimeTextures.debugFontTexture);
             }
+
+            m_debugDisplayConstant = new GraphicsBuffer(GraphicsBuffer.Target.Constant, 32, Marshal.SizeOf(typeof(Vector4)));
         }
 
         public void Dispose()
@@ -186,6 +191,7 @@ namespace UnityEngine.Rendering.Universal
             m_DebugScreenColorHandle?.Release();
             m_DebugScreenDepthHandle?.Release();
             m_DebugFontTexture?.Release();
+            m_debugDisplayConstant.Dispose();
             CoreUtils.Destroy(m_HDRDebugViewMaterial);
             CoreUtils.Destroy(m_ReplacementMaterial);
         }
@@ -239,6 +245,15 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
             }
+
+            m_debugDisplayConstant.SetData(MaterialSettings.debugRenderingLayersColors, 0, 0, 32);
+
+            cmd.SetGlobalConstantBuffer(m_debugDisplayConstant, "_DebugDisplayConstant", 0, m_debugDisplayConstant.count * m_debugDisplayConstant.stride);
+
+            if (MaterialSettings.renderingLayersSelectedLight)
+                cmd.SetGlobalInt("_DebugRenderingLayerMask", (int)MaterialSettings.GetDebugLightLayersMask());
+            else
+                cmd.SetGlobalInt("_DebugRenderingLayerMask", (int)MaterialSettings.renderingLayerMask);
 
             switch (RenderingSettings.sceneOverrideMode)
             {

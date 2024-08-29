@@ -34,6 +34,8 @@ namespace UnityEngine.Rendering.Universal
         Metallic,
         /// <summary>Display material sprite mask.</summary>
         SpriteMask,
+        /// <summary>Display rendering layer masks.</summary>
+        RenderingLayerMasks,
     }
 
     /// <summary>

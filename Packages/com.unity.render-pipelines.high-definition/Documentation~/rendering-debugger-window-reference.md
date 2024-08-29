@@ -133,7 +133,7 @@ The **Material** panel has tools that you can use to visualize different Materia
  <td colspan="2">These parameters only appear when you set the Material Debug Option to Rendering Layers.</td>
  </tr>
  <tr>
- <td><strong>Filter with Light Layers from Selected Light</strong></td>
+ <td><strong>Filter Light Layers by Light</strong></td>
  <td>Enable the checkbox to visualize GameObjects that the selected light affects.</td>
  </tr>
  <tr>
