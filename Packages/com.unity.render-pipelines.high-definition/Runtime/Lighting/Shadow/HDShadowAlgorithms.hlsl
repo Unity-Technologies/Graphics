@@ -257,6 +257,12 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
 
 void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowContext, int index)
 {
+    sd.rot0 = shadowContext.shadowDatas[index].rot0;
+    sd.rot1 = shadowContext.shadowDatas[index].rot1;
+    sd.rot2 = shadowContext.shadowDatas[index].rot2;
+
+    sd.shadowToWorld = shadowContext.shadowDatas[index].shadowToWorld;
+    
     sd.proj = shadowContext.shadowDatas[index].proj;
     sd.pos = shadowContext.shadowDatas[index].pos;
     sd.worldTexelSize = shadowContext.shadowDatas[index].worldTexelSize;
