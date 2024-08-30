@@ -49,7 +49,12 @@ namespace UnityEditor.VFX
 
         public static Type GetType(string name)
         {
-            return Type.GetType(name);
+            var type = Type.GetType(name);
+            if (type == null
+                && !string.IsNullOrEmpty(name)
+                && !name.Contains("Unity.VisualEffectGraph.Runtime,", StringComparison.InvariantCulture)) //Don't log error from actual VFX package like IncrementStripIndexOnStart sanitization is handled automatically for those
+                Debug.LogErrorFormat("Unable to find type: {0}", name);
+            return type;
         }
 
         public override bool Equals(object obj)

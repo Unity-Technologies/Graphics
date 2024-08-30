@@ -207,6 +207,9 @@ namespace UnityEditor.VFX
 
         public static VFXModelDescriptor<VFXSlot> GetSlot(System.Type type)
         {
+            if (type == null)
+                return null;
+
             LoadSlotsIfNeeded();
             VFXModelDescriptor<VFXSlot> desc;
             m_SlotDescs.TryGetValue(type, out desc);

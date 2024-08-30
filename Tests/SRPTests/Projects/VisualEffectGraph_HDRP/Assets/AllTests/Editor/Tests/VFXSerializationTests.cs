@@ -1335,6 +1335,8 @@ namespace UnityEditor.VFX.Test
         {
             var packagePath = "Assets/AllTests/Editor/Tests/Import_Diffusion_Profile_Repro_553.unitypackage";
             AssetDatabase.ImportPackage(packagePath, false);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+
             //Shouldn't log Repro_553_EmptySG_SSR_DiffProfile.shadergraph has been scheduled for reimport during the Refresh loop and Loading of it has been attempted.
             for (int i = 0; i < 4; ++i)
                 yield return null;
@@ -1361,6 +1363,39 @@ namespace UnityEditor.VFX.Test
         {
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());
             m_CustomLogHandler = new CustomLogHandler();
+        }
+
+        [UnityTest, Description("Cover case UUM-69716")]
+        public IEnumerator Unexpected_Failure_With_Missing_Type()
+        {
+            m_CustomLogHandler.Reset();
+            m_CustomLogHandler.ExpectedLog(LogType.Error, "Exception while sanitizing model");
+            m_CustomLogHandler.ExpectedLog(LogType.Error, "Unable to find type: ShaderGlobalsVFXStruct");
+
+            //For reference the former type serialized in this package was something like
+            //[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
+            //struct ShaderGlobalsVFXStruct
+            //{
+            //    public Color GlobalVFXStruct_c;
+            //    public float GlobalVFXStruct_f;
+            //}
+            var packagePath = "Assets/AllTests/Editor/Tests/Repro_UUM_69716.unitypackage";
+            AssetDatabase.ImportPackage(packagePath, false);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            var expectedPath = "Assets/TmpTests/GlobalsTester.vfx";
+            AssetDatabase.ImportAsset(expectedPath);
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(expectedPath);
+            Assert.IsNotNull(asset);
+
+            //Trying to open the asset, it shouldn't fail
+            VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0);
+            var window = VFXViewWindow.GetWindow(asset);
+            Assert.AreNotEqual(0, window.graphView.controller.allChildren.Count());
+            window.graphView.OnSave();
         }
 
         [UnityTest, Description("Cover regression UUM-5728")]
@@ -1443,6 +1478,11 @@ namespace UnityEditor.VFX.Test
                 yield return null;
         }
 
+        [TearDown]
+        public void Clean()
+        {
+            VFXTestCommon.DeleteAllTemporaryGraph();
+        }
 
         [OneTimeTearDown]
         public void CleanUp()

@@ -125,23 +125,10 @@ namespace UnityEditor.VFX.UI
 
         public static bool HasGizmo(Type type)
         {
-            return s_DrawFunctions.ContainsKey(type);
-        }
+            if (type == null)
+                return false;
 
-        static Type GetGizmoType(Type type)
-        {
-            if (type.IsAbstract)
-                return null;
-            Type baseType = type.BaseType;
-            while (baseType != null)
-            {
-                if (baseType.IsGenericType && !baseType.IsGenericTypeDefinition && baseType.GetGenericTypeDefinition() == typeof(VFXGizmo<>))
-                {
-                    return baseType.GetGenericArguments()[0];
-                }
-                baseType = baseType.BaseType;
-            }
-            return null;
+            return s_DrawFunctions.ContainsKey(type);
         }
 
         public static VFXGizmo CreateGizmoInstance(Context context)
