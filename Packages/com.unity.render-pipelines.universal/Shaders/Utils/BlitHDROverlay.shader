@@ -40,7 +40,7 @@ Shader "Hidden/Universal/BlitHDROverlay"
         float4 FragBlitHDR(Varyings input, SamplerState s)
         {
             float4 color = FragBlit(input, s);
-            UNITY_BRANCH if(!_HDR_OVERLAY)
+            if(!_HDR_OVERLAY)
             {
                 return color;
             }
