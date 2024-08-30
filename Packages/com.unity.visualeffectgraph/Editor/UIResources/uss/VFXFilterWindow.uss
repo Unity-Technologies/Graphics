@@ -38,17 +38,19 @@
     width: 22px;
     height: 22px;
     margin-right: 8px;
-    background-size: Contain;
-    background-image: var(--unity-icons-arrow_left);
+    padding: 3px;
+}
+
+#ArrowImage {
+    --unity-image: var(--unity-icons-arrow_left);
 }
 
 #Header Toggle {
     margin: 0 3px;
-    padding: 2px;
     border-radius: 2px;
 }
 
-#Header Toggle * {
+#Header Toggle .unity-toggle__input {
     display: none;
 }
 
@@ -60,8 +62,8 @@
     background-color: var(--unity-colors-button-background-hover_pressed);
 }
 
-#CollapseButton:checked {
-    background-image: var(--unity-icons-arrow_right);
+#CollapseButton:checked #ArrowImage {
+    --unity-image: var(--unity-icons-arrow_right);
 }
 
 #CollapseButton #unity-checkmark {
