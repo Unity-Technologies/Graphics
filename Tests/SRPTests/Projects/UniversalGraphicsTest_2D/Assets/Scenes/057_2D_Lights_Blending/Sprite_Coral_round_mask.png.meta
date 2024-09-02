@@ -110,7 +110,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: Switch
+    buildTarget: Nintendo Switch
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -160,7 +160,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Sprite_Coral_round_mask_0: 5577033227529934834
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

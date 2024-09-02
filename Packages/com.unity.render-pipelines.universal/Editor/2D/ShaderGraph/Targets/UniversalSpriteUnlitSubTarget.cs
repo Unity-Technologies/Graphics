@@ -1,9 +1,7 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
-
 using Unity.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
@@ -126,7 +124,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = CoreRenderStates.Default,
+                    renderStates = SpriteSubTargetUtility.GetDefaultRenderState(target),
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
                     keywords = SpriteUnlitKeywords.Unlit,
