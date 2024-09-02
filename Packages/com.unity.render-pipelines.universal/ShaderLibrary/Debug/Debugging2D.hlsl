@@ -8,8 +8,9 @@
 
 #if defined(DEBUG_DISPLAY)
 
-#define SETUP_DEBUG_TEXTURE_DATA_2D(inputData, positionWS, positionCS, texture)     SetupDebugDataTexture(inputData, positionWS, positionCS, texture##_TexelSize, texture##_MipInfo, texture##_StreamInfo, GetMipCount(TEXTURE2D_ARGS(texture, sampler##texture)))
-#define SETUP_DEBUG_DATA_2D(inputData, positionWS, positionCS)                      SetupDebugData(inputData, positionWS, positionCS)
+#define SETUP_DEBUG_TEXTURE_DATA_2D_NO_TS(inputData, positionWS, positionCS, texture)   SetupDebugDataTexture(inputData, positionWS, positionCS, float4(0.1, 0.1, 1.0, 1.0), texture##_MipInfo, texture##_StreamInfo, GetMipCount(TEXTURE2D_ARGS(texture, sampler##texture)))
+#define SETUP_DEBUG_TEXTURE_DATA_2D(inputData, positionWS, positionCS, texture)         SetupDebugDataTexture(inputData, positionWS, positionCS, texture##_TexelSize, texture##_MipInfo, texture##_StreamInfo, GetMipCount(TEXTURE2D_ARGS(texture, sampler##texture)))
+#define SETUP_DEBUG_DATA_2D(inputData, positionWS, positionCS)                          SetupDebugData(inputData, positionWS, positionCS)
 
 void SetupDebugData(inout InputData2D inputData, float3 positionWS, float4 positionCS)
 {
@@ -150,6 +151,7 @@ bool CanDebugOverrideOutputColor(inout SurfaceData2D surfaceData, inout InputDat
 
 #else
 
+#define SETUP_DEBUG_TEXTURE_DATA_2D_NO_TS(inputData, positionWS, positionCS, texture)
 #define SETUP_DEBUG_TEXTURE_DATA_2D(inputData, positionWS, positionCS, texture)
 #define SETUP_DEBUG_DATA_2D(inputData, positionWS, positionCS)
 

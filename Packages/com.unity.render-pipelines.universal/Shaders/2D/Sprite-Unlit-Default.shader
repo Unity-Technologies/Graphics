@@ -61,12 +61,10 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
-            float4 _MainTex_TexelSize;
             UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
-                half4 _MainTex_ST;
                 half4 _Color;
             CBUFFER_END
 
@@ -82,7 +80,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(v.positionOS);
                 #endif
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                o.uv = v.uv;
                 o.color = v.color * _Color * unity_SpriteColor;
                 return o;
             }
@@ -98,7 +96,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
                 InitializeSurfaceData(mainTex.rgb, mainTex.a, surfaceData);
                 InitializeInputData(i.uv, inputData);
-                SETUP_DEBUG_TEXTURE_DATA_2D(inputData, i.positionWS, i.positionCS, _MainTex);
+                SETUP_DEBUG_TEXTURE_DATA_2D_NO_TS(inputData, i.positionWS, i.positionCS, _MainTex);
 
                 if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
                 {
@@ -152,12 +150,10 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
-            float4 _MainTex_TexelSize;
             UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START( UnityPerMaterial )
-                half4 _MainTex_ST;
                 half4 _Color;
             CBUFFER_END
 
@@ -173,7 +169,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(attributes.positionOS);
                 #endif
-                o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
+                o.uv = attributes.uv;
                 o.color = attributes.color * _Color * unity_SpriteColor;
                 return o;
             }
@@ -189,7 +185,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
                 InitializeSurfaceData(mainTex.rgb, mainTex.a, surfaceData);
                 InitializeInputData(i.uv, inputData);
-                SETUP_DEBUG_TEXTURE_DATA_2D(inputData, i.positionWS, i.positionCS, _MainTex);
+                SETUP_DEBUG_TEXTURE_DATA_2D_NO_TS(inputData, i.positionWS, i.positionCS, _MainTex);
 
                 if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
                 {
