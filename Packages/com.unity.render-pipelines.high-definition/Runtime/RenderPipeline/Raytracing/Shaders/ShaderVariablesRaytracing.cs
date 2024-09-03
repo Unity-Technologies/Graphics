@@ -38,6 +38,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Bit mask that defines which fall back to use when a ray misses.
         public int _RayTracingRayMissFallbackHierarchy;
+        // Flag that defines if we should use the ambient probe instead of the sky. Used for RTGI - performance mode.
+        public int _RayTracingRayMissUseAmbientProbeAsSky;
         // Flag that defines if the sky should be used as an environment light.
         public int _RayTracingLastBounceFallbackHierarchy;
         // Flag that defines if

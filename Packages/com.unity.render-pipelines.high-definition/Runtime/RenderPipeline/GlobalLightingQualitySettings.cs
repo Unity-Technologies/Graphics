@@ -225,8 +225,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTGIRayLength = new float[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution. The array must have one entry per scalable setting level.</summary>
         public bool[] RTGIFullResolution = new bool[s_QualitySettingCount];
-        /// <summary>Clamp value used to reduce the variance in the integration signal. The array must have one entry per scalable setting level, and elements must be between 0.001 and 10.</summary>
-        [Range(0.001f, 10.0f)]
+        /// <summary>Clamp value used to reduce the variance in the integration signal. The array must have one entry per scalable setting level, and elements must be above 0.001.</summary>
+        [Min(0.001f)]
         public float[] RTGIClampValue = new float[s_QualitySettingCount];
         /// <summary>Controls the number of ray steps for hybrid tracing. The array must have one entry per scalable setting level, and elements must above 0.</summary>
         [Min(0)]
@@ -251,8 +251,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Controls the length of ray traced reflection rays. The array must have one entry per scalable setting level, and elements must above 0.01.</summary>
         [Min(0.01f)]
         public float[] RTRRayLength = new float[s_QualitySettingCount];
-        /// <summary>Clamp value used to reduce the variance in the integration signal. The array must have one entry per scalable setting level, and elements must be between 0.001 and 10.</summary>
-        [Range(0.001f, 10.0f)]
+        /// <summary>Clamp value used to reduce the variance in the integration signal. The array must have one entry per scalable setting level, and elements must be above 0.001.</summary>
+        [Min(0.001f)]
         public float[] RTRClampValue = new float[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution. The array must have one entry per scalable setting level.</summary>
         public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
