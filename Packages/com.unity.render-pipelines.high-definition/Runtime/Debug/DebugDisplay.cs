@@ -136,6 +136,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ColorLog,
         /// <summary>Display Depth of Field circle of confusion.</summary>
         DepthOfFieldCoc,
+        /// <summary>Display Depth of Field tile classification. Red is slow in-focus, green is fast de-focus and blue is fast in-focus.</summary>
+        DepthOfFieldTileClassification,
         /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
         /// <summary>Display Quad Overdraw.</summary>
@@ -2335,7 +2337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.VolumetricClouds ||
                     data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection ||
                     data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination || data.fullScreenDebugMode == FullScreenDebugMode.LensFlareScreenSpace ||
-                    data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog || data.fullScreenDebugMode == FullScreenDebugMode.STP);
+                    data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog || data.fullScreenDebugMode == FullScreenDebugMode.STP || data.fullScreenDebugMode == FullScreenDebugMode.DepthOfFieldTileClassification);
         }
     }
 }

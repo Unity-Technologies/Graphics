@@ -1,6 +1,7 @@
 #ifndef DEPTH_OF_FIELD_COMMON
 #define DEPTH_OF_FIELD_COMMON
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
@@ -8,6 +9,26 @@ struct TileData
 {
     uint position;
 };
+
+struct CoCTileData
+{
+    float minFarCoC;
+    float maxFarCoC;
+    float minNearCoC;
+    float maxNearCoC;
+};
+
+CoCTileData LoadCoCTileData(TEXTURE2D_X(tileTexture), uint2 coords)
+{
+    float4 data = tileTexture[COORD_TEXTURE2D_X(coords)];
+    CoCTileData tileData = {data.x, data.y, data.z, data.w};
+    return tileData;
+}
+
+float4 PackCoCTileData(CoCTileData data)
+{
+    return float4(data.minFarCoC, data.maxFarCoC, data.minNearCoC, data.maxNearCoC);
+}
 
 uint PackKernelCoord(float2 coords)
 {

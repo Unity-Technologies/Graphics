@@ -969,6 +969,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputVelocityMagnitudeHistory = Shader.PropertyToID("_OutputVelocityMagnitudeHistory");
         public static readonly int _OutputDepthTexture = Shader.PropertyToID("_OutputDepthTexture");
         public static readonly int _OutputMotionVectorTexture = Shader.PropertyToID("_OutputMotionVectorTexture");
+        public static readonly int _OutputResolution = Shader.PropertyToID("_OutputResolution");
 
         public static readonly int _TargetScale = Shader.PropertyToID("_TargetScale");
         public static readonly int _Params = Shader.PropertyToID("_Params");
@@ -977,6 +978,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Params3 = Shader.PropertyToID("_Params3");
         public static readonly int _BokehKernel = Shader.PropertyToID("_BokehKernel");
         public static readonly int _InputCoCTexture = Shader.PropertyToID("_InputCoCTexture");
+        public static readonly int _DebugTileClassification = Shader.PropertyToID("_DebugTileClassification");
         public static readonly int _InputHistoryCoCTexture = Shader.PropertyToID("_InputHistoryCoCTexture");
         public static readonly int _OutputCoCTexture = Shader.PropertyToID("_OutputCoCTexture");
         public static readonly int _OutputNearCoCTexture = Shader.PropertyToID("_OutputNearCoCTexture");
@@ -1004,6 +1006,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InputNearAlphaTexture = Shader.PropertyToID("_InputNearAlphaTexture");
         public static readonly int _CoCTargetScale = Shader.PropertyToID("_CoCTargetScale");
         public static readonly int _DepthMinMaxAvg = Shader.PropertyToID("_DepthMinMaxAvg");
+        public static readonly int _ApertureShapeTable = Shader.PropertyToID("_ApertureShapeTable");
+        public static readonly int _ApertureShapeTableCount = Shader.PropertyToID("_ApertureShapeTableCount");
 
         public static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
         public static readonly int _FlareSunOcclusionTex = Shader.PropertyToID("_FlareSunOcclusionTex");

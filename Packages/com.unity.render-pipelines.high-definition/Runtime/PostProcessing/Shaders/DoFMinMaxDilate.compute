@@ -15,15 +15,15 @@ RW_TEXTURE2D_X(float4, _OutputTexture);
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
 
-void DilateTile(inout float4 tileInfo, float4 tile)
+void DilateTile(inout CoCTileData tileInfo, CoCTileData tile)
 {
     // far field
-    tileInfo.x = tileInfo.x;
-    tileInfo.y = max(tileInfo.y, tile.y);
+    tileInfo.minFarCoC = min(tileInfo.minFarCoC, tile.minFarCoC);
+    tileInfo.maxFarCoC = max(tileInfo.maxFarCoC, tile.maxFarCoC);
 
     // near field
-    tileInfo.z = tileInfo.z;
-    tileInfo.w = min(tileInfo.w, tile.w);
+    tileInfo.minNearCoC = max(tileInfo.minNearCoC, tile.minNearCoC);
+    tileInfo.maxNearCoC = min(tileInfo.maxNearCoC, tile.maxNearCoC);
 }
 
 [numthreads(GROUP_RES, GROUP_RES, 1)]
@@ -31,7 +31,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float4 tileInfo = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    CoCTileData tileInfo = LoadCoCTileData(_InputTexture, dispatchThreadId.xy);
 
     int2 startIndex = max((int2)dispatchThreadId.xy - int2(1, 1), int2(0, 0));
     int2 endIndex =  min((int2)dispatchThreadId.xy + int2(1, 1), _PostProcessScreenSize.xy / TILE_RES - int2(1, 1));
@@ -40,10 +40,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         for (int j = startIndex.y; j <= endIndex.y; j++)
         {
-            float4 tile = LOAD_TEXTURE2D_X(_InputTexture, int2(i, j));
+            CoCTileData tile = LoadCoCTileData(_InputTexture, int2(i, j));
             DilateTile(tileInfo, tile);
         }
     }
 
-    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = tileInfo;
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackCoCTileData(tileInfo);
 }

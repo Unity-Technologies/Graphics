@@ -48,6 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_BokehIndirectCmd;
         ComputeBuffer m_NearBokehTileList;
         ComputeBuffer m_FarBokehTileList;
+        const int k_DepthOfFieldApertureShapeBufferSize = 256;
 
         //  AMD-CAS data
         ComputeBuffer m_ContrastAdaptiveSharpen;
@@ -2278,6 +2279,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public int pbDoFDilateKernel;
             public ComputeShader pbDoFCombineCS;
             public int pbDoFCombineKernel;
+            public ComputeShader dofComputeSlowTilesCS;
+            public int dofComputeSlowTilesKernel;
+            public ComputeShader dofComputeApertureShapeCS;
+            public int dofComputeApertureShapeKernel;
             public int minMaxCoCTileSize;
 
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
@@ -2294,6 +2299,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DepthOfFieldResolution resolution;
             public DepthOfFieldMode focusMode;
             public Vector2 adaptiveSamplingWeights;
+            public bool dynamicResolutionEnabled;
 
             public Vector2 physicalCameraCurvature;
             public float physicalCameraAperture;
@@ -2317,7 +2323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool useMipSafePath;
         }
 
-        DepthOfFieldParameters PrepareDoFParameters(HDCamera hdCamera)
+        DepthOfFieldParameters PrepareDoFParameters(HDCamera hdCamera, CurrentUpsamplerData? upsamplerData)
         {
             DepthOfFieldParameters parameters = new DepthOfFieldParameters();
 
@@ -2360,7 +2366,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.pbDoFGatherCS = runtimeShaders.dofGatherCS;
             parameters.pbDoFGatherKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
             parameters.pbDoFCombineCS = runtimeShaders.dofCombineCS;
-            parameters.pbDoFCombineKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
+            parameters.pbDoFCombineKernel = parameters.pbDoFCombineCS.FindKernel("UpsampleFastTiles");
+            parameters.dofComputeSlowTilesCS = runtimeShaders.dofComputeSlowTilesCS;
+            parameters.dofComputeSlowTilesKernel = parameters.dofComputeSlowTilesCS.FindKernel("ComputeSlowTiles");
+            parameters.dofComputeApertureShapeCS = runtimeShaders.dofComputeApertureShapeCS;
+            parameters.dofComputeApertureShapeKernel = parameters.dofComputeApertureShapeCS.FindKernel("ComputeShapeBuffer");
             parameters.minMaxCoCTileSize = 8;
 
             parameters.camera = hdCamera;
@@ -2450,12 +2460,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofPrecombineFarCS.EnableKeyword("ENABLE_ALPHA");
                 parameters.pbDoFGatherCS.EnableKeyword("ENABLE_ALPHA");
                 parameters.pbDoFCombineCS.EnableKeyword("ENABLE_ALPHA");
+                parameters.dofComputeSlowTilesCS.EnableKeyword("ENABLE_ALPHA");
             }
 
             if (parameters.resolution == DepthOfFieldResolution.Full)
             {
                 parameters.dofPrefilterCS.EnableKeyword("FULL_RES");
                 parameters.dofCombineCS.EnableKeyword("FULL_RES");
+            }
+            else if (parameters.dynamicResolutionEnabled)
+            {
+                parameters.dofGatherCS.EnableKeyword("LOW_RESOLUTION");
             }
             else if (parameters.highQualityFiltering)
             {
@@ -2495,10 +2510,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
 
-                // PBR dof has special resolution requirements. Either half or full.
-                // The max here will constrain it to just quarter or half.
-                parameters.resolution = (DepthOfFieldResolution)Math.Max((int)parameters.resolution, (int)DepthOfFieldResolution.Half);
-
                 if (parameters.resolution != DepthOfFieldResolution.Quarter)
                 {
                     // Reasons for this flag:
@@ -2509,14 +2520,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     parameters.pbDoFCombineCS.EnableKeyword("FORCE_POINT_SAMPLING");
                 }
 
-                if (parameters.highQualityFiltering)
-                {
-                    parameters.pbDoFGatherCS.EnableKeyword("HIGH_QUALITY");
-                }
+                // Sampling ratios for adaptive sampling.
+                // X: ratio of the sharp part tiles of PBR dof that have high variance of CoC.
+                // Y: ratio of the blurry / sharp tiles that have low variance of CoC.
+                parameters.adaptiveSamplingWeights = new Vector2(
+                    m_DepthOfField.adaptiveSamplingWeight <= 1.0f ? m_DepthOfField.adaptiveSamplingWeight : 1.0f,
+                    m_DepthOfField.adaptiveSamplingWeight > 1.0f ? m_DepthOfField.adaptiveSamplingWeight : 1.0f
+                );
 
-                parameters.adaptiveSamplingWeights = (parameters.highQualityFiltering)
-                  ? DepthOfField.s_HighQualityAdaptiveSamplingWeights
-                  : DepthOfField.s_LowQualityAdaptiveSamplingWeights;
+                parameters.dynamicResolutionEnabled = upsamplerData != null && upsamplerData.Value.schedule != DynamicResolutionHandler.UpsamplerScheduleType.BeforePost;
             }
 
             if (hdCamera.msaaEnabled)
@@ -2591,7 +2603,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool bothLayersActive = nearLayerActive && farLayerActive;
             bool useTiles = dofParameters.useTiles;
-            bool hqFiltering = dofParameters.highQualityFiltering;
 
             const uint kIndirectNearOffset = 0u * sizeof(uint);
             const uint kIndirectFarOffset = 3u * sizeof(uint);
@@ -3052,7 +3063,7 @@ namespace UnityEngine.Rendering.HighDefinition
             fullresCoC = nextCoC;
         }
 
-        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, RTHandle scaledDof, bool taaEnabled, RTHandle depthMinMaxAvgMSAA)
+        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, RTHandle scaledDof, bool taaEnabled, RTHandle depthMinMaxAvgMSAA, BufferHandle shapeTable, bool debugTileClassification)
         {
             // Currently Physically Based DoF is performed at "full" resolution (ie does not utilize DepthOfFieldResolution)
             // However, to produce similar results when switching between various resolutions, or dynamic resolution,
@@ -3125,32 +3136,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPyramid)))
-            {
-                // DoF color pyramid
-                if (sourcePyramid != null)
-                {
-                    cs = dofParameters.dofMipCS;
-                    kernel = dofParameters.dofMipColorKernel;
-
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source, 0);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, sourcePyramid, 0);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, sourcePyramid, 1);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, sourcePyramid, 2);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, sourcePyramid, 3);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, sourcePyramid, 4);
-
-                    int tx = ((dofParameters.viewportSize.x >> 1) + 7) / 8;
-                    int ty = ((dofParameters.viewportSize.y >> 1) + 7) / 8;
-                    cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
-                }
-            }
-
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldDilate)))
             {
                 int tileSize = dofParameters.minMaxCoCTileSize;
-                int tx = ((dofParameters.viewportSize.x / tileSize) + 7) / 8;
-                int ty = ((dofParameters.viewportSize.y / tileSize) + 7) / 8;
+                int tileCountX = Mathf.CeilToInt(dofParameters.viewportSize.x / (float)tileSize);
+                int tileCountY = Mathf.CeilToInt(dofParameters.viewportSize.y / (float)tileSize);
+                int tx = HDUtils.DivRoundUp(tileCountX, 8);
+                int ty = HDUtils.DivRoundUp(tileCountY, 8);
 
                 // Min Max CoC tiles
                 {
@@ -3158,6 +3150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     kernel = dofParameters.pbDoFMinMaxKernel;
 
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC, 0);
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputResolution, new Vector2(tileCountX, tileCountY));
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, minMaxCoCPing, 0);
                     cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
                 }
@@ -3178,6 +3171,83 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            // Compute the shape of the aperture into a buffer, sampling this buffer in the loop of the DoF
+            // is faster than computing sin/cos of each angle for the sampling and it let us handle the shape
+            // of the aperture with the blade count.
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldApertureShape)))
+            {
+                cs = dofParameters.dofComputeApertureShapeCS;
+                kernel = dofParameters.dofComputeApertureShapeKernel;
+                float rotation = (dofParameters.physicalCameraAperture - Camera.kMinAperture) / (Camera.kMaxAperture - Camera.kMinAperture);
+                rotation *= (360f / dofParameters.physicalCameraBladeCount) * Mathf.Deg2Rad; // TODO: Crude approximation, make it correct
+
+                float ngonFactor = 1f;
+                if (dofParameters.physicalCameraCurvature.y - dofParameters.physicalCameraCurvature.x > 0f)
+                    ngonFactor = (dofParameters.physicalCameraAperture - dofParameters.physicalCameraCurvature.x) / (dofParameters.physicalCameraCurvature.y - dofParameters.physicalCameraCurvature.x);
+
+                ngonFactor = Mathf.Clamp01(ngonFactor);
+                ngonFactor = Mathf.Lerp(ngonFactor, 0f, Mathf.Abs(dofParameters.physicalCameraAnamorphism));
+
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(dofParameters.physicalCameraBladeCount, ngonFactor, rotation, dofParameters.physicalCameraAnamorphism / 4f));
+                cmd.SetComputeIntParam(cs, HDShaderIDs._ApertureShapeTableCount, k_DepthOfFieldApertureShapeBufferSize);
+                cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._ApertureShapeTable, shapeTable);
+                cmd.DispatchCompute(cs, kernel, k_DepthOfFieldApertureShapeBufferSize / 64, 1, 1);
+            }
+
+            // Slow tiles refer to a tile that contain both in focus and defocus pixels which requires to gather the CoC
+            // per pixel
+
+            // Compute the slow path tiles into the output buffer.
+            // The output of this pass is used as input for the color pyramid below, this is to avoid some
+            // leaking artifacts on the border of the tiles. Blurring the slow tiles allows for the bilinear
+            // interpolation in the final upsample pass to get more correct data instead of sampling non-blurred tiles.
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldComputeSlowTiles)))
+            {
+                cs = dofParameters.dofComputeSlowTilesCS;
+                kernel = dofParameters.dofComputeSlowTilesKernel;
+                float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
+                float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
+
+                float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(dofParameters.adaptiveSamplingWeights.x, dofParameters.adaptiveSamplingWeights.y, (float)dofParameters.resolution, 1.0f/(float)dofParameters.resolution));
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._ApertureShapeTable, shapeTable);
+                cmd.SetComputeIntParam(cs, HDShaderIDs._ApertureShapeTableCount, k_DepthOfFieldApertureShapeBufferSize);
+
+                cmd.DispatchCompute(cs, kernel, (dofParameters.viewportSize.x + 7) / 8, (dofParameters.viewportSize.y + 7) / 8, dofParameters.camera.viewCount);
+            }
+
+            // When the DoF is at full resolution, we consider that this is the highest quality level so we remove
+            // the sampling from the pyramid which causes artifacts on the border of tiles in certain scenarios.
+            if (dofParameters.resolution != DepthOfFieldResolution.Full)
+            {
+                // DoF color pyramid with the slow tiles inside
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPyramid)))
+                {
+                    if (sourcePyramid != null)
+                    {
+                        cs = dofParameters.dofMipCS;
+                        kernel = dofParameters.dofMipColorKernel;
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, destination, 0);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, sourcePyramid, 0);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, sourcePyramid, 1);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, sourcePyramid, 2);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, sourcePyramid, 3);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, sourcePyramid, 4);
+
+                        int tx = ((dofParameters.viewportSize.x >> 1) + 7) / 8;
+                        int ty = ((dofParameters.viewportSize.y >> 1) + 7) / 8;
+                        cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
+                    }
+                }
+            }
+
+            // Blur far and near tiles with a "fast" blur
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldGatherNear)))
             {
                 cs = dofParameters.pbDoFGatherCS;
@@ -3196,10 +3266,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
                 int scaledWidth = (dofParameters.viewportSize.x / (int)dofParameters.resolution + 7) / 8;
                 int scaledHeight = (dofParameters.viewportSize.y / (int)dofParameters.resolution + 7) / 8;
+                cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._ApertureShapeTable, shapeTable);
+                cmd.SetComputeIntParam(cs, HDShaderIDs._ApertureShapeTableCount, k_DepthOfFieldApertureShapeBufferSize);
 
                 cmd.DispatchCompute(cs, kernel, scaledWidth, scaledHeight, dofParameters.camera.viewCount);
             }
 
+            // Upscale near/far defocus tiles with a bilinear filter. The bilinear filtering leaking is reduced
+            // because the neighbouring tiles have already been blurred by the first slow tile pass.
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
             {
                 cs = dofParameters.pbDoFCombineCS;
@@ -3215,6 +3289,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputNearTexture, scaledDof);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                cmd.SetComputeIntParam(cs, HDShaderIDs._DebugTileClassification, debugTileClassification ? 1 : 0);
 
                 cmd.DispatchCompute(cs, kernel, (dofParameters.viewportSize.x + 7) / 8, (dofParameters.viewportSize.y + 7) / 8, dofParameters.camera.viewCount);
             }
@@ -3247,20 +3322,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle bokehIndirectCmd;
             public BufferHandle nearBokehTileList;
             public BufferHandle farBokehTileList;
+            public BufferHandle apertureShapeTable;
 
             public bool taaEnabled;
+            public bool debugTileClassification;
         }
 
         TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source, TextureHandle depthMinMaxAvgMSAA, TextureHandle stencilTexture, CurrentUpsamplerData? upsamplerData)
         {
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
-            bool stabilizeCoC = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
             bool isOrtho = hdCamera.camera.orthographic;
-
-            // If DLSS is enabled, we need to stabilize the CoC buffer (because the upsampled depth is jittered)
-            if (hdCamera.RequiresCameraJitter())
-                stabilizeCoC = true;
+            // If jitter is enabled, we need to stabilize the CoC buffer (because the upsampled depth is jittered)
+            bool stabilizeCoC = hdCamera.RequiresCameraJitter() && m_DepthOfField.coCStabilization.value;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -3279,7 +3353,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.resetPostProcessingHistory = true;
                 }
 
-                var dofParameters = PrepareDoFParameters(hdCamera);
+                var dofParameters = PrepareDoFParameters(hdCamera, upsamplerData);
 
                 bool useHistoryMips = m_DepthOfField.physicallyBased;
                 bool cocHistoryValid = GrabCoCHistory(hdCamera, out var prevCoC, out var nextCoC, useMips: useHistoryMips);
@@ -3429,7 +3503,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.pongFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
                         { colorFormat = GetPostprocessTextureFormat(hdCamera), enableRandomWrite = true, name = "Scaled DoF" });
 
-                        passData.pingFarRGB = builder.CreateTransientTexture(GetPostprocessOutputHandle(renderGraph, "DoF Source Pyramid", GetPostprocessTextureFormat(hdCamera), true));
+                        if (dofParameters.resolution != DepthOfFieldResolution.Full)
+                            passData.pingFarRGB = builder.CreateTransientTexture(GetPostprocessOutputHandle(renderGraph, "DoF Source Pyramid", GetPostprocessTextureFormat(hdCamera), true));
 
                         // The size of the tile texture should be rounded-up, so we use a custom scale operator
                         // We cannot use the tile size in the scale call callback (to avoid gc alloc), so for now we use an assert
@@ -3442,14 +3517,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(scaler, IsDynamicResUpscaleTargetEnabled(), true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
 
+                        passData.apertureShapeTable = builder.CreateTransientBuffer(new BufferDesc(k_DepthOfFieldApertureShapeBufferSize, sizeof(float) * 2));
+                        passData.debugTileClassification = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.DepthOfFieldTileClassification;
+
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.pongFarRGB, data.taaEnabled, data.depthMinMaxAvgMSAA);
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.pongFarRGB, data.taaEnabled, data.depthMinMaxAvgMSAA, data.apertureShapeTable, data.debugTileClassification);
                             });
 
                         source = passData.destination;
                         PushFullScreenDebugTexture(renderGraph, debugCocTexture, debugCocTextureScales, FullScreenDebugMode.DepthOfFieldCoc);
+                        PushFullScreenDebugTexture(renderGraph, passData.destination, hdCamera.postProcessRTScales, FullScreenDebugMode.DepthOfFieldTileClassification);
                     }
                 }
 

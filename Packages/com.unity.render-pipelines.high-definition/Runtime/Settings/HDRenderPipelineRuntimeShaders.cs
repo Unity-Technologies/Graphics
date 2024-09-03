@@ -1378,6 +1378,22 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_DofCombineCS, value);
         }
 
+        [SerializeField, ResourcePath("Runtime/PostProcessing/Shaders/DoFComputeSlowTiles.compute")]
+        private ComputeShader m_DofComputeSlowTilesCS;
+        public ComputeShader dofComputeSlowTilesCS
+        {
+            get => m_DofComputeSlowTilesCS;
+            set => this.SetValueAndNotify(ref m_DofComputeSlowTilesCS, value);
+        }
+
+        [SerializeField, ResourcePath("Runtime/PostProcessing/Shaders/DoFApertureShape.compute")]
+        private ComputeShader m_DofComputeApertureShapeCS;
+        public ComputeShader dofComputeApertureShapeCS
+        {
+            get => m_DofComputeApertureShapeCS;
+            set => this.SetValueAndNotify(ref m_DofComputeApertureShapeCS, value);
+        }
+
         [Header("Post-processing - Motion Blur")]
         [SerializeField, ResourcePath("Runtime/PostProcessing/Shaders/MotionBlurMotionVecPrep.compute")]
         private ComputeShader m_MotionBlurMotionVecPrepCS;

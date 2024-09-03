@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty DoFHighFilteringQuality;
         public SerializedProperty DoFPhysicallyBased;
         public SerializedProperty LimitManualRangeNearBlur;
+        public SerializedProperty AdaptiveSamplingWeight;
 
         // Motion Blur
         public SerializedProperty MotionBlurSampleCount;
@@ -41,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DoFHighFilteringQuality = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFHighQualityFiltering);
             DoFPhysicallyBased = root.Find((GlobalPostProcessingQualitySettings s) => s.DoFPhysicallyBased);
             LimitManualRangeNearBlur = root.Find((GlobalPostProcessingQualitySettings s) => s.LimitManualRangeNearBlur);
+            AdaptiveSamplingWeight = root.Find((GlobalPostProcessingQualitySettings s) => s.AdaptiveSamplingWeight);
 
             // Motion Blur
             MotionBlurSampleCount = root.Find((GlobalPostProcessingQualitySettings s) => s.MotionBlurSampleCount);
