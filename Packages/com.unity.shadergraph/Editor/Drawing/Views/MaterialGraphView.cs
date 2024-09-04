@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_UndoRedoPerformedMethodInfo = graphViewType?.GetMethod("UndoRedoPerformed",
                 BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.NonPublic,
                 null,
-                new Type[] { },
+                new Type[] { typeof(UndoRedoInfo).MakeByRefType()},
                 null);
         }
 
@@ -1110,7 +1110,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal void RestorePersistentSelectionAfterUndoRedo()
         {
             wasUndoRedoPerformed = true;
-            m_UndoRedoPerformedMethodInfo?.Invoke(this, new object[] { });
+            UndoRedoInfo info = new UndoRedoInfo();
+            m_UndoRedoPerformedMethodInfo?.Invoke(this, new object[] {info});
         }
 
         #region Drag and drop
