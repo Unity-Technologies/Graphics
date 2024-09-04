@@ -349,6 +349,102 @@
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetPosition(SkinnedMesh).html">Skinned Mesh Position</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputParticleHDRPLitDecal.html">Output Decals HDRP</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputParticleHDRPLitDecal.html">Output Decals URP</a>"""
+		},
+		{
+			"title": "Strip Properties",
+			"prefabName": "Strip Properties",
+			"description":
+			"""<ignore><link="StripProperties.vfx">Open VFX</link>
+			<link="VFXG Strip Properties">Show VFX</link>
+			</ignore>
+			You can use <b>Strips</b>, also known as <b>Ribbons</b> or <b>Trails</b>, to create a wide range of VFX. The <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Ouput Context</a> and Strip particle data allow you to draw a quad between each particle. This example demonstrates a straightforward Strip setup. It explains the various strip properties and attributes that control its visual appearance and behavior.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeParticleIndexInStrip.html">Particle Index in Strip</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeParticleCountInStrip.html">Particle Count in Strip</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeStripIndex.html">Strip Index</a>"""
+		},
+		{
+			"title": "Strip Spawn Rate",
+			"prefabName": "Strip SpawnRate",
+			"description":
+			"""<ignore><link="StripSpawnRate.vfx">Open VFX</link>
+			<link="VFXG Strip SpawnRate">Show VFX</link>
+			</ignore>
+			There are several ways to spawn particles, and when dealing with <b>strips</b>, this can have some implications for how you need to set up your VFX. This example shows you how to make a single trail out of a continuous spawn rate of particles.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeStripIndex.html">Strip Index</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html#attribute-locations">Attribute Locations</a>"""
+		},
+		{
+			"title": "Multi-Strip SpawnRate",
+			"prefabName": "Multi-Strip SpawnRate",
+			"description":
+			"""<ignore><link="MultiStripsSpawnRate.vfx">Open VFX</link>
+			<link="VFXG MultiStrips SpawnRate">Show VFX</link>
+			</ignore>
+			There are several ways to spawn particles, and when dealing with <b>strips</b>, this can have some implications for how you need to set up your VFX. This example shows you how to make multiple <b>trails</b> out of a continuous spawn rate of particles
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeStripIndex.html">Strip Index</a>"""
+		},
+		{
+			"title": "Multi-Strip Single Burst",
+			"prefabName": "Multi-Strip Single Burst",
+			"description":
+			"""<ignore><link="MultiStripSingleBurst.vfx">Open VFX</link>
+			<link="VFXG MultiStrips SingleBurst">Show VFX</link>
+			</ignore>
+			There are several ways to spawn particles, and when dealing with <b>strips</b>, this can have some implications for how you need to set up your VFX. This example shows you how to make multiple <b>trails</b> with one single burst of particles.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeStripIndex.html">Strip Index</a>"""
+		},
+		{
+			"title": "Multi-Strip Periodic Burst",
+			"prefabName": "Multi-Strip Periodic Burst",
+			"description":
+			"""<ignore><link="MultiStripsPeriodicBurst.vfx">Open VFX</link>
+			<link="VFXG MultiStrips PeriodicBurst">Show VFX</link>
+			</ignore>
+			There are several ways to spawn particles, and when dealing with <b>strips</b>, this can have some implications for how you need to set up your VFX. This example shows you how to make a new <b>trail</b> for each periodic burst within a single system.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeStripIndex.html">Strip Index</a>"""
+		},
+		{
+			"title": "Strip GPU-Event",
+			"prefabName": "Strip GPU-Events",
+			"description":
+			"""<ignore><link="StripGPUEvent.vfx">Open VFX</link>
+			<link="VFXG Strip GPU-Events">Show VFX</link>
+			</ignore>
+			There are several ways to spawn particles, and when dealing with <b>strips</b>, this can have some implications for how you need to set up your VFX. Using GPU trigger events is often the most straightforward way of creating <b>strips</b>. This example shows an example of a growing mushroom's VFX, with the mushroom’s hat being particle meshes and the mushroom’s foot made with particle <b>strips</b>.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeStripIndex.html">Strip Index</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-TriggerEventRate.html">Trigger Event Rate</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>"""
+		},
+		{
+			"title": "Multi-Strips GPU-Event",
+			"prefabName": "Multi-Strips GPU-Event",
+			"description":
+			"""<ignore><link="MultiStripGPUEvents.vfx">Open VFX</link>
+			<link="VFXG Multi-Strips GPU-Events">Show VFX</link>
+			</ignore>
+			There are several ways to spawn particles, and when dealing with <b>strips</b>, this can have some implications for how you need to set up your VFX. This example illustrates how to circumvent the usual limitation that only permits the creation of one strip per parent's particle when dealing with <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-TriggerEventRate.html">Trigger Events</a>. Each headphone jack is made of a particle mesh and spawns particles along its path.
+
+			<b>Covered Aspects</b>:
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeStripIndex.html">Strip Index</a>"""
 		}
 	]
 }

@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: df1e474b859146a4cb64910d1405926d
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Strip GPU-Event
+    category: Learning Templates
+    description: "There are several ways to spawn particles, and when dealing with
+      strips, this can have some implications for how you need to set up your VFX.
+      Using GPU trigger events is often the most straightforward way of creating
+      strips. This example shows an example of a growing mushroom's VFX, with the
+      mushroom\u2019s hat being particle meshes and the mushroom\u2019s foot made
+      with particle strips."
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 9ffdc5aacc959004da707eadc155e7ef, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
