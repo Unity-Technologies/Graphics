@@ -127,4 +127,37 @@ class Renderer2DTests
 
         Assert.IsTrue(valid);
     }
+
+    [Test]
+    public void PostProcessingEnabled_OverlayCamera()
+    {
+        m_BaseCameraData.cameraStack.Add(m_OverlayCamera);
+
+        m_OverlayCameraData.renderPostProcessing = true;
+
+        m_BaseCamera.Render();
+    }
+
+
+    [Test]
+    public void PostProcessingEnabled_BaseCamera()
+    {
+        m_BaseCameraData.cameraStack.Add(m_OverlayCamera);
+
+        m_BaseCameraData.renderPostProcessing = true;
+
+        m_BaseCamera.Render();
+    }
+
+    [Test]
+    public void PostProcessingEnabled_BaseAndOverlayCamera()
+    {
+        m_BaseCameraData.cameraStack.Add(m_OverlayCamera);
+
+        m_BaseCameraData.renderPostProcessing = true;
+        m_OverlayCameraData.renderPostProcessing = true;
+
+        m_BaseCamera.Render();
+    }
+
 }
