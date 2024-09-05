@@ -39,7 +39,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed partial class UniversalRenderer : ScriptableRenderer
     {
-        #if UNITY_SWITCH || UNITY_ANDROID
+        // Don't use 24 bit format in the editor, because it leads to unnecessary depth buffer re-allocations
+        #if (UNITY_SWITCH || UNITY_ANDROID) && !UNITY_EDITOR
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
         const int k_DepthBufferBits = 24;
         #else
