@@ -248,14 +248,7 @@ void Frag(PackedVaryings packedInput,
     half3 normalWS = half3(LoadSceneNormals(positionCS.xy));
 #endif
 
-    float2 positionSS = input.positionCS.xy * _ScreenSize.zw;
-
-#if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
-    {
-        positionSS = RemapFoveatedRenderingNonUniformToLinearCS(input.positionCS.xy, true) * _ScreenSize.zw;
-    }
-#endif
+    float2 positionSS = FoveatedRemapNonUniformToLinearCS(input.positionCS.xy) * _ScreenSize.zw;
 
 #ifdef DECAL_PROJECTOR
     float3 positionWS = ComputeWorldSpacePosition(positionSS, depth, UNITY_MATRIX_I_VP);
