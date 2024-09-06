@@ -109,7 +109,16 @@ namespace UnityEngine.Rendering.Universal
                 case MaskSize.Bits8:
                     return GraphicsFormat.R8_UNorm;
                 case MaskSize.Bits16:
-                    return GraphicsFormat.R16_UNorm;
+                {
+                        //webgpu does not support r16_unorm as a render target format
+#if UNITY_2023_2_OR_NEWER
+                        if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.WebGPU)
+                        {
+                            return GraphicsFormat.R32_SFloat;
+                        }
+#endif
+                        return GraphicsFormat.R16_UNorm;
+                }
                 case MaskSize.Bits24:
                 case MaskSize.Bits32:
                     return GraphicsFormat.R32_SFloat;
