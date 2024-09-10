@@ -59,13 +59,14 @@ For Example, a Position type carries a Vector3 value and a Spaceable Property. I
 
 Depending on the [System Simulation Space](Systems.md#system-spaces), the value will be automatically transformed to the simulation space if required.
 
-> Tip:  You can use the Change Space Operator to manually change a Property Space.
+> [!TIP]
+> You can use the Change Space Operator to manually change a Property Space.
 
 ## Property Nodes
 
 Property Nodes are [Operators](Operators.md) that give access to Graph-Wide Properties defined in the [Blackboard](Blackboard.md). These properties allow you to reuse the same value throughout the graph at different places.
 
-![](Images/PropertyNodes.png)
+![](Images/PropertyNode.png)
 
 * Property Nodes display a Green dot left to the Property name if the property is exposed.
 * To create a Property Node:
