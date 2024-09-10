@@ -745,13 +745,16 @@ namespace UnityEngine.Rendering.Universal
                         {
                             // Fall back to R32_Float if depth copy is disabled.
                             var tempColorDepthDesc = cameraData.cameraTargetDescriptor;
-                            tempColorDepthDesc.colorFormat = RenderTextureFormat.RFloat;
                             tempColorDepthDesc.graphicsFormat = GraphicsFormat.R32_SFloat;
                             tempColorDepthDesc.depthBufferBits = 0;
                             depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
                         }
                         else
-                            depthHistory.Update(ref cameraData.cameraTargetDescriptor, xrMultipassEnabled);
+                        {
+                            var tempColorDepthDesc = cameraData.cameraTargetDescriptor;
+                            tempColorDepthDesc.graphicsFormat = GraphicsFormat.None;
+                            depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
+                        }
 
                         if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {

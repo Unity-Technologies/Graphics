@@ -1581,7 +1581,11 @@ namespace UnityEngine.Rendering.Universal
                             depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
                         }
                         else
-                            depthHistory.Update(ref cameraTargetDescriptor, xrMultipassEnabled);
+                        {
+                            var tempColorDepthDesc = cameraData.cameraTargetDescriptor;
+                            tempColorDepthDesc.graphicsFormat = GraphicsFormat.None;
+                            depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
+                        }
 
                         if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {

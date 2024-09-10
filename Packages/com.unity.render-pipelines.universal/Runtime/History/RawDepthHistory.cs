@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
         // Return true if the RTHandles were reallocated.
         internal bool Update(ref RenderTextureDescriptor cameraDesc, bool xrMultipassEnabled)
         {
-            if (cameraDesc.width > 0 && cameraDesc.height > 0 && cameraDesc.graphicsFormat != GraphicsFormat.None)
+            if (cameraDesc.width > 0 && cameraDesc.height > 0 && (cameraDesc.depthStencilFormat != GraphicsFormat.None || cameraDesc.graphicsFormat != GraphicsFormat.None) )
             {
                 var historyDesc = GetHistoryDescriptor(ref cameraDesc);
 

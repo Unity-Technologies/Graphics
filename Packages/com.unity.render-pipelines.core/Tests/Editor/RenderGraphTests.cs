@@ -929,6 +929,25 @@ namespace UnityEngine.Rendering.Tests
                 var importedTexture = m_RenderGraph.ImportTexture(renderTextureHandle);
             });
 
+            renderTextureHandle.Release();
+        }
+
+        [Test]
+        public void ImportingRenderTextureWithColorAndDepthThrows()
+        {
+            // Create a new RTHandle texture
+            var desc = new RenderTextureDescriptor(16, 16, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.D32_SFloat_S8_UInt);
+            var rt = new RenderTexture(desc) { name = "RenderTextureWithColorAndDepth"};
+
+            var renderTextureHandle = RTHandles.Alloc(rt);
+
+            Assert.Throws<Exception>(() =>
+            {
+                var importedTexture = m_RenderGraph.ImportTexture(renderTextureHandle);
+            });
+
+            renderTextureHandle.Release();
+            rt.Release();
         }
 
         [Test]

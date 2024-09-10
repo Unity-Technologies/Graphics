@@ -819,6 +819,8 @@ namespace UnityEngine.Rendering.Universal
             float mipMapBias = 0,
             string name = "")
         {
+            Assertions.Assert.IsTrue(descriptor.graphicsFormat == GraphicsFormat.None ^ descriptor.depthStencilFormat == GraphicsFormat.None);
+
             TextureDesc requestRTDesc = RTHandleResourcePool.CreateTextureDesc(descriptor, TextureSizeMode.Explicit, anisoLevel, 0, filterMode, wrapMode, name);
             if (RTHandleNeedsReAlloc(handle, requestRTDesc, false))
             {

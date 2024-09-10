@@ -483,12 +483,11 @@ namespace UnityEngine.Rendering
             Assert.IsFalse(descriptor.graphicsFormat != GraphicsFormat.None && descriptor.depthStencilFormat != GraphicsFormat.None,
                 "The RenderTextureDescriptor used to create RTHandle " + name + " contains both graphicsFormat and depthStencilFormat which is not allowed.");
 
-            var actualFormat = descriptor.graphicsFormat != GraphicsFormat.None ? descriptor.graphicsFormat : descriptor.depthStencilFormat;
             return s_DefaultInstance.Alloc(
                 scaleFunc,
                 descriptor.volumeDepth,
                 (DepthBits)descriptor.depthBufferBits,
-                actualFormat,
+                descriptor.graphicsFormat,
                 filterMode,
                 wrapMode,
                 descriptor.dimension,

@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             m_BlackTexture2D = RTHandles.Alloc(Texture2D.blackTexture);
             m_WhiteTexture2D = RTHandles.Alloc(Texture2D.whiteTexture);
-            m_ShadowTexture2D = RTHandles.Alloc(1, 1, depthBufferBits: DepthBits.Depth32, isShadowMap: true, name: "DefaultShadowTexture");
+            m_ShadowTexture2D = RTHandles.Alloc(1, 1, colorFormat:Experimental.Rendering.GraphicsFormat.None, depthBufferBits: DepthBits.Depth32, isShadowMap: true, name: "DefaultShadowTexture");
         }
 
         internal void Cleanup()

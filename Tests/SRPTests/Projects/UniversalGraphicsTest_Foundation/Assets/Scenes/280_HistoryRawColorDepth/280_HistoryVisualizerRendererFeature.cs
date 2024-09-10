@@ -179,6 +179,8 @@ public class HistoryVisualizer : ScriptableRendererFeature
                 RTHandle historyTexture = GetHistorySourceTexture(cameraData.historyManager, multipassId);
                 passData.historyTexture = renderGraph.ImportTexture(historyTexture);
 
+                builder.UseTexture(passData.historyTexture);
+
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
                     data.material.SetTexture(kHistoryShaderName, data.historyTexture);
