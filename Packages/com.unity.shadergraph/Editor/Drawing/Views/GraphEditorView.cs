@@ -217,13 +217,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 GUILayout.Space(6);
 
-                m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, new GUIContent(EditorGUIUtility.FindTexture("d_UnityEditor.InspectorWindow"), "Graph Inspector"), EditorStyles.toolbarButton);
+                m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, new GUIContent(EditorGUIUtility.TrIconContent("d_UnityEditor.InspectorWindow").image, "Graph Inspector"), EditorStyles.toolbarButton);
 
                 GUILayout.Space(6);
 
                 m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, new GUIContent(EditorGUIUtility.FindTexture("PreMatSphere"), "Main Preview"), EditorStyles.toolbarButton);
 
-                if (GUILayout.Button(new GUIContent(EditorGUIUtility.FindTexture("_Help"), "Open Shader Graph User Manual"), EditorStyles.toolbarButton))
+                if (GUILayout.Button(new GUIContent(EditorGUIUtility.TrIconContent("_Help").image, "Open Shader Graph User Manual"), EditorStyles.toolbarButton))
                 {
                     Application.OpenURL(UnityEngine.Rendering.ShaderGraph.Documentation.GetPageLink("index"));
                     //Application.OpenURL("https://docs.unity3d.com/Packages/com.unity.shadergraph@17.0/manual/index.html"); // TODO : point to latest?
