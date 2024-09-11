@@ -1,7 +1,5 @@
 # SRP Core
 
-![](https://blogs.unity3d.com/wp-content/uploads/2018/01/image5_rs.png)
-
 The Scriptable Render Pipeline (SRP) is a Unity feature that allows you to write C# scripts to control the way Unity renders each frame. SRP Core is a package that makes it easier to create or customize an SRP.
 
 SRP Core contains reusable code, including boilerplate code for working with platform-specific graphics APIs, utility functions for common rendering operations, and the shader libraries used in the High Definition Render Pipeline (HDRP) and Universal Render Pipeline (URP).
