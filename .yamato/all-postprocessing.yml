@@ -13,19 +13,19 @@ PR_PostProcessing_trunk:
         UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
+         rerun: on_new_revis
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_playmode_mono_Linear_trunk
-         rerun: on_new_revision
+         rerun: always
       -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_playmode_mono_Linear_trunk
-         rerun: on_new_revision
+         rerun: always
       -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_playmode_mono_Linear_trunk
-         rerun: on_new_revision
+         rerun: always
       -  path: .yamato/postprocessing-osx-metal.yml#PostProcessing_OSX_Metal_playmode_mono_Linear_trunk
-         rerun: on_new_revision
+         rerun: always
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
+         rerun: always
       -  path: .yamato/postprocessing-linux-vulkan.yml#PostProcessing_Linux_Vulkan_playmode_mono_Linear_trunk
-         rerun: on_new_revision
+         rerun: always
 Extra_PostProcessing_trunk:
     name: Extra PostProcessing on trunk
     variables:
@@ -34,9 +34,9 @@ Extra_PostProcessing_trunk:
         UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
+         rerun: always
       -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on_new_revision
+         rerun: always
 PostProcessing_trunk:
     name: PostProcessing on trunk
     variables:
@@ -45,6 +45,6 @@ PostProcessing_trunk:
         UTR_VERSION: "current"
     dependencies:
       -  path: .yamato/all-postprocessing.yml#PR_PostProcessing_trunk
-         rerun: on_new_revision
+         rerun: always
       -  path: .yamato/all-postprocessing.yml#Extra_PostProcessing_trunk
-         rerun: on_new_revision
+         rerun: always
