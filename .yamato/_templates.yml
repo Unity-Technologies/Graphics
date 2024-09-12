@@ -16,7 +16,8 @@ pre_pack_hdrp_template_Win_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+        return: always
     artifacts:
         primed:
             paths:
@@ -47,8 +48,10 @@ test_hdrp_template_Win_trunk:
         image: package-ci/win11:v4
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template_Win_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
+      - path: .yamato/_templates.yml#pack_hdrp_template_Win_trunk
+        return: always
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+        return: always
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -68,7 +71,8 @@ pre_pack_hdrp_template_OSX_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-hd -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+        return: always
     artifacts:
         primed:
             paths:
@@ -99,8 +103,10 @@ test_hdrp_template_OSX_trunk:
         image: package-ci/macos-13:v4
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+      - path: .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
+        return: always
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+        return: always
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -119,10 +125,14 @@ publish_hdrp_template_trunk:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_template_Win_trunk
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_trunk
-      -  .yamato/_templates.yml#pack_hdrp_template_Win_trunk
-      -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
+      - path: .yamato/_templates.yml#test_hdrp_template_Win_trunk
+        return: always
+      - path: .yamato/_templates.yml#test_hdrp_template_OSX_trunk
+        return: always
+      - path: .yamato/_templates.yml#pack_hdrp_template_Win_trunk
+        return: always
+      - path: .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
+        return: always
     artifacts:
         packages:
             paths:
@@ -138,10 +148,14 @@ publish_hdrp_template_trunk_dry_run:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-hd --dry-run
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_template_Win_trunk
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_trunk
-      -  .yamato/_templates.yml#pack_hdrp_template_Win_trunk
-      -  .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
+      - path: .yamato/_templates.yml#test_hdrp_template_Win_trunk
+        return: always
+      - path: .yamato/_templates.yml#test_hdrp_template_OSX_trunk
+        return: always
+      - path: .yamato/_templates.yml#pack_hdrp_template_Win_trunk
+        return: always
+      - path: .yamato/_templates.yml#pack_hdrp_template_OSX_trunk
+        return: always
     artifacts:
         packages:
             paths:
@@ -158,7 +172,8 @@ pre_pack_hdrp_blank_template_Win_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template.hdrp-blank -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+        return: always
     artifacts:
         primed:
             paths:
@@ -189,8 +204,10 @@ test_hdrp_blank_template_Win_trunk:
         image: package-ci/win11:v4
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_blank_template_Win_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
+      - path: .yamato/_templates.yml#pack_hdrp_blank_template_Win_trunk
+        rerun: always
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+        return: always
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -210,7 +227,8 @@ pre_pack_hdrp_blank_template_OSX_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template.hdrp-blank -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+        return: always
     artifacts:
         primed:
             paths:
@@ -241,8 +259,10 @@ test_hdrp_blank_template_OSX_trunk:
         image: package-ci/macos-13:v4
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_hdrp_blank_template_OSX_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+      - path: .yamato/_templates.yml#pack_hdrp_blank_template_OSX_trunk
+        return: always
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+        return: always
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -280,10 +300,14 @@ publish_hdrp_blank_template_trunk_dry_run:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template.hdrp-blank --dry-run
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_blank_template_Win_trunk
-      -  .yamato/_templates.yml#test_hdrp_blank_template_OSX_trunk
-      -  .yamato/_templates.yml#pack_hdrp_blank_template_Win_trunk
-      -  .yamato/_templates.yml#pack_hdrp_blank_template_OSX_trunk
+      - path: .yamato/_templates.yml#test_hdrp_blank_template_Win_trunk
+        return: always
+      - path: .yamato/_templates.yml#test_hdrp_blank_template_OSX_trunk
+        return: always
+      - path: .yamato/_templates.yml#pack_hdrp_blank_template_Win_trunk
+        return: always
+      - path: .yamato/_templates.yml#pack_hdrp_blank_template_OSX_trunk
+        return: always
     artifacts:
         packages:
             paths:
@@ -300,7 +324,8 @@ pre_pack_universal_template_Win_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor\Unity.exe -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+        return: always
     artifacts:
         primed:
             paths:
@@ -331,8 +356,10 @@ test_universal_template_Win_trunk:
         image: package-ci/win11:v4
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template_Win_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:Win
+      - path: .yamato/_templates.yml#pack_universal_template_Win_trunk
+        return: always
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:Win
+        return: always
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -352,7 +379,8 @@ pre_pack_universal_template_OSX_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
       -  .Editor/Unity.app/Contents/MacOS/Unity -projectPath com.unity.template-universal -batchmode -quit -logFile ./Editor.log
     dependencies:
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+        return: always
     artifacts:
         primed:
             paths:
@@ -383,8 +411,10 @@ test_universal_template_OSX_trunk:
         image: package-ci/macos-13:v4
         flavor: m1.mac
     dependencies:
-      -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
-      -  .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+      - path: .yamato/_templates.yml#pack_universal_template_OSX_trunk
+        return: always
+      - path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
+        return: always
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
@@ -422,10 +452,14 @@ publish_universal_template_trunk_dry_run:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci template publish --project-path com.unity.template-universal --dry-run
     dependencies:
-      -  .yamato/_templates.yml#test_universal_template_Win_trunk
-      -  .yamato/_templates.yml#test_universal_template_OSX_trunk
-      -  .yamato/_templates.yml#pack_universal_template_Win_trunk
-      -  .yamato/_templates.yml#pack_universal_template_OSX_trunk
+      - path: .yamato/_templates.yml#test_universal_template_Win_trunk
+        return: always
+      - path: .yamato/_templates.yml#test_universal_template_OSX_trunk
+        return: always
+      - path: .yamato/_templates.yml#pack_universal_template_Win_trunk
+        return: always
+      - path: .yamato/_templates.yml#pack_universal_template_OSX_trunk
+        return: always
     artifacts:
         packages:
             paths:
@@ -438,12 +472,18 @@ all_template_ci_trunk:
         image: package-ci/win10:v4
         flavor: b1.large
     dependencies:
-      -  .yamato/_templates.yml#test_hdrp_template_Win_trunk
-      -  .yamato/_templates.yml#test_hdrp_blank_template_Win_trunk
-      -  .yamato/_templates.yml#test_universal_template_Win_trunk
-      -  .yamato/_templates.yml#test_hdrp_template_OSX_trunk
-      -  .yamato/_templates.yml#test_hdrp_blank_template_OSX_trunk
-      -  .yamato/_templates.yml#test_universal_template_OSX_trunk
+      - path: .yamato/_templates.yml#test_hdrp_template_Win_trunk
+        rerun: always
+      - path: .yamato/_templates.yml#test_hdrp_blank_template_Win_trunk
+        rerun: always
+      - path: .yamato/_templates.yml#test_universal_template_Win_trunk
+        rerun: always
+      - path: .yamato/_templates.yml#test_hdrp_template_OSX_trunk
+        rerun: always
+      - path: .yamato/_templates.yml#test_hdrp_blank_template_OSX_trunk
+        rerun: always
+      - path: .yamato/_templates.yml#test_universal_template_OSX_trunk
+        rerun: always
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t

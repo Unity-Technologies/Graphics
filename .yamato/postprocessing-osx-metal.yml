@@ -42,7 +42,7 @@ PostProcessing_OSX_Metal_playmode_mono_Linear_trunk:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
-         rerun: on_new_revision
+         rerun: always
 PostProcessing_OSX_Metal_Standalone_mono_Linear_trunk:
     name: PostProcessing on OSX_Metal_Standalone_mono_Linear on version trunk
     agent:
@@ -80,4 +80,4 @@ PostProcessing_OSX_Metal_Standalone_mono_Linear_trunk:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:trunk:OSX
-         rerun: on_new_revision
+         rerun: always
