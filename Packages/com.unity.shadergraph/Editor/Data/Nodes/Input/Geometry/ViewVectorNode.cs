@@ -10,6 +10,7 @@ using System.Reflection;
 
 namespace UnityEditor.ShaderGraph
 {
+    using PopupList = UnityEditor.ShaderGraph.Drawing.Controls.PopupList;
     [Title("Input", "Geometry", "View Vector")]
     class ViewVectorNode : CodeFunctionNode
     {

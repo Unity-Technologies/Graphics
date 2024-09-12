@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Action<Port> OnDisconnect;
+        public new Action<Port> OnDisconnect;
 
         public override void Disconnect(Edge edge)
         {

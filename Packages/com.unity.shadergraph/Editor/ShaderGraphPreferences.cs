@@ -87,49 +87,46 @@ namespace UnityEditor.ShaderGraph
             if (!m_Loaded)
                 Load();
 
-            var previousLabelWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = 256;
-
-            EditorGUILayout.Space();
-
             EditorGUI.BeginChangeCheck();
 
-            var actualLimit = ShaderGraphProjectSettings.instance.shaderVariantLimit;
-            var willPreviewVariantBeIgnored = ShaderGraphPreferences.previewVariantLimit > actualLimit;
-
-            var variantLimitLabel = willPreviewVariantBeIgnored
-                ? new GUIContent("Preview Variant Limit", EditorGUIUtility.IconContent("console.infoicon").image, $"The Preview Variant Limit is higher than the Shader Variant Limit in Project Settings: {actualLimit}. The Preview Variant Limit will be ignored.")
-                : new GUIContent("Preview Variant Limit");
-
-            var variantLimitValue = EditorGUILayout.DelayedIntField(variantLimitLabel, previewVariantLimit);
-            variantLimitValue = Mathf.Max(0, variantLimitValue);
-            if (EditorGUI.EndChangeCheck())
+            using (new SettingsWindow.GUIScope())
             {
-                previewVariantLimit = variantLimitValue;
+                var actualLimit = ShaderGraphProjectSettings.instance.shaderVariantLimit;
+                var willPreviewVariantBeIgnored = ShaderGraphPreferences.previewVariantLimit > actualLimit;
+
+                var variantLimitLabel = willPreviewVariantBeIgnored
+                    ? new GUIContent("Preview Variant Limit", EditorGUIUtility.IconContent("console.infoicon").image, $"The Preview Variant Limit is higher than the Shader Variant Limit in Project Settings: {actualLimit}. The Preview Variant Limit will be ignored.")
+                    : new GUIContent("Preview Variant Limit");
+
+                var variantLimitValue = EditorGUILayout.DelayedIntField(variantLimitLabel, previewVariantLimit);
+                variantLimitValue = Mathf.Max(0, variantLimitValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    previewVariantLimit = variantLimitValue;
+                }
+
+                EditorGUI.BeginChangeCheck();
+                var autoAddRemoveBlocksValue = EditorGUILayout.Toggle("Automatically Add and Remove Block Nodes", autoAddRemoveBlocks);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    autoAddRemoveBlocks = autoAddRemoveBlocksValue;
+                }
+
+                EditorGUI.BeginChangeCheck();
+                var allowDeprecatedBehaviorsValue = EditorGUILayout.Toggle("Enable Deprecated Nodes", allowDeprecatedBehaviors);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    allowDeprecatedBehaviors = allowDeprecatedBehaviorsValue;
+                }
+
+                EditorGUI.BeginChangeCheck();
+                var zoomStepSizeValue = EditorGUILayout.Slider(new GUIContent("Zoom Step Size", $"Default is 0.5"), zoomStepSize, 0.0f, 1f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    zoomStepSize = zoomStepSizeValue;
+                }
             }
 
-            EditorGUI.BeginChangeCheck();
-            var autoAddRemoveBlocksValue = EditorGUILayout.Toggle("Automatically Add and Remove Block Nodes", autoAddRemoveBlocks);
-            if (EditorGUI.EndChangeCheck())
-            {
-                autoAddRemoveBlocks = autoAddRemoveBlocksValue;
-            }
-
-            EditorGUI.BeginChangeCheck();
-            var allowDeprecatedBehaviorsValue = EditorGUILayout.Toggle("Enable Deprecated Nodes", allowDeprecatedBehaviors);
-            if (EditorGUI.EndChangeCheck())
-            {
-                allowDeprecatedBehaviors = allowDeprecatedBehaviorsValue;
-            }
-
-            EditorGUI.BeginChangeCheck();
-            var zoomStepSizeValue = EditorGUILayout.Slider(new GUIContent("Zoom Step Size", $"Default is 0.5"), zoomStepSize, 0.0f, 1f);
-            if (EditorGUI.EndChangeCheck())
-            {
-                zoomStepSize = zoomStepSizeValue;
-            }
-
-            EditorGUIUtility.labelWidth = previousLabelWidth;
         }
 
         static void Load()

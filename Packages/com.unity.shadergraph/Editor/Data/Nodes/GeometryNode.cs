@@ -9,6 +9,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
+    using PopupList = UnityEditor.ShaderGraph.Drawing.Controls.PopupList;
     abstract class GeometryNode : AbstractMaterialNode
     {
         public GeometryNode()
