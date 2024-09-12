@@ -316,9 +316,6 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         shadow = lightLoopContext.shadowValue;
 
     #ifdef SHADOWS_SHADOWMASK
-        float3 camToPixel = posInput.positionWS - GetPrimaryCameraPosition();
-        float distanceCamToPixel2 = dot(camToPixel, camToPixel);
-
         int shadowSplitIndex = lightLoopContext.shadowContext.shadowSplitIndex;
         if (shadowSplitIndex < 0)
         {
@@ -326,7 +323,12 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         }
         else if (shadowSplitIndex == int(_CascadeShadowCount) - 1)
         {
-            float fade = lightLoopContext.shadowContext.fade;
+            // float fade = lightLoopContext.shadowContext.fade;
+            float3 camToPixel = posInput.positionWS - GetPrimaryCameraPosition();
+            float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+
+            HDDirectionalShadowData dsd = lightLoopContext.shadowContext.directionalShadowData;
+            float fade = saturate(distanceCamToPixel2 * dsd.fadeScale + dsd.fadeBias);
             // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
             // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
             // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask

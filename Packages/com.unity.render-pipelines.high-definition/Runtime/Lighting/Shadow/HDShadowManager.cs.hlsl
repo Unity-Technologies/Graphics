@@ -11,6 +11,8 @@ struct HDDirectionalShadowData
     float4 sphereCascades[4];
     real4 cascadeDirection;
     real cascadeBorders[4];
+    float fadeScale;
+    float fadeBias;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.HDShadowData
