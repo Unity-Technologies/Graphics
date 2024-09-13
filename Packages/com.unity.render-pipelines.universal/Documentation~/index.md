@@ -1,24 +1,8 @@
 ---
 uid: urp-index
 ---
-# Universal Render Pipeline overview
+# The documentation has moved to the Unity Manual
 
-![Universal Render Pipeline in action](Images/AssetShots/Beauty/Overview.png)
+The documentation for the Universal Render Pipeline (URP) in Unity 6 Preview has moved to the [Unity Manual](https://docs.unity3d.com/6000.0/Documentation/Manual/urp/urp-introduction.html).
 
-The Universal Render Pipeline (URP) is a prebuilt Scriptable Render Pipeline, made by Unity. URP provides artist-friendly workflows that let you quickly and easily create optimized graphics across a range of platforms, from mobile to high-end consoles and PCs.
-
-## Requirements
-
-For information about requirements and compatibility, refer to the [Requirements](requirements.md).
-
-## What's new in URP
-
-For information on what's new in the latest version of URP, refer to [What's new in URP](whats-new/urp-whats-new.md).
-
-## Getting started with URP
-
-For information on starting a new URP Project from scratch, or about installing URP in an existing Unity Project, check [Getting started](InstallingAndConfiguringURP.md).
-
-## Upgrading
-
-For information on upgrading from a previous version of URP to the current version, or for information about upgrading from the Lightweight Render Pipeline (LWRP) to URP, refer to [Upgrade guides](upgrade-guides.md).
+The [scripting API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.0/api/index.html) documentation is still on this website.
