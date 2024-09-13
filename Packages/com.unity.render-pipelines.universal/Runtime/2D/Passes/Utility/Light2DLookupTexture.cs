@@ -4,8 +4,49 @@ namespace UnityEngine.Rendering.Universal
 {
     internal static class Light2DLookupTexture
     {
+        internal static readonly string k_LightLookupProperty = "_LightLookup";
+        internal static readonly string k_FalloffLookupProperty = "_FalloffLookup";
+        internal static readonly int k_LightLookupID = Shader.PropertyToID(k_LightLookupProperty);
+        internal static readonly int k_FalloffLookupID = Shader.PropertyToID(k_FalloffLookupProperty);
+
         private static Texture2D s_PointLightLookupTexture;
         private static Texture2D s_FalloffLookupTexture;
+        private static RTHandle m_LightLookupRTHandle = null;
+        private static RTHandle m_FalloffRTHandle = null;
+
+        public static RTHandle GetLightLookupTexture_Rendergraph()
+        {
+            if (s_PointLightLookupTexture == null || m_LightLookupRTHandle == null)
+            {
+                var lightLookupTexture = GetLightLookupTexture();
+
+                m_LightLookupRTHandle?.Release();
+                m_LightLookupRTHandle = RTHandles.Alloc(lightLookupTexture);
+            }
+
+            return m_LightLookupRTHandle;
+        }
+
+        public static RTHandle GetFallOffLookupTexture_Rendergraph()
+        {
+            if (s_FalloffLookupTexture == null || m_FalloffRTHandle == null)
+            {
+                var fallOffLookupTexture = GetFalloffLookupTexture();
+
+                m_FalloffRTHandle?.Release();
+                m_FalloffRTHandle = RTHandles.Alloc(fallOffLookupTexture);
+            }
+
+            return m_FalloffRTHandle;
+        }
+
+        public static void Release()
+        {
+            m_FalloffRTHandle?.Release();
+            m_LightLookupRTHandle?.Release();
+            m_FalloffRTHandle = null;
+            m_LightLookupRTHandle = null;
+        }
 
         public static Texture GetLightLookupTexture()
         {
@@ -14,13 +55,13 @@ namespace UnityEngine.Rendering.Universal
             return s_PointLightLookupTexture;
         }
 
-        public static Texture GetFallOffLookupTexture()
+        public static Texture GetFalloffLookupTexture()
         {
             if (s_FalloffLookupTexture == null)
                 s_FalloffLookupTexture = CreateFalloffLookupTexture();
             return s_FalloffLookupTexture;
-        }
 
+        }
 
         private static Texture2D CreatePointLightLookupTexture()
         {
@@ -34,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
                 textureFormat = GraphicsFormat.R32G32B32A32_SFloat;
 
             var texture = new Texture2D(WIDTH, HEIGHT, textureFormat, TextureCreationFlags.None);
+            texture.name = k_LightLookupProperty;
             texture.filterMode = FilterMode.Bilinear;
             texture.wrapMode = TextureWrapMode.Clamp;
             var center = new Vector2(WIDTH / 2.0f, HEIGHT / 2.0f);
@@ -82,6 +124,7 @@ namespace UnityEngine.Rendering.Universal
 
             const GraphicsFormat textureFormat = GraphicsFormat.R8G8B8A8_SRGB;
             var texture = new Texture2D(WIDTH, HEIGHT - 64, textureFormat, TextureCreationFlags.None);
+            texture.name = k_FalloffLookupProperty;
             texture.filterMode = FilterMode.Bilinear;
             texture.wrapMode = TextureWrapMode.Clamp;
             for (var y = 0; y < HEIGHT; y++)

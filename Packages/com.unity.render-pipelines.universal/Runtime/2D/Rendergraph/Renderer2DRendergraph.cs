@@ -1,7 +1,6 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using static UnityEngine.Rendering.Universal.UniversalResourceDataBase;
-
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
 namespace UnityEngine.Rendering.Universal
@@ -523,6 +522,9 @@ namespace UnityEngine.Rendering.Universal
 
             var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
 
+            // Set Global Light Textures
+            GlobalLightTexturePass.SetGlobals(renderGraph);
+
             // Main render passes
 
             // Normal Pass
@@ -715,7 +717,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderGraphBackbufferColorHandle?.Release();
             m_RenderGraphBackbufferDepthHandle?.Release();
             m_CameraSortingLayerHandle?.Release();
-            m_LightPass.Dispose();
+            Light2DLookupTexture.Release();
         }
     }
 }
