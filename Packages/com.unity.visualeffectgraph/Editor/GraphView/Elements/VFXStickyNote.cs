@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.UI
         VFXStickyNoteController m_Controller;
         public VFXStickyNote() : base(Vector2.zero)
         {
-            styleSheets.Add(Resources.Load<StyleSheet>("StickyNote"));
+            styleSheets.Add(VFXView.LoadStyleSheet("VFXStickynote"));
             this.RegisterCallback<StickyNoteChangeEvent>(OnUIChange);
         }
 
