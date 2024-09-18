@@ -43,6 +43,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
 
+        private RenderTextureDescriptor m_MainLightShadowDescriptor;
+
         bool m_CreateEmptyShadowmap;
         bool m_EmptyShadowmapNeedsClear = false;
 
@@ -164,7 +166,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return SetupForEmptyRendering(cameraData.renderer.stripShadowsOffVariants);
             }
 
-            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_MainLightShadowmapTexture, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, name: k_MainLightShadowMapTextureName);
+            UpdateTextureDescriptorIfNeeded();
 
             m_MaxShadowDistanceSq = cameraData.maxShadowDistance * cameraData.maxShadowDistance;
             m_CascadeBorder = shadowData.mainLightShadowCascadeBorder;
@@ -172,6 +174,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             useNativeRenderPass = true;
 
             return true;
+        }
+
+        private void UpdateTextureDescriptorIfNeeded()
+        {
+            if (   m_MainLightShadowDescriptor.width != renderTargetWidth
+                || m_MainLightShadowDescriptor.height != renderTargetHeight
+                || m_MainLightShadowDescriptor.depthBufferBits != k_ShadowmapBufferBits
+                || m_MainLightShadowDescriptor.colorFormat != RenderTextureFormat.Shadowmap)
+            {
+                m_MainLightShadowDescriptor = new RenderTextureDescriptor(renderTargetWidth, renderTargetHeight, RenderTextureFormat.Shadowmap, k_ShadowmapBufferBits);
+            }
         }
 
         bool SetupForEmptyRendering(bool stripShadowsOffVariants)
@@ -182,10 +195,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
 
-            // Required for scene view camera(URP renderer not initialized)
-            if(ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyMainLightShadowmapTexture, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, name: k_EmptyMainLightShadowMapTextureName))
-                m_EmptyShadowmapNeedsClear = true;
-
             return true;
         }
 
@@ -193,29 +202,36 @@ namespace UnityEngine.Rendering.Universal.Internal
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-
-            if (m_CreateEmptyShadowmap && !m_EmptyShadowmapNeedsClear)
-            {
-                // UUM-63146 - glClientWaitSync: Expected application to have kicked everything until job: 96089 (possibly by calling glFlush)" are thrown in the Android Player on some devices with PowerVR Rogue GE8320
-                // Resetting of target would clean up the color attachment buffers and depth attachment buffers, which inturn is preventing the leak in the said platform. This is likely a symptomatic fix, but is solving the problem for now.
-
-                if (Application.platform == RuntimePlatform.Android && PlatformAutoDetect.isRunningOnPowerVRGPU)
-                    ResetTarget();
-
-                return;
-            }
-
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618
+
             if (m_CreateEmptyShadowmap)
             {
+                // Required for scene view camera(URP renderer not initialized)
+                if (ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyMainLightShadowmapTexture, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, name: k_EmptyMainLightShadowMapTextureName))
+                    m_EmptyShadowmapNeedsClear = true;
+
+                if (!m_EmptyShadowmapNeedsClear)
+                {
+                    // UUM-63146 - glClientWaitSync: Expected application to have kicked everything until job: 96089 (possibly by calling glFlush)" are thrown in the Android Player on some devices with PowerVR Rogue GE8320
+                    // Resetting of target would clean up the color attachment buffers and depth attachment buffers, which inturn is preventing the leak in the said platform. This is likely a symptomatic fix, but is solving the problem for now.
+                    if (Application.platform == RuntimePlatform.Android && PlatformAutoDetect.isRunningOnPowerVRGPU)
+                        ResetTarget();
+
+                    return;
+                }
+
                 ConfigureTarget(m_EmptyMainLightShadowmapTexture);
                 m_EmptyShadowmapNeedsClear = false;
             }
             else
+            {
+                ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_MainLightShadowmapTexture, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, name: k_MainLightShadowMapTextureName);
                 ConfigureTarget(m_MainLightShadowmapTexture);
+            }
 
             ConfigureClear(ClearFlag.All, Color.black);
+
             #pragma warning restore CS0618
         }
 
@@ -459,7 +475,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         builder.UseRendererList(passData.shadowRendererListsHandle[cascadeIndex]);
                     }
 
-                    shadowTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowmapTexture.rt.descriptor, "_MainLightShadowmapTexture", true, ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
+                    shadowTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_MainLightShadowDescriptor, k_MainLightShadowMapTextureName, true, ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
                     builder.SetRenderAttachmentDepth(shadowTexture, AccessFlags.Write);
                 }
                 else
