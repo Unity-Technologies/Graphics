@@ -232,8 +232,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var renderTextureScale = m_Renderer2DData.lightRenderTextureScale;
-            var width = (int)(cameraData.cameraTargetDescriptor.width * renderTextureScale);
-            var height = (int)(cameraData.cameraTargetDescriptor.height * renderTextureScale);
+            var width = (int)Mathf.Max(1, cameraData.cameraTargetDescriptor.width * renderTextureScale);
+            var height = (int)Mathf.Max(1, cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
             // Intermediate depth desc (size of renderTextureScale)
             {
