@@ -85,7 +85,7 @@ public class CaptureDepthFeature : ScriptableRendererFeature
             int width = cameraDesc.width;
             int height = cameraDesc.height;
 
-            m_CapturedDepthHandle = renderGraph.CreateTexture(new TextureDesc(width, height, false, xrReady) { colorFormat = GraphicsFormat.R32_SFloat, name = "_CapturedDepthTexture" });
+            m_CapturedDepthHandle = renderGraph.CreateTexture(new TextureDesc(width, height, false, xrReady) { format = GraphicsFormat.R32_SFloat, name = "_CapturedDepthTexture" });
 
             using (var builder = renderGraph.AddRasterRenderPass<CaptureDepthPassData>("Capture Depth Blit", out var passData))
             {

@@ -1150,7 +1150,7 @@ namespace UnityEngine.Rendering
                 passData.intermediateColor = UseTexture(builder, renderGraph.CreateTexture(new TextureDesc(intermediateSize.x, intermediateSize.y, config.enableHwDrs, config.enableTexArray)
                 {
                     name = "STP Intermediate Color",
-                    colorFormat = GraphicsFormat.A2B10G10R10_UNormPack32,
+                    format = GraphicsFormat.A2B10G10R10_UNormPack32,
                     enableRandomWrite = true
                 }), AccessFlags.WriteAll);
 
@@ -1158,7 +1158,7 @@ namespace UnityEngine.Rendering
                 passData.intermediateConvergence = UseTexture(builder, renderGraph.CreateTexture(new TextureDesc(convergenceSize.x, convergenceSize.y, config.enableHwDrs, config.enableTexArray)
                 {
                     name = "STP Intermediate Convergence",
-                    colorFormat = GraphicsFormat.R8_UNorm,
+                    format = GraphicsFormat.R8_UNorm,
                     enableRandomWrite = true
                 }), AccessFlags.WriteAll);
 
@@ -1241,7 +1241,7 @@ namespace UnityEngine.Rendering
                 passData.intermediateWeights = UseTexture(builder, renderGraph.CreateTexture(new TextureDesc(intermediateSize.x, intermediateSize.y, config.enableHwDrs, config.enableTexArray)
                 {
                     name = "STP Intermediate Weights",
-                    colorFormat = GraphicsFormat.R8_UNorm,
+                    format = GraphicsFormat.R8_UNorm,
                     enableRandomWrite = true
                 }), AccessFlags.WriteAll);
 

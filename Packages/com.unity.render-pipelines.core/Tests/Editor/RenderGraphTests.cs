@@ -823,7 +823,7 @@ namespace UnityEngine.Rendering.Tests
             var hash0 = m_RenderGraph.ComputeGraphHash();
             m_RenderGraph.ClearCompiledGraph();
 
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm });
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
@@ -859,7 +859,7 @@ namespace UnityEngine.Rendering.Tests
 
             static void RecordRenderGraph(RenderGraph renderGraph)
             {
-                TextureHandle texture0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+                TextureHandle texture0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm });
 
                 using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
                 {
@@ -916,6 +916,58 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(desc.graphicsFormat, renderTargetInfo.format);
 
             CoreUtils.Destroy(renderTexture);
+        }
+
+        [Test]
+        public void TextureDescFormatPropertiesWork()
+        {
+            var formatR32 = GraphicsFormat.R32_SFloat;
+
+            var textureDesc = new TextureDesc(16, 16);
+            textureDesc.format = formatR32;
+
+            Assert.AreEqual(textureDesc.colorFormat,formatR32);
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.None);
+
+            textureDesc.depthBufferBits = DepthBits.None;
+
+            //No change expected
+            Assert.AreEqual(textureDesc.colorFormat, formatR32);
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.None);
+
+            textureDesc.depthBufferBits = DepthBits.Depth32;
+
+            //Not entirely sure what the platform will select but at least it should be 24 or more (not 0)
+            Assert.IsTrue((int)textureDesc.depthBufferBits >= 24);
+            Assert.AreEqual(textureDesc.colorFormat, GraphicsFormat.None);
+
+            textureDesc.format = formatR32;
+
+            Assert.AreEqual(textureDesc.colorFormat, formatR32);
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.None);
+
+            textureDesc.format = GraphicsFormat.D16_UNorm;
+
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.Depth16);
+            Assert.AreEqual(textureDesc.colorFormat, GraphicsFormat.None);
+
+            {
+                var importedTexture = m_RenderGraph.CreateTexture(textureDesc);
+
+                var importedDesc = importedTexture.GetDescriptor(m_RenderGraph);
+                Assert.AreEqual(textureDesc.format, importedDesc.format);
+            }            
+
+            textureDesc.colorFormat = formatR32;
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.None);
+            Assert.AreEqual(textureDesc.colorFormat, textureDesc.format);
+
+            {
+                var importedTexture = m_RenderGraph.CreateTexture(textureDesc);
+
+                var importedDesc = importedTexture.GetDescriptor(m_RenderGraph);
+                Assert.AreEqual(textureDesc.format, importedDesc.format);
+            } 
         }
 
         [Test]

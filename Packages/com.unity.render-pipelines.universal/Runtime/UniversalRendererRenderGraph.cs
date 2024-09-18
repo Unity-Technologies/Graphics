@@ -236,8 +236,7 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.dimension = desc.dimension;
             rgDesc.clearBuffer = clear;
             rgDesc.bindTextureMS = desc.bindMS;
-            rgDesc.colorFormat = desc.graphicsFormat;
-            rgDesc.depthBufferBits = (DepthBits)desc.depthBufferBits;
+            rgDesc.format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
             rgDesc.slices = desc.volumeDepth;
             rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
             rgDesc.name = name;
@@ -248,7 +247,6 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.vrUsage = desc.vrUsage;
             rgDesc.useDynamicScale = desc.useDynamicScale;
             rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit;
-            // TODO RENDERGRAPH: depthStencilFormat handling?
 
             return renderGraph.CreateTexture(rgDesc);
         }
@@ -261,8 +259,7 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.clearBuffer = clear;
             rgDesc.clearColor = color;
             rgDesc.bindTextureMS = desc.bindMS;
-            rgDesc.colorFormat = desc.graphicsFormat;
-            rgDesc.depthBufferBits = (DepthBits)desc.depthBufferBits;
+            rgDesc.format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
             rgDesc.slices = desc.volumeDepth;
             rgDesc.msaaSamples = (MSAASamples)desc.msaaSamples;
             rgDesc.name = name;
@@ -535,10 +532,11 @@ namespace UnityEngine.Rendering.Universal
                 importInfo.volumeDepth = 1;
                 importInfo.msaaSamples = numSamples;
 
-                importInfo.format = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha);
+                importInfo.format = cameraData.cameraTargetDescriptor.graphicsFormat;
 
                 importInfoDepth = importInfo;
-                importInfoDepth.format = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
+
+                importInfoDepth.format = cameraData.cameraTargetDescriptor.depthStencilFormat;
             }
             else
             {
@@ -645,7 +643,7 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.bindMS = false;
 
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                depthDescriptor.depthStencilFormat = cameraDepthAttachmentFormat;
 
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
 
@@ -755,6 +753,7 @@ namespace UnityEngine.Rendering.Universal
                         if (depthHistory.GetCurrentTexture(multipassId) != null)
                         {
                             var depthHistoryTarget = renderGraph.ImportTexture(depthHistory.GetCurrentTexture(multipassId));
+
                             // See pass create in UniversalRenderer() for execution order.
                             m_HistoryRawDepthCopyPass.Render(renderGraph, frameData, depthHistoryTarget, resourceData.cameraDepth, false);
                         }
@@ -1409,7 +1408,7 @@ namespace UnityEngine.Rendering.Universal
             if (shouldRenderUI && outputToHDR)
             {
                 TextureHandle overlayUI;
-                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, k_DepthStencilFormat, out overlayUI);
+                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, cameraDepthAttachmentFormat, out overlayUI);
                 resourceData.overlayUITexture = overlayUI;
             }
         }
@@ -1467,7 +1466,7 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.debugScreenColor = CreateRenderGraphTexture(renderGraph, colorDesc, "_DebugScreenColor", false);
 
                 RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
-                DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
+                DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, cameraDepthAttachmentFormat, cameraData.pixelWidth, cameraData.pixelHeight);
                 resourceData.debugScreenDepth = CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false);
             }
 
@@ -1709,14 +1708,12 @@ namespace UnityEngine.Rendering.Universal
             if (isDepthTexture)
             {
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                depthDescriptor.depthBufferBits = k_DepthBufferBits;
+                depthDescriptor.depthStencilFormat = cameraDepthTextureFormat;
             }
             else
             {
                 depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
                 depthDescriptor.depthStencilFormat = GraphicsFormat.None;
-                depthDescriptor.depthBufferBits = 0;
             }
 
             resourceData.cameraDepthTexture = CreateRenderGraphTexture(renderGraph, depthDescriptor, "_CameraDepthTexture", true);

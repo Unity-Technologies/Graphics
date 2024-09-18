@@ -6,6 +6,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -175,12 +176,16 @@ namespace UnityEngine.Rendering.Universal
         internal static TextureDesc CreateTextureDesc(RenderTextureDescriptor desc,
             TextureSizeMode textureSizeMode = TextureSizeMode.Explicit, int anisoLevel = 1, float mipMapBias = 0,
             FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, string name = "")
-        {
+        {            
+            Assertions.Assert.IsFalse(desc.graphicsFormat != GraphicsFormat.None && desc.depthStencilFormat != GraphicsFormat.None,
+                "The RenderTextureDescriptor used to create a TextureDesc contains both graphicsFormat and depthStencilFormat which is not allowed.");
+            
+            var format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
+
             TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
             rgDesc.sizeMode = textureSizeMode;
             rgDesc.slices = desc.volumeDepth;
-            rgDesc.depthBufferBits = (DepthBits)desc.depthBufferBits;
-            rgDesc.colorFormat = desc.graphicsFormat;
+            rgDesc.format = format;
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
             rgDesc.dimension = desc.dimension;

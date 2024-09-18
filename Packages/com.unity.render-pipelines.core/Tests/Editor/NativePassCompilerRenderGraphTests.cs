@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Tests
         {
             TextureDesc result = new TextureDesc(w, h);
             result.msaaSamples = (MSAASamples)samples;
-            result.colorFormat = GraphicsFormat.R8G8B8A8_UNorm;
+            result.format = GraphicsFormat.R8G8B8A8_UNorm;
             result.name = name;
             return result;
         }
@@ -933,7 +933,7 @@ namespace UnityEngine.Rendering.Tests
                     {
                         width = 1920,
                         height = 1080,
-                        colorFormat = GraphicsFormat.B10G11R11_UFloatPack32,
+                        format = GraphicsFormat.B10G11R11_UFloatPack32,
                         clearBuffer = true,
                         clearColor = Color.red,
                         name = "Transient Texture"

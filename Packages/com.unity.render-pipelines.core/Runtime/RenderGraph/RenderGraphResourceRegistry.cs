@@ -544,12 +544,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     // Store the info in the descriptor structure to avoid having a separate info structure being saved per resource
                     // This descriptor will then be used to reconstruct the info (see GetRenderTargetInfo) but is not a full featured descriptor.
                     // This is ok as this descriptor will never be used to create textures (as they are imported into the graph and thus externally created).
+                                       
+                    texResource.desc.format = info.format;
                     texResource.desc.width = info.width;
                     texResource.desc.height = info.height;
                     texResource.desc.slices = info.volumeDepth;
-
-                    texResource.desc.msaaSamples = (MSAASamples)info.msaaSamples;
-                    texResource.desc.colorFormat = info.format;
+                    texResource.desc.msaaSamples = (MSAASamples)info.msaaSamples;                   
                     texResource.desc.bindTextureMS = info.bindMS;
                     texResource.desc.clearBuffer = importParams.clearOnFirstUse;
                     texResource.desc.clearColor = importParams.clearColor;
@@ -665,7 +665,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.slices = info.volumeDepth;
             texResource.desc.msaaSamples = (MSAASamples)info.msaaSamples;
             texResource.desc.bindTextureMS = info.bindMS;
-            texResource.desc.colorFormat = info.format;
+            texResource.desc.format = info.format;
             texResource.desc.clearBuffer = importParams.clearOnFirstUse;
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
@@ -721,8 +721,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     outInfo.width = handle.m_RT.width;
                     outInfo.height = handle.m_RT.height;
                     outInfo.volumeDepth = handle.m_RT.volumeDepth;
-                    // If it's depth only, graphics format is null but depthStencilFormat is the real format
-                    outInfo.format = GetFormat(handle.m_RT.graphicsFormat, handle.m_RT.depthStencilFormat); 
+                    outInfo.format = GetFormat(handle.m_RT.graphicsFormat, handle.m_RT.depthStencilFormat);
                     outInfo.msaaSamples = handle.m_RT.antiAliasing;
                     outInfo.bindMS = handle.m_RT.bindTextureMS;
                 }
@@ -735,7 +734,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     if (handle.m_ExternalTexture is RenderTexture)
                     {
                         RenderTexture rt = (RenderTexture)handle.m_ExternalTexture;
-                        // If it's depth only, graphics format is null but depthStencilFormat is the real format
                         outInfo.format = GetFormat(rt.graphicsFormat, rt.depthStencilFormat);
                         outInfo.msaaSamples = rt.antiAliasing;
                     }
@@ -758,7 +756,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     var desc = GetTextureResourceDesc(res, true);
                     outInfo = new RenderTargetInfo();
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    if (desc.width == 0 || desc.height == 0 || desc.slices == 0 || desc.msaaSamples == 0 || desc.colorFormat == GraphicsFormat.None)
+                    if (desc.width == 0 || desc.height == 0 || desc.slices == 0 || desc.msaaSamples == 0 || desc.format == GraphicsFormat.None) 
                     {
                         throw new Exception("Invalid imported texture. A RTHandle wrapping an RenderTargetIdentifier was imported without providing valid RenderTargetInfo.");
                     }
@@ -768,7 +766,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     outInfo.volumeDepth = desc.slices;
 
                     outInfo.msaaSamples = (int)desc.msaaSamples;
-                    outInfo.format = desc.colorFormat;
+                    outInfo.format = desc.format;
                     outInfo.bindMS = desc.bindTextureMS;
                 }
                 else
@@ -788,15 +786,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
                 outInfo.msaaSamples = (int)desc.msaaSamples;
                 outInfo.bindMS = desc.bindTextureMS;
-
-                var depthStencilFormat = GraphicsFormat.None;
-                if (desc.isShadowMap || desc.depthBufferBits != DepthBits.None)
-                {
-                    var format = desc.isShadowMap ? DefaultFormat.Shadow : DefaultFormat.DepthStencil;
-                    depthStencilFormat = SystemInfo.GetGraphicsFormat(format);
-                }
-                
-                outInfo.format = GetFormat(desc.colorFormat, depthStencilFormat);                
+                outInfo.format = desc.format;              
             }
         }
 
@@ -1074,7 +1064,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if ((forceManualClearOfResource && resource.desc.clearBuffer) || m_RenderGraphDebug.clearRenderTargetsAtCreation)
             {
                 bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
-                var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
+                var clearFlag = GraphicsFormatUtility.IsDepthStencilFormat(resource.desc.format) ? ClearFlag.DepthStencil : ClearFlag.Color;
                 var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
                 CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, clearColor);
                 executedWork = true;
@@ -1111,7 +1101,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             if (m_RenderGraphDebug.clearRenderTargetsAtRelease)
             {
-                var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
+                var clearFlag = GraphicsFormatUtility.IsDepthStencilFormat(resource.desc.format)? ClearFlag.DepthStencil : ClearFlag.Color;
                 CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, Color.magenta);
             }
         }
@@ -1121,14 +1111,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             if(RenderGraph.enableValidityChecks)
             {
-                if (desc.colorFormat == GraphicsFormat.None && desc.depthBufferBits == DepthBits.None)
+                if (desc.format == GraphicsFormat.None )
                 {
-                    throw new ArgumentException("Texture was created with with no color and no a depthStencil format. The texture needs to either have a color format or a depth stencil format.");
-                }
-
-                if (desc.colorFormat != GraphicsFormat.None && desc.depthBufferBits != DepthBits.None)
-                {
-                    throw new ArgumentException("Texture was created with both a color and a depthStencil format. The texture needs to either have a color format or a depth stencil format.");
+                    throw new ArgumentException("Texture was created with with no format. The texture needs to either have a color format or a depth stencil format.");
                 }
 
                 if (desc.dimension == TextureDimension.None)
