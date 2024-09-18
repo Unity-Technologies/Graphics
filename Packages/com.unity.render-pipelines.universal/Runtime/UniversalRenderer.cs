@@ -1484,7 +1484,7 @@ namespace UnityEngine.Rendering.Universal
                     if (!depthTargetResolved && cameraData.xr.copyDepth)
                     {
                         m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_TargetDepthHandle);
-                        m_XRCopyDepthPass.CopyToDepth = true;
+                        m_XRCopyDepthPass.CopyToDepthXR = true;
                         EnqueuePass(m_XRCopyDepthPass);
                     }
                 }
@@ -1503,6 +1503,7 @@ namespace UnityEngine.Rendering.Universal
                 // Scene view camera should always resolve target (not stacked)
                 m_FinalDepthCopyPass.Setup(m_DepthTexture, k_CameraTarget);
                 m_FinalDepthCopyPass.MssaSamples = 0;
+                m_FinalDepthCopyPass.CopyToBackbuffer = cameraData.isGameCamera;
                 // Turning off unnecessary NRP in Editor because of MSAA mistmatch between CameraTargetDescriptor vs camera backbuffer
                 // NRP layer considers this being a pass with MSAA samples by checking CameraTargetDescriptor taken from RP asset
                 // while the camera backbuffer has a single sample
@@ -1721,8 +1722,6 @@ namespace UnityEngine.Rendering.Universal
 
         private RenderPassInputSummary GetRenderPassInputs(bool isTemporalAAEnabled, bool postProcessingEnabled)
         {
-            RenderPassEvent beforeMainRenderingEvent = m_RenderingMode == RenderingMode.Deferred ? RenderPassEvent.BeforeRenderingGbuffer : RenderPassEvent.BeforeRenderingOpaques;
-
             RenderPassInputSummary inputSummary = new RenderPassInputSummary();
             inputSummary.requiresDepthNormalAtEvent = RenderPassEvent.BeforeRenderingOpaques;
             inputSummary.requiresDepthTextureEarliestEvent = RenderPassEvent.BeforeRenderingPostProcessing;
@@ -1733,7 +1732,7 @@ namespace UnityEngine.Rendering.Universal
                 bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
                 bool needsColor = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
                 bool needsMotion = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
-                bool eventBeforeMainRendering = pass.renderPassEvent <= beforeMainRenderingEvent;
+                bool eventBeforeRenderingOpaques = pass.renderPassEvent < RenderPassEvent.AfterRenderingOpaques;
 
                 // TODO: Need a better way to handle this, probably worth to recheck after render graph
                 // DBuffer requires color texture created as it does not handle y flip correctly
@@ -1743,7 +1742,11 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 inputSummary.requiresDepthTexture |= needsDepth;
-                inputSummary.requiresDepthPrepass |= needsNormals || needsDepth && eventBeforeMainRendering;
+
+                // A depth prepass is always required when normals are needed because URP's forward passes don't support rendering into the normals texture
+                // If depth is needed without normals, we only need a prepass when the event consuming depth occurs before opaque rendering is completed.
+                inputSummary.requiresDepthPrepass |= needsNormals || (needsDepth && eventBeforeRenderingOpaques);
+
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture |= needsColor;
                 inputSummary.requiresMotionVectors |= needsMotion;

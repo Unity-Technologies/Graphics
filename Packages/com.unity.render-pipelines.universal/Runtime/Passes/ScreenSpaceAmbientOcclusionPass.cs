@@ -308,7 +308,6 @@ namespace UnityEngine.Rendering.Universal
             internal TextureHandle AOTexture;
             internal TextureHandle finalTexture;
             internal TextureHandle blurTexture;
-            internal TextureHandle cameraDepthTexture;
             internal TextureHandle cameraNormalsTexture;
         }
 
@@ -334,9 +333,7 @@ namespace UnityEngine.Rendering.Universal
                                        out TextureHandle finalTexture);
 
             // Get the resources
-            UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
-            bool isDeferred = universalRenderer != null && universalRenderer.renderingModeActual == RenderingMode.Deferred;
-            TextureHandle cameraDepthTexture = isDeferred ? resourceData.activeDepthTexture : resourceData.cameraDepthTexture;
+            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
             TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
 
             // Update keywords and other shader params
@@ -354,7 +351,6 @@ namespace UnityEngine.Rendering.Universal
                 passData.AOTexture = aoTexture;
                 passData.finalTexture = finalTexture;
                 passData.blurTexture = blurTexture;
-                passData.cameraDepthTexture = isDeferred ? cameraDepthTexture : TextureHandle.nullHandle;
 
                 // Declare input textures
                 builder.UseTexture(passData.AOTexture, AccessFlags.ReadWrite);
@@ -380,18 +376,12 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((SSAOPassData data, UnsafeGraphContext rgContext) =>
                 {
-                    if (data.cameraDepthTexture.IsValid())
-                        data.material.SetTexture(s_CameraDepthTextureID, data.cameraDepthTexture);
-
                     CommandBuffer cmd = CommandBufferHelpers.GetNativeCommandBuffer(rgContext.cmd);
                     RenderBufferLoadAction finalLoadAction = data.afterOpaque ? RenderBufferLoadAction.Load : RenderBufferLoadAction.DontCare;
 
                     // Setup
                     if (data.cameraColor.IsValid())
                         PostProcessUtils.SetSourceSize(cmd, data.cameraColor);
-
-                    if (data.cameraDepthTexture.IsValid())
-                        data.material.SetTexture(s_CameraDepthTextureID, data.cameraDepthTexture);
 
                     if (data.cameraNormalsTexture.IsValid())
                         data.material.SetTexture(s_CameraNormalsTextureID, data.cameraNormalsTexture);

@@ -8,7 +8,6 @@ namespace UnityEngine.Rendering.Universal
     internal partial class PostProcessPass : ScriptableRenderPass
     {
         static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
-        static readonly int s_CameraOpaqueTextureID = Shader.PropertyToID("_CameraOpaqueTexture");
 
         private class UpdateCameraResolutionPassData
         {
@@ -946,7 +945,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void RenderSTP(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, ref TextureHandle source, out TextureHandle destination)
         {
-            TextureHandle cameraDepth = resourceData.cameraDepth;
+            TextureHandle cameraDepth = resourceData.cameraDepthTexture;
             TextureHandle motionVectors = resourceData.motionVectorColor;
 
             Debug.Assert(motionVectors.IsValid(), "MotionVectors are invalid. STP requires a motion vector texture.");
@@ -1833,17 +1832,6 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>("Blit Post Processing", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPost)))
             {
-                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
-                // Only the UniversalRenderer guarantees that global textures will be available at this point
-                bool isUniversalRenderer = (cameraData.renderer as UniversalRenderer) != null;
-
-                if (cameraData.requiresDepthTexture && isUniversalRenderer)
-                    builder.UseGlobalTexture(s_CameraDepthTextureID);
-
-                if (cameraData.requiresOpaqueTexture && isUniversalRenderer)
-                    builder.UseGlobalTexture(s_CameraOpaqueTextureID);
-
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = destTexture;
                 builder.SetRenderAttachment(destTexture, 0, AccessFlags.Write);

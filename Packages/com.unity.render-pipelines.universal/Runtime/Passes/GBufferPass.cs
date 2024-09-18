@@ -10,13 +10,15 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
-        internal static readonly int s_CameraNormalsTextureID = Shader.PropertyToID("_CameraNormalsTexture");
-        static ShaderTagId s_ShaderTagLit = new ShaderTagId("Lit");
-        static ShaderTagId s_ShaderTagSimpleLit = new ShaderTagId("SimpleLit");
-        static ShaderTagId s_ShaderTagUnlit = new ShaderTagId("Unlit");
-        static ShaderTagId s_ShaderTagComplexLit = new ShaderTagId("ComplexLit");
-        static ShaderTagId s_ShaderTagUniversalGBuffer = new ShaderTagId("UniversalGBuffer");
-        static ShaderTagId s_ShaderTagUniversalMaterialType = new ShaderTagId("UniversalMaterialType");
+        // Statics
+        private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID("_CameraNormalsTexture");
+        private static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
+        private static readonly ShaderTagId s_ShaderTagLit = new ShaderTagId("Lit");
+        private static readonly ShaderTagId s_ShaderTagSimpleLit = new ShaderTagId("SimpleLit");
+        private static readonly ShaderTagId s_ShaderTagUnlit = new ShaderTagId("Unlit");
+        private static readonly ShaderTagId s_ShaderTagComplexLit = new ShaderTagId("ComplexLit");
+        private static readonly ShaderTagId s_ShaderTagUniversalGBuffer = new ShaderTagId("UniversalGBuffer");
+        private static readonly ShaderTagId s_ShaderTagUniversalMaterialType = new ShaderTagId("UniversalMaterialType");
 
         DeferredLights m_DeferredLights;
 
@@ -148,6 +150,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList errorRendererList)
+
         {
             bool usesRenderingLayers = data.deferredLights.UseRenderingLayers && !data.deferredLights.HasRenderingLayerPrepass;
             if (usesRenderingLayers)
@@ -223,7 +226,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraColor, TextureHandle cameraDepth)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraColor, TextureHandle cameraDepth, bool setGlobalTextures)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
@@ -231,6 +234,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
             TextureHandle[] gbuffer;
+
+            bool useCameraRenderingLayersTexture = m_DeferredLights.UseRenderingLayers && !m_DeferredLights.UseLightLayers;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
@@ -244,7 +249,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
                         gbuffer[i] = resourceData.cameraNormalsTexture;
-                    else if (m_DeferredLights.UseRenderingLayers && i == m_DeferredLights.GBufferRenderingLayers && !m_DeferredLights.UseLightLayers)
+                    else if (i == m_DeferredLights.GBufferRenderingLayers && useCameraRenderingLayersTexture)
                         gbuffer[i] = resourceData.renderingLayersTexture;
                     else if (i != m_DeferredLights.GBufferLightingIndex)
                     {
@@ -270,6 +275,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 InitRendererLists(ref passData, default(ScriptableRenderContext), renderGraph, renderingData, cameraData, lightData, true);
                 builder.UseRendererList(passData.rendererListHdl);
                 builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
+
+                if (setGlobalTextures)
+                {
+                    builder.SetGlobalTextureAfterPass(resourceData.cameraNormalsTexture, s_CameraNormalsTextureID);
+
+                    if (useCameraRenderingLayersTexture)
+                        builder.SetGlobalTextureAfterPass(resourceData.renderingLayersTexture, s_CameraRenderingLayersTextureID);
+                }
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);

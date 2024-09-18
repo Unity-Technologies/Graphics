@@ -23,6 +23,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool CopyToDepth { get; set; }
         // In XR CopyDepth, we need a special workaround to handle dummy color issue in RenderGraph.
         internal bool CopyToDepthXR { get; set; }
+        // We need to know if we're copying to the backbuffer in order to handle y-flip correctly
+        internal bool CopyToBackbuffer { get; set; }
         Material m_CopyDepthMaterial;
 
         internal bool m_CopyResolvedDepth;
@@ -59,6 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CopyResolvedDepth = copyResolvedDepth;
             m_ShouldClear = shouldClear;
             CopyToDepthXR = false;
+            CopyToBackbuffer = false;
         }
 
         /// <summary>
@@ -105,12 +108,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         private class PassData
         {
             internal TextureHandle source;
-            internal TextureHandle destination;
             internal UniversalCameraData cameraData;
             internal Material copyDepthMaterial;
             internal int msaaSamples;
             internal bool copyResolvedDepth;
             internal bool copyToDepth;
+            internal bool isDstBackbuffer;
         }
 
         /// <inheritdoc/>
@@ -122,10 +125,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_PassData.copyDepthMaterial = m_CopyDepthMaterial;
             m_PassData.msaaSamples = MssaSamples;
             m_PassData.copyResolvedDepth = m_CopyResolvedDepth;
-            m_PassData.copyToDepth = CopyToDepth;
+            m_PassData.copyToDepth = CopyToDepth || CopyToDepthXR;
+            m_PassData.isDstBackbuffer = CopyToBackbuffer || CopyToDepthXR;
             m_PassData.cameraData = cameraData;
             var cmd = renderingData.commandBuffer;
             cmd.SetGlobalTexture(ShaderConstants._CameraDepthAttachment, source.nameID);
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (m_PassData.cameraData.xr.enabled)
             {
@@ -133,10 +138,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
             }
 #endif
-            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, this.source, this.destination);
+            ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, this.source);
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source, RTHandle destination)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source)
         {
             var copyDepthMaterial = passData.copyDepthMaterial;
             var msaaSamples = passData.msaaSamples;
@@ -191,27 +196,20 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                 }
 
-                bool outputDepth = copyToDepth || destination.rt.graphicsFormat == GraphicsFormat.None;
-                cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, outputDepth);
+                cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, copyToDepth);
+
+                // We must perform a yflip if we're rendering into the backbuffer and we have a flipped source texture.
+                bool yflip = passData.cameraData.IsHandleYFlipped(source) && passData.isDstBackbuffer;
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-                // We y-flip if
-                // 1) we are blitting from render texture to back buffer(UV starts at bottom) and
-                // 2) renderTexture starts UV at top
-                bool isGameViewFinalTarget = passData.cameraData.cameraType == CameraType.Game && destination.nameID == BuiltinRenderTextureType.CameraTarget;
-#if ENABLE_VR && ENABLE_XR_MODULE
-                if (passData.cameraData.xr.enabled)
-                {
-                    isGameViewFinalTarget |= new RenderTargetIdentifier(destination.nameID, 0, CubemapFace.Unknown, 0) == new RenderTargetIdentifier(passData.cameraData.xr.renderTarget, 0, CubemapFace.Unknown, 0);
-                }
-#endif
-                bool yflip = passData.cameraData.IsHandleYFlipped(source) != passData.cameraData.IsHandleYFlipped(destination);
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
-                if (isGameViewFinalTarget)
+
+                // When we render to the backbuffer, we update the viewport to cover the entire screen just in case it hasn't been updated already.
+                if (passData.isDstBackbuffer)
                     cmd.SetViewport(passData.cameraData.pixelRect);
 
                 copyDepthMaterial.SetTexture(ShaderConstants._CameraDepthAttachment, source);
-                copyDepthMaterial.SetFloat(ShaderConstants._ZWriteShaderHandle, outputDepth ? 1.0f : 0.0f);
+                copyDepthMaterial.SetFloat(ShaderConstants._ZWriteShaderHandle, copyToDepth ? 1.0f : 0.0f);
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
             }
         }
@@ -267,12 +265,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.cameraData = cameraData;
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
                 passData.copyToDepth = CopyToDepth || CopyToDepthXR;
+                passData.isDstBackbuffer = CopyToBackbuffer || CopyToDepthXR;
 
                 if (CopyToDepth)
                 {
                     // Writes depth using custom depth output
-                    passData.destination = destination;
-                    builder.SetRenderAttachmentDepth(destination, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(destination, AccessFlags.WriteAll);
 #if UNITY_EDITOR
                     // binding a dummy color target as a workaround to an OSX issue in Editor scene view (UUM-47698).
                     // Also required for preview camera rendering for grid drawn with builtin RP (UUM-55171).
@@ -283,8 +281,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else if (CopyToDepthXR)
                 {
                     // Writes depth using custom depth output
-                    passData.destination = destination;
-                    builder.SetRenderAttachmentDepth(destination, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(destination, AccessFlags.WriteAll);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                     // binding a dummy color target as a workaround to NRP depth only rendering limitation:
@@ -296,8 +293,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                 {
                     // Writes depth as "grayscale color" output
-                    passData.destination = destination;
-                    builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                    builder.SetRenderAttachment(destination, 0, AccessFlags.WriteAll);
                 }
 
                 passData.source = source;
@@ -312,7 +308,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
-                    ExecutePass(context.cmd, data, data.source, data.destination);
+                    ExecutePass(context.cmd, data, data.source);
                 });
             }
         }

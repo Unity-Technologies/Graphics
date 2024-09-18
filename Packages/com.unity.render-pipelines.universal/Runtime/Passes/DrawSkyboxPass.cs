@@ -12,8 +12,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class DrawSkyboxPass : ScriptableRenderPass
     {
-        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
-
         /// <summary>
         /// Creates a new <c>DrawSkyboxPass</c> instance.
         /// </summary>
@@ -131,7 +129,7 @@ namespace UnityEngine.Rendering.Universal
             passData.skyRendererListHandle = handle;
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, ScriptableRenderContext context, TextureHandle colorTarget, TextureHandle depthTarget, Material skyboxMaterial, bool hasDepthCopy = false)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, ScriptableRenderContext context, TextureHandle colorTarget, TextureHandle depthTarget, Material skyboxMaterial)
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -155,9 +153,6 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseRendererList(skyRendererListHandle);
                 builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
-
-                if (hasDepthCopy)
-                    builder.UseGlobalTexture(s_CameraDepthTextureID);
 
                 builder.AllowPassCulling(false);
                 if (cameraData.xr.enabled)

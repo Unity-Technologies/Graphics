@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
-  m_Name: CaptureDepthRenderer_AfterOpaques
+  m_Name: ForwardRenderer_AfterOpaquesDepth
   m_EditorClassIdentifier: 
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
@@ -32,9 +32,8 @@ MonoBehaviour:
     probeSamplingDebugTexture: {fileID: 2800000, guid: 24ec0e140fb444a44ab96ee80844e18e,
       type: 3}
     probeVolumeBlendStatesCS: {fileID: 0}
-  m_RendererFeatures:
-  - {fileID: 4468956609863516823}
-  m_RendererFeatureMap: 97828cef5bec043e
+  m_RendererFeatures: []
+  m_RendererFeatureMap: 
   m_UseNativeRenderPass: 0
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   postProcessData: {fileID: 0}
@@ -55,23 +54,8 @@ MonoBehaviour:
   m_ShadowTransparentReceive: 1
   m_RenderingMode: 0
   m_DepthPrimingMode: 0
-  m_CopyDepthMode: 1
+  m_CopyDepthMode: 0
   m_DepthAttachmentFormat: 0
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
-  m_IntermediateTextureMode: 1
---- !u!114 &4468956609863516823
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d20bbfd153e90384c85a254757b00361, type: 3}
-  m_Name: DrawDepthFeature
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  m_Material: {fileID: 2100000, guid: 8855f8472642fe34e9e6f4258b1b3db5, type: 2}
-  m_InjectionPoint: 400
+  m_IntermediateTextureMode: 0

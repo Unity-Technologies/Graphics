@@ -147,6 +147,7 @@ public class RandomUAVFeature : ScriptableRendererFeature
                 builder.SetRenderAttachment(dummyTarget, 0, AccessFlags.Write);
                 builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.ReadWrite);
                 builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.ReadWrite);
+                builder.UseTexture(resourceData.cameraOpaqueTexture);
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext.cmd));
                 builder.AllowPassCulling(false);
             }
@@ -163,6 +164,7 @@ public class RandomUAVFeature : ScriptableRendererFeature
                 builder.SetRenderAttachment(dummyTarget, 0, AccessFlags.Write);
                 builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.ReadWrite);
                 builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.ReadWrite);
+                builder.UseTexture(resourceData.cameraOpaqueTexture);
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext.cmd));
                 builder.AllowPassCulling(false);
             }
@@ -179,6 +181,7 @@ public class RandomUAVFeature : ScriptableRendererFeature
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
                 builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.Read);
                 builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraOpaqueTexture);
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext.cmd));
                 builder.AllowPassCulling(false);
             }

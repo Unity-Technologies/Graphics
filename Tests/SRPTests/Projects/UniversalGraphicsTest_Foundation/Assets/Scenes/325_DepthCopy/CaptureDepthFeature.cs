@@ -20,9 +20,9 @@ public class CaptureDepthFeature : ScriptableRendererFeature
         {
             ScriptableRenderPassInput inputs = ScriptableRenderPassInput.Depth;
 
-            // Request access to normals if the injection point is in a place that could trigger a prepass
+            // Request access to normals if the injection point is in a place that could trigger a partial prepass
             // This helps improve coverage of edge cases within URP's deferred renderer
-            if (injectionPoint < RenderPassEvent.BeforeRenderingOpaques)
+            if (injectionPoint >= RenderPassEvent.AfterRenderingGbuffer && injectionPoint < RenderPassEvent.BeforeRenderingOpaques)
             {
                 inputs |= ScriptableRenderPassInput.Normal;
             }
@@ -158,7 +158,7 @@ public class CaptureDepthFeature : ScriptableRendererFeature
     {
         AfterPrePasses = RenderPassEvent.AfterRenderingPrePasses,
         AfterGbuffer = RenderPassEvent.AfterRenderingGbuffer,
-        AfterOpaques = RenderPassEvent.AfterRenderingOpaques,
+        AfterSkybox = RenderPassEvent.AfterRenderingSkybox,
         AfterTransparents = RenderPassEvent.AfterRenderingTransparents,
     }
 

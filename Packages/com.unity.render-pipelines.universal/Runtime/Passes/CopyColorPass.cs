@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.destination = destination;
-                builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                builder.SetRenderAttachment(destination, 0, AccessFlags.WriteAll);
                 passData.source = source;
                 builder.UseTexture(source, AccessFlags.Read);
                 passData.useProceduralBlit = useProceduralBlit;
