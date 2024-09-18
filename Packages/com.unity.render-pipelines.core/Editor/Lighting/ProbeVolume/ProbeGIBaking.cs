@@ -910,18 +910,23 @@ namespace UnityEngine.Rendering
                     return false;
 
                 s_AdjustmentVolumes = GetAdjustementVolumes();
-
                 requests = AdditionalGIBakeRequestsManager.GetProbeNormalizationRequests();
 
+                bool canceledByUser = false;
                 // Note: this could be executed in the baking delegate to be non blocking
                 using (new BakingSetupProfiling(BakingSetupProfiling.Stages.PlaceProbes))
-                    positions = RunPlacement();
+                    positions = RunPlacement(ref canceledByUser);
 
-                if (positions.Length == 0)
+                if (positions.Length == 0 || canceledByUser)
                 {
                     positions.Dispose();
+
                     Clear();
                     CleanBakeData();
+
+                    if (canceledByUser)
+                        Lightmapping.Cancel();
+
                     return false;
                 }
             }
@@ -1311,7 +1316,7 @@ namespace UnityEngine.Rendering
                             {
                                 uint renderingLayerMask = renderingLayerMasks[positionRemap[index]];
                                 bool commonRenderingLayer = (renderingLayerMask & probeRenderingLayerMask) != 0;
-                                if (!commonRenderingLayer) continue; // We do not use this probe contribution if it does not share at least a common rendering layer 
+                                if (!commonRenderingLayer) continue; // We do not use this probe contribution if it does not share at least a common rendering layer
                             }
 
                             // Do the lerp in compressed format to match result on GPU
