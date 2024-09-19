@@ -242,13 +242,18 @@ namespace UnityEditor.VFX.UI
 
             Profiler.BeginSample("PropertyRM.Update:Name");
 
-            string text = ObjectNames.NicifyVariableName(m_Provider.name);
-            string tooltip = null;
-            m_Provider.attributes.ApplyToGUI(ref text, ref tooltip);
+            if (hasLabel && this.Q<Label>() is { } label)
+            {
+                var labelText = ObjectNames.NicifyVariableName(m_Provider.name);
+                string labelTooltip = null;
+                m_Provider.attributes.ApplyToGUI(ref labelText, ref labelTooltip);
+                label.text = labelText;
+                label.tooltip = labelTooltip;
+            }
             Profiler.EndSample();
             Profiler.EndSample();
         }
-
+        
         void UpdateExpandable()
         {
             if (IsExpandable())
