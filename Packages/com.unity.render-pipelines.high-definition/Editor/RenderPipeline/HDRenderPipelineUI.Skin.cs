@@ -55,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent sampleCountQuality = EditorGUIUtility.TrTextContent("Sample Count");
             public static readonly GUIContent pbrResolutionQualityTitle = EditorGUIUtility.TrTextContent("Enable High Resolution");
             public static readonly GUIContent resolutionQuality = EditorGUIUtility.TrTextContent("Resolution");
+            public static readonly GUIContent adaptiveSamplingWeight = EditorGUIUtility.TrTextContent("Adaptive Sampling Weight");
             public static readonly GUIContent highQualityPrefiltering = EditorGUIUtility.TrTextContent("High Quality Prefiltering");
             public static readonly GUIContent highQualityFiltering = EditorGUIUtility.TrTextContent("High Quality Filtering");
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");

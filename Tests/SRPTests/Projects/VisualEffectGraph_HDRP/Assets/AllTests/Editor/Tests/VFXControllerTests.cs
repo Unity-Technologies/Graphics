@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
 using NUnit.Framework;
 
 using UnityEngine;
@@ -15,6 +14,7 @@ using UnityEngine.VFX;
 using UnityEditor.VFX.Block;
 using UnityEditor.VFX.Block.Test;
 using UnityEditor.VFX.UI;
+using System.Reflection;
 
 namespace UnityEditor.VFX.Test
 {
@@ -1023,6 +1023,51 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(new Vector2(123, 456), param.nodes[0].position);
             Assert.AreEqual(typeof(AABox), param.type);
             Assert.AreEqual(value, param.value);
+        }
+
+        [Test]
+        public void Convert_Output_Quad_To_ShaderGraph_Triangle()
+        {
+            testAssetRandomFileName = $"Assets/TmpTests/random_{Guid.NewGuid()}.vfx";
+            var templateString = File.ReadAllText(VFXTestCommon.simpleParticleSystemPath);
+            File.WriteAllText(testAssetRandomFileName, templateString);
+            AssetDatabase.ImportAsset(testAssetRandomFileName);
+
+            var window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            window.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetRandomFileName), null);
+
+            var viewController = VFXViewController.GetController(window.displayedResource);
+            var test = viewController.allChildren.ToArray();
+
+            var outputContextController = viewController.allChildren.OfType<VFXContextController>().Single(o => o.model.contextType == VFXContextType.Output);
+            var outputContextUI = window.graphView.Query().OfType<VFXContextUI>().Where(o => o.controller == outputContextController).ToList().Single();
+
+            var originalSetting = outputContextController.model.GetSetting("primitiveType");
+            Assert.IsTrue(originalSetting.valid);
+            Assert.AreEqual(originalSetting.value, VFXPrimitiveType.Quad);
+
+            Assert.IsNotNull(outputContextUI);
+
+            var variantProvider = new VFXTopologySubVariantProvider();
+            var triangleVariant = variantProvider.GetVariants().Single(o => o.name.Contains("Triangle"));
+
+            var fnConvertContext = outputContextUI.GetType().GetMethod("ConvertContext", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            Assert.IsNotNull(fnConvertContext);
+            fnConvertContext.Invoke(outputContextUI, new object[] {triangleVariant, Vector2.zero});
+            viewController.ApplyChanges();
+
+            outputContextController = viewController.allChildren.OfType<VFXContextController>().Single(o => o.model.contextType == VFXContextType.Output);
+            Assert.IsInstanceOf<VFXComposedParticleOutput>(outputContextController.model);
+            var topology = outputContextController.model.GetSetting("m_Topology");
+            Assert.IsTrue(topology.valid);
+            Assert.IsInstanceOf<ParticleTopologyPlanarPrimitive>(topology.value);
+
+            var planarTopology = topology.value as ParticleTopologyPlanarPrimitive;
+            Assert.IsNotNull(planarTopology);
+            var primitiveTypeFieldAccess = planarTopology.GetType().GetField("primitiveType", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(primitiveTypeFieldAccess);
+
+            Assert.AreEqual(VFXPrimitiveType.Triangle, primitiveTypeFieldAccess.GetValue(planarTopology));
         }
 
         [Test]

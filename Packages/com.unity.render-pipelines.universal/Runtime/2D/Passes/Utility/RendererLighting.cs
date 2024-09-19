@@ -705,7 +705,6 @@ namespace UnityEngine.Rendering.Universal
                     SetBlendModes(material, BlendMode.One, BlendMode.One);
                 else
                 {
-                    material.SetInt("_HandleZTest", (int)CompareFunction.Disabled);
                     SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.One);
                 }
             }

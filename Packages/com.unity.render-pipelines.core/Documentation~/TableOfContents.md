@@ -2,6 +2,12 @@
 * [What's new](whats-new.md)
   * [12](whats-new-12.md)
   * [13](whats-new-13.md)
+* [Creating a custom render pipeline](srp-custom.md)
+  * [Create a custom Scriptable Render Pipeline](srp-custom-getting-started.md)
+  * [Create a Render Pipeline Asset and Render Pipeline Instance in a custom render pipeline](srp-creating-render-pipeline-asset-and-render-pipeline-instance.md)
+  * [Create a simple render loop in a custom render pipeline](srp-creating-simple-render-loop.md)
+  * [Execute rendering commands in a custom render pipeline](srp-using-scriptable-render-context.md)
+  * [Scriptable Render Pipeline callbacks reference](srp-callbacks-reference.md) 
 * Camera components
   * [Free Camera](Free-Camera.md)
   * [Camera Switcher](Camera-Switcher.md)

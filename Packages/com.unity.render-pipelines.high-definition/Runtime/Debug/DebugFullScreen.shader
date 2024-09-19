@@ -398,6 +398,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     return float4(color, 1.0);
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_OF_FIELD_TILE_CLASSIFICATION)
+                {
+                    float3 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).rgb;
+                    return float4(color, 1.0);
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_CONTACT_SHADOWS)
                 {
                     uint2 samplePosition = (uint2)((input.texcoord.xy / _RTHandleScale.xy) * _DebugViewportSize.xy);

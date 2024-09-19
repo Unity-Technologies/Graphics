@@ -19,31 +19,27 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            var universalRenderer = cameraData.renderer as UniversalRenderer;
 
-            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
+            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
+            bool useDepthPriming = universalRenderer.useDepthPriming;
+            bool isMsaa = cameraData.cameraTargetDescriptor.msaaSamples > 1;
 
-            TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
-
-            TextureHandle src, dest;
-            if (renderer.renderingModeActual == RenderingMode.Deferred)
-            {
-                src = resourceData.activeDepthTexture;
-                dest = cameraDepthTexture;
-            }
-            else
+            // We must create a temporary depth buffer for dbuffer rendering if the existing one isn't compatible.
+            // The deferred path always has compatible depth
+            // The forward path only has compatible depth when depth priming is enabled without MSAA
+            bool hasCompatibleDepth = isDeferred || (useDepthPriming && !isMsaa);
+            if (!hasCompatibleDepth)
             {
                 var depthDesc = cameraData.cameraTargetDescriptor;
                 depthDesc.graphicsFormat = GraphicsFormat.None; //Depth only rendering
                 depthDesc.depthStencilFormat = cameraData.cameraTargetDescriptor.depthStencilFormat;
                 depthDesc.msaaSamples = 1;
-                var depthTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
-                resourceData.dBufferDepth = depthTarget;
+                resourceData.dBufferDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, DBufferRenderPass.s_DBufferDepthName, true);
 
-                src = cameraDepthTexture;
-                dest = cameraData.cameraTargetDescriptor.msaaSamples > 1 ? depthTarget : resourceData.activeDepthTexture;
+                // Copy the current depth data into the new attachment
+                Render(renderGraph, resourceData.dBufferDepth, resourceData.cameraDepthTexture, resourceData, cameraData, false, "Copy DBuffer Depth");
             }
-
-            Render(renderGraph, dest, src, resourceData, cameraData, false);
         }
     }
 }

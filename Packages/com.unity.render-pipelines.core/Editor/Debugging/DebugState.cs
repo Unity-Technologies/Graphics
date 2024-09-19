@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Unsigned Integer Debug State.
     /// </summary>
-    [Serializable, DebugState(typeof(DebugUI.UIntField))]
+    [Serializable, DebugState(typeof(DebugUI.UIntField), typeof(DebugUI.MaskField))]
     public sealed class DebugStateUInt : DebugState<uint> { }
 
     /// <summary>

@@ -1,0 +1,51 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel ComputeShapeBuffer
+
+#pragma multi_compile _ ENABLE_ALPHA
+
+#define GROUP_RES  8u
+#define GROUP_SIZE (GROUP_RES * GROUP_RES)
+
+CBUFFER_START(cb0)
+float4 _Params;
+CBUFFER_END
+
+#define BladeCount          _Params.x
+#define NGonFactor          _Params.y
+#define Rotation            _Params.z
+#define Anamorphism         _Params.w
+#define ResScale            0.0
+#define OneOverResScale     0.0
+#define AdaptiveSamplingWeights float2(0.0, 0.0)
+#define MaxColorMip         0.0
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DoFGatherUtils.hlsl"
+
+float2 AngleToApertureShape(float angle)
+{
+    // Transform to rotated ngon
+    // "CryEngine 3 Graphics Gems" [Sousa13]
+    float n = BladeCount;
+    float nt = cos(PI / n);
+    float dt = cos(angle - (TWO_PI / n) * floor((n * angle + PI) / TWO_PI));
+    float r = PositivePow(nt / dt, NGonFactor);
+    float u = r * cos(angle - Rotation);
+    float v = r * sin(angle - Rotation);
+
+    v *= 1.0 + Anamorphism;
+    u *= 1.0 - Anamorphism;
+
+    return float2(u, v);
+}
+
+[numthreads(64, 1, 1)]
+void ComputeShapeBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    float t = (dispatchThreadId.x / (float)_ApertureShapeTableCount) * 2 * PI;
+    _ApertureShapeTable[dispatchThreadId.x] = AngleToApertureShape(t);
+}

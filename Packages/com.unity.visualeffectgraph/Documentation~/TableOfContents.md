@@ -253,7 +253,6 @@
       * [Nor](Operator-LogicNor.md)
       * [Not](Operator-LogicNot.md)
       * [Or](Operator-LogicOr.md)
-      * [Probability Sampling](Operator-ProbabilitySampling.md)
       * [Switch](Operator-Switch.md)
     * Math
       * Arithmetic
@@ -355,6 +354,7 @@
       * [Value Noise](Operator-ValueNoise.md)
     * Random
       * [Random Number](Operator-RandomNumber.md)
+	  * [Random Selector](Operator-RandomSelectorWeighted.md)
     * Sampling
       * [Buffer Count](Operator-BufferCount.md)
       * [Get Mesh Index Count](Operator-MeshIndexCount.md)
@@ -385,6 +385,7 @@
       * [Sample Texture3D](Operator-SampleTexture3D.md)
       * [Sample TextureCube](Operator-SampleTextureCube.md)
       * [Sample TextureCubeArray](Operator-SampleTextureCubeArray.md)
+      * [Sample Attribute Map](Operator-SampleAttributeMap.md)
     * Spawn
       * [Spawn State](Operator-SpawnState.md)
     * Utility

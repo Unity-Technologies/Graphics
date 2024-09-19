@@ -148,7 +148,7 @@ namespace PerformanceTests.Runtime
             });
             var depthTarget = m_RenderGraph.CreateTexture(new TextureDesc(1920, 1080)
             {
-                colorFormat = GraphicsFormat.D32_SFloat_S8_UInt,
+                colorFormat = GraphicsFormat.None,
                 depthBufferBits = DepthBits.Depth32
             });
 

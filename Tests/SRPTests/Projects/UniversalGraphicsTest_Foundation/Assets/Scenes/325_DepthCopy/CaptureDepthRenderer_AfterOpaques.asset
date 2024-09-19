@@ -74,4 +74,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   m_Material: {fileID: 2100000, guid: 8855f8472642fe34e9e6f4258b1b3db5, type: 2}
-  m_InjectionPoint: 300
+  m_InjectionPoint: 400

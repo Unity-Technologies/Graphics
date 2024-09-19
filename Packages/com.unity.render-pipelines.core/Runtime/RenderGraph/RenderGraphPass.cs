@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 {
                     // The only info we have is from the provided desc upon importing.
                     ref var desc = ref res.desc;
-                    generator.Append((int) desc.colorFormat);
+                    generator.Append((int) desc.format);
                     generator.Append((int) desc.dimension);
                     generator.Append((int) desc.msaaSamples);
                     generator.Append(desc.width);
@@ -380,7 +380,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             else
             {
                 var desc = resources.GetTextureResourceDesc(handle);
-                generator.Append((int) desc.colorFormat);
+                generator.Append((int) desc.format);
                 generator.Append((int) desc.dimension);
                 generator.Append((int) desc.msaaSamples);
                 generator.Append(desc.clearBuffer);

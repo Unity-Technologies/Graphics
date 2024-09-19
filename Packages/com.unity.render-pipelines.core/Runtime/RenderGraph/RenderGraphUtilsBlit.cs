@@ -9,6 +9,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
     /// </summary>
     public static partial class RenderGraphUtils
     {
+        static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
+
         /// <summary>
         /// Checks if the shader features required by the MSAA version of the copy pass is supported on current platform.
         /// </summary>
@@ -29,7 +31,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// individual samples will be copied.
         ///
         /// Copy is intentionally limited in functionally so it can be implemented using frame buffer fetch for optimal performance on tile based GPUs. If you are looking for a more generic
-        /// function please use the AddBlitPass function. Blit will automatically decide (based on the arguments) whether to use normal rendering or to instead call copy internally.
+        /// function please use the AddBlitPass function.
         ///
         /// For XR textures you will have to copy for each eye seperatly.
         ///
@@ -735,45 +737,25 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             s_BlitScaleBias.z = data.offset.x;
             s_BlitScaleBias.w = data.offset.y;
 
-            if (data.propertyBlock != null)
-            {
-                data.propertyBlock.SetTexture(data.sourceTexturePropertyID, data.source);
-                if (data.sourceSlice == -1)
-                    data.propertyBlock.SetInt(data.sourceSlicePropertyID, 0);
-                if (data.sourceMip == -1)
-                    data.propertyBlock.SetInt(data.sourceMipPropertyID, 0);
-                data.propertyBlock.SetVector(data.scaleBiasPropertyID, s_BlitScaleBias);
-            }
-            else
-            {
-                data.material.SetTexture(data.sourceTexturePropertyID, data.source);
-                if (data.sourceSlice == -1)
-                    data.material.SetInt(data.sourceSlicePropertyID, 0);
-                if (data.sourceMip == -1)
-                    data.material.SetInt(data.sourceMipPropertyID, 0);
-                data.material.SetVector(data.scaleBiasPropertyID, s_BlitScaleBias);
-            }
-
-
             CommandBuffer unsafeCmd = CommandBufferHelpers.GetNativeCommandBuffer(context.cmd);
+
+            if (data.propertyBlock == null) data.propertyBlock = s_PropertyBlock;
+
+            data.propertyBlock.SetTexture(data.sourceTexturePropertyID, data.source);
+            if (data.sourceSlice == -1)
+                data.propertyBlock.SetInt(data.sourceSlicePropertyID, 0);
+            if (data.sourceMip == -1)
+                data.propertyBlock.SetInt(data.sourceMipPropertyID, 0);
+            data.propertyBlock.SetVector(data.scaleBiasPropertyID, s_BlitScaleBias);
+
             for (int currSlice = 0; currSlice < data.numSlices; currSlice++)
             {
                 for (int currMip = 0; currMip < data.numMips; currMip++)
                 {
-                    if (data.propertyBlock != null)
-                    {
-                        if (data.sourceSlice != -1)
-                            data.propertyBlock.SetInt(data.sourceSlicePropertyID, data.sourceSlice + currSlice);
-                        if (data.sourceMip != -1)
-                            data.propertyBlock.SetInt(data.sourceMipPropertyID, data.sourceMip + currMip);
-                    }
-                    else
-                    {
-                        if (data.sourceSlice != -1)
-                            data.material.SetInt(data.sourceSlicePropertyID, data.sourceSlice + currSlice);
-                        if (data.sourceMip != -1)
-                            data.material.SetInt(data.sourceMipPropertyID, data.sourceMip + currMip);
-                    }
+                    if (data.sourceSlice != -1)
+                        data.propertyBlock.SetInt(data.sourceSlicePropertyID, data.sourceSlice + currSlice);
+                    if (data.sourceMip != -1)
+                        data.propertyBlock.SetInt(data.sourceMipPropertyID, data.sourceMip + currMip);
 
                     context.cmd.SetRenderTarget(data.destination, data.destinationMip + currMip, CubemapFace.Unknown, data.destinationSlice + currSlice);
                     switch (data.geometry)

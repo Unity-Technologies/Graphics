@@ -70,34 +70,58 @@ namespace UnityEditor.Rendering.HighDefinition
                             case ProxyShape.Box:
                                 s_BoxHandle.Value.center = Quaternion.Inverse(tr.rotation) * tr.position;
                                 s_BoxHandle.Value.size = prox.boxSize;
-                                EditorGUI.BeginChangeCheck();
                                 s_BoxHandle.Value.DrawHull(true);
-                                s_BoxHandle.Value.DrawHandle();
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    Undo.RecordObjects(new Object[] {tr, comp}, "Update Proxy Volume Size");
-                                    tr.position = tr.rotation * s_BoxHandle.Value.center;
-                                    prox.boxSize = s_BoxHandle.Value.size;
-                                }
-
                                 break;
                             case ProxyShape.Sphere:
-                                s_SphereHandle.Value.center = Quaternion.Inverse(tr.rotation) * tr.position;
+                                s_SphereHandle.Value.center = tr.position;
                                 s_SphereHandle.Value.radius = prox.sphereRadius;
-                                EditorGUI.BeginChangeCheck();
                                 s_SphereHandle.Value.DrawHull(true);
-                                s_SphereHandle.Value.DrawHandle();
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    Undo.RecordObjects(new Object[] {tr, comp}, "Update Proxy Volume Size");
-                                    tr.position = tr.rotation * s_SphereHandle.Value.center;
-                                    prox.sphereRadius = s_SphereHandle.Value.radius;
-                                }
-
                                 break;
                             case ProxyShape.Infinite:
                                 break;
                         }
+                    }
+                }
+            }
+        }
+
+        void OnSceneGUI()
+        {
+            foreach (var comp in s_TypedTargets)
+            {
+                var tr = comp.transform;
+                var prox = comp.proxyVolume;
+
+                using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, comp.transform.rotation, Vector3.one)))
+                {
+                    switch (prox.shape)
+                    {
+                        case ProxyShape.Box:
+                            EditorGUI.BeginChangeCheck();
+                            s_BoxHandle.Value.center = Quaternion.Inverse(tr.rotation) * tr.position;
+                            s_BoxHandle.Value.size = prox.boxSize;
+                            s_BoxHandle.Value.DrawHandle();
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObjects(new Object[] { tr, comp }, "Update Proxy Volume Size");
+                                tr.position = tr.rotation * s_BoxHandle.Value.center;
+                                prox.boxSize = s_BoxHandle.Value.size;
+                            }
+                            break;
+                        case ProxyShape.Sphere:
+                            EditorGUI.BeginChangeCheck();
+                            s_SphereHandle.Value.center = Quaternion.Inverse(tr.rotation) * tr.position;
+                            s_SphereHandle.Value.radius = prox.sphereRadius;
+                            s_SphereHandle.Value.DrawHandle();
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObjects(new Object[] { tr, comp }, "Update Proxy Volume Size");
+                                tr.position = tr.rotation * s_SphereHandle.Value.center;
+                                prox.sphereRadius = s_SphereHandle.Value.radius;
+                            }
+                            break;
+                        case ProxyShape.Infinite:
+                            break;
                     }
                 }
             }

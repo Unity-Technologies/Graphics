@@ -1,5 +1,8 @@
 # Sample Attribute Map
 
+> [!IMPORTANT]
+> This feature is experimental. To use this feature, open the **Preferences** window, go to the **Visual Effects** tab, and enable **Experimental Operators/Blocks**.
+
 **Menu Path : Operator > Sampling > Attribute Map**
 
 The Sample Attribute Map Operator enables you to sample an [attribute map](point-cache-in-vfx-graph.md#attribute-map) from a [Point Cache](point-cache-in-vfx-graph.md).

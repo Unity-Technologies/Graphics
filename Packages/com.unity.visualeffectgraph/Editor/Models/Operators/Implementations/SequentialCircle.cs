@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
@@ -48,6 +49,12 @@ namespace UnityEditor.VFX.Operator
             var radius = inputExpression[5];
 
             return new[] { VFXOperatorUtility.SequentialCircle(center, radius, normal, up, index, count, mode) };
+        }
+
+        internal sealed override void GenerateErrors(VFXErrorReporter report)
+        {
+            base.GenerateErrors(report);
+            Block.PositionSequential.GenerateSequentialCircleErrors(report, nameof(InputProperties.Count), nameof(InputProperties.Normal), nameof(InputProperties.Up), this);
         }
     }
 }

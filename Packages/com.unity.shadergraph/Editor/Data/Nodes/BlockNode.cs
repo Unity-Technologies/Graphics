@@ -31,6 +31,23 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         BlockFieldDescriptor m_Descriptor;
 
+        public override string displayName
+        {
+            get
+            {
+                string displayName = "";
+                if (m_Descriptor != null)
+                {
+                    displayName = m_Descriptor.shaderStage.ToString();
+                    if (!string.IsNullOrEmpty(displayName))
+                        displayName += " ";
+                    displayName += m_Descriptor.displayName;
+                }
+
+                return displayName;
+            }
+        }
+
         public override bool canCutNode => false;
         public override bool canCopyNode => false;
 
@@ -82,7 +99,6 @@ namespace UnityEditor.ShaderGraph
             name = !isCustomBlock
                 ? $"{fieldDescriptor.tag}.{fieldDescriptor.name}"
                 : $"{BlockFields.VertexDescription.name}.{k_CustomBlockDefaultName}";
-
 
             // TODO: This exposes the MaterialSlot API
             // TODO: This needs to be removed but is currently required by HDRP for DiffusionProfileInputMaterialSlot

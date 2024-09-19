@@ -345,6 +345,52 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void CopyPast_Context_With_Objects_In_Settings()
+        {
+            var outputContextDesc = VFXLibrary.GetContexts().First(t => t.modelType == typeof(VFXComposedParticleOutput));
+            m_ViewController.AddVFXContext(new Vector2(100, 100), outputContextDesc.variant);
+            m_ViewController.ApplyChanges();
+
+            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            var view = window.graphView;
+            view.controller = m_ViewController;
+            view.ClearSelection();
+            foreach (var element in view.Query().OfType<VFXContextUI>().ToList().OfType<ISelectable>())
+            {
+                view.AddToSelection(element);
+            }
+
+            var copyData = view.SerializeElements(view.selection.OfType<GraphElement>());
+            view.UnserializeAndPasteElements("Paste", copyData);
+
+            // Retrieve the block from the copied context
+            var copiedContexts = view.Query()
+                .OfType<VFXContextUI>()
+                .ToList()
+                .Select(x => x.controller.model).ToArray();
+
+            Assert.AreEqual(2, copiedContexts.Length);
+
+            Assert.IsInstanceOf<VFXComposedParticleOutput>(copiedContexts[0]);
+            Assert.IsInstanceOf<VFXComposedParticleOutput>(copiedContexts[1]);
+
+            var originalTopology = copiedContexts[0].GetSetting("m_Topology");
+            var originalShading = copiedContexts[0].GetSetting("m_Shading");
+            var copyTopology = copiedContexts[1].GetSetting("m_Topology");
+            var copyShading = copiedContexts[1].GetSetting("m_Shading");
+
+            Assert.IsTrue(originalTopology.valid);
+            Assert.IsTrue(originalShading.valid);
+            Assert.IsTrue(copyTopology.valid);
+            Assert.IsTrue(copyShading.valid);
+
+            Assert.AreEqual(originalTopology.GetType(), copyTopology.GetType());
+            Assert.AreEqual(originalShading.GetType(), copyShading.GetType());
+            Assert.IsFalse(ReferenceEquals(originalTopology.value, copyTopology.value));
+            Assert.IsFalse(ReferenceEquals(originalShading.value, copyShading.value));
+        }
+
+        [Test]
         public void CreateTemplate()
         {
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();

@@ -24,8 +24,7 @@ Graphics Features used:
 Relevant  links :
 
 * [Photogrammetry](https://unity.com/solutions/photogrammetry)
-  * [Photogrammetry in Unity: Making Real-World Objects into Digital Assets](https://blogs.unity3d.com/2018/03/12/photogrammetry-in-unity-making-real-world-objects-into-digital-assets/)
-  * [Creating Assets with Photogrammetry using a rotating surface](https://blogs.unity3d.com/2019/03/11/creating-assets-with-photogrammetry-using-a-rotating-surface/)
+  * [Photogrammetry in Unity: Making Real-World Objects into Digital Assets](https://unity.com/blog/engine-platform/photogrammetry-real-world-objects-into-digital-assets)
   * [Siggraph 2017 - Photogrammetry workflow and the tech behind the de-lighting tool](https://www.youtube.com/watch?v=Ny9ZXt_2v2Y)
 
 
@@ -47,10 +46,7 @@ Graphics features used:
 * GPU Lightmapper
 
 Relevant links :
-* [Now Available: The Spaceship Demo Project using VFX Graph and High-Definition Render Pipeline](https://blogs.unity3d.com/2019/08/19/now-available-the-spaceship-demo-project-using-vfx-graph-and-high-definition-render-pipeline/)
 * [VFX Graph: building visual effects in the Spaceship Demo | Unite Now 2020](https://www.youtube.com/watch?v=Od16mcOzl2M)
-* [Visual Effect Graph Samples](https://blogs.unity3d.com/2019/03/06/visual-effect-graph-samples/)
-
 
 ## VR Alchemy Lab
 

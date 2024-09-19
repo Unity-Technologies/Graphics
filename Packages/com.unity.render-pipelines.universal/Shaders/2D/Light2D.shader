@@ -4,7 +4,6 @@ Shader "Hidden/Light2D"
     {
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
-        [Enum(UnityEngine.Rendering.CompareFunction)] _HandleZTest("_HandleZTest", Int) = 0
     }
 
     SubShader
@@ -15,7 +14,7 @@ Shader "Hidden/Light2D"
         {
             Blend [_SrcBlend][_DstBlend]
             ZWrite Off
-            ZTest [_HandleZTest]
+            ZTest Off
             Cull Off
 
             HLSLPROGRAM

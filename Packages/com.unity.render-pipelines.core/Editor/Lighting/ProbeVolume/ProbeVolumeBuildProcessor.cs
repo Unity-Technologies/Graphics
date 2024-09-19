@@ -1,12 +1,14 @@
 using System.IO;
 using System.Collections.Generic;
 using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Rendering
 {
-    class ProbeVolumeBuildProcessor : BuildPlayerProcessor
+    class ProbeVolumeBuildProcessor : BuildPlayerProcessor, IProcessSceneWithReport
     {
         const string kTempAPVStreamingAssetsPath = "TempAPVStreamingAssets";
 
@@ -35,11 +37,11 @@ namespace UnityEditor.Rendering
             File.Copy(assetPath, Path.Combine(basePath, asset.assetGUID + ".bytes"));
         }
 
-        void GetProbeVolumeProjectSettings(BuildPlayerContext buildPlayerContext, out bool supportProbeVolume, out ProbeVolumeSHBands maxSHBands)
+        void GetProbeVolumeProjectSettings(BuildTarget target, out bool supportProbeVolume, out ProbeVolumeSHBands maxSHBands)
         {
             // Grab all assets used for the build.
             List<RenderPipelineAsset> srpAssets = new List<RenderPipelineAsset>();
-            buildPlayerContext.BuildPlayerOptions.target.TryGetRenderPipelineAssets(srpAssets);
+            target.TryGetRenderPipelineAssets(srpAssets);
 
             maxSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1;
             supportProbeVolume = false;
@@ -60,7 +62,7 @@ namespace UnityEditor.Rendering
 
         public override void PrepareForBuild(BuildPlayerContext buildPlayerContext)
         {
-            GetProbeVolumeProjectSettings(buildPlayerContext, out bool supportProbeVolume, out var maxSHBands);
+            GetProbeVolumeProjectSettings(buildPlayerContext.BuildPlayerOptions.target, out bool supportProbeVolume, out var maxSHBands);
 
             if (!supportProbeVolume)
                 return;
@@ -130,6 +132,68 @@ namespace UnityEditor.Rendering
             }
 
             buildPlayerContext.AddAdditionalPathToStreamingAssets(tempStreamingAssetsPath, AdaptiveProbeVolumes.kAPVStreamingAssetsPath);
+        }
+
+        private static bool IsBundleBuild(BuildReport report, bool isPlaying)
+        {
+            // We are entering playmode, so not building a bundle.
+            if (isPlaying)
+                return false;
+
+            // Addressable builds do not provide a BuildReport. Because the Addressables package
+            // only supports AssetBundle builds, we infer that this is not a player build.
+            if (report == null)
+                return true;
+
+            return report.summary.buildType == BuildType.AssetBundle;
+        }
+
+        // This codepath handles the case of building asset bundles, i.e. not a full player build. It updates the references
+        // to individual data assets in the baking sets for each scene, such that the assets are included in the bundle.
+        public override int callbackOrder => 1;
+        public void OnProcessScene(Scene scene, BuildReport report)
+        {
+            // Only run for bundle builds.
+            if (!IsBundleBuild(report, Application.isPlaying))
+                return;
+
+            // Only run when APV is enabled.
+            GetProbeVolumeProjectSettings(EditorUserBuildSettings.activeBuildTarget, out bool supportProbeVolume, out var maxSHBands);
+            if (!supportProbeVolume)
+                return;
+
+            // Reload the map from scene to baking set if we couldn't find the specific baking set.
+            if (ProbeVolumeBakingSet.sceneToBakingSet == null || ProbeVolumeBakingSet.sceneToBakingSet.Count == 0)
+                ProbeVolumeBakingSet.SyncBakingSets();
+
+            // Get the baking set for the scene.
+            var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(scene.GetGUID());
+            if (bakingSet == null || !bakingSet.cellSharedDataAsset.IsValid())
+                return;
+
+            bool useStreamingAsset = !GraphicsSettings.GetRenderPipelineSettings<ProbeVolumeGlobalSettings>().probeVolumeDisableStreamingAssets;
+            if (useStreamingAsset)
+            {
+                Debug.LogWarning(
+                    "Attempted to build an Asset Bundle containing Adaptive Probe Volume data, but streaming assets are enabled. This is unsupported. " +
+                    "To use Adaptive Probe Volumes with Asset Bundles, please check 'Probe Volume Disable Streaming Assets' under Graphics Settings.");
+            }
+
+            // Update all the asset references.
+            bakingSet.cellSharedDataAsset.UpdateAssetReference(useStreamingAsset);
+            bakingSet.cellBricksDataAsset.UpdateAssetReference(useStreamingAsset);
+
+            bool stripSupportData = true;
+            if (!stripSupportData)
+                bakingSet.cellSupportDataAsset.UpdateAssetReference(false);
+
+            foreach (var scenario in bakingSet.scenarios)
+            {
+                scenario.Value.cellDataAsset.UpdateAssetReference(useStreamingAsset);
+                if (maxSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    scenario.Value.cellOptionalDataAsset.UpdateAssetReference(useStreamingAsset);
+                scenario.Value.cellProbeOcclusionDataAsset.UpdateAssetReference(useStreamingAsset);
+            }
         }
     }
 }

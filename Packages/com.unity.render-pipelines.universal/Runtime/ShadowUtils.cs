@@ -446,7 +446,7 @@ namespace UnityEngine.Rendering.Universal
                 normalBias *= kernelRadius;
             }
 
-            return new Vector4(depthBias, normalBias, 0.0f, 0.0f);
+            return new Vector4(depthBias, normalBias, (float)shadowLight.lightType, 0.0f);
         }
 
 
@@ -760,6 +760,14 @@ namespace UnityEngine.Rendering.Universal
         internal static bool FastApproximately(float a, float b)
         {
             return Mathf.Abs(a - b) < 0.000001f;
+        }
+
+        internal static bool FastApproximately(Vector4 a, Vector4 b)
+        {
+            return FastApproximately(a.x, b.x)
+                && FastApproximately(a.y, b.y)
+                && FastApproximately(a.z, b.z)
+                && FastApproximately(a.w, b.w);
         }
 
         internal const int kMinimumPunctualLightHardShadowResolution = 8;

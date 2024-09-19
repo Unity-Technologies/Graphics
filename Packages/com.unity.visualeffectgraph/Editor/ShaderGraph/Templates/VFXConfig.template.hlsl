@@ -5,6 +5,10 @@ $splice(VFXDefineSpace)
 $splice(VFXDefines)
 #define NULL_GEOMETRY_INPUT defined(HAVE_VFX_PLANAR_PRIMITIVE)
 
+#if HAS_STRIPS
+#define HAS_STRIPS_DATA 1
+#endif
+
 // Explicitly defined here for now (similar to how it was done in the previous VFX code-gen)
 #define HAS_VFX_ATTRIBUTES 1
 
@@ -29,7 +33,7 @@ StructuredBuffer<uint> indirectBuffer;
 StructuredBuffer<uint> deadList;
 #endif
 
-#if HAS_STRIPS
+#if HAS_STRIPS_DATA
 StructuredBuffer<uint> stripDataBuffer;
 #endif
 
@@ -77,7 +81,7 @@ struct AttributesElement
     InternalAttributesElement attributes;
 
     // Additional attribute information for particle strips.
-#if HAS_STRIPS
+#if HAS_STRIPS_DATA
     uint relativeIndexInStrip;
     StripData stripData;
 #endif
@@ -169,7 +173,7 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
         uint prevIndex = GetParticleIndex(relativeIndex - 1, stripData);
         float3 tangent = currentPos - GetParticlePosition(prevIndex, instanceIndex);
         float sqrLength = dot(tangent, tangent);
-        if (sqrLength > VFX_EPSILON)
+        if (sqrLength > VFX_EPSILON * VFX_EPSILON)
             prevTangent = tangent * rsqrt(sqrLength);
     }
 
@@ -179,7 +183,7 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
         uint nextIndex = GetParticleIndex(relativeIndex + 1, stripData);
         float3 tangent = GetParticlePosition(nextIndex, instanceIndex) - currentPos;
         float sqrLength = dot(tangent, tangent);
-        if (sqrLength > VFX_EPSILON)
+        if (sqrLength > VFX_EPSILON * VFX_EPSILON)
             nextTangent = tangent * rsqrt(sqrLength);
     }
 
@@ -201,7 +205,7 @@ void GetElementData(inout AttributesElement element)
 
     $splice(VFXLoadAttribute)
 
-    #if HAS_STRIPS
+    #if HAS_STRIPS_DATA
     const StripData stripData = element.stripData;
     const uint relativeIndexInStrip = element.relativeIndexInStrip;
     InitStripAttributes(index, attributes, element.stripData);

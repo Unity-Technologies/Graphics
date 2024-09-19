@@ -156,6 +156,36 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(hlslBlock.attributes.All(x => x.mode == VFXAttributeMode.Read));
         }
 
+        [Test, Description("Covers issue UUM-79389")]
+        public void Check_CustomHLSL_Block_Attribute_Read_SubField_Access()
+        {
+            // Arrange
+            var hlslCode =
+                "void Test(inout VFXAttributes attributes, in float value, in float altSize)\n" +
+                "{\n" +
+                "    if (attributes.position.y >= value)\n" +
+                "    {\n" +
+                "        attributes.size = altSize;\n" +
+                "    }\n" +
+                "}";
+
+            var hlslBlock = CreateCustomHLSLBlock();
+            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
+
+            // Act
+            hlslBlock.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+
+            // Assert
+            Assert.AreEqual(2, hlslBlock.attributes.Count());
+            var sizeAttribute = hlslBlock.attributes.First();
+            Assert.AreEqual(sizeAttribute.attrib.name, "size");
+            Assert.AreEqual(sizeAttribute.mode, VFXAttributeMode.Write);
+
+            var positionAttribute = hlslBlock.attributes.Last();
+            Assert.AreEqual(positionAttribute.attrib.name, "position");
+            Assert.AreEqual(positionAttribute.mode, VFXAttributeMode.Read);
+        }
+
         [Test]
         public void Check_CustomHLSL_Block_Attribute_Write_Access()
         {

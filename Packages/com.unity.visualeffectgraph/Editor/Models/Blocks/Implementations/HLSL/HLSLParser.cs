@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.Block
     class HLSLFunctionParameter
     {
         // Match inout/in/out accessor then any whitespace then the parameter type then optionally a template type any whitespace and then the parameter name
-        static readonly Regex s_ParametersParser = new Regex(@"(?<access>(inout|in|out)\b)?\s*(?<type>\w+)(?:[<](?<template>\w+)[>])?\s*(?<parameter>\w+)(?:,\s*)?", RegexOptions.Compiled);
+        static readonly Regex s_ParametersParser = new Regex(@"(?<access>(inout|in|out)\b)?\s*(?<type>\w+)(?:[<](?<template>\w+)[>])?\s*(?<parameter>\w+)(?:\s*,\s*)?", RegexOptions.Compiled);
 
         readonly string m_RawCode;
 
@@ -200,7 +200,7 @@ namespace UnityEditor.VFX.Block
                     match.Groups["type"].Value,
                     match.Groups["template"].Value,
                     match.Groups["parameter"].Value,
-                    doc.TryGetValue(match.Groups["parameter"].Value, out var tooltip) ? tooltip : null);
+                    doc.GetValueOrDefault(match.Groups["parameter"].Value));
             }
         }
 
@@ -248,7 +248,7 @@ namespace UnityEditor.VFX.Block
     class HLSLFunction
     {
         // Match all attributes not followed by a single '=' character and also catch ++ and -- prefix (for read+write case)
-        static readonly string s_AttributeReadPattern = @"(?<op>\+\+|\-\-)?{0}.(?<name>\w+\b)(?!.*(?:[^=]=[^=]))";
+        static readonly string s_AttributeReadPattern = @"(?<op>\+{{2}}|-{{2}})?{0}.(?<name>\w+\b)(?!(?:\.\w+)?\s*[^=<>+-]=[^=])";
         // Match all attributes followed by an assigment operator (=, ++, --, +=, -= ...) even if there's multiple assignments on the same line
         private static readonly string s_AttributeWritePattern = @"{0}.(?<name>\w+)(?:\.\w)?\s*(?<op>[\/\-+*%&\|\^]?=[^=]|(\+\+|\-\-|<<=|>>=))";
         // Simply match lines where a 'return' statement is used

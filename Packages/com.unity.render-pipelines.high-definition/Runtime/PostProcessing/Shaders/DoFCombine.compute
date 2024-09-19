@@ -6,7 +6,7 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel KMain
+#pragma kernel UpsampleFastTiles
 
 #pragma multi_compile _ ENABLE_ALPHA
 #pragma multi_compile _ FORCE_POINT_SAMPLING
@@ -17,6 +17,8 @@
 CBUFFER_START(cb0)
 float4 _Params;
 float4 _Params2;
+uint _DebugTileClassification;
+uint3 _Padding;
 CBUFFER_END
 
 #define NumRings            _Params.x
@@ -31,53 +33,35 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 #define ResScale        1.0f
 #define OneOverResScale 1.0f
-#define MaxColorMip     0.0f
+#define MaxColorMip     0.0
 #define AdaptiveSamplingWeights _Params2.xy
 #define BlurResolution _Params2.z
 #define InvBlurResolution _Params2.w
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DoFGatherUtils.hlsl"
 
+// TODO: indirect classification
 [numthreads(GROUP_RES, GROUP_RES, 1)]
-void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+void UpsampleFastTiles(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _PostProcessScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
 
-    CTYPE output = 0;
-
     int tileClass = GetTileClass(posInputs.positionSS);
 
-    if (tileClass == SLOW_INFOCUS_TILE)
-    {
-        SampleData centerSample;
-        centerSample.color = GetColorSample(posInputs.positionSS, 0);
-        centerSample.CoC = GetCoCRadius(posInputs.positionSS);
-
-        DoFTile tileData;
-        LoadTileData(posInputs.positionSS, centerSample, NumRings, tileData);
-
-        float4 outColor;
-        float outAlpha;
-        DoFGatherRings(posInputs, tileData, centerSample, outColor, outAlpha);
-        output.xyz = outColor.xyz;
-#ifdef ENABLE_ALPHA
-        ComposeAlpha(output, centerSample.color.xyz, outAlpha);
-#endif
-    }
-    else if (tileClass == FAST_DEFOCUS_TILE)
+    if (tileClass == FAST_DEFOCUS_TILE)
     {
         float2 uv = (posInputs.positionSS + 0.5) * _PostProcessScreenSize.zw;
         uv = ClampAndScaleUV(uv, _PostProcessScreenSize.zw * BlurResolution, 0.5f, _RTHandlePostProcessScale.xy);
-        output = SAMPLE_TEXTURE2D_X_LOD(_InputNearTexture, s_linear_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
-    }
-    else
-    {
-        output = GetColorSample(posInputs.positionSS, 0);
+        CTYPE output = SAMPLE_TEXTURE2D_X_LOD(_InputNearTexture, s_linear_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
+        _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE)output;
     }
 
     // Helper function to visualize tile types in case it is needed for debugging
-    //DebugTiles(posInputs.positionSS, output.xyz);
-
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE)output;
+    if (_DebugTileClassification != 0)
+    {
+        CTYPE debug = _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)];
+        DebugTiles(tileClass, debug.xyz);
+        _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = debug;
+    }
 }

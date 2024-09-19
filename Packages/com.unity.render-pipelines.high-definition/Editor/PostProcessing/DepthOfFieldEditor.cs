@@ -53,6 +53,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_PhysicallyBased;
         SerializedDataParameter m_LimitManualRangeNearBlur;
+        SerializedDataParameter m_AdaptiveSamplingWeight;
+        SerializedDataParameter m_CoCStabilization;
 
         public override void OnEnable()
         {
@@ -77,7 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Resolution = Unpack(o.Find("m_Resolution"));
             m_PhysicallyBased = Unpack(o.Find("m_PhysicallyBased"));
             m_LimitManualRangeNearBlur = Unpack(o.Find("m_LimitManualRangeNearBlur"));
-
+            m_AdaptiveSamplingWeight = Unpack(o.Find("m_AdaptiveSamplingWeight"));
+            m_CoCStabilization = Unpack(o.Find(x => x.coCStabilization));
             base.OnEnable();
         }
 
@@ -175,19 +178,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void PropertyPBRDofResolution(SerializedDataParameter property)
-        {
-            using (var scope = new OverridablePropertyScope(property, Styles.PbrDofResolutionTitle, this))
-            {
-                if (!scope.displayed)
-                    return;
-
-                bool isHighResolution = property.value.intValue <= (int)DepthOfFieldResolution.Half;
-                isHighResolution = EditorGUILayout.Toggle(Styles.PbrDofResolutionTitle, isHighResolution);
-                property.value.intValue = isHighResolution ? Math.Min((int)DepthOfFieldResolution.Half, property.value.intValue) : (int)DepthOfFieldResolution.Quarter;
-            }
-        }
-
         void DrawQualitySettings()
         {
             using (new QualityScope(this))
@@ -197,12 +187,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
                 PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
                 PropertyField(m_PhysicallyBased);
+                PropertyField(m_Resolution);
                 if (m_PhysicallyBased.value.boolValue)
-                    PropertyPBRDofResolution(m_Resolution);
-                else
-                    PropertyField(m_Resolution);
+                    PropertyField(m_AdaptiveSamplingWeight);
 
-                PropertyField(m_HighQualityFiltering);
                 if (m_PhysicallyBased.value.boolValue)
                 {
                     if (BeginAdditionalPropertiesScope())
@@ -212,11 +200,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     EndAdditionalPropertiesScope();
                 }
+                else
+                {
+                    PropertyField(m_HighQualityFiltering);
+                }
 
                 if (m_FocusMode.value.intValue == (int)DepthOfFieldMode.Manual && !m_PhysicallyBased.value.boolValue)
                 {
                     PropertyField(m_LimitManualRangeNearBlur);
                 }
+
+                PropertyField(m_CoCStabilization);
             }
         }
 
@@ -230,7 +224,6 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<int>(m_FarSampleCount);
             settings.Save<float>(m_FarMaxBlur);
             settings.Save<int>(m_Resolution);
-            settings.Save<bool>(m_HighQualityFiltering);
             settings.Save<bool>(m_PhysicallyBased);
             settings.Save<bool>(m_LimitManualRangeNearBlur);
 
@@ -244,7 +237,6 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.TryLoad<int>(ref m_FarSampleCount);
             settings.TryLoad<float>(ref m_FarMaxBlur);
             settings.TryLoad<int>(ref m_Resolution);
-            settings.TryLoad<bool>(ref m_HighQualityFiltering);
             settings.TryLoad<bool>(ref m_PhysicallyBased);
             settings.TryLoad<bool>(ref m_LimitManualRangeNearBlur);
         }

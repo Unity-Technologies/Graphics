@@ -27,7 +27,8 @@ float3 BilinearSample(float2 uv, float2 offset, out float weight)
 #ifdef ENABLE_ALPHA
     // When alpha is enabled, regions with zero alpha should not generate any bloom / glow. Therefore we pre-multipy the color with the alpha channel here and the rest
     // of the computations remain float3. Still, when bloom is applied to the final image, bloom will still be spread on regions with zero alpha (see UberPost.compute)
-    c.xyz *= c.w;
+    // Note that the alpha channel in the color target could be greater than 1.0 or NaN or negative. The alpha here is opacity so we clamp it to handle an unexpected input.
+    c.xyz *= saturate(c.w);
 #endif
     c.xyz = QuadraticThreshold(c.xyz, _BloomThreshold.x, _BloomThreshold.yzw);
 

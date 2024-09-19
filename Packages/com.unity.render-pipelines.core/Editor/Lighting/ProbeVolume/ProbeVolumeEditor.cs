@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering
                 drawInspector = false;
             }
 
-            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
+            if (!ProbeVolumeGlobalSettingsStripper.ProbeVolumeSupportedForBuild())
             {
                 APVDisabledHelpBox();
                 drawInspector = false;

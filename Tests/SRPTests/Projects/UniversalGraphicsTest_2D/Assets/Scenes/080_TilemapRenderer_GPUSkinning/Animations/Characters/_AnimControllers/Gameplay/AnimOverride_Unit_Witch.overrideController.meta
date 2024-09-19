@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 666d57cd5e3898b47a7d3a9f70b15230
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 190721
+  packageName: Dragon Crashers - 2D Sample Project
+  packageVersion: 1.1
+  assetPath: Assets/Animations/Characters/_AnimControllers/Gameplay/AnimOverride_Unit_Witch.overrideController
+  uploadId: 467401

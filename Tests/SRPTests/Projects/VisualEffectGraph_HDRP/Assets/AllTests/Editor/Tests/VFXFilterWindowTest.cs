@@ -152,6 +152,57 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(expectedSelection, GetReadableDisplayName(GetSelection(vfxFilterWindow)));
         }
 
+        [Test, Description("Relative to UUM-76443")]
+        public void Ensure_Composed_Output_Are_Fully_Independent()
+        {
+            // Arrange
+            var graph = VFXTestCommon.CreateGraph_And_System();
+            var window = VFXViewWindow.GetWindow(graph, true, true);
+            window.LoadResource(graph.visualEffectResource);
+            var nodeProvider = new VFXNodeProvider(window.graphView.controller, (v, pos) => { }, null, null);
+            VFXFilterWindow.Show(Vector2.zero, Vector2.zero, nodeProvider);
+            var vfxFilterWindow = EditorWindow.GetWindow<VFXFilterWindow>();
+
+            SetSearchPattern(vfxFilterWindow, "+output shader graph octagon");
+            var treeviewData = GetTreeData(vfxFilterWindow).Where(o => o.hasChildren).ToArray();
+            Assert.AreEqual(1, treeviewData.Length);
+            Assert.AreEqual(1, treeviewData[0].children.Count());
+            var desc = treeviewData[0].children.First();
+
+            var objectA = desc.data.descriptor.CreateInstance();
+            var objectB = desc.data.descriptor.CreateInstance();
+
+            graph.AddChild(objectA);
+            graph.AddChild(objectB);
+
+            var topologyA = objectA.GetSetting("m_Topology");
+            var shadingA = objectA.GetSetting("m_Shading");
+            var topologyB = objectB.GetSetting("m_Topology");
+            var shadingB = objectB.GetSetting("m_Shading");
+
+            Assert.IsTrue(topologyA.valid);
+            Assert.IsTrue(shadingA.valid);
+            Assert.IsTrue(topologyB.valid);
+            Assert.IsTrue(shadingB.valid);
+
+            Assert.AreEqual(topologyA.GetType(), topologyB.GetType());
+            Assert.AreEqual(shadingA.GetType(), shadingB.GetType());
+            Assert.IsFalse(ReferenceEquals(topologyA.value, topologyB.value));
+            Assert.IsFalse(ReferenceEquals(shadingA.value, shadingB.value));
+
+            var topologyAPlanar = topologyA.value as ParticleTopologyPlanarPrimitive;
+            var topologyBPlanar = topologyB.value as ParticleTopologyPlanarPrimitive;
+            Assert.IsNotNull(topologyAPlanar);
+            Assert.IsNotNull(topologyBPlanar);
+
+
+            var primitiveTypeFieldAccess = topologyAPlanar.GetType().GetField("primitiveType", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(primitiveTypeFieldAccess);
+
+            Assert.AreEqual(VFXPrimitiveType.Octagon, primitiveTypeFieldAccess.GetValue(topologyAPlanar));
+            Assert.AreEqual(VFXPrimitiveType.Octagon, primitiveTypeFieldAccess.GetValue(topologyBPlanar));
+        }
+
         // We cleanup the string because some special characters like # and @ are inserted to handle highlighting in the UI
         private string GetReadableDisplayName(VFXFilterWindow.Descriptor descriptor)
         {

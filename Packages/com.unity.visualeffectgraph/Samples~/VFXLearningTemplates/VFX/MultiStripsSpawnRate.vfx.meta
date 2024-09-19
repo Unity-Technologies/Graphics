@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: ca72ef41e5ce48145b8c4b3fc13e3649
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Multi-Strip Spawn Rate
+    category: Learning Templates
+    description: There are several ways to spawn particles, and when dealing with
+      strips, this can have some implications for how you need to set up your VFX.
+      This example shows you how to make multiple trails out of a continuous spawn
+      rate of particles.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: fe70339a289765e48b1d8950b4737299, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

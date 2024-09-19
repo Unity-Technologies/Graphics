@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering
         /// <returns>Intensity in Candela.</returns>
         public static float LuxToCandela(float lux, float distance)
         {
-            return lux / (distance * distance);
+            return lux * (distance * distance);
         }
 
         /// <summary>
@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering
         /// <returns>Intensity in Lux.</returns>
         public static float CandelaToLux(float candela, float distance)
         {
-            return candela * distance * distance;
+            return candela / (distance * distance);
         }
 
         /// <summary>

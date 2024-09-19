@@ -106,6 +106,7 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, int groupIndex : SV_Gr
     _CloudsLightingTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = result.scattering;
 
     // Compute the cloud depth
-    float depth = result.invalidRay ? UNITY_RAW_FAR_CLIP_VALUE : EncodeInfiniteDepth(result.meanDistance, _CloudNearPlane);
+    float cloudDepth = result.meanDistance * dot(ray.direction, -UNITY_MATRIX_V[2].xyz); // Distance to depth
+    float depth = result.invalidRay ? UNITY_RAW_FAR_CLIP_VALUE : EncodeInfiniteDepth(cloudDepth, _CloudNearPlane);
     _CloudsDepthTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = float2(depth, result.transmittance);
 }

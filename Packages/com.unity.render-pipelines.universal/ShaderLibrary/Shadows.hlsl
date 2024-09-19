@@ -106,7 +106,16 @@ CBUFFER_END
     #endif
 #endif
 
-float4 _ShadowBias; // x: depth bias, y: normal bias
+// x: depth bias,
+// y: normal bias,
+// z: light type (Spot = 0, Directional = 1, Point = 2, Area/Rectangle = 3, Disc = 4, Pyramid = 5, Box = 6, Tube = 7)
+// w: unused
+float4 _ShadowBias;
+
+half IsPointLight()
+{
+    return _ShadowBias.z > 1.0 && _ShadowBias.z <= 2.0 ? 1 : 0;
+}
 
 #define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0
 

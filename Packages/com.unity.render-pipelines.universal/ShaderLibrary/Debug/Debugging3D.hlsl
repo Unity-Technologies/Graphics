@@ -131,6 +131,27 @@ bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData sur
     }
 }
 
+float3 GetRenderingLayerMasksDebugColor(float4 positionCS, float3 normalWS)
+{
+    uint stripeSize = 8;
+    int renderingLayers = GetMeshRenderingLayer() & _DebugRenderingLayerMask;
+    uint layerId = 0, layerCount = countbits(renderingLayers);
+    float4 debugColor = float4(1, 1, 1, 1);
+    for (uint i = 0; (i < 32) && (layerId < layerCount); i++)
+    {
+        if (renderingLayers & (1U << i))
+        {
+            uint t = (positionCS.y / stripeSize) % layerCount;
+            if (t == layerId)
+                debugColor.rgb = _DebugRenderingLayerMaskColors[i].rgb;
+            layerId++;
+        }
+    }
+    float shading = saturate(dot(normalWS, TransformViewToWorldDir(float3(0.0f, 0.0f, 1.0f), true)));
+    shading = Remap(0.0f, 1.0f, 0.6, 1.0f, shading);
+    return shading * debugColor.xyz;
+}
+
 bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
     // Debug materials...
@@ -173,6 +194,10 @@ bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfa
 
         case DEBUGMATERIALMODE_METALLIC:
             debugColor = half4(surfaceData.metallic.rrr, 1);
+            return true;
+
+        case DEBUGMATERIALMODE_RENDERING_LAYER_MASKS:
+            debugColor.xyz = GetRenderingLayerMasksDebugColor(inputData.positionCS, inputData.normalWS).xyz;
             return true;
 
         default:

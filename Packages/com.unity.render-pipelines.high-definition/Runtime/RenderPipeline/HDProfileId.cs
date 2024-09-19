@@ -278,6 +278,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldGatherNear,
         DepthOfFieldPreCombine,
         DepthOfFieldCombine,
+        DepthOfFieldComputeSlowTiles,
+        DepthOfFieldApertureShape,
         LensFlareScreenSpace,
         LensFlareDataDriven,
         LensFlareComputeOcclusionDataDriven,

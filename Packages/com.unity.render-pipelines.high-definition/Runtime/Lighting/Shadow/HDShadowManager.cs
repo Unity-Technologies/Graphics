@@ -111,6 +111,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [HLSLArray(4, typeof(float))]
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public fixed float cascadeBorders[4];
+
+        public float fadeScale;
+        public float fadeBias;
     }
 
     struct HDShadowCullingSplit
@@ -702,6 +705,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Even when shadows are disabled (maxShadowRequests == 0) we need to allocate compute buffers to avoid having
             // resource not bound errors when dispatching a compute shader.
+            if (initParams.maxShadowRequests > 65536)
+            {
+                initParams.maxShadowRequests = 65536;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.LogWarning("The 'Maximum Shadows on Screen' value has been clamped to 65536 in order not to exceed the maximum size of the buffer.");
+#endif
+            }
             m_ShadowDataBuffer = new ComputeBuffer(Mathf.Max(initParams.maxShadowRequests, 1), System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
             m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
             m_MaxShadowRequests = initParams.maxShadowRequests;
@@ -1153,7 +1163,10 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 m_DirectionalShadowData.cascadeDirection = Vector4.zero;
 
-            m_DirectionalShadowData.cascadeDirection.w = camera.volumeStack.GetComponent<HDShadowSettings>().cascadeShadowSplitCount.value;
+            HDShadowSettings shadowSettings = camera.volumeStack.GetComponent<HDShadowSettings>();
+            m_DirectionalShadowData.cascadeDirection.w = shadowSettings.cascadeShadowSplitCount.value;
+
+            GetShadowFadeScaleAndBias(shadowSettings, out m_DirectionalShadowData.fadeScale, out m_DirectionalShadowData.fadeBias);
 
             if (m_ShadowRequestCount > 0)
             {
@@ -1162,6 +1175,45 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CachedDirectionalShadowData[0] = m_DirectionalShadowData;
                 m_DirectionalShadowDataBuffer.SetData(m_CachedDirectionalShadowData);
             }
+        }
+
+        void GetShadowFadeScaleAndBias(HDShadowSettings shadowSettings, out float scale, out float bias)
+        {
+            float maxShadowDistance = shadowSettings.maxShadowDistance.value;
+            float maxShadowDistanceSq = maxShadowDistance * maxShadowDistance;
+            float cascadeBorder;
+            int splitCount = shadowSettings.cascadeShadowSplitCount.value;
+            if (splitCount == 4)
+                cascadeBorder = shadowSettings.cascadeShadowBorder3.value;
+            else if (splitCount == 3)
+                cascadeBorder = shadowSettings.cascadeShadowBorder2.value;
+            else if (splitCount == 2)
+                cascadeBorder = shadowSettings.cascadeShadowBorder1.value;
+            else
+                cascadeBorder = shadowSettings.cascadeShadowBorder0.value;
+
+            GetScaleAndBiasForLinearDistanceFade(maxShadowDistanceSq, cascadeBorder, out scale, out bias);
+        }
+
+        void GetScaleAndBiasForLinearDistanceFade(float fadeDistance, float border, out float scale, out float bias)
+        {
+            // To avoid division from zero
+            // This values ensure that fade within cascade will be 0 and outside 1
+            if (border < 0.0001f)
+            {
+                float multiplier = 1000f; // To avoid blending if difference is in fractions
+                scale = multiplier;
+                bias = -fadeDistance * multiplier;
+                return;
+            }
+
+            border = 1 - border;
+            border *= border;
+
+            // Fade with distance calculation is just a linear fade from 90% of fade distance to fade distance. 90% arbitrarily chosen but should work well enough.
+            float distanceFadeNear = border * fadeDistance;
+            scale = 1.0f / (fadeDistance - distanceFadeNear);
+            bias = -distanceFadeNear / (fadeDistance - distanceFadeNear);
         }
 
         public void PushGlobalParameters(CommandBuffer cmd)

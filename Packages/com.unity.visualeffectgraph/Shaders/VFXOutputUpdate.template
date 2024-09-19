@@ -13,7 +13,7 @@ ${VFXGlobalDeclaration}
 #pragma multi_compile _ UNITY_SINGLE_PASS_STEREO STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
 #endif
 
-#if HAS_STRIPS
+#if HAS_STRIPS_DATA
 StructuredBuffer<uint> stripDataBuffer;
 #endif
 

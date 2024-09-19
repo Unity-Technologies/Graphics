@@ -65,21 +65,11 @@ MonoBehaviour:
     Reason: Post Process needs fixing
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
+    - {fileID: 102900000, guid: f2882940e2db8f344878e353fac92b48, type: 3}
     ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    Architecture: 0
-    XrSdk: None
-    StereoModes: 0
-    Reason: Post Process needs fixing
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 40e6c1647ae044647ad33454538fa98a, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 4
+    BuildPlatform: 13
+    GraphicsDevice: 11
     Architecture: 0
     XrSdk: 
     StereoModes: 0
-    Reason: PS4 Pro doesn't accept backbuffer target resolution
+    Reason: No GPU Skinning

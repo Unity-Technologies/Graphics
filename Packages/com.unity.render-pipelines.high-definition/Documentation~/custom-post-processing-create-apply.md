@@ -18,6 +18,10 @@ Note that the file name of both the C# post-process volume and the shader need t
 
 This creates each template file in the **Project** window in the **Assets** folder.
 
+**Note**: When using **Full screen Shader Graph**, if you need **Scene Color**, use the **Post Process Input** source for the **HD Sample Buffer** node.
+
+![](Images/HDSampleBuffer.png)
+
 <a name="apply-custom-postprocess"></a>
 
 ## Apply a custom post-processing effect 

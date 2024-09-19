@@ -152,6 +152,7 @@
 {"postProcessQualitySettings.DoFResolution":"[Quarter,Half,Full]"},
 {"postProcessQualitySettings.DoFHighQualityFiltering":"[False,True,True]"},
 {"postProcessQualitySettings.DoFPhysicallyBased":"[False,False,False]"},
+{"postProcessQualitySettings.AdaptiveSamplingWeight":"[0.5,0.75,2]"},
 {"postProcessQualitySettings.LimitManualRangeNearBlur":"[False,False,False]"},
 {"postProcessQualitySettings.MotionBlurSampleCount":"[4,8,12]"},
 {"postProcessQualitySettings.BloomRes":"[Quarter,Half,Half]"},

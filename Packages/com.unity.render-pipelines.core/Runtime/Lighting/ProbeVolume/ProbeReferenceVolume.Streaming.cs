@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        void ComputeWorseLoadedCells(Vector3 cameraPosition, Vector3 cameraDirection)
+        void ComputeStreamingScoreAndWorseLoadedCells(Vector3 cameraPosition, Vector3 cameraDirection)
         {
             m_WorseLoadedCells.Clear();
             m_WorseLoadedCells.Reserve(m_LoadedCells.size); // Pre-reserve to avoid Insert allocating every time.
@@ -660,6 +660,7 @@ namespace UnityEngine.Rendering
                 int shChunkBudget = m_Pool.GetRemainingChunkCount();
                 int cellCountToLoad = Mathf.Min(numberOfCellsLoadedPerFrame, bestUnloadedCells.size);
 
+                bool didRecomputeScoresForLoadedCells = false;
                 if (m_SupportGPUStreaming)
                 {
                     if (m_IndexDefragmentationInProgress)
@@ -691,9 +692,10 @@ namespace UnityEngine.Rendering
                             }
                             else
                             {
-                                ComputeWorseLoadedCells(cameraPositionCellSpace, m_FrozenCameraDirection);
+                                ComputeStreamingScoreAndWorseLoadedCells(cameraPositionCellSpace, m_FrozenCameraDirection);
                                 worseLoadedCells = m_WorseLoadedCells;
                             }
+                            didRecomputeScoresForLoadedCells = true;
 
                             int pendingUnloadCount = 0;
                             while (m_TempCellToLoadList.size < cellCountToLoad)
@@ -755,8 +757,22 @@ namespace UnityEngine.Rendering
                     {
                         var cellInfo = m_ToBeLoadedCells[m_TempCellToLoadList.size]; // m_TempCellToLoadList.size get incremented in TryLoadCell
                         if (!TryLoadCell(cellInfo, ref shChunkBudget, ref indexChunkBudget, m_TempCellToLoadList))
+                        {
+                            if (i > 0) // Only warn once
+                            {
+                                Debug.LogWarning("Max Memory Budget for Adaptive Probe Volumes has been reached, but there is still more data to load. Consider either increasing the Memory Budget, enabling GPU Streaming, or reducing the probe count.");
+                            }
                             break;
+                        }
                     }
+                }
+
+                // If we intend to blend scenarios, compute the streaming scores for the already loaded cells.
+                // These will be used to determine which of the loaded cells to perform blending on first.
+                // We only need to do this if we didn't already do it above.
+                if (!didRecomputeScoresForLoadedCells && supportScenarioBlending)
+                {
+                    ComputeStreamingScore(cameraPositionCellSpace, m_FrozenCameraDirection, m_LoadedCells);
                 }
 
                 if (m_LoadMaxCellsPerFrame)
@@ -861,7 +877,9 @@ namespace UnityEngine.Rendering
                     var worstCellLoaded = m_LoadedBlendingCells[m_LoadedBlendingCells.size - m_TempBlendingCellToUnloadList.size - 1];
                     var bestCellToBeLoaded = m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size];
 
-                    if (bestCellToBeLoaded.blendingInfo.blendingScore >= (worstNoTurnover ?? worstCellLoaded).blendingInfo.blendingScore) // We are in a "stable" state
+                    // The best cell to be loaded has WORSE score than the worst cell already loaded.
+                    // This means all cells waiting to be loaded are worse than the ones we already have - we are in a "stable" state.
+                    if (bestCellToBeLoaded.blendingInfo.blendingScore >= (worstNoTurnover ?? worstCellLoaded).blendingInfo.blendingScore)
                     {
                         if (worstNoTurnover == null) // Disable turnover
                             break;
@@ -876,13 +894,21 @@ namespace UnityEngine.Rendering
                             break;
                     }
 
+                    // If we encounter a cell that is still being streamed in (and thus hasn't had a chance to be blended yet), bail
+                    // we don't want to keep unloading cells before they get blended, or we will never get any work done.
+                    // This branch is only ever true when disk streaming is being used.
+                    if (worstCellLoaded.streamingInfo.IsBlendingStreaming())
+                        break;
+
                     UnloadBlendingCell(worstCellLoaded, m_TempBlendingCellToUnloadList);
 
                     if (probeVolumeDebug.verboseStreamingLog)
                         LogStreaming($"Unloading blending cell {worstCellLoaded.desc.index}");
 
-                    // Loading can still fail cause all cells don't have the same chunk count
-                    if (TryLoadBlendingCell(bestCellToBeLoaded, m_TempBlendingCellToLoadList) && turnoverOffset != -1)
+                    bool loadOk = TryLoadBlendingCell(bestCellToBeLoaded, m_TempBlendingCellToLoadList);
+
+                    // Handle turnover. Loading can still fail cause all cells don't have the same chunk count.
+                    if (loadOk && turnoverOffset != -1)
                     {
                         // swap to ensure loaded cells are at the start of m_ToBeLoadedBlendingCells
                         m_ToBeLoadedBlendingCells[turnoverOffset] = m_ToBeLoadedBlendingCells[m_TempBlendingCellToLoadList.size-1];

@@ -1,5 +1,8 @@
 # Velocity from Direction & Speed (Spherical)
 
+> [!IMPORTANT]
+> This feature is experimental. To use this feature, open the **Preferences** window, go to the **Visual Effects** tab, and enable **Experimental Operators/Blocks**.
+
 Menu Path : **Velocity > [Set/Add] Velocity from Direction & Speed (Spherical)**
 
 The **Velocity from Direction And Speed (Spherical)** Block calculates a velocity for the particle based on a blend ratio between the direction attribute and a spherical vector.

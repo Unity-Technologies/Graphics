@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0720f4cb9f897264f8fd7db7580ac43f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 190721
+  packageName: Dragon Crashers - 2D Sample Project
+  packageVersion: 1.1
+  assetPath: Assets/Animations/Characters/AnimClips/Empty/AnimClip_Die.anim
+  uploadId: 467401

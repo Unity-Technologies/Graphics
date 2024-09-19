@@ -610,9 +610,11 @@ namespace UnityEngine.Rendering.Universal
                 return true;
             if (!scaled && (handle.rt.width != descriptor.width || handle.rt.height != descriptor.height))
                 return true;
+
+            var rtHandleFormat = (handle.rt.descriptor.depthStencilFormat != GraphicsFormat.None) ? handle.rt.descriptor.depthStencilFormat : handle.rt.descriptor.graphicsFormat;
+
             return
-                (DepthBits)handle.rt.descriptor.depthBufferBits != descriptor.depthBufferBits ||
-                (handle.rt.descriptor.depthBufferBits == (int)DepthBits.None && handle.rt.descriptor.graphicsFormat != descriptor.colorFormat) ||
+                rtHandleFormat != descriptor.format ||
                 handle.rt.descriptor.dimension != descriptor.dimension ||
                 handle.rt.descriptor.enableRandomWrite != descriptor.enableRandomWrite ||
                 handle.rt.descriptor.useMipMap != descriptor.useMipMap ||
@@ -819,6 +821,8 @@ namespace UnityEngine.Rendering.Universal
             float mipMapBias = 0,
             string name = "")
         {
+            Assertions.Assert.IsTrue(descriptor.graphicsFormat == GraphicsFormat.None ^ descriptor.depthStencilFormat == GraphicsFormat.None);
+
             TextureDesc requestRTDesc = RTHandleResourcePool.CreateTextureDesc(descriptor, TextureSizeMode.Explicit, anisoLevel, 0, filterMode, wrapMode, name);
             if (RTHandleNeedsReAlloc(handle, requestRTDesc, false))
             {

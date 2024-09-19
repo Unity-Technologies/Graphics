@@ -16,7 +16,9 @@
                            />
                 <ui:Toggle name="CollapseButton"
                            tooltip="Show details panel"
-                           />
+                           >
+                        <ui:Image name="ArrowImage" />
+                </ui:Toggle>
             </ui:VisualElement>
             <ui:TreeView name="ListOfNodes"
                          selectionType="Single"

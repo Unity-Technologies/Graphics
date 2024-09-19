@@ -36,6 +36,12 @@ half _DebugValidateAlbedoSaturationTolerance = 0.214;
 half _DebugValidateAlbedoHueTolerance = 0.104;
 half3 _DebugValidateAlbedoCompareColor = half3(0.5, 0.5, 0.5);
 
+uint _DebugRenderingLayerMask = 0;
+
+CBUFFER_START(_DebugDisplayConstant)
+float4 _DebugRenderingLayerMaskColors [32];
+CBUFFER_END
+
 half _DebugValidateMetallicMinValue = 0;
 half _DebugValidateMetallicMaxValue = 0.9;
 

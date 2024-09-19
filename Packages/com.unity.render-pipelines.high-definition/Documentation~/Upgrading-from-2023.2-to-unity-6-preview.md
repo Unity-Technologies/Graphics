@@ -43,3 +43,8 @@ Note that this change will result in a loss of precision for the attenuation val
 
 To disable `PrecomputedAtmosphericAttenuation`, first you need to install the HDRP config package which can be done using the [Render Pipeline Wizard](Render-Pipeline-Wizard.md). For more info, see [HDRP Config](configure-a-project-using-the-hdrp-config-package.md).
 Once installed, go in ShaderConfig.cs and set `PrecomputedAtmosphericAttenuation` to 0.
+
+## Physically Based Depth Of Field
+
+We improved the performances of the PBR DoF and removed the parameter "High Quality Filtering" as it was too costly to be used in a reasonable scenario. The replacement of this option is the resolution dropdown which allows to use full resolution physically based depth of field whereas before it was maxed at half resolution. This allows for more precise depth of field and less artifacts but it's still very costly.
+The PBR DoF now also take in account the aperture shape defined in the physical camera settings (blade count, etc.)

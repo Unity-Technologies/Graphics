@@ -57,6 +57,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         int renderTargetWidth;
         int renderTargetHeight;
+        private RenderTextureDescriptor m_AdditionalLightShadowDescriptor;
 
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Additional Shadows");
         private PassData m_PassData;
@@ -583,7 +584,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceTransform * m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex];
             }
 
-            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapHandle, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, name: k_AdditionalLightShadowMapTextureName);
+            UpdateTextureDescriptorIfNeeded();
 
             m_MaxShadowDistanceSq = cameraData.maxShadowDistance * cameraData.maxShadowDistance;
             m_CascadeBorder = shadowData.mainLightShadowCascadeBorder;
@@ -591,6 +592,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             useNativeRenderPass = true;
 
             return true;
+        }
+
+        private void UpdateTextureDescriptorIfNeeded()
+        {
+            if (   m_AdditionalLightShadowDescriptor.width != renderTargetWidth
+                || m_AdditionalLightShadowDescriptor.height != renderTargetHeight
+                || m_AdditionalLightShadowDescriptor.depthBufferBits != k_ShadowmapBufferBits
+                || m_AdditionalLightShadowDescriptor.colorFormat != RenderTextureFormat.Shadowmap)
+            {
+                m_AdditionalLightShadowDescriptor = new RenderTextureDescriptor(renderTargetWidth, renderTargetHeight, RenderTextureFormat.Shadowmap, k_ShadowmapBufferBits);
+            }
         }
 
         bool SetupForEmptyRendering(bool stripShadowsOffVariants, UniversalShadowData shadowData)
@@ -601,10 +613,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             shadowData.isKeywordAdditionalLightShadowsEnabled = true;
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
-
-            // Required for scene view camera(URP renderer not initialized)
-            if (ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyAdditionalLightShadowmapTexture, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, name: k_EmptyAdditionalLightShadowMapTextureName))
-                m_EmptyShadowmapNeedsClear = true;
 
             // initialize _AdditionalShadowParams
             for (int i = 0; i < m_AdditionalLightIndexToShadowParams.Length; ++i)
@@ -617,29 +625,37 @@ namespace UnityEngine.Rendering.Universal.Internal
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-             
-            if (m_CreateEmptyShadowmap && !m_EmptyShadowmapNeedsClear)
-            {
-                // UUM-63146 - glClientWaitSync: Expected application to have kicked everything until job: 96089 (possibly by calling glFlush)" are thrown in the Android Player on some devices with PowerVR Rogue GE8320
-                // Resetting of target would clean up the color attachment buffers and depth attachment buffers, which inturn is preventing the leak in the said platform. This is likely a symptomatic fix, but is solving the problem for now.
-
-                if (Application.platform == RuntimePlatform.Android && PlatformAutoDetect.isRunningOnPowerVRGPU)
-                    ResetTarget();
-
-                return;
-            }
-
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618
+
             if (m_CreateEmptyShadowmap)
             {
+                // Required for scene view camera(URP renderer not initialized)
+                if (ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyAdditionalLightShadowmapTexture, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, name: k_EmptyAdditionalLightShadowMapTextureName))
+                    m_EmptyShadowmapNeedsClear = true;
+
+                if (!m_EmptyShadowmapNeedsClear)
+                {
+                    // UUM-63146 - glClientWaitSync: Expected application to have kicked everything until job: 96089 (possibly by calling glFlush)" are thrown in the Android Player on some devices with PowerVR Rogue GE8320
+                    // Resetting of target would clean up the color attachment buffers and depth attachment buffers, which inturn is preventing the leak in the said platform. This is likely a symptomatic fix, but is solving the problem for now.
+
+                    if (Application.platform == RuntimePlatform.Android && PlatformAutoDetect.isRunningOnPowerVRGPU)
+                        ResetTarget();
+
+                    return;
+                }
+
                 ConfigureTarget(m_EmptyAdditionalLightShadowmapTexture);
                 m_EmptyShadowmapNeedsClear = false;
             }
             else
+            {
+                ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_AdditionalLightsShadowmapHandle, renderTargetWidth, renderTargetHeight, k_ShadowmapBufferBits, name: k_AdditionalLightShadowMapTextureName);
                 ConfigureTarget(m_AdditionalLightsShadowmapHandle);
+            }
 
             ConfigureClear(ClearFlag.All, Color.black);
+
             #pragma warning restore CS0618
         }
 
@@ -663,6 +679,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             InitPassData(ref m_PassData, cameraData, lightData, shadowData);
+            m_PassData.allocatedShadowAtlasSize = m_AdditionalLightsShadowmapHandle.referenceSize;
             InitRendererLists(ref universalRenderingData.cullResults, ref m_PassData, context, default(RenderGraph), false);
             RenderAdditionalShadowmapAtlas(CommandBufferHelpers.GetRasterCommandBuffer(universalRenderingData.commandBuffer), ref m_PassData, false);
             universalRenderingData.commandBuffer.SetGlobalTexture(m_AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapHandle.nameID);
@@ -725,8 +742,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (shadowSlicesCount > 0)
                     cmd.SetKeyword(ShaderGlobalKeywords.CastingPunctualLightShadow, true);
 
-                float lastDepthBias = -10f;
-                float lastNormalBias = -10f;
+                Vector4 lastShadowBias = new Vector4(-10f, -10f, -10f, -10f);
                 for (int globalShadowSliceIndex = 0; globalShadowSliceIndex < shadowSlicesCount; ++globalShadowSliceIndex)
                 {
                     int additionalLightIndex = m_ShadowSliceToAdditionalLightIndex[globalShadowSliceIndex];
@@ -743,13 +759,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex, data.shadowData, shadowSliceData.projectionMatrix, shadowSliceData.resolution);
 
                     // Update the bias when rendering the first slice or when the bias has changed
-                    if (   globalShadowSliceIndex == 0
-                        || !ShadowUtils.FastApproximately(shadowBias.x, lastDepthBias)
-                        || !ShadowUtils.FastApproximately(shadowBias.y, lastNormalBias))
+                    if (globalShadowSliceIndex == 0 || !ShadowUtils.FastApproximately(shadowBias, lastShadowBias))
                     {
                         ShadowUtils.SetShadowBias(cmd, shadowBias);
-                        lastDepthBias = shadowBias.x;
-                        lastNormalBias = shadowBias.y;
+                        lastShadowBias = shadowBias;
                     }
 
                     // Update light position
@@ -784,12 +797,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, data.shadowData);
 
                 if (anyShadowSliceRenderer)
-                    SetupAdditionalLightsShadowReceiverConstants(cmd, data.useStructuredBuffer, softShadows);
+                    SetupAdditionalLightsShadowReceiverConstants(cmd, data.allocatedShadowAtlasSize, data.useStructuredBuffer, softShadows);
             }
         }
 
         // Set constant buffer data that will be used during the lighting/shadowing pass
-        void SetupAdditionalLightsShadowReceiverConstants(RasterCommandBuffer cmd, bool useStructuredBuffer, bool softShadows)
+        void SetupAdditionalLightsShadowReceiverConstants(RasterCommandBuffer cmd, Vector2Int allocatedShadowAtlasSize, bool useStructuredBuffer, bool softShadows)
         {
             if (useStructuredBuffer)
             {
@@ -814,7 +827,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (softShadows)
             {
-                Vector2Int allocatedShadowAtlasSize = m_AdditionalLightsShadowmapHandle.referenceSize;
                 Vector2 invShadowAtlasSize = Vector2.one / allocatedShadowAtlasSize;
                 Vector2 invHalfShadowAtlasSize = invShadowAtlasSize * 0.5f;
 
@@ -842,6 +854,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal TextureHandle shadowmapTexture;
             internal int shadowmapID;
             internal bool useStructuredBuffer;
+            internal Vector2Int allocatedShadowAtlasSize;
 
             internal bool emptyShadowmap;
 
@@ -916,13 +929,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                         builder.UseRendererList(passData.shadowRendererListsHdl[globalShadowSliceIndex]);
                     }
 
-                    shadowTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_AdditionalLightsShadowmapHandle.rt.descriptor, "_AdditionalLightsShadowmapTexture", true,  ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
+                    shadowTexture = UniversalRenderer.CreateRenderGraphTexture(graph, m_AdditionalLightShadowDescriptor, k_AdditionalLightShadowMapTextureName, true,  ShadowUtils.m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear);
                     builder.SetRenderAttachmentDepth(shadowTexture, AccessFlags.Write);
                 }
                 else
                 {
                     shadowTexture = graph.defaultResources.defaultShadowTexture;
                 }
+
+                TextureDesc descriptor = shadowTexture.GetDescriptor(graph);
+                passData.allocatedShadowAtlasSize = new Vector2Int(descriptor.width, descriptor.height);
 
                 // RENDERGRAPH TODO: Need this as shadowmap is only used as Global Texture and not a buffer, so would get culled by RG
                 builder.AllowPassCulling(false);

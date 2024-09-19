@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: db2d8637cfa4fab4082fc079f1f26b14
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Strip Properties
+    category: Learning Templates
+    description: You can use strips, also known as Ribbons or Trails, to create a
+      wide range of VFX. The Strip Output Context and Strip particle data allow you
+      to draw a quad between each particle. This example demonstrates a straightforward
+      Strip setup. It explains the various strip properties and attributes that control
+      its visual appearance and behavior.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 4dbffa047362c514b908a7a03ae268c0, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

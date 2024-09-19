@@ -395,10 +395,10 @@ namespace UnityEditor.Rendering.HighDefinition
             var type = assembly.GetType("UnityEditor.GameView");
             var targetDisplayProp = type.GetProperty("targetDisplay");
 
-            foreach (EditorWindow gameView in Resources.FindObjectsOfTypeAll(type))
+            // This is an optimization to retrieve only the first gameView, to avoid a call to exepensive Resources.FindObjectsOfTypeAll causing lots of slow UI in OnInpsectorGUI calls.
+            EditorWindow gameView = EditorWindow.GetWindow(type);
+            if (gameView.hasFocus)
             {
-                if (!gameView.hasFocus) continue;
-
                 var targetDisplay = (int)targetDisplayProp.GetValue(gameView);
                 foreach (var camera in HDCamera.GetHDCameras())
                 {

@@ -451,6 +451,16 @@ namespace UnityEditor.VFX
             return new VFXSetting(null, null);
         }
 
+        protected sealed override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                    yield return setting;
+                yield return "primitiveType";
+            }
+        }
+
         protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get

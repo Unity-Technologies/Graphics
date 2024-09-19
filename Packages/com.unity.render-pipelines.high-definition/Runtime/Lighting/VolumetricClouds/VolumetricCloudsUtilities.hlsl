@@ -63,8 +63,12 @@ float EvaluateFinalTransmittance(float2 finalCoord, float transmittance)
         float resultLuminance = FastTonemapPerChannel(luminance) * transmittance;
         resultLuminance = FastTonemapPerChannelInvert(resultLuminance);
 
+        // By softening the transmittance attenuation curve for pixels adjacent to cloud boundaries when the luminance is super high,  
+        // We can prevent sun flicker and improve perceptual blending. (https://www.desmos.com/calculator/vmly6erwdo)
+        float finalTransmittance = max(resultLuminance / luminance, pow(transmittance, 6));
+
         // This approach only makes sense if the color is not black
-        transmittance = lerp(transmittance, resultLuminance / luminance, _ImprovedTransmittanceBlend);
+        transmittance = lerp(transmittance, finalTransmittance, _ImprovedTransmittanceBlend);
     }
     #endif
 

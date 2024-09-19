@@ -19,10 +19,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderingLayerUtils.MaskSize renderingLayersMaskSize { get; set; }
         private FilteringSettings m_FilteringSettings;
         private PassData m_PassData;
-        // Constants
+
+        // Statics
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
         private static readonly RTHandle[] k_ColorAttachment1 = new RTHandle[1];
         private static readonly RTHandle[] k_ColorAttachment2 = new RTHandle[2];
+        private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+        private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID("_CameraNormalsTexture");
+        private static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
 
         /// <summary>
         /// Creates a new <c>DepthNormalOnlyPass</c> instance.
@@ -182,7 +186,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraNormalsTexture, TextureHandle cameraDepthTexture, TextureHandle renderingLayersTexture, uint batchLayerMask = uint.MaxValue, bool postSetGlobalTextures = true)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle cameraNormalsTexture, TextureHandle cameraDepthTexture, TextureHandle renderingLayersTexture, uint batchLayerMask, bool setGlobalDepth, bool setGlobalTextures)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
@@ -210,15 +214,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (cameraData.xr.enabled)
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
 
-                UniversalRenderer universalRenderer = cameraData.renderer as UniversalRenderer;
-                if (postSetGlobalTextures && universalRenderer != null)
+                if (setGlobalTextures)
                 {
-                    var renderingMode = universalRenderer.renderingModeActual;
-                    if (cameraNormalsTexture.IsValid() && renderingMode != RenderingMode.Deferred)
-                        builder.SetGlobalTextureAfterPass(cameraNormalsTexture, Shader.PropertyToID("_CameraNormalsTexture"));
-                    if (cameraDepthTexture.IsValid() && renderingMode != RenderingMode.Deferred)
-                        builder.SetGlobalTextureAfterPass(cameraDepthTexture, Shader.PropertyToID("_CameraDepthTexture"));
+                    builder.SetGlobalTextureAfterPass(cameraNormalsTexture, s_CameraNormalsTextureID);
+
+                    if (passData.enableRenderingLayers)
+                        builder.SetGlobalTextureAfterPass(renderingLayersTexture, s_CameraRenderingLayersTextureID);
                 }
+
+                if (setGlobalDepth)
+                    builder.SetGlobalTextureAfterPass(cameraDepthTexture, s_CameraDepthTextureID);
 
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);

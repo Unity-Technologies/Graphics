@@ -12,6 +12,23 @@ using UnityEditor.Rendering;
 #endif
 namespace UnityEngine.Rendering.Tests
 {
+    [InitializeOnLoad]
+    class RenderGraphTestsOnLoad
+    {
+        static bool IsGraphicsAPISupported()
+        {
+            var gfxAPI = SystemInfo.graphicsDeviceType;
+            if (gfxAPI == GraphicsDeviceType.OpenGLCore)
+                return false;
+            return true;
+        }
+
+        static RenderGraphTestsOnLoad()
+        {
+            ConditionalIgnoreAttribute.AddConditionalIgnoreMapping("IgnoreGraphicsAPI", !IsGraphicsAPISupported());
+        }
+    }
+
     class RenderGraphTests
     {
         // For RG Record/Hash/Compile testing, use m_RenderGraph
@@ -806,7 +823,7 @@ namespace UnityEngine.Rendering.Tests
             var hash0 = m_RenderGraph.ComputeGraphHash();
             m_RenderGraph.ClearCompiledGraph();
 
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm });
 
             using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
@@ -842,7 +859,7 @@ namespace UnityEngine.Rendering.Tests
 
             static void RecordRenderGraph(RenderGraph renderGraph)
             {
-                TextureHandle texture0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+                TextureHandle texture0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm });
 
                 using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
                 {
@@ -902,6 +919,58 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void TextureDescFormatPropertiesWork()
+        {
+            var formatR32 = GraphicsFormat.R32_SFloat;
+
+            var textureDesc = new TextureDesc(16, 16);
+            textureDesc.format = formatR32;
+
+            Assert.AreEqual(textureDesc.colorFormat,formatR32);
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.None);
+
+            textureDesc.depthBufferBits = DepthBits.None;
+
+            //No change expected
+            Assert.AreEqual(textureDesc.colorFormat, formatR32);
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.None);
+
+            textureDesc.depthBufferBits = DepthBits.Depth32;
+
+            //Not entirely sure what the platform will select but at least it should be 24 or more (not 0)
+            Assert.IsTrue((int)textureDesc.depthBufferBits >= 24);
+            Assert.AreEqual(textureDesc.colorFormat, GraphicsFormat.None);
+
+            textureDesc.format = formatR32;
+
+            Assert.AreEqual(textureDesc.colorFormat, formatR32);
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.None);
+
+            textureDesc.format = GraphicsFormat.D16_UNorm;
+
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.Depth16);
+            Assert.AreEqual(textureDesc.colorFormat, GraphicsFormat.None);
+
+            {
+                var importedTexture = m_RenderGraph.CreateTexture(textureDesc);
+
+                var importedDesc = importedTexture.GetDescriptor(m_RenderGraph);
+                Assert.AreEqual(textureDesc.format, importedDesc.format);
+            }            
+
+            textureDesc.colorFormat = formatR32;
+            Assert.AreEqual(textureDesc.depthBufferBits, DepthBits.None);
+            Assert.AreEqual(textureDesc.colorFormat, textureDesc.format);
+
+            {
+                var importedTexture = m_RenderGraph.CreateTexture(textureDesc);
+
+                var importedDesc = importedTexture.GetDescriptor(m_RenderGraph);
+                Assert.AreEqual(textureDesc.format, importedDesc.format);
+            } 
+        }
+
+        [Test]
         public void ImportingBuiltinRenderTextureTypeWithNoInfoThrows()
         {
             RenderTargetIdentifier renderTargetIdentifier = new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
@@ -912,6 +981,25 @@ namespace UnityEngine.Rendering.Tests
                 var importedTexture = m_RenderGraph.ImportTexture(renderTextureHandle);
             });
 
+            renderTextureHandle.Release();
+        }
+
+        [Test]
+        public void ImportingRenderTextureWithColorAndDepthThrows()
+        {
+            // Create a new RTHandle texture
+            var desc = new RenderTextureDescriptor(16, 16, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.D32_SFloat_S8_UInt);
+            var rt = new RenderTexture(desc) { name = "RenderTextureWithColorAndDepth"};
+
+            var renderTextureHandle = RTHandles.Alloc(rt);
+
+            Assert.Throws<Exception>(() =>
+            {
+                var importedTexture = m_RenderGraph.ImportTexture(renderTextureHandle);
+            });
+
+            renderTextureHandle.Release();
+            rt.Release();
         }
 
         [Test]
@@ -1191,12 +1279,11 @@ namespace UnityEngine.Rendering.Tests
         {
             public BufferHandle bufferHandle;
             public ComputeShader computeShader;
-
         }
 
         private const string kPathToComputeShader = "Packages/com.unity.render-pipelines.core/Tests/Editor/BufferCopyTest.compute";
 
-        [Test]
+        [Test, ConditionalIgnore("IgnoreGraphicsAPI", "Compute Shaders are not supported for this Graphics API.")]
         public void ImportingBufferWorks()
         {
             // We need a real ScriptableRenderContext and a camera to execute the render graph

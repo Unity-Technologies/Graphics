@@ -136,6 +136,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ColorLog,
         /// <summary>Display Depth of Field circle of confusion.</summary>
         DepthOfFieldCoc,
+        /// <summary>Display Depth of Field tile classification. Red is slow in-focus, green is fast de-focus and blue is fast in-focus.</summary>
+        DepthOfFieldTileClassification,
         /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
         /// <summary>Display Quad Overdraw.</summary>
@@ -1242,7 +1244,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip LightHierarchyDebugMode = new() { name = "Light Hierarchy Debug Mode", tooltip = "Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for." };
             public static readonly NameAndTooltip LightLayersVisualization = new() { name = "Light Layers Visualization", tooltip = "Visualize the light layers of GameObjects in your Scene." };
 
-            public static readonly NameAndTooltip LightLayersUseSelectedLight = new() { name = "Filter with Light Layers from Selected Light", tooltip = "Highlight Renderers affected by the selected light." };
+            public static readonly NameAndTooltip LightLayersUseSelectedLight = new() { name = "Filter Light Layers by Light", tooltip = "Highlight Renderers affected by the selected light." };
             public static readonly NameAndTooltip LightLayersSwitchToLightShadowLayers = new() { name = "Use Light's Shadow Layer Mask", tooltip = "Highlight Renderers that cast shadows for the selected light." };
             public static readonly NameAndTooltip LightLayersFilterLayers = new() { name = "Filter Layers", tooltip = "Use the drop-down to filter light layers that you want to visialize." };
             public static readonly NameAndTooltip LightLayersColor = new() { name = "Layers Color", tooltip = "Select the display color of each light layer." };
@@ -2335,7 +2337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.VolumetricClouds ||
                     data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection ||
                     data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination || data.fullScreenDebugMode == FullScreenDebugMode.LensFlareScreenSpace ||
-                    data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog || data.fullScreenDebugMode == FullScreenDebugMode.STP);
+                    data.fullScreenDebugMode == FullScreenDebugMode.VolumetricFog || data.fullScreenDebugMode == FullScreenDebugMode.STP || data.fullScreenDebugMode == FullScreenDebugMode.DepthOfFieldTileClassification);
         }
     }
 }

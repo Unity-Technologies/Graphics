@@ -104,7 +104,6 @@ public class RandomUAVFeature : ScriptableRendererFeature
 
         private class PassData
         {
-            internal ProfilingSampler profilingSampler;
             internal Material material;
         }
 
@@ -122,31 +121,41 @@ public class RandomUAVFeature : ScriptableRendererFeature
             using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("UAV Fill Pass", out PassData passData, m_ProfilingSampler))
             {
                 // Setup the dummy Render Target
-                RenderTextureDescriptor targetDesc = cameraData.cameraTargetDescriptor;
-                targetDesc.depthBufferBits = 0;
-                targetDesc.msaaSamples = 1;
-                dummyTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, targetDesc, "dummyTarget", false, FilterMode.Bilinear);
-                imageSize = new Vector4(targetDesc.width, targetDesc.height, 0, 0);
+                var dummyDesc = resourceData.activeColorTexture.GetDescriptor(renderGraph);
+                dummyDesc.depthBufferBits = 0;
+                dummyDesc.msaaSamples = MSAASamples.None;
+                dummyDesc.filterMode = FilterMode.Bilinear;
+                dummyDesc.clearBuffer = false;
+
+                var randomUAVDescriptor = dummyDesc;                
+                
+                dummyDesc.name = "dummyTarget";
+                dummyTarget = renderGraph.CreateTexture(dummyDesc);
+
+                imageSize = new Vector4(dummyDesc.width, dummyDesc.height, 0, 0);
+
+                randomUAVDescriptor.enableRandomWrite = true;
+                randomUAVDescriptor.name = "_UAVTextureBuffer";                
 
                 // Setup the random UAV Texture Target
-                RenderTextureDescriptor randomUAVDescriptor = new(targetDesc.width, targetDesc.height, targetDesc.colorFormat) { enableRandomWrite = true };
-                UAVResources.uavTextureBuffer = UniversalRenderer.CreateRenderGraphTexture(renderGraph, randomUAVDescriptor, "_UAVTextureBuffer", false, FilterMode.Bilinear);
+                UAVResources.uavTextureBuffer = renderGraph.CreateTexture(randomUAVDescriptor);
 
                 // Setup the random UAV Buffer Target
-                int count = targetDesc.width * targetDesc.height;
+                int count = dummyDesc.width * dummyDesc.height;
                 const int stride = sizeof(float) * 4;
                 BufferDesc bufferDesc =  new(count, stride) { name = "_UAVBuffer" };
                 UAVResources.uavBuffer = renderGraph.CreateBuffer(bufferDesc);
 
                 // Setup up the pass data
-                passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_RandomUAVFillMaterial;
                 passData.material.SetVector(m_ImageSizePropertyID, imageSize);
 
                 // Setup up the builder
                 builder.SetRenderAttachment(dummyTarget, 0, AccessFlags.Write);
-                builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.ReadWrite);
-                builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.ReadWrite);
+                builder.UseGlobalTexture(Shader.PropertyToID("_CameraOpaqueTexture"));
+                builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.Write);
+                builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.Write);               
+
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext.cmd));
                 builder.AllowPassCulling(false);
             }
@@ -155,23 +164,23 @@ public class RandomUAVFeature : ScriptableRendererFeature
             using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("UAV Read / Write Pass", out PassData passData, m_ProfilingSampler))
             {
                 // Setup up the pass data
-                passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_RandomUAVReadWriteMaterial;
                 passData.material.SetVector(m_ImageSizePropertyID, imageSize);
 
                 // Setup up the builder
                 builder.SetRenderAttachment(dummyTarget, 0, AccessFlags.Write);
+                builder.UseGlobalTexture(Shader.PropertyToID("_CameraOpaqueTexture"));
                 builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.ReadWrite);
                 builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.ReadWrite);
+                builder.UseTexture(resourceData.cameraOpaqueTexture);
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext.cmd));
                 builder.AllowPassCulling(false);
             }
 
             // Display the UAV texture on top of the active color texture
-            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("UAV Read Pass", out PassData passData, m_ProfilingSampler))
+            using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<PassData>("UAV Read Pass", out PassData passData, m_ProfilingOutputSampler))
             {
                 // Setup up the pass data
-                passData.profilingSampler = m_ProfilingOutputSampler;
                 passData.material = m_RandomUAVFinalOutputMaterial;
                 passData.material.SetVector(m_ImageSizePropertyID, imageSize);
 
@@ -179,6 +188,7 @@ public class RandomUAVFeature : ScriptableRendererFeature
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
                 builder.SetRandomAccessAttachment(UAVResources.uavTextureBuffer, 1, AccessFlags.Read);
                 builder.UseBufferRandomAccess(UAVResources.uavBuffer, 2, AccessFlags.Read);
+                builder.UseTexture(resourceData.cameraOpaqueTexture);
                 builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext.cmd));
                 builder.AllowPassCulling(false);
             }
@@ -186,10 +196,7 @@ public class RandomUAVFeature : ScriptableRendererFeature
 
         private static void ExecutePass(PassData passData, RasterCommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, passData.profilingSampler))
-            {
-                Blitter.BlitTexture(cmd, Vector2.one, passData.material, 0);
-            }
+            Blitter.BlitTexture(cmd, Vector2.one, passData.material, 0);            
         }
     }
 }

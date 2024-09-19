@@ -64,21 +64,20 @@ MonoBehaviour:
     contents: 'Culling a system is important for performance, and that''s why bound''s
       role is crucial.
 
-      
 
-      In this example, the bounds have been set
-      to manual and have been misplaced on purpose.
 
-      
+      In this example, the bounds have been set to manual
+      and have been misplaced on purpose.
 
-      You should see
-      the particles disappear when focusing the camera on the VFX origin.
 
-      
 
-      Try
-      the different bound modes and adjust the bounds so that the particles don''t
-      disappear.
+      You should see the particles disappear
+      when focusing the camera on the VFX origin.
+
+
+
+      Try the different bound
+      modes and adjust the bounds so that the particles don''t disappear.
 
 '
     theme: Black
@@ -126,11 +125,10 @@ MonoBehaviour:
     contents: 'When double-clicking on an operator, you''re able to collapse it to
       its minimal form.
 
-      This is especially useful to reduce visual noise
-      in the graph.
+      This is especially useful to reduce visual noise in
+      the graph.
 
-      Try it yourself; double-click to collapse or expand an
-      operator.
+      Try it yourself; double-click to collapse or expand an operator.
 
 '
     theme: Black
@@ -221,7 +219,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 17
+  m_GraphVersion: 18
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 

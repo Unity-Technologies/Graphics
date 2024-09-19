@@ -24,10 +24,10 @@ MonoBehaviour:
     contents: 'You can name your system by double-clicking on the green text in the
       left upper corner of the dashed box.
 
-      
 
-      It''s important to stay
-      organized, so don''t forget to give informative names to your systems.
+
+      It''s important to stay organized,
+      so don''t forget to give informative names to your systems.
 
 '
     theme: Black
@@ -120,7 +120,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 17
+  m_GraphVersion: 18
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 

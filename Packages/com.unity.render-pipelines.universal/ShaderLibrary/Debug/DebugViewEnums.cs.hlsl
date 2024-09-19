@@ -53,6 +53,7 @@
 #define DEBUGMATERIALMODE_LIGHTING_COMPLEXITY (9)
 #define DEBUGMATERIALMODE_METALLIC (10)
 #define DEBUGMATERIALMODE_SPRITE_MASK (11)
+#define DEBUGMATERIALMODE_RENDERING_LAYER_MASKS (12)
 
 //
 // UnityEngine.Rendering.Universal.DebugMaterialValidationMode:  static fields

@@ -230,13 +230,10 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
-            UniversalRenderer renderer = (UniversalRenderer)cameraData.renderer;
-
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
             TextureHandle cameraNormalsTexture = resourceData.cameraNormalsTexture;
 
-            TextureHandle depthTarget = renderer.renderingModeActual == RenderingMode.Deferred ? resourceData.activeDepthTexture :
-                (cameraData.cameraTargetDescriptor.msaaSamples > 1 ? resourceData.dBufferDepth : resourceData.activeDepthTexture);
+            TextureHandle depthTarget = resourceData.dBufferDepth.IsValid() ? resourceData.dBufferDepth : resourceData.activeDepthTexture;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
@@ -275,14 +272,14 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderAttachment(dbufferHandles[2], 2, AccessFlags.Write);
                 }
 
-                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Write);
-                if (cameraData.cameraTargetDescriptor.msaaSamples > 1)
-                    builder.SetGlobalTextureAfterPass(depthTarget, Shader.PropertyToID("_CameraDepthTexture"));
+                builder.SetRenderAttachmentDepth(depthTarget, AccessFlags.Read);
 
                 if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
                 if (cameraNormalsTexture.IsValid())
                     builder.UseTexture(cameraNormalsTexture, AccessFlags.Read);
+                if (passData.decalLayers)
+                    builder.UseTexture(resourceData.renderingLayersTexture, AccessFlags.Read);
 
                 if (resourceData.ssaoTexture.IsValid())
                     builder.UseGlobalTexture(s_SSAOTextureID);

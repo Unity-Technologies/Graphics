@@ -819,6 +819,7 @@ namespace UnityEditor.Graphing
 
         static HashSet<string> m_ShaderGraphKeywords = new HashSet<string>()
         {
+            "_Weight",
             "Gradient",
             "UnitySamplerState",
             "UnityTexture2D",
@@ -865,10 +866,14 @@ namespace UnityEditor.Graphing
 
             var result = Regex.Replace(originalId, @"^[^A-Za-z0-9_]+|[^A-Za-z0-9_]+$", ""); // trim leading/trailing bad characters (excl '_').
             result = Regex.Replace(result, @"[^A-Za-z0-9]+", "_"); // replace sequences of bad characters with underscores (incl '_').
-
-            if (result.Length == 0 || Char.IsDigit(result[0]) || IsHLSLKeyword(result) || (isDisallowedIdentifier?.Invoke(result) ?? false))
-                result = "_" + result;
-
+            
+            for (int i = 0; result.Length == 0 || Char.IsDigit(result[0]) || IsHLSLKeyword(result) || (isDisallowedIdentifier?.Invoke(result) ?? false);)
+            {
+                if (result.StartsWith("_"))
+                    result += $"_{++i}";
+                else
+                    result = "_" + result;
+            }
             return result;
         }
 

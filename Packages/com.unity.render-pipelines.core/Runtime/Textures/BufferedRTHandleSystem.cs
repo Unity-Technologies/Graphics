@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering
                     d.width,
                     d.height,
                     d.volumeDepth,
-                    (DepthBits)d.depthBufferBits,
+                    (DepthBits) d.depthBufferBits,
                     d.graphicsFormat,
                     fMode,
                     wMode,

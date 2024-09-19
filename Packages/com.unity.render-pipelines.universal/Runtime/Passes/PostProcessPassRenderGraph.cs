@@ -8,7 +8,6 @@ namespace UnityEngine.Rendering.Universal
     internal partial class PostProcessPass : ScriptableRenderPass
     {
         static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
-        static readonly int s_CameraOpaqueTextureID = Shader.PropertyToID("_CameraOpaqueTexture");
 
         private class UpdateCameraResolutionPassData
         {
@@ -375,8 +374,10 @@ namespace UnityEngine.Rendering.Universal
                     throw new ArgumentOutOfRangeException();
             }
 
-            int tw = m_Descriptor.width >> downres;
-            int th = m_Descriptor.height >> downres;
+            //We should set the limit the downres result to ensure we dont turn 1x1 textures, which should technically be valid
+            //into 0x0 textures which will be invalid
+            int tw = Mathf.Max(1, m_Descriptor.width >> downres);
+            int th = Mathf.Max(1, m_Descriptor.height >> downres);
 
             // Determine the iteration count
             int maxSize = Mathf.Max(tw, th);
@@ -944,7 +945,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void RenderSTP(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, ref TextureHandle source, out TextureHandle destination)
         {
-            TextureHandle cameraDepth = resourceData.cameraDepth;
+            TextureHandle cameraDepth = resourceData.cameraDepthTexture;
             TextureHandle motionVectors = resourceData.motionVectorColor;
 
             Debug.Assert(motionVectors.IsValid(), "MotionVectors are invalid. STP requires a motion vector texture.");
@@ -1789,6 +1790,27 @@ namespace UnityEngine.Rendering.Universal
             internal bool enableAlphaOutput;
         }
 
+        TextureHandle TryGetCachedUserLutTextureHandle(RenderGraph renderGraph)
+        {
+            if (m_ColorLookup.texture.value == null)
+            {
+                if (m_UserLut != null)
+                {
+                    m_UserLut.Release();
+                    m_UserLut = null;
+                }
+            }
+            else
+            {
+                if (m_UserLut == null || m_UserLut.externalTexture != m_ColorLookup.texture.value)
+                {
+                    m_UserLut?.Release();
+                    m_UserLut = RTHandles.Alloc(m_ColorLookup.texture.value);
+                }
+            }
+            return m_UserLut != null ? renderGraph.ImportTexture(m_UserLut) : TextureHandle.nullHandle;
+        }
+
         public void RenderUberPost(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, bool requireHDROutput, bool enableAlphaOutput, bool resolveToDebugScreen)
         {
             var material = m_Materials.uber;
@@ -1800,8 +1822,7 @@ namespace UnityEngine.Rendering.Universal
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
             Vector4 lutParams = new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear);
 
-            RTHandle userLutRThdl = m_ColorLookup.texture.value ? RTHandles.Alloc(m_ColorLookup.texture.value) : null;
-            TextureHandle userLutTexture = userLutRThdl != null ? renderGraph.ImportTexture(userLutRThdl) : TextureHandle.nullHandle;
+            TextureHandle userLutTexture = TryGetCachedUserLutTextureHandle(renderGraph);
             Vector4 userLutParams = !m_ColorLookup.IsActive()
                 ? Vector4.zero
                 : new Vector4(1f / m_ColorLookup.texture.value.width,
@@ -1811,17 +1832,6 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = renderGraph.AddRasterRenderPass<UberPostPassData>("Blit Post Processing", out var passData, ProfilingSampler.Get(URPProfileId.RG_UberPost)))
             {
-                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-
-                // Only the UniversalRenderer guarantees that global textures will be available at this point
-                bool isUniversalRenderer = (cameraData.renderer as UniversalRenderer) != null;
-
-                if (cameraData.requiresDepthTexture && isUniversalRenderer)
-                    builder.UseGlobalTexture(s_CameraDepthTextureID);
-
-                if (cameraData.requiresOpaqueTexture && isUniversalRenderer)
-                    builder.UseGlobalTexture(s_CameraOpaqueTextureID);
-
                 builder.AllowGlobalStateModification(true);
                 passData.destinationTexture = destTexture;
                 builder.SetRenderAttachment(destTexture, 0, AccessFlags.Write);

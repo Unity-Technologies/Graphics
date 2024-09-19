@@ -319,21 +319,59 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public static void GenerateSequentialCircleErrors(IVFXErrorReporter report, string countName, string normalName, string upName, VFXModel model)
+        {
+            var slotContainer = model as IVFXSlotContainer;
+            if (slotContainer == null)
+                return;
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
+            var countExpression = slotContainer.inputSlots.Single(x => x.name == countName).GetExpression();
+            var normalExpression = slotContainer.inputSlots.Single(x => x.name == normalName).GetExpression();
+            var upExpression = slotContainer.inputSlots.Single(x => x.name == upName).GetExpression();
+            context.RegisterExpression(countExpression);
+            context.RegisterExpression(normalExpression);
+            context.RegisterExpression(upExpression);
+            context.Compile();
+
+            if (context.GetReduced(countExpression) is var countExpressionReduced &&
+                countExpressionReduced.Is(VFXExpression.Flags.Constant) &&
+                countExpressionReduced.Get<uint>() == 0)
+            {
+                report.RegisterError("CircleCountIsZero", VFXErrorType.Warning, "A circle with Count = 0 is not valid", model);
+            }
+
+            if (context.GetReduced(normalExpression) is var normalExpressionReduced &&
+                context.GetReduced(upExpression) is var upExpressionReduced &&
+                normalExpressionReduced.Is(VFXExpression.Flags.Constant) &&
+                upExpressionReduced.Is(VFXExpression.Flags.Constant))
+            {
+
+                var normal = normalExpressionReduced.Get<Vector3>();
+                var up = upExpressionReduced.Get<Vector3>();
+
+                if (float.IsNaN(normal.x) || float.IsNaN(normal.y) || float.IsNaN(normal.z))
+                {
+                    report.RegisterError("CircleNormalIsInvalid", VFXErrorType.Warning, "Normal vector is invalid.", model);
+                }
+
+                if (float.IsNaN(up.x) || float.IsNaN(up.y) || float.IsNaN(up.z))
+                {
+                    report.RegisterError("CircleUpIsInvalid", VFXErrorType.Warning, "Up vector is invalid.", model);
+                }
+
+                if (Math.Abs(Vector3.Cross(normal, up).sqrMagnitude) < 10e-5f)
+                {
+                    report.RegisterError("CircleNormalAndUpArCollinear", VFXErrorType.Warning, "Normal and Up vectors are collinear, circle orientation cannot be computed.", model);
+                }
+            }
+        }
+
         internal sealed override void GenerateErrors(VFXErrorReporter report)
         {
             if (shape == SequentialShape.Circle)
             {
-                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding);
-                var expression = inputSlots.Single(x => x.name == nameof(InputPropertiesCircle.Count)).GetExpression();
-                context.RegisterExpression(expression);
-                context.Compile();
-
-                if (context.GetReduced(expression) is var countExpression &&
-                    countExpression.Is(VFXExpression.Flags.Constant) &&
-                    countExpression.Get<uint>() == 0)
-                {
-                    report.RegisterError("CircleCountIsZero", VFXErrorType.Warning, "A circle with Count = 0 is not valid", this);
-                }
+                GenerateSequentialCircleErrors(report, nameof(InputPropertiesCircle.Count), nameof(InputPropertiesCircle.Normal), nameof(InputPropertiesCircle.Up), this);
             }
         }
     }

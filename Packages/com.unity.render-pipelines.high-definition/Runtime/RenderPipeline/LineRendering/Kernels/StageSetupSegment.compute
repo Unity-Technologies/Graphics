@@ -87,6 +87,11 @@ bool CulledLineLOD(uint segmentIndex)
 [numthreads(NUM_LANE_SEGMENT_SETUP, 1, 1)]
 void Main(Group group)
 {
+    #if defined(UNITY_STEREO_INSTANCING_ENABLED)
+    // See: [NOTE-HQ-LINES-SINGLE-PASS-STEREO]
+    unity_StereoEyeIndex = _ViewIndex;
+    #endif
+
     if (group.groupIndex == 0u)
     {
         gs_SegmentOffset = _CounterBuffer.Load(COUNTER_GROUP_SEG_OFFSET);

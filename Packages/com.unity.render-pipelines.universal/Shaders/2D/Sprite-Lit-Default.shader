@@ -64,7 +64,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
-            float4 _MainTex_TexelSize;
             UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
 
             TEXTURE2D(_MaskTex);
@@ -72,8 +71,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
-                half4 _MainTex_ST;
-                half4 _NormalMap_ST;  // Is this the right way to do this?
                 half4 _Color;
             CBUFFER_END
 
@@ -105,7 +102,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(v.positionOS);
                 #endif
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                o.uv = v.uv;
                 o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
 
                 o.color = v.color * _Color * unity_SpriteColor;
@@ -124,7 +121,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 InitializeSurfaceData(main.rgb, main.a, mask, surfaceData);
                 InitializeInputData(i.uv, i.lightingUV, inputData);
 
-                SETUP_DEBUG_TEXTURE_DATA_2D(inputData, i.positionWS, i.positionCS, _MainTex);
+                SETUP_DEBUG_TEXTURE_DATA_2D_NO_TS(inputData, i.positionWS, i.positionCS, _MainTex);
 
                 return CombinedShapeLightShared(surfaceData, inputData);
             }
@@ -174,8 +171,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START( UnityPerMaterial )
-                half4 _MainTex_ST;
-                half4 _NormalMap_ST;  // Is this the right way to do this?
                 half4 _Color;
             CBUFFER_END
 
@@ -188,7 +183,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 attributes.positionOS = UnityFlipSprite(attributes.positionOS, unity_SpriteProps.xy);
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
-                o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
+                o.uv = attributes.uv;
                 o.color = attributes.color;
                 o.normalWS = -GetViewForwardDir();
                 o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
@@ -247,13 +242,10 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
-            float4 _MainTex_TexelSize;
             UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START( UnityPerMaterial )
-                half4 _MainTex_ST;
-                half4 _NormalMap_ST;  // Is this the right way to do this?
                 half4 _Color;
             CBUFFER_END
 
@@ -269,7 +261,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(attributes.positionOS);
                 #endif
-                o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
+                o.uv = attributes.uv;
                 o.color = attributes.color * _Color * unity_SpriteColor;
                 return o;
             }
@@ -285,7 +277,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 InitializeSurfaceData(mainTex.rgb, mainTex.a, surfaceData);
                 InitializeInputData(i.uv, inputData);
-                SETUP_DEBUG_TEXTURE_DATA_2D(inputData, i.positionWS, i.positionCS, _MainTex);
+                SETUP_DEBUG_TEXTURE_DATA_2D_NO_TS(inputData, i.positionWS, i.positionCS, _MainTex);
 
                 if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
                 {

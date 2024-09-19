@@ -86,7 +86,7 @@ namespace UnityEditor.VFX
             {
                 string rootFieldName = VisualEffectSerializationUtility.GetTypeField(parameter.type);
 
-                VFXParameterInfo paramInfo = new VFXParameterInfo(parameter.exposedName, parameter.type.Name);
+                VFXParameterInfo paramInfo = new VFXParameterInfo(parameter.exposedName, parameter.type != null ? parameter.type.Name : string.Empty);
                 paramInfo.tooltip = parameter.tooltip;
                 paramInfo.space = parameter.outputSlots[0].space;
                 paramInfo.spaceable = parameter.outputSlots[0].spaceable;
@@ -123,6 +123,8 @@ namespace UnityEditor.VFX
 
         static int RecurseBuildParameterInfo(List<VFXParameterInfo> infos, System.Type type, string path, object obj)
         {
+            if (type == null) return 0;
+
             if (!type.IsValueType) return 0;
 
             int count = 0;

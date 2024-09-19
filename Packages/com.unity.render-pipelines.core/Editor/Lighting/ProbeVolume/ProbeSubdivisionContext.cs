@@ -114,7 +114,8 @@ namespace UnityEngine.Rendering
                             ctx.cells.Clear();
                             ctx.cells.Add(cell);
 
-                            var result = AdaptiveProbeVolumes.BakeBricks(ctx, contributors);
+                            bool canceledByUser = false;
+                            var result = AdaptiveProbeVolumes.BakeBricks(ctx, contributors, ref canceledByUser);
 
                             if (result.cells.Count != 0)
                                 ProbeReferenceVolume.instance.realtimeSubdivisionInfo[cell.bounds] = result.cells[0].bricks;

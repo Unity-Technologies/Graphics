@@ -816,6 +816,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ref readonly var resourceData = ref contextData.UnversionedResourceData(fragment.resource);
                     bool isImported = resourceData.isImported;
 
+                    int destroyPassID = resourceData.lastUsePassID;
+                    bool usedAfterThisNativePass = (destroyPassID >= (nativePass.lastGraphPass + 1));
+
                     if (fragment.accessFlags.HasFlag(AccessFlags.Read) || partialWrite)
                     {
                         // The resource is already allocated before this pass so we need to load it
@@ -825,6 +828,18 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #if UNITY_EDITOR
                             currLoadAudit = new LoadAudit(LoadReason.LoadPreviouslyWritten, resourceData.firstUsePassID);
 #endif
+
+                            // Once we decide to load a resource, we must default to the Store action if the resource is used after the current native pass.
+                            // If we were to use the DontCare action in this case, the driver would be effectively be allowed to discard the
+                            // contents of the resource. This is true even when we're only performing reads on it.
+                            if (usedAfterThisNativePass)
+                            {
+                                currAttachment.storeAction = RenderBufferStoreAction.Store;
+#if UNITY_EDITOR
+                                currStoreAudit = new StoreAudit(StoreReason.StoreUsedByLaterPass, destroyPassID);
+#endif
+                            }
+
                         }
                         // It's first used this native pass so we need to clear it so reads/partial writes return the correct clear value
                         // the clear colors are part of the resource description and set-up when executing the graph we don't need to care about that here.
@@ -864,19 +879,22 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         // Simple non-msaa case
                         if (nativePass.samples <= 1)
                         {
-                            // The resource is still used after this renderpass so we need to store it imported resources always need to be stored
-                            // as we don't know what happens with them and assume the contents are somewhow used outside the graph
-                            int destroyPassID = resourceData.lastUsePassID;
-                            if (destroyPassID >= nativePass.lastGraphPass + 1)
+                            if (usedAfterThisNativePass)
                             {
+                                // The resource is still used after this native pass so we need to store it.
                                 currAttachment.storeAction = RenderBufferStoreAction.Store;
 #if UNITY_EDITOR
                                 currStoreAudit = new StoreAudit(StoreReason.StoreUsedByLaterPass, destroyPassID);
 #endif
                             }
-                            // It's last used during this native pass just discard it unless it's imported in which case we need to store
                             else
                             {
+                                // This is the last native pass that uses the resource.
+                                // If it's imported, we store it because its contents may be used outside the graph.
+                                // Otherwise, we can safely discard its contents.
+                                //
+                                // The one exception to this, is the user declared discard flag which allows us to assume an imported
+                                // resource is not used outside the graph.
                                 if (isImported)
                                 {
                                     if (resourceData.discard)
@@ -912,7 +930,6 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             // In theory the opposite could also be true (use MSAA after resolve data is no longer needed) but we consider it sufficiently strange to not
                             // consider it here.
 
-                            int destroyPassID = resourceData.lastUsePassID;
                             currAttachment.storeAction = RenderBufferStoreAction.DontCare;
 
                             //Check if we're the last pass writing it by checking the output version of the current pass is the higherst version the resource will reach

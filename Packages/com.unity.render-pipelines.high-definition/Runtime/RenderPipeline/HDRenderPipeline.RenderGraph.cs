@@ -624,6 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public CubemapFace finalTargetFace;
             public Rect finalViewport;
             public TextureHandle depthBuffer;
+            public Vector2 blitScaleBias;
             public bool flipY;
         }
 
@@ -650,6 +651,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (passData.copyDepth)
                 {
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                    passData.blitScaleBias = RTHandles.rtHandleProperties.rtHandleScale;
                     passData.flipY = hdCamera.isMainGameView || hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY;
                     passData.copyDepthMaterial = m_CopyDepth;
                 }
@@ -673,7 +675,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     mpb.SetTexture(HDShaderIDs._InputDepth, depth);
                                     // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
                                     mpb.SetInt("_FlipY", data.flipY ? 1 : 0);
-                                    mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
+                                    mpb.SetVector(HDShaderIDs._BlitScaleBias, data.blitScaleBias);
                                     CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepthMaterial, mpb);
                                 }
                             }
@@ -685,10 +687,9 @@ namespace UnityEngine.Rendering.HighDefinition
         class CopyXRDepthPassData
         {
             public Material copyDepth;
-            public Rect viewport;
             public TextureHandle depthBuffer;
             public TextureHandle output;
-            public float dynamicResolutionScale;
+            public Vector2 blitScaleBias;
             public bool flipY;
         }
 
@@ -699,10 +700,10 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<CopyXRDepthPassData>(name, out var passData, ProfilingSampler.Get(profileID)))
             {
                 passData.copyDepth = m_CopyDepth;
-                passData.viewport = hdCamera.finalViewport;
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                passData.output = builder.WriteTexture(output);
-                passData.dynamicResolutionScale = copyForXR ? DynamicResolutionHandler.instance.GetCurrentScale() : 1.0f / DynamicResolutionHandler.instance.GetCurrentScale();
+                passData.output = builder.UseDepthBuffer(output, DepthAccess.Write);
+                passData.blitScaleBias = copyForXR ? new Vector2(hdCamera.actualWidth / hdCamera.finalViewport.width, hdCamera.actualHeight / hdCamera.finalViewport.height)
+                                                   : RTHandles.rtHandleProperties.rtHandleScale;
                 passData.flipY = copyForXR;
 
                 builder.SetRenderFunc(
@@ -711,11 +712,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
                         mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
-                        mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(data.dynamicResolutionScale, data.dynamicResolutionScale, 0.0f, 0.0f));
+                        mpb.SetVector(HDShaderIDs._BlitScaleBias, data.blitScaleBias);
                         mpb.SetInt(HDShaderIDs._FlipY, data.flipY ? 1 : 0);
 
-                        ctx.cmd.SetRenderTarget(data.output, 0, CubemapFace.Unknown, -1);
-                        ctx.cmd.SetViewport(data.viewport);
                         CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepth, mpb);
                     });
             }

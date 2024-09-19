@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.Universal
                     debugView = renderGraph.CreateTexture(new TextureDesc(cameraData.pixelWidth, cameraData.pixelHeight, false, (cameraData.xr.enabled && cameraData.xr.singlePassEnabled))
                     {
                         name = "STP Debug View",
-                        colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
+                        format = GraphicsFormat.R8G8B8A8_UNorm,
                         clearBuffer = true,
                         enableRandomWrite = true
                     });

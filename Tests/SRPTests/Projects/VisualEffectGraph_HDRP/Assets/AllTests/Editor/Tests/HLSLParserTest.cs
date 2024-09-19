@@ -396,6 +396,30 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, errors.Length, "Missing error feedback when using variadic attribute in custom hlsl code");
             Assert.IsInstanceOf<HLSLVFXAttributeIsVariadic>(errors[0]);
         }
+
+        [Test, Description("Covers issue UUM-79389")]
+        public void HLSL_Parameters_On_Different_Lines()
+        {
+            // Arrange
+            var hlslCode =
+                "void CustomHLSL(inout VFXAttributes attributes" +
+                "  , in float3 offset" +
+                "  , in float speedFactor)" + "\n" +
+                "{" + "\n" +
+                "  attributes.position += offset;" + "\n" +
+                "  attributes.velocity *= speedFactor;" + "\n" +
+                "}";
+
+            // Act
+            var function = HLSLFunction.Parse(this.attributesManager, hlslCode).Single();
+
+            // Assert
+            Assert.AreEqual(3, function.inputs.Count);
+            Assert.AreEqual(new [] { "attributes", "offset", "speedFactor" }, function.inputs.Select(x => x.name));
+            Assert.AreEqual(new [] { "VFXAttributes", "float3", "float" }, function.inputs.Select(x => x.rawType));
+            Assert.AreEqual(new [] { HLSLAccess.INOUT, HLSLAccess.IN, HLSLAccess.IN }, function.inputs.Select(x => x.access));
+
+        }
     }
 }
 #endif

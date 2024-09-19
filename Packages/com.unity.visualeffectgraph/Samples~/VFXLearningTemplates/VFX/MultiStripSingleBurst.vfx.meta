@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 285ef980a6fd8b746bc973e6f8b7b08d
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Multi-Strip Single Burst
+    category: Learning Templates
+    description: There are several ways to spawn particles, and when dealing with
+      strips, this can have some implications for how you need to set up your VFX.
+      This example shows you how to make multiple trails with one single burst of
+      particles.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: 19ccc7b20971d2948ba209ca9352967d, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

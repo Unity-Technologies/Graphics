@@ -12,56 +12,76 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>Perform a rendering into <paramref name="target"/>.</summary>
         /// <example>
-        /// How to perform standard rendering:
+        /// How to perform rendering into a 2D render target:
         /// <code>
+        /// using UnityEngine;
+        /// using UnityEngine.Rendering;
+        /// using UnityEngine.Rendering.HighDefinition;
+        /// using UnityEngine.Experimental.Rendering;
+        /// 
         /// class StandardRenderingExample
         /// {
-        ///     public void Render()
-        ///     {
-        ///         // Copy default settings
-        ///         var settings = CameraRenderSettings.Default;
-        ///         // Adapt default settings to our custom usage
-        ///         settings.position.position = new Vector3(0, 1, 0);
-        ///         settings.camera.frustum.fieldOfView = 60.0f;
-        ///         // Get our render target
-        ///         var rt = new RenderTexture(128, 128, 1, GraphicsFormat.B8G8R8A8_SNorm);
-        ///         HDRenderUtilities.Render(settings, rt);
-        ///         // Do something with rt
-        ///         rt.Release();
-        ///     }
+        ///    public void Render()
+        ///    {
+        ///        // Copy default settings and adjust them for the custom rendering.
+        ///        var cameraSettings = CameraSettings.defaultCameraSettingsNonAlloc;
+        ///        cameraSettings.frustum.fieldOfView = 60.0f;
+        ///        var cameraPosition = CameraPositionSettings.NewDefault();
+        ///        cameraPosition.position = new Vector3(0, 1, 0);
+        ///
+        ///        // Create the 2D render target
+        ///        var rt = new RenderTexture(128, 128, 1, GraphicsFormat.B8G8R8A8_UNorm);
+        ///
+        ///        // Perform the custom rendering into the render target
+        ///        HDRenderUtilities.Render(cameraSettings, cameraPosition, rt);
+        ///
+        ///        // Implement the custom render target processing.
+        ///
+        ///        // Release the render target when the processing is done, RenderTexture variables are not garbage collected like normal managed types.
+        ///        rt.Release();
+        ///    }
         /// }
         /// </code>
         ///
         /// How to perform a cubemap rendering:
         /// <code>
+        /// using UnityEngine;
+        /// using UnityEngine.Rendering;
+        /// using UnityEngine.Rendering.HighDefinition;
+        /// using UnityEngine.Experimental.Rendering;
+        /// 
         /// class CubemapRenderExample
         /// {
-        ///     public void Render()
-        ///     {
-        ///         // Copy default settings
-        ///         var settings = CameraRenderSettings.Default;
-        ///         // Adapt default settings to our custom usage
-        ///         settings.position.position = new Vector3(0, 1, 0);
-        ///         settings.camera.physical.iso = 800.0f;
-        ///         // Frustum settings are ignored and driven by the cubemap rendering
-        ///         // Get our render target
-        ///         var rt = new RenderTexture(128, 128, 1, GraphicsFormat.B8G8R8A8_SNorm)
-        ///         {
-        ///             dimension = TextureDimension.Cube
-        ///         };
-        ///         // The TextureDimension is detected and the renderer will perform a cubemap rendering.
-        ///         HDRenderUtilities.Render(settings, rt);
-        ///         // Do something with rt
-        ///         rt.Release();
-        ///     }
+        ///    public void Render()
+        ///    {
+        ///        // Copy the default settings and adjust them for the custom rendering.
+        ///        // Frustum settings from cameraSettings are ignored because the render target is a cubemap.
+        ///        var cameraSettings = CameraSettings.defaultCameraSettingsNonAlloc;
+        ///        var cameraPosition = CameraPositionSettings.NewDefault();
+        ///        cameraPosition.position = new Vector3(0, 1, 0);
+        ///
+        ///        // Create the cubemap render target
+        ///        var rt = new RenderTexture(128, 128, 1, GraphicsFormat.B8G8R8A8_UNorm)
+        ///        {
+        ///            dimension = TextureDimension.Cube
+        ///        };
+        ///
+        ///        // Perform the custom rendering into the cubemap
+        ///        HDRenderUtilities.Render(cameraSettings, cameraPosition, rt);
+        ///
+        ///        // Implement the custom render target processing.
+        ///
+        ///        // Release the render target when the processing is done, RenderTexture variables are not garbage collected like normal managed types.
+        ///        rt.Release();
+        ///    }
         /// }
         /// </code>
         /// </example>
         /// <param name="settings">Settings for the camera.</param>
         /// <param name="position">Position for the camera.</param>
         /// <param name="target">Target to render to.</param>
-        /// <param name="staticFlags">Only used in the Editor fo cubemaps.
-        /// This is bitmask of <see cref="UnityEditor.StaticEditorFlags"/> only objects with these flags will be rendered
+        /// <param name="staticFlags">Only used in the Editor for cubemaps.
+        /// This is a bitmask of <see cref="UnityEditor.StaticEditorFlags"/>, only objects with these flags are rendered.
         /// </param>
         public static void Render(
             CameraSettings settings,
@@ -349,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Use CreateReflectionProbeRenderTarget with explicit format instead", true)]
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize)
         {
-            RenderTexture rt = new RenderTexture(cubemapSize, cubemapSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
+            RenderTexture rt = new RenderTexture(cubemapSize, cubemapSize, 0, GraphicsFormat.R16G16B16A16_SFloat)
             {
                 dimension = TextureDimension.Cube,
                 enableRandomWrite = true,
@@ -368,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The texture to use as reflection probe target.</returns>
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize, GraphicsFormat format)
         {
-            RenderTexture rt = new RenderTexture(cubemapSize, cubemapSize, 1, format)
+            RenderTexture rt = new RenderTexture(cubemapSize, cubemapSize, 0, format)
             {
                 dimension = TextureDimension.Cube,
                 enableRandomWrite = true,
@@ -388,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The texture used as planar reflection probe target</returns>
         public static RenderTexture CreatePlanarProbeRenderTarget(int planarSize, GraphicsFormat format)
         {
-            RenderTexture rt = new RenderTexture(planarSize, planarSize, 1, format)
+            RenderTexture rt = new RenderTexture(planarSize, planarSize, 0, format)
             {
                 dimension = TextureDimension.Tex2D,
                 enableRandomWrite = true,
@@ -407,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The texture used as planar reflection probe target</returns>
         public static RenderTexture CreatePlanarProbeDepthRenderTarget(int planarSize)
         {
-            RenderTexture rt = new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R32_SFloat)
+            RenderTexture rt = new RenderTexture(planarSize, planarSize, 0, GraphicsFormat.R32_SFloat)
             {
                 dimension = TextureDimension.Tex2D,
                 enableRandomWrite = true,

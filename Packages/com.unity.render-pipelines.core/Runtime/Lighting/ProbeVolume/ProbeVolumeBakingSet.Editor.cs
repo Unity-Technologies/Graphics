@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering
 
         [SerializeField]
         SerializedDictionary<string, SceneBakeData> m_SceneBakeData = new();
-        static Dictionary<string, ProbeVolumeBakingSet> sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSet>();
+        internal static Dictionary<string, ProbeVolumeBakingSet> sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSet>();
 
         /// <summary>
         /// Tries to add a scene to the baking set.

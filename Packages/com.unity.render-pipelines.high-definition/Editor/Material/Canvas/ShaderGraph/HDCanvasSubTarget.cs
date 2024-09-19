@@ -67,6 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var result = new DefineCollection();
             if (canvasData.alphaClip)
                 result.Add(CoreKeywordDescriptors.AlphaTest, 1);
+
+            result.Add(base.GetAdditionalDefines());
             return result;
         }
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

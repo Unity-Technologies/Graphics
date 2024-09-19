@@ -105,11 +105,7 @@ Older tutorials use an outdated format of Shader Graph with master nodes. When l
 
 To keep exploring how to use Shader Graph to author shaders, check out these blog posts:
 
-- [Art That Moves: Creating Animated Materials with Shader Graph](https://blogs.unity3d.com/2018/10/05/art-that-moves-creating-animated-materials-with-shader-graph/)
-- [Shader Graph Updates and Sample Project ](https://blogs.unity3d.com/2018/08/07/shader-graph-updates-and-sample-project/)
-- [Custom Lighting in Shader Graph: Expanding Your Graphs in 2019](https://blogs.unity3d.com/2019/07/31/custom-lighting-in-shader-graph-expanding-your-graphs-in-2019/)
-- [Unity 2018.3 Shader Graph Update: Lit Master Node](https://blogs.unity3d.com/2018/12/19/unity-2018-3-shader-graph-update-lit-master-node/)
-- [Creating an Interactive Vertex Effect using Shader Graph](https://blogs.unity3d.com/2019/02/12/creating-an-interactive-vertex-effect-using-shader-graph/)
-- [Introduction to Shader Graph: Build your shaders with a visual editor](https://blogs.unity3d.com/2018/02/27/introduction-to-shader-graph-build-your-shaders-with-a-visual-editor/)
+- [Art That Moves: Creating Animated Materials with Shader Graph](https://unity.com/blog/engine-platform/creating-animated-materials-with-shader-graph)
+- [Custom Lighting in Shader Graph: Expanding Your Graphs in 2019](https://unity.com/blog/engine-platform/custom-lighting-in-shader-graph-expanding-your-graphs-in-2019)
 
-You can also visit the [Unity YouTube Channel](https://www.youtube.com/channel/UCG08EqOAXJk_YXPDsAvReSg) and look for [video tutorials on Shader Graph](https://www.youtube.com/user/Unity3D/search?query=shader+graph), or head to our [user forum](https://forum.unity.com/forums/shader-graph.346/) to find the latest information and conversations about Shader Graph.
+You can also visit the [Unity YouTube Channel](https://www.youtube.com/channel/UCG08EqOAXJk_YXPDsAvReSg) and look for [video tutorials on Shader Graph](https://www.youtube.com/user/Unity3D/search?query=shader+graph), or head to our [user forum](https://discussions.unity.com/tags/c/unity-engine/52/shader-graph) to find the latest information and conversations about Shader Graph.

@@ -292,7 +292,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
-    [ImageEffectAllowedInSceneView]
     [ExecuteAlways] // NOTE: This is required to get calls to OnDestroy() always. Graphics resources are released in OnDestroy().
     [URPHelpURL("universal-additional-camera-data")]
     public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
@@ -849,11 +848,31 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public void OnDestroy()
         {
+            //You cannot call scriptableRenderer here. If you where not in URP, this will actually create the renderer.
+            //This can occurs in cross pipeline but also on Dedicated Server where the gfx device do not run. (UUM-75237)
+            //Use GetRawRenderer() instead.
+            
             m_Camera.DestroyVolumeStack(this);
-            if (camera.cameraType != CameraType.SceneView )
-                scriptableRenderer?.ReleaseRenderTargets();
+            if (camera.cameraType != CameraType.SceneView)
+                GetRawRenderer()?.ReleaseRenderTargets();
             m_History?.Dispose();
             m_History = null;
+        }
+        
+        
+        ScriptableRenderer GetRawRenderer()
+        {
+            if (UniversalRenderPipeline.asset is null)
+                return null;
+
+            ReadOnlySpan<ScriptableRenderer> renderers = UniversalRenderPipeline.asset.renderers;
+            if (renderers == null || renderers.IsEmpty)
+                return null;
+
+            if (m_RendererIndex >= renderers.Length || m_RendererIndex < 0)
+                return null;
+
+            return renderers[m_RendererIndex];
         }
     }
 }

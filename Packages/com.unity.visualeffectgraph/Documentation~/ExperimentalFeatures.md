@@ -4,7 +4,7 @@ Some features in Visual Effect Graph are in an experimental state, because impro
 
 By default, experimental features are disabled, meaning that they do not appear in the search results when you create Blocks, operators, or Contexts. 
 
-To enable experimental features, go to **Edit** > **Preferences** > **Visual Effects** and enable **Experimental Operators/Blockers**. This gives you access to all nodes marked as experimental in the graph.
+To enable experimental features, go to **Edit** > [**Preferences**](VisualEffectPreferences.md) > **Visual Effects** and enable **Experimental Operators/Blockers**. This gives you access to all nodes marked as experimental in the graph.
 
 ![](Images/Experimental-features-enable.png)
 

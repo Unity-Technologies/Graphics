@@ -2572,6 +2572,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         internal void SetGlobal(TextureHandle h, int globalPropertyId)
         {
+            if (!h.IsValid())
+                throw new ArgumentException("Attempting to register an invalid texture handle as a global");
+
             registeredGlobals[globalPropertyId] = h;
         }
 

@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 6f1b2eba78337db42b0c077a7efc5cfc
+VisualEffectImporter:
+  externalObjects: {}
+  serializedVersion: 1
+  template:
+    name: Multi-Strip Periodic Burst
+    category: Learning Templates
+    description: There are several ways to spawn particles, and when dealing with
+      strips, this can have some implications for how you need to set up your VFX.
+      This example shows you how to make a new trail for each periodic burst within
+      a single VFX system.
+    icon: {fileID: 2800000, guid: 49836be3225b70342b4057f6bf94b554, type: 3}
+    thumbnail: {fileID: 2800000, guid: ae0d422301fa1ef47871f86b8c7f2ad4, type: 3}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

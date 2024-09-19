@@ -96,13 +96,12 @@ MonoBehaviour:
       If we look at the edges of our smoke, even at this very low frame rate, the
       interpolation stays smooth.
 
-      
 
-      
 
-      The motion vector texture
-      doesn''t need to be huge, and can help reduce the number of frames in a flipbook
-      animation.
+
+
+      The motion vector texture doesn''t need
+      to be huge, and can help reduce the number of frames in a flipbook animation.
 
 '
     theme: Black
@@ -113,7 +112,7 @@ MonoBehaviour:
     x: -577
     y: 148
     width: 2312
-    height: 2355
+    height: 2375
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -141,7 +140,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 17
+  m_GraphVersion: 18
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1599,7 +1598,7 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 2
+  blendMode: 1
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -1609,6 +1608,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615100}
+  - {fileID: 8926484042661615151}
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -1661,7 +1661,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"0797039673c5e1f49979485309f527e3","type":3}}'
+      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"37f531de9fb35a147b95e4bfb66316b5","type":3}}'
     m_Space: -1
   m_Property:
     name: mainTexture
@@ -1886,7 +1886,7 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 2
+  blendMode: 1
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
@@ -1896,6 +1896,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615117}
+  - {fileID: 8926484042661615152}
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -1948,7 +1949,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"0797039673c5e1f49979485309f527e3","type":3}}'
+      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"37f531de9fb35a147b95e4bfb66316b5","type":3}}'
     m_Space: -1
   m_Property:
     name: mainTexture
@@ -2163,7 +2164,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"191ffcdf46c78a7419203f8d42fe353f","type":3}}'
+      m_SerializableObject: '{"obj":{"fileID":2800000,"guid":"a7c68e00c6924dc458d0fcd1d906101a","type":3}}'
     m_Space: -1
   m_Property:
     name: motionVectorMap
@@ -2902,3 +2903,39 @@ MonoBehaviour:
         PublicKeyToken=b77a5c561934e089
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &8926484042661615151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+--- !u!114 &8926484042661615152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0

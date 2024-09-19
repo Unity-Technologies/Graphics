@@ -2,11 +2,15 @@
 #define DOF_GATHER_UTILS
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
 
 // Input textures
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_InputCoCTexture);
 TEXTURE2D_X(_TileList);
+
+RWStructuredBuffer<float2> _ApertureShapeTable;
+uint _ApertureShapeTableCount;
 
 #define FAST_INFOCUS_TILE 0
 #define SLOW_INFOCUS_TILE 1
@@ -119,19 +123,23 @@ CTYPE GetColorSample(float2 sampleTC, float lod)
 
 void LoadTileData(float2 sampleTC, SampleData centerSample, float rings, inout DoFTile tileData)
 {
-    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, ResScale * sampleTC / TILE_RES) * OneOverResScale;
+    CoCTileData cocRanges = LoadCoCTileData(_TileList, uint2(ResScale * sampleTC / TILE_RES));
+
+    cocRanges.minFarCoC *= OneOverResScale;
+    cocRanges.maxFarCoC *= OneOverResScale;
+    cocRanges.minNearCoC *= OneOverResScale;
+    cocRanges.maxNearCoC *= OneOverResScale;
 
     // Note: for the far-field, we don't need to search further than than the central CoC.
     // If there is a larger CoC that overlaps the central pixel then it will have greater depth
-    float limit = min(cocRanges.y, 2 * abs(centerSample.CoC));
-    tileData.maxRadius = max(limit, -cocRanges.w);
+    float limit = min(cocRanges.maxFarCoC, 2 * abs(centerSample.CoC));
+    tileData.maxRadius = max(limit, -cocRanges.maxNearCoC);
 
     // Detect tiles than need more samples
-    tileData.numSamples = rings;
-    tileData.numSamples = tileData.maxRadius > 0 ? tileData.numSamples : 0;
+    tileData.numSamples = tileData.maxRadius > 0 ? rings : 0;
 
 #ifdef ADAPTIVE_SAMPLING
-    float minRadius = min(cocRanges.x, -cocRanges.z) * OneOverResScale;
+    float minRadius = min(cocRanges.minFarCoC, -cocRanges.minNearCoC) * OneOverResScale;
     tileData.numSamples = (int)ceil((minRadius / tileData.maxRadius < 0.1) ? tileData.numSamples * AdaptiveSamplingWeights.x : tileData.numSamples * AdaptiveSamplingWeights.y);
 #endif
 
@@ -147,9 +155,11 @@ void LoadTileData(float2 sampleTC, SampleData centerSample, float rings, inout D
 #endif
 }
 
-float2 PointInCircle(float angle)
+float2 PointOnCircle(float angle01)
 {
-    return float2(cos(angle), sin(angle)) * float2 (1 - Anamorphism, 1 + Anamorphism);
+    angle01 %= 1;
+    uint index = angle01 * _ApertureShapeTableCount;
+    return _ApertureShapeTable[index];
 }
 
 void ResolveColorAndAlpha(inout float4 outColor, inout float outAlpha, CTYPE defaultValue)
@@ -282,7 +292,7 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
     float dR = rcp((float)tileData.numSamples);
     int noiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
     int halfSamples = tileData.numSamples >> 1;
-    float dAng = PI * rcp(halfSamples);
+    float dAng = rcp(halfSamples);
 
     // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
     float lod = min(MaxColorMip, log2(2 * PI * tileData.maxRadius * rcp(tileData.numSamples)));
@@ -319,12 +329,12 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
 #endif
 
             SampleData sampleData[2];
-            const float offset[2] = { 0, PI };
+            const float offset[2] = { 0, 0.5 };
 
             UNITY_UNROLL
                 for (int j = 0; j < 2; j++)
                 {
-                    float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(offset[j] + (i + r2) * dAng);
+                    float2 sampleTC = posInputs.positionSS + sampleRadius * PointOnCircle(offset[j] + (i + r2) * dAng);
                     sampleData[j].color = GetColorSample(sampleTC, lod);
                     sampleData[j].CoC = GetCoCRadius(sampleTC);
                     bgEstimate += float4(sampleData[j].color.xyz, 1);
@@ -364,32 +374,35 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
 
 int GetTileClass(float2 sampleTC)
 {
-    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, ResScale * sampleTC / TILE_RES);
-    float minRadius = min(abs(cocRanges.x), -cocRanges.z);
-    float maxRadius = max(abs(cocRanges.y), -cocRanges.w);
+    CoCTileData cocRanges = LoadCoCTileData(_TileList, ResScale * sampleTC / TILE_RES);
+    float minRadius = min(abs(cocRanges.minFarCoC), -cocRanges.minNearCoC);
+    float maxRadius = max(abs(cocRanges.maxFarCoC), -cocRanges.maxNearCoC);
 
+    // If the CoC radius of the tile is less than 1 px, then we're in focus and we can just copy the tile.
     if (minRadius < 1 && maxRadius < 1)
         return FAST_INFOCUS_TILE;
-    else if (minRadius > 2.5 && maxRadius > 2.5)
+    // If the CoC radius of the tile is always more than 1 px, then the tile is fully defocus (either by near or far blur)
+    // We can also just copy this tile from the near/far gather pass.
+    else if (minRadius > 1 && maxRadius > 1)
         return FAST_DEFOCUS_TILE;
+    // Worst case, the tile contains both in focus and defocus pixels, we need to compute the blur for each pixel in the tile.
     else
         return SLOW_INFOCUS_TILE;
 }
 
-void DebugTiles(float2 sampleTC, inout float3 output)
+void DebugTiles(int tileClass, inout float3 output)
 {
-    int tileClass = GetTileClass(sampleTC);
     if (tileClass == SLOW_INFOCUS_TILE)
     {
-        output.xyz = lerp(output.xyz, float3(1, 0, 0), 0.9);
+        output.xyz = lerp(output.xyz, float3(1, 0, 0), 0.95);
     }
     else if (tileClass == FAST_DEFOCUS_TILE)
     {
-        output.xyz = lerp(output.xyz, float3(0, 0, 1), 0.9);
+        output.xyz = lerp(output.xyz, float3(0, 0, 1), 0.95);
     }
-    else
+    else // FAST_INFOCUS_TILE
     {
-        output.xyz = lerp(output.xyz, float3(0, 1, 0), 0.9);
+        output.xyz = lerp(output.xyz, float3(0, 1, 0), 0.95);
     }
 }
 

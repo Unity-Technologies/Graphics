@@ -367,29 +367,28 @@ namespace UnityEngine.Rendering
             private void CreateBuffers(int probeCount)
             {
                 // Allocate shared position and light index buffer for all jobs
-                var positionsBytes = (ulong)(sizeOfFloat * 3 * probeCount);
-                positionsBufferID = ctx.CreateBuffer(positionsBytes);
+                positionsBufferID = ctx.CreateBuffer((ulong)probeCount, (ulong)(3 * sizeOfFloat));
 
                 int batchSize = Mathf.Min(k_MaxProbeCountPerBatch, probeCount);
                 var shBytes = (ulong)(sizeSHL2RGB * batchSize);
                 var validityBytes = (ulong)(sizeOfFloat * batchSize);
 
-                directRadianceBufferId = ctx.CreateBuffer(shBytes);
-                indirectRadianceBufferId = ctx.CreateBuffer(shBytes);
-                validityBufferId = ctx.CreateBuffer(validityBytes);
+                directRadianceBufferId = ctx.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
+                indirectRadianceBufferId = ctx.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
+                validityBufferId = ctx.CreateBuffer((ulong)batchSize, (ulong)sizeOfFloat);
 
-                windowedDirectSHBufferId = ctx.CreateBuffer(shBytes);
-                boostedIndirectSHBufferId = ctx.CreateBuffer(shBytes);
-                combinedSHBufferId = ctx.CreateBuffer(shBytes);
-                irradianceBufferId = ctx.CreateBuffer(shBytes);
+                windowedDirectSHBufferId = ctx.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
+                boostedIndirectSHBufferId = ctx.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
+                combinedSHBufferId = ctx.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
+                irradianceBufferId = ctx.CreateBuffer((ulong)(batchSize * SHL2RGBElements), (ulong)sizeOfFloat);
 
                 if (bakeProbeOcclusion)
                 {
                     var lightIndicesBytes = (ulong)(sizeOfFloat * maxOcclusionLightsPerProbe * probeCount);
-                    perProbeLightIndicesId = ctx.CreateBuffer(lightIndicesBytes);
+                    perProbeLightIndicesId = ctx.CreateBuffer((ulong)(maxOcclusionLightsPerProbe * probeCount), (ulong)sizeOfFloat);
 
                     var occlusionBytes = (ulong)(sizeOfFloat * maxOcclusionLightsPerProbe * batchSize);
-                    occlusionBufferId = ctx.CreateBuffer(occlusionBytes);
+                    occlusionBufferId = ctx.CreateBuffer((ulong)(maxOcclusionLightsPerProbe * batchSize), (ulong)sizeOfFloat);
                 }
 
                 allocatedBuffers = true;

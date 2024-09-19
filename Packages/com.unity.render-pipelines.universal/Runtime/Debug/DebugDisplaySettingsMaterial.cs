@@ -251,6 +251,81 @@ namespace UnityEngine.Rendering.Universal
         public float metallicMaxValue { get; set; } = 0.9f;
 
         /// <summary>
+        /// Current value for filtering layers based on the selected light's rendering layers.
+        /// </summary>
+        public bool renderingLayersSelectedLight { get; set; } = false;
+
+        /// <summary>
+        /// Current value for filtering layers based on the selected light's shadow layers.
+        /// </summary>
+        public bool selectedLightShadowLayerMask { get; set; } = false;
+
+        /// <summary>
+        /// Current value for filtering layers.
+        /// </summary>
+        public uint renderingLayerMask { get; set; } = 0;
+
+        /// <summary>Rendering Layers Debug Colors.</summary>
+        public Vector4[] debugRenderingLayersColors = new Vector4[]
+        {
+            new Vector4(230, 159, 0) / 255,
+            new Vector4(86, 180, 233) / 255,
+            new Vector4(255, 182, 291) / 255,
+            new Vector4(0, 158, 115) / 255,
+            new Vector4(240, 228, 66) / 255,
+            new Vector4(0, 114, 178) / 255,
+            new Vector4(213, 94, 0) / 255,
+            new Vector4(170, 68, 170) / 255,
+            new Vector4(1.0f, 0.5f, 0.5f),
+            new Vector4(0.5f, 1.0f, 0.5f),
+            new Vector4(0.5f, 0.5f, 1.0f),
+            new Vector4(0.5f, 1.0f, 1.0f),
+            new Vector4(0.75f, 0.25f, 1.0f),
+            new Vector4(0.25f, 1.0f, 0.75f),
+            new Vector4(0.25f, 0.25f, 0.75f),
+            new Vector4(0.75f, 0.25f, 0.25f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+            new Vector4(0.0f, 0.0f, 0.0f),
+        };
+
+        /// <summary>
+        /// Get the RenderingLayerMask used by the selected light
+        /// </summary>
+        /// <returns>Bitmask representing the RenderingLayerMask for the selected light.</returns>
+        public uint GetDebugLightLayersMask()
+        {
+#if UNITY_EDITOR
+            if (renderingLayersSelectedLight)
+            {
+                if (UnityEditor.Selection.activeGameObject == null)
+                    return 0;
+                var light = UnityEditor.Selection.activeGameObject.GetComponent<UniversalAdditionalLightData>();
+                if (light == null)
+                    return 0;
+
+                if (selectedLightShadowLayerMask)
+                    return light.shadowRenderingLayers;
+                return light.renderingLayers;
+            }
+#endif
+            return 0xFFFF;
+        }
+
+        /// <summary>
         /// Current material validation mode.
         /// </summary>
         public DebugMaterialValidationMode materialValidationMode { get; set; }
@@ -271,10 +346,15 @@ namespace UnityEngine.Rendering.Universal
         {
             public const string AlbedoSettingsContainerName = "Albedo Settings";
             public const string MetallicSettingsContainerName = "Metallic Settings";
+            public const string RenderingLayerMasksSettingsContainerName = "Rendering Layer Masks Settings";
 
             public static readonly NameAndTooltip MaterialOverride = new() { name = "Material Override", tooltip = "Use the drop-down to select a Material property to visualize on every GameObject on screen." };
             public static readonly NameAndTooltip VertexAttribute = new() { name = "Vertex Attribute", tooltip = "Use the drop-down to select a 3D GameObject attribute, like Texture Coordinates or Vertex Color, to visualize on screen." };
             public static readonly NameAndTooltip MaterialValidationMode = new() { name = "Material Validation Mode", tooltip = "Debug and validate material properties." };
+            public static readonly NameAndTooltip RenderingLayersSelectedLight = new() { name = "Filter Rendering Layers by Light", tooltip = "Highlight Renderers affected by Selected Light" };
+            public static readonly NameAndTooltip SelectedLightShadowLayerMask = new() { name = "Use Light's Shadow Layer Mask", tooltip = "Highlight Renderers that cast shadows for the Selected Light" };
+            public static readonly NameAndTooltip RenderingLayerColors = new() { name = "Layers Color", tooltip = "Select the display color for each Rendering Layer" };
+            public static readonly NameAndTooltip FilterRenderingLayerMask = new() { name = "Filter Layers", tooltip = "Use the dropdown to filter Rendering Layers that you want to visualize" };
             public static readonly NameAndTooltip ValidationPreset = new() { name = "Validation Preset", tooltip = "Validate using a list of preset surfaces and inputs based on real-world surfaces." };
             public static readonly NameAndTooltip AlbedoCustomColor = new() { name = "Target Color", tooltip = "Custom target color for albedo validation." };
             public static readonly NameAndTooltip AlbedoMinLuminance = new() { name = "Min Luminance", tooltip = "Any values set below this field are invalid and appear red on screen." };
@@ -316,6 +396,31 @@ namespace UnityEngine.Rendering.Universal
                 getIndex = () => (int)panel.data.materialValidationMode,
                 setIndex = (value) => panel.data.materialValidationMode = (DebugMaterialValidationMode)value,
                 onValueChanged = (_, _) => DebugManager.instance.ReDrawOnScreenDebug()
+            };
+
+            internal static DebugUI.Widget CreateRenderingLayersSelectedLight (SettingsPanel panel) => new DebugUI.BoolField
+            {
+                nameAndTooltip = Strings.RenderingLayersSelectedLight,
+                getter = () => (bool)panel.data.renderingLayersSelectedLight,
+                setter = (value) => panel.data.renderingLayersSelectedLight = value,
+                flags = DebugUI.Flags.EditorOnly,
+            };
+
+            internal static DebugUI.Widget CreateSelectedLightShadowLayerMask(SettingsPanel panel) => new DebugUI.BoolField
+            {
+                nameAndTooltip = Strings.SelectedLightShadowLayerMask,
+                getter = () => (bool)panel.data.selectedLightShadowLayerMask,
+                setter = value => panel.data.selectedLightShadowLayerMask = value,
+                flags = DebugUI.Flags.EditorOnly,
+                isHiddenCallback = () => !panel.data.renderingLayersSelectedLight
+            };
+
+            internal static DebugUI.Widget CreateFilterRenderingLayerMasks (SettingsPanel panel) => new DebugUI.MaskField
+            {
+                nameAndTooltip = Strings.FilterRenderingLayerMask,
+                getter = () => panel.data.renderingLayerMask,
+                setter = value => panel.data.renderingLayerMask = value,
+                isHiddenCallback = () => panel.data.renderingLayersSelectedLight
             };
 
             internal static DebugUI.Widget CreateAlbedoPreset(SettingsPanel panel) => new DebugUI.EnumField
@@ -396,6 +501,31 @@ namespace UnityEngine.Rendering.Universal
             {
                 AddWidget(new DebugUI.RuntimeDebugShadersMessageBox());
 
+                DebugUI.MaskField filterRenderingLayerWidget = (DebugUI.MaskField)WidgetFactory.CreateFilterRenderingLayerMasks(this);
+                var renderingLayers = new List<string>();
+                for (int i = 0; i < 32; i++)
+                    renderingLayers.Add($"Unused Rendering Layer {i}");
+                var names = UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
+                for (int i = 0; i < names.Length; i++)
+                {
+                    var index = UnityEngine.RenderingLayerMask.NameToRenderingLayer(names[i]);
+                    renderingLayers[index] = names[i];
+                }
+                filterRenderingLayerWidget.Fill(renderingLayers.ToArray());
+
+                var layersColor = new DebugUI.Foldout() { nameAndTooltip = Strings.RenderingLayerColors, flags = DebugUI.Flags.EditorOnly };
+                for (int i = 0; i < renderingLayers.Count; i++)
+                {
+                    int index = i;
+                    layersColor.children.Add(new DebugUI.ColorField
+                    {
+                        displayName = renderingLayers[i],
+                        flags = DebugUI.Flags.EditorOnly,
+                        getter = () => this.data.debugRenderingLayersColors[index],
+                        setter = value => this.data.debugRenderingLayersColors[index] = value
+                    });
+                }
+
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -405,6 +535,18 @@ namespace UnityEngine.Rendering.Universal
                     children =
                     {
                         WidgetFactory.CreateMaterialOverride(this),
+                        new DebugUI.Container()
+                        {
+                            displayName = Strings.RenderingLayerMasksSettingsContainerName,
+                            isHiddenCallback = () => data.materialDebugMode != DebugMaterialMode.RenderingLayerMasks,
+                            children =
+                            {
+                                WidgetFactory.CreateRenderingLayersSelectedLight(this),
+                                WidgetFactory.CreateSelectedLightShadowLayerMask(this),
+                                filterRenderingLayerWidget,
+                                layersColor,
+                            }
+                        },
                         WidgetFactory.CreateVertexAttribute(this)
                     }
                 });

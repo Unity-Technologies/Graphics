@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 89939bcd83532194994777ce86f3b8ab
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 190721
+  packageName: Dragon Crashers - 2D Sample Project
+  packageVersion: 1.1
+  assetPath: Assets/Animations/Characters/_AnimControllers/Previewing/AnimController_Biped_AllAnimations.controller
+  uploadId: 467401

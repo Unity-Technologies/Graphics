@@ -671,7 +671,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
-            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
+            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.None, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
 
             // For debugging
             MousePositionDebug.instance.Build();
@@ -2383,12 +2383,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetInvertCulling(false);
                             }
 
-                            if (renderRequest.xrPass.isLastCameraPass)
-                            {
-                                //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
-                                EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
-                            }
-
                             EndRenderRequest(renderRequest, cmd);
 
                             // Render XR mirror view once all render requests have been completed
@@ -2406,6 +2400,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             renderContext.ExecuteCommandBuffer(cmd);
                             CommandBufferPool.Release(cmd);
                             renderContext.Submit();
+
+                            if (renderRequest.xrPass.isLastCameraPass)
+                            {
+                                //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
+                                EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
+                            }
                         }
 
                         ScriptableRenderContext.PopDisableApiRenderers();

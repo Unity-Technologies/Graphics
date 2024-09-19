@@ -100,7 +100,7 @@ real3 ComputeEdgeFactor(real3 V1, real3 V2)
     real  V1oV2  = dot(V1, V2);
     real3 V1xV2  = cross(V1, V2);               // Plane normal (tangent to the unit sphere)
     real  sqLen  = saturate(1 - V1oV2 * V1oV2); // length(V1xV2) = abs(sin(angle))
-    real  rcpLen = rsqrt(max(FLT_MIN, sqLen));  // Make sure it is finite
+    real  rcpLen = rsqrt(max(FLT_EPS, sqLen));  // Make sure it is finite
 #if 0
     real y = rcpLen * acos(V1oV2);
 #else

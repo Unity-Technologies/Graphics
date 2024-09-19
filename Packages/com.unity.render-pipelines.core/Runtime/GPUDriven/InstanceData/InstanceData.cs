@@ -630,19 +630,19 @@ namespace UnityEngine.Rendering
 
         public SmallIntegerArray(int length, Allocator allocator)
         {
+            m_FixedArray = default;
+            m_List = default;
             Length = length;
             Valid = true;
 
-            if (Length <= 8) // 32 bytes fixed array
+            if (Length <= m_FixedArray.Capacity)
             {
                 m_FixedArray = new FixedList32Bytes<int>();
                 m_FixedArray.Length = Length;
-                m_List = default;
                 m_IsEmbedded = true;
             }
             else
             {
-                m_FixedArray = default;
                 m_List = new UnsafeList<int>(Length, allocator, NativeArrayOptions.UninitializedMemory);
                 m_List.Resize(Length);
                 m_IsEmbedded = false;

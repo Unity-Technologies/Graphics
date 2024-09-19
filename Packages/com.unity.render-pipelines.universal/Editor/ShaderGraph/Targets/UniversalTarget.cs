@@ -514,7 +514,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         // this is a copy of ZTestMode, but hides the "Disabled" option, which is invalid
-        enum ZTestModeForUI
+        internal enum ZTestModeForUI
         {
             Never = 1,
             Less = 2,
@@ -1433,9 +1433,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // used by sprite targets, NOT used by lit/unlit anymore
         public static readonly RenderStateCollection Default = new RenderStateCollection
         {
-            { RenderState.ZTest(ZTest.LEqual) },
-            { RenderState.ZWrite(ZWrite.On), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
-            { RenderState.ZWrite(ZWrite.Off), new FieldCondition(UniversalFields.SurfaceTransparent, true) },
             { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
             { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },

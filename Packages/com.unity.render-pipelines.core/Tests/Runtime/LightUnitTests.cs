@@ -93,16 +93,16 @@ namespace UnityEngine.Rendering.Tests
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Candela), Is.EqualTo(3f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Candela), Is.EqualTo(0.238732412f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Lumen), Is.EqualTo(37.6991119f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Lux), Is.EqualTo(2.14859176f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Lumen), Is.EqualTo(4.18879032f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Lux), Is.EqualTo(0.0265258234f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Lumen), Is.EqualTo(339.292023f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Ev100), Is.EqualTo(0.933466434f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Lumen), Is.EqualTo(12.566371f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Lux), Is.EqualTo(27f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Candela), Is.EqualTo(0.333333343f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Lux), Is.EqualTo(0.333333343f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Candela), Is.EqualTo(27.0f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Ev100), Is.EqualTo(4.58496237f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Candela), Is.EqualTo(1f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Ev100), Is.EqualTo(1.41503751f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Lux), Is.EqualTo(9f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Ev100), Is.EqualTo(7.75488758f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Lux), Is.EqualTo(0.111111112f).Within(epsilon));
         }
 
         [Test]
@@ -116,31 +116,31 @@ namespace UnityEngine.Rendering.Tests
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Candela), Is.EqualTo(3f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Candela), Is.EqualTo(0.238732412f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Lumen), Is.EqualTo(37.6991119f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Lux), Is.EqualTo(2.14859176f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Lumen), Is.EqualTo(4.18879032f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Lux), Is.EqualTo(0.0265258234f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Lumen), Is.EqualTo(339.292023f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Ev100), Is.EqualTo(0.933466434f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Lumen), Is.EqualTo(12.566371f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Lux), Is.EqualTo(27f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Candela), Is.EqualTo(0.333333343f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Lux), Is.EqualTo(0.333333343f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Candela), Is.EqualTo(27.0f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Ev100), Is.EqualTo(4.58496237f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Candela), Is.EqualTo(1f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Ev100), Is.EqualTo(1.41503751f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Lux), Is.EqualTo(9f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Ev100), Is.EqualTo(7.75488758f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Lux), Is.EqualTo(0.111111112f).Within(epsilon));
 
             l.enableSpotReflector = true;
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Candela), Is.EqualTo(3f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Candela), Is.EqualTo(14.0125141f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Lumen), Is.EqualTo(0.642283022f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Lux), Is.EqualTo(126.112625f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Lumen), Is.EqualTo(0.0713647828f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Lux), Is.EqualTo(1.55694604f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Lumen), Is.EqualTo(5.78054714f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lumen, LightUnit.Ev100), Is.EqualTo(6.80864382f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Lumen), Is.EqualTo(0.214094341f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Lux), Is.EqualTo(27f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Candela), Is.EqualTo(0.333333343f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Lux), Is.EqualTo(0.333333343f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Candela), Is.EqualTo(27.0f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Candela, LightUnit.Ev100), Is.EqualTo(4.58496237f).Within(epsilon));
             Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Candela), Is.EqualTo(1f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Ev100), Is.EqualTo(1.41503751f).Within(epsilon));
-            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Lux), Is.EqualTo(9f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Lux, LightUnit.Ev100), Is.EqualTo(7.75488758f).Within(epsilon));
+            Assert.That(LightUnitUtils.ConvertIntensity(l, 3f, LightUnit.Ev100, LightUnit.Lux), Is.EqualTo(0.111111112f).Within(epsilon));
         }
 
         [Test]

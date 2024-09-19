@@ -35,9 +35,6 @@ namespace UnityEngine.Rendering.Universal
                 var projectedShadowMaterial = passData.rendererData.GetProjectedShadowMaterial();
                 var projectedUnshadowMaterial = passData.rendererData.GetProjectedUnshadowMaterial();
 
-                projectedShadowMaterial.SetTexture(DrawLight2DPass.k_FalloffLookupID, passData.fallOffLookUp);
-                projectedUnshadowMaterial.SetTexture(DrawLight2DPass.k_FalloffLookupID, passData.fallOffLookUp);
-
                 ShadowRendering.PrerenderShadows(cmd, passData.rendererData, ref passData.layerBatch, light, 0, light.shadowIntensity);
             }
         }
@@ -62,8 +59,6 @@ namespace UnityEngine.Rendering.Universal
                 passData.shadowMap = shadowTexture;
                 passData.shadowDepth = depthTexture;
                 passData.normalMap = layerBatch.lightStats.useNormalMap ? universal2DResourceData.normalsTexture[batchIndex] : TextureHandle.nullHandle;
-                passData.fallOffLookUp = graph.ImportTexture(DrawLight2DPass.m_FallOffRTHandle);
-                passData.lightLookUp = graph.ImportTexture(DrawLight2DPass.m_LightLookupRTHandle);
 
                 if (!isVolumetric)
                 {
@@ -88,8 +83,6 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.UseTexture(shadowTexture, AccessFlags.Write);
                 builder.UseTexture(depthTexture, AccessFlags.Write);
-                builder.UseTexture(passData.fallOffLookUp);
-                builder.UseTexture(passData.lightLookUp);
 
                 foreach (var light in layerBatch.shadowLights)
                 {
