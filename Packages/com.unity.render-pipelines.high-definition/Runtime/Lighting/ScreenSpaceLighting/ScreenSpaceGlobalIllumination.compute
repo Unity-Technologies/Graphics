@@ -307,7 +307,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
 
         if((RAYMARCHINGFALLBACKHIERARCHY_SKY & _RayMarchingFallbackHierarchy) && weight < 1.0f)
         {
-            color += SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, sampleDir, 0.0, 0).xyz * (1.0 - weight);
+            color += EvaluateAmbientProbe(normalData.normalWS) * (1.0 - weight);
             weight = 1.0;
         }
     }

@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph
                     s.AppendLine("$precision3 crossY = cross(worldDerivativeY, TangentMatrix[2].xyz);");
                     s.AppendLine("$precision d = dot(worldDerivativeX, crossY);");
                     s.AppendLine("$precision sgn = d < 0.0 ? (-1.0f) : 1.0f;");
-                    s.AppendLine("$precision surface = sgn / max(0.000000000000001192093f, abs(d));");
+                    s.AppendLine("$precision surface = sgn / max({0}, abs(d));", concretePrecision == ConcretePrecision.Single ? "0.000000000000001192093f" : "0.00006103515625f");
                     s.AppendNewLine();
                     s.AppendLine("$precision dHdx = ddx(In);");
                     s.AppendLine("$precision dHdy = ddy(In);");

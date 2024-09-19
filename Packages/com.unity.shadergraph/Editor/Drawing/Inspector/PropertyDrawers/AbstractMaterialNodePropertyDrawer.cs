@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         VisualElement CreateGUI(AbstractMaterialNode node, InspectableAttribute attribute, out VisualElement propertyVisualElement)
         {
             VisualElement nodeSettings = new VisualElement();
-            var nameLabel = PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold);
+            var nameLabel = PropertyDrawerUtils.CreateLabel($"{node.displayName} Node", 0, FontStyle.Bold);
             nodeSettings.Add(nameLabel);
             if (node.sgVersion < node.latestVersion)
             {

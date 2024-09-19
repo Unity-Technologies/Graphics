@@ -55,6 +55,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
 
+// Disable half-precision types in the deferred lighting pass since this causes visual corruption in some cases
+#define PREFER_HALF 0
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
 

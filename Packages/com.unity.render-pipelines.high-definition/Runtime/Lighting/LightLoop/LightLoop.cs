@@ -271,11 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxLightsPerClusterCell = ShaderConfig.LightClusterMaxCellElementCount;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
-#if UNITY_SWITCH
-        static bool k_PreferFragment = true;
-#else
         static bool k_PreferFragment = false;
-#endif
 
 #if !UNITY_EDITOR && UNITY_SWITCH
         const bool k_HasNativeQuadSupport = true;
