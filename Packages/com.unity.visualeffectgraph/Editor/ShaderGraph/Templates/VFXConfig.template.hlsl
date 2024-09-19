@@ -173,7 +173,7 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
         uint prevIndex = GetParticleIndex(relativeIndex - 1, stripData);
         float3 tangent = currentPos - GetParticlePosition(prevIndex, instanceIndex);
         float sqrLength = dot(tangent, tangent);
-        if (sqrLength > VFX_EPSILON)
+        if (sqrLength > VFX_EPSILON * VFX_EPSILON)
             prevTangent = tangent * rsqrt(sqrLength);
     }
 
@@ -183,7 +183,7 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
         uint nextIndex = GetParticleIndex(relativeIndex + 1, stripData);
         float3 tangent = GetParticlePosition(nextIndex, instanceIndex) - currentPos;
         float sqrLength = dot(tangent, tangent);
-        if (sqrLength > VFX_EPSILON)
+        if (sqrLength > VFX_EPSILON * VFX_EPSILON)
             nextTangent = tangent * rsqrt(sqrLength);
     }
 
