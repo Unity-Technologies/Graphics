@@ -3,6 +3,8 @@
 #ifndef SPEEDTREE_WIND_INCLUDED
 #define SPEEDTREE_WIND_INCLUDED
 
+#include "SpeedTreeCommon.hlsl"
+
 ///////////////////////////////////////////////////////////////////////
 //  Wind Info
 
@@ -31,12 +33,6 @@ CBUFFER_END
 #define ST_WIND_QUALITY_BETTER 3
 #define ST_WIND_QUALITY_BEST 4
 #define ST_WIND_QUALITY_PALM 5
-
-#define ST_GEOM_TYPE_BRANCH 0
-#define ST_GEOM_TYPE_FROND 1
-#define ST_GEOM_TYPE_LEAF 2
-#define ST_GEOM_TYPE_FACINGLEAF 3
-
 
 ///////////////////////////////////////////////////////////////////////
 //  UnpackNormalFromFloat
@@ -691,120 +687,116 @@ float3 RippleFrond(float3 vPos,
     );
 }
 
-
 ///////////////////////////////////////////////////////////////////////
 //  SpeedTreeWind
 
-float3 SpeedTreeWind(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bCrossfade)
+
+float3 SpeedTreeWind(
+    float3 vPos, 
+    float3 vNormal, 
+    float4 vTexcoord0, 
+    float4 vTexcoord1, 
+    float4 vTexcoord2, 
+    float4 vTexcoord3, 
+    int iWindQuality, 
+    bool bBillboard,
+    bool bCrossfade
+)
 {
     float3 vReturnPos = vPos;
+    
+    // check wind enabled & data available
 
-    // geometry type
-    int geometryType = (int)(vTexcoord3.w + 0.25);
+    const float3 windVector = _ST_WindVector.xyz;
+    float3 rotatedWindVector = TransformWorldToObjectDir(windVector);
+    float windLength = length(rotatedWindVector);
+    bool bWindEnabled = (iWindQuality > 0) && (length(windVector) > 1.0e-5);
+    if (!bWindEnabled)
+    {
+        return vReturnPos; // sanity check that wind data is available
+    }
+
     bool leafTwo = false;
-    if (geometryType > ST_GEOM_TYPE_FACINGLEAF)
+    int geometryType = GetGeometryType(vTexcoord3, leafTwo);
+    
+    rotatedWindVector /= windLength;
+    float4x4 matObjectToWorld = GetObjectToWorldMatrix();
+    float3 treePos = GetAbsolutePositionWS(float3(matObjectToWorld[0].w, matObjectToWorld[1].w, matObjectToWorld[2].w));
+
+    // BILLBOARD WIND =======================================================================================================================
+    if(bBillboard) 
     {
-        geometryType -= 2;
-        leafTwo = true;
+        float globalWindTime = _ST_WindGlobal.x;
+        vReturnPos = GlobalWind(vReturnPos, treePos, true, rotatedWindVector, globalWindTime);
+        return vReturnPos;
     }
 
-    // smooth LOD
-    if (!bCrossfade && !bBillboard)
-    {
-        vReturnPos = lerp(vReturnPos, vTexcoord2.xyz, unity_LODFade.x);
-    }
-
-    // do leaf facing even when we don't have wind
-    if (geometryType == ST_GEOM_TYPE_FACINGLEAF)
+    // 3D GEOMETRY WIND =====================================================================================================================    
+    // leaf
+    bool bDoLeafWind = ((iWindQuality == ST_WIND_QUALITY_FAST) || (iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST))
+                        && geometryType > ST_GEOM_TYPE_FROND;
+    if (bDoLeafWind)
     {
         float3 anchor = float3(vTexcoord1.zw, vTexcoord2.w);
-        float3 facingPosition = vReturnPos - anchor;
+        float leafWindTrigOffset = anchor.x + anchor.y;
+        bool bBestWind = (iWindQuality == ST_WIND_QUALITY_BEST);
 
-        // face camera-facing leaf to camera
-        float offsetLen = length(facingPosition);
-        facingPosition = float3(facingPosition.x, -facingPosition.z, facingPosition.y);
-        float4x4 itmv = transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V));
-        facingPosition = mul(facingPosition.xyz, (float3x3)itmv);
-        facingPosition = normalize(facingPosition) * offsetLen; // make sure the offset vector is still scaled
-
-        vReturnPos = facingPosition + anchor;
+        vReturnPos -= anchor; // remove anchor position
+        vReturnPos = LeafWind(bBestWind, leafTwo, vReturnPos, vNormal, vTexcoord3.x, float3(0, 0, 0), vTexcoord3.y, vTexcoord3.z, leafWindTrigOffset, rotatedWindVector);
+        vReturnPos += anchor; // move back out to anchor
     }
 
-    // wind
-    if ((iWindQuality > 0) && (length(_ST_WindVector) > 0))
+    // frond wind (palm-only)
+    bool bDoPalmWind = iWindQuality == ST_WIND_QUALITY_PALM && geometryType == ST_GEOM_TYPE_FROND;
+    if (bDoPalmWind)
     {
-        float3 rotatedWindVector = TransformWorldToObjectDir(_ST_WindVector.xyz);
-        float windLength = length(rotatedWindVector);
-        if (windLength < 1.0e-5)
-        {
-            // sanity check that wind data is available
-            return vReturnPos;
-        }
-        rotatedWindVector /= windLength;
-
-        float4x4 matObjectToWorld = GetObjectToWorldMatrix();
-        float3 treePos = GetAbsolutePositionWS(float3(matObjectToWorld[0].w, matObjectToWorld[1].w, matObjectToWorld[2].w));
-
-        if (!bBillboard)
-        {
-            // leaves
-            if (geometryType > ST_GEOM_TYPE_FROND)
-            {
-                // remove anchor position
-                float3 anchor = float3(vTexcoord1.zw, vTexcoord2.w);
-                vReturnPos -= anchor;
-
-                // leaf wind
-                if ((iWindQuality == ST_WIND_QUALITY_FAST) || (iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST))
-                {
-                    bool bBestWind = (iWindQuality == ST_WIND_QUALITY_BEST);
-                    float leafWindTrigOffset = anchor.x + anchor.y;
-                    vReturnPos = LeafWind(bBestWind, leafTwo, vReturnPos, vNormal, vTexcoord3.x, float3(0, 0, 0), vTexcoord3.y, vTexcoord3.z, leafWindTrigOffset, rotatedWindVector);
-                }
-
-                // move back out to anchor
-                vReturnPos += anchor;
-            }
-
-            // frond wind
-            bool bPalmWind = false;
-            if (iWindQuality == ST_WIND_QUALITY_PALM)
-            {
-                bPalmWind = true;
-                if (geometryType == ST_GEOM_TYPE_FROND)
-                {
-                    vReturnPos = RippleFrond(vReturnPos, vNormal, vTexcoord0.x, vTexcoord0.y, vTexcoord3.x, vTexcoord3.y, vTexcoord3.z);
-                }
-            }
-
-            // branch wind (applies to all 3D geometry)
-            if ((iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST) || (iWindQuality == ST_WIND_QUALITY_PALM))
-            {
-                float3 rotatedBranchAnchor = TransformWorldToObjectDir(_ST_WindBranchAnchor.xyz) * _ST_WindBranchAnchor.w;
-                vReturnPos = BranchWind(bPalmWind, vReturnPos, treePos, float4(vTexcoord0.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor);
-            }
-        }
-
-        // global wind
-        float globalWindTime = _ST_WindGlobal.x;
-        //#if defined(EFFECT_BILLBOARD) && defined(UNITY_INSTANCING_ENABLED)
-        //  globalWindTime += UNITY_ACCESS_INSTANCED_PROP(STWind, _GlobalWindTime);
-        //#endif
-        vReturnPos = GlobalWind(vReturnPos, treePos, true, rotatedWindVector, globalWindTime);
+        vReturnPos = RippleFrond(vReturnPos, vNormal, vTexcoord0.x, vTexcoord0.y, vTexcoord3.x, vTexcoord3.y, vTexcoord3.z);
     }
 
+    // branch wind (applies to all 3D geometry)
+    bool bDoBranchWind = (iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST) || (iWindQuality == ST_WIND_QUALITY_PALM);
+    if (bDoBranchWind)
+    {
+        float3 rotatedBranchAnchor = TransformWorldToObjectDir(_ST_WindBranchAnchor.xyz) * _ST_WindBranchAnchor.w;
+        vReturnPos = BranchWind(bDoPalmWind, vReturnPos, treePos, float4(vTexcoord0.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor);
+    }
+
+    // global wind
+    float globalWindTime = _ST_WindGlobal.x;
+    vReturnPos = GlobalWind(vReturnPos, treePos, true, rotatedWindVector, globalWindTime);
     return vReturnPos;
 }
 
 // This version is used by ShaderGraph
 void SpeedTreeWind_float(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bCrossfade, out float3 outPos)
 {
+    outPos = vPos;
+    
+    // determine geometry type
+    bool leafTwo = false;
+    int geometryType = GetGeometryType(vTexcoord3, leafTwo);
+    
+    // apply 3D SpeedTree FX
+    if (!bBillboard) 
+    {
+        // lod transition
+        if (!bCrossfade)
+        {
+            outPos = ApplySmoothLODTransition(vPos, vTexcoord2.xyz);
+        }
+
+        // leaf facing
+        if (geometryType == ST_GEOM_TYPE_FACINGLEAF)
+        {
+            float3 anchor = float3(vTexcoord1.zw, vTexcoord2.w);
+            outPos = DoLeafFacing(outPos, anchor);
+        }
+    }
+
+    // do wind
     if (iWindQuality != ST_WIND_QUALITY_NONE)
     {
-        outPos = SpeedTreeWind(vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade);
+        outPos = SpeedTreeWind(outPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade);
     }
-    else
-        outPos = vPos;
-
 }
 #endif // SPEEDTREE_WIND_INCLUDED

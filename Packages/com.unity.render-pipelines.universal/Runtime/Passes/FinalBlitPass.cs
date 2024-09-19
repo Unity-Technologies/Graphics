@@ -96,7 +96,28 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source, cameraTarget, m_BlitMaterial);
+
+                    // cmd.Blit must be used in Scene View for wireframe mode to make the full screen draw with fill mode.
+                    if (GL.wireframe)
+                    {
+                        // Necessary to disable the wireframe here, since Vulkan is handling the wireframe differently
+                        // to handle the Terrain "Draw Instanced" scenario (Ono: case-1205332).
+                        if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+                        {
+                            cmd.SetWireframe(false);
+                            cmd.Blit(m_Source, cameraTarget);
+                            cmd.SetWireframe(true);
+                        }
+                        else
+                        {
+                            cmd.Blit(m_Source, cameraTarget);
+                        }
+                    }
+                    else
+                    {
+                        cmd.Blit(m_Source, cameraTarget, m_BlitMaterial);
+                    }
+
                     cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
                 }
                 else

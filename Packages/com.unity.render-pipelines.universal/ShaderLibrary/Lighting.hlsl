@@ -32,7 +32,8 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
     float3 halfVec = SafeNormalize(float3(lightDir) + float3(viewDir));
     half NdotH = half(saturate(dot(normal, halfVec)));
     half modifier = pow(NdotH, smoothness);
-    half3 specularReflection = specular.rgb * modifier;
+    // NOTE: In order to fix internal compiler error on mobile platforms, this needs to be float3
+    float3 specularReflection = specular.rgb * modifier;
     return lightColor * specularReflection;
 }
 

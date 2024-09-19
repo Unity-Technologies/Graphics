@@ -289,7 +289,6 @@ namespace UnityEditor.VFX.UI
 
             m_NodeProvider = new VFXNodeProvider(controller, (d, mPos) => AddNode(d, mPos), null, GetAcceptedTypeNodes());
 
-
             //Make sure a subgraph block as a block subgraph  context
             if (controller.model.isSubgraph && controller.model.subgraph is VisualEffectSubgraphBlock)
             {
@@ -669,7 +668,7 @@ namespace UnityEditor.VFX.UI
 
             viewDataKey = "VFXView";
 
-            RegisterCallback<GeometryChangedEvent>(OnFirstResize);
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
         internal bool GetIsRuntimeMode() => m_IsRuntimeMode;
@@ -684,7 +683,7 @@ namespace UnityEditor.VFX.UI
             UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
             UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
             UnregisterCallback<KeyDownEvent>(OnKeyDownEvent);
-            UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
+            UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
         }
 
@@ -1040,12 +1039,11 @@ namespace UnityEditor.VFX.UI
 
         public bool m_FirstResize = false;
 
-        void OnFirstResize(GeometryChangedEvent e)
+        void OnGeometryChanged(GeometryChangedEvent e)
         {
             m_FirstResize = true;
             m_ComponentBoard.ValidatePosition();
             m_Blackboard.ValidatePosition();
-            UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
         Toggle m_ToggleComponentBoard;

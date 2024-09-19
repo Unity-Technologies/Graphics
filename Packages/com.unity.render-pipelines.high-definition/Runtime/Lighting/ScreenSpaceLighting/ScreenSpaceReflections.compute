@@ -81,7 +81,6 @@ TEXTURE2D_X(_DepthTexture);
 #else //if defined(SSR_ACCUMULATE)
        TEXTURE2D_X(        _SsrHitPointTexture);
     RW_TEXTURE2D_X(float4, _SsrAccumPrev);
-    RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
 #endif
 
@@ -713,7 +712,6 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     result.rgb = isPosFin ? result.rgb : 0;
     result.w = isPosFin ? result.w : 0;
 
-    _SsrLightingTextureRW[COORD_TEXTURE2D_X(positionSS)] = result;
     _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)] = result;
 }
 

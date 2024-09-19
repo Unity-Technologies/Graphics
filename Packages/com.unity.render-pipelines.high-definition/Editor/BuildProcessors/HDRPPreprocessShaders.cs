@@ -648,7 +648,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
 
             var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
-            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
+            var activeBuildTargetGroupName = namedBuildTarget.TargetName;
 
             var allQualityLevelsAreOverriden = true;
             for (int i = 0; i < property.arraySize; i++)

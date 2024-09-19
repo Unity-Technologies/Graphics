@@ -86,6 +86,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
 
             m_FunctionBody = new TextField { value = node.functionBody, multiline = true };
+            m_FunctionBody.AddToClassList("sg-hlsl-function-view__body");
+
             m_FunctionBody.RegisterCallback<FocusInEvent>(s =>
             {
                 if (m_FunctionBody.value == CustomFunctionNode.defaultFunctionBody)

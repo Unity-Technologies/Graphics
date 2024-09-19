@@ -836,7 +836,8 @@ namespace UnityEditor.Rendering.Universal
                 return false;
 
             var activeBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(buildTarget);
-            var activeBuildTargetGroupName = activeBuildTargetGroup.ToString();
+            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(activeBuildTargetGroup);
+            var activeBuildTargetGroupName = namedBuildTarget.TargetName;
 
             bool allQualityLevelsAreOverridden = true;
             for (int i = 0; i < property.arraySize; i++)

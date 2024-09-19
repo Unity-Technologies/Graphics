@@ -859,7 +859,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_GraphData.ForeachHLSLProperty(h =>
                         {
-                            if (!h.IsObjectType())
+                            if (!h.IsObjectType() && h.declaration != HLSLDeclaration.Global)
                                 h.AppendTo(propertyBuilder);
                         });
                     }

@@ -342,6 +342,27 @@ namespace UnityEngine.Rendering.Universal
         {
             return m_InputAttachmentIsTransient[idx];
         }
+
+        /// <summary>
+        /// Resets render targets to default.
+        /// This method effectively reset changes done by ConfigureTarget.
+        /// </summary>
+        /// <seealso cref="ConfigureTarget"/>
+        public void ResetTarget()
+        {
+            overrideCameraTarget = false;
+
+            // Reset depth
+            m_DepthAttachment = 0;
+
+            // Reset colors
+            m_ColorAttachments[0] = 0;
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+            {
+                m_ColorAttachments[i] = 0;
+            }
+        }
+
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.

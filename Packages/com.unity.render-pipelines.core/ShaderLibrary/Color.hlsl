@@ -1,7 +1,7 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3 || SHADER_API_SWITCH
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -549,6 +549,9 @@ float3 NeutralCurve(float3 x, real a, real b, real c, real d, real e, real f)
 
 real3 NeutralTonemap(real3 x)
 {
+	// Make sure negative channels are clamped to 0.0 as this neutral tonemapper can't deal with them properly (unlike ACES)
+    x = max((0.0).xxx, x);
+
     // Tonemap
     const real a = 0.2;
     const real b = 0.29;
@@ -740,7 +743,7 @@ half3 DecodeRGBM(half4 rgbm)
     return rgbm.xyz * rgbm.w * kRGBMRange;
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3 || SHADER_API_SWITCH
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

@@ -859,6 +859,7 @@ namespace UnityEngine.Rendering.Universal
                 lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
             }
         }
+        internal static bool isRunningOnPowerVRGPU = SystemInfo.graphicsDeviceName.Contains("PowerVR");
     }
 
     internal enum URPProfileId
