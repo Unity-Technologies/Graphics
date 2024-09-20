@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Downsampled input
             data.downsampledSize  = new Vector2Int(hdCamera.actualWidth / 2, hdCamera.actualHeight / 2);
             data.downsampledInput = builder.CreateTransientTexture(new TextureDesc(data.downsampledSize.x, data.downsampledSize.y) {
-                colorFormat       = GraphicsFormat.R16G16B16A16_UNorm,
+                format = GraphicsFormat.R16G16B16A16_UNorm,
                 name              = "Downsampled color buffer"
             });
 
@@ -379,7 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.waveformTexture = builder.CreateTransientTexture(
                 new TextureDesc(data.downsampledSize.x, data.downsampledSize.y) {
                     enableRandomWrite = true,
-                    colorFormat       = GraphicsFormat.B10G11R11_UFloatPack32,
+                    format  = GraphicsFormat.B10G11R11_UFloatPack32,
                     name              = "Waveform Debug Texture"
                 }
             );
@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.vectorscopeTexture = builder.CreateTransientTexture(new TextureDesc(data.vectorscopeSize.x, data.vectorscopeSize.y) {
                 enableRandomWrite = true,
-                colorFormat       = GetColorBufferFormat(),
+                format            = GetColorBufferFormat(),
                 name              = "Vectorscope Debug Texture"
             });
 
@@ -507,7 +507,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.transparencyLowResRL = builder.UseRendererList(
                         renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cull, hdCamera.camera, passNames, renderQueueRange: HDRenderQueue.k_RenderQueue_LowTransparent, stateBlock: stateBlock)));
 
-                    transparencyOverdrawOutput = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { name = "Transparency Overdraw", colorFormat = GetColorBufferFormat(), clearBuffer = true, clearColor = Color.black }), 0);
+                    transparencyOverdrawOutput = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { name = "Transparency Overdraw", format = GetColorBufferFormat(), clearBuffer = true, clearColor = Color.black }), 0);
 
                     builder.SetRenderFunc(
                         (TransparencyOverdrawPassData data, RenderGraphContext ctx) =>
@@ -623,7 +623,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     passData.fullscreenBuffer = builder.CreateTransientBuffer(new BufferDesc(4, sizeof(uint)));
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, false /* we dont want DRS on this output target*/, true /*We want XR support on this output target*/)
-                    { colorFormat = rtFormat, name = "ResolveFullScreenDebug" }));
+                    { format = rtFormat, name = "ResolveFullScreenDebug" }));
 
                 builder.SetRenderFunc(
                     (ResolveFullScreenDebugPassData data, RenderGraphContext ctx) =>
@@ -681,7 +681,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorPickerMaterial = m_DebugColorPicker;
                 passData.input = builder.ReadTexture(inputColorPickerDebug);
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = rtFormat, name = "ResolveColorPickerDebug" }));
+                    { format = rtFormat, name = "ResolveColorPickerDebug" }));
 
                 builder.SetRenderFunc(
                     (ResolveColorPickerDebugPassData data, RenderGraphContext ctx) =>
@@ -1169,7 +1169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.source = builder.ReadTexture(source);
 
                 passData.xyBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "HDR_xyMapping" }));
+                    { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "HDR_xyMapping" }));
 
                 ColorGamut gamut = HDROutputActiveForCameraType(hdCamera) ? HDRDisplayColorGamutForCamera(hdCamera) : ColorGamut.Rec709;
                 HDROutputUtils.ConfigureHDROutput(passData.generateXYMappingCS, gamut, HDROutputUtils.Operation.ColorConversion);
@@ -1228,7 +1228,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.debugFullScreenTexture = builder.ReadTexture(m_DebugFullScreenTexture);
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "HDRDebug" }));
+                    { format = GraphicsFormat.R16G16B16A16_SFloat, name = "HDRDebug" }));
 
                 passData.hdrDebugParams = new Vector4(k_SizeOfHDRXYMapping, k_SizeOfHDRXYMapping, 0, 0);
                 passData.xyTexture = builder.ReadTexture(xyBuff);
@@ -1287,7 +1287,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
                 passData.debugFullScreenTexture = builder.ReadTexture(m_DebugFullScreenTexture);
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "ExposureDebug" }));
+                    { format = GraphicsFormat.R16G16B16A16_SFloat, name = "ExposureDebug" }));
                 passData.currentExposure = builder.ReadTexture(renderGraph.ImportTexture(GetExposureTexture(hdCamera)));
                 passData.previousExposure = builder.ReadTexture(renderGraph.ImportTexture(GetPreviousExposureTexture(hdCamera)));
                 passData.debugExposureData = builder.ReadTexture(renderGraph.ImportTexture(GetExposureDebugData()));
@@ -1498,7 +1498,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var output = renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = GetColorBufferFormat(),
+                    format = GetColorBufferFormat(),
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
                     msaaSamples = hdCamera.msaaSamples,
@@ -1669,7 +1669,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = rtFormat, name = "DebugFullScreen" }), 0);
+                    { format = rtFormat, name = "DebugFullScreen" }), 0);
 
                 builder.SetRenderFunc(
                     (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
@@ -1778,7 +1778,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.input = builder.ReadTexture(input);
                 passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugColorPicker" }), 0);
+                    { format = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugColorPicker" }), 0);
 
                 builder.SetRenderFunc(
                     (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>

@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Evaluate and bind the shadow
             int shadowResolution = (int)settings.shadowResolution.value;
             TextureHandle shadowTexture = renderGraph.CreateTexture(new TextureDesc(shadowResolution, shadowResolution, false, false)
-            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Texture" });
+            { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Texture" });
 
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsShadowsData>("Volumetric Clouds Shadows", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
             {
@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Manage the resources
                 passData.intermediateShadowTexture = builder.CreateTransientTexture(new TextureDesc(shadowResolution, shadowResolution, false, false)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Temp Texture" });
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Temp Texture" });
                 passData.shadowTexture = builder.ReadWriteTexture(shadowTexture);
 
                 // Evaluate the shadow

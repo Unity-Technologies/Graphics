@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 TextureDesc td = new TextureDesc(Vector2.one, true, true);
                 {
-                    td.colorFormat = format;
+                    td.format = format;
                     td.useMipMap = false;
                     td.clearBuffer = true;
                     td.clearColor = clearValue;
