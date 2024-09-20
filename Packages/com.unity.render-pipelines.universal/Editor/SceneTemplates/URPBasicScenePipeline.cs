@@ -4,9 +4,9 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using UnityEditor.Rendering.Utilities;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering.Universal
 {
-    class HDRPBasicScenePipeline : ISceneTemplatePipeline
+    class URPBasicScenePipeline : ISceneTemplatePipeline
     {
         void ISceneTemplatePipeline.AfterTemplateInstantiation(SceneTemplateAsset sceneTemplateAsset, Scene scene, bool isAdditive, string sceneName)
         {
@@ -28,16 +28,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             switch (sceneTemplateAsset.templateName)
             {
-                case "Basic Indoors (HDRP)":
-                    filesToImport = new Dictionary<string, string>();
-                    filesToImport.Add("Packages/com.unity.render-pipelines.core/Samples~/Common/Models/UnityMaterialBall.fbx", completeCommonFolderName + "/Models/");
-                    filesToImport.Add("Packages/com.unity.render-pipelines.core/Samples~/Common/Models/SamplesSpotlightModel.fbx", completeTemplateSpecificFolderName + "/Models/");
-                    filesToImport.Add("Packages/com.unity.render-pipelines.core/Samples~/Common/Models/SamplesFloorSpotlight.fbx", completeTemplateSpecificFolderName + "/Models/");
-                    filesToImport.Add("Packages/com.unity.render-pipelines.core/Samples~/Common/Models/BackgroundMesh.fbx", completeTemplateSpecificFolderName + "/Models/");
-                    filesToImport.Add("Packages/com.unity.render-pipelines.core/Samples~/Common/Models/SamplesFixture.fbx", completeTemplateSpecificFolderName + "/Models/");
-                    SampleUtilities.CopyFilesInFolder(parentFolderName, filesToImport);
+                case "Basic (URP)":
+                    // Nothing to import specifically.
                     break;
-                case "Basic Outdoors (HDRP)":
+                case "Standard (URP)":
                     filesToImport = new Dictionary<string, string>();
                     filesToImport.Add("Packages/com.unity.render-pipelines.core/Samples~/Common/Models/UnityMaterialBall.fbx", completeCommonFolderName + "/Models/");
                     SampleUtilities.CopyFilesInFolder(parentFolderName, filesToImport);
@@ -51,8 +45,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool ISceneTemplatePipeline.IsValidTemplateForInstantiation(SceneTemplateAsset sceneTemplateAsset)
         {
+
             return true;
         }
-
     }
 }
