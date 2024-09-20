@@ -10,14 +10,17 @@ namespace UnityEditor.VFX.UI
         public VFXSystemProfilerUI(VFXContextUI initContextUI, List<VFXContextProfilerUI> systemContexts)
         {
             m_SystemContexts = new List<VFXContextProfilerUI>(systemContexts);
+
+            controller = initContextUI.controller;
+            controller.RegisterHandler(this);
             ScheduleRepositionInitializePanel();
 
-            VFXSystemNames systemNames = initContextUI.controller.viewController.graph.systemNames;
-            string systemName = systemNames.GetUniqueSystemName(initContextUI.controller.model.GetData());
+            VFXSystemNames systemNames = controller.viewController.graph.systemNames;
+            string systemName = systemNames.GetUniqueSystemName(controller.model.GetData());
             m_InitContextUI = initContextUI;
             m_SystemName = systemName;
 
-            var contextModel = initContextUI.controller.model;
+            var contextModel = controller.model;
             var vfxData = contextModel.GetData();
             bool receivesGPUEvent = false;
             foreach (var inputCtx in contextModel.inputContexts)
@@ -158,7 +161,7 @@ namespace UnityEditor.VFX.UI
 
         void AddGPUMemorySection()
         {
-            long gpuMemoryInBytes = (m_InitContextUI.controller.model.GetData() as VFXDataParticle).attributeBufferSize * 4;
+            long gpuMemoryInBytes = (controller.model.GetData() as VFXDataParticle).attributeBufferSize * 4;
             VisualElement labelContainer = new VisualElement
             {
                 style = { flexDirection = FlexDirection.Row, paddingTop = 2, paddingBottom = 2 }
@@ -328,6 +331,5 @@ namespace UnityEditor.VFX.UI
             AddAggregatedGPUSection();
             AddGPUMemorySection();
         }
-
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXAnchoredProfilerUI : GraphElement
+    class VFXAnchoredProfilerUI : GraphElement, IControlledElement<VFXContextController>
     {
         public VFXAnchoredProfilerUI()
         {
@@ -192,6 +192,11 @@ namespace UnityEditor.VFX.UI
         }
         internal virtual void UpdateDynamicValues()
         {
+            if (needSetupStatsLayout)
+            {
+                SetupStatsLayout();
+                needSetupStatsLayout = false;
+            }
 
             if (m_ProfilingGPUItemLeaves != null && m_SupportsGPURecorder)
             {
@@ -229,6 +234,8 @@ namespace UnityEditor.VFX.UI
             return new Label { name = "Badge", text = text, tooltip = tip};
         }
 
+        private bool needSetupStatsLayout = false;
+
         protected virtual void SetupStatsLayout()
         {
         }
@@ -257,6 +264,16 @@ namespace UnityEditor.VFX.UI
             var label = new Label { name = "toggleInfo" };
             foldout.Q<Toggle>().Add(label);
             return label;
+        }
+
+        Controller IControlledElement.controller => controller;
+
+        public VFXContextController controller { get; protected set; }
+
+        public void OnControllerChanged(ref ControllerChangedEvent e)
+        {
+            // Needs to call SetupStatsLayout at the next frame
+            needSetupStatsLayout = true;
         }
     }
 }

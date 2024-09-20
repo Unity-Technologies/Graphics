@@ -12,11 +12,13 @@ namespace UnityEditor.VFX.UI
         public VFXContextProfilerUI(VFXContextUI contextUI)
         {
             m_ContextUI = contextUI;
+            controller = contextUI.controller;
+            controller.RegisterHandler(this);
 
             if(!m_ContextUI.selected)
                 AddToClassList(k_HiddenStyleClass);
 
-            title = contextUI.controller.model.name.Split(" ")[0];
+            title = controller.model.name.Split(" ")[0];
             AddToClassList("VFXContextProfiler");
 
             AnchorTo(m_ContextUI);
@@ -164,13 +166,13 @@ namespace UnityEditor.VFX.UI
                 m_ProfilingGPUItemLeaves = new List<VFXProfilingBoard.ProfilingItemLeaf>();
             }
 
-            if(m_ContextUI.controller.model is VFXBasicSpawner)
+            if(controller.model is VFXBasicSpawner)
                 SetupEventBadges();
-            if(m_ContextUI.controller.model is VFXBasicUpdate)
+            if(controller.model is VFXBasicUpdate)
                 SetupImplicitUpdateBadges();
 
-            VFXSystemNames systemNames = m_ContextUI.controller.viewController.graph.systemNames;
-            string systemName = systemNames.GetUniqueSystemName(m_ContextUI.controller.model.GetData());
+            VFXSystemNames systemNames = controller.viewController.graph.systemNames;
+            string systemName = systemNames.GetUniqueSystemName(controller.model.GetData());
             m_SystemName = systemName;
             Foldout gpuTimeFoldout = new Foldout
             {
@@ -187,7 +189,7 @@ namespace UnityEditor.VFX.UI
                 gpuTimeFoldout.tooltip = kGpuRecorderNotSupportedMsg;
             }
 
-            foreach (var taskId in m_ContextUI.controller.model.GetContextTaskIndices())
+            foreach (var taskId in controller.model.GetContextTaskIndices())
             {
                 string markerName = attachedComponent.GetGPUTaskMarkerName(systemName, taskId.taskIndex);
                 if (string.IsNullOrEmpty(markerName))
@@ -232,8 +234,8 @@ namespace UnityEditor.VFX.UI
         {
             m_TextureInfosLabels.Clear();
             HashSet<VFXSlot> textureSlots = new HashSet<VFXSlot>();
-            CollectAllTextureSlotsRecursive(m_ContextUI.controller.model, textureSlots);
-            foreach (var block in m_ContextUI.controller.model.children)
+            CollectAllTextureSlotsRecursive(controller.model, textureSlots);
+            foreach (var block in controller.model.children)
             {
                 CollectAllTextureSlotsRecursive(block, textureSlots);
             }
@@ -278,7 +280,7 @@ namespace UnityEditor.VFX.UI
             bool hasRotation = false;
             bool hasAge = false;
 
-            if (m_ContextUI.controller.model is VFXBasicUpdate basicUpdate)
+            if (controller.model is VFXBasicUpdate basicUpdate)
             {
                 foreach (var block in basicUpdate.activeChildrenWithImplicit)
                 {
