@@ -91,6 +91,7 @@ class RenderingLayersTests
 
         var urpRenderer = ScriptableObject.CreateInstance<UniversalRendererData>().InternalCreateRenderer() as UniversalRenderer;
         RenderingLayerUtils.RequireRenderingLayers(urpRenderer, new List<ScriptableRendererFeature>(), 0, out var evt, out var maskSize);
+        urpRenderer.Dispose();
         return (int)maskSize;
     }
 }

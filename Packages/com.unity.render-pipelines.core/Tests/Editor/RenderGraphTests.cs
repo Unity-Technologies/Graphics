@@ -1350,6 +1350,8 @@ namespace UnityEngine.Rendering.Tests
             float[] result2 = new float[bufferSize];
             buffer.GetData(result2);
 
+            buffer.Release();
+
             // Ensure the data has been updated
             for (int i = 0; i < bufferSize; i++)
             {
