@@ -498,30 +498,9 @@ namespace UnityEngine.Rendering.Universal
             // The amount of texture handle wrappers and their subtleties is probably something to be investigated.
             if (isBuiltInTexture)
             {
-                bool msaaSamplesChangedThisFrame = false;
-                int oldSamples = cameraData.cameraTargetDescriptor.msaaSamples;
-#if !UNITY_EDITOR
-                // for safety do this only for the NRP path, even though works also on non NRP, but would need extensive testing
-                if (m_CreateColorAttachment && renderGraph.nativeRenderPassesEnabled && Screen.msaaSamples > 1)
-                {
-                    oldSamples = Mathf.Max(Screen.msaaSamples, oldSamples);
-                    msaaSamplesChangedThisFrame = true;
-                    Screen.SetMSAASamples(1);
-                }
-#endif
-                int numSamples = Mathf.Max(Screen.msaaSamples, 1);
-
-                // Handle edge cases regarding numSamples setup
-                // On OSX & IOS player, the Screen API MSAA samples change request is only applied in the following frame,
-                // as a workaround we keep the old MSAA sample count for the previous frame
-                // this workaround can be removed once the Screen API issue (UUM-42825) is fixed
-                // UPDATE: UUM-42825 is fixed already, but by supplementing relevant documentation. Thus, this behaviour must be maintained until next plan comes
-                // The editor always allocates the system rendertarget with a single msaa sample
-                // See: ConfigureTargetTexture in PlayModeView.cs
-                if (msaaSamplesChangedThisFrame && (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.IPhonePlayer))
-                    numSamples = oldSamples;
-                else if (Application.isEditor)
-                    numSamples = 1;
+                // Backbuffer is the final render target, we obtain its number of MSAA samples through Screen API
+                // in some cases we disable multisampling for optimization purpose
+                int numSamples = AdjustAndGetScreenMSAASamples(renderGraph, m_CreateColorAttachment);
 
                 //BuiltinRenderTextureType.CameraTarget so this is either system render target or camera.targetTexture if non null
                 //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
@@ -1454,7 +1433,6 @@ namespace UnityEngine.Rendering.Universal
             bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
             bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget);
             bool xrDepthTargetResolved = resourceData.activeDepthID == UniversalResourceData.ActiveID.BackBuffer;
-            
 
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);

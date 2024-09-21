@@ -2258,6 +2258,33 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
         }
 
+        private protected int AdjustAndGetScreenMSAASamples(RenderGraph renderGraph, bool useIntermediateColorTarget)
+        {
+            #if UNITY_EDITOR
+                // In the editor, the system render target is always allocated with no msaa
+                // See: ConfigureTargetTexture in PlayModeView.cs
+                return 1;
+            #else
+                // In the players, when URP main rendering is done to an intermediate target and NRP enabled
+                // we disable multisampling for the system backbuffer as a bandwidth optimization
+                // doing so, we avoid storing costly msaa samples back to system memory for nothing
+                bool canOptimizeScreenMSAASamples = UniversalRenderPipeline.canOptimizeScreenMSAASamples
+                                                 && useIntermediateColorTarget
+                                                 && renderGraph.nativeRenderPassesEnabled
+                                                 && Screen.msaaSamples > 1;
+                
+                if (canOptimizeScreenMSAASamples)
+                {
+                    Screen.SetMSAASamples(1);
+                }
+
+                // iOS and macOS corner case
+                bool screenAPIHasOneFrameDelay = (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.IPhonePlayer);
+
+                return screenAPIHasOneFrameDelay ? Mathf.Max(UniversalRenderPipeline.startFrameScreenMSAASamples, 1) : Mathf.Max(Screen.msaaSamples, 1);
+            #endif
+        }
+
         internal static void SortStable(List<ScriptableRenderPass> list)
         {
             int j;
