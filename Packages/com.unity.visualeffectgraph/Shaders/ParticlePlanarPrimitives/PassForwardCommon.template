@@ -140,5 +140,8 @@ ps_output frag(ps_input i,
 	o.outMotionVector = encodedMotionVector;
 	o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
 #endif
+
+    ${VFXUnlitDebugDisplay}
+
 	return o;
 }
