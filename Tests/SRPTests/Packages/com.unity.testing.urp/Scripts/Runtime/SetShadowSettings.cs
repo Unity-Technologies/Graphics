@@ -6,6 +6,7 @@ using ShadowResolution = UnityEngine.Rendering.Universal.ShadowResolution;
 
 public class SetShadowSettings : SetQualityCallbackObject
 {
+    public bool getActiveSettings;
     public ShadowSettings shadowSettings;
     private ShadowSettings prevShadowSettings;
 
@@ -22,51 +23,67 @@ public class SetShadowSettings : SetQualityCallbackObject
         public float cascadeBorder;
     }
 
+    public void OnValidate()
+    {
+        if (!getActiveSettings)
+            return;
+
+        GetShadowSettingsFromAsset(QualitySettings.GetQualityLevel(), ref shadowSettings);
+        getActiveSettings = false;
+    }
+
     public override void BeforeChangingQualityLevel(int prevQualityLevelIndex, int newQualityLevelIndex)
     {
-        var qualityLevelNames = QualitySettings.names;
-        if (newQualityLevelIndex >= qualityLevelNames.Length)
-        {
-            Debug.LogError("SetShadowSettings.BeforeChangingQualityLevel: Quality Level Index " + newQualityLevelIndex + " is not available!");
+        if (!CheckIfNextQualityLevelIsValid(newQualityLevelIndex))
             return;
-        }
 
-        RenderPipelineAsset asset = QualitySettings.GetRenderPipelineAssetAt(newQualityLevelIndex);
-        UniversalRenderPipelineAsset urpAsset = (UniversalRenderPipelineAsset)asset;
-
-        Enum.TryParse($"{urpAsset.mainLightShadowmapResolution}", true, out ShadowResolution mainLightResolution);
-        Enum.TryParse($"{urpAsset.additionalLightsShadowmapResolution}", true, out ShadowResolution additionalLightShadowmapResolution);
-        prevShadowSettings = new ShadowSettings()
-        {
-            mainLightShadowmapResolution = mainLightResolution,
-            additionalLightShadowmapResolution = additionalLightShadowmapResolution,
-            shadowCascadeCount = urpAsset.shadowCascadeCount,
-            cascade2Split = urpAsset.cascade2Split,
-            cascade3Split = urpAsset.cascade3Split,
-            cascade4Split = urpAsset.cascade4Split,
-            cascadeBorder = urpAsset.cascadeBorder
-        };
-
-        UpdateShadowSettingsInURPAsset(urpAsset, shadowSettings);
+        // Store the settings in the URP Asset that will be used, which will be used to revert once the test finishes
+        GetShadowSettingsFromAsset(newQualityLevelIndex, ref prevShadowSettings);
+        UpdateShadowSettingsInURPAsset(newQualityLevelIndex, ref shadowSettings);
     }
 
     public override void BeforeRevertingQualityLevel(int prevQualityLevelIndex, int newQualityLevelIndex)
     {
-        var qualityLevelNames = QualitySettings.names;
-        if (newQualityLevelIndex >= qualityLevelNames.Length)
-        {
-            Debug.LogError("SetShadowSettings.BeforeRevertingQualityLevel: Quality Level Index " + newQualityLevelIndex + " is not available!");
+        if (!CheckIfNextQualityLevelIsValid(newQualityLevelIndex))
             return;
-        }
 
-        RenderPipelineAsset asset = QualitySettings.GetRenderPipelineAssetAt(newQualityLevelIndex);
-        UniversalRenderPipelineAsset urpAsset = (UniversalRenderPipelineAsset)asset;
-
-        UpdateShadowSettingsInURPAsset(urpAsset, prevShadowSettings);
+        // Revert the shadow changes made previously...
+        UpdateShadowSettingsInURPAsset(newQualityLevelIndex, ref prevShadowSettings);
     }
 
-    private void UpdateShadowSettingsInURPAsset(UniversalRenderPipelineAsset urpAsset, ShadowSettings settings)
+    private bool CheckIfNextQualityLevelIsValid(int newQualityLevelIndex)
     {
+        string[] qualityLevelNames = QualitySettings.names;
+        if (newQualityLevelIndex >= qualityLevelNames.Length)
+        {
+            Debug.LogError("SetShadowSettings.CheckIfNextQualityLevelIsValid(" + newQualityLevelIndex + "): Quality Level Index is not available!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void GetShadowSettingsFromAsset(int qualityLevel, ref ShadowSettings settings)
+    {
+        RenderPipelineAsset asset = QualitySettings.GetRenderPipelineAssetAt(qualityLevel);
+        UniversalRenderPipelineAsset urpAsset = (UniversalRenderPipelineAsset)asset;
+
+        Enum.TryParse($"{urpAsset.mainLightShadowmapResolution}", true, out ShadowResolution mainLightResolution);
+        Enum.TryParse($"{urpAsset.additionalLightsShadowmapResolution}", true, out ShadowResolution additionalLightShadowmapResolution);
+        settings.mainLightShadowmapResolution = mainLightResolution;
+        settings.additionalLightShadowmapResolution = additionalLightShadowmapResolution;
+        settings.shadowCascadeCount = urpAsset.shadowCascadeCount;
+        settings.cascade2Split = urpAsset.cascade2Split;
+        settings.cascade3Split = urpAsset.cascade3Split;
+        settings.cascade4Split = urpAsset.cascade4Split;
+        settings.cascadeBorder = urpAsset.cascadeBorder;
+    }
+
+    private void UpdateShadowSettingsInURPAsset(int qualityLevel, ref ShadowSettings settings)
+    {
+        RenderPipelineAsset asset = QualitySettings.GetRenderPipelineAssetAt(qualityLevel);
+        UniversalRenderPipelineAsset urpAsset = (UniversalRenderPipelineAsset)asset;
+
         urpAsset.mainLightShadowmapResolution = (int) settings.mainLightShadowmapResolution;
         urpAsset.additionalLightsShadowmapResolution = (int) settings.additionalLightShadowmapResolution;
         urpAsset.shadowCascadeCount = settings.shadowCascadeCount;
