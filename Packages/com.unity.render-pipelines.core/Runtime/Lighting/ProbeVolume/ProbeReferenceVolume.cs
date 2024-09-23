@@ -302,20 +302,30 @@ namespace UnityEngine.Rendering
                 {
                     probePositions.Dispose();
                     probePositions = default;
+                }
+
+                if (touchupVolumeInteraction.IsCreated)
+                {
                     touchupVolumeInteraction.Dispose();
                     touchupVolumeInteraction = default;
+                }
+
+                if (validity.IsCreated)
+                {
                     validity.Dispose();
                     validity = default;
-                    if (layer.IsCreated)
-                    {
-                        layer.Dispose();
-                        layer = default;
-                    }
-                    if (offsetVectors.IsCreated)
-                    {
-                        offsetVectors.Dispose();
-                        offsetVectors = default;
-                    }
+                }
+
+                if (layer.IsCreated)
+                {
+                    layer.Dispose();
+                    layer = default;
+                }
+
+                if (offsetVectors.IsCreated)
+                {
+                    offsetVectors.Dispose();
+                    offsetVectors = default;
                 }
             }
         }
