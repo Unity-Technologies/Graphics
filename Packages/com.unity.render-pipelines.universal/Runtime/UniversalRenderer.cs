@@ -412,6 +412,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        private static bool IsOffscreenDepthTexture(ref CameraData cameraData) => cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
+
         bool IsDepthPrimingEnabled(ref CameraData cameraData)
         {
             // depth priming requires an extra depth copy, disable it on platforms not supporting it (like GLES when MSAA is on)
@@ -424,7 +426,10 @@ namespace UnityEngine.Rendering.Universal
             // Enabled Depth priming when baking Reflection Probes causes artefacts (UUM-12397)
             bool isNotReflectionCamera = cameraData.cameraType != CameraType.Reflection;
 
-            return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && !GL.wireframe ;
+            // Depth is not rendered in a depth-only camera setup with depth priming (UUM-38158)
+            bool isNotOffscreenDepthTexture = !IsOffscreenDepthTexture(ref cameraData);
+
+            return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotOffscreenDepthTexture && !GL.wireframe ;
         }
 
         /// <inheritdoc />
@@ -441,9 +446,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;
 
+            // Because of the shortcutting done by depth only offscreen cameras, useDepthPriming must be computed early
+            useDepthPriming = IsDepthPrimingEnabled(ref cameraData);
+
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
-            bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
-            if (isOffscreenDepthTexture)
+            if (IsOffscreenDepthTexture(ref cameraData))
             {
                 ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
                 AddRenderPasses(ref renderingData);
@@ -496,7 +503,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool isSceneViewOrPreviewCamera = cameraData.isSceneViewCamera || cameraData.cameraType == CameraType.Preview;
-            useDepthPriming = IsDepthPrimingEnabled(ref cameraData);
+
             // This indicates whether the renderer will output a depth texture.
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || useDepthPriming;
 
@@ -943,7 +950,7 @@ namespace UnityEngine.Rendering.Universal
                 // Turning off unnecessary NRP in Editor because of MSAA mistmatch between CameraTargetDescriptor vs camera backbuffer
                 // NRP layer considers this being a pass with MSAA samples by checking CameraTargetDescriptor taken from RP asset
                 // while the camera backbuffer has a single sample
-                m_FinalDepthCopyPass.useNativeRenderPass = false; 
+                m_FinalDepthCopyPass.useNativeRenderPass = false;
                 EnqueuePass(m_FinalDepthCopyPass);
             }
 #endif
