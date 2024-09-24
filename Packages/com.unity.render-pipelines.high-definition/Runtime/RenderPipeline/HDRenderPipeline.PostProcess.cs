@@ -2640,11 +2640,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float farMaxBlur = dofParameters.farMaxBlur * resolutionScale;
             float nearMaxBlur = dofParameters.nearMaxBlur * resolutionScale;
 
-            // If TAA is enabled we use the camera history system to grab CoC history textures, but
-            // because these don't use the same RTHandleScale as the global one, we need to use
-            // the RTHandleScale of the history RTHandles
-            var cocHistoryScale = taaEnabled ? new Vector2(dofParameters.camera.postProcessRTScalesHistory.z, dofParameters.camera.postProcessRTScalesHistory.w) : dofParameters.camera.postProcessRTScales;
-
             ComputeShader cs;
             int kernel;
 
@@ -2738,9 +2733,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 cs = dofParameters.dofPrefilterCS;
                 kernel = dofParameters.dofPrefilterKernel;
 
+                // If TAA is on, reperojection pass reads previous frame's CoC texture, and scales it into the current viewport size (dofParameters.viewportSize) inside the render target (nextCoCHistory)
+                // If DRS is also on, only the part of the render target could be filled because it always has the maximum resolution; hence uv scaling to sample it here.
+                // TODO: support HW dynamic resolution.
+                var cocTargetScale = taaEnabled
+                    ? new Vector2(dofParameters.viewportSize.x / (float)nextCoCHistory.rt.width, dofParameters.viewportSize.y / (float)nextCoCHistory.rt.height)
+                    : dofParameters.camera.postProcessRTScales;
+
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._CoCTargetScale, cocHistoryScale);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._CoCTargetScale, cocTargetScale); // zw: unused
 
                 if (nearLayerActive)
                 {
