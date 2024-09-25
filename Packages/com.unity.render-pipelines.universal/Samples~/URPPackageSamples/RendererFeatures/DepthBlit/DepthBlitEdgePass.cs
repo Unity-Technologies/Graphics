@@ -1,19 +1,12 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
 // This pass performs a blit operation with a Material. The input texture is set by the Renderer Feature.
 public class DepthBlitEdgePass : ScriptableRenderPass
 {
-    class PassData
-    {
-        public TextureHandle source;
-        public Material material;
-        public Vector4 scaleBias;
-    }
-
-    private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("DepthBlitEdgePass");
     private RTHandle m_DepthHandle; // The RTHandle of the depth texture, set by the Renderer Feature, only used in the Compatibility mode (non-RenderGraph path)
     private Material m_Material;
@@ -62,28 +55,17 @@ public class DepthBlitEdgePass : ScriptableRenderPass
 
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
+        
+        // Set the depthTextureHandle as a texture resource for this render graph instance
+        TextureHandle source = texRefData.depthTextureHandle;
 
-        using (var builder = renderGraph.AddRasterRenderPass<PassData>("DepthBlitEdgePass", out var passData))
-        {
-            // Set the DepthHandle as a texture resource for this render graph instance
-            TextureHandle source = texRefData.depthTextureHandle;
+        // Set camera color as a texture resource for this render graph instance
+        TextureHandle destination = resourceData.activeColorTexture;
 
-            // Set camera color as a texture resource for this render graph instance
-            TextureHandle destination = resourceData.activeColorTexture;
-
-            if (!source.IsValid() || !destination.IsValid())
-                return;
-
-            passData.source = source;
-            passData.material = m_Material;
-            passData.scaleBias = m_ScaleBias;
-            builder.UseTexture(source, AccessFlags.Read); // Set the depth texture as the input
-            builder.SetRenderAttachment(destination, 0, AccessFlags.Write); // Set the camera color as the output
-
-            builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-            {
-                Blitter.BlitTexture(context.cmd, data.source, data.scaleBias , data.material, 0);
-            });
-        }
+        if (!source.IsValid() || !destination.IsValid())
+            return;
+        
+        RenderGraphUtils.BlitMaterialParameters para = new(source, destination, m_Material, 0);
+        renderGraph.AddBlitPass(para, "DepthBlitEdgePass");
     }
 }

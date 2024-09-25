@@ -3,11 +3,11 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
-// This Renderer Feature creates and stores all the RTHandles for the final effect.
-// The RTHandles are being set as input or output for the 3 passes:
-// 1. CopyColor pass: Blit the screen color texture to an RTHandle.
-// 2. Tunnel pass: Render a "tunnel" object from the scene to another RTHandle.
-// 3. Distort pass: Uses the two RTHandles to create the final effect, and blits the result back to screen.
+// This Renderer Feature creates an RTHandle which stores a Texture2DArray with 2 slices for the final effect.
+// The RTHandle is being set as input or output for the 3 passes:
+// 1. CopyColor pass: Blit the screen color texture to the RTHandle's first slice.
+// 2. Tunnel pass: Render a "tunnel" object from the scene to the RTHandle's second slice.
+// 3. Distort pass: Uses the two slices to create the final effect, and blits the result back to screen.
 public class DistortTunnelRendererFeature : ScriptableRendererFeature
 {
     public RenderPassEvent passEvent = RenderPassEvent.AfterRenderingSkybox;
@@ -19,21 +19,17 @@ public class DistortTunnelRendererFeature : ScriptableRendererFeature
     private DistortTunnelPass_Tunnel m_TunnelPass;
     private DistortTunnelPass_Distort m_DistortPass;
 
-    private RTHandle m_CopyColorTexHandle;
-    private const string k_CopyColorTexName = "_TunnelDistortBgTexture";
-    private RTHandle m_TunnelTexHandle;
-    private const string k_TunnelTexName = "_TunnelDistortTexture";
+    private RTHandle m_DistortTunnelTexHandle;
+    private const string k_DistortTunnelTexName = "_DistortTunnelTexture";
 
     // This class stores TextureHandle references in the frame data so that they can be shared with multiple passes in the render graph system.
     public class TexRefData : ContextItem
     {
-        public TextureHandle copyColorTexHandle = TextureHandle.nullHandle;
-        public TextureHandle tunnelTexHandle = TextureHandle.nullHandle;
+        public TextureHandle distortTunnelTexHandle = TextureHandle.nullHandle;
 
         public override void Reset()
         {
-            copyColorTexHandle = TextureHandle.nullHandle;
-            tunnelTexHandle = TextureHandle.nullHandle;
+            distortTunnelTexHandle = TextureHandle.nullHandle;
         }
     }
 
@@ -50,17 +46,18 @@ public class DistortTunnelRendererFeature : ScriptableRendererFeature
         if (renderingData.cameraData.cameraType != CameraType.Game)
             return;
 
-        // Create RTHandles
+        // Create RTHandle with 2 slices
         var desc = renderingData.cameraData.cameraTargetDescriptor;
         desc.depthBufferBits = 0;
         desc.msaaSamples = 1;
-        RenderingUtils.ReAllocateHandleIfNeeded(ref m_CopyColorTexHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_CopyColorTexName );
-        RenderingUtils.ReAllocateHandleIfNeeded(ref m_TunnelTexHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_TunnelTexName );
+        desc.dimension = TextureDimension.Tex2DArray;
+        desc.volumeDepth = 2;
+        RenderingUtils.ReAllocateHandleIfNeeded(ref m_DistortTunnelTexHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_DistortTunnelTexName );
 
         // Provide the necessary RTHandles to the passes
-        m_CopyColorPass.SetRTHandles(ref m_CopyColorTexHandle);
-        m_TunnelPass.SetRTHandles(ref m_TunnelTexHandle);
-        m_DistortPass.SetRTHandles(ref m_CopyColorTexHandle,ref m_TunnelTexHandle);
+        m_CopyColorPass.SetRTHandles(ref m_DistortTunnelTexHandle,0);
+        m_TunnelPass.SetRTHandles(ref m_DistortTunnelTexHandle,1);
+        m_DistortPass.SetRTHandles(ref m_DistortTunnelTexHandle);
 
         renderer.EnqueuePass(m_CopyColorPass);
         renderer.EnqueuePass(m_TunnelPass);
@@ -75,7 +72,6 @@ public class DistortTunnelRendererFeature : ScriptableRendererFeature
         m_TunnelPass = null;
         m_CopyColorPass = null;
 
-        m_CopyColorTexHandle?.Release();
-        m_TunnelTexHandle?.Release();
+        m_DistortTunnelTexHandle?.Release();
     }
 }
