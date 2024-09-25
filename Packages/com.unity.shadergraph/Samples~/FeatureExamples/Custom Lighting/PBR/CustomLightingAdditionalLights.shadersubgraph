@@ -1083,10 +1083,10 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_SourceType": 0,
+    "m_SourceType": 1,
     "m_FunctionName": "AddAdditionalLights",
     "m_FunctionSource": "3beadf505dbc54f4cae878435013d751",
-    "m_FunctionBody": "Enter function body here..."
+    "m_FunctionBody": "Diffuse = MainDiffuse;\r\nSpecular = MainSpecular;\r\nColor = MainColor * (MainDiffuse + MainSpecular);\r\n\r\n#ifndef SHADERGRAPH_PREVIEW\r\n    \r\n    uint pixelLightCount = GetAdditionalLightsCount();\r\n\r\n#if USE_FORWARD_PLUS\r\n    // for Foward+ LIGHT_LOOP_BEGIN macro uses inputData.normalizedScreenSpaceUV and inputData.positionWS\r\n    InputData inputData = (InputData)0;\r\n    float4 screenPos = ComputeScreenPos(TransformWorldToHClip(WorldPosition));\r\n    inputData.normalizedScreenSpaceUV = screenPos.xy / screenPos.w;\r\n    inputData.positionWS = WorldPosition;\r\n#endif\r\n\r\n    LIGHT_LOOP_BEGIN(pixelLightCount)\r\n\t\t// Convert the pixel light index to the light data index\r\n\t\t#if !USE_FORWARD_PLUS\r\n\t\t\tlightIndex = GetPerObjectLightIndex(lightIndex);\r\n\t\t#endif\r\n\t\t// Call the URP additional light algorithm. This will not calculate shadows, since we don't pass a shadow mask value\r\n\t\tLight light = GetAdditionalPerObjectLight(lightIndex, WorldPosition);\r\n\t\t// Manually set the shadow attenuation by calculating realtime shadows\r\n\t\tlight.shadowAttenuation = AdditionalLightRealtimeShadow(lightIndex, WorldPosition, light.direction);\r\n        float NdotL = saturate(dot(WorldNormal, light.direction));\r\n        float atten = light.distanceAttenuation * light.shadowAttenuation;\r\n        float thisDiffuse = atten * NdotL;\r\n        float3 thisSpecular = LightingSpecular(thisDiffuse, light.direction, WorldNormal, WorldView, 1, Smoothness);\r\n        Diffuse += thisDiffuse;\r\n        Specular += thisSpecular;\r\n        #if defined(_LIGHT_COOKIES)\r\n            float3 cookieColor = SampleAdditionalLightCookie(lightIndex, WorldPosition);\r\n            light.color *= cookieColor;\r\n        #endif\r\n        Color += light.color * (thisDiffuse + thisSpecular);\r\n    LIGHT_LOOP_END\r\n    float total = Diffuse + dot(Specular, float3(0.333, 0.333, 0.333));\r\n    Color = total <= 0 ? MainColor : Color / total;\r\n#endif"
 }
 
 {
@@ -1314,7 +1314,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "e0cb7ba40e0940709b8dd5a2869d4b94",
     "m_Title": "",
-    "m_Content": "Additional lights are only possible to calculate in code because they require a for loop - which can't be done in the Shader Graph UI - so we use a Custom Function node for them.",
+    "m_Content": "Additional lights are only possible to calculate in code because they require a loop - which can't be done in the Shader Graph UI - so we use a Custom Function node for them.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -1438,7 +1438,7 @@
     "m_DefaultValue": {
         "x": 0.0,
         "y": 0.0,
-        "z": 0.0
+        "z": 1.0
     },
     "m_Labels": []
 }

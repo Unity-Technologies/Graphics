@@ -273,10 +273,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -583.9999389648438,
-            "y": 6.000000476837158,
-            "width": 145.0,
-            "height": 33.999996185302737
+            "x": -584.0,
+            "y": -13.0,
+            "width": 144.5,
+            "height": 34.0
         }
     },
     "m_Slots": [
@@ -401,9 +401,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -373.99993896484377,
-            "y": -40.00001907348633,
-            "width": 141.99998474121095,
+            "x": -374.0,
+            "y": -37.0,
+            "width": 269.0,
             "height": 166.0
         }
     },
@@ -435,10 +435,10 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_SourceType": 0,
+    "m_SourceType": 1,
     "m_FunctionName": "URPReflectionProbe",
     "m_FunctionSource": "5983a35c690aab54eaba2ae8eb99a119",
-    "m_FunctionBody": "Enter function body here..."
+    "m_FunctionBody": "#ifdef SHADERGRAPH_PREVIEW\n    reflection = float3(0,0,0);\n#else\n    reflection = GlossyEnvironmentReflection(reflectVector, positionWS, roughness, 1.0h, screenspaceUV);\n#endif"
 }
 
 {
@@ -718,15 +718,15 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "ec2873777e7a44b18ece96cc5ea27ccc",
     "m_Title": "",
-    "m_Content": "We use this Custom Function node because we need to be able to call the URP-specific function called \"GlossyEnvironmentReflection.\"",
+    "m_Content": "We use this Custom Function node because we need to be able to call the URP-specific function called \"GlossyEnvironmentReflection.\"\n\nIn order for this node to work correctly, you have to include the _REFLECTION_PROBE_BLENDING keyword in your shader's Blackboard.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
         "serializedVersion": "2",
-        "x": -360.0,
-        "y": -120.0,
+        "x": -366.0,
+        "y": -211.5,
         "width": 227.0,
-        "height": 100.0
+        "height": 160.0
     },
     "m_Group": {
         "m_Id": ""
