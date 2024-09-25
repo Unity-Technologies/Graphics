@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
-// This pass renders a certain object (an object called "Tunnel" in this sample) to an RTHandle set by the Renderer Feature.
+// This pass renders a certain object (an object called "Tunnel" in this sample) to the second slice of the RTHandle set by the Renderer Feature.
 public class DistortTunnelPass_Tunnel : ScriptableRenderPass
 {
     class PassData
@@ -15,6 +15,7 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("DistortTunnelPass_Tunnel");
     private RTHandle m_OutputHandle;
     private Renderer m_TunnelObject;
+    private int m_Slice;
 
     public DistortTunnelPass_Tunnel(RenderPassEvent evt)
     {
@@ -31,9 +32,10 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
             m_TunnelObject = tunnelGO.GetComponent<Renderer>();
     }
 
-    public void SetRTHandles(ref RTHandle dest)
+    public void SetRTHandles(ref RTHandle dest, int slice)
     {
         m_OutputHandle = dest;
+        m_Slice = slice;
     }
 
 #pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
@@ -59,6 +61,7 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
+            CoreUtils.SetRenderTarget(cmd, m_OutputHandle, depthSlice: m_Slice);
             cmd.DrawRenderer(m_TunnelObject, m_TunnelObject.sharedMaterial,0,0);
         }
         context.ExecuteCommandBuffer(cmd);
@@ -84,16 +87,15 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
 
         using (var builder = renderGraph.AddRasterRenderPass<PassData>("DistortTunnelPass_Tunnel", out var passData))
         {
-            // Set RTHandle as a texture resource used by this render graph instance
-            TextureHandle destination = renderGraph.ImportTexture(m_OutputHandle);
-            texRefData.tunnelTexHandle = destination;
+            // Get the texture resource that is passed to this render graph instance from the previous pass
+            TextureHandle destination = texRefData.distortTunnelTexHandle;
 
             if (!destination.IsValid())
                 return;
 
             passData.tunnelObject = m_TunnelObject;
             passData.tunnelMaterial = m_TunnelObject.sharedMaterial;
-            builder.SetRenderAttachment(destination, 0, AccessFlags.Write); // Set the RTHandle as the output
+            builder.SetRenderAttachment(destination, 0, AccessFlags.Write, 0, depthSlice: m_Slice); // Set the TextureHandle as the output
             builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
             {
                 context.cmd.DrawRenderer(data.tunnelObject, data.tunnelMaterial,0,0);

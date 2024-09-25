@@ -1,29 +1,28 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
 // This pass performs a blit from a source texture to a destination texture set up by the RendererFeature.
 public class DistortTunnelPass_CopyColor : ScriptableRenderPass
 {
-    class PassData
-    {
-        public TextureHandle source;
-        public Vector4 scaleBias;
-    }
-
-    private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("DistortTunnelPass_CopyColor");
     private RTHandle m_OutputHandle;
+    private int m_Slice;
+    private Material m_Material;
 
     public DistortTunnelPass_CopyColor(RenderPassEvent evt)
     {
         renderPassEvent = evt;
     }
 
-    public void SetRTHandles(ref RTHandle dest)
+    public void SetRTHandles(ref RTHandle dest, int slice)
     {
         m_OutputHandle = dest;
+        m_Slice = slice;
+        
+        m_Material = Blitter.GetBlitMaterial(TextureDimension.Tex2DArray);
     }
 
 #pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
@@ -42,11 +41,14 @@ public class DistortTunnelPass_CopyColor : ScriptableRenderPass
             return;
 
         RTHandle source = cameraData.renderer.cameraColorTargetHandle;
+        
+        Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
 
         CommandBuffer cmd = CommandBufferPool.Get();
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
-            Blitter.BlitCameraTexture(cmd, source, m_OutputHandle, 0);
+            CoreUtils.SetRenderTarget(cmd, m_OutputHandle, depthSlice: m_Slice);
+            Blitter.BlitTexture(cmd, source, viewportScale, m_Material, 0);
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();
@@ -64,28 +66,19 @@ public class DistortTunnelPass_CopyColor : ScriptableRenderPass
 
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
+        
+        // Set camera color texture as a texture resource for this render graph instance
+        TextureHandle source = resourceData.activeColorTexture;
 
-        using (var builder = renderGraph.AddRasterRenderPass<PassData>("DistortTunnelPass_CopyColor", out var passData))
-        {
-            // Set camera color as a texture resource for this render graph instance
-            TextureHandle source = resourceData.activeColorTexture;
+        // Set the RTHandle as a texture resource for this render graph instance
+        TextureHandle destination = renderGraph.ImportTexture(m_OutputHandle);
+        texRefData.distortTunnelTexHandle = destination;
 
-            // Set RTHandle as a texture resource for this render graph instance
-            TextureHandle destination = renderGraph.ImportTexture(m_OutputHandle);
-            texRefData.copyColorTexHandle = destination;
+        if (!source.IsValid() || !destination.IsValid())
+            return;
 
-            if (!source.IsValid() || !destination.IsValid())
-                return;
-
-            passData.source = source;
-            passData.scaleBias = m_ScaleBias;
-            builder.UseTexture(source, AccessFlags.Read);
-            builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
-
-            builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
-            {
-                Blitter.BlitTexture(context.cmd, data.source, data.scaleBias, 0, true);
-            });
-        }
+        RenderGraphUtils.BlitMaterialParameters para = new(source, destination, m_Material, 0);
+        para.destinationSlice = m_Slice;
+        renderGraph.AddBlitPass(para, "DistortTunnelPass_CopyColor");
     }
 }
