@@ -76,7 +76,7 @@ This sample includes examples on how to create a [Fullscreen Shader](create-a-fu
 
 ![](Images/Water_samples.png)
 
-The Water samples contain the following scenes you can use to learn about HDRP's [Water](WaterSystem.md) features: 
+The Water samples contain the following scenes you can use to learn about HDRP's [Water](water.md) features: 
 
 - Pool: Demonstrates ripples and buoyancy. 
 - Glacier: Demonstrates current, water deformers, floating objects, and a water mask.
