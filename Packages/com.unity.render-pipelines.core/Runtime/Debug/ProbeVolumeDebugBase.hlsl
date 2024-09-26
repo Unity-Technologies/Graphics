@@ -302,7 +302,7 @@ float3 CalculateDiffuseLighting(v2f i)
     if (_ShadingMode == DEBUGPROBESHADINGMODE_PROBE_OCCLUSION)
     {
         float4 shadowmask = apvRes.ProbeOcclusion[texLoc];
-        return shadowmask.rgb * 0.5 + (shadowmask.a * 0.5);
+        return shadowmask.rgb * 0.5 + (shadowmask.aaa * 0.5);
     }
     else if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
     {
