@@ -990,8 +990,15 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateOffscreenUIBuffer(RenderGraph renderGraph, MSAASamples msaaSamples, Rect viewport)
         {
             return renderGraph.CreateTexture(new TextureDesc((int)viewport.width, (int)viewport.height, false, true)
-                { format = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = false, msaaSamples = msaaSamples, name = "UI Buffer" });
+                { format = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = false, msaaSamples = msaaSamples, name = "UI Color Buffer" });
         }
+
+        TextureHandle CreateOffscreenUIDepthBuffer(RenderGraph renderGraph, MSAASamples msaaSamples, Rect viewport)
+        {
+            return renderGraph.CreateTexture(new TextureDesc((int)viewport.width, (int)viewport.height, false, true)
+                { format = GraphicsFormat.D32_SFloat_S8_UInt, clearBuffer = true, msaaSamples = msaaSamples, name = "UI Depth Buffer" });
+        }
+
 
         TextureHandle RenderTransparentUI(RenderGraph renderGraph, HDCamera hdCamera)
         {
@@ -1002,6 +1009,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // We cannot use rendererlist here because of the path tracing denoiser which will make it invalid due to multiple rendering per frame
                     output = builder.UseColorBuffer(CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples, hdCamera.finalViewport), 0);
+                    builder.UseDepthBuffer(CreateOffscreenUIDepthBuffer(renderGraph, hdCamera.msaaSamples, hdCamera.finalViewport), DepthAccess.Write);
 
                     passData.camera = hdCamera.camera;
                     passData.frameSettings = hdCamera.frameSettings;
