@@ -503,8 +503,8 @@ namespace UnityEngine.Rendering.Universal
 
             var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
 
-            // Set Global Light Textures
-            GlobalLightTexturePass.SetGlobals(renderGraph);
+            // Set Global Properties and Textures
+            GlobalPropertiesPass.Setup(renderGraph, cameraData);
 
             // Main render passes
 
