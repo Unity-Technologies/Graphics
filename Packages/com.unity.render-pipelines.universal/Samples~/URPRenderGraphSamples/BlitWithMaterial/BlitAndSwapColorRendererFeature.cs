@@ -25,7 +25,7 @@ public class BlitAndSwapColorPass : ScriptableRenderPass
         m_BlitMaterial = mat;
 
         //The pass will read the current color texture. That needs to be an intermediate texture. It's not supported to use the BackBuffer as input texture. 
-        //By setting this property, URP will automatically create an intermediate texture. 
+        //By setting this property, URP will automatically create an intermediate texture. This has a performance cost so don't set this if you don't need it.
         //It's good practice to set it here and not from the RenderFeature. This way, the pass is selfcontaining and you can use it to directly enqueue the pass from a monobehaviour without a RenderFeature.
         requiresIntermediateTexture = true;
     }
@@ -91,7 +91,7 @@ public class BlitAndSwapColorRendererFeature : ScriptableRendererFeature
         // Early exit if there are no materials.
         if (material == null)
         {
-            Debug.LogWarning("BlitAndSwapColorRendererFeature material is null and will be skipped.");
+            Debug.LogWarning(this.name + " material is null and will be skipped.");
             return;
         }
 
