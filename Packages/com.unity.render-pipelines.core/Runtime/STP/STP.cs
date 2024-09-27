@@ -910,11 +910,9 @@ namespace UnityEngine.Rendering
         [SupportedOnRenderPipeline]
         [Categorization.CategoryInfo(Name = "R: STP", Order = 1000)]
         [Categorization.ElementInfo(Order = 0), HideInInspector]
-        class RuntimeResources : IRenderPipelineResources
+        internal class RuntimeResources : IRenderPipelineResources
         {
             public int version => 0;
-
-            bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
             [SerializeField, ResourcePath("Runtime/STP/StpSetup.compute")]
             private ComputeShader m_setupCS;
