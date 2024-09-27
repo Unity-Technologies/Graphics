@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -9,10 +11,36 @@ namespace UnityEngine.Rendering.HighDefinition
     [RequireComponent(typeof(ReflectionProbe))]
     public sealed partial class HDAdditionalReflectionData : HDProbe, IAdditionalData
     {
+        static readonly HashSet<HDAdditionalReflectionData> s_AllInstances = new HashSet<HDAdditionalReflectionData>();
+
         void Awake()
         {
             type = ProbeSettings.ProbeType.ReflectionProbe;
             k_ReflectionProbeMigration.Migrate(this);
+
+            s_AllInstances.Add(this);
+        }
+
+        void OnDestroy()
+        {
+            s_AllInstances.Remove(this);
+        }
+
+        /// <summary>
+        /// Returns the currently instantiated reflection data.
+        /// </summary>
+        /// <remarks>
+        /// Note: A temporary array is created to return the results.
+        /// Note: The returned reflection data is independent of whether it is disabled or not.
+        /// </remarks>
+        /// <returns>
+        /// An array of collected reflection data.
+        /// </returns>
+        public static HDAdditionalReflectionData[] GetAllInstances()
+        {
+            HDAdditionalReflectionData[] reflectionDatas = new HDAdditionalReflectionData[s_AllInstances.Count];
+            s_AllInstances.CopyTo(reflectionDatas, 0);
+            return reflectionDatas;
         }
     }
 
