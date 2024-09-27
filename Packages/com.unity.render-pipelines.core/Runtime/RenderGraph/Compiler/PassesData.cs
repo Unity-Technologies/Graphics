@@ -786,7 +786,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // which could have been implied by leaving the flag to None
             if (!passToMerge.fragmentInfoHasDepth && nativePass.hasDepth)
             {
-                flags = SubPassFlags.ReadOnlyDepthStencil;
+                flags = SubPassFlags.ReadOnlyDepth;
             }
 
             // MRT attachments
@@ -807,7 +807,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
                         flags = (graphPassFragment.accessFlags.HasFlag(AccessFlags.Write))
                             ? SubPassFlags.None
-                            : SubPassFlags.ReadOnlyDepthStencil;
+                            : SubPassFlags.ReadOnlyDepth;
                     }
                     // It's a color attachment
                     else
@@ -902,7 +902,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // which could have been implied by leaving the flag to None
             if (!passToMerge.fragmentInfoHasDepth && nativePass.hasDepth)
             {
-                desc.flags = SubPassFlags.ReadOnlyDepthStencil;
+                desc.flags = SubPassFlags.ReadOnlyDepth;
             }
 
             // MRT attachments
@@ -919,7 +919,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
                         desc.flags = (graphPassFragment.accessFlags.HasFlag(AccessFlags.Write))
                             ? SubPassFlags.None
-                            : SubPassFlags.ReadOnlyDepthStencil;
+                            : SubPassFlags.ReadOnlyDepth;
                     }
                     // It's a color attachment
                     else
@@ -1028,7 +1028,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 // which could have been implied by leaving the flag to None
                 if (!currGraphPass.fragmentInfoHasDepth && nativePass.hasDepth)
                 {
-                    nativeSubPassDescriptor.flags = SubPassFlags.ReadOnlyDepthStencil;
+                    nativeSubPassDescriptor.flags = SubPassFlags.ReadOnlyDepth;
                 }
 
                 // MRT attachments
@@ -1046,7 +1046,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         {
                             nativeSubPassDescriptor.flags = (graphPassFragment.accessFlags.HasFlag(AccessFlags.Write))
                                 ? SubPassFlags.None
-                                : SubPassFlags.ReadOnlyDepthStencil;
+                                : SubPassFlags.ReadOnlyDepth;
                         }
                         // It's a color attachment
                         else
