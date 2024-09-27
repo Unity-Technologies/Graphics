@@ -261,6 +261,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     cullingConfig.sphereCenter = hdCamera.camera.transform.position;
                 }
                 break;
+                case RTASCullingMode.SolidAngle:
+                {
+                    cullingConfig.flags = RayTracingInstanceCullingFlags.EnableSolidAngleCulling;
+                    cullingConfig.minSolidAngle = rtSettings.minSolidAngle.value;
+                }
+                break;
                 default:
                 {
                     // We explicitly want no culling.
