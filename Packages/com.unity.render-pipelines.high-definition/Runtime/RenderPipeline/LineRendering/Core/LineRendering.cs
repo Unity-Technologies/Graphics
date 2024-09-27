@@ -22,11 +22,13 @@ namespace UnityEngine.Rendering
         public enum CompositionMode
         {
             /// <summary>Composition will occur before the color pyramid is generated.</summary>
-            BeforeColorPyramid,
+            BeforeColorPyramid = 0,
+            /// <summary>Composition will occur before the color pyramid is generated but after clouds are composited.</summary>
+            BeforeColorPyramidAfterClouds = 3,
             /// <summary>Composition will occur after temporal anti-aliasing.</summary>
-            AfterTemporalAntialiasing,
+            AfterTemporalAntialiasing = 1,
             /// <summary>Composition will occur after depth of field.</summary>
-            AfterDepthOfField
+            AfterDepthOfField = 2
         }
 
         /// <summary>
