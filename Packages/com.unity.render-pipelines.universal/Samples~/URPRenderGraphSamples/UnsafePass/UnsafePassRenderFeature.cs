@@ -16,10 +16,10 @@ public class UnsafePassRenderFeature : ScriptableRendererFeature
         // This class stores the data needed by the pass, passed as parameter to the delegate function that executes the pass
         private class PassData
         {
-            internal TextureHandle src;
-            internal TextureHandle dest;
-            internal TextureHandle destHalf;
-            internal TextureHandle destQuarter;
+            internal TextureHandle source;
+            internal TextureHandle destination;
+            internal TextureHandle destinationHalf;
+            internal TextureHandle destinationQuarter;
         }
 
         // This static method is used to execute the pass and passed as the RenderFunc delegate to the RenderGraph render pass
@@ -34,24 +34,24 @@ public class UnsafePassRenderFeature : ScriptableRendererFeature
 
             CommandBuffer unsafeCmd = CommandBufferHelpers.GetNativeCommandBuffer(context.cmd);
             
-            context.cmd.SetRenderTarget(data.dest);
-            Blitter.BlitTexture(unsafeCmd, data.src, new Vector4(1, 1, 0, 0), 0, false);
+            context.cmd.SetRenderTarget(data.destination);
+            Blitter.BlitTexture(unsafeCmd, data.source, new Vector4(1, 1, 0, 0), 0, false);
             
             // downscale x2
             
-            context.cmd.SetRenderTarget(data.destHalf);
-            Blitter.BlitTexture(unsafeCmd, data.dest, new Vector4(1, 1, 0, 0), 0, false);
+            context.cmd.SetRenderTarget(data.destinationHalf);
+            Blitter.BlitTexture(unsafeCmd, data.destination, new Vector4(1, 1, 0, 0), 0, false);
             
-            context.cmd.SetRenderTarget(data.destQuarter);
-            Blitter.BlitTexture(unsafeCmd, data.destHalf, new Vector4(1, 1, 0, 0), 0, false);
+            context.cmd.SetRenderTarget(data.destinationQuarter);
+            Blitter.BlitTexture(unsafeCmd, data.destinationHalf, new Vector4(1, 1, 0, 0), 0, false);
             
             // upscale x2
             
-            context.cmd.SetRenderTarget(data.destHalf);
-            Blitter.BlitTexture(unsafeCmd, data.destQuarter, new Vector4(1, 1, 0, 0), 0, false);
+            context.cmd.SetRenderTarget(data.destinationHalf);
+            Blitter.BlitTexture(unsafeCmd, data.destinationQuarter, new Vector4(1, 1, 0, 0), 0, false);
             
-            context.cmd.SetRenderTarget(data.dest);
-            Blitter.BlitTexture(unsafeCmd, data.destHalf, new Vector4(1, 1, 0, 0), 0, false);
+            context.cmd.SetRenderTarget(data.destination);
+            Blitter.BlitTexture(unsafeCmd, data.destinationHalf, new Vector4(1, 1, 0, 0), 0, false);
         }
 
         // This is where the renderGraph handle can be accessed.
@@ -70,36 +70,45 @@ public class UnsafePassRenderFeature : ScriptableRendererFeature
                 // Fill up the passData with the data needed by the pass
 
                 // Get the active color texture through the frame data, and set it as the source texture for the blit
-                passData.src = resourceData.activeColorTexture;
+                passData.source = resourceData.activeColorTexture;
 
                 // The destination textures are created here, 
                 // the texture is created with the same dimensions as the active color texture, but with no depth buffer, being a copy of the color texture
                 // we also disable MSAA as we don't need multisampled textures for this sample
                 // the other two textures halve the resolution of the previous one
 
-                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-                RenderTextureDescriptor desc = cameraData.cameraTargetDescriptor;
-                desc.msaaSamples = 1;
-                desc.depthBufferBits = 0;
 
-                TextureHandle destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "UnsafeTexture", false);
-                desc.width /= 2;
-                desc.height /= 2;
-                TextureHandle destinationHalf = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "UnsafeTexture2", false);
-                desc.width /= 2;
-                desc.height /= 2;
-                TextureHandle destinationQuarter = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "UnsafeTexture3", false);
-                passData.dest = destination;
-                passData.destHalf = destinationHalf;
-                passData.destQuarter = destinationQuarter;
+                var descriptor = passData.source.GetDescriptor(renderGraph);
+                // We disable MSAA for the blit operations.
+                descriptor.msaaSamples = MSAASamples.None;                
+                descriptor.clearBuffer = false;
+
+
+                // Create a new temporary texture to keep the blit result.
+                descriptor.name = "UnsafeTexture";
+                var destination = renderGraph.CreateTexture(descriptor);
+
+                descriptor.width /= 2;
+                descriptor.height /= 2;
+                descriptor.name = "UnsafeTexture2";
+                var destinationHalf = renderGraph.CreateTexture(descriptor);
+
+                descriptor.width /= 2;
+                descriptor.height /= 2;
+                descriptor.name = "UnsafeTexture3";
+                var destinationQuarter = renderGraph.CreateTexture(descriptor);
+
+                passData.destination = destination;
+                passData.destinationHalf = destinationHalf;
+                passData.destinationQuarter = destinationQuarter;
 
                 // We declare the src texture as an input dependency to this pass, via UseTexture()
-                builder.UseTexture(passData.src);
+                builder.UseTexture(passData.source);
                 
                 // UnsafePasses don't setup the outputs using UseTextureFragment/UseTextureFragmentDepth, you should specify your writes with UseTexture instead
-                builder.UseTexture(passData.dest, AccessFlags.Write);
-                builder.UseTexture(passData.destHalf, AccessFlags.Write);
-                builder.UseTexture(passData.destQuarter, AccessFlags.Write);
+                builder.UseTexture(passData.destination, AccessFlags.WriteAll);
+                builder.UseTexture(passData.destinationHalf, AccessFlags.WriteAll);
+                builder.UseTexture(passData.destinationQuarter, AccessFlags.WriteAll);
 
                 // We disable culling for this pass for the demonstrative purpose of this sample, as normally this pass would be culled,
                 // since the destination texture is not used anywhere else
