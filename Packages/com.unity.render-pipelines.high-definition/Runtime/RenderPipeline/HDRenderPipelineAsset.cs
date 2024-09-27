@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
     // [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "HDRenderPipeline")]
 #endif
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline, IRenderGraphEnabledRenderPipeline
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset<HDRenderPipeline>, IVirtualTexturingEnabledRenderPipeline, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline, IRenderGraphEnabledRenderPipeline, ISTPEnabledRenderPipeline
     {
         /// <inheritdoc/>
         public override string renderPipelineShaderTag => HDRenderPipeline.k_ShaderTagName;
@@ -282,5 +282,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Obsolete("This property is no longer necessary.")]
         public ProbeVolumeSceneData probeVolumeSceneData => null;
+
+        /// <summary>
+        /// Returns true if STP is used by the current dynamic resolution settings
+        /// </summary>
+        public bool isStpUsed
+        {
+            get
+            {
+                return m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Contains(AdvancedUpscalers.STP);
+            }
+        }
     }
 }
