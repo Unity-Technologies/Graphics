@@ -510,10 +510,11 @@ namespace UnityEngine.Rendering.HighDefinition
         ///  Function that globally binds the textures and constant buffer for use by external systems such as VFX Graph
         ///  As the binding is done globally, only one surface can be bound during a frame
         /// </summary>
-        public void SetGlobalTextures()
+        /// <returns>A boolean that indicates if the function was able to bind GlobalTextures.</returns>
+        public bool SetGlobalTextures()
         {
             if (simulation == null)
-                return;
+                return false;
 
             var constantBuffer = HDRenderPipeline.currentPipeline.waterSystem.m_ShaderVariablesWaterPerSurface[surfaceIndex];
             Shader.SetGlobalTexture(HDShaderIDs._WaterDisplacementBuffer, simulation.gpuBuffers.displacementBuffer);
@@ -528,6 +529,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.SetGlobalTexture(HDShaderIDs._WaterDeformationBuffer, GetDeformationBuffer(system, true, Texture2D.blackTexture));
             Shader.SetGlobalTexture(HDShaderIDs._WaterDeformationSGBuffer, GetDeformationNormalBuffer(system, true, Texture2D.blackTexture));
             Shader.SetGlobalTexture(HDShaderIDs._WaterFoamBuffer, GetFoamBuffer(system, true, Texture2D.blackTexture));
+            return true;
         }
         #endregion
 
