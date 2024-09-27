@@ -1,3 +1,5 @@
+#pragma exclude_renderers gles
+
 #pragma kernel ResetDrawArgs
 #pragma kernel CopyInstances
 #pragma kernel CullInstances
