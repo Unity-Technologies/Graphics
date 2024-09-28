@@ -260,7 +260,6 @@ namespace UnityEngine.Rendering.Universal
             internal float dirtIntensity;
             internal Texture dirtTexture;
             internal bool highQualityFilteringValue;
-            internal bool useRGBM;
             internal TextureHandle bloomTexture;
             internal Material uberMaterial;
         }
@@ -300,7 +299,6 @@ namespace UnityEngine.Rendering.Universal
                 passData.dirtIntensity = dirtIntensity;
                 passData.dirtTexture = dirtTexture;
                 passData.highQualityFilteringValue = m_Bloom.highQualityFiltering.value;
-                passData.useRGBM = m_DefaultColorFormatUseRGBM;
 
                 passData.bloomTexture = bloomTexture;
                 builder.UseTexture(bloomTexture, AccessFlags.Read);
@@ -313,7 +311,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var uberMaterial = data.uberMaterial;
                     uberMaterial.SetVector(ShaderConstants._Bloom_Params, data.bloomParams);
-                    uberMaterial.SetFloat(ShaderConstants._Bloom_RGBM, data.useRGBM ? 1f : 0f);
                     uberMaterial.SetVector(ShaderConstants._LensDirt_Params, data.dirtScaleOffset);
                     uberMaterial.SetFloat(ShaderConstants._LensDirt_Intensity, data.dirtIntensity);
                     uberMaterial.SetTexture(ShaderConstants._LensDirt_Texture, data.dirtTexture);
@@ -346,14 +343,12 @@ namespace UnityEngine.Rendering.Universal
         {
             internal Vector4 parameters;
             internal bool highQualityFiltering;
-            internal bool useRGBM;
             internal bool enableAlphaOutput;
 
             internal bool Equals(ref BloomMaterialParams other)
             {
                 return parameters == other.parameters &&
                        highQualityFiltering == other.highQualityFiltering &&
-                       useRGBM == other.useRGBM &&
                        enableAlphaOutput == other.enableAlphaOutput;
             }
         }
@@ -398,7 +393,6 @@ namespace UnityEngine.Rendering.Universal
                 BloomMaterialParams bloomParams = new BloomMaterialParams();
                 bloomParams.parameters = new Vector4(scatter, clamp, threshold, thresholdKnee);
                 bloomParams.highQualityFiltering = m_Bloom.highQualityFiltering.value;
-                bloomParams.useRGBM = m_DefaultColorFormatUseRGBM;
                 bloomParams.enableAlphaOutput = enableAlphaOutput;
 
                 // Setting keywords can be somewhat expensive on low-end platforms.
@@ -410,7 +404,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     material.SetVector(ShaderConstants._Params, bloomParams.parameters);
                     CoreUtils.SetKeyword(material, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
-                    CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
                     CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, bloomParams.enableAlphaOutput);
 
                     // These materials are duplicate just to allow different bloom blits to use different textures.
@@ -419,7 +412,6 @@ namespace UnityEngine.Rendering.Universal
                         var materialPyramid = m_Materials.bloomUpsample[i];
                         materialPyramid.SetVector(ShaderConstants._Params, bloomParams.parameters);
                         CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings.BloomHQ, bloomParams.highQualityFiltering);
-                        CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings.UseRGBM, bloomParams.useRGBM);
                         CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, bloomParams.enableAlphaOutput);
                     }
 

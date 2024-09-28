@@ -74,7 +74,6 @@ namespace UnityEngine.Rendering.Universal
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_DefaultColorFormat;   // The default format for post-processing, follows back-buffer format in URP.
         bool m_DefaultColorFormatIsAlpha;
-        bool m_DefaultColorFormatUseRGBM;
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
 
@@ -182,7 +181,6 @@ namespace UnityEngine.Rendering.Universal
             if (requestHDR)
             {
                 m_DefaultColorFormatIsAlpha = requestAlpha;
-                m_DefaultColorFormatUseRGBM  = false;
 
                 const GraphicsFormatUsage usage = GraphicsFormatUsage.Blend;
                 if (SystemInfo.IsFormatSupported(postProcessParams.requestColorFormat, usage))    // Typically, RGBA16Float.
@@ -202,7 +200,6 @@ namespace UnityEngine.Rendering.Universal
                     m_DefaultColorFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
                         ? GraphicsFormat.R8G8B8A8_SRGB
                         : GraphicsFormat.R8G8B8A8_UNorm;
-                    m_DefaultColorFormatUseRGBM = true;   // Encode HDR data into RGBA8888 as RGBM (RGB, Multiplier)
                 }
             }
             else // SDR
@@ -212,10 +209,6 @@ namespace UnityEngine.Rendering.Universal
                     : GraphicsFormat.R8G8B8A8_UNorm;
 
                 m_DefaultColorFormatIsAlpha = true;
-                // TODO: Bloom uses RGBM to Emulate HDR.
-                // TODO: Lens Flares render into the bloom texture, but do not support RGBM encoding at the moment.
-                // RGBM is disabled in the SDR case for now.
-                m_DefaultColorFormatUseRGBM = false;
             }
 
             // Only two components are needed for edge render texture, but on some vendors four components may be faster.
@@ -1392,7 +1385,6 @@ namespace UnityEngine.Rendering.Universal
             var bloomMaterial = m_Materials.bloom;
             bloomMaterial.SetVector(ShaderConstants._Params, new Vector4(scatter, clamp, threshold, thresholdKnee));
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.BloomHQ, m_Bloom.highQualityFiltering.value);
-            CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_DefaultColorFormatUseRGBM);
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, enableAlphaOutput);
 
             // Prefilter
@@ -1438,7 +1430,6 @@ namespace UnityEngine.Rendering.Universal
 
             var bloomParams = new Vector4(m_Bloom.intensity.value, tint.r, tint.g, tint.b);
             uberMaterial.SetVector(ShaderConstants._Bloom_Params, bloomParams);
-            uberMaterial.SetFloat(ShaderConstants._Bloom_RGBM, m_DefaultColorFormatUseRGBM ? 1f : 0f);
 
             cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, m_BloomMipUp[0]);
 
@@ -1977,7 +1968,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _Params = Shader.PropertyToID("_Params");
             public static readonly int _SourceTexLowMip = Shader.PropertyToID("_SourceTexLowMip");
             public static readonly int _Bloom_Params = Shader.PropertyToID("_Bloom_Params");
-            public static readonly int _Bloom_RGBM = Shader.PropertyToID("_Bloom_RGBM");
             public static readonly int _Bloom_Texture = Shader.PropertyToID("_Bloom_Texture");
             public static readonly int _LensDirt_Texture = Shader.PropertyToID("_LensDirt_Texture");
             public static readonly int _LensDirt_Params = Shader.PropertyToID("_LensDirt_Params");
