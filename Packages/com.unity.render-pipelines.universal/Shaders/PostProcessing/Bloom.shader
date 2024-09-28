@@ -1,8 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/Bloom"
 {
     HLSLINCLUDE
-        #pragma multi_compile_local _ _USE_RGBM
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -24,30 +22,22 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
 
         half4 EncodeHDR(half3 color)
         {
-        #if _USE_RGBM
-            half4 outColor = EncodeRGBM(color);
-        #else
-            half4 outColor = half4(color, 1.0);
+        #if UNITY_COLORSPACE_GAMMA
+            color = sqrt(color); // linear to γ
         #endif
 
-        #if UNITY_COLORSPACE_GAMMA
-            return half4(sqrt(outColor.xyz), outColor.w); // linear to γ
-        #else
-            return outColor;
-        #endif
+            return half4(color, 1.0);
         }
 
-        half3 DecodeHDR(half4 color)
+        half3 DecodeHDR(half4 data)
         {
+            half3 color = data.xyz;
+
         #if UNITY_COLORSPACE_GAMMA
-            color.xyz *= color.xyz; // γ to linear
+            color *= color; // γ to linear
         #endif
 
-        #if _USE_RGBM
-            return DecodeRGBM(color);
-        #else
-            return color.xyz;
-        #endif
+            return color;
         }
 
         half3 SamplePrefilter(float2 uv,  float2 offset)
