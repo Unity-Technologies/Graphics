@@ -50,6 +50,10 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     inputData.shadowMask = half4(1, 1, 1, 1);
 
+#if defined(DEBUG_DISPLAY) && defined(USE_APV_PROBE_OCCLUSION)
+    inputData.probeOcclusion = input.probeOcclusion;
+#endif
+
     #if defined(DEBUG_DISPLAY) && !defined(PARTICLES_EDITOR_META_PASS)
     inputData.vertexSH = input.vertexSH;
     #endif

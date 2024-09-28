@@ -54,7 +54,7 @@ struct InputData
     half4   shadowMask;
     half3x3 tangentToWorld;
 
-    #if defined(DEBUG_DISPLAY)
+#if defined(DEBUG_DISPLAY)
     half2   dynamicLightmapUV;
     half2   staticLightmapUV;
     float3  vertexSH;
@@ -88,7 +88,9 @@ struct InputData
     float4 streamInfo;
 
     float3 originalColor;
-    #endif
+
+    float4 probeOcclusion;
+#endif
 };
 
 ///////////////////////////////////////////////////////////////////////////////
