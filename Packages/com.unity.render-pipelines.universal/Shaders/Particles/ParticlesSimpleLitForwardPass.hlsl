@@ -52,6 +52,10 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
     #if defined(DEBUG_DISPLAY) && !defined(PARTICLES_EDITOR_META_PASS)
     inputData.vertexSH = input.vertexSH;
     #endif
+
+#if defined(DEBUG_DISPLAY) && defined(USE_APV_PROBE_OCCLUSION)
+    inputData.probeOcclusion = input.probeOcclusion;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
