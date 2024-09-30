@@ -520,6 +520,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConstantBuffer._CelestialLightCount = s_CelestialLightCount;
             m_ConstantBuffer._CelestialBodyCount = s_CelestialBodyCount;
             m_ConstantBuffer._CelestialLightExposure = s_CelestialLightExposure;
+            if (builtinParams.volumetricClouds != null)
+                m_ConstantBuffer._VolumetricCloudsBottomAltitude = builtinParams.volumetricClouds.bottomAltitude.value;
 
             ConstantBuffer.PushGlobal(cmd, m_ConstantBuffer, m_ShaderVariablesPhysicallyBasedSkyID);
         }

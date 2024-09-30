@@ -10,6 +10,7 @@
 #define TRACE_CLOUDS_SHADOWS 1
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricClouds/VolumetricCloudsUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 
 RW_TEXTURE2D(float4, _VolumetricCloudsShadowRW);
 
@@ -26,31 +27,32 @@ void TraceVolumetricCloudsShadows(uint3 currentCoords : SV_DispatchThreadID, int
 
     // Compute the origin of the ray properties in the planet space
     float3 rayOriginPS = _CloudShadowSunOrigin.xyz + (normalizedCoord.x * _CloudShadowSunRight.xyz + normalizedCoord.y * _CloudShadowSunUp.xyz);
-    float3 rayDirection = _CloudShadowSunForward.xyz;
+    float3 rayDirection = -_CloudShadowSunForward.xyz;
 
     // Compute the attenuation
     float transmittance = 1.0f;
     float closestDistance = FLT_MAX;
-    float farthestDistance = 0.0;
+    float farthestDistance = FLT_MIN;
     bool validShadow = false;
 
     // Intersect the outer sphere
-    float radialDistance = length(rayOriginPS);
-    float cosChi = dot(rayOriginPS, rayDirection) * rcp(radialDistance);
-    float2 tInner = IntersectSphere(_LowestCloudAltitude, cosChi, radialDistance);
-    float2 tOuter = IntersectSphere(_HighestCloudAltitude, cosChi, radialDistance);
-    if (tInner.y >= 0.0 && tOuter.y >= 0.0)
+    float2 lowestAltitudeIntersections, highestAltitudeIntersections;
+    bool lowBoundOk = IntersectRaySphere(rayOriginPS, rayDirection, _LowestCloudAltitude, lowestAltitudeIntersections);
+    bool highBoundOk = IntersectRaySphere(rayOriginPS, rayDirection, _HighestCloudAltitude, highestAltitudeIntersections);
+
+    if (lowBoundOk && highBoundOk)
     {
         // Compute the integration range
-        float startDistance = tInner.y;
-        float totalDistance = tOuter.y - tInner.y;
+        float startDistance = highestAltitudeIntersections.x;
+        float totalDistance = max(lowestAltitudeIntersections.x - highestAltitudeIntersections.x, highestAltitudeIntersections.x - lowestAltitudeIntersections.x);
+        rayOriginPS += startDistance * rayDirection;
 
         float stepSize = totalDistance / 16;
 
         for (int i = 1; i < 16; ++i)
         {
             // Compute the sphere intersection position
-            float dist = (startDistance + stepSize * i);
+            float dist = (stepSize * i);
             float3 positionPS = rayOriginPS + rayDirection * dist;
 
             // Get the coverage at intersection point
@@ -67,8 +69,8 @@ void TraceVolumetricCloudsShadows(uint3 currentCoords : SV_DispatchThreadID, int
             if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
             {
                 // Apply the extinction
-                closestDistance = min(closestDistance, startDistance + stepSize * (i - 1));
-                farthestDistance = max(farthestDistance, startDistance + stepSize * i);
+                closestDistance = min(closestDistance, totalDistance - stepSize * (i + 1));
+                farthestDistance = max(farthestDistance, totalDistance - stepSize * i);
                 const float3 currentStepExtinction = exp(-_ScatteringTint.xyz * cloudProperties.density * cloudProperties.sigmaT * stepSize);
                 transmittance *= Luminance(currentStepExtinction);
                 validShadow = true;
@@ -76,7 +78,7 @@ void TraceVolumetricCloudsShadows(uint3 currentCoords : SV_DispatchThreadID, int
         }
     }
     // If we didn't manage to hit a non null density, we need to fix the distances
-    float4 result = validShadow ? float4(1.0 / closestDistance, lerp(1.0 - _ShadowIntensity, 1.0, transmittance), 1.0 / farthestDistance, 1.0) : float4(0.0, 1.0, 0.0, 0.0);
+    float4 result = validShadow ? float4(closestDistance, lerp(1.0 - _ShadowIntensity, 1.0, transmittance), farthestDistance, 1.0) : float4(0.0, 1.0, 0.0, 0.0);
 
     _VolumetricCloudsShadowRW[currentCoords.xy] = result;
 }

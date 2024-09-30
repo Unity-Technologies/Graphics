@@ -72,11 +72,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Bounds lightSpaceBounds = new Bounds();
             lightSpaceBounds.SetMinMax(new Vector3(float.MaxValue, float.MaxValue, float.MaxValue), new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue));
             lightSpaceBounds.Encapsulate(wsToLSMat.MultiplyPoint(hdCamera.camera.transform.position));
+            float perspectiveCorrectedShadowDistance = settings.shadowDistance.value / cos(hdCamera.camera.fieldOfView * Mathf.Deg2Rad * 0.5f);
             for (int cornerIdx = 0; cornerIdx < 4; ++cornerIdx)
             {
                 Vector3 corner = hdCamera.frustum.corners[cornerIdx + 4];
                 float diag = corner.magnitude;
-                corner = corner / diag * Mathf.Min(settings.shadowDistance.value, diag);
+                corner = corner / diag * Mathf.Min(perspectiveCorrectedShadowDistance, diag);
                 Vector3 posLightSpace = wsToLSMat.MultiplyPoint(corner + hdCamera.camera.transform.position);
                 lightSpaceBounds.Encapsulate(posLightSpace);
             }
@@ -89,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Vector3 corner = hdCamera.frustum.corners[cornerIdx + 4];
                     float diag = corner.magnitude;
-                    corner = corner / diag * Mathf.Min(settings.shadowDistance.value, diag);
+                    corner = corner / diag * Mathf.Min(perspectiveCorrectedShadowDistance, diag);
                     Vector3 posLightSpace = wsToLSMat.MultiplyPoint(-corner + hdCamera.camera.transform.position);
                     lightSpaceBounds.Encapsulate(posLightSpace);
                 }
