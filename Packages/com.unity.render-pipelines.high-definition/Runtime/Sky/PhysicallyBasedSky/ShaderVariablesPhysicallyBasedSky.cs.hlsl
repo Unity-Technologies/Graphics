@@ -52,7 +52,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesPhysicallyBasedSky, b2)
     float _AtmosphericDepth;
     float _RcpAtmosphericDepth;
     float _CelestialLightExposure;
-    float _PaddingPBS;
+    float _VolumetricCloudsBottomAltitude;
 CBUFFER_END
 
 
