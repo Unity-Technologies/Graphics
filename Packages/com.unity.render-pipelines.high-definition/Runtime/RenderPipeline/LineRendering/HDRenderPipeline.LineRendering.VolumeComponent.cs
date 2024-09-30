@@ -66,6 +66,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Threshold for determining what qualifies as an opaque tile for high quality line rendering, lower values improve performance, but lose quality.")]
         public ClampedFloatParameter tileOpacityThreshold = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
+        /// <summary>
+        /// Depth and motion vectors are written only if the alpha value is above this threshold.
+        /// </summary>
+        [Tooltip("Threshold for determining when to write depth to output.")]
+        public ClampedFloatParameter writeDepthAlphaThreshold = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
+
         HighQualityLineRenderingVolumeComponent()
         {
             displayName = "High Quality Line Rendering";
