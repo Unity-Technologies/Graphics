@@ -49,7 +49,6 @@ public class FitToWaterSurface : MonoBehaviour
 }
 ```
 
-
 ### Multiple objects (with Burst)
 
 ![](Images/water-22.2-multibuoyancy.png)<br/>
@@ -205,7 +204,25 @@ public class FitToWaterSurface_Burst : MonoBehaviour
 }
 ```
 
-## Synchronizing Water Surfaces
+## Add caustics
+
+To enhance the visual fidelity of your water surfaces, you can incorporate realistic [caustics](water-caustics-in-the-water-system.md) into your scenes.
+
+To query the caustics buffer of the water surface at a given point as an additional output, use the [GetCausticsBuffer()](../api/UnityEngine.Rendering.HighDefinition.WaterSurface.html#UnityEngine_Rendering_HighDefinition_WaterSurface_GetCausticsBuffer_System_Single__) function provided by the [WaterSurface](xref:UnityEngine.Rendering.HighDefinition.WaterSurface) class.
+
+## Add foam
+
+To enhance the appearance of waves, shorelines, and water turbulence, you can incorporate foam effects.
+
+To query the foam buffer of the water surface at a given point as an additional output, use the [GetFoamBuffer()](../api/UnityEngine.Rendering.HighDefinition.WaterSurface.html#UnityEngine_Rendering_HighDefinition_WaterSurface_GetFoamBuffer_UnityEngine_Vector2__) function provided by the [WaterSurface](xref:UnityEngine.Rendering.HighDefinition.WaterSurface) class.
+
+## Check waves and ripples
+
+You can retrieve information about the displacement of the water surface due to waves and ripples.
+
+To query the deformation buffer of the water surface at a given point as an additional output, use the [GetDeformationBuffer()](../api/UnityEngine.Rendering.HighDefinition.WaterSurface.html#UnityEngine_Rendering_HighDefinition_WaterSurface_GetDeformationBuffer) function provided by the [WaterSurface](xref:UnityEngine.Rendering.HighDefinition.WaterSurface) class.
+
+## Synchronize water surfaces
 
 When working with multiple water surfaces, it can be useful to synchronize the water simulation of each of the surface.
 In a multiplayer game, this can ensure all clients have a water simulation that is running in sync.
