@@ -730,6 +730,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _LineColorTexture  = Shader.PropertyToID("_LineColorTexture");
         public static readonly int _LineDepthTexture  = Shader.PropertyToID("_LineDepthTexture");
         public static readonly int _LineMotionTexture = Shader.PropertyToID("_LineMotionTexture");
+        public static readonly int _LineAlphaDepthWriteThreshold = Shader.PropertyToID("_AlphaDepthWriteThreshold");
 
         // Raytracing variables
         public static readonly int _RayTracingLayerMask = Shader.PropertyToID("_RayTracingLayerMask");

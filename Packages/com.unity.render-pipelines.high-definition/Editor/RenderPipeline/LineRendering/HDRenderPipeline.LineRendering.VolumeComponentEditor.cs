@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ClusterCount;
         SerializedDataParameter m_SortingQuality;
         SerializedDataParameter m_TileOpacityThreshold;
+        SerializedDataParameter m_AlphaDepthWriteThreshold;
 
         public override void OnEnable()
         {
@@ -23,6 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ClusterCount         = Unpack(o.Find(x => x.clusterCount));
             m_SortingQuality       = Unpack(o.Find(x => x.sortingQuality));
             m_TileOpacityThreshold = Unpack(o.Find(x => x.tileOpacityThreshold));
+            m_AlphaDepthWriteThreshold = Unpack(o.Find(x => x.writeDepthAlphaThreshold));
         }
 
 
@@ -49,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_ClusterCount);
             PropertyField(m_SortingQuality);
             PropertyField(m_TileOpacityThreshold);
+            PropertyField(m_AlphaDepthWriteThreshold);
         }
     }
 }
