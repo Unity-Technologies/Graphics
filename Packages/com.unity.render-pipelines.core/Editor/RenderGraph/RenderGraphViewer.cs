@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering
         {
             "",
             L10n.Tr("No Render Graph has been registered. The Render Graph Viewer is only functional when Render Graph API is in use."),
-            L10n.Tr("The selected camera has not rendered anything yet. Interact with the selected camera to display data in the Render Graph Viewer."),
+            L10n.Tr("The selected camera has not rendered anything yet using a Render Graph API. Interact with the selected camera to display data in the Render Graph Viewer. Make sure your current SRP is using the Render Graph API."),
             L10n.Tr("No data to display. Click refresh to capture data."),
             L10n.Tr("Waiting for the selected camera to render. Depending on the camera, you may need to trigger rendering by selecting the Scene or Game view."),
             L10n.Tr("No passes to display. Select a different Pass Filter to display contents."),
