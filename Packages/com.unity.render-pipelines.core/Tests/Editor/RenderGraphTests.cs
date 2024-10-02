@@ -1249,7 +1249,7 @@ namespace UnityEngine.Rendering.Tests
 
             // Create a new RTHandle texture
             var redTextureHandle = RTHandles.Alloc(width, height,
-                                               colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
+                                               GraphicsFormat.R8G8B8A8_UNorm,
                                                dimension: TextureDimension.Tex2D,
                                                useMipMap: false,
                                                autoGenerateMips: false,

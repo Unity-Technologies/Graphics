@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
             debugTexDescriptor.useMipMap = false;
             debugTexDescriptor.autoGenerateMips = false;
             debugTexDescriptor.bindMS = false;
-            debugTexDescriptor.depthBufferBits = 0;
+            debugTexDescriptor.depthStencilFormat = GraphicsFormat.None;
 
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphDebugTextureHandle, debugTexDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_RenderingDebuggerTexture");
         }

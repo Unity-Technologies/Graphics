@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraTargetDescriptor.width,
                 cameraTargetDescriptor.height,
                 cameraTargetDescriptor.graphicsFormat,
-                DepthBits.None);
+                GraphicsFormat.None);
 
             stopNaNTarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_StopNaNsTarget", true, FilterMode.Bilinear);
 
@@ -113,28 +113,28 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.width,
                 m_Descriptor.height,
                 m_Descriptor.graphicsFormat,
-                DepthBits.None);
+                GraphicsFormat.None);
             SMAATarget = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_SMAATarget", true, FilterMode.Bilinear);
 
             var edgeTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
                 m_Descriptor.width,
                 m_Descriptor.height,
                 m_SMAAEdgeFormat,
-                DepthBits.None);
+                GraphicsFormat.None);
             var edgeTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, edgeTextureDesc, "_EdgeStencilTexture", true, FilterMode.Bilinear);
 
             var edgeTextureStencilDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
                 m_Descriptor.width,
                 m_Descriptor.height,
                 GraphicsFormat.None,
-                DepthBits.Depth24);
+                GraphicsFormatUtility.GetDepthStencilFormat(24));
             var edgeTextureStencil = UniversalRenderer.CreateRenderGraphTexture(renderGraph, edgeTextureStencilDesc, "_EdgeTexture", true, FilterMode.Bilinear);
 
             var blendTextureDesc = PostProcessPass.GetCompatibleDescriptor(m_Descriptor,
                 m_Descriptor.width,
                 m_Descriptor.height,
                 GraphicsFormat.R8G8B8A8_UNorm,
-                DepthBits.None);
+                GraphicsFormat.None);
             var blendTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, blendTextureDesc, "_BlendTexture", true, FilterMode.Point);
 
             // Anti-aliasing
@@ -530,7 +530,7 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.width,
                 m_Descriptor.height,
                 m_Descriptor.graphicsFormat,
-                DepthBits.None);
+                GraphicsFormat.None);
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_DoFTarget", true, FilterMode.Bilinear);
 
             CoreUtils.SetKeyword(dofMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, cameraData.isAlphaOutputEnabled);
@@ -866,7 +866,7 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.width,
                 m_Descriptor.height,
                 m_Descriptor.graphicsFormat,
-                DepthBits.None);
+                GraphicsFormat.None);
 
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_PaniniProjectionTarget", true, FilterMode.Bilinear);
 
@@ -919,7 +919,7 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.width,
                 m_Descriptor.height,
                 m_Descriptor.graphicsFormat,
-                DepthBits.None);
+                GraphicsFormat.None);
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, _TemporalAATargetName, false, FilterMode.Bilinear);
 
             TextureHandle cameraDepth = resourceData.cameraDepth;
@@ -945,8 +945,7 @@ namespace UnityEngine.Rendering.Universal
             var desc = GetCompatibleDescriptor(cameraData.cameraTargetDescriptor,
                 cameraData.pixelWidth,
                 cameraData.pixelHeight,
-                cameraData.cameraTargetDescriptor.graphicsFormat,
-                DepthBits.None);
+                cameraData.cameraTargetDescriptor.graphicsFormat);
 
             // STP uses compute shaders so all render textures must enable random writes
             desc.enableRandomWrite = true;
@@ -988,7 +987,7 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.width,
                 m_Descriptor.height,
                 m_Descriptor.graphicsFormat,
-                DepthBits.None);
+                GraphicsFormat.None);
 
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_MotionBlurTarget", true, FilterMode.Bilinear);
 
@@ -1688,7 +1687,7 @@ namespace UnityEngine.Rendering.Universal
 
             var tempRtDesc = cameraData.cameraTargetDescriptor;
             tempRtDesc.msaaSamples = 1;
-            tempRtDesc.depthBufferBits = 0;
+            tempRtDesc.depthStencilFormat = GraphicsFormat.None;
 
             // Select a UNORM format since we've already performed tonemapping. (Values are in 0-1 range)
             // This improves precision and is required if we want to avoid excessive banding when FSR is in use.
@@ -1699,7 +1698,7 @@ namespace UnityEngine.Rendering.Universal
 
             var upscaleRtDesc = cameraData.cameraTargetDescriptor;
             upscaleRtDesc.msaaSamples = 1;
-            upscaleRtDesc.depthBufferBits = 0;
+            upscaleRtDesc.depthStencilFormat = GraphicsFormat.None;
             upscaleRtDesc.width = cameraData.pixelWidth;
             upscaleRtDesc.height = cameraData.pixelHeight;
 

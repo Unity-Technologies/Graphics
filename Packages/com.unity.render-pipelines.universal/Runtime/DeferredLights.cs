@@ -426,7 +426,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (this.GbufferRTHandles[gbufferIndex].GetInstanceID() != this.GbufferAttachments[gbufferIndex].GetInstanceID())
                     return;
 
-                gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
+                gbufferSlice.depthStencilFormat = GraphicsFormat.None; // make sure no depth surface is actually created
                 gbufferSlice.stencilFormat = GraphicsFormat.None;
                 gbufferSlice.graphicsFormat = GetGBufferFormat(gbufferIndex);
                 RenderingUtils.ReAllocateHandleIfNeeded(ref GbufferRTHandles[gbufferIndex], gbufferSlice, FilterMode.Point, TextureWrapMode.Clamp, name: k_GBufferNames[gbufferIndex]);

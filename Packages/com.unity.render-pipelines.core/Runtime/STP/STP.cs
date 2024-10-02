@@ -464,7 +464,7 @@ namespace UnityEngine.Rendering
                             int offset = (frameIndex * kNumHistoryTextureTypes) + historyTypeIndex;
 
                             m_textures[offset] = RTHandles.Alloc(
-                                width, height, TextureXR.slices, DepthBits.None, format, dimension: texDimension, enableRandomWrite: true,
+                                width, height, format, TextureXR.slices, dimension: texDimension, enableRandomWrite: true,
                                 name: name, useDynamicScaleExplicit: useDynamicScaleExplicit
                             );
                         }
