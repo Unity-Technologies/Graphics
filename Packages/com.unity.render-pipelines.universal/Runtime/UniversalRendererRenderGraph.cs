@@ -817,10 +817,31 @@ namespace UnityEngine.Rendering.Universal
             m_DepthNormalPrepass.OnCameraCleanup(cmd);
         }
 
+        private bool m_IssuedGPUOcclusionUnsupportedMsg = false;
+
         /// <summary>
         /// Used to determine if this renderer supports the use of GPU occlusion culling.
         /// </summary>
-        public override bool supportsGPUOcclusion => m_RenderingMode != RenderingMode.Deferred;
+        public override bool supportsGPUOcclusion
+        {
+            get
+            {
+                // UUM-82677: GRD GPU Occlusion Culling on Vulkan breaks rendering on some mobile GPUs
+                //
+                // We currently disable gpu occlusion culling when running on Qualcomm GPUs due to suspected driver issues.
+                // Once the issue is resolved, this logic should be removed.
+                const int kQualcommVendorId = 0x5143;
+                bool isGpuSupported = SystemInfo.graphicsDeviceVendorID != kQualcommVendorId;
+
+                if (!isGpuSupported && !m_IssuedGPUOcclusionUnsupportedMsg)
+                {
+                    Debug.LogWarning("The GPU Occlusion Culling feature is currently unavailable on this device due to suspected driver issues.");
+                    m_IssuedGPUOcclusionUnsupportedMsg = true;
+                }
+
+                return (m_RenderingMode != RenderingMode.Deferred) && isGpuSupported;
+            }
+        }
 
         private static bool m_CreateColorAttachment;
         private static bool m_CreateDepthAttachment;
