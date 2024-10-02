@@ -39,6 +39,7 @@ Refer to [Create a global fog effect](create-a-global-fog-effect.md) for more in
 | - - - **Volume Slice Count** | The number of slices to use for the volumetric buffer (3D texture) along the camera's focal axis.<br/>This property only appears if you set **Fog Control Mode** to **Manual**. |
 | - **Directional Lights Only** | Indicates whether HDRP only process volumetric fog for directional [Lights](Light-Component.md) or for all Lights. Including non-directional Lights increases the resource intensity of the effect. |
 | - **Anisotropy** | Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering. Note that non-zero values have a moderate performance impact. High values may have compatibility issues with the **Enable Reprojection for Volumetrics** Frame Setting. This is an experimental property that HDRP applies to both global and local fog. |
+| - **Multiple Scattering Intensity** | Specifies how much light is scattered the further away from the camera.  |
 
 
 ## Light-specific Properties
