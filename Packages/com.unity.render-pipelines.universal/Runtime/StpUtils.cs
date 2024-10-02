@@ -37,8 +37,6 @@ namespace UnityEngine.Rendering.Universal
             config.enableMotionScaling = true;
 #endif
 
-            int frameIndex = Time.frameCount;
-
             config.noiseTexture = noiseTexture;
 
             config.inputColor = inputColor;
@@ -67,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
 
             config.nearPlane = cameraData.camera.nearClipPlane;
             config.farPlane = cameraData.camera.farClipPlane;
-            config.frameIndex = frameIndex;
+            config.frameIndex = TemporalAA.CalculateTaaFrameIndex(ref cameraData.taaSettings);
             config.hasValidHistory = !cameraData.resetHistory;
             config.debugViewIndex = debugViewIndex;
 
