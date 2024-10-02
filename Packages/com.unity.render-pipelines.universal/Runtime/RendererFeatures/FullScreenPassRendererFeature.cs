@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering;
 
 /// <summary>
 /// This renderer feature lets you create single-pass full screen post processing effects without needing to write code.
@@ -155,7 +156,7 @@ public partial class FullScreenPassRendererFeature : ScriptableRendererFeature
         internal void ReAllocate(RenderTextureDescriptor desc)
         {
             desc.msaaSamples = 1;
-            desc.depthBufferBits = (int)DepthBits.None;
+            desc.depthStencilFormat = GraphicsFormat.None;
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_CopiedColor, desc, name: "_FullscreenPassColorCopy");
         }
 

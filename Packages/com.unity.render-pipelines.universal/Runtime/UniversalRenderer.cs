@@ -918,7 +918,7 @@ namespace UnityEngine.Rendering.Universal
             var colorDescriptor = cameraTargetDescriptor;
             colorDescriptor.useMipMap = false;
             colorDescriptor.autoGenerateMips = false;
-            colorDescriptor.depthBufferBits = (int)DepthBits.None;
+            colorDescriptor.depthStencilFormat = GraphicsFormat.None;
             m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
 
             // Configure all settings require to start a new camera stack (base camera only)
@@ -1077,7 +1077,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 var renderingLayersDescriptor = cameraTargetDescriptor;
-                renderingLayersDescriptor.depthBufferBits = 0;
+                renderingLayersDescriptor.depthStencilFormat = GraphicsFormat.None;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
                 if (!renderingLayerProvidesRenderObjectPass)
                     renderingLayersDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
@@ -1119,7 +1119,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 var normalDescriptor = cameraTargetDescriptor;
-                normalDescriptor.depthBufferBits = 0;
+                normalDescriptor.depthStencilFormat = GraphicsFormat.None;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
                 normalDescriptor.msaaSamples = useDepthPriming ? cameraTargetDescriptor.msaaSamples : 1;// Depth-Only passes don't use MSAA, unless depth priming is enabled
                 // Find compatible render-target format for storing normals.
@@ -1329,13 +1329,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 var colorDesc = cameraTargetDescriptor;
                 colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat;
-                colorDesc.depthBufferBits = (int)DepthBits.None;
+                colorDesc.depthStencilFormat = GraphicsFormat.None; 
                 colorDesc.msaaSamples = 1;  // Disable MSAA, consider a pixel resolve for half left velocity and half right velocity --> no velocity, which is untrue.
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorTextureName);
 
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                depthDescriptor.depthBufferBits = cameraTargetDescriptor.depthBufferBits;
+                depthDescriptor.depthStencilFormat = cameraTargetDescriptor.depthStencilFormat;
                 depthDescriptor.msaaSamples = 1;
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorDepthTextureName);
 
@@ -1421,7 +1421,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (applyPostProcessing)
             {
-                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
+                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, GraphicsFormat.None);
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
             }
 
@@ -1584,7 +1584,7 @@ namespace UnityEngine.Rendering.Universal
                             var tempColorDepthDesc = cameraTargetDescriptor;
                             tempColorDepthDesc.colorFormat = RenderTextureFormat.RFloat;
                             tempColorDepthDesc.graphicsFormat = GraphicsFormat.R32_SFloat;
-                            tempColorDepthDesc.depthBufferBits = 0;
+                            tempColorDepthDesc.depthStencilFormat = GraphicsFormat.None;
                             depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
                         }
                         else

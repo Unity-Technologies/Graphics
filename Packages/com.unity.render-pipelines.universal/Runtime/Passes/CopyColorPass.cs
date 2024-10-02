@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public static void ConfigureDescriptor(Downsampling downsamplingMethod, ref RenderTextureDescriptor descriptor, out FilterMode filterMode)
         {
             descriptor.msaaSamples = 1;
-            descriptor.depthBufferBits = 0;
+            descriptor.depthStencilFormat = GraphicsFormat.None;
             if (downsamplingMethod == Downsampling._2xBilinear)
             {
                 descriptor.width = Mathf.Max(1, descriptor.width / 2);

@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering.Universal
             taaDesc.mipCount = 0;
             taaDesc.graphicsFormat = cameraDesc.graphicsFormat;
             taaDesc.sRGB = false;
-            taaDesc.depthBufferBits = 0;
+            taaDesc.depthStencilFormat = GraphicsFormat.None;
             taaDesc.dimension = cameraDesc.dimension;
             taaDesc.vrUsage = cameraDesc.vrUsage;
             taaDesc.memoryless = RenderTextureMemoryless.None;

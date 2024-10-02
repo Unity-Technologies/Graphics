@@ -149,8 +149,8 @@ namespace UnityEngine.Rendering
                     occlusionRT = RTHandles.Alloc(
                         width: maxLensFlareWithOcclusion,
                         height: Mathf.Max(mergeNeeded * (maxLensFlareWithOcclusionTemporalSample + 1), 1),
-                        slices: TextureXR.slices,
-                        colorFormat: GetOcclusionRTFormat(),
+                        format: GetOcclusionRTFormat(),
+                        slices: TextureXR.slices,                        
                         enableRandomWrite: true,
                         dimension: TextureDimension.Tex2DArray);
                 }

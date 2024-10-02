@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.Universal
         internal RenderTextureDescriptor GetHistoryDescriptor(ref RenderTextureDescriptor cameraDesc)
         {
             var colorDesc = cameraDesc;
-            colorDesc.depthBufferBits = (int)DepthBits.None;
+            colorDesc.depthStencilFormat = GraphicsFormat.None;
             colorDesc.mipCount = 0;
             colorDesc.msaaSamples = 1;
 

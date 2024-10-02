@@ -3,6 +3,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.Util;
+using UnityEngine.Experimental.Rendering;
 
 public class CoreCopyBlitTestFeature : ScriptableRendererFeature
 {
@@ -23,7 +24,7 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
 
             RenderTextureDescriptor desc = cameraData.cameraTargetDescriptor;
             desc.autoGenerateMips = true;
-            desc.depthBufferBits = 0;
+            desc.depthStencilFormat = GraphicsFormat.None;
             var mip = 0;
 
             if (RenderGraphUtils.CanAddCopyPassMSAA())

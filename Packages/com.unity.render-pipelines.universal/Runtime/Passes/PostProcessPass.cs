@@ -413,12 +413,12 @@ namespace UnityEngine.Rendering.Universal
         RenderTextureDescriptor GetCompatibleDescriptor()
             => GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_Descriptor.graphicsFormat);
 
-        RenderTextureDescriptor GetCompatibleDescriptor(int width, int height, GraphicsFormat format, DepthBits depthBufferBits = DepthBits.None)
-            => GetCompatibleDescriptor(m_Descriptor, width, height, format, depthBufferBits);
+        RenderTextureDescriptor GetCompatibleDescriptor(int width, int height, GraphicsFormat format, GraphicsFormat depthStencilFormat = GraphicsFormat.None)
+            => GetCompatibleDescriptor(m_Descriptor, width, height, format, depthStencilFormat);
 
-        internal static RenderTextureDescriptor GetCompatibleDescriptor(RenderTextureDescriptor desc, int width, int height, GraphicsFormat format, DepthBits depthBufferBits = DepthBits.None)
+        internal static RenderTextureDescriptor GetCompatibleDescriptor(RenderTextureDescriptor desc, int width, int height, GraphicsFormat format, GraphicsFormat depthStencilFormat = GraphicsFormat.None)
         {
-            desc.depthBufferBits = (int)depthBufferBits;
+            desc.depthStencilFormat = depthStencilFormat;
             desc.msaaSamples = 1;
             desc.width = width;
             desc.height = height;
@@ -775,7 +775,7 @@ namespace UnityEngine.Rendering.Universal
             var material = m_Materials.subpixelMorphologicalAntialiasing;
             const int kStencilBit = 64;
 
-            RenderingUtils.ReAllocateHandleIfNeeded(ref m_EdgeStencilTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.None, DepthBits.Depth24), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeStencilTexture");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_EdgeStencilTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.None, GraphicsFormatUtility.GetDepthStencilFormat(24)), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeStencilTexture");
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_EdgeColorTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeColorTexture");
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_BlendTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point, TextureWrapMode.Clamp, name: "_BlendTexture");
 
@@ -1706,7 +1706,7 @@ namespace UnityEngine.Rendering.Universal
                 // Make sure to remove any MSAA and attached depth buffers from the temporary render targets
                 var tempRtDesc = cameraData.cameraTargetDescriptor;
                 tempRtDesc.msaaSamples = 1;
-                tempRtDesc.depthBufferBits = 0;
+                tempRtDesc.depthStencilFormat = GraphicsFormat.None;
 
                 // Select a UNORM format since we've already performed tonemapping. (Values are in 0-1 range)
                 // This improves precision and is required if we want to avoid excessive banding when FSR is in use.
@@ -1768,7 +1768,7 @@ namespace UnityEngine.Rendering.Universal
 
                                 var upscaleRtDesc = cameraData.cameraTargetDescriptor;
                                 upscaleRtDesc.msaaSamples = 1;
-                                upscaleRtDesc.depthBufferBits = 0;
+                                upscaleRtDesc.depthStencilFormat = GraphicsFormat.None;
                                 upscaleRtDesc.width = cameraData.pixelWidth;
                                 upscaleRtDesc.height = cameraData.pixelHeight;
 

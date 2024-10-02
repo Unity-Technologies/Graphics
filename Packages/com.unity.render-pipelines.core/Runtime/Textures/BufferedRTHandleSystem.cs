@@ -156,14 +156,15 @@ namespace UnityEngine.Rendering
             var buffer = new RTHandle[bufferCount];
             m_RTHandles.Add(bufferId, buffer);
 
+            var format = RTHandles.GetFormat(descriptor.graphicsFormat, descriptor.depthStencilFormat);
+
             RTHandle Alloc(ref RenderTextureDescriptor d, FilterMode fMode, TextureWrapMode wMode, bool isShadow, int aniso, float mipBias, string n)
             {
                 return m_RTHandleSystem.Alloc(
                     d.width,
                     d.height,
+                    format,
                     d.volumeDepth,
-                    (DepthBits) d.depthBufferBits,
-                    d.graphicsFormat,
                     fMode,
                     wMode,
                     d.dimension,

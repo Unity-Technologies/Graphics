@@ -8,10 +8,8 @@ namespace UnityEngine.Rendering.Universal
     {
         #if UNITY_SWITCH || UNITY_EMBEDDED_LINUX || UNITY_QNX
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
-        internal const int k_DepthBufferBits = 24;
         #else
         const GraphicsFormat k_DepthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt;
-        internal const int k_DepthBufferBits = 32;
         #endif
 
         const int k_FinalBlitPassQueueOffset = 1;
@@ -203,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
             ref var cameraTargetDescriptor = ref cameraData.cameraTargetDescriptor;
 
             var colorDescriptor = cameraTargetDescriptor;
-            colorDescriptor.depthBufferBits = (int)DepthBits.None;
+            colorDescriptor.depthStencilFormat = GraphicsFormat.None;
             m_ColorBufferSystem.SetCameraSettings(colorDescriptor, colorTextureFilterMode);
 
             if (cameraData.renderType == CameraRenderType.Base)
@@ -232,7 +230,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var depthDescriptor = cameraTargetDescriptor;
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                    depthDescriptor.depthBufferBits = k_DepthBufferBits;
+                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat; 
                     if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
                         depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
                     RenderingUtils.ReAllocateHandleIfNeeded(ref m_DepthTextureHandle, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
@@ -409,7 +407,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (hasPostProcess)
             {
-                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
+                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat);
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
 
                 postProcessPass.Setup(
