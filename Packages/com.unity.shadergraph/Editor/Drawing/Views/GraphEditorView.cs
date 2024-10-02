@@ -100,6 +100,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_GraphView; }
         }
 
+        public InspectorView inspectorView
+        {
+            get { return m_InspectorView; }
+        }
+
         internal PreviewManager previewManager
         {
             get { return m_PreviewManager; }
