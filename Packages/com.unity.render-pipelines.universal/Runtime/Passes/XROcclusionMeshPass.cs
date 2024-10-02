@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_IsActiveTargetBackBuffer)
                 cmd.SetViewport(renderingData.cameraData.xr.GetViewport());
 
-            renderingData.cameraData.xr.RenderOcclusionMesh(cmd);
+            renderingData.cameraData.xr.RenderOcclusionMesh(cmd, renderIntoTexture: !m_IsActiveTargetBackBuffer);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
