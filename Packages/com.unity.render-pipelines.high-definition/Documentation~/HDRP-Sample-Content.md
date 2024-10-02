@@ -78,11 +78,11 @@ This sample includes examples on how to create a [Fullscreen Shader](create-a-fu
 
 The Water samples contain the following scenes you can use to learn about HDRP's [Water](water.md) features: 
 
-- Pool: Demonstrates ripples and buoyancy. 
+- Pool: Demonstrates ripples and buoyancy.
 - Glacier: Demonstrates current, water deformers, floating objects, and a water mask.
 - Island: Demonstrates waves, foam, and the water excluder.
-- Rain: Demonstrates how to add pertubations to the normals using shader graph. 
-- Waterline: Demonstrates how to override rendering of the waterline using a [Custom Pass](Custom-Pass.md). 
+- Rain: Demonstrates how to add pertubations to the normals using shader graph.
+- Waterline: Demonstrates how to override rendering of the waterline using a [Custom Pass](Custom-Pass.md).
 
 ## Environment samples
 
@@ -90,7 +90,12 @@ The Water samples contain the following scenes you can use to learn about HDRP's
 
 This sample puts multiple environment effects together in the same scene with different lighting conditions.
 The scene includes examples focusing on the following effects:
-- Volumetric Clouds: Demonstrates simple, advanced and manual mode. 
+- Volumetric Clouds: Demonstrates simple, advanced and manual mode.
 - Lens Flare: How to update SRP Lens Flares data at runtime.
 - Night Sky: How to add stars and northern lights.
-- Time Of Day: Full 24h cycle with sun, moon and proper shadow map swapping. 
+- Time Of Day: Full 24h cycle with sun, moon and proper shadow map swapping.
+- Celestial Bodies: Includes the moon with automated or sun-position-dependent moon phases.
+- Customizable PBR Sky: Allows the night sky's appearance customization using the shader graph, with textures from NASA or other sources.
+- Atmospheric Scattering: Replaces volumetric fog for distant coloration, integrated directly into the PBR Sky.
+- Aerosol Parameters: Uses existing parameters in the PBR Sky, requiring no additional setup.
+- Ozone Light Scattering: Accounts for the ozone layer's density at the camera's altitude, improving visual fidelity.
