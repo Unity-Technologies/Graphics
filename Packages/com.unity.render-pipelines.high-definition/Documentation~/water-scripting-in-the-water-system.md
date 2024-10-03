@@ -242,3 +242,7 @@ water.simulationTime = referenceSurface.simulationTime;
 
 The `simulationStart` API works with absolute time data, which simplifies synchronization when sending the value over the network, as you don't have to account for the latency.
 Using the `simulationTime` gives you direct access to the time value used to compute the result of the water simulation and is useful when synchronizing surfaces locally.
+
+With this, it is also possible to synchronize multiple juxtaposed water surfaces (as if it was only one big surface). 
+For the water surfaces to tile properly, the size of the water surfaces need to be an integer multiple of the repetition size and the repetition size needs to be a multiple of 10.
+Example: two 50m * 50m water surfaces with a repetition size of 50 will tile properly, but two 45m * 45m with a repetition size of 45 will show a seam between the surfaces.  
