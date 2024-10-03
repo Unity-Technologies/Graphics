@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
-            
+
             CleanupRenderGraphResources();
 
             base.Dispose(disposing);
@@ -525,10 +525,7 @@ namespace UnityEngine.Rendering.Universal
             get => !IsGLDevice();
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler
-        {
-            get => !IsGLDevice(); // GLES and doesn't support MSAA resolve with the NRP API
-        }
+        internal override bool supportsNativeRenderPassRendergraphCompiler => true;
     }
 
 #if UNITY_EDITOR

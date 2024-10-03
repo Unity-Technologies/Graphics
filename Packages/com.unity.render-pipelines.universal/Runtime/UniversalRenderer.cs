@@ -377,13 +377,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Deferred rendering does not support MSAA.
                 this.supportedRenderingFeatures.msaa = false;
-
-                // Avoid legacy platforms: use vulkan instead.
-                unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[]
-                {
-                    GraphicsDeviceType.OpenGLCore,
-                    GraphicsDeviceType.OpenGLES3
-                };
             }
 
             LensFlareCommonSRP.mergeNeeded = 0;
@@ -1954,11 +1947,6 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler
-        {
-            get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
-                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore
-            ;
-        }
+        internal override bool supportsNativeRenderPassRendergraphCompiler => true;
     }
 }
