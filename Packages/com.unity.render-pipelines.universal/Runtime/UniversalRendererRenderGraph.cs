@@ -1723,14 +1723,15 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             var colorDesc = descriptor;
-            colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat; colorDesc.depthStencilFormat = GraphicsFormat.None;
             colorDesc.msaaSamples = 1;  // Disable MSAA, consider a pixel resolve for half left velocity and half right velocity --> no velocity, which is untrue.
+            colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat;
+            colorDesc.depthStencilFormat = GraphicsFormat.None;
             resourceData.motionVectorColor = CreateRenderGraphTexture(renderGraph, colorDesc, MotionVectorRenderPass.k_MotionVectorTextureName, true);
 
             var depthDescriptor = descriptor;
+            depthDescriptor.msaaSamples = 1;
             depthDescriptor.graphicsFormat = GraphicsFormat.None;
-            //TODO RENDERGRAPH: in some cornercases (f.e. rendering to targetTexture) this is needed. maybe this will be unnece
-            depthDescriptor.depthBufferBits = depthDescriptor.depthBufferBits != 0 ? depthDescriptor.depthBufferBits : 32; depthDescriptor.msaaSamples = 1;
+            depthDescriptor.depthStencilFormat = cameraDepthAttachmentFormat;
             resourceData.motionVectorDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, MotionVectorRenderPass.k_MotionVectorDepthTextureName, true);
         }
 
