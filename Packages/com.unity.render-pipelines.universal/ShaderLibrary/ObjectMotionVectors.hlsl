@@ -87,8 +87,6 @@ Varyings vert(Attributes input)
 
     output.previousPositionCSNoJitter = mul(_PrevViewProjMatrix, mul(UNITY_PREV_MATRIX_M, prevPos));
 
-    ApplyMotionVectorZBias(output.positionCS);
-
     return output;
 }
 

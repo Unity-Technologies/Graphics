@@ -1824,7 +1824,6 @@ namespace UnityEngine.Rendering.Universal
 
                     // update the descriptor to match the depth attachment
                     descriptor.depthStencilFormat = depthDescriptor.depthStencilFormat;
-                    descriptor.depthBufferBits = depthDescriptor.depthBufferBits;
                 }
             }
 
