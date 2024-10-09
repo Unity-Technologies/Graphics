@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering
     public class DocumentationInfo
     {
         const string fallbackVersion = "13.1";
-        const string url = "https://docs.unity3d.com/Packages/{0}@{1}/manual/{2}.html{3}";
+        const string url = "https://docs.unity3d.com/Packages/{0}@{1}/manual/{2}.html#{3}";
 
         /// <summary>
         /// Current version of the documentation.
