@@ -1361,7 +1361,7 @@ namespace UnityEngine.Rendering.Universal
 
 #endregion
 
-        static private void ScaleViewportAndBlit(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material)
+        static private void ScaleViewportAndBlit(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material, bool hasFinalPass)
         {
             Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTextureHdl, dest, cameraData);
             RenderTargetIdentifier cameraTarget = BuiltinRenderTextureType.CameraTarget;
@@ -1370,7 +1370,27 @@ namespace UnityEngine.Rendering.Universal
                 cameraTarget = cameraData.xr.renderTarget;
         #endif
             if (dest.nameID == cameraTarget || cameraData.targetTexture != null)
-                cmd.SetViewport(cameraData.pixelRect);
+            {
+                if (hasFinalPass || !cameraData.resolveFinalTarget)
+                {
+                    // Intermediate target can be scaled with render scale.
+                    // camera.pixelRect is the viewport of the final target in pixels.
+                    // Calculate scaled viewport for the intermediate target,
+                    // for example when inside a camera stack (non-final pass).
+                    var camViewportNormalized = cameraData.camera.rect;
+                    var targetWidth = cameraData.cameraTargetDescriptor.width;
+                    var targetHeight = cameraData.cameraTargetDescriptor.height;
+                    var scaledTargetViewportInPixels = new Rect(
+                        camViewportNormalized.x * targetWidth,
+                        camViewportNormalized.y * targetHeight,
+                        camViewportNormalized.width * targetWidth,
+                        camViewportNormalized.height * targetHeight);
+                    cmd.SetViewport(scaledTargetViewportInPixels);
+                }
+                else
+                    cmd.SetViewport(cameraData.pixelRect);
+            }
+
 
             Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
         }
@@ -1418,7 +1438,8 @@ namespace UnityEngine.Rendering.Universal
 
                     PostProcessUtils.SetSourceSize(cmd, sourceTextureHdl);
 
-                    ScaleViewportAndBlit(context.cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, data.material);
+                    bool hasFinalPass = true; // This is a pass just before final pass. Viewport must match intermediate target.
+                    ScaleViewportAndBlit(context.cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, data.material, hasFinalPass);
                 });
                 return;
             }
@@ -1788,6 +1809,7 @@ namespace UnityEngine.Rendering.Universal
             internal bool isHdrGrading;
             internal bool isBackbuffer;
             internal bool enableAlphaOutput;
+            internal bool hasFinalPass;
         }
 
         TextureHandle TryGetCachedUserLutTextureHandle(RenderGraph renderGraph)
@@ -1811,7 +1833,7 @@ namespace UnityEngine.Rendering.Universal
             return m_UserLut != null ? renderGraph.ImportTexture(m_UserLut) : TextureHandle.nullHandle;
         }
 
-        public void RenderUberPost(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, bool requireHDROutput, bool enableAlphaOutput, bool resolveToDebugScreen)
+        public void RenderUberPost(RenderGraph renderGraph, ContextContainer frameData, UniversalCameraData cameraData, UniversalPostProcessingData postProcessingData, in TextureHandle sourceTexture, in TextureHandle destTexture, in TextureHandle lutTexture, in TextureHandle overlayUITexture, bool requireHDROutput, bool enableAlphaOutput, bool resolveToDebugScreen, bool hasFinalPass)
         {
             var material = m_Materials.uber;
             bool hdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
@@ -1869,6 +1891,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.toneMappingMode = m_Tonemapping.mode.value;
                 passData.isHdrGrading = hdrGrading;
                 passData.enableAlphaOutput = enableAlphaOutput;
+                passData.hasFinalPass = hasFinalPass;
 
                 builder.SetRenderFunc(static (UberPostPassData data, RasterGraphContext context) =>
                 {
@@ -1899,7 +1922,7 @@ namespace UnityEngine.Rendering.Universal
                     CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, data.enableAlphaOutput);
 
                     // Done with Uber, blit it
-                    ScaleViewportAndBlit(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material);
+                    ScaleViewportAndBlit(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material, data.hasFinalPass);
                 });
 
                 return;
@@ -2102,7 +2125,7 @@ namespace UnityEngine.Rendering.Universal
                 DebugHandler debugHandler = GetActiveDebugHandler(cameraData);
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !m_HasFinalPass && !resolveToDebugScreen);
 
-                RenderUberPost(renderGraph, frameData, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, requireHDROutput, enableAlphaOutput, resolveToDebugScreen);
+                RenderUberPost(renderGraph, frameData, cameraData, postProcessingData, in currentSource, in postProcessingTarget, in lutTexture, in overlayUITexture, requireHDROutput, enableAlphaOutput, resolveToDebugScreen, hasFinalPass);
             }
         }
     }

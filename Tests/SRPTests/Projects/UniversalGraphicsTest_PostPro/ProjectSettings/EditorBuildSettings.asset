@@ -201,6 +201,15 @@ EditorBuildSettings:
     path: Assets/Scenes/276_AlphaOutput_RGBA8.unity
     guid: 1818ce52245d84b8c95e1521bc378d30
   - enabled: 1
+    path: Assets/Scenes/280_AlphaOutput_RGBA8_Stack_RenderScale_Down_Linear.unity
+    guid: 2c25b6fb088824ad997054b3c0fab896
+  - enabled: 1
+    path: Assets/Scenes/281_AlphaOutput_RGBA8_Stack_RenderScale_Up_Linear.unity
+    guid: f2e9a73c42a8943708adf547fffee72e
+  - enabled: 1
+    path: Assets/Scenes/282_AlphaOutput_RGBA8_Stack_RenderScale_Up_FSR.unity
+    guid: 33738bb1cfc644b2882c51fa88268a4f
+  - enabled: 1
     path: Assets/Scenes/373_HDROutput_ColorGamut.unity
     guid: cef44dde9c315e54fa9e5cfe6a04edbb
   - enabled: 1

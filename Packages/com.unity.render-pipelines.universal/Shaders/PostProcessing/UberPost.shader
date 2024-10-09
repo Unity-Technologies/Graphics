@@ -131,7 +131,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 if (DistIntensity > 0.0)
                 {
                     float wu = ru * DistTheta;
-                    ru = tan(wu) * (rcp(ru * DistSigma));
+                    ru = tan(wu) * (rcp(ru * DistSigma + HALF_MIN)); // Add HALF_MIN to avoid 1/0
                     uv = uv + ruv * (ru - 1.0);
                 }
                 else
@@ -312,7 +312,8 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #endif
 
             #if _ENABLE_ALPHA_OUTPUT
-            return half4(color, inputColor.a);
+            // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
+            return half4(color, saturate(inputColor.a));
             #else
             return half4(color, 1);
             #endif
