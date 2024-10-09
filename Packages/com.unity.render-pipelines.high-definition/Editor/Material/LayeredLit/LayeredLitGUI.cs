@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 SerializeableGUIDs layersGUID = JsonUtility.FromJson<SerializeableGUIDs>(materialImporter.userData);
                 if (layersGUID.GUIDArray.Length > 0)
                 {
-                    layers = new Material[layersGUID.GUIDArray.Length];
+                    layers = new Material[kMaxLayerCount];
                     for (int i = 0; i < layersGUID.GUIDArray.Length; ++i)
                     {
                         layers[i] = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(layersGUID.GUIDArray[i]), typeof(Material)) as Material;
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 if (layersGUID.withUV != null && layersGUID.withUV.Length > 0)
                 {
-                    withUV = new bool[layersGUID.withUV.Length];
+                    withUV = new bool[kMaxLayerCount];
                     for (int i = 0; i < layersGUID.withUV.Length; ++i)
                         withUV[i] = layersGUID.withUV[i];
                 }
@@ -170,8 +170,9 @@ namespace UnityEditor.Rendering.HighDefinition
             AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
 
             SerializeableGUIDs layersGUID;
-            layersGUID.GUIDArray = new string[materialLayers.Length];
-            layersGUID.withUV = new bool[withUV.Length];
+            // We should guarantee that the size of the layers is equal to kMaxLayerCount as it is initialized before.
+            layersGUID.GUIDArray = new string[kMaxLayerCount];
+            layersGUID.withUV = new bool[kMaxLayerCount];
             for (int i = 0; i < materialLayers.Length; ++i)
             {
                 if (materialLayers[i] != null)
