@@ -958,10 +958,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
-            AddPassDebugMetadata(passName, file, line);
-
             var renderPass = m_RenderGraphPool.Get<RasterRenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Raster, sampler);
+
+            AddPassDebugMetadata(renderPass, file, line);
 
             passData = renderPass.data;
 
@@ -1005,10 +1005,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
-            AddPassDebugMetadata(passName, file, line);
-
             var renderPass = m_RenderGraphPool.Get<ComputeRenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Compute, sampler);
+
+            AddPassDebugMetadata(renderPass, file, line);
 
             passData = renderPass.data;
 
@@ -1066,11 +1066,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
-            AddPassDebugMetadata(passName, file, line);
-
             var renderPass = m_RenderGraphPool.Get<UnsafeRenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Unsafe, sampler);
             renderPass.AllowGlobalState(true);
+
+            AddPassDebugMetadata(renderPass, file, line);
 
             passData = renderPass.data;
 
@@ -1096,11 +1096,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
-            AddPassDebugMetadata(passName, file, line);
-
-            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
+            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();          
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Legacy, sampler);
             renderPass.AllowGlobalState(true);// Old pass types allow global state by default as HDRP relies on it
+
+            AddPassDebugMetadata(renderPass, file, line);
 
             passData = renderPass.data;
 
