@@ -1,6 +1,5 @@
-using System.IO;
+﻿using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -32,12 +31,7 @@ namespace UnityEditor.Rendering.Tests
         public void CallerFilePathToRelative()
         {
             var absolutePath = GetCallerFilePath();
-            var relativePath = RenderGraphViewer.ScriptAbsolutePathToRelative(absolutePath);
-
-            // Use a regex to strip the fingerprint part (e.g., @ec76e1a6c2d6) from the relative path
-            var relativePathWithoutFingerprint = Regex.Replace(relativePath, "@[a-zA-Z0-9]+", string.Empty);
-
-            Assert.AreEqual(kExpectedCurrentFilePath, relativePathWithoutFingerprint);
+            Assert.AreEqual(kExpectedCurrentFilePath, RenderGraphViewer.ScriptAbsolutePathToRelative(absolutePath));
         }
 
         string GetCallerFilePath([CallerFilePath] string filePath = null) => filePath;
