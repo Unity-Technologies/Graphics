@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return output;
         }
 
-        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
+        virtual internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
             this.currentRenderTarget = targets;
