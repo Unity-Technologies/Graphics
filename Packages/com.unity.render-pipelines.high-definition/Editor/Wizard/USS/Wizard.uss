@@ -24,35 +24,6 @@
     margin-top: -4px;
 }
 
-.HelpBox
-{
-    margin: 10px;
-    margin-top: 5px;
-    padding: 10px;
-    border-width: 1px;
-    border-radius: 3px;
-    flex-direction:row;
-    flex-shrink: 1;
-}
-
-.HelpBox > Image
-{
-    margin-top: -7px;
-    margin-bottom: -7px;
-    margin-right: 10px;
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    align-self: center;
-}
-
-.HelpBox > Label
-{
-    -unity-text-align: middle-left;
-    white-space: normal;
-    margin-right: 32px;
-}
-
 #TestRow
 {
     flex-direction:row;
@@ -64,9 +35,10 @@
     margin-bottom: -8px
 }
 
-#FixAll
+
+.FixAllButton
 {
-    margin-top: 10px;
+    margin: 8px;
 }
 
 #OuterBox
@@ -98,11 +70,6 @@
     border-bottom-width: 1px;
 }
 
-.SelectedRadio
-{
-    border-bottom-width: 0px;
-}
-
 .LastRadio
 {
     border-right-width: 0px;
@@ -113,15 +80,6 @@
 {
     flex-grow: 1;
     -unity-text-align: middle-center;
-}
-
-ToolbarRadio
-{
-    border-width: 1px;
-    border-bottom-width: 0px;
-    border-radius: 0px;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
 }
 
 #DefaultResourceFolder
@@ -157,12 +115,12 @@ ToolbarRadio
 {
     border-width: 1px;
     border-radius: 3px;
-    margin: 0px;
-    margin-top: 12px;
-    padding: 7px;
+    margin: 12px;
+    padding: 10px;
+    border-color: var(--unity-colors-inspector_titlebar-border);
 }
 
-.ScopeBox > #Title
+.ScopeBoxLabel
 {
     margin-top: -17px;
     align-self: center;
@@ -170,11 +128,17 @@ ToolbarRadio
     font-size: 14px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
+    background-color: var(--unity-colors-window-background);
 }
 
 /* spacing between categories */
 
-#WizardCheckbox, .h1
+#MainToolbar
 {
-    margin-top: 15px;
+    flex-direction: row-reverse;
+}
+
+#WizardCheckbox
+{
+    margin-top: 3px;
 }

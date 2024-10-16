@@ -1224,7 +1224,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             CoreEditorUtils.DrawFixMeBox(Styles.rayTracingRestrictionOnlyWarning, "Open", () =>
             {
-                HDUserSettings.wizardActiveTab = 2; // focus on dxr tab
+                HDUserSettings.SetOpen(InclusiveMode.DXROptional, true); // Make sure DXR is open
                 HDWizard.OpenWindow();
             });
 

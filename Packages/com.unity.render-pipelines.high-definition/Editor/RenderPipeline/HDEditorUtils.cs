@@ -17,14 +17,8 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class HDEditorUtils
     {
-        internal const string FormatingPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Formating";
-
         internal const string QualitySettingsSheetPath =
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/QualitySettings";
-
-        internal const string WizardSheetPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Wizard";
 
         internal const string HDRPAssetBuildLabel = "HDRP:IncludeInBuild";
 
