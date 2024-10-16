@@ -9,6 +9,7 @@ using UnityEngine.TestTools;
 public class PreviewTests : MonoBehaviour
 {
     [UnityTest]
+    [Ignore("https://jira.unity3d.com/browse/UUM-77935")]
     public IEnumerator AssetPreviewIsCorrect()
     {
         var threshold = 0.003f;
