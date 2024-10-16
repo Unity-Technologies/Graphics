@@ -152,6 +152,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Rendering Path must be set to Forward+ for correct lighting and reflections. One or more entries in the RendererList are not set to this mode.");
             public static GUIContent renderGraphNotEnabledErrorMessage =
                 EditorGUIUtility.TrTextContent("Render Graph must be enabled to use occlusion culling.");
+            public static GUIContent stencilLodCrossFadeWarningMessage =
+                EditorGUIUtility.TrTextContent("LOD Cross Fade with stencil dithering is not compatible with stencil override in Renderer.");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };

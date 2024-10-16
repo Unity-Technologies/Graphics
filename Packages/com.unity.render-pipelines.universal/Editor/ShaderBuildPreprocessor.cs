@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.Universal
         SoftShadowsMedium = (1L << 47),
         SoftShadowsHigh = (1L << 48),
         AlphaOutput = (1L << 49),
-
+        StencilLODCrossFade = (1L << 50),
     }
 
     [Flags]
@@ -456,7 +456,12 @@ namespace UnityEditor.Rendering.Universal
                 urpAssetShaderFeatures |= ShaderFeatures.HdrGrading;
 
             if (urpAsset.enableLODCrossFade)
+            {
                 urpAssetShaderFeatures |= ShaderFeatures.LODCrossFade;
+
+                if (urpAsset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.Stencil)
+                    urpAssetShaderFeatures |= ShaderFeatures.StencilLODCrossFade;
+            }
 
             if (urpAsset.shEvalMode == ShEvalMode.Auto)
                 urpAssetShaderFeatures |= ShaderFeatures.AutoSHMode;

@@ -1603,6 +1603,8 @@ namespace UnityEngine.Rendering.Universal
                 data.transparentLayerMask = universalRenderer.transparentLayerMask;
             }
 
+            data.stencilLodCrossFadeEnabled = settings.enableLODCrossFade && settings.lodCrossFadeDitheringType == LODCrossFadeDitheringType.Stencil;
+
             return data;
         }
 
@@ -2004,6 +2006,9 @@ namespace UnityEngine.Rendering.Universal
                     break;
                 case LODCrossFadeDitheringType.BlueNoise:
                     ditheringTexture = runtimeTextures.blueNoise64LTex;
+                    break;
+                case LODCrossFadeDitheringType.Stencil:
+                    ditheringTexture = runtimeTextures.stencilDitherTex; // For the pass that has no stencil such as shadow and motion vector
                     break;
                 default:
                     Debug.LogWarning($"This Lod Cross Fade Dithering Type is not supported: {asset.lodCrossFadeDitheringType}");

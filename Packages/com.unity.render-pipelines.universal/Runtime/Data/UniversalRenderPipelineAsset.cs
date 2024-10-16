@@ -379,7 +379,11 @@ namespace UnityEngine.Rendering.Universal
         BayerMatrix,
 
         /// <summary>Unity uses the precomputed blue noise texture to compute the LOD cross-fade dithering.</summary>
-        BlueNoise
+        BlueNoise,
+
+        /// <summary>Unity uses stencil test to make 2x2 pixel dithering pattern by using 2 stencil bits (4 and 8). This option significantly decreases the number of the shader variants, while GPU performance cost becomes slightly higher.</summary>
+        [InspectorName("2x2 Stencil"), Tooltip("2x2 pixel dithering pattern by stencil test with 2 stencil bits (4 and 8). This option decreases the number of the shader variants.")]
+        Stencil
     }
 
     /// <summary>
@@ -480,6 +484,7 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LOD_FADE_CROSSFADE)]
 #endif
         [SerializeField] bool m_EnableLODCrossFade = true;
+
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
 
         // ShEvalMode.Auto is handled in shader preprocessor.

@@ -1123,6 +1123,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnMainRendering(RenderGraph renderGraph, ScriptableRenderContext context)
         {
+            UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
@@ -1135,6 +1136,9 @@ namespace UnityEngine.Rendering.Universal
                 if (clearFlags != RTClearFlags.None)
                     ClearTargetsPass.Render(renderGraph, resourceData.activeColorTexture, resourceData.activeDepthTexture, clearFlags, cameraData.backgroundColor);
             }
+
+            if (renderingData.stencilLodCrossFadeEnabled)
+                m_StencilCrossFadeRenderPass.Render(renderGraph, context, resourceData.activeDepthTexture);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingPrePasses);
 
@@ -1181,6 +1185,9 @@ namespace UnityEngine.Rendering.Universal
                 bool isDepthPrimingTarget = (useDepthPriming && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth));
                 bool renderToAttachment = (isDeferred || isDepthPrimingTarget);
                 TextureHandle depthTarget = renderToAttachment ? resourceData.activeDepthTexture : resourceData.cameraDepthTexture;
+                // Prepare stencil buffer for stencil-based cross-fade lod in depth normal prepass. Depth prepass doesn't use stencil test (same as shadow).
+                if (renderingData.stencilLodCrossFadeEnabled && isDepthNormalPrepass && !renderToAttachment)
+                    m_StencilCrossFadeRenderPass.Render(renderGraph, context, resourceData.cameraDepthTexture);
 
                 var passCount = needsOccluderUpdate ? 2 : 1;
                 for (int passIndex = 0; passIndex < passCount; ++passIndex)

@@ -33,6 +33,20 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// Definition of stencil bits for stencil-based cross-fade LOD.
+    /// </summary>
+    [Flags]
+    public enum UniversalRendererStencilRef
+    {
+        /// <summary>The first stencil bit for stencil-based cross-fade LOD.</summary>
+        CrossFadeStencilRef_0 = 1 << 2,
+        /// <summary>The second stencil bit for stencil-based cross-fade LOD.</summary>
+        CrossFadeStencilRef_1 = 1 << 3,
+        /// <summary>All stencil bits for stencil-based cross-fade LOD.</summary>
+        CrossFadeStencilRef_All = CrossFadeStencilRef_0 + CrossFadeStencilRef_1,
+    }
+
+    /// <summary>
     /// Default renderer for Universal RP.
     /// This renderer is supported on all Universal RP supported platforms.
     /// It uses a classic forward rendering strategy with per-object light culling.
@@ -130,6 +144,8 @@ namespace UnityEngine.Rendering.Universal
         CopyColorPass m_HistoryRawColorCopyPass;
         CopyDepthPass m_HistoryRawDepthCopyPass;
 
+        StencilCrossFadeRenderPass m_StencilCrossFadeRenderPass;
+
         internal RenderTargetBufferSystem m_ColorBufferSystem;
 
         internal RTHandle m_ActiveCameraColorAttachment;
@@ -208,7 +224,9 @@ namespace UnityEngine.Rendering.Universal
                 copyDephPS = universalRendererShaders.copyDepthPS;
                 m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(universalRendererShaders.stencilDeferredPS);
                 m_CameraMotionVecMaterial = CoreUtils.CreateEngineMaterial(universalRendererShaders.cameraMotionVector);
-            }
+
+                m_StencilCrossFadeRenderPass = new StencilCrossFadeRenderPass(universalRendererShaders.stencilDitherMaskSeedPS);
+            }            
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -409,6 +427,8 @@ namespace UnityEngine.Rendering.Universal
             m_XRCopyDepthPass?.Dispose();
             m_XRDepthMotionPass?.Dispose();
 #endif
+
+            m_StencilCrossFadeRenderPass?.Dispose();
 
             m_TargetColorHandle?.Release();
             m_TargetDepthHandle?.Release();

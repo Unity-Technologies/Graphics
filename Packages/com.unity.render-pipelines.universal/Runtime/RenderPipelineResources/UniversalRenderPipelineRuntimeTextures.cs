@@ -57,5 +57,31 @@ namespace UnityEngine.Rendering.Universal
             get => m_DebugFontTex;
             set => this.SetValueAndNotify(ref m_DebugFontTex, value, nameof(m_DebugFontTex));
         }
+
+        private Texture2D m_StencilDitherTex = null;
+
+        /// <summary>
+        /// stencil-based lod texture.
+        /// </summary>
+        public Texture2D stencilDitherTex
+        {
+            get
+            {
+                if (!m_StencilDitherTex)
+                {
+                    m_StencilDitherTex = new Texture2D(width: 2, height: 2, textureFormat: TextureFormat.Alpha8, mipChain: false, linear: true);
+
+                    // keep in sync with StencilDitherMaskSeed.shader
+                    m_StencilDitherTex.SetPixel(0, 0, Color.red * 0.25f);
+                    m_StencilDitherTex.SetPixel(1, 1, Color.red * 0.5f);
+                    m_StencilDitherTex.SetPixel(0, 1, Color.red * 0.75f);
+                    m_StencilDitherTex.SetPixel(1, 0, Color.red * 1.0f);
+                    m_StencilDitherTex.Apply();
+                }
+                return m_StencilDitherTex;
+            }
+        }
+
+
     }
 }
