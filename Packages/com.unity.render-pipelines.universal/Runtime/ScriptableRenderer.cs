@@ -258,6 +258,15 @@ namespace UnityEngine.Rendering.Universal
             float cameraWidth = (float)camera.pixelWidth;
             float cameraHeight = (float)camera.pixelHeight;
 
+            // Overlay cameras don't have a viewport. Must use the computed/inherited viewport instead of the camera one.
+            if (cameraData.renderType == CameraRenderType.Overlay)
+            {
+                // Overlay cameras inherits viewport from base.
+                // pixelRect/Width/Height is the viewport in pixels.
+                cameraWidth = cameraData.pixelWidth;
+                cameraHeight = cameraData.pixelHeight;
+            }
+
             // Use eye texture's width and height as screen params when XR is enabled
             if (cameraData.xr.enabled)
             {
