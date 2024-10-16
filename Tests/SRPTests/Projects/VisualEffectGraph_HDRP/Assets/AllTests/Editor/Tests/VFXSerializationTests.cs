@@ -1342,6 +1342,40 @@ namespace UnityEditor.VFX.Test
                 yield return null;
         }
 
+        [Test, Description("Cover regression UUM-83598")]
+        public void Sanitize_Custom_Attribute_With_Random()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/Repro_UUM_83598.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+            Assert.IsNotNull(graph);
+
+            var initialize = graph.GetGraph().children.OfType<VFXBasicInitialize>().Single();
+            Assert.IsNotNull(initialize);
+
+            Assert.AreEqual(2u, initialize.children.Count());
+            Assert.AreEqual(2u, initialize.children.OfType<SetAttribute>().Count());
+            var sizeExpected = (string)initialize.children.First().GetSetting("attribute").value;
+            var customExpected = (string)initialize.children.Last().GetSetting("attribute").value;
+            Assert.AreEqual(VFXAttribute.Size.name, sizeExpected);
+            Assert.AreEqual("CustomAttribute", customExpected);
+
+            var customAttribute = graph.customAttributes.SingleOrDefault(o => o.attributeName == customExpected);
+            Assert.IsNotNull(customAttribute);
+
+            foreach (var block in initialize.children)
+            {
+                var random = (RandomMode)block.GetSetting("Random").value;
+                Assert.AreEqual(RandomMode.Uniform, random);
+                Assert.AreEqual(2u, block.inputSlots.Count);
+                Assert.AreEqual("A", block.inputSlots[0].name);
+                Assert.AreEqual("B", block.inputSlots[1].name);
+                Assert.AreEqual(typeof(float), block.inputSlots[0].property.type);
+                Assert.AreEqual(typeof(float), block.inputSlots[1].property.type);
+                Assert.AreEqual(0.0f, block.inputSlots[0].value);
+                Assert.AreEqual(1.0f, block.inputSlots[1].value);
+            }
+        }
+
         [OneTimeTearDown]
         public void CleanUp()
         {
