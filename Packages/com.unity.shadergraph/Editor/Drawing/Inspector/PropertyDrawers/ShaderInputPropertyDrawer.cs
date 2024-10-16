@@ -836,6 +836,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     new ToggleData(texture2DProperty.useTilingAndOffset, true),
                     "Use Tiling and Offset",
                     out var tilingAndOffsetToggle));
+                propertySheet.Add(togglePropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Use TexelSize");
+                        if (texture2DProperty.useTexelSize == newValue.isOn)
+                            return;
+                        texture2DProperty.useTexelSize = newValue.isOn;
+                        this._postChangeValueCallback();
+                    },
+                    new ToggleData(texture2DProperty.useTexelSize, true),
+                    "Use TexelSize",
+                    out var texelSizeToggle));
             }
         }
 

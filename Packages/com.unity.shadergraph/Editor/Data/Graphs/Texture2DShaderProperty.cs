@@ -49,7 +49,11 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         internal bool useTilingAndOffset = false;
 
+        [SerializeField]
+        internal bool useTexelSize = true;
+
         internal string useSTString => useTilingAndOffset ? "" : "[NoScaleOffset]";
+        internal string useTexelSizeString => useTexelSize ? "" : "[NoTexelSize]";
         internal string mainTextureString => isMainTexture ? "[MainTexture]" : "";
 
         internal override string GetPropertyBlockString()
@@ -67,7 +71,10 @@ namespace UnityEditor.ShaderGraph.Internal
 
             action(new HLSLProperty(HLSLType._Texture2D, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
-            action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
+            if (useTexelSize)
+            {
+                action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
+            }
             if (useTilingAndOffset)
             {
                 action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl));
@@ -90,13 +97,27 @@ namespace UnityEditor.ShaderGraph.Internal
                 return referenceName;
             else
             {
-                if (useTilingAndOffset)
+                if (useTexelSize)
                 {
-                    return $"UnityBuildTexture2DStruct({referenceName})";
+                    if (useTilingAndOffset)
+                    {
+                        return $"UnityBuildTexture2DStruct({referenceName})";
+                    }
+                    else
+                    {
+                        return $"UnityBuildTexture2DStructNoScale({referenceName})";
+                    }
                 }
                 else
                 {
-                    return $"UnityBuildTexture2DStructNoScale({referenceName})";
+                    if (useTilingAndOffset)
+                    {
+                        return $"UnityBuildTexture2DStructNoTexelSize({referenceName})";
+                    }
+                    else
+                    {
+                        return $"UnityBuildTexture2DStructNoScaleNoTexelSize({referenceName})";
+                    }
                 }
             }
         }
@@ -142,6 +163,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 value = value,
                 defaultType = defaultType,
                 useTilingAndOffset = useTilingAndOffset,
+                useTexelSize = useTexelSize,
                 isMainTexture = isMainTexture
             };
         }
