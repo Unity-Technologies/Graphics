@@ -12,10 +12,11 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal enum PassType
         {
-            DeformationAndFoam = 0,
-            SimulationMask = 1,
-            LargeCurrent = 2,
-            RipplesCurrent = 3,
+            Deformation = 0,
+            Foam = 1,
+            SimulationMask = 2,
+            LargeCurrent = 3,
+            RipplesCurrent = 4,
         }
 
         #region General

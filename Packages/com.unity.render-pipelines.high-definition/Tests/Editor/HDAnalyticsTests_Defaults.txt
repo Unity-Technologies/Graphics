@@ -15,6 +15,7 @@
 {"supportWater":"False"},
 {"waterSimulationResolution":"Medium128"},
 {"supportWaterExclusion":"True"},
+{"supportWaterHorizontalDeformation":"False"},
 {"supportWaterDecals":"True"},
 {"waterDecalAtlasSize":"AtlasSize1024"},
 {"maximumWaterDecalCount":"48"},

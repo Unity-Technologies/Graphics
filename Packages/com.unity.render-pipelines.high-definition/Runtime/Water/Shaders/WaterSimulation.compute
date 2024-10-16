@@ -72,11 +72,6 @@ float2 ComplexMult(float2 a, float2 b)
     return float2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);
 }
 
-float3 ShuffleDisplacement(float3 displacement)
-{
-    return float3(-displacement.y, displacement.x, -displacement.z);
-}
-
 // InitializePhillipsSpectrum UAVS
 RWTexture2DArray<float2> _H0BufferRW;
 

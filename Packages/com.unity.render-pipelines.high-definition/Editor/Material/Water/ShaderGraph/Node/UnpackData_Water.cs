@@ -24,8 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kLowFrequencyHeightOutputSlotId = 0;
         const string kLowFrequencyHeightSlotName = "LowFrequencyHeight";
 
-        const int kHorizontalDisplacementOutputSlotId = 1;
-        const string kHorizontalDisplacementSlotName = "HorizontalDisplacement";
+        const int kDisplacementOutputSlotId = 1;
+        const string kDisplacementSlotName = "Displacement";
 
         public override bool hasPreview { get { return false; } }
 
@@ -33,13 +33,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Outputs
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightOutputSlotId, kLowFrequencyHeightSlotName, kLowFrequencyHeightSlotName, SlotType.Output, 0));
-            AddSlot(new Vector1MaterialSlot(kHorizontalDisplacementOutputSlotId, kHorizontalDisplacementSlotName, kHorizontalDisplacementSlotName, SlotType.Output, 0));
+            AddSlot(new Vector3MaterialSlot(kDisplacementOutputSlotId, kDisplacementSlotName, kDisplacementSlotName, SlotType.Output, Vector3.zero));
 
             RemoveSlotsNameNotMatching(new[]
             {
                 // Outputs
                 kLowFrequencyHeightOutputSlotId,
-                kHorizontalDisplacementOutputSlotId,
+                kDisplacementOutputSlotId,
             });
         }
 
@@ -48,15 +48,16 @@ namespace UnityEditor.Rendering.HighDefinition
             // See PackWaterVertexData
 
             // Low Frequency Height
-            sb.AppendLine("$precision {0} = saturate(IN.{1}.w);",
+            sb.AppendLine("$precision {0} = saturate(IN.{1}.z);",
                 GetVariableNameForSlot(kLowFrequencyHeightOutputSlotId),
-                ShaderGeneratorNames.GetUVName(UVChannel.UV1)
+                ShaderGeneratorNames.GetUVName(UVChannel.UV0)
             );
 
-            // Horizontal Displacement
-            sb.AppendLine("$precision {0} = IN.{1}.w;",
-                GetVariableNameForSlot(kHorizontalDisplacementOutputSlotId),
-                ShaderGeneratorNames.GetUVName(UVChannel.UV0)
+            // Displacement
+            sb.AppendLine("$precision3 {0} = float3(IN.{1}.w, IN.{1}.z, IN.{2}.w);",
+                GetVariableNameForSlot(kDisplacementOutputSlotId),
+                ShaderGeneratorNames.GetUVName(UVChannel.UV0), 
+                ShaderGeneratorNames.GetUVName(UVChannel.UV1) 
             );
         }
 

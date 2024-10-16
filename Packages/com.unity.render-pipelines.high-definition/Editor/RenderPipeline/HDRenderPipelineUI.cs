@@ -987,6 +987,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Exclusion
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterExclusion, Styles.supportWaterExclusionContent);
 
+                // Horizontal Deformation
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterHorizontalDeformation, Styles.supportWaterHorizontalDeformationContent);
+
                 // CPU Simulation
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterScriptInteractionsMode);
 

@@ -3,6 +3,7 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
+#pragma multi_compile _ HORIZONTAL_DEFORMATION
 // #pragma enable_d3d11_debug_symbols
 
 // Required to be defined for some includes
@@ -16,13 +17,20 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/WaterUtilities.hlsl"
 
 // FilterDeformation UAV
-RWTexture2D<float> _WaterDeformationBufferRW;
+#if defined(HORIZONTAL_DEFORMATION)
+    #define DEFORM_TYPE float4
+#else
+    #define DEFORM_TYPE float
+#endif
+
+RWTexture2D<DEFORM_TYPE> _WaterDeformationBufferRW;
 
 // LDS to load the data
 #define DISPATCH_SIZE 8
 #define FILTER_SIZE_1D (DISPATCH_SIZE + 2) // With a 8x8 group, we have a 10x10 working area
 #define LDS_SIZE FILTER_SIZE_1D * FILTER_SIZE_1D
-groupshared float gs_cacheHeight[LDS_SIZE];
+
+groupshared DEFORM_TYPE gs_cacheHeight[LDS_SIZE];
 
 bool IsValidCoord(int2 tapCoord)
 {
@@ -44,7 +52,12 @@ void LoadDeformationIntoLDS(uint groupIndex, uint2 groupOrigin)
 
         // Clamp the tap coordinate to the texture space
         int2 sampleCoord = clamp(tapCoord, 0, _DeformationRegionResolution - 1);
-        float tapHeight = LOAD_TEXTURE2D(_WaterDeformationBuffer, sampleCoord);
+
+#if defined(HORIZONTAL_DEFORMATION)
+            DEFORM_TYPE tapHeight = LOAD_TEXTURE2D(_WaterDeformationBuffer, sampleCoord);
+#else
+            DEFORM_TYPE tapHeight = LOAD_TEXTURE2D(_WaterDeformationBuffer, sampleCoord).x;
+#endif
 
         // Write the result to the LDS
         int LDSIndex = offsetX + offsetY * FILTER_SIZE_1D;
@@ -74,7 +87,9 @@ void FilterDeformation(uint3 currentThread : SV_DispatchThreadID,
     // Make sure all values are loaded in LDS by now.
     GroupMemoryBarrierWithGroupSync();
 
-    float totalDeformation = 0.0;
+    
+    DEFORM_TYPE totalDeformation = 0.0;
+    
     float sumW = 0.0;
     for (int y = -1; y <= 1; ++y)
     {
@@ -87,7 +102,7 @@ void FilterDeformation(uint3 currentThread : SV_DispatchThreadID,
             // Tap from LDS
             int2 tapAddress = (groupThreadId + 1) + int2(x, y);
             uint ldsTapAddress = uint(tapAddress.x) % FILTER_SIZE_1D + tapAddress.y * FILTER_SIZE_1D;
-            float tapHeight = gs_cacheHeight[ldsTapAddress];
+            DEFORM_TYPE tapHeight = gs_cacheHeight[ldsTapAddress];
 
             // Accumulate
             totalDeformation += tapHeight * weight;
@@ -114,18 +129,31 @@ void EvaluateDeformationSurfaceGradient(uint3 currentThread : SV_DispatchThreadI
     uint2 rightCoord = clamp(uint2(centerCoord + uint2(1, 0)), uint2(0, 0), uint2(bound, bound));
     uint2 upCoord = clamp(uint2(centerCoord + uint2(0, 1)), uint2(0, 0), uint2(bound, bound));
 
-    // Get the displacement we need for the evaluate (and re-order them)
-    float displacementCenter = LOAD_TEXTURE2D(_WaterDeformationBuffer, centerCoord);
-    float displacementRight = LOAD_TEXTURE2D(_WaterDeformationBuffer, rightCoord);
-    float displacementUp = LOAD_TEXTURE2D(_WaterDeformationBuffer, upCoord);
-
     // Evaluate the displacement normalization factor and pixel size
     float2 pixelSize = 1.0f / (_DeformationRegionResolution * _DecalRegionScale);
+    
+#if defined(HORIZONTAL_DEFORMATION)
+    // Get the displacement we need for the evaluate (and re-order them)
+    float3 displacementCenter = ShuffleDisplacement(LOAD_TEXTURE2D(_WaterDeformationBuffer, centerCoord).xyz);
+    float3 displacementRight = ShuffleDisplacement(LOAD_TEXTURE2D(_WaterDeformationBuffer, rightCoord).xyz);
+    float3 displacementUp = ShuffleDisplacement(LOAD_TEXTURE2D(_WaterDeformationBuffer, upCoord).xyz);
+
+    // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
+    float3 p0 = displacementCenter;
+    float3 p1 = displacementRight + float3(pixelSize.x, 0, 0);
+    float3 p2 = displacementUp + float3(0, 0, pixelSize.y);
+#else
+    // Get the displacement we need for the evaluate (and re-order them)
+    float displacementCenter = LOAD_TEXTURE2D(_WaterDeformationBuffer, centerCoord).x;
+    float displacementRight = LOAD_TEXTURE2D(_WaterDeformationBuffer, rightCoord).x;
+    float displacementUp = LOAD_TEXTURE2D(_WaterDeformationBuffer, upCoord).x;
 
     // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
     float3 p0 = float3(0, displacementCenter, 0);
     float3 p1 = float3(pixelSize.x, displacementRight, 0);
     float3 p2 = float3(0, displacementUp, pixelSize.y);
+#endif
+    
     float2 surfaceGradient = EvaluateSurfaceGradients(p0, p1, p2);
 
     // Make sure the surface gradient is null at the edges

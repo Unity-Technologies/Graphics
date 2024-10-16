@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kLowFrequencyHeightInputSlotId = 1;
         const string kLowFrequencyHeightInputSlotName = "LowFrequencyHeight";
 
-        const int kHorizontalDisplacementInputSlotId = 2;
-        const string kHorizontalDisplacementInputSlotName = "HorizontalDisplacement";
+        const int kDisplacementInputSlotId = 2;
+        const string kDisplacementInputSlotName = "Displacement";
 
         const int kDeepFoamInputSlotId = 3;
         const string kDeepFoamInputSlotName = "DeepFoam";
@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Input
             AddSlot(new Vector3MaterialSlot(kAbsorptionTintInputSlotId, kAbsorptionTintInputSlotName, kAbsorptionTintInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightInputSlotId, kLowFrequencyHeightInputSlotName, kLowFrequencyHeightInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(kHorizontalDisplacementInputSlotId, kHorizontalDisplacementInputSlotName, kHorizontalDisplacementInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
+            AddSlot(new Vector3MaterialSlot(kDisplacementInputSlotId, kDisplacementInputSlotName, kDisplacementInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kDeepFoamInputSlotId, kDeepFoamInputSlotName, kDeepFoamInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
 
             // Output
@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Input
                 kAbsorptionTintInputSlotId,
                 kLowFrequencyHeightInputSlotId,
-                kHorizontalDisplacementInputSlotId,
+                kDisplacementInputSlotId,
                 kDeepFoamInputSlotId,
 
                 // Output
@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("$precision3 {5} = EvaluateScatteringColor(IN.{0}.xzy, {1}, {2}, {3}, {4});",
                     ShaderGeneratorNames.GetUVName(UVChannel.UV0),
                     GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode),
-                    GetSlotValue(kHorizontalDisplacementInputSlotId, generationMode),
+                    GetSlotValue(kDisplacementInputSlotId, generationMode),
                     GetSlotValue(kAbsorptionTintInputSlotId, generationMode),
                     GetSlotValue(kDeepFoamInputSlotId, generationMode),
                     GetVariableNameForSlot(kScatteringColorOutputSlotId));

@@ -25,13 +25,8 @@ void PackWaterVertexData(VertexDescription vertex, out float4 uv0, out float4 uv
     uv0 = float4(vertex.Displacement, 1.0);
     uv1 = float4(vertex.Position, 1.0);
 #else
-    uv0.xy = vertex.Position.xz;
-    uv0.z = vertex.Displacement.y;
-    uv0.w = length(vertex.Displacement.xz);
-
-    if (_GridSize.x >= 0)
-        uv1.xyz = TransformObjectToWorld(vertex.Position + vertex.Displacement);
-    uv1.w = vertex.LowFrequencyHeight;
+    uv0 = float4(vertex.Position.x, vertex.Position.z, vertex.Displacement.y, vertex.Displacement.x);
+    uv1 = float4(TransformObjectToWorld(vertex.Position + vertex.Displacement), vertex.Displacement.z);
 #endif
 }
 

@@ -62,8 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("ZERO_INITIALIZE(WaterAdditionalData, waterAdditionalData);");
 
                 // Evaluate the data
-                sb.AppendLine("EvaluateWaterAdditionalData(IN.{0}.xzy, IN.WorldSpacePosition, IN.WorldSpaceNormal, waterAdditionalData);",
-                    ShaderGeneratorNames.GetUVName(UVChannel.UV0));
+                sb.AppendLine("EvaluateWaterAdditionalData(IN.{0}.xzy, IN.WorldSpacePosition, IN.WorldSpaceNormal, float2(IN.{0}.w, IN.{1}.w), waterAdditionalData);",
+                    ShaderGeneratorNames.GetUVName(UVChannel.UV0), ShaderGeneratorNames.GetUVName(UVChannel.UV1));
 
                 // Output the data
                 sb.AppendLine("$precision3 {0} = waterAdditionalData.normalWS;",

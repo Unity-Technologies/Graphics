@@ -14,11 +14,27 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/SampleWaterSurface.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/UnderWaterUtilities.hlsl"
 
+// We need this function here because we cannot pass lowFrequencyHeight anymore.
+// Instead we pass displacement.y and remap it, it's the same but it contains all frequencies, the look changes slightly but not even to make tests fail so it's more than acceptable. 
+// We keep the function as is for backwards compatibility.
+float RemapLowFrequencyHeight(float lowFrequencyHeight)
+{
+    lowFrequencyHeight /= _ScatteringWaveHeight;
+    lowFrequencyHeight = saturate(lowFrequencyHeight * 0.5 + 0.5);
+    return lowFrequencyHeight;
+}
+
+float3 ShuffleDisplacement(float3 displacement)
+{
+    return float3(-displacement.y, displacement.x, -displacement.z);
+}
+
 float2 EvaluateSurfaceGradients(float3 p0, float3 p1, float3 p2)
 {
     float3 v0 = normalize(p1 - p0);
     float3 v1 = normalize(p2 - p0);
     float3 geometryNormal = normalize(cross(v1, v0));
+    geometryNormal.y = max(abs(geometryNormal.y), 0.01f);
     return SurfaceGradientFromPerturbedNormal(float3(0, 1, 0), geometryNormal).xz;
 }
 
@@ -204,7 +220,7 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float2 positionNDC, float3
 float EvaluateTipThickness(float3 viewWS, float3 lowFrequencyNormals, float lowFrequencyHeight)
 {
     // Compute the tip thickness
-    float tipHeight = saturate(lowFrequencyHeight * 2.0 - 1.0); // ignore negative displacement
+    float tipHeight = saturate(RemapLowFrequencyHeight(lowFrequencyHeight) * 2.0 - 1.0); // ignore negative displacement
     float3 lowFrequencyRefractedRay = refract(-viewWS, lowFrequencyNormals, WATER_INV_IOR);
     return GetWaveTipThickness(max(0.01, tipHeight), viewWS, lowFrequencyRefractedRay);
 }
@@ -215,15 +231,14 @@ float3 EvaluateRefractionColor(float3 absorptionTint, float3 caustics)
     return absorptionTint * caustics * absorptionTint;
 }
 
-float3 EvaluateScatteringColor(float3 positionOS, float lowFrequencyHeight, float horizontalDisplacement, float3 absorptionTint, float deepFoam)
+float3 EvaluateScatteringColor(float3 positionRWS, float lowFrequencyHeight, float3 displacement, float3 absorptionTint, float deepFoam)
 {
     // Evaluate the pre-displaced absolute position
-    float3 positionRWS = TransformObjectToWorld(positionOS);
-    float distanceToCamera = length(positionRWS);
+    float distanceToCamera = length(positionRWS - displacement);
 
     // Evaluate the scattering terms (where the refraction doesn't happen)
-    float heightBasedScattering = EvaluateHeightBasedScattering(lowFrequencyHeight, distanceToCamera);
-    float displacementScattering = EvaluateDisplacementScattering(horizontalDisplacement);
+    float heightBasedScattering = EvaluateHeightBasedScattering(RemapLowFrequencyHeight(lowFrequencyHeight), distanceToCamera);
+    float displacementScattering = EvaluateDisplacementScattering(length(displacement.xz));
     float ambientScattering = AMBIENT_SCATTERING_INTENSITY * _AmbientScattering;
 
     // Sum the scattering terms
