@@ -1502,6 +1502,54 @@ namespace UnityEditor.VFX.Test
             window.Close();
             yield return null;
         }
+
+        [UnityTest, Description("Repro from UUM-84060")]
+        public IEnumerator CustomHLSL_Usage_In_Sample_Water_Unexpected_Dirty()
+        {
+            string vfxPath = null;
+
+            //Prepare Asset
+            {
+                var vfxGraph = VFXTestCommon.CreateGraph_And_System();
+                vfxPath = AssetDatabase.GetAssetPath(vfxGraph);
+
+                var sampleWaterDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sample Water Surface");
+                Assert.IsNotNull(sampleWaterDesc);
+                var sampleWater = sampleWaterDesc.CreateInstance();
+                vfxGraph.AddChild(sampleWater);
+
+                var output = vfxGraph.children.OfType<VFXAbstractRenderedOutput>().SingleOrDefault();
+                Assert.IsNotNull(output);
+
+                var setPosition = ScriptableObject.CreateInstance<SetAttribute>();
+                setPosition.SetSettingValue("attribute", "position");
+                output.AddChild(setPosition);
+                Assert.IsTrue(sampleWater.outputSlots[0].Link(setPosition.inputSlots[0]));
+                AssetDatabase.ImportAsset(vfxPath);
+                yield return null;
+            }
+
+            //Prepare Controller
+            VFXViewWindow window = null;
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+                Assert.IsNotNull(asset);
+                Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+
+                window = VFXViewWindow.GetWindow(asset);
+                window.LoadAsset(asset, null);
+                var viewController = window.graphView.controller;
+                Assert.IsNotNull(viewController);
+                yield return null;
+            }
+
+            for (int i = 0; i < 4; i++)
+                yield return null;
+
+            //A failure would log "Expression graph was marked as dirty after compiling context for UI. Discard to avoid infinite compilation loop." is logged
+            window.Close();
+            yield return null;
+        }
     }
 }
 #endif
