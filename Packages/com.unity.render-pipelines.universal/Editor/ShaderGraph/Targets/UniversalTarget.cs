@@ -1699,11 +1699,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kColor, IncludeLocation.Pregraph },
             { kTexture, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
+            { kFoveatedRenderingKeywords, IncludeLocation.Pregraph, true },
+            { kFoveatedRendering, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kInput, IncludeLocation.Pregraph },
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
-            { kFoveatedRenderingKeywords, IncludeLocation.Pregraph, true },
-            { kFoveatedRendering, IncludeLocation.Pregraph },
             { kMipmapDebugMacros, IncludeLocation.Pregraph}
         };
 
