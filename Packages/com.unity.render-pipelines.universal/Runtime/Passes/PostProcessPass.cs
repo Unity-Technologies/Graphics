@@ -1628,7 +1628,7 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
 
             HDROutputUtils.ConfigureHDROutput(material, hdrDisplayColorGamut, hdrOperations);
-            CoreUtils.SetKeyword(m_Materials.uber, ShaderKeywordStrings.HDROverlay, rendersOverlayUI);
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings.HDROverlay, rendersOverlayUI);
         }
 #endregion
 
