@@ -177,9 +177,6 @@ namespace UnityEngine.Rendering.Universal
             TextureSizeMode textureSizeMode = TextureSizeMode.Explicit, int anisoLevel = 1, float mipMapBias = 0,
             FilterMode filterMode = FilterMode.Point, TextureWrapMode wrapMode = TextureWrapMode.Clamp, string name = "")
         {            
-            Assertions.Assert.IsFalse(desc.graphicsFormat != GraphicsFormat.None && desc.depthStencilFormat != GraphicsFormat.None,
-                "The RenderTextureDescriptor used to create a TextureDesc contains both graphicsFormat and depthStencilFormat which is not allowed.");
-            
             var format = (desc.depthStencilFormat != GraphicsFormat.None) ? desc.depthStencilFormat : desc.graphicsFormat;
 
             TextureDesc rgDesc = new TextureDesc(desc.width, desc.height);
