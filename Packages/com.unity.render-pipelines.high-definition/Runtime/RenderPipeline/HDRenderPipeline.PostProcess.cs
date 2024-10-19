@@ -133,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FilmGrain m_FilmGrain;
 
         // Prefetched frame settings (updated on every frame)
+        bool m_CustomPostProcess;
         bool m_StopNaNFS;
         bool m_DepthOfFieldFS;
         bool m_MotionBlurFS;
@@ -363,6 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
             var frameSettings = camera.frameSettings;
+            m_CustomPostProcess = frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess) && m_PostProcessEnabled;
             m_StopNaNFS = frameSettings.IsEnabled(FrameSettingsField.StopNaN) && m_PostProcessEnabled;
             m_DepthOfFieldFS = frameSettings.IsEnabled(FrameSettingsField.DepthOfField) && m_PostProcessEnabled;
             m_MotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.MotionBlur) && m_PostProcessEnabled;
@@ -1634,7 +1636,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Custom Post Process
         void DoUserAfterOpaqueAndSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+            if (!m_CustomPostProcess)
                 return;
 
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
@@ -1741,7 +1743,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle BeforeCustomPostProcessPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, CustomPostProcessVolumeComponentList postProcessList, HDProfileId profileId)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+            if (!m_CustomPostProcess)
                 return source;
 
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(profileId)))
@@ -1759,7 +1761,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle CustomPostProcessPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, CustomPostProcessVolumeComponentList postProcessList, HDProfileId profileId)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+            if (!m_CustomPostProcess)
                 return source;
 
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(profileId)))
