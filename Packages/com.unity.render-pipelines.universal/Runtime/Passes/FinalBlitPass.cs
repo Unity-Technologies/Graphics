@@ -285,13 +285,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.source = src;
                 builder.UseTexture(src, AccessFlags.Read);
                 passData.destination = dest;
-                builder.SetRenderAttachment(dest, 0, AccessFlags.Write);
 
+                // Default flag for non-XR common case
+                AccessFlags targetAccessFlag = AccessFlags.Write;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 // This is a screen-space pass, make sure foveated rendering is disabled for non-uniform renders
                 bool passSupportsFoveation = !XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+
+                // Optimization: In XR, we don't have split screen use case. The access flag can be set to WriteAll here, so engine will set loadOperation to DontCare down to the pipe.
+                if (cameraData.xr.enabled)
+                    targetAccessFlag =  AccessFlags.WriteAll;
 #endif
+                builder.SetRenderAttachment(dest, 0, targetAccessFlag);
 
                 if (outputsToHDR && overlayUITexture.IsValid())
                 {
