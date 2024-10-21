@@ -20,3 +20,7 @@
 
 //Unlit can use the DepthNormal pass which creates a discrepancy while computing depth
 #define FORCE_NORMAL_OUTPUT_UNLIT_VERTEX_SHADER 1
+
+#if HAS_STRIPS
+#define HAS_STRIPS_DATA 1
+#endif

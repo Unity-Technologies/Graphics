@@ -12,42 +12,20 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
 {
     uint id = input.vertexID;
 
+
     // Index Setup
     uint index = 0;
     #if VFX_PRIMITIVE_TRIANGLE
         index = id / 3;
     #elif VFX_PRIMITIVE_QUAD
-    #if HAS_STRIPS
-        id += VFX_GET_INSTANCE_ID(i) * 8192;
-        const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 2;
-
-        index = id / vertexPerStripCount; // stripIndex. Needed by VFXInitInstancing
-        $splice(VFXInitInstancing)
-
-        const StripData stripData = GetStripDataFromStripIndex(index, instanceIndex);
-        uint relativeIndexInStrip = ((id % vertexPerStripCount) >> 2) + (id & 1); // relative index of particle
-
-        uint maxEdgeIndex = relativeIndexInStrip - PARTICLE_IN_EDGE + 1;
-
-        if (maxEdgeIndex >= stripData.nextIndex)
-            return false;
-
-        element.stripData = stripData;
-        element.relativeIndexInStrip = relativeIndexInStrip;
-
-        index = GetParticleIndex(relativeIndexInStrip, stripData);
-    #else
         index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
-    #endif
     #elif VFX_PRIMITIVE_OCTAGON
         index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
     #endif
 
-    #if !HAS_STRIPS
     $splice(VFXInitInstancing)
     #ifdef UNITY_INSTANCING_ENABLED
     input.instanceID = unity_InstanceID;
-    #endif
     #endif
 
     ContextData contextData = instancingContextData[instanceActiveIndex];
@@ -59,6 +37,20 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
 
     #if VFX_HAS_INDIRECT_DRAW
     index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
+    #endif
+
+    #if HAS_STRIPS_DATA
+        StripData stripData;
+        uint relativeIndexInStrip = 0;
+        #if HAS_STRIPS
+            if (!FindIndexInStrip(index, id, instanceIndex, relativeIndexInStrip, stripData))
+                return false;
+        #else
+            stripData = GetStripDataFromParticleIndex(index, instanceIndex);
+            relativeIndexInStrip = GetRelativeIndex(index, stripData);
+        #endif
+        element.relativeIndexInStrip = relativeIndexInStrip;
+        element.stripData = stripData;
     #endif
 
     element.index = index;

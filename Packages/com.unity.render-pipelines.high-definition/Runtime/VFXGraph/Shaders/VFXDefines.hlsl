@@ -42,3 +42,7 @@
 #endif
 
 #define UNITY_ACCESS_HYBRID_INSTANCED_PROP(name, type) name
+
+#if HAS_STRIPS
+#define HAS_STRIPS_DATA 1
+#endif

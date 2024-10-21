@@ -662,6 +662,22 @@ namespace UnityEditor.VFX
             return voteResult.Value;
         }
 
+        private bool NeedsStripData(VFXContext context)
+        {
+            bool needsStripData = false;
+
+            if (context.ownedType == VFXDataType.ParticleStrip)
+            {
+                needsStripData = true;
+            }
+            else if (context is VFXAbstractParticleOutput output)
+            {
+                needsStripData = output.HasStripsData();
+            }
+
+            return needsStripData;
+        }
+
         public override void FillDescs(
             VFXCompileErrorReporter reporter,
             List<VFXGPUBufferDesc> outBufferDescs,
@@ -1009,7 +1025,7 @@ namespace UnityEditor.VFX
                 if (attributeSourceBufferIndex != -1 && context.contextType == VFXContextType.Init)
                     bufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
 
-                if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
+                if (stripDataIndex != -1 && NeedsStripData(context))
                     bufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
 
                 if (contextDataBufferIndex != -1)

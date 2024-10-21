@@ -15,3 +15,5 @@ The **Get Attribute: particleCountInStrip** returns the particleCountInStrip, wh
 ## Details
 
 The value the attribute returns uses the system’s space (either local-space or world-space).
+
+This operator can return wrong values when used in the Initialize context, if the strip index property is not constant.

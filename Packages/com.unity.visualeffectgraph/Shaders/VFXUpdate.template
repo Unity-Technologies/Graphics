@@ -22,7 +22,7 @@ RWStructuredBuffer<uint> deadListCount;
 RWStructuredBuffer<uint> indirectBuffer;
 #endif
 
-#if HAS_STRIPS
+#if HAS_STRIPS_DATA
 RWStructuredBuffer<uint> stripDataBuffer;
 #endif
 
