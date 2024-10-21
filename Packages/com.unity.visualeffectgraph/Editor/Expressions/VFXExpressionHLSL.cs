@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
 
             if (obj is VFXExpressionHLSL hlslExpression)
             {
-                if (hlslExpression.m_Includes.Length == m_Includes.Length)
+                if (hlslExpression.m_Includes.Length != m_Includes.Length)
                     return false;
 
                 for (var index = 0; index < m_Includes.Length; ++index)

@@ -30,11 +30,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static string m_SampleWaterSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/SampleWaterSurface.hlsl";
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default)]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default), Delayed]
         [Tooltip("Target error value at which the algorithm should stop.")]
         public float error = 0.01f;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.Default)]
-        [Tooltip(" Number of iterations of the search algorithm.")]
+        [Tooltip(" Number of iterations of the search algorithm."), Delayed]
         public int maxIterations = 8;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.Default)]
         [Tooltip("Specifies the nature of the water body that the VFX is sampling.")]
