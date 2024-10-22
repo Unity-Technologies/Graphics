@@ -1076,33 +1076,43 @@ namespace UnityEditor.Rendering
             }
         }
 
-        // internal for tests
-        internal static string ScriptAbsolutePathToRelative(string absolutePath)
+        /// <summary>
+        /// Converts a physical file path (absolute or relative) to an AssetDatabase-compatible asset path.
+        /// If the path does not point to a script under Assets or in a package, the path is returned as-is.
+        /// </summary>
+        /// <param name="physicalPath">The physical file path (absolute or relative) to convert.</param>
+        /// <returns>An AssetDatabase-compatible asset path, or the untransformed string if the physical path
+        /// could not be resolved to an asset path.</returns>
+        /// <remarks>This method is internal for testing purposes only.</remarks>
+        internal static string ScriptPathToAssetPath(string physicalPath)
         {
-            // Get path relative to project root and canonize directory separators
-            var relativePath = FileUtil.GetLogicalPath(absolutePath);
+            // Make sure we have an absolute path with Unity separators, this is necessary for the following checks
+            var absolutePath = System.IO.Path.GetFullPath(physicalPath).Replace(@"\", "/");
 
-            // Project assets start with data path
-            if (relativePath.StartsWith(Application.dataPath, StringComparison.OrdinalIgnoreCase))
-                relativePath = relativePath.Replace(Application.dataPath, "Assets");
+            // Project assets start with data path (in Editor: <project-path>/Assets)
+            if (absolutePath.StartsWith(Application.dataPath, StringComparison.OrdinalIgnoreCase))
+            {
+                var assetPath = absolutePath.Replace(Application.dataPath, "Assets");
+                return assetPath;
+            }
 
-            // Remove starting "./" if present, it breaks LoadAssetAtPath
-            if (relativePath.StartsWith("./"))
-                relativePath = relativePath.Substring(2);
+            // Try to get the logical path mapped to this physical absolute path (for assets in a package)
+            var logicalPath = FileUtil.GetLogicalPath(absolutePath);
+            if (logicalPath != absolutePath)
+            {
+                return logicalPath;
+            }
 
-            // Package cache path doesn't work with LoadAssetAtPath, so convert it to a Packages path
-            if (relativePath.StartsWith("Library/PackageCache/"))
-                relativePath = relativePath.Replace("Library/PackageCache/", "Packages/");
-
-            return relativePath;
+            // Asset path cannot be found - invalid script path
+            return physicalPath;
         }
 
-        UnityEngine.Object FindScriptAssetByAbsolutePath(string absolutePath)
+        UnityEngine.Object FindScriptAssetByScriptPath(string scriptPath)
         {
-            var relativePath = ScriptAbsolutePathToRelative(absolutePath);
-            var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(relativePath);
+            var assetPath = ScriptPathToAssetPath(scriptPath);
+            var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
             if (asset == null)
-                Debug.LogWarning($"Could not find a script asset to open for file path {absolutePath}");
+                Debug.LogWarning($"Could not find a script asset to open for file path {scriptPath}");
             return asset;
         }
 
@@ -1174,7 +1184,7 @@ namespace UnityEditor.Rendering
             {
                 if (evt.button == 0)
                 {
-                    var scriptAsset = FindScriptAssetByAbsolutePath(pass.scriptInfo.filePath);
+                    var scriptAsset = FindScriptAssetByScriptPath(pass.scriptInfo.filePath);
                     AssetDatabase.OpenAsset(scriptAsset, pass.scriptInfo.line);
                 }
                 evt.StopImmediatePropagation();
