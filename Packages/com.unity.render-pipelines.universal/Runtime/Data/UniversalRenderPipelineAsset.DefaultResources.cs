@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.Universal
                       DefaultMaterialType.Particle => defaultMaterials.defaultParticleUnlitMaterial,
                       DefaultMaterialType.Terrain => defaultMaterials.defaultTerrainLitMaterial,
                       DefaultMaterialType.Decal => defaultMaterials.defaultDecalMaterial,
+                      DefaultMaterialType.Sprite => defaultMaterials.defaultSpriteMaterial,
                       _ => null
                     };
                 }
