@@ -43,7 +43,9 @@
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
 
     #if _RENDER_PASS_ENABLED
+    #define GBUFFER3 0
     #define GBUFFER4 1
+    FRAMEBUFFER_INPUT_X_HALF(GBUFFER3);
     FRAMEBUFFER_INPUT_X_HALF(GBUFFER4);
     #endif
 
