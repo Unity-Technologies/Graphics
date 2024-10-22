@@ -77,15 +77,17 @@ bool FindIndexInStrip(inout uint index, uint id, uint instanceIndex, out uint re
     uint relativeParticleIndex = index - stripIndex * particlePerStripCount;
 #endif
 
-    relativeIndexInStrip = relativeParticleIndex; // vertex index in the strip
+    uint maxEdgeIndex = relativeIndexInStrip = relativeParticleIndex; // vertex index in the strip
 #if HAS_STRIPS
     // For strip outputs, particle index belongs to one segment or another depending of the edge
     relativeIndexInStrip += STRIP_PARTICLE_IN_EDGE;
+
+    // For strip outputs, we render one particle less
+    maxEdgeIndex += 1;
 #endif
 
     index = GetParticleIndex(relativeIndexInStrip, stripData);
 
-    uint maxEdgeIndex = relativeParticleIndex + 1;
     return maxEdgeIndex < stripData.nextIndex;
 }
 
