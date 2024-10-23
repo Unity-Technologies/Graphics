@@ -52,7 +52,7 @@ SAMPLER(s_point_clamp_sampler);
 #ifdef USE_APV_TEXTURE_HALF
 #define TEXTURE3D_APV TEXTURE3D_HALF
 #else
-#define TEXTURE3D_APV TEXTURE3D
+#define TEXTURE3D_APV TEXTURE3D_FLOAT
 #endif
 
 struct APVResources
@@ -67,12 +67,12 @@ struct APVResources
     TEXTURE3D_APV(L2_1);
     TEXTURE3D_APV(L2_2);
     TEXTURE3D_APV(L2_3);
-    TEXTURE3D_APV(Validity);
+    TEXTURE3D_FLOAT(Validity); // Validity stores indices and requires full float precision to be decoded properly.
 
     TEXTURE3D_APV(ProbeOcclusion);
 
     TEXTURE3D_APV(SkyOcclusionL0L1);
-    TEXTURE3D(SkyShadingDirectionIndices);
+    TEXTURE3D_FLOAT(SkyShadingDirectionIndices);
 };
 
 struct APVResourcesRW
