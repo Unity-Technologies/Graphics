@@ -21,6 +21,7 @@ public class SetShadowSettings : SetQualityCallbackObject
         public Vector2 cascade3Split;
         public Vector3 cascade4Split;
         public float cascadeBorder;
+        public float shadowDistance;
     }
 
     public void OnValidate()
@@ -77,6 +78,7 @@ public class SetShadowSettings : SetQualityCallbackObject
         settings.cascade3Split = urpAsset.cascade3Split;
         settings.cascade4Split = urpAsset.cascade4Split;
         settings.cascadeBorder = urpAsset.cascadeBorder;
+        settings.shadowDistance = urpAsset.shadowDistance;
     }
 
     private void UpdateShadowSettingsInURPAsset(int qualityLevel, ref ShadowSettings settings)
@@ -91,5 +93,6 @@ public class SetShadowSettings : SetQualityCallbackObject
         urpAsset.cascade3Split = settings.cascade3Split;
         urpAsset.cascade4Split = settings.cascade4Split;
         urpAsset.cascadeBorder = settings.cascadeBorder;
+        urpAsset.shadowDistance = settings.shadowDistance;
     }
 }

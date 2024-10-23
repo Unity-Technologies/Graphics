@@ -423,6 +423,9 @@ EditorBuildSettings:
     path: Assets/Scenes/220_ScreenSpaceShadows.unity
     guid: 0ed880bcaac387e4eaef5f365a545090
   - enabled: 1
+    path: Assets/Scenes/220_ScreenSpaceShadowsDecals.unity
+    guid: 88e1d0464058159409e99813b80b13cd
+  - enabled: 1
     path: Assets/Scenes/225_DepthPriming.unity
     guid: 06d3d04c77b97ba40969b415bc9a25dd
   - enabled: 1
