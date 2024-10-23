@@ -801,7 +801,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
-                { Pragma.MultiCompileFog },
                 { Pragma.EditorSyncCompilation },
             };
 
@@ -812,7 +811,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
-                { Pragma.MultiCompileFog },
                 { Pragma.EditorSyncCompilation },
             };
 
@@ -1081,6 +1079,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.ProbeVolumePregraph },
@@ -1096,6 +1095,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.ProbeVolumePregraph },
@@ -1110,6 +1110,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.ProbeVolumePregraph },

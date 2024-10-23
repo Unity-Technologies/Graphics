@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
 
+
 VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
     VertexPositionInputs input;
@@ -313,6 +314,24 @@ float3 NormalizeNormalPerPixel(float3 normalWS)
 
 real ComputeFogFactorZ0ToFar(float z)
 {
+    #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+    if (FOG_LINEAR)
+    {
+        // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
+        float fogFactor = saturate(z * unity_FogParams.z + unity_FogParams.w);
+        return real(fogFactor);
+    }
+    else if (FOG_EXP || FOG_EXP2)
+    {
+        // factor = exp(-(density*z)^2)
+        // -density * z computed at vertex
+        return real(unity_FogParams.x * z);
+    }
+    else
+    {
+        return real(0.0);
+    }
+    #else // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
     #if defined(FOG_LINEAR)
     // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
     float fogFactor = saturate(z * unity_FogParams.z + unity_FogParams.w);
@@ -324,6 +343,7 @@ real ComputeFogFactorZ0ToFar(float z)
     #else
         return real(0.0);
     #endif
+    #endif //#if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
 }
 
 real ComputeFogFactor(float zPositionCS)
@@ -335,6 +355,24 @@ real ComputeFogFactor(float zPositionCS)
 half ComputeFogIntensity(half fogFactor)
 {
     half fogIntensity = half(0.0);
+    #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+    if (FOG_EXP)
+    {
+        // factor = exp(-density*z)
+        // fogFactor = density*z compute at vertex
+        fogIntensity = saturate(exp2(-fogFactor));
+    }
+    else if (FOG_EXP2)
+    {
+        // factor = exp(-(density*z)^2)
+        // fogFactor = density*z compute at vertex
+        fogIntensity = saturate(exp2(-fogFactor * fogFactor));
+    }
+    else if (FOG_LINEAR)
+    {
+        fogIntensity = fogFactor;
+    }
+    #else // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
         #if defined(FOG_EXP)
             // factor = exp(-density*z)
@@ -348,6 +386,7 @@ half ComputeFogIntensity(half fogFactor)
             fogIntensity = fogFactor;
         #endif
     #endif
+    #endif // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
     return fogIntensity;
 }
 
@@ -357,6 +396,16 @@ real InitializeInputDataFog(float4 positionWS, real vertFogFactor)
 {
     real fogFactor = 0.0;
 #if defined(_FOG_FRAGMENT)
+    #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+    if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+    {
+        // Compiler eliminates unused math --> matrix.column_z * vec
+        float viewZ = -(mul(UNITY_MATRIX_V, positionWS).z);
+        // View Z is 0 at camera pos, remap 0 to near plane.
+        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+        fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+    }
+    #else // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
     #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
         // Compiler eliminates unused math --> matrix.column_z * vec
         float viewZ = -(mul(UNITY_MATRIX_V, positionWS).z);
@@ -364,15 +413,34 @@ real InitializeInputDataFog(float4 positionWS, real vertFogFactor)
         float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
         fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
     #endif
-#else
+    #endif // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+#else // #if defined(_FOG_FRAGMENT)
     fogFactor = vertFogFactor;
-#endif
+#endif // #if defined(_FOG_FRAGMENT)
     return fogFactor;
 }
 
 float ComputeFogIntensity(float fogFactor)
 {
     float fogIntensity = 0.0;
+    #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+        if (FOG_EXP)
+        {
+            // factor = exp(-density*z)
+            // fogFactor = density*z compute at vertex
+            fogIntensity = saturate(exp2(-fogFactor));
+        }
+        else if (FOG_EXP2)
+        {
+            // factor = exp(-(density*z)^2)
+            // fogFactor = density*z compute at vertex
+            fogIntensity = saturate(exp2(-fogFactor * fogFactor));
+        }
+        else if (FOG_LINEAR)
+        {
+            fogIntensity = fogFactor;
+        }
+    #else // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
         #if defined(FOG_EXP)
             // factor = exp(-density*z)
@@ -386,30 +454,51 @@ float ComputeFogIntensity(float fogFactor)
             fogIntensity = fogFactor;
         #endif
     #endif
+    #endif // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
     return fogIntensity;
 }
 
 half3 MixFogColor(half3 fragColor, half3 fogColor, half fogFactor)
 {
-    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-        half fogIntensity = ComputeFogIntensity(fogFactor);
-        // Workaround for UUM-61728: using a manual lerp to avoid rendering artifacts on some GPUs when Vulkan is used
-        fragColor = fragColor * fogIntensity + fogColor * (half(1.0) - fogIntensity);
-    #endif
+    #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+        if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+        {
+            half fogIntensity = ComputeFogIntensity(fogFactor);
+            // Workaround for UUM-61728: using a manual lerp to avoid rendering artifacts on some GPUs when Vulkan is used
+            fragColor = fragColor * fogIntensity + fogColor * (half(1.0) - fogIntensity);    
+        }
+    #else // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+        #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+            half fogIntensity = ComputeFogIntensity(fogFactor);
+            // Workaround for UUM-61728: using a manual lerp to avoid rendering artifacts on some GPUs when Vulkan is used
+            fragColor = fragColor * fogIntensity + fogColor * (half(1.0) - fogIntensity);   
+        #endif
+    #endif // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
     return fragColor;
 }
 
 float3 MixFogColor(float3 fragColor, float3 fogColor, float fogFactor)
 {
-    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-    if (IsFogEnabled())
-    {
-        float fogIntensity = ComputeFogIntensity(fogFactor);
-        fragColor = lerp(fogColor, fragColor, fogIntensity);
-    }
-    #endif
+    #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+        if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+        {
+            if (IsFogEnabled())
+            {
+                float fogIntensity = ComputeFogIntensity(fogFactor);
+                fragColor = lerp(fogColor, fragColor, fogIntensity);
+            }
+        }
+    #else // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+        #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+            if (IsFogEnabled())
+            {
+                float fogIntensity = ComputeFogIntensity(fogFactor);
+                fragColor = lerp(fogColor, fragColor, fogIntensity);
+            }
+        #endif
+    #endif // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
     return fragColor;
-}
+} 
 
 half3 MixFog(half3 fragColor, half fogFactor)
 {

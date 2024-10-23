@@ -85,9 +85,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ USE_LEGACY_LIGHTMAPS
-            #pragma multi_compile_fog
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
 
             //--------------------------------------
             // GPU Instancing

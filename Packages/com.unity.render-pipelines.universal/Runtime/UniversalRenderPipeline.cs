@@ -151,6 +151,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal static bool useDynamicBranchFogKeyword => ShaderOptions.k_UseDynamicBranchFogKeyword == 1;
+
         // Match with values in Input.hlsl
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
         internal static int maxZBinWords => 1024 * 4;

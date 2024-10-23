@@ -1639,7 +1639,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -1658,7 +1657,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -1691,6 +1689,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         // Files that are included with #include_with_pragmas
         const string kDOTS = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl";
+        const string kFog = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl";
         const string kRenderingLayers = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl";
         const string kProbeVolumes = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl";
 
@@ -1711,6 +1710,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { kDOTS, IncludeLocation.Pregraph, true },
         };
+
+        public static readonly IncludeCollection FogPregraph = new IncludeCollection
+        {
+            { kFog, IncludeLocation.Pregraph, true },
+        };        
 
         public static readonly IncludeCollection WriteRenderLayersPregraph = new IncludeCollection
         {

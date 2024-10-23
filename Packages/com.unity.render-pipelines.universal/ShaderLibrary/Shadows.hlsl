@@ -196,8 +196,11 @@ half4 GetAdditionalLightShadowParams(int lightIndex)
         #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
             results = _AdditionalShadowParams_SSBO[lightIndex];
         #else
-            results = _AdditionalShadowParams[lightIndex];
-            results.w = lightIndex < 0 ? -1 : results.w;
+            results = _AdditionalShadowParams[lightIndex];            
+            // workaround: Avoid failing the graphics test using Terrain Shader on Android Vulkan when using dynamic branching for fog keywords.
+            #if !SKIP_SHADOWS_LIGHT_INDEX_CHECK
+                results.w = lightIndex < 0 ? -1 : results.w;
+            #endif
         #endif
     #else
         // Same defaults as set in AdditionalLightsShadowCasterPass.cs
