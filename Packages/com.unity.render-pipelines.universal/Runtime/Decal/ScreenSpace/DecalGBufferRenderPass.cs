@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferMesh));
 
             m_PassData = new PassData();
-            m_GbufferAttachments = new RTHandle[4];
+            m_GbufferAttachments = new RTHandle[UniversalRenderer.k_GbufferCountMandatory];
 
             breakGBufferAndDeferredRenderPass = false;
         }
@@ -181,9 +181,9 @@ namespace UnityEngine.Rendering.Universal
 
                 if (renderGraph.nativeRenderPassesEnabled)
                 {
-                    builder.SetInputAttachment(gBufferHandles[4], 0, AccessFlags.Read);
+                    builder.SetInputAttachment(gBufferHandles[UniversalRenderer.k_GbufferCountMandatory], 0, AccessFlags.Read);
                     if (m_DecalLayers)
-                        builder.SetInputAttachment(gBufferHandles[5], 1, AccessFlags.Read);
+                        builder.SetInputAttachment(gBufferHandles[UniversalRenderer.k_GbufferCountMandatory + 1], 1, AccessFlags.Read);
                 }
                 else if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, AccessFlags.Read);

@@ -48,6 +48,13 @@ namespace UnityEngine.Rendering.Universal
         const int k_FinalBlitPassQueueOffset = 1;
         const int k_AfterFinalBlitPassQueueOffset = k_FinalBlitPassQueueOffset + 1;
 
+        // Constants to help make it easier for users to insert a g-buffer after the mandatory g-buffers and before the optional ones
+        public const int k_GbufferCountBuiltIn = 4;
+        public const int k_GbufferCountUserDefined = 0;
+        public const int k_GbufferCountMandatory = k_GbufferCountBuiltIn + k_GbufferCountUserDefined;
+        public const int k_GbufferCountOptional = 3;
+        public const int k_GbufferCountMax = k_GbufferCountMandatory + k_GbufferCountOptional;
+
         static readonly List<ShaderTagId> k_DepthNormalsOnly = new List<ShaderTagId> { new ShaderTagId("DepthNormalsOnly") };
 
         private static class Profiling
