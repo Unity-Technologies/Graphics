@@ -18,8 +18,10 @@ HDRP path tracing in Unity currently has the following limitations:
   - Translucent Opaque Materials.
   - Several of HDRP's Materials. This includes Eye, Hair, and Decal.
   - Per-pixel displacement (parallax occlusion mapping, height map, depth offset).
-  - MSAA.
   - Emissive Decals.
+  - Volumetric Clouds.
+  - Water. 
+  - MSAA.
   - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
   - [Streaming Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html).
 
