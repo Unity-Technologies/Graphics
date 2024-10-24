@@ -249,10 +249,10 @@ HDRP 14 replaces the cube reflection probe cache array with a 2D texture atlas c
 
 Planar reflection probes now use the same 2D texture cache. This means you can control the cube probe resolution for each reflection probe to save memory.
 
-### Water System
+### Water system
 ![](Images/WaterSystem2022-2.png)
 
-HDRP 14 introduces the Water System. This feature allows you to render highly realistic water surfaces and interact with them. Among the various features that this version includes:
+HDRP 14 introduces the water system. This feature allows you to render highly realistic water surfaces and interact with them. Among the various features that this version includes:
 
 - A shader graph interaction for advanced visual customizations.
 - A mirrored simulation on the CPU for high-fidelity game interactions.

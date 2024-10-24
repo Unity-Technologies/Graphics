@@ -100,4 +100,4 @@ This foam implementation is monochromatic. You cannot add a tint to represent al
 The foam injected using the custom foam input in the water shader graph is not affected when disabling foam on a water surface. 
 
 ## Additional resources
-* <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the Water System</a>
+* <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the water system</a>

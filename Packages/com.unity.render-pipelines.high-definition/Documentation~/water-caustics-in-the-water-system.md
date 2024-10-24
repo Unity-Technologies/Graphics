@@ -1,4 +1,4 @@
-# Caustics in the Water System
+# Caustics in the water system
 Caustics are a consequence of light rays refracted or reflected by a curved surface and projected onto another object.
 
 ## Opacity
@@ -20,4 +20,4 @@ Caustics have the following limitations with transparents GameObjects:
 * Caustics do not react to current maps and water mask.
 
 ## Additional resources
-* <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the Water System</a>
+* <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the water system</a>
