@@ -88,6 +88,9 @@ namespace UnityEditor.Rendering
             }
             m_EditorContainer.Add(s_DefaultVolumeProfileEditor.Create());
             m_EditorContainer.Q<HelpBox>("volume-override-info-box").text = volumeInfoBoxLabel.text;
+
+            if (m_DefaultVolumeProfileFoldoutExpanded.value)
+                m_EditorContainer.style.display = DisplayStyle.Flex;
         }
 
         /// <summary>
@@ -95,11 +98,13 @@ namespace UnityEditor.Rendering
         /// </summary>
         protected void DestroyDefaultVolumeProfileEditor()
         {
+            m_EditorContainer.style.display = DisplayStyle.None;
+            m_EditorContainer?.Clear();
+
             if (s_DefaultVolumeProfileEditor != null)
                 s_DefaultVolumeProfileEditor.Destroy();
             s_DefaultVolumeProfileEditor = null;
             s_DefaultVolumeProfileSerializedProperty = null;
-            m_EditorContainer?.Clear();
         }
 
         /// <summary>
@@ -124,8 +129,6 @@ namespace UnityEditor.Rendering
 
             void IRenderPipelineGraphicsSettingsContextMenu<TSetting>.PopulateContextMenu(TSetting setting, PropertyDrawer _, ref GenericMenu menu)
             {
-                menu.AddSeparator("");
-
                 bool canCreateNewAsset = RenderPipelineManager.currentPipeline is TRenderPipeline;
                 VolumeProfileUtils.AddVolumeProfileContextMenuItems(ref menu,
                     setting.volumeProfile,

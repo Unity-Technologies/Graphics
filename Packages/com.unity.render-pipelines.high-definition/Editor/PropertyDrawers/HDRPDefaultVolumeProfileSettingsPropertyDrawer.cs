@@ -1,5 +1,5 @@
 using System;
-using UnityEditor.Rendering;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -26,87 +26,83 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override VisualElement CreateAssetFieldUI()
         {
-            Action redraw = null;
-            var container = new IMGUIContainer(() => redraw());
-            redraw = () =>
+            VisualElement profileLine = new();
+            var toggle = new Toggle();
+            toggle.AddToClassList(Foldout.toggleUssClassName);
+            var checkmark = toggle.Q(className: Toggle.checkmarkUssClassName);
+            checkmark.AddToClassList(Foldout.checkmarkUssClassName);
+            var field = new ObjectField(defaultVolumeProfileAssetLabel.text)
             {
-                using var indentLevelScope = new EditorGUI.IndentLevelScope();
-                using var changeScope = new EditorGUI.ChangeCheckScope();
+                tooltip = defaultVolumeProfileAssetLabel.tooltip,
+                objectType = typeof(VolumeProfile),
+                value = m_VolumeProfileSerializedProperty.objectReferenceValue as VolumeProfile,
+            };
+            field.AddToClassList("unity-base-field__aligned"); //Align with other BaseField<T>
+            field.Q<Label>().RegisterCallback<ClickEvent>(evt => toggle.value ^= true);
 
-                /* values adapted to the ProjectSettings > Graphics */
-                var minWidth = 91;
-                var indent = 94;
-                var ratio = 0.45f;
-                EditorGUIUtility.labelWidth = Mathf.Max(minWidth, (int)((container.worldBound.width - indent) * ratio));
+            toggle.RegisterValueChangedCallback(evt =>
+            {
+                m_EditorContainer.style.display = evt.newValue ? DisplayStyle.Flex : DisplayStyle.None;
+                m_DefaultVolumeProfileFoldoutExpanded.value = evt.newValue;
+            });
+            toggle.SetValueWithoutNotify(m_DefaultVolumeProfileFoldoutExpanded.value);
+            m_EditorContainer.style.display = m_DefaultVolumeProfileFoldoutExpanded.value ? DisplayStyle.Flex : DisplayStyle.None;
 
-                bool expanded = m_DefaultVolumeProfileFoldoutExpanded.value;
-                var previousDefaultVolumeProfileAsset = m_VolumeProfileSerializedProperty.objectReferenceValue;
+            profileLine.Add(toggle);
+            profileLine.Add(field);
+            profileLine.style.flexDirection = FlexDirection.Row;
+            field.style.flexGrow = 1;
+            
+            field.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue == evt.previousValue)
+                    return;
 
-                VolumeProfile defaultVolumeProfileAsset = RenderPipelineGlobalSettingsUI.DrawVolumeProfileAssetField(
-                    m_VolumeProfileSerializedProperty,
-                    defaultVolumeProfileAssetLabel,
-                    getOrCreateVolumeProfile: () =>
-                    {
-                        if (RenderPipelineManager.currentPipeline is not HDRenderPipeline)
-                            return null;
-
-                        var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
-                        if (defaultVolumeProfileSettings.volumeProfile == null)
-                        {
-                            defaultVolumeProfileSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(
-                                GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile);
-                        }
-
-                        // When the built-in Reset context action is used, the asset becomes null outside of this scope.
-                        // This is required to apply the new value to the serialized property.
-                        GUI.changed = true;
-
-                        return defaultVolumeProfileSettings.volumeProfile;
-                    },
-                    ref expanded
-                );
-                m_DefaultVolumeProfileFoldoutExpanded.value = expanded;
-
-                if (changeScope.changed && defaultVolumeProfileAsset != previousDefaultVolumeProfileAsset)
+                if (RenderPipelineManager.currentPipeline is not HDRenderPipeline)
                 {
-                    var defaultValuesAsset = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>()?.defaultVolumeProfile;
-                    if (RenderPipelineManager.currentPipeline is not HDRenderPipeline)
-                    {
-                        Debug.Log("Cannot change Default Volume Profile when HDRP is not active. Rolling back to previous value.");
-                        m_VolumeProfileSerializedProperty.objectReferenceValue = previousDefaultVolumeProfileAsset;
-                    }
-                    else if (previousDefaultVolumeProfileAsset == null)
-                    {
-                        VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
-                        m_VolumeProfileSerializedProperty.objectReferenceValue = defaultVolumeProfileAsset;
-                    }
-                    else
-                    {
-                        bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<HDRenderPipeline>(defaultVolumeProfileAsset, defaultValuesAsset);
-                        if (!confirmed)
-                            m_VolumeProfileSerializedProperty.objectReferenceValue = previousDefaultVolumeProfileAsset;
-                    }
-
-                    m_SettingsSerializedObject.ApplyModifiedProperties();
-                    m_VolumeProfileSerializedProperty.serializedObject.Update();
-
-                    DestroyDefaultVolumeProfileEditor();
-                    CreateDefaultVolumeProfileEditor();
+                    field.SetValueWithoutNotify(evt.previousValue);
+                    Debug.Log("Cannot change Default Volume Profile when HDRP is not active. Rolling back to previous value.");
+                    return;
                 }
 
-                // Propagate foldout expander state from IMGUI to UITK
-                m_EditorContainer.style.display = m_DefaultVolumeProfileFoldoutExpanded.value
-                    ? DisplayStyle.Flex
-                    : DisplayStyle.None;
-            };
-            return container;
+                if (evt.newValue == null)
+                {
+                    field.SetValueWithoutNotify(evt.previousValue);
+                    Debug.Log("This Volume Profile Asset cannot be null. Rolling back to previous value.");
+                    return;
+                }
+
+                var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<HDRPDefaultVolumeProfileSettings>();
+                if (evt.previousValue == null)
+                {
+                    VolumeProfileUtils.UpdateGlobalDefaultVolumeProfile<HDRenderPipeline>(evt.newValue as VolumeProfile, defaultVolumeProfileSettings.volumeProfile);
+                    m_VolumeProfileSerializedProperty.objectReferenceValue = evt.newValue;
+                }
+                else
+                {
+                    bool confirmed = VolumeProfileUtils.UpdateGlobalDefaultVolumeProfileWithConfirmation<HDRenderPipeline>(evt.newValue as VolumeProfile, defaultVolumeProfileSettings.volumeProfile);
+                    m_VolumeProfileSerializedProperty.objectReferenceValue = confirmed ? evt.newValue : evt.previousValue;
+                }
+
+                m_VolumeProfileSerializedProperty.serializedObject.ApplyModifiedProperties();
+                DestroyDefaultVolumeProfileEditor();
+                CreateDefaultVolumeProfileEditor();
+            });
+
+            return profileLine;
         }
 
         public class HDRPDefaultVolumeProfileSettingsContextMenu : DefaultVolumeProfileSettingsContextMenu<HDRPDefaultVolumeProfileSettings, HDRenderPipeline>
         {
-            protected override string defaultVolumeProfilePath =>
-                VolumeUtils.GetDefaultNameForVolumeProfile(
-                    GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile);
+            protected override string defaultVolumeProfilePath
+            {
+                get
+                {
+                    if (EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<HDRenderPipelineEditorAssets, HDRenderPipeline>(out var rpgs))
+                        return VolumeUtils.GetDefaultNameForVolumeProfile(rpgs.defaultVolumeProfile);
+                    return String.Empty;
+                }
+            }
         }
     }
 }
