@@ -9,7 +9,11 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
 {
     private const string k_PassName = "DepthBlitDepthOnlyPass";
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_PassName);
-    private RTHandle m_DestRT; // The RTHandle for storing the depth texture, set by the Renderer Feature
+    public RTHandle depthRT; // The RTHandle for storing the depth texture
+    private RenderTextureDescriptor m_Desc;
+    private FilterMode m_FilterMode;
+    private TextureWrapMode m_WrapMode;
+    private string m_Name;
     FilteringSettings m_FilteringSettings;
     private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthOnly");
 
@@ -18,10 +22,14 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
         public RendererListHandle rendererList;
     }
 
-    public DepthBlitDepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, RTHandle destination)
+    public DepthBlitDepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, 
+        RenderTextureDescriptor desc, FilterMode filterMode, TextureWrapMode wrapMode, string name)
     {
         renderPassEvent = evt;
-        m_DestRT = destination;
+        m_Desc = desc;
+        m_FilterMode = filterMode;
+        m_WrapMode = wrapMode;
+        m_Name = name;
         m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
     }
 
@@ -30,7 +38,9 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
     // Unity calls the Configure method in the Compatibility mode (non-RenderGraph path)
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
-        ConfigureTarget(m_DestRT);
+        // Create an RTHandle for storing the depth
+        RenderingUtils.ReAllocateHandleIfNeeded(ref depthRT, m_Desc, m_FilterMode, m_WrapMode, name: m_Name );
+        ConfigureTarget(depthRT);
     }
 
     // Unity calls the Execute method in the Compatibility mode
@@ -70,8 +80,11 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
         UniversalLightData lightData = frameData.Get<UniversalLightData>();
         DepthBlitFeature.TexRefData texRefData = frameData.GetOrCreate<DepthBlitFeature.TexRefData>();
 
+        // Create an RTHandle for storing the depth
+        RenderingUtils.ReAllocateHandleIfNeeded(ref depthRT, m_Desc, m_FilterMode, m_WrapMode, name: m_Name );
+        
         // Set the texture resources for this render graph instance.
-        TextureHandle dest = renderGraph.ImportTexture(m_DestRT);
+        TextureHandle dest = renderGraph.ImportTexture(depthRT);
         texRefData.depthTextureHandle = dest;
 
         if(!dest.IsValid())
@@ -97,5 +110,10 @@ public class DepthBlitDepthOnlyPass : ScriptableRenderPass
                 context.cmd.DrawRendererList(data.rendererList);
             });
         }
+    }
+    
+    public void Dispose()
+    {
+        depthRT?.Release();
     }
 }

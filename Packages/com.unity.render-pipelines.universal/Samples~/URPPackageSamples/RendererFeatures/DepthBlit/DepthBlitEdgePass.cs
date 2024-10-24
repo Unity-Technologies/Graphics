@@ -31,6 +31,9 @@ public class DepthBlitEdgePass : ScriptableRenderPass
         if (cameraData.camera.cameraType != CameraType.Game)
             return;
 
+        if (m_DepthHandle == null)
+            return;
+
         RTHandle destination = cameraData.renderer.cameraColorTargetHandle;
 
         CommandBuffer cmd = CommandBufferPool.Get();

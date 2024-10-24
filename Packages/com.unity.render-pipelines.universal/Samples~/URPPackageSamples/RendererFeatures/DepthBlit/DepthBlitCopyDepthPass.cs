@@ -11,7 +11,11 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
     private readonly int m_DepthBufferId = Shader.PropertyToID("_CameraDepthAttachment");
     private Vector4 m_ScaleBias = new Vector4(1f, 1f, 0f, 0f);
     private ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_PassName);
-    private RTHandle m_DestRT; // The RTHandle for storing the depth texture, set by the Renderer Feature
+    public RTHandle depthRT; // The RTHandle for storing the depth texture
+    private RenderTextureDescriptor m_Desc;
+    private FilterMode m_FilterMode;
+    private TextureWrapMode m_WrapMode;
+    private string m_Name;
     private Material m_CopyDepthMaterial;
     private GlobalKeyword m_Keyword_DepthMsaa2;
     private GlobalKeyword m_Keyword_DepthMsaa4;
@@ -30,10 +34,14 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
         public GlobalKeyword keyword_OutputDepth;
     }
 
-    public DepthBlitCopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, RTHandle destination)
+    public DepthBlitCopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, 
+        RenderTextureDescriptor desc, FilterMode filterMode, TextureWrapMode wrapMode, string name)
     {
         renderPassEvent = evt;
-        m_DestRT = destination;
+        m_Desc = desc;
+        m_FilterMode = filterMode;
+        m_WrapMode = wrapMode;
+        m_Name = name;
         m_CopyDepthMaterial = copyDepthShader != null ? CoreUtils.CreateEngineMaterial(copyDepthShader) : null;
         m_Keyword_DepthMsaa2 = GlobalKeyword.Create(ShaderKeywordStrings.DepthMsaa2);
         m_Keyword_DepthMsaa4 = GlobalKeyword.Create(ShaderKeywordStrings.DepthMsaa4);
@@ -46,7 +54,9 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
     // Set the RTHandle as the output target in the Compatibility mode.
     public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
     {
-        ConfigureTarget(m_DestRT);
+        // Create an RTHandle for storing the depth
+        RenderingUtils.ReAllocateHandleIfNeeded(ref depthRT, m_Desc, m_FilterMode, m_WrapMode, name: m_Name );
+        ConfigureTarget(depthRT);
     }
 
     // Unity calls the Execute method in the Compatibility mode
@@ -92,10 +102,13 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
         // Avoid blitting from the backbuffer
         if (resourceData.isActiveTargetBackBuffer)
             return;
+        
+        // Create an RTHandle for storing the depth
+        RenderingUtils.ReAllocateHandleIfNeeded(ref depthRT, m_Desc, m_FilterMode, m_WrapMode, name: m_Name );
 
         // Set the texture resources for this render graph instance.
         TextureHandle src = resourceData.cameraDepth;
-        TextureHandle dest = renderGraph.ImportTexture(m_DestRT);
+        TextureHandle dest = renderGraph.ImportTexture(depthRT);
         texRefData.depthTextureHandle = dest;
 
         if(!src.IsValid() || !dest.IsValid())
@@ -140,6 +153,7 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
 
     public void Dispose()
     {
+        depthRT?.Release();
         CoreUtils.Destroy(m_CopyDepthMaterial);
     }
 }
