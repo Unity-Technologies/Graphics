@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // For non-RG, need set the worldToCamera Matrix as that is not set for passes executed before normal rendering,
                 // otherwise shadows will behave incorrectly when Scene and Game windows are open at the same time (UUM-63267).
                 if (!isRenderGraph)
-                    ShadowUtils.SetWorldToCameraMatrix(cmd, data.cameraData.GetViewMatrix());
+                    ShadowUtils.SetWorldToCameraAndCameraToWorldMatrices(cmd, data.cameraData.GetViewMatrix());
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
