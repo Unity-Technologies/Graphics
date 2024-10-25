@@ -150,6 +150,9 @@ namespace UnityEngine.Rendering.Universal
             if (resourceData.normalsTexture.Length != m_BatchCount)
                 resourceData.normalsTexture = new TextureHandle[m_BatchCount];
 
+            if (resourceData.shadowTextures.Length != m_BatchCount)
+                resourceData.shadowTextures = new TextureHandle[m_BatchCount][];
+
             if (resourceData.lightTextures.Length != m_BatchCount)
                 resourceData.lightTextures = new TextureHandle[m_BatchCount][];
 
@@ -158,6 +161,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (resourceData.lightTextures[i] == null || resourceData.lightTextures[i].Length != m_LayerBatches[i].activeBlendStylesIndices.Length)
                     resourceData.lightTextures[i] = new TextureHandle[m_LayerBatches[i].activeBlendStylesIndices.Length];
+            }
+
+            for (int i = 0; i < resourceData.shadowTextures.Length; ++i)
+            {
+                if (resourceData.shadowTextures[i] == null || resourceData.shadowTextures[i].Length != m_LayerBatches[i].shadowIndices.Count)
+                    resourceData.shadowTextures[i] = new TextureHandle[m_LayerBatches[i].shadowIndices.Count];
             }
         }
 
@@ -257,7 +266,13 @@ namespace UnityEngine.Rendering.Universal
                 desc.autoGenerateMips = false;
                 desc.depthStencilFormat = GraphicsFormat.None;
 
-                universal2DResourceData.shadowsTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowTex", false, FilterMode.Bilinear);
+                for (int i = 0; i < universal2DResourceData.shadowTextures.Length; ++i)
+                {
+                    for (var j = 0; j < m_LayerBatches[i].shadowIndices.Count; ++j)
+                    {
+                        universal2DResourceData.shadowTextures[i][j] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowTex", false, FilterMode.Bilinear);
+                    }
+                }
             }
 
             // Shadow depth desc
@@ -267,7 +282,7 @@ namespace UnityEngine.Rendering.Universal
                 desc.autoGenerateMips = false;
                 desc.depthStencilFormat = k_DepthStencilFormat; 
 
-                universal2DResourceData.shadowsDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowDepth", false, FilterMode.Bilinear);
+                universal2DResourceData.shadowDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowDepth", false, FilterMode.Bilinear);
             }
 
             // Camera Sorting Layer desc

@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
                         // This is a local copy of the array element (it's a struct). Remember to add a ref here if you need to modify the real thing.
                         var layerBatch = layerBatches[i];
 
-                        if (layerBatch.lightStats.useAnyLights)
+                        if (layerBatch.lightStats.useLights)
                         {
                             for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                             {
@@ -302,6 +302,8 @@ namespace UnityEngine.Rendering.Universal
                             if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                                 CopyCameraSortingLayerRenderTexture(context, renderingData, copyStoreAction);
                         }
+
+                        RendererLighting.DisableAllKeywords(CommandBufferHelpers.GetRasterCommandBuffer(cmd));
 
                         // Draw light volumes
                         if (drawLights && (layerBatch.lightStats.totalVolumetricUsage > 0))
