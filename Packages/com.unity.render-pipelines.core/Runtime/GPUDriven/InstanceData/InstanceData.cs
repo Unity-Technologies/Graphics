@@ -483,8 +483,11 @@ namespace UnityEngine.Rendering
 
             instances[index] = instances[lastIndex];
             rendererGroupIDs[index] = rendererGroupIDs[lastIndex];
+
             materialIDArrays[index].Dispose();
             materialIDArrays[index] = materialIDArrays[lastIndex];
+            materialIDArrays[lastIndex] = default;
+
             meshIDs[index] = meshIDs[lastIndex];
             localAABBs[index] = localAABBs[lastIndex];
             flags[index] = flags[lastIndex];

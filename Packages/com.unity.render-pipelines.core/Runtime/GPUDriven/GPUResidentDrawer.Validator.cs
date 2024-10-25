@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
             // Check the build target is supported by checking the depth downscale kernel (which has an only_renderers pragma) is present
             var resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
-            if (!resources.occluderDepthPyramidKernels.HasKernel("OccluderDepthDownscale"))
+            if (!(resources.occluderDepthPyramidKernels && resources.occluderDepthPyramidKernels.HasKernel("OccluderDepthDownscale")))
             {
                 severity = LogType.Warning;
                 message  = Strings.kernelNotPresent;
