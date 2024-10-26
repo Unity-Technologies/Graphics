@@ -14,7 +14,14 @@
 
 #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore
+
+// TODO: Remove explicit randomwrite shader requirement
+//
+// The randomwrite requirement isn't automatically included in compute shaders even though they cannot work without it.
+// We must explicitly require it here to avoid breaking code that checks against the SHADER_AVAILABLE_RANDOMWRITE define.
+// This code should be removed when the underlying compiler code is updated to implicitly require randomwrite in compute shaders.
+#pragma require randomwrite
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -395,7 +402,14 @@ StpF2 StpPatDatMotH(StpW2 o) { return LOAD_TEXTURE2D_X_LOD(_StpInputMotion, o, 0
 StpH3 StpPatDatColH(StpW2 o) { return (StpH3)LOAD_TEXTURE2D_X_LOD(_StpInputColor, o, 0).rgb; }
 StpF1 StpPatDatZH(StpW2 o) { return LOAD_TEXTURE2D_X_LOD(_StpInputDepth, o, 0).x; }
 // This provides a place to convert Z from depth to linear if not inlined and actually loaded.
-StpF1 StpPatFixZH(StpF1 z) { return 1.0 / (STP_ZBUFFER_PARAMS_Z * z + STP_ZBUFFER_PARAMS_W); }
+StpF1 StpPatFixZH(StpF1 z)
+{
+#if !UNITY_REVERSED_Z
+    // Reverse Z if necessary as STP expects reversed Z input
+    z = 1.0 - z;
+#endif
+    return 1.0 / (STP_ZBUFFER_PARAMS_Z * z + STP_ZBUFFER_PARAMS_W);
+}
 StpU1 StpPatDatRH(StpW2 o) {
     #if defined(ENABLE_STENCIL_RESPONSIVE)
         return GetStencilValue(LOAD_TEXTURE2D_X_LOD(_StpInputStencil, o, 0).xy);
@@ -432,7 +446,14 @@ StpF2 StpPatDatMotF(StpMU2 o) { return LOAD_TEXTURE2D_X_LOD(_StpInputMotion, o, 
 StpMF3 StpPatDatColF(StpMU2 o) { return (StpMF3)LOAD_TEXTURE2D_X_LOD(_StpInputColor, o, 0).rgb; }
 StpF1 StpPatDatZF(StpMU2 o) { return LOAD_TEXTURE2D_X_LOD(_StpInputDepth, o, 0).x; }
 // This provides a place to convert Z from depth to linear if not inlined and actually loaded.
-StpF1 StpPatFixZF(StpF1 z) { return 1.0 / (STP_ZBUFFER_PARAMS_Z * z + STP_ZBUFFER_PARAMS_W); }
+StpF1 StpPatFixZF(StpF1 z)
+{
+#if !UNITY_REVERSED_Z
+    // Reverse Z if necessary as STP expects reversed Z input
+    z = 1.0 - z;
+#endif
+    return 1.0 / (STP_ZBUFFER_PARAMS_Z * z + STP_ZBUFFER_PARAMS_W);
+}
 StpU1 StpPatDatRF(StpMU2 o) {
     #if defined(ENABLE_STENCIL_RESPONSIVE)
         return GetStencilValue(LOAD_TEXTURE2D_X_LOD(_StpInputStencil, o, 0).xy);
