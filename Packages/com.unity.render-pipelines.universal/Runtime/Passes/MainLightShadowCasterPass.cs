@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Need set the worldToCamera Matrix as that is not set for passes executed before normal rendering,
                 // otherwise shadows will behave incorrectly when Scene and Game windows are open at the same time (UUM-63267).
-                ShadowUtils.SetWorldToCameraMatrix(cmd, renderingData.cameraData.GetViewMatrix());
+                ShadowUtils.SetWorldToCameraAndCameraToWorldMatrices(cmd, renderingData.cameraData.GetViewMatrix());
 
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex, BatchCullingProjectionType.Orthographic);
                 settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers;
