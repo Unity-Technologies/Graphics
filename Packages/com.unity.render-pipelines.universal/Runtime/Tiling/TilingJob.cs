@@ -218,16 +218,16 @@ namespace UnityEngine.Rendering.Universal
                     // Intersect lines with y-plane and clip if needed.
                     var l1t = math.dot(-lightPositionVS, planeNormal) / math.dot(l1, planeNormal);
                     var l1x = lightPositionVS + l1 * l1t;
-                    if (l1t >= 0 && l1t <= 1 && l1x.z >= near) planeRange.Expand((short)ViewToTileSpace(l1x).x);
+                    if (l1t >= 0 && l1t <= 1 && l1x.z >= near) planeRange.Expand((short)math.clamp(ViewToTileSpace(l1x).x, 0, tileCount.x - 1));
 
                     var l2t = math.dot(-lightPositionVS, planeNormal) / math.dot(l2, planeNormal);
                     var l2x = lightPositionVS + l2 * l2t;
-                    if (l2t >= 0 && l2t <= 1 && l2x.z >= near) planeRange.Expand((short)ViewToTileSpace(l2x).x);
+                    if (l2t >= 0 && l2t <= 1 && l2x.z >= near) planeRange.Expand((short)math.clamp(ViewToTileSpace(l2x).x, 0, tileCount.x - 1));
 
                     if (IntersectCircleYPlane(planeY, baseCenter, lightDirectionVS, baseUY, baseVY, baseRadius, out var circleTile0, out var circleTile1))
                     {
-                        if (circleTile0.z >= near) planeRange.Expand((short)ViewToTileSpace(circleTile0).x);
-                        if (circleTile1.z >= near) planeRange.Expand((short)ViewToTileSpace(circleTile1).x);
+                        if (circleTile0.z >= near) planeRange.Expand((short)math.clamp(ViewToTileSpace(circleTile0).x, 0, tileCount.x - 1));
+                        if (circleTile1.z >= near) planeRange.Expand((short)math.clamp(ViewToTileSpace(circleTile1).x, 0, tileCount.x - 1));
                     }
 
                     if (coneIsClipping)
@@ -237,21 +237,14 @@ namespace UnityEngine.Rendering.Universal
                         var theta = FindNearConicYTheta(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, y);
                         var p0 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, theta.x).x, y, near);
                         var p1 = math.float3(EvaluateNearConic(near, lightPositionVS, lightDirectionVS, r, coneU, coneV, theta.y).x, y, near);
-                        if (ConicPointIsValid(p0)) planeRange.Expand((short)ViewToTileSpace(p0).x);
-                        if (ConicPointIsValid(p1)) planeRange.Expand((short)ViewToTileSpace(p1).x);
+                        if (ConicPointIsValid(p0)) planeRange.Expand((short)math.clamp(ViewToTileSpace(p0).x, 0, tileCount.x - 1));
+                        if (ConicPointIsValid(p1)) planeRange.Expand((short)math.clamp(ViewToTileSpace(p1).x, 0, tileCount.x - 1));
                     }
 
-                    // Only consider ranges that intersect the tiling extents.
-                    // The logic in the below 'if' statement is a simplification of:
-                    // !((planeRange.start < 0) && (planeRange.end < 0)) && !((planeRange.start > tileCount.x - 1) && (planeRange.end > tileCount.x - 1))
-                    if (((planeRange.start >= 0) || (planeRange.end >= 0)) && ((planeRange.start <= tileCount.x - 1) || (planeRange.end <= tileCount.x - 1)))
-                    {
-                        // Write to tile ranges above and below the plane. Note that at `m_Offset` we store Y-range.
-                        var tileIndex = m_Offset + 1 + planeIndex;
-                        planeRange.Clamp(0, (short)(tileCount.x - 1));
-                        tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
-                        tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
-                    }
+                    // Write to tile ranges above and below the plane. Note that at `m_Offset` we store Y-range.
+                    var tileIndex = m_Offset + 1 + planeIndex;
+                    tileRanges[tileIndex] = InclusiveRange.Merge(tileRanges[tileIndex], planeRange);
+                    tileRanges[tileIndex - 1] = InclusiveRange.Merge(tileRanges[tileIndex - 1], planeRange);
                 }
             }
 
