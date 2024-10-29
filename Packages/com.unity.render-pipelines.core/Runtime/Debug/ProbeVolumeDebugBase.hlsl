@@ -267,6 +267,7 @@ bool ShouldCull(inout v2f o)
     bool shouldCull = false;
     if (distance(position.xyz + _APVWorldOffset, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
     {
+        ZERO_INITIALIZE(v2f, o);
         DoCull(o);
         shouldCull = true;
     }
