@@ -503,6 +503,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
                 context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
                 {
+					registerUndo("Change Support VFX Graph");
                     m_SupportVFX = m_SupportVFXToggle.value;
                 });
             }
