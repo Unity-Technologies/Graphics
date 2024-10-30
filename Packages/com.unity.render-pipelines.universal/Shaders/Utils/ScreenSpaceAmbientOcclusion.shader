@@ -164,7 +164,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 
                 half4 FragGaussianAfterOpaque(Varyings input) : SV_Target
                 {
-                    half ao = VerticalGaussianBlur(input);
+                    half ao = VerticalGaussianBlur(input).r;
                     return half4(0.0, 0.0, 0.0, ao);
                 }
 
@@ -208,7 +208,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 
                 half4 FragKawaseAfterOpaque(Varyings input) : SV_Target
                 {
-                    half ao = KawaseBlur(input);
+                    half ao = KawaseBlur(input).r;
                     return half4(0.0, 0.0, 0.0, ao);
                 }
 
