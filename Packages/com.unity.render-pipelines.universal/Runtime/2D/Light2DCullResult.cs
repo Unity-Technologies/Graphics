@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.Universal
         public uint blendStylesUsed;
         public uint blendStylesWithLights;
 
-        public bool useAnyLights { get { return totalLights + totalShadowLights > 0; } }
         public bool useLights { get { return totalLights > 0; } }
         public bool useShadows { get { return totalShadows > 0; } }
         public bool useVolumetricLights { get { return totalVolumetricUsage > 0; } }
@@ -62,7 +61,7 @@ namespace UnityEngine.Rendering.Universal
         public LightStats GetLightStatsByLayer(int layerID, ref LayerBatch layer)
         {
             layer.lights.Clear();
-            layer.shadowLights.Clear();
+            layer.shadowIndices.Clear();
             layer.shadowCasters.Clear();
             var returnStats = new LightStats();
 
@@ -109,13 +108,11 @@ namespace UnityEngine.Rendering.Universal
                 if (isShadowed)
                 {
                     returnStats.totalShadowLights++;
-                    layer.shadowLights.Add(light);
+                    layer.shadowIndices.Add(layer.lights.Count);
                 }
-                else
-                {
-                    returnStats.totalLights++;
-                    layer.lights.Add(light);
-                }
+
+                returnStats.totalLights++;
+                layer.lights.Add(light);
             }
 
             return returnStats;

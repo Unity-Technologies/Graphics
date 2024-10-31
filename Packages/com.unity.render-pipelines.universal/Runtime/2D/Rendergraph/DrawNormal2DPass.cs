@@ -30,7 +30,6 @@ namespace UnityEngine.Rendering.Universal
         public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex)
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
-            int lastBatchIndex = universal2DResourceData.normalsTexture.Length - 1;
 
             if (!layerBatch.useNormals)
                 return;
