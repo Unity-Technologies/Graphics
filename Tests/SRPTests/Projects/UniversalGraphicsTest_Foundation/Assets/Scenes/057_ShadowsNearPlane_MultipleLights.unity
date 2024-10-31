@@ -42,7 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -1333,6 +1334,7 @@ MonoBehaviour:
     cascade3Split: {x: 0.154, y: 0.478}
     cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
     cascadeBorder: 0.10000001
+    shadowDistance: 56
 --- !u!1 &1581992793
 GameObject:
   m_ObjectHideFlags: 0
