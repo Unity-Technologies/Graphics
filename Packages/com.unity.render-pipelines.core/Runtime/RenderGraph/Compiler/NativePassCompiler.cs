@@ -14,7 +14,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             public RenderGraphResourceRegistry m_ResourcesForDebugOnly;
             public List<RenderGraphPass> m_RenderPasses;
             public string debugName;
-            public bool disableCulling;
+            public bool disablePassCulling;
+            public bool disablePassMerging;
         }
 
         internal RenderGraphInputInfo graph;
@@ -59,7 +60,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        public bool Initialize(RenderGraphResourceRegistry resources, List<RenderGraphPass> renderPasses, bool disableCulling, string debugName, bool useCompilationCaching, int graphHash, int frameIndex)
+        public bool Initialize(RenderGraphResourceRegistry resources, List<RenderGraphPass> renderPasses, RenderGraphDebugParams debugParams, string debugName, bool useCompilationCaching, int graphHash, int frameIndex)
         {
             bool cached = false;
             if (!useCompilationCaching)
@@ -69,7 +70,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             graph.m_ResourcesForDebugOnly = resources;
             graph.m_RenderPasses = renderPasses;
-            graph.disableCulling = disableCulling;
+            graph.disablePassCulling = debugParams.disablePassCulling;
+            graph.disablePassMerging = debugParams.disablePassMerging;
             graph.debugName = debugName;
 
             Clear(clearContextData: !useCompilationCaching);
@@ -328,7 +330,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_CullNodes)))
             {
                 // No need to go further if we don't enable culling
-                if (graph.disableCulling)
+                if (graph.disablePassCulling)
                     return;
 
                 // Cull all passes first
@@ -420,7 +422,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     // There is an native pass currently open, try to add the current graph pass to it
                     else
                     {
-                        var mergeTestResult = NativePassData.TryMerge(contextData, activeNativePassId, passIdx);
+                        var mergeTestResult = graph.disablePassMerging ? new PassBreakAudit(PassBreakReason.PassMergingDisabled, passIdx)
+                                                                       : NativePassData.TryMerge(contextData, activeNativePassId, passIdx);
 
                         // Merge failed, close current native render pass and create a new one
                         if (mergeTestResult.reason != PassBreakReason.Merged)

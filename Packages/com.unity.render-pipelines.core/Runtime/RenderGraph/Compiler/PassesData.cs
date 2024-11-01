@@ -473,6 +473,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         SubPassLimitReached, // Addind the next pass would have generated more subpasses than allowed
         EndOfGraph, // The last pass in the graph was reached
         FRStateMismatch, // One pass is using foveated rendering and the other not
+        PassMergingDisabled, // Wasn't merged because pass merging is disabled
         Merged, // I actually got merged
 
         Count
@@ -505,6 +506,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             $"The limit of {NativePassCompiler.k_MaxSubpass} native subpasses would be exceeded when merging with the next pass.",
             "This is the last pass in the graph, there are no other passes to merge.",
             "The the next pass uses a different foveated rendering state",
+            "Pass merging is disabled so this pass was not merged",
             "The next pass got merged into this pass.",
         };
     }
