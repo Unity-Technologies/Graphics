@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering
 
                         groupShadingSampleAtlas = renderGraph.CreateTexture(new TextureDesc(shadingSampleAtlasWidth, shadingSampleAtlasHeight)
                         {
-                            colorFormat = GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite = true
+                            format = GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite = true
                         }),
                         groupShadingSampleAtlasDimensions = new Vector2Int(shadingSampleAtlasWidth, shadingSampleAtlasHeight)
                     };
@@ -416,7 +416,7 @@ namespace UnityEngine.Rendering
                         prefixResources = GPUPrefixSum.RenderGraphResources.Create(prefixMaxItems, renderGraph, builder),
                         shadingScratchTexture = builder.CreateTransientTexture(new TextureDesc(scratchTextureDimension, scratchTextureDimension)
                         {
-                            colorFormat = GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite = true
+                            format = GraphicsFormat.R32G32B32A32_SFloat, enableRandomWrite = true
                         }),
                         shadingScratchTextureDimensions = new Vector2Int(scratchTextureDimension, scratchTextureDimension),
 

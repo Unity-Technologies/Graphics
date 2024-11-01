@@ -1,4 +1,8 @@
 using System;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Rendering;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -36,4 +40,26 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_VolumeProfile, value);
         }
     }
+    
+#if UNITY_EDITOR
+    //Overriding "Reset" in menu that is not called at HDRPDefaultVolumeProfileSettings creation such Reset()
+    struct ResetImplementation : IRenderPipelineGraphicsSettingsContextMenu<HDRPDefaultVolumeProfileSettings>
+    {
+        public void PopulateContextMenu(HDRPDefaultVolumeProfileSettings setting, PropertyDrawer drawer, ref GenericMenu menu)
+        {
+            void Reset()
+            {
+                if (EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<HDRenderPipelineEditorAssets, HDRenderPipeline>(out var rpgs))
+                {
+                    RenderPipelineGraphicsSettingsEditorUtility.Rebind(
+                        new HDRPDefaultVolumeProfileSettings() { volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(rpgs.defaultVolumeProfile) },
+                        typeof(HDRenderPipeline)
+                    );
+                }
+            }
+
+            menu.AddItem(new GUIContent("Reset"), false, Reset);
+        }
+    }
+#endif
 }

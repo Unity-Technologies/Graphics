@@ -1763,7 +1763,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
                 // Since recorder does not know about this, we need to send a texture of the right size.
                 passData.tempTexture = builder.CreateTransientTexture(new TextureDesc((int)finalViewport.width, (int)finalViewport.height)
-                { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" });
+                { format = inputDesc.format, name = "TempCaptureActions" });
 
                 builder.SetRenderFunc(
                     (ExecuteCaptureActionsPassData data, RenderGraphContext ctx) =>

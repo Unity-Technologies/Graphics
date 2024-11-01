@@ -119,6 +119,8 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "HLSL")]
     class CustomHLSL : VFXOperator, IHLSLCodeHolder
     {
+        public const string ReturnFunctionSuffix = "Return";
+
         const string defaultHlslCode =
             "float FloatFunction(in float value)" + "\n" +
             "{" + "\n" +
@@ -315,6 +317,7 @@ namespace UnityEditor.VFX.Operator
 
             var currentIncludes = new List<string>(includes).ToArray();
             var expressions = new List<VFXExpression>(m_OutputProperties.Count);
+
             for (int i = 0; i < m_InputParameters.Count; i++)
             {
                 var parameter = m_InputParameters[i];
@@ -329,7 +332,7 @@ namespace UnityEditor.VFX.Operator
             var valueType = VFXExpression.GetVFXValueTypeFromType(m_Function?.returnType);
             if (valueType != VFXValueType.None)
             {
-                var hlslCode = BuildHLSLWrapperCode(m_InputParameters.Count, "Return", m_Function.rawReturnType, out var wrapperFunctionName);
+                var hlslCode = BuildHLSLWrapperCode(m_InputParameters.Count, ReturnFunctionSuffix, m_Function.rawReturnType, out var wrapperFunctionName);
                 expressions.Add(new VFXExpressionHLSL(wrapperFunctionName, hlslCode, valueType, inputExpression, currentIncludes));
             }
 
@@ -470,13 +473,13 @@ namespace UnityEditor.VFX.Operator
             if (m_Function != null)
             {
                 var hasShaderFile = HasShaderFile();
-                var functionName = hasShaderFile ? m_Function.name : m_Function.GetNameWithHashCode();
+                var functionName = hasShaderFile ? m_Function.name : m_Function.GetNameWithHashCode(returnedParameterName);
 
                 var hlslCode = new StringBuilder();
                 if (!hasShaderFile)
-                    hlslCode.Append(m_Function.GetTransformedHLSL());
+                    hlslCode.Append(m_Function.GetTransformedHLSL(returnedParameterName));
 
-                wrapperFunctionName = $"{functionName}_Wrapper_{returnedParameterName}";
+                wrapperFunctionName = $"{functionName}_Wrapper";
 
                 hlslCode.Append($"{returnType} {wrapperFunctionName}(");
                 var isFirst = true;

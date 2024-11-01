@@ -379,7 +379,11 @@ namespace UnityEngine.Rendering.Universal
         BayerMatrix,
 
         /// <summary>Unity uses the precomputed blue noise texture to compute the LOD cross-fade dithering.</summary>
-        BlueNoise
+        BlueNoise,
+
+        /// <summary>Unity uses stencil test to make 2x2 pixel dithering pattern by using 2 stencil bits (4 and 8). This option significantly decreases the number of the shader variants, while GPU performance cost becomes slightly higher.</summary>
+        [InspectorName("2x2 Stencil"), Tooltip("2x2 pixel dithering pattern by stencil test with 2 stencil bits (4 and 8). This option decreases the number of the shader variants.")]
+        Stencil
     }
 
     /// <summary>
@@ -440,7 +444,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
-    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline, IRenderGraphEnabledRenderPipeline
+    public partial class UniversalRenderPipelineAsset : RenderPipelineAsset<UniversalRenderPipeline>, ISerializationCallbackReceiver, IProbeVolumeEnabledRenderPipeline, IGPUResidentRenderPipeline, IRenderGraphEnabledRenderPipeline, ISTPEnabledRenderPipeline
     {
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
@@ -480,6 +484,7 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LOD_FADE_CROSSFADE)]
 #endif
         [SerializeField] bool m_EnableLODCrossFade = true;
+
         [SerializeField] LODCrossFadeDitheringType m_LODCrossFadeDitheringType = LODCrossFadeDitheringType.BlueNoise;
 
         // ShEvalMode.Auto is handled in shader preprocessor.
@@ -1957,5 +1962,13 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [Obsolete("This property is no longer necessary.")]
         public ProbeVolumeSceneData probeVolumeSceneData => null;
+
+        /// <summary>
+        /// Returns true if the asset is configured to use STP as an upscaling filter
+        /// </summary>
+        public bool isStpUsed
+        {
+            get { return m_UpscalingFilter == UpscalingFilterSelection.STP; }
+        }
     }
 }

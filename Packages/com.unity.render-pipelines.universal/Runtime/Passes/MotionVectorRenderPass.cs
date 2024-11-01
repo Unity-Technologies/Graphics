@@ -106,7 +106,6 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd,profilingSampler))
             {
                 InitPassData(ref m_PassData, cameraData);
-
                 InitRendererLists(ref m_PassData, ref universalRenderingData.cullResults, universalRenderingData.supportsDynamicBatching,
                     context, default(RenderGraph), false);
 
@@ -122,6 +121,7 @@ namespace UnityEngine.Rendering.Universal
                 perObjectData = PerObjectData.MotionVectors,
                 enableDynamicBatching = supportsDynamicBatching,
                 enableInstancing = true,
+                lodCrossFadeStencilMask = 0, // Disable stencil-based lod because depth copy before motion vector pass doesn't copy stencils.
             };
 
             for (int i = 0; i < s_ShaderTags.Length; ++i)

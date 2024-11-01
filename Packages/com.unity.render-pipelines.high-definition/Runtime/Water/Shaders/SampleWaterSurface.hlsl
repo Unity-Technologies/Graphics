@@ -75,10 +75,10 @@ float4 EvaluateWaterMask(float3 positionAWS)
 }
 
 // Deformation region
-Texture2D<float> _WaterDeformationBuffer;
+Texture2D<float4> _WaterDeformationBuffer;
 Texture2D<float2> _WaterDeformationSGBuffer;
 
-float EvaluateWaterDeformation(float3 positionAWS)
+float4 EvaluateWaterDeformation(float3 positionAWS)
 {
     float2 deformationUV = EvaluateDecalUV(positionAWS);
     return SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, deformationUV, 0);
@@ -286,7 +286,7 @@ void EvaluateSimulationDisplacement(float3 positionOS, out float2 horizontalDisp
     horizontalDisplacement *= -WATER_SYSTEM_CHOPPINESS;
 }
 
-void EvaluateVerticalDisplacement(float3 positionOS, float3 verticalDisplacements, out float verticalDisplacement, out float lowFrequencyHeight)
+void EvaluateDisplacement(float3 positionOS, float3 verticalDisplacements, out float verticalDisplacement, out float2 horizontalDisplacement, out float lowFrequencyHeight)
 {
     // Compute the position that will be used to sample decals
     float3 positionAWS = GetAbsolutePositionWS(TransformObjectToWorld_Water(positionOS));
@@ -298,11 +298,14 @@ void EvaluateVerticalDisplacement(float3 positionOS, float3 verticalDisplacement
     verticalDisplacement = dot(verticalDisplacements, waterMask);
     lowFrequencyHeight = dot(verticalDisplacements.xy, waterMask.xy);
 
+    horizontalDisplacement = float2(0, 0);
+    
 #if defined(SUPPORT_WATER_DEFORMATION)
     // Apply the deformation data
-    float verticalDeformation = EvaluateWaterDeformation(positionAWS);
-    verticalDisplacement += verticalDeformation;
-    lowFrequencyHeight += verticalDeformation;
+    float4 deformation = EvaluateWaterDeformation(positionAWS + verticalDisplacements);
+    horizontalDisplacement = deformation.yz;
+    verticalDisplacement += deformation.x;
+    lowFrequencyHeight += deformation.x;
 #endif
 }
 
@@ -314,14 +317,17 @@ struct WaterDisplacementData
 
 void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData displacementData)
 {
-    float2 horizontalDisplacement;
+    float2 simulationHorizontalDisplacement;
+    float2 deformationHorizontalDisplacement;
     float3 verticalDisplacements;
-    EvaluateSimulationDisplacement(positionOS, horizontalDisplacement, verticalDisplacements);
+    EvaluateSimulationDisplacement(positionOS, simulationHorizontalDisplacement, verticalDisplacements);
 
     float lowFrequencyHeight;
-    float3 displacement = float3(horizontalDisplacement.x, 0, horizontalDisplacement.y);
-    EvaluateVerticalDisplacement(positionOS + displacement, verticalDisplacements, displacement.y, lowFrequencyHeight);
+    float3 displacement = float3(simulationHorizontalDisplacement.x, 0, simulationHorizontalDisplacement.y);
+    EvaluateDisplacement(positionOS + displacement, verticalDisplacements, displacement.y, deformationHorizontalDisplacement, lowFrequencyHeight);
 
+    displacement.xz += deformationHorizontalDisplacement.xy;
+    
     displacementData.displacement = displacement;
     displacementData.lowFrequencyHeight = lowFrequencyHeight;
 
@@ -429,7 +435,7 @@ void SampleSimulation_PS(WaterSimCoord waterCoord, float3 waterMask, float dista
     }
 }
 
-void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, float3 meshNormalOS, out WaterAdditionalData waterAdditionalData)
+void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, float3 meshNormalOS, float2 horizontalDisplacement, out WaterAdditionalData waterAdditionalData)
 {
     ZERO_INITIALIZE(WaterAdditionalData, waterAdditionalData);
     if (_GridSize.x < 0)
@@ -441,7 +447,7 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
     float distanceToCamera = length(positionRWS);
     // Get the world space transformed postion
     float3 transformedAWS = GetAbsolutePositionWS(transformedPosition);
-    float2 decalUV = EvaluateDecalUV(transformedAWS);
+    float2 decalUV = EvaluateDecalUV(transformedAWS - float3(horizontalDisplacement.x, 0.0f, horizontalDisplacement.y));
 
     // Compute the texture size param for the filtering
     float4 texSize = 0.0;
@@ -621,12 +627,13 @@ float FindVerticalDisplacement(float3 positionWS, int iterationCount, float dist
     }
 
     float currentHeight;
+    float2 horizontalDisplacement;
     float lowFrequencyHeight;
-    EvaluateVerticalDisplacement(currentLocation, currentVertical, currentHeight, lowFrequencyHeight);
+    EvaluateDisplacement(currentLocation, currentVertical, currentHeight, horizontalDisplacement, lowFrequencyHeight);
 
 #if !defined(WATER_SIMULATION)
     WaterAdditionalData waterAdditionalData;
-    EvaluateWaterAdditionalData(currentLocation, GetCameraRelativePositionWS(positionWS), float3(0, 1, 0), waterAdditionalData);
+    EvaluateWaterAdditionalData(currentLocation, GetCameraRelativePositionWS(positionWS), float3(0, 1, 0), float2(0,0), waterAdditionalData);
     normal = waterAdditionalData.normalWS;
 
     current = OrientationToDirection(_PatchOrientation.x);

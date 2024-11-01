@@ -14,16 +14,14 @@ public class SamplesLinkLightToEmissive : MonoBehaviour
 
     void Update()
     {
-
         if (lightToLink != null && emissiveObject !=null )
         {
-                var renderer = emissiveObject.GetComponent<MeshRenderer>();
-                var propertyBlock = new MaterialPropertyBlock();
-                renderer.GetPropertyBlock(propertyBlock);
-                propertyBlock.SetColor(emissionColorProperty, lightToLink.color * Mathf.CorrelatedColorTemperatureToRGB(lightToLink.colorTemperature));
-                propertyBlock.SetFloat(emissionIntensityProperty,lightToLink.intensity);
-                renderer.SetPropertyBlock(propertyBlock);
-                
+            var renderer = emissiveObject.GetComponent<MeshRenderer>();
+            var propertyBlock = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(propertyBlock);
+            propertyBlock.SetColor(emissionColorProperty, lightToLink.color * Mathf.CorrelatedColorTemperatureToRGB(lightToLink.colorTemperature));
+            propertyBlock.SetFloat(emissionIntensityProperty,lightToLink.intensity);
+            renderer.SetPropertyBlock(propertyBlock); 
         } 
     }
 }

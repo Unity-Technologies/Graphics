@@ -35,6 +35,16 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_VolumeProfile;
             set => this.SetValueAndNotify(ref m_VolumeProfile, value);
         }
+
+        void IRenderPipelineGraphicsSettings.Reset()
+        {
+#if UNITY_EDITOR
+            if (UnityEditor.Rendering.EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<HDRenderPipelineEditorAssets, HDRenderPipeline>(out var rpgs))
+            {
+                volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(rpgs.lookDevVolumeProfile);
+            }
+#endif
+        }
     }
 }
 

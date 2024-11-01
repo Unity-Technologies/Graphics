@@ -428,7 +428,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
                     pragmas = pragmas ?? CorePragmas.Forward,     // NOTE: SM 2.0 only GL
-                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
+                    defines = new DefineCollection() { },
                     keywords = new KeywordCollection() { keywords },
                     includes = LitIncludes.Forward,
 
@@ -889,6 +889,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.ProbeVolumePregraph },
                 { CoreIncludes.CorePregraph },
@@ -905,6 +906,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.ProbeVolumePregraph },
                 { CoreIncludes.CorePregraph },

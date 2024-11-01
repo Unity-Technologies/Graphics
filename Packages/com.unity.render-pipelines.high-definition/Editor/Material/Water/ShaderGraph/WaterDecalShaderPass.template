@@ -115,8 +115,10 @@ PackedVaryings Vert(Attributes input)
     return packedOutput;
 }
 
-#ifdef PASS_DEFORMATION_AND_FOAM
-	#define TARGET_TYPE float3
+#ifdef PASS_DEFORMATION
+	#define TARGET_TYPE float4
+#elif defined(PASS_FOAM)
+	#define TARGET_TYPE float2
 #elif defined(PASS_MASK)
 	#define TARGET_TYPE float4
 #elif defined(PASS_LARGE_CURRENT)
@@ -132,14 +134,14 @@ TARGET_TYPE Frag(PackedVaryings packedInput) : SV_Target
 	SurfaceDescriptionInputs inputs = BuildSurfaceDescriptionInputs(varyings);
 	SurfaceDescription surface = SurfaceDescriptionFunction(inputs);
 
-    float deformation = 0.0f;
+    float3 deformation = 0.0f;
     float2 foam = 0.0f;
     float4 mask = 1.0f;
     float3 largeCurrent = 0.0f;
     float3 ripplesCurrent = 0.0f;
 
 #if _AFFECTS_DEFORMATION == 1
-    $Material.Deformation:  deformation = surface.Deformation;
+    $Material.Deformation:  deformation = float3(surface.Deformation, surface.HorizontalDeformation.x, surface.HorizontalDeformation.y);
 #endif
 
 #if _AFFECTS_FOAM == 1
@@ -162,8 +164,10 @@ TARGET_TYPE Frag(PackedVaryings packedInput) : SV_Target
     $Material.RipplesCurrentInfluence: ripplesCurrent.z = saturate(surface.RipplesCurrentInfluence);
 #endif
 
-#ifdef PASS_DEFORMATION_AND_FOAM
-    return float3(deformation, foam);
+#ifdef PASS_DEFORMATION
+    return float4(surface.Deformation, surface.HorizontalDeformation.x, surface.HorizontalDeformation.y, 0);
+#elif defined(PASS_FOAM)
+    return float2(foam);
 #elif defined(PASS_MASK)
     return mask;
 #elif defined(PASS_LARGE_CURRENT)

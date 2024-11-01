@@ -146,12 +146,12 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
             #pragma multi_compile _ _FORWARD_PLUS
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
 
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
-            #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma instancing_options procedural:ParticleInstancingSetup

@@ -267,6 +267,7 @@ bool ShouldCull(inout v2f o)
     bool shouldCull = false;
     if (distance(position.xyz + _APVWorldOffset, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
     {
+        ZERO_INITIALIZE(v2f, o);
         DoCull(o);
         shouldCull = true;
     }
@@ -302,7 +303,7 @@ float3 CalculateDiffuseLighting(v2f i)
     if (_ShadingMode == DEBUGPROBESHADINGMODE_PROBE_OCCLUSION)
     {
         float4 shadowmask = apvRes.ProbeOcclusion[texLoc];
-        return shadowmask.rgb * 0.5 + (shadowmask.a * 0.5);
+        return shadowmask.rgb * 0.5 + (shadowmask.aaa * 0.5);
     }
     else if (_ShadingMode == DEBUGPROBESHADINGMODE_SKY_DIRECTION)
     {

@@ -670,8 +670,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 }
 
-#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-
                 bool containsDLSS = ((1 << (int)AdvancedUpscalers.DLSS) & advancedUpscalersEnabledMask) != 0;
                 bool dlssDetected = ((1 << (int)AdvancedUpscalers.DLSS) & advancedUpscalersDetectedMask) != 0;
                 if (containsDLSS)
@@ -715,9 +713,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.EndHorizontal();
                     ++EditorGUI.indentLevel;
                 }
-#endif
 
-#if ENABLE_AMD && ENABLE_AMD_MODULE
                 bool containsFSR2 = ((1 << (int)AdvancedUpscalers.FSR2) & advancedUpscalersEnabledMask) != 0;
                 bool fsr2Detected = ((1 << (int)AdvancedUpscalers.FSR2) & advancedUpscalersDetectedMask) != 0;
                 if (containsFSR2)
@@ -762,7 +758,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.EndHorizontal();
                     ++EditorGUI.indentLevel;
                 }
-#endif
+
                 bool containsSTP = ((1 << (int)AdvancedUpscalers.STP) & advancedUpscalersEnabledMask) != 0;
                 if (containsSTP)
                 {
@@ -990,6 +986,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Exclusion
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterExclusion, Styles.supportWaterExclusionContent);
+
+                // Horizontal Deformation
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportWaterHorizontalDeformation, Styles.supportWaterHorizontalDeformationContent);
 
                 // CPU Simulation
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.waterScriptInteractionsMode);
@@ -1228,7 +1227,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             CoreEditorUtils.DrawFixMeBox(Styles.rayTracingRestrictionOnlyWarning, "Open", () =>
             {
-                HDUserSettings.wizardActiveTab = 2; // focus on dxr tab
+                HDUserSettings.SetOpen(InclusiveMode.DXROptional, true); // Make sure DXR is open
                 HDWizard.OpenWindow();
             });
 

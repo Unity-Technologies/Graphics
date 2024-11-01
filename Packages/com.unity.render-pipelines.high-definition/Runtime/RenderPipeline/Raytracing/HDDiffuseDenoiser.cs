@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
-                passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "DiffuseDenoiserIntermediate" });
+                passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { format = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "DiffuseDenoiserIntermediate" });
                 passData.outputBuffer = builder.WriteTexture(outputBuffer);
 
                 builder.SetRenderFunc(

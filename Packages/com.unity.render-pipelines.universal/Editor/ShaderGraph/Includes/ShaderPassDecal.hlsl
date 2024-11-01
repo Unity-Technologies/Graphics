@@ -118,6 +118,9 @@ void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half
     #elif defined(VARYINGS_NEED_SH)
     inputData.vertexSH = input.sh;
     #endif
+    #if defined(USE_APV_PROBE_OCCLUSION)
+    inputData.probeOcclusion = input.probeOcclusion;
+    #endif
     #endif
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);

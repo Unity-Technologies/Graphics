@@ -8,5 +8,5 @@ Create environmental effects in the High Definition Render Pipeline (HDRP).
 | [Clouds](clouds.md) | Create realistic clouds, simple clouds, or custom cloud effects. |
 | [Fog](fog.md) | Create a global or local fog effect, and troubleshoot fog. |
 | [Water](water.md) | Create water. |
-| [Understand atmospheric Scattering](Atmospheric-Scattering.md) | Learn how HDRP simulates fog, cloud, and mist effects. |
+| [Understand atmospheric scattering](Atmospheric-Scattering.md) | Learn how HDRP simulates fog, cloud, and mist effects. |
 

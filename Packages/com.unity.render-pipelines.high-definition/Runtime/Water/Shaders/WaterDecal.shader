@@ -97,13 +97,13 @@ Shader "Hidden/HDRP/WaterDecal"
             Varyings Vert(Attributes input)
             {
                 WaterDecalData decal = _WaterDecalData[input.instanceID];
-                return GetDecalVaryings(input, decal.deformFoamScaleOffset, decal.amplitude);
+                return GetDecalVaryings(input, decal.deformScaleOffset, decal.amplitude);
             }
 
-            float Frag(Varyings input) : SV_Target
+            float4 Frag(Varyings input) : SV_Target
             {
                 float2 uv = RemapUV(input.uv, input.scaleOffset);
-                return SAMPLE_TEXTURE2D_LOD(_WaterDecalAtlas, s_linear_clamp_sampler, uv, 0).x * input.data.x;
+                return SAMPLE_TEXTURE2D_LOD(_WaterDecalAtlas, s_linear_clamp_sampler, uv, 0) * input.data.x;
             }
             ENDHLSL
         }
@@ -121,7 +121,7 @@ Shader "Hidden/HDRP/WaterDecal"
             Varyings Vert(Attributes input)
             {
                 WaterDecalData decal = _WaterDecalData[input.instanceID];
-                return GetDecalVaryings(input, decal.deformFoamScaleOffset, float2(decal.surfaceFoamDimmer, decal.deepFoamDimmer));
+                return GetDecalVaryings(input, decal.foamScaleOffset, float2(decal.surfaceFoamDimmer, decal.deepFoamDimmer));
             }
 
             float2 Frag(Varyings input) : SV_Target

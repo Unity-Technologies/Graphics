@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Serialization;
 
 // This example copies the target of the previous pass to a new texture using a custom material and framebuffer fetch. This example is for API demonstrative purposes,
 // so the new texture is not used anywhere else in the frame, you can use the frame debugger to verify its contents.
@@ -16,10 +16,14 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
         private Material m_BlitMaterial;
         private Material m_FBFetchMaterial;
         
-        public FrameBufferFetchPass(Material blitMaterial, Material fbFetchMaterial)
+        public FrameBufferFetchPass( Material fbFetchMaterial)
         {
-            m_BlitMaterial = blitMaterial;
             m_FBFetchMaterial = fbFetchMaterial;
+
+            //The pass will read the current color texture. That needs to be an intermediate texture. It's not supported to use the BackBuffer as input texture. 
+            //By setting this property, URP will automatically create an intermediate texture. This has a performance cost so don't set this if you don't need it.
+            //It's good practice to set it here and not from the RenderFeature. This way, the pass is selfcontaining and you can use it to directly enqueue the pass from a monobehaviour without a RenderFeature.
+            requiresIntermediateTexture = true;
         }
         
         // This class stores the data needed by the pass, passed as parameter to the delegate function that executes the pass
@@ -27,58 +31,16 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
         {
             internal TextureHandle src;
             internal Material material;
-        }
-
-        // This static method is used to execute the pass and passed as the RenderFunc delegate to the RenderGraph render pass
-        static void ExecuteBlitPass(PassData data, RasterGraphContext context)
-        {
-            Blitter.BlitTexture(context.cmd, data.src, new Vector4(1, 1, 0, 0), data.material, 0);
+            internal bool useMSAA;
         }
         
         // This static method is used to execute the pass and passed as the RenderFunc delegate to the RenderGraph render pass
         static void ExecuteFBFetchPass(PassData data, RasterGraphContext context)
         {
-            context.cmd.DrawProcedural(Matrix4x4.identity, data.material, 1, MeshTopology.Triangles, 3, 1, null);
-            
-            // other ways to draw a fullscreen triangle/quad:
-            //CoreUtils.DrawFullScreen(context.cmd, data.material, null, 1);
-            //Blitter.BlitTexture(context.cmd, new Vector4(1, 1, 0, 0), data.material, 1);
-        }
-
-        private void BlitPass(RenderGraph renderGraph, ContextContainer frameData, TextureHandle destination)
-        {
-            string passName = "InitialBlitPass";
-            
-            // This simple pass copies the active color texture to a new texture using a custom material. This sample is for API demonstrative purposes,
-            // so the new texture is not used anywhere else in the frame, you can use the frame debugger to verify its contents.
-
-            // add a raster render pass to the render graph, specifying the name and the data type that will be passed to the ExecutePass function
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData))
-            {
-                // UniversalResourceData contains all the texture handles used by the renderer, including the active color and depth textures
-                // The active color and depth textures are the main color and depth buffers that the camera renders into
-                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-                
-                // Get the active color texture through the frame data, and set it as the source texture for the blit
-                passData.src = resourceData.activeColorTexture;
-                passData.material = m_BlitMaterial;
-                
-                // We declare the src texture as an input dependency to this pass, via UseTexture()
-                builder.UseTexture(passData.src);
-
-                // Setup as a render target via UseTextureFragment, which is the equivalent of using the old cmd.SetRenderTarget
-                builder.SetRenderAttachment(destination, 0);
-                
-                // We disable culling for this pass for the demonstrative purpose of this sample, as normally this pass would be culled,
-                // since the destination texture is not used anywhere else
-                builder.AllowPassCulling(false);
-
-                // Assign the ExecutePass function to the render pass delegate, which will be called by the render graph when executing the pass
-                builder.SetRenderFunc((PassData data, RasterGraphContext context) => ExecuteBlitPass(data, context));
-            }
+            context.cmd.DrawProcedural(Matrix4x4.identity, data.material, data.useMSAA? 1 : 0, MeshTopology.Triangles, 3, 1, null);
         }
         
-        private void FBFetchPass(RenderGraph renderGraph, ContextContainer frameData, TextureHandle source, TextureHandle destination)
+        private void FBFetchPass(RenderGraph renderGraph, ContextContainer frameData, TextureHandle source, TextureHandle destination, bool useMSAA)
         {
             string passName = "FrameBufferFetchPass";
             
@@ -90,9 +52,9 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
             {
                 // Fill the pass data
                 passData.material = m_FBFetchMaterial;
-                
-                // We declare the src texture as an input dependency to this pass, via UseTexture()
-                //builder.UseTexture(passData.blitDest);
+                passData.useMSAA = useMSAA;
+
+                // We declare the src as input attachment. This is required for Frame buffer fetch. 
                 builder.SetInputAttachment(source, 0, AccessFlags.Read);
 
                 // Setup as a render target via UseTextureFragment, which is the equivalent of using the old cmd.SetRenderTarget
@@ -117,33 +79,44 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
             // to another render target using framebuffer fetch.
             // As a result, the passes are merged (you can verify in the RenderGraph Visualizer) and the bandwidth usage is reduced, since we can discard the temporary render target.
 
-            // The destination textures are created here, 
-            // the texture is created with the same dimensions as the active color texture, but with no depth buffer, being a copy of the color texture
-            // we also disable MSAA as we don't need multisampled textures for this sample.
-                
-            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            RenderTextureDescriptor desc = cameraData.cameraTargetDescriptor;
-            desc.msaaSamples = 1;
-            desc.depthBufferBits = 0;
-                
-            TextureHandle blitDestination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "BlitDestTexture", false);
-            TextureHandle fbFetchDestination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "FBFetchDestTextureTexture", false);
-            
-            BlitPass(renderGraph, frameData, blitDestination);
-            
-            FBFetchPass(renderGraph, frameData, blitDestination, fbFetchDestination);
+
+            // UniversalResourceData contains all the texture handles used by the renderer, including the active color and depth textures
+            // The active color and depth textures are the main color and depth buffers that the camera renders into
+            var resourceData = frameData.Get<UniversalResourceData>();
+
+            // The destination texture is created here, 
+            // the texture is created with the same dimensions as the active color texture
+            var source = resourceData.activeColorTexture;
+
+            var destinationDesc = renderGraph.GetTextureDesc(source);
+            destinationDesc.name = "FBFetchDestTexture";
+            destinationDesc.clearBuffer = false;
+
+            if (destinationDesc.msaaSamples == MSAASamples.None || RenderGraphUtils.CanAddCopyPassMSAA())
+            {
+                TextureHandle fbFetchDestination = renderGraph.CreateTexture(destinationDesc);
+
+                FBFetchPass(renderGraph, frameData, source, fbFetchDestination, destinationDesc.msaaSamples != MSAASamples.None);
+
+                //Copy back the FBF output to the camera color to easily see the result in the game view
+                //This copy pass also uses FBF under the hood. All the passes should be merged this way and the destination attachment should be memoryless (no load/store of memory).
+                renderGraph.AddCopyPass(fbFetchDestination, source, passName: "Copy Back FF Destination (also using FBF)");
+            }
+            else
+            {
+                Debug.Log("Can't add the FBF pass and the copy pass due to MSAA");
+            }
         }
     }
 
     FrameBufferFetchPass m_FbFetchPass;
     
-    public Material m_BlitColorMaterial;
     public Material m_FBFetchMaterial;
 
     /// <inheritdoc/>
     public override void Create()
     {
-        m_FbFetchPass = new FrameBufferFetchPass(m_BlitColorMaterial, m_FBFetchMaterial);
+        m_FbFetchPass = new FrameBufferFetchPass(m_FBFetchMaterial);
 
         // Configures where the render pass should be injected.
         m_FbFetchPass.renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
@@ -153,6 +126,13 @@ public class FrameBufferFetchRenderFeature : ScriptableRendererFeature
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        // Early exit if there are no materials.
+        if (m_FBFetchMaterial == null)
+        {
+            Debug.LogWarning( this.name + " material is null and will be skipped.");
+            return;
+        }
+
         renderer.EnqueuePass(m_FbFetchPass);
     }
 }

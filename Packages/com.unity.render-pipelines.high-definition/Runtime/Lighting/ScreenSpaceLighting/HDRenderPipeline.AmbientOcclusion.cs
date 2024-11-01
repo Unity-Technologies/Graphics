@@ -48,7 +48,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                parameters.runningRes = new Vector2(Mathf.RoundToInt(camera.actualWidth * 0.5f), Mathf.RoundToInt(camera.actualHeight * 0.5f));
+                // Ceil is needed because we upsample the AO too, round would loose a pixel is the resolution is odd
+                parameters.runningRes = new Vector2(Mathf.CeilToInt(camera.actualWidth * 0.5f), Mathf.CeilToInt(camera.actualHeight * 0.5f));
                 cb._AOBufferSize = new Vector4(parameters.runningRes.x, parameters.runningRes.y, 1.0f / parameters.runningRes.x, 1.0f / parameters.runningRes.y);
             }
 
@@ -138,9 +139,9 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateAmbientOcclusionTexture(RenderGraph renderGraph, bool fullResolution)
         {
             if (fullResolution)
-                return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" });
+                return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, format = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" });
             else
-                return renderGraph.CreateTexture(new TextureDesc(Vector2.one * 0.5f, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R32_SFloat, name = "Final Half Res AO Packed" });
+                return renderGraph.CreateTexture(new TextureDesc(Vector2.one * 0.5f, true, true) { enableRandomWrite = true, format = GraphicsFormat.R32_SFloat, name = "Final Half Res AO Packed" });
         }
 
         TextureHandle RenderAmbientOcclusion(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidityBuffer,
@@ -222,7 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float scaleFactor = parameters.fullResolution ? 1.0f : 0.5f;
 
                 passData.packedData = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
+                { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
 
@@ -275,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.packedData = builder.ReadTexture(aoPackedData);
                 if (parameters.temporalAccumulation)
                     passData.denoiseOutput = builder.WriteTexture(renderGraph.CreateTexture(
-                        new TextureDesc(Vector2.one * (parameters.fullResolution ? 1.0f : 0.5f), true, true) { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed blurred data" }));
+                        new TextureDesc(Vector2.one * (parameters.fullResolution ? 1.0f : 0.5f), true, true) { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed blurred data" }));
                 else
                     passData.denoiseOutput = builder.WriteTexture(CreateAmbientOcclusionTexture(renderGraph, parameters.fullResolution));
 

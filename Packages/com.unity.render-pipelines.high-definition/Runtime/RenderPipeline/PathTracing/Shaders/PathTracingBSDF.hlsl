@@ -71,7 +71,11 @@ bool SampleAnisoGGX(MaterialData mtlData,
     outgoingDir = mul(localL, localToWorld);
 
     if (localL.z < 0.001 || !IsAbove(mtlData, outgoingDir))
+    {
+        pdf = 0.0;
+        fresnel = 0.0;
         return false;
+    }
 
     float pdfNoGV = D_AnisoGGX(roughnessX, roughnessY, localH) / (4.0 * localV.z);
     float lambdaVPlusOne = Lambda_AnisoGGX(roughnessX, roughnessY, localV) + 1.0;
@@ -239,7 +243,10 @@ bool SampleLambert(MaterialData mtlData,
     outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, normal);
 
     if (!IsAbove(mtlData, outgoingDir))
+    {
+        pdf = 0.0;
         return false;
+    }
 
     pdf = dot(normal, outgoingDir) * INV_PI;
 
@@ -273,7 +280,10 @@ bool SampleBurley(MaterialData mtlData,
     outgoingDir = SampleHemisphereCosine(inputSample.x, inputSample.y, normal);
 
     if (!IsAbove(mtlData, outgoingDir))
+    {
+        pdf = 0.0;
         return false;
+    }
 
     float NdotL = dot(normal, outgoingDir);
     pdf = NdotL * INV_PI;
@@ -389,7 +399,10 @@ bool SampleGGX(MaterialData mtlData,
     NdotL = dot(normal, outgoingDir);
 
     if (NdotL > -0.001 || !IsBelow(mtlData, outgoingDir))
+    {
+        pdf = 0.0;
         return false;
+    }
 
     float NdotV = dot(normal, mtlData.V);
     float LdotH = dot(outgoingDir, H);
@@ -433,7 +446,10 @@ bool SampleAnisoGGX(MaterialData mtlData,
     outgoingDir = mul(localL, localToWorld);
 
     if (localL.z > -0.001 || !IsBelow(mtlData, outgoingDir))
+    {
+        pdf = 0.0;
         return false;
+    }
 
     // Compute the Jacobian
     float LdotH = dot(localL, localH);

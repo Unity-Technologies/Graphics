@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Reflection.Emit;
 using UnityEditor.Rendering.Analytics;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -21,13 +23,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly string hdrpProjectSettingsPathTooltip = L10n.Tr("Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.");
             public const string hdrpConfigLabel = "HDRP";
             public static readonly string hdrpConfigTooltip = L10n.Tr("This tab contains configuration check for High Definition Render Pipeline.");
-            public const string hdrpVRConfigLabel = "HDRP + VR";
-            public static readonly string hdrpVRConfigTooltip = L10n.Tr("This tab contains configuration check for High Definition Render Pipeline along with Virtual Reality configuration.");
-            public const string hdrpDXRConfigLabel = "HDRP + DXR";
-            public static readonly string hdrpDXRConfigTooltip = L10n.Tr("This tab contains configuration check for High Definition Render Pipeline along with DirectX Raytracing configuration.");
+            public const string hdrpVRConfigLabel = "VR";
+            public static readonly string hdrpVRConfigTooltip = L10n.Tr("This tab contains configuration check for Virtual Reality configuration.");
+            public const string hdrpDXRConfigLabel = "DXR";
+            public static readonly string hdrpDXRConfigTooltip = L10n.Tr("This tab contains configuration check for DirectX Raytracing configuration.");
             public static readonly string showOnStartUp = L10n.Tr("Show on start");
 
-            public static readonly string defaultSettingsTitle = L10n.Tr("Default Path Settings");
+            public static readonly string defaultSettingsTitle = L10n.Tr("General Settings");
             public static readonly string configurationTitle = L10n.Tr("Configuration Checking");
             public static readonly string migrationTitle = L10n.Tr("Project Migration Quick-links");
 
@@ -40,9 +42,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly string migrateSelectedButton = L10n.Tr("Convert Selected Built-in Materials to HDRP");
             public static readonly string migrateMaterials = L10n.Tr("Upgrade HDRP Materials to Latest Version");
 
-            public static readonly string HDRPVersion = L10n.Tr("Current HDRP version: ");
-            public static readonly string HDRPVersionUpdateButton = L10n.Tr("Check update");
-            public static readonly string checking = L10n.Tr(" checking...");
+            public static readonly string OpenPackageManager = L10n.Tr("Package Manager");
+            public static readonly string checking = L10n.Tr("checking ...");
             public static readonly string local = L10n.Tr(" (local)");
 
             //configuration debugger
@@ -88,26 +89,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: L10n.Tr("Only distance shadowmask supported at the project level! (You can still change this per light.)"),
                 button: resolveAllQuality);
             public static readonly ConfigStyle hdrpAssetGraphicsAssigned = new ConfigStyle(
-                label: L10n.Tr("Assigned - Graphics"),
+                label: L10n.Tr("Assigned - Default Render Pipeline in Graphics Settings"),
                 error: L10n.Tr("There is no HDRP asset assigned to the Graphic Settings!"));
+            public static readonly ConfigStyle hdrpGraphicsSettingsExists = new ConfigStyle(
+                label: L10n.Tr("Settings and Resources"),
+                error: L10n.Tr("Some IRenderPipelineGraphicsSettings are missing on the global settings!"));
             public static readonly ConfigStyle hdrpGlobalSettingsAssigned = new ConfigStyle(
-                label: L10n.Tr("Assigned - HDRP Global Settings"),
-                error: L10n.Tr("There is no HDRenderPipelineGlobalSettings assigned to Edit > Project Settings > Graphics > HDRP Global Settings!"));
+                label: L10n.Tr("Global Settings Asset"),
+                error: L10n.Tr("The Global Settings Asset is missing or out of date."));
             public static readonly ConfigStyle hdrpAssetQualityAssigned = new ConfigStyle(
-                label: L10n.Tr("Assigned - Quality"),
+                label: L10n.Tr("Assigned - Render Pipeline Asset in Quality Settings"),
                 error: L10n.Tr("The RenderPipelineAsset assigned in the current Quality must be null or a HDRenderPipelineAsset. If it is null, the asset for the current Quality will be the one in Graphics Settings. (The Fix or Fix All button will nullify it)"));
             public static readonly ConfigStyle hdrpBatcher = new ConfigStyle(
                 label: L10n.Tr("SRP Batcher"),
                 error: L10n.Tr("SRP Batcher must be enabled!"));
             public static readonly ConfigStyle hdrpDiffusionProfile = new ConfigStyle(
                 label: L10n.Tr("Diffusion profile"),
-                error: L10n.Tr("There is no diffusion profile assigned in the HDRP Global Settings!"));
+                error: L10n.Tr("There is no diffusion profile assigned in the Project Settings > Graphics > HDRP"));
             public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
                 label: L10n.Tr("Default volume profile"),
-                error: L10n.Tr("Default volume profile must be assigned in the HDRP Global Settings! Also, for it to be editable, it should be outside of package."));
+                error: L10n.Tr("Default volume profile must be assigned in the Project Settings > Graphics > HDRP! Also, for it to be editable, it should be outside of package."));
             public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
                 label: L10n.Tr("Default Look Dev volume profile"),
-                error: L10n.Tr("Default Look Dev volume profile must be assigned in the HDRP Global Settings! Also, for it to be editable, it should be outside of package."));
+                error: L10n.Tr("Default Look Dev volume profile must be assigned in the Project Settings > Graphics > HDRP! Also, for it to be editable, it should be outside of package."));
+
             public static readonly ConfigStyle hdrpMigratableAssets = new ConfigStyle(
                 label: L10n.Tr("Assets Migration"),
                 error: L10n.Tr("At least one of the HDRP assets used in quality or the current HDRenderPipelineGlobalSettings have not been migrated to last version."));
@@ -156,32 +161,32 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: L10n.Tr("Screen Space Shadows are disabled in the current HDRP Asset which means you cannot enable ray-traced shadows for lights in your scene. To enable this feature, open your HDRP Asset, go to Lighting > Shadows, and enable Screen Space Shadows."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrScreenSpaceShadowFS = new ConfigStyle(
-                label: L10n.Tr("Screen Space Shadows (HDRP Global Settings)"),
-                error: L10n.Tr($"Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > Graphics > HDRP Global Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Shadows. This configuration depends on {dxrScreenSpaceShadow.label}. This means, before you fix this, you must fix {dxrScreenSpaceShadow.label} first."),
+                label: L10n.Tr("Screen Space Shadows (HDRP Graphics Settings)"),
+                error: L10n.Tr($"Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > Graphics > HDRP > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Shadows. This configuration depends on {dxrScreenSpaceShadow.label}. This means, before you fix this, you must fix {dxrScreenSpaceShadow.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrReflections = new ConfigStyle(
                 label: L10n.Tr("Screen Space Reflection (Asset)"),
                 error: L10n.Tr("Screen Space Reflection is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections in Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Screen Space Reflections."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrReflectionsFS = new ConfigStyle(
-                label: L10n.Tr("Screen Space Reflection (HDRP Global Settings)"),
-                error: L10n.Tr($"Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > Graphics > HDRP Global Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Reflections. This configuration depends on {dxrReflections.label}. This means, before you fix this, you must fix {dxrReflections.label} first."),
+                label: L10n.Tr("Screen Space Reflection (HDRP Graphics Settings)"),
+                error: L10n.Tr($"Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > Graphics > HDRP > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Reflections. This configuration depends on {dxrReflections.label}. This means, before you fix this, you must fix {dxrReflections.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrTransparentReflections = new ConfigStyle(
                 label: L10n.Tr("Screen Space Reflection - Transparent (Asset)"),
                 error: L10n.Tr("Screen Space Reflection - Transparent is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections on transparent GameObjects from Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Transparents receive SSR."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrTransparentReflectionsFS = new ConfigStyle(
-                label: L10n.Tr("Screen Space Reflection - Transparent (HDRP Global Settings)"),
-                error: L10n.Tr($"Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections on transparent GameObjects. To enable this feature, go to Project Settings > Graphics > HDRP Global Settings > Frame Settings (Default Values) > Camera > Lighting and enable Transparents. This configuration depends on {dxrTransparentReflections.label}. This means, before you fix this, you must fix {dxrTransparentReflections.label} first."),
+                label: L10n.Tr("Screen Space Reflection - Transparent (HDRP Graphics Settings)"),
+                error: L10n.Tr($"Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections on transparent GameObjects. To enable this feature, go to Project Settings > Graphics > HDRP > Frame Settings (Default Values) > Camera > Lighting and enable Transparents. This configuration depends on {dxrTransparentReflections.label}. This means, before you fix this, you must fix {dxrTransparentReflections.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrGI = new ConfigStyle(
                 label: L10n.Tr("Screen Space Global Illumination (Asset)"),
-                error: L10n.Tr("Screen Space Global Illumination is disabled in the current HDRP asset which means you cannot enable ray-traced global illumination in Volume components. To enable this feature, open your HDRP Asset, go to Lighting and enable Screen Space Global Illumination."),
+                error: L10n.Tr($"Screen Space Global Illumination is disabled in the current HDRP asset which means you cannot enable ray-traced global illumination in Volume components.{Environment.NewLine} To enable this feature, open your HDRP Asset, go to Lighting and enable Screen Space Global Illumination."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrGIFS = new ConfigStyle(
-                label: L10n.Tr("Screen Space Global Illumination (HDRP Global Settings)"),
-                error: L10n.Tr($"Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > Graphics > HDRP Global Settings > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Global Illumination. This configuration depends on {dxrGI.label}. This means, before you fix this, you must fix {dxrGI.label} first."),
+                label: L10n.Tr("Screen Space Global Illumination (HDRP Graphics Settings)"),
+                error: L10n.Tr($"Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination.{Environment.NewLine}To enable this feature, go to Project Settings > Graphics > HDRP > Frame Settings (Default Values) > Camera > Lighting and enable Screen Space Global Illumination. This configuration depends on {dxrGI.label}. This means, before you fix this, you must fix {dxrGI.label} first."),
                 messageType: MessageType.Info);
             public static readonly ConfigStyle dxrBuildTarget = new ConfigStyle(
                 label: L10n.Tr("Build Target"),
@@ -198,8 +203,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: L10n.Tr($"Visual Effects Ray Tracing are disabled in the current HDRP asset which means you cannot enable Ray Tracing for Visual Effects. To enable this feature, open your HDRP Asset, go to Rendering, and enable Visual Effects Ray Tracing. This configuration depends on {dxrActivated.label}. This means, before you fix this, you must fix {dxrActivated.label} first."),
                 messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrVfxFS = new ConfigStyle(
-                label: L10n.Tr("Ray-traced Visual Effects (HDRP Global Settings)"),
-                error: L10n.Tr($"Visual Effects Ray Tracing are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render visual effects. To enable this feature, go to Project Settings > Graphics > HDRP Global Settings > Frame Settings (Default Values) > Camera > Lighting and enable Ray Tracing VFX. This configuration depends on {dxrVfx.label}. This means, before you fix this, you must fix {dxrVfx.label} first."),
+                label: L10n.Tr("Ray-traced Visual Effects (HDRP Graphics Settings)"),
+                error: L10n.Tr($"Visual Effects Ray Tracing are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render visual effects. To enable this feature, go to Project Settings > Graphics > HDRP > Frame Settings (Default Values) > Camera > Lighting and enable Ray Tracing VFX. This configuration depends on {dxrVfx.label}. This means, before you fix this, you must fix {dxrVfx.label} first."),
                 messageType: MessageType.Info);
 
             public static readonly string hdrpAssetDisplayDialogTitle = L10n.Tr("Create or Load HDRenderPipelineAsset");
@@ -225,10 +230,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         Configuration m_Configuration;
+        private List<VisualElementUpdatable> m_UpdatableElements = new();
         VisualElement m_BaseUpdatable;
         VisualElement m_InstallConfigPackageHelpbox = null;
         VisualElement m_InstallConfigPackageButton = null;
-        Label m_InstallConfigPackageHelpboxLabel;
+        UnityEngine.UIElements.Label m_InstallConfigPackageHelpboxLabel;
 
         [MenuItem("Window/Rendering/HDRP Wizard", priority = 10000)]
         static internal void OpenWindow()
@@ -245,13 +251,28 @@ namespace UnityEditor.Rendering.HighDefinition
             return HDRenderPipeline.isReady || RenderPipelineManager.currentPipeline == null;
         }
 
-        void OnGUI()
-        {
-            if (m_BaseUpdatable == null)
-                return;
+        float lastUpdateTime = 0f;
+        const float updateInterval = 0.016f; // 16 milliseconds
 
-            foreach (VisualElementUpdatable updatable in m_BaseUpdatable.Children().Where(c => c is VisualElementUpdatable))
-                updatable.CheckUpdate();
+        void Update()
+        {
+            if (EditorApplication.timeSinceStartup - lastUpdateTime >= updateInterval)
+            {
+                for (int i = 0; i < m_UpdatableElements.Count; ++i)
+                    m_UpdatableElements[i].CheckUpdate();
+
+                if (m_BaseUpdatable != null)
+                {
+                    foreach (VisualElementUpdatable updatable in m_BaseUpdatable
+                                 .Children()
+                                 .Where(c => c is VisualElementUpdatable))
+                        updatable.CheckUpdate();
+                }
+
+                // Update the time of the last update
+                lastUpdateTime = (float)EditorApplication.timeSinceStartup;
+
+            }
         }
 
         static HDWizard()
@@ -286,7 +307,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorApplication.update -= WizardBehaviourDelayed;
 
             // If the wizard does not need to be shown at start up, do nothing.
-            if (!HDProjectSettings.wizardIsStartPopup)
+            if (!HDUserSettings.wizardIsStartPopup)
                 return;
 
             //Application.isPlaying cannot be called in constructor. Do it here
@@ -345,128 +366,100 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region DRAWERS
 
+        Toolbar CreateToolbar()
+        {
+            var toolbar = new Toolbar()
+            {
+                name = "MainToolbar"
+            };
+
+            ToolbarButton button = new ToolbarButton(() => PackageManager.UI.Window.Open(k_HdrpPackageName))
+            {
+                text = Style.OpenPackageManager
+            };
+
+            toolbar.Add(CreateWizardBehaviour());
+            toolbar.Add(button);
+
+            return toolbar;
+        }
+
+        private void UpdateWindowTitle()
+        {
+            titleContent = new GUIContent($"{Style.title} ({Style.checking})");
+
+            m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo)
+                =>
+            {
+                var packageInfoStr =
+                    $"{packageInfo.version}{(packageInfo.source == PackageManager.PackageSource.Local ? Style.local : "")}";
+
+                titleContent = new GUIContent($"{Style.title} ({packageInfoStr})");
+            });
+        }
+
         private void CreateGUI()
         {
-            titleContent = Style.title;
+            UpdateWindowTitle();
 
-            HDEditorUtils.AddStyleSheets(rootVisualElement, HDEditorUtils.FormatingPath); //.h1
-            HDEditorUtils.AddStyleSheets(rootVisualElement, HDEditorUtils.WizardSheetPath);
+            rootVisualElement.Add(CreateToolbar());
 
-            var scrollView = new ScrollView(ScrollViewMode.Vertical);
+            var scrollView = new ScrollView(ScrollViewMode.Vertical)
+            {
+                horizontalScroller =
+                {
+                    visible = false
+                }
+            };
             rootVisualElement.Add(scrollView);
             var container = scrollView.contentContainer;
-
-            container.Add(CreateHdrpVersionChecker());
-
-            container.Add(CreateInstallConfigPackageArea());
 
             container.Add(CreateTitle(Style.defaultSettingsTitle));
             container.Add(CreateFolderData());
 
             container.Add(CreateTitle(Style.configurationTitle));
-            container.Add(CreateTabbedBox(
-                RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? new[]
-                {
-                    (Style.hdrpConfigLabel, Style.hdrpConfigTooltip),
-                    (Style.hdrpVRConfigLabel, Style.hdrpVRConfigTooltip),
-                    (Style.hdrpDXRConfigLabel, Style.hdrpDXRConfigTooltip),
-                }
-                : new[]
-                {
-                    (Style.hdrpConfigLabel, Style.hdrpConfigTooltip),
-                    //VR only supported on window
-                    //DXR only supported on window
-                },
-                out m_BaseUpdatable));
+            container.Add(CreateInstallConfigPackageArea());
 
+            var hdrpConfig = new InclusiveModeElement(InclusiveMode.HDRP, Style.hdrpConfigLabel, Style.hdrpConfigTooltip, this);
+            container.Add(hdrpConfig);
+            m_UpdatableElements.Add(hdrpConfig);
 
-            var fixAllWarning = new HiddableUpdatableContainer(() => !IsHdrpAssetQualityUsedCorrect());
-            fixAllWarning.Add(new HelpBox(HelpBox.Kind.Error, Style.fixAllOnNonHDRP) { name = "FixAllWarning" });
-            fixAllWarning.Init();
-            m_BaseUpdatable.Add(fixAllWarning);
+            var vrConfig = new InclusiveModeElement(InclusiveMode.VR, Style.hdrpVRConfigLabel, Style.hdrpVRConfigTooltip, this);
+            m_UpdatableElements.Add(vrConfig);
+            container.Add(vrConfig);
 
-            m_BaseUpdatable.Add(new FixAllButton(
-                Style.resolveAll,
-                () =>
-                {
-                    bool isCorrect = IsHDRPAllCorrect();
-                    switch (m_Configuration)
-                    {
-                        case Configuration.HDRP_VR:
-                            isCorrect &= IsVRAllCorrect();
-                            break;
-                        case Configuration.HDRP_DXR:
-                            isCorrect &= IsDXRAllCorrect();
-                            break;
-                    }
-                    return isCorrect;
-                },
-                () =>
-                {
-                    GraphicsToolUsageAnalytic.ActionPerformed<HDWizard>("Fix All", Array.Empty<string>());
-                    FixHDRPAll();
-                    switch (m_Configuration)
-                    {
-                        case Configuration.HDRP_VR:
-                            FixVRAll();
-                            break;
-                        case Configuration.HDRP_DXR:
-                            FixDXRAll();
-                            break;
-                    }
-                }));
+            var dxrConfig = new InclusiveModeElement(InclusiveMode.DXROptional, Style.hdrpDXRConfigLabel, Style.hdrpDXRConfigTooltip, this);
+            m_UpdatableElements.Add(dxrConfig);
+            container.Add(dxrConfig);
 
-            ScopeBox globalScope = new ScopeBox(Style.global);
-            ScopeBox currentQualityScope = new ScopeBox(Style.currentQuality);
-
-            m_BaseUpdatable.Add(globalScope);
-            m_BaseUpdatable.Add(currentQualityScope);
-
-            AddHDRPConfigInfo(globalScope, QualityScope.Global);
-
-            var vrScopeGlobal = new HiddableUpdatableContainer(()
-                => m_Configuration == Configuration.HDRP_VR);
-            AddVRConfigInfo(vrScopeGlobal, QualityScope.Global);
-            vrScopeGlobal.Init();
-            globalScope.Add(vrScopeGlobal);
-
-            var dxrScopeGlobal = new HiddableUpdatableContainer(()
-                => m_Configuration == Configuration.HDRP_DXR);
-            AddDXRConfigInfo(dxrScopeGlobal, QualityScope.Global);
-            dxrScopeGlobal.Init();
-            globalScope.Add(dxrScopeGlobal);
-
-            AddHDRPConfigInfo(currentQualityScope, QualityScope.CurrentQuality);
-
-            var vrScopeCurrentQuality = new HiddableUpdatableContainer(()
-                => m_Configuration == Configuration.HDRP_VR);
-            AddVRConfigInfo(vrScopeCurrentQuality, QualityScope.CurrentQuality);
-            vrScopeCurrentQuality.Init();
-            currentQualityScope.Add(vrScopeCurrentQuality);
-
-            var dxrScopeCurrentQuality = new HiddableUpdatableContainer(()
-                => m_Configuration == Configuration.HDRP_DXR);
-            AddDXRConfigInfo(dxrScopeCurrentQuality, QualityScope.CurrentQuality);
-            dxrScopeCurrentQuality.Init();
-            currentQualityScope.Add(dxrScopeCurrentQuality);
+            foreach (var entry in entries)
+            {
+                var configLine = new ConfigInfoLine(entry);
+                hdrpConfig.Add(entry, configLine);
+                vrConfig.Add(entry, configLine);
+                dxrConfig.Add(entry, configLine);
+            }
 
             container.Add(CreateTitle(Style.migrationTitle));
 
             if (MaterialUpgrader.ProjectFolderContainsNonBuiltinMaterials(
                     UpgradeStandardShaderMaterials.GetHDUpgraders()))
             {
-                container.Add(new HelpBox(HelpBox.Kind.Warning, Style.nonBuiltinMaterialWarning));
+                container.Add(new HelpBox(Style.nonBuiltinMaterialWarning, HelpBoxMessageType.Warning));
             }
 
             container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
             container.Add(CreateLargeButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
             container.Add(CreateLargeButton(Style.migrateMaterials, HDRenderPipelineMenuItems.UpgradeMaterials));
 
-            container.Add(CreateWizardBehaviour());
-
             CheckPersistantNeedReboot();
             CheckPersistentFixAll();
+
+            HDEditorUtils.AddStyleSheets(rootVisualElement, HDWizardConfig.FormattingPath); //.h1
+            HDEditorUtils.AddStyleSheets(rootVisualElement, HDWizardConfig.StyleSheetPath);
+
+            foreach (var element in m_UpdatableElements)
+                element.Init();
         }
 
         VisualElement CreateFolderData()
@@ -477,46 +470,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 name = "DefaultResourceFolder",
                 value = HDProjectSettings.projectSettingsFolderPath
             };
-            defaultResourceFolder.Q<Label>().AddToClassList("normal");
+            defaultResourceFolder.Q<UnityEngine.UIElements.Label>().AddToClassList("normal");
             defaultResourceFolder.RegisterValueChangedCallback(evt
                 => HDProjectSettings.projectSettingsFolderPath = evt.newValue);
 
             return defaultResourceFolder;
         }
 
-        VisualElement CreateTabbedBox((string label, string tooltip)[] tabs, out VisualElement innerBox)
+        Toggle CreateWizardBehaviour()
         {
-            var toolbar = new ToolbarRadio();
-            toolbar.AddRadios(tabs);
-            //make sure when we open the same project on different platforms the saved active tab is not out of range
-            int tabIndex = toolbar.radioLength > HDUserSettings.wizardActiveTab ? HDUserSettings.wizardActiveTab : 0;
-            toolbar.SetValueWithoutNotify(tabIndex);
-            m_Configuration = (Configuration)tabIndex;
-            toolbar.RegisterValueChangedCallback(evt =>
+            var toggle = new Toggle()
             {
-                int index = evt.newValue;
-                m_Configuration = (Configuration)index;
-                HDUserSettings.wizardActiveTab = index;
-            });
-
-            var outerBox = new VisualElement() { name = "OuterBox" };
-            innerBox = new VisualElement { name = "InnerBox" };
-
-            outerBox.Add(toolbar);
-            outerBox.Add(innerBox);
-
-            return outerBox;
-        }
-
-        VisualElement CreateWizardBehaviour()
-        {
-            var toggle = new Toggle(Style.showOnStartUp)
-            {
-                value = HDProjectSettings.wizardIsStartPopup,
+                text = Style.showOnStartUp,
+                value = HDUserSettings.wizardIsStartPopup,
                 name = "WizardCheckbox"
             };
             toggle.RegisterValueChangedCallback(evt
-                => HDProjectSettings.wizardIsStartPopup = evt.newValue);
+                => HDUserSettings.wizardIsStartPopup = evt.newValue);
             return toggle;
         }
 
@@ -536,7 +506,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             VisualElement area = new VisualElement()
             {
-                name = "InstallConfigPackageArea"
+                name = "InstallConfigPackageArea",
+                style =
+                {
+                    marginBottom = 3
+                }
             };
             m_InstallConfigPackageButton = CreateLargeButton(Style.installConfigPackageLabel, () =>
             {
@@ -544,8 +518,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 InstallLocalConfigurationPackage(() =>
                     UpdateDisplayOfConfigPackageArea(ConfigPackageState.Present));
             });
-            m_InstallConfigPackageHelpbox = new HelpBox(HelpBox.Kind.Info, Style.installConfigPackageInfoInCheck);
-            m_InstallConfigPackageHelpboxLabel = m_InstallConfigPackageHelpbox.Q<Label>();
+            m_InstallConfigPackageHelpbox = new HelpBox(Style.installConfigPackageInfoInCheck, HelpBoxMessageType.Info);
+            m_InstallConfigPackageHelpboxLabel = m_InstallConfigPackageHelpbox.Q<UnityEngine.UIElements.Label>();
             area.Add(m_InstallConfigPackageButton);
             area.Add(m_InstallConfigPackageHelpbox);
 
@@ -588,72 +562,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void GroupEntriesForDisplay(VisualElement container, InclusiveMode filter, QualityScope scope)
+        UnityEngine.UIElements.Label CreateTitle(string title)
         {
-            foreach (var entry in entries.Where(e => e.scope == scope && filter.Contains(e.inclusiveScope)))
-            {
-                string error = entry.configStyle.error;
-
-                // If it is necessary, append tht name of the current asset.
-                var hdrpAsset = HDRenderPipeline.currentAsset;
-                if (entry.displayAssetName && hdrpAsset != null)
-                {
-                    error += " (" + hdrpAsset.name + ").";
-                }
-
-                container.Add(new ConfigInfoLine(
-                    entry.configStyle.label,
-                    error,
-                    entry.configStyle.messageType,
-                    entry.configStyle.button,
-                    () => entry.check(),
-                    () =>
-                    {
-                        if (entry.fix != null)
-                        {
-                            string context = "{" + $"\"id\" : \"{entry.configStyle.label}\"" + "}";
-                            GraphicsToolUsageAnalytic.ActionPerformed<HDWizard>("Fix", new string[] { context });
-                            entry.fix.Invoke(false);
-                        }
-                    },
-                    entry.indent,
-                    entry.configStyle.messageType == MessageType.Error || entry.forceDisplayCheck,
-                    entry.skipErrorIcon));
-            }
-        }
-
-        void AddHDRPConfigInfo(VisualElement container, QualityScope quality)
-            => GroupEntriesForDisplay(container, InclusiveMode.HDRP, quality);
-        void AddVRConfigInfo(VisualElement container, QualityScope quality)
-            => GroupEntriesForDisplay(container, InclusiveMode.VR, quality);
-        void AddDXRConfigInfo(VisualElement container, QualityScope quality)
-            => GroupEntriesForDisplay(container, InclusiveMode.DXROptional, quality);
-
-        Label CreateTitle(string title)
-        {
-            var label = new Label(title);
+            var label = new UnityEngine.UIElements.Label(title);
             label.AddToClassList("h1");
             return label;
-        }
-
-        VisualElement CreateHdrpVersionChecker()
-        {
-            VisualElement container = new VisualElement() { name = "HDRPVersionContainer" };
-
-            TextElement label = new TextElement() { text = $"{Style.HDRPVersion}{Style.checking}" };
-            label.AddToClassList("normal");
-            container.Add(label);
-
-            Button button = new Button(() =>
-                UnityEditor.PackageManager.UI.Window.Open("com.unity.render-pipelines.high-definition"))
-            { text = Style.HDRPVersionUpdateButton };
-            button.AddToClassList("RightAnchoredButton");
-            container.Add(button);
-
-            m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo)
-                => label.text = $"{Style.HDRPVersion}{packageInfo.version}{(packageInfo.source == PackageManager.PackageSource.Local ? Style.local : "")}");
-
-            return container;
         }
 
         #endregion

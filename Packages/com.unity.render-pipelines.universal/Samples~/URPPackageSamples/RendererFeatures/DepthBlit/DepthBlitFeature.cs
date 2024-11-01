@@ -18,9 +18,10 @@ public class DepthBlitFeature : ScriptableRendererFeature
 
     public Material m_DepthEdgeMaterial;
 
-    // The RTHandle for storing the depth texture
-    private RTHandle m_DepthRTHandle;
+    // The properties for creating the depth texture
     private const string k_DepthRTName = "_MyDepthTexture";
+    private FilterMode m_DepthRTFilterMode = FilterMode.Bilinear;
+    private TextureWrapMode m_DepthRTWrapMode = TextureWrapMode.Clamp;
 
     // This class is for keeping the TextureHandle reference in the frame data so that it can be shared with multiple passes in the render graph system.
     public class TexRefData : ContextItem
@@ -60,13 +61,13 @@ public class DepthBlitFeature : ScriptableRendererFeature
         return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
     }
 
-    public override void AddRenderPasses(ScriptableRenderer renderer,  ref RenderingData renderingData)
+    public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         var cameraData = renderingData.cameraData;
         if (renderingData.cameraData.cameraType != CameraType.Game)
             return;
 
-        // Create an RTHandle for storing the depth
+        // Setup RenderTextureDescriptor for creating the depth RTHandle
         var desc = renderingData.cameraData.cameraTargetDescriptor;
         if (CanCopyDepth(ref cameraData))
         {
@@ -78,26 +79,30 @@ public class DepthBlitFeature : ScriptableRendererFeature
             desc.graphicsFormat = GraphicsFormat.None;
             desc.msaaSamples = 1;
         }
-        RenderingUtils.ReAllocateHandleIfNeeded(ref m_DepthRTHandle, desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: k_DepthRTName );
-
+        
         // Setup passes
+        RTHandle depthRTHandle;
         if (CanCopyDepth(ref cameraData))
         {
             if (m_CopyDepthPass == null)
-                m_CopyDepthPass = new DepthBlitCopyDepthPass(evt_Depth, copyDepthShader, m_DepthRTHandle);
+                m_CopyDepthPass = new DepthBlitCopyDepthPass(evt_Depth, copyDepthShader, 
+                    desc, m_DepthRTFilterMode, m_DepthRTWrapMode, name: k_DepthRTName);
 
             renderer.EnqueuePass(m_CopyDepthPass);
+            depthRTHandle = m_CopyDepthPass.depthRT;
         }
         else
         {
             if (m_DepthOnlyPass == null)
-                m_DepthOnlyPass = new DepthBlitDepthOnlyPass(evt_Depth, RenderQueueRange.opaque, rendererDataAsset.opaqueLayerMask, m_DepthRTHandle);
+                m_DepthOnlyPass = new DepthBlitDepthOnlyPass(evt_Depth, RenderQueueRange.opaque, rendererDataAsset.opaqueLayerMask,  
+                    desc, m_DepthRTFilterMode, m_DepthRTWrapMode, name: k_DepthRTName);
 
             renderer.EnqueuePass(m_DepthOnlyPass);
+            depthRTHandle = m_DepthOnlyPass.depthRT;
         }
 
         // Pass the RTHandle for the DepthEdge effect
-        m_DepthEdgePass.SetRTHandle(ref m_DepthRTHandle);
+        m_DepthEdgePass.SetRTHandle(ref depthRTHandle);
         renderer.EnqueuePass(m_DepthEdgePass);
     }
 
@@ -109,7 +114,7 @@ public class DepthBlitFeature : ScriptableRendererFeature
     protected override void Dispose(bool disposing)
     {
         m_CopyDepthPass?.Dispose();
-        m_DepthRTHandle?.Release();
+        m_DepthOnlyPass?.Dispose();
         m_DepthEdgePass = null;
         m_CopyDepthPass = null;
         m_DepthOnlyPass = null;

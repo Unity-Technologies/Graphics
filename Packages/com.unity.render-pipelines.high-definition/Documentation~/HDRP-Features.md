@@ -427,7 +427,7 @@ In HDRP, you set up fog inside a [Volume](understand-volumes.md) which means you
 
 ![](Images/Water2023-1.png)
 
-Use HDRP's Water system to create and control realistic water surfaces. HDRP's water system includes the following features:
+Use HDRP's water system to create and control realistic water surfaces. HDRP's water system includes the following features:
 - Multiple presets.
 - Simulation-based caustics.
 - Underwater rendering.
@@ -438,7 +438,7 @@ Use HDRP's Water system to create and control realistic water surfaces. HDRP's w
 - A shader graph interaction for advanced visual customization.
 - Visualize transparent objects that intersect the water line.
 
-For more information, refer to [Water System](water.md).
+For more information, refer to [Water system](water.md).
 
 <a name="Camera"></a>
 

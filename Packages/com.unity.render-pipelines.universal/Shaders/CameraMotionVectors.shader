@@ -23,17 +23,16 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
-            // -------------------------------------
-            // Structs
             struct Attributes
             {
-                uint vertexID   : SV_VertexID;
+                uint vertexID : SV_VertexID;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
-                float4 position : SV_POSITION;
+                float4 positionCS : SV_POSITION;
+                float2 texcoord   : TEXCOORD0;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -45,8 +44,12 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-                // TODO: Use Core Blitter vert.
-                output.position = GetFullScreenTriangleVertexPosition(input.vertexID);
+                float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
+                float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
+
+                output.positionCS = pos;
+                output.texcoord   = uv;
+
                 return output;
             }
 
@@ -55,10 +58,8 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionVectors"
             half4 frag(Varyings input, out float outDepth : SV_Depth) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-                float2 uv = input.position.xy / _ScaledScreenParams.xy;
-
-                float depth = SampleSceneDepth(uv).x;
+                float2 uv = input.texcoord;
+                float depth = LoadSceneDepth(uv * _CameraDepthTexture_TexelSize.zw);
                 outDepth = depth; // Write depth out unmodified
 
             #if !UNITY_REVERSED_Z

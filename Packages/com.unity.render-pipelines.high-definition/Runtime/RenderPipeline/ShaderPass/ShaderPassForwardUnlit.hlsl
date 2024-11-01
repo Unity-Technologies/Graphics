@@ -173,7 +173,7 @@ void Frag(PackedVaryingsToPS packedInput,
     outResult = EvaluateAtmosphericScattering(posInput, V, outResult);
     #endif
 
-    #ifdef _TRANSPARENT_REFRACTIVE_SORT
+    #if defined(_TRANSPARENT_REFRACTIVE_SORT) && defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
     ComputeRefractionSplitColor(posInput, outResult, outBeforeRefractionColor, outBeforeRefractionAlpha);
     #endif
 

@@ -735,7 +735,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // For non-RG, need set the worldToCamera Matrix as that is not set for passes executed before normal rendering,
                 // otherwise shadows will behave incorrectly when Scene and Game windows are open at the same time (UUM-63267).
                 if (!useRenderGraph)
-                    ShadowUtils.SetWorldToCameraMatrix(cmd, data.viewMatrix);
+                    ShadowUtils.SetWorldToCameraAndCameraToWorldMatrices(cmd, data.viewMatrix);
 
                 bool anyShadowSliceRenderer = false;
                 int shadowSlicesCount = m_ShadowSliceToAdditionalLightIndex.Count;

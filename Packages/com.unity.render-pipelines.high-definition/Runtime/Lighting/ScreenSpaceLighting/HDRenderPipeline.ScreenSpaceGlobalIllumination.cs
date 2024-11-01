@@ -232,11 +232,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Temporary textures
                 passData.hitPointBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "SSGI Hit Point" });
+                { format = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "SSGI Hit Point" });
 
                 // Output textures
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "SSGI Color" }));
+                { format = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "SSGI Color" }));
 
                 builder.SetRenderFunc(
                     (TraceSSGIPassData data, RenderGraphContext ctx) =>
@@ -356,7 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.inputBuffer = builder.ReadTexture(inputBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "SSGI Final" }));
+                { format = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "SSGI Final" }));
 
                 builder.SetRenderFunc(
                     (UpscaleSSGIPassData data, RenderGraphContext ctx) =>

@@ -677,27 +677,31 @@ Shader ""Hidden/GraphErrorShader2""
                 var source = registry.sources[name];
                 var precision = source.nodes.First().concretePrecision;
 
-                var hasPrecisionMismatch = false;
+                // var hasPrecisionMismatch = false;
                 var nodeNames = new HashSet<string>();
                 foreach (var node in source.nodes)
                 {
                     nodeNames.Add(node.name);
-                    if (node.concretePrecision != precision)
-                    {
-                        hasPrecisionMismatch = true;
-                        break;
-                    }
+                    //if (node.concretePrecision != precision)
+                    //{
+                    //    hasPrecisionMismatch = true;
+                    //    break;
+                    //}
                 }
 
-                if (hasPrecisionMismatch)
-                {
-                    var message = new StringBuilder($"Precision mismatch for function {name}:");
-                    foreach (var node in source.nodes)
-                    {
-                        message.AppendLine($"{node.name} ({node.objectId}): {node.concretePrecision}");
-                    }
-                    throw new InvalidOperationException(message.ToString());
-                }
+                // Commenting this out to keep intent; precision mismatch at this point in import/code gen
+                // is not actionable for the user. It's better to import correctly on the chance that the
+                // generated code works, which will be most cases. In cases where it does not, the shader
+                // compiler will generate appropriate errors that are more actionable.
+                //if (hasPrecisionMismatch)
+                //{
+                //    var message = new StringBuilder($"Precision mismatch for function {name}:");
+                //    foreach (var node in source.nodes)
+                //    {
+                //        message.AppendLine($"{node.name} ({node.objectId}): {node.concretePrecision}");
+                //    }                    
+                //    throw new InvalidOperationException(message.ToString());
+                //}
 
                 var code = source.code.Replace(PrecisionUtil.Token, precision.ToShaderString());
                 code = $"// Node: {string.Join(", ", nodeNames)}{nl}{code}";

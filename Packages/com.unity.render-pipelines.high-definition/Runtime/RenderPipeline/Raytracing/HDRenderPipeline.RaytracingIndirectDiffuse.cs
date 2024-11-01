@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.ReadTexture(depthStencilbuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "GI Ray Directions" }));
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "GI Ray Directions" }));
 
                 builder.SetRenderFunc(
                     (DirGenRTGIPassData data, RenderGraphContext ctx) =>
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.indirectDiffuseBuffer = builder.ReadTexture(indirectDiffuseBuffer);
                 passData.directionBuffer = builder.ReadTexture(directionBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Indirect Diffuse" }));
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Reflection Ray Indirect Diffuse" }));
 
                 builder.SetRenderFunc(
                     (UpscaleRTGIPassData data, RenderGraphContext ctx) =>
@@ -386,7 +386,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Indirect Diffuse" }));
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Ray Traced Indirect Diffuse" }));
 
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 

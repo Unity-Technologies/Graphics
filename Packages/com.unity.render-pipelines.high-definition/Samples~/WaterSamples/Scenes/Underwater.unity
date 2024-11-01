@@ -199,6 +199,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 43493552}
+  - component: {fileID: 43493553}
   m_Layer: 0
   m_Name: VFX
   m_TagString: Untagged
@@ -229,6 +230,19 @@ Transform:
   - {fileID: 1915525309}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &43493553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 43493551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb5f236445e172b42a9c0010577c5fc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waterSurface: {fileID: 833608555}
 --- !u!1 &118929386
 GameObject:
   m_ObjectHideFlags: 0
@@ -1424,8 +1438,6 @@ GameObject:
   - component: {fileID: 449563862}
   - component: {fileID: 449563866}
   - component: {fileID: 449563865}
-  - component: {fileID: 449563864}
-  - component: {fileID: 449563863}
   m_Layer: 0
   m_Name: VFX_BubblesStream (2)
   m_TagString: Untagged
@@ -1448,35 +1460,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 43493552}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &449563863
-MonoBehaviour:
-  m_ObjectHideFlags: 2
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 449563861}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cd15d50208c45c48af2d4887b1ec20f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  waterSurface: {fileID: 833608555}
---- !u!114 &449563864
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 449563861}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdafc37f32b176349b1684c4455b98e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ExecuteInEditor: 1
-  m_Bindings:
-  - {fileID: 449563863}
-  m_VisualEffect: {fileID: 449563866}
 --- !u!73398921 &449563865
 VFXRenderer:
   serializedVersion: 1
@@ -2311,8 +2294,6 @@ GameObject:
   - component: {fileID: 816783956}
   - component: {fileID: 816783958}
   - component: {fileID: 816783957}
-  - component: {fileID: 816783960}
-  - component: {fileID: 816783959}
   m_Layer: 0
   m_Name: VFXG_Grain
   m_TagString: Untagged
@@ -2416,35 +2397,6 @@ VisualEffect:
       m_Array: []
     m_Bool:
       m_Array: []
---- !u!114 &816783959
-MonoBehaviour:
-  m_ObjectHideFlags: 2
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 816783955}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cd15d50208c45c48af2d4887b1ec20f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  waterSurface: {fileID: 833608555}
---- !u!114 &816783960
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 816783955}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdafc37f32b176349b1684c4455b98e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ExecuteInEditor: 1
-  m_Bindings:
-  - {fileID: 816783959}
-  m_VisualEffect: {fileID: 816783958}
 --- !u!1 &823800262
 GameObject:
   m_ObjectHideFlags: 19
@@ -2666,6 +2618,8 @@ MonoBehaviour:
   ripplesFadeMode: 1
   ripplesFadeStart: 50
   ripplesFadeDistance: 200
+  simulationMask: 0
+  maskRes: 512
   waterMask: {fileID: 0}
   waterMaskRemap: {x: 0, y: 1}
   waterMaskExtent: {x: 100, y: 100}
@@ -3192,8 +3146,6 @@ GameObject:
   - component: {fileID: 848712083}
   - component: {fileID: 848712087}
   - component: {fileID: 848712086}
-  - component: {fileID: 848712085}
-  - component: {fileID: 848712084}
   m_Layer: 0
   m_Name: VFX_BubblesStream (1)
   m_TagString: Untagged
@@ -3216,35 +3168,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 43493552}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &848712084
-MonoBehaviour:
-  m_ObjectHideFlags: 2
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 848712082}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cd15d50208c45c48af2d4887b1ec20f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  waterSurface: {fileID: 833608555}
---- !u!114 &848712085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 848712082}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdafc37f32b176349b1684c4455b98e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ExecuteInEditor: 1
-  m_Bindings:
-  - {fileID: 848712084}
-  m_VisualEffect: {fileID: 848712087}
 --- !u!73398921 &848712086
 VFXRenderer:
   serializedVersion: 1
@@ -3535,8 +3458,6 @@ GameObject:
   - component: {fileID: 1006674529}
   - component: {fileID: 1006674528}
   - component: {fileID: 1006674527}
-  - component: {fileID: 1006674531}
-  - component: {fileID: 1006674530}
   m_Layer: 0
   m_Name: VFX_BubblesStream
   m_TagString: Untagged
@@ -3640,35 +3561,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 43493552}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1006674530
-MonoBehaviour:
-  m_ObjectHideFlags: 2
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1006674526}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cd15d50208c45c48af2d4887b1ec20f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  waterSurface: {fileID: 833608555}
---- !u!114 &1006674531
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1006674526}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdafc37f32b176349b1684c4455b98e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ExecuteInEditor: 1
-  m_Bindings:
-  - {fileID: 1006674530}
-  m_VisualEffect: {fileID: 1006674528}
 --- !u!1 &1053179243
 GameObject:
   m_ObjectHideFlags: 0
@@ -5020,8 +4912,6 @@ GameObject:
   - component: {fileID: 1647775596}
   - component: {fileID: 1647775600}
   - component: {fileID: 1647775599}
-  - component: {fileID: 1647775598}
-  - component: {fileID: 1647775597}
   m_Layer: 0
   m_Name: VFX_BubblesStream (3)
   m_TagString: Untagged
@@ -5044,35 +4934,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 43493552}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1647775597
-MonoBehaviour:
-  m_ObjectHideFlags: 2
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1647775595}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cd15d50208c45c48af2d4887b1ec20f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  waterSurface: {fileID: 833608555}
---- !u!114 &1647775598
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1647775595}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdafc37f32b176349b1684c4455b98e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ExecuteInEditor: 1
-  m_Bindings:
-  - {fileID: 1647775597}
-  m_VisualEffect: {fileID: 1647775600}
 --- !u!73398921 &1647775599
 VFXRenderer:
   serializedVersion: 1
@@ -5165,8 +5026,6 @@ GameObject:
   - component: {fileID: 1723780461}
   - component: {fileID: 1723780465}
   - component: {fileID: 1723780464}
-  - component: {fileID: 1723780463}
-  - component: {fileID: 1723780462}
   m_Layer: 0
   m_Name: VFX_BubblesStream (4)
   m_TagString: Untagged
@@ -5189,35 +5048,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 43493552}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1723780462
-MonoBehaviour:
-  m_ObjectHideFlags: 2
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1723780460}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cd15d50208c45c48af2d4887b1ec20f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  waterSurface: {fileID: 833608555}
---- !u!114 &1723780463
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1723780460}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdafc37f32b176349b1684c4455b98e9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ExecuteInEditor: 1
-  m_Bindings:
-  - {fileID: 1723780462}
-  m_VisualEffect: {fileID: 1723780465}
 --- !u!73398921 &1723780464
 VFXRenderer:
   serializedVersion: 1

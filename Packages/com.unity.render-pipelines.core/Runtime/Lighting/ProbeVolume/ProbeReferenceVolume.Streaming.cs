@@ -962,6 +962,8 @@ namespace UnityEngine.Rendering
             else return 0;
         }
 
+        static DynamicArray<Cell>.SortComparer s_DefragComparer = DefragComparer;
+
         void StartIndexDefragmentation()
         {
             // We can end up here during baking (dilation) when trying to load all cells even without supporting GPU streaming.
@@ -974,7 +976,7 @@ namespace UnityEngine.Rendering
             // We want to relocate cells with more indices first.
             m_IndexDefragCells.Clear();
             m_IndexDefragCells.AddRange(m_LoadedCells);
-            m_IndexDefragCells.QuickSort(DefragComparer);
+            m_IndexDefragCells.QuickSort(s_DefragComparer);
 
             m_DefragIndex.Clear();
         }
@@ -1446,6 +1448,11 @@ namespace UnityEngine.Rendering
                 if (m_ToBeLoadedCells.size == 0 && m_ActiveStreamingRequests.Count == 0)
                     UnloadAllCells();
             }
+        }
+
+        bool HasActiveStreamingRequest(Cell cell)
+        {
+            return diskStreamingEnabled && m_ActiveStreamingRequests.Exists(x => x.cell == cell);
         }
 
         [Conditional("UNITY_EDITOR")]

@@ -33,6 +33,20 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// Definition of stencil bits for stencil-based cross-fade LOD.
+    /// </summary>
+    [Flags]
+    public enum UniversalRendererStencilRef
+    {
+        /// <summary>The first stencil bit for stencil-based cross-fade LOD.</summary>
+        CrossFadeStencilRef_0 = 1 << 2,
+        /// <summary>The second stencil bit for stencil-based cross-fade LOD.</summary>
+        CrossFadeStencilRef_1 = 1 << 3,
+        /// <summary>All stencil bits for stencil-based cross-fade LOD.</summary>
+        CrossFadeStencilRef_All = CrossFadeStencilRef_0 + CrossFadeStencilRef_1,
+    }
+
+    /// <summary>
     /// Default renderer for Universal RP.
     /// This renderer is supported on all Universal RP supported platforms.
     /// It uses a classic forward rendering strategy with per-object light culling.
@@ -130,6 +144,8 @@ namespace UnityEngine.Rendering.Universal
         CopyColorPass m_HistoryRawColorCopyPass;
         CopyDepthPass m_HistoryRawDepthCopyPass;
 
+        StencilCrossFadeRenderPass m_StencilCrossFadeRenderPass;
+
         internal RenderTargetBufferSystem m_ColorBufferSystem;
 
         internal RTHandle m_ActiveCameraColorAttachment;
@@ -208,7 +224,9 @@ namespace UnityEngine.Rendering.Universal
                 copyDephPS = universalRendererShaders.copyDepthPS;
                 m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(universalRendererShaders.stencilDeferredPS);
                 m_CameraMotionVecMaterial = CoreUtils.CreateEngineMaterial(universalRendererShaders.cameraMotionVector);
-            }
+
+                m_StencilCrossFadeRenderPass = new StencilCrossFadeRenderPass(universalRendererShaders.stencilDitherMaskSeedPS);
+            }            
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -377,13 +395,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Deferred rendering does not support MSAA.
                 this.supportedRenderingFeatures.msaa = false;
-
-                // Avoid legacy platforms: use vulkan instead.
-                unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[]
-                {
-                    GraphicsDeviceType.OpenGLCore,
-                    GraphicsDeviceType.OpenGLES3
-                };
             }
 
             LensFlareCommonSRP.mergeNeeded = 0;
@@ -416,6 +427,8 @@ namespace UnityEngine.Rendering.Universal
             m_XRCopyDepthPass?.Dispose();
             m_XRDepthMotionPass?.Dispose();
 #endif
+
+            m_StencilCrossFadeRenderPass?.Dispose();
 
             m_TargetColorHandle?.Release();
             m_TargetDepthHandle?.Release();
@@ -918,7 +931,7 @@ namespace UnityEngine.Rendering.Universal
             var colorDescriptor = cameraTargetDescriptor;
             colorDescriptor.useMipMap = false;
             colorDescriptor.autoGenerateMips = false;
-            colorDescriptor.depthBufferBits = (int)DepthBits.None;
+            colorDescriptor.depthStencilFormat = GraphicsFormat.None;
             m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
 
             // Configure all settings require to start a new camera stack (base camera only)
@@ -1077,7 +1090,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 var renderingLayersDescriptor = cameraTargetDescriptor;
-                renderingLayersDescriptor.depthBufferBits = 0;
+                renderingLayersDescriptor.depthStencilFormat = GraphicsFormat.None;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
                 if (!renderingLayerProvidesRenderObjectPass)
                     renderingLayersDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
@@ -1119,7 +1132,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 var normalDescriptor = cameraTargetDescriptor;
-                normalDescriptor.depthBufferBits = 0;
+                normalDescriptor.depthStencilFormat = GraphicsFormat.None;
                 // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
                 normalDescriptor.msaaSamples = useDepthPriming ? cameraTargetDescriptor.msaaSamples : 1;// Depth-Only passes don't use MSAA, unless depth priming is enabled
                 // Find compatible render-target format for storing normals.
@@ -1329,13 +1342,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 var colorDesc = cameraTargetDescriptor;
                 colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat;
-                colorDesc.depthBufferBits = (int)DepthBits.None;
+                colorDesc.depthStencilFormat = GraphicsFormat.None; 
                 colorDesc.msaaSamples = 1;  // Disable MSAA, consider a pixel resolve for half left velocity and half right velocity --> no velocity, which is untrue.
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorTextureName);
 
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                depthDescriptor.depthBufferBits = cameraTargetDescriptor.depthBufferBits;
+                depthDescriptor.depthStencilFormat = cameraTargetDescriptor.depthStencilFormat;
                 depthDescriptor.msaaSamples = 1;
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_MotionVectorDepth, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorDepthTextureName);
 
@@ -1421,7 +1434,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (applyPostProcessing)
             {
-                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, DepthBits.None);
+                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, GraphicsFormat.None);
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
             }
 
@@ -1584,7 +1597,7 @@ namespace UnityEngine.Rendering.Universal
                             var tempColorDepthDesc = cameraTargetDescriptor;
                             tempColorDepthDesc.colorFormat = RenderTextureFormat.RFloat;
                             tempColorDepthDesc.graphicsFormat = GraphicsFormat.R32_SFloat;
-                            tempColorDepthDesc.depthBufferBits = 0;
+                            tempColorDepthDesc.depthStencilFormat = GraphicsFormat.None;
                             depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
                         }
                         else
@@ -1831,7 +1844,6 @@ namespace UnityEngine.Rendering.Universal
 
                     // update the descriptor to match the depth attachment
                     descriptor.depthStencilFormat = depthDescriptor.depthStencilFormat;
-                    descriptor.depthBufferBits = depthDescriptor.depthBufferBits;
                 }
             }
 
@@ -1954,11 +1966,6 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler
-        {
-            get => SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 // GLES doesn't support backbuffer MSAA resolve with the NRP API
-                   && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore
-            ;
-        }
+        internal override bool supportsNativeRenderPassRendergraphCompiler => true;
     }
 }

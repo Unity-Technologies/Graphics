@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
-                colorFormat = GraphicsFormat.R8G8B8A8_SRGB,
+                format = GraphicsFormat.R8G8B8A8_SRGB,
                 enableRandomWrite = !msaa,
                 bindTextureMS = msaa,
                 msaaSamples = msaaSamples,
@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float scale = 1.0f / (1u << passData.downsampleSteps);
                     passData.downsampleBuffer = builder.CreateTransientTexture(
                         new TextureDesc(Vector2.one * scale, true, true)
-                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSDownsampled" });
+                        { format = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSDownsampled" });
                 }
 
 
@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.cameraFilteringBuffer = builder.CreateTransientTexture(
                         new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" });
+                        { format = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" });
                 }
                 else
                 {

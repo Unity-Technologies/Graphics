@@ -386,7 +386,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float padding1;
         public float padding2;
 
-        public Vector4 deformFoamScaleOffset;
+        public Vector4 deformScaleOffset;
+        public Vector4 foamScaleOffset;
         public Vector4 maskScaleOffset;
         public Vector4 largeCurrentScaleOffset;
         public Vector4 ripplesCurrentScaleOffset;

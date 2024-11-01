@@ -151,6 +151,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal static bool useDynamicBranchFogKeyword => ShaderOptions.k_UseDynamicBranchFogKeyword == 1;
+
         // Match with values in Input.hlsl
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
         internal static int maxZBinWords => 1024 * 4;
@@ -180,6 +182,13 @@ namespace UnityEngine.Rendering.Universal
 
         // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
+
+        // In some specific cases, we modify Screen.msaaSamples to reduce GPU bandwidth
+        internal static bool canOptimizeScreenMSAASamples { get; private set; }
+
+        // For iOS and macOS players, the Screen API MSAA samples change request is only applied in the next frame (UUM-42825)
+        // To adress this, we need to store here the MSAA sample count at the beginning of the frame
+        internal static int startFrameScreenMSAASamples { get; private set; }
 
         // Reference to the asset associated with the pipeline.
         // When a pipeline asset is switched in `GraphicsSettings`, the `UniversalRenderPipelineCore.asset` member
@@ -418,6 +427,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
+            
+            // Bandwidth optimization with Render Graph in some circumstances
+            SetupScreenMSAASamplesState(cameraCount);
 
             GPUResidentDrawer.ReinitializeIfNeeded();
 
@@ -439,7 +451,6 @@ namespace UnityEngine.Rendering.Universal
                 // This is for texture streaming
                 UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateMaterials();
 #endif
-
                 // URP uses the camera's allowDynamicResolution flag to decide if useDynamicScale should be enabled for camera render targets.
                 // However, the RTHandle system has an additional setting that controls if useDynamicScale will be set for render targets allocated via RTHandles.
                 // In order to avoid issues at runtime, we must make the RTHandle system setting consistent with URP's logic. URP already synchronizes the setting
@@ -1594,6 +1605,8 @@ namespace UnityEngine.Rendering.Universal
                 data.transparentLayerMask = universalRenderer.transparentLayerMask;
             }
 
+            data.stencilLodCrossFadeEnabled = settings.enableLODCrossFade && settings.lodCrossFadeDitheringType == LODCrossFadeDitheringType.Stencil;
+
             return data;
         }
 
@@ -1996,6 +2009,9 @@ namespace UnityEngine.Rendering.Universal
                 case LODCrossFadeDitheringType.BlueNoise:
                     ditheringTexture = runtimeTextures.blueNoise64LTex;
                     break;
+                case LODCrossFadeDitheringType.Stencil:
+                    ditheringTexture = runtimeTextures.stencilDitherTex; // For the pass that has no stencil such as shadow and motion vector
+                    break;
                 default:
                     Debug.LogWarning($"This Lod Cross Fade Dithering Type is not supported: {asset.lodCrossFadeDitheringType}");
                     break;
@@ -2387,6 +2403,14 @@ namespace UnityEngine.Rendering.Universal
                 // by setting rendersUIOverlay (public API) to false in a callback added to RenderPipelineManager.beginContextRendering
                 SupportedRenderingFeatures.active.rendersUIOverlay = true;
             }
+        }
+
+        private static void SetupScreenMSAASamplesState(int cameraCount)
+        {
+            // Enable potential bandwidth optimization only when rendering a single base camera
+            canOptimizeScreenMSAASamples = (cameraCount == 1);
+            // Save ScreenMSAASamples value at beginning of the frame, useful for iOS/macOS
+            startFrameScreenMSAASamples = Screen.msaaSamples;
         }
     }
 }

@@ -56,7 +56,8 @@ struct WaterDecalData
     float padding0;
     float padding1;
     float padding2;
-    float4 deformFoamScaleOffset;
+    float4 deformScaleOffset;
+    float4 foamScaleOffset;
     float4 maskScaleOffset;
     float4 largeCurrentScaleOffset;
     float4 ripplesCurrentScaleOffset;

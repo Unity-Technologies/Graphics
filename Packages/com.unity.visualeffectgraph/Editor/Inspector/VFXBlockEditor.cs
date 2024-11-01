@@ -64,11 +64,12 @@ class VFXBlockEditor : VFXSlotContainerEditor
                 }
             }
 
-            if (!string.IsNullOrEmpty(block.source))
+            var source = block.source;
+            if (!string.IsNullOrEmpty(source))
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Computed Source Code", EditorStyles.boldLabel);
-                EditorGUILayout.TextArea(block.source);
+                EditorGUILayout.TextArea(source);
             }
         }
     }

@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
             wsd.waterForwardXZ = float2(worldToWater.m00, worldToWater.m02);
         }
 
-        internal void CheckDeformationResources()
+        internal void CheckDeformationResources(bool horizontalDeformation = false)
         {
             if (deformation)
             {
@@ -68,8 +68,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (deformationBuffer == null)
                 {
-                    deformationBuffer = RTHandles.Alloc(resolution, resolution, 1, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Clamp, name: "Water Deformation");
-                    deformationSGBuffer = RTHandles.Alloc(resolution, resolution, 1, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Clamp, name: "Water Deformation SG");
+                    // If we support horizontal deformation we need more channels.
+                    var formatDeformationBuffer = horizontalDeformation ? GraphicsFormat.R16G16B16A16_SFloat : GraphicsFormat.R16_SFloat;
+                    var formatDeformationSGBuffer = horizontalDeformation ? GraphicsFormat.R16G16B16A16_SFloat : GraphicsFormat.R16G16_SFloat;
+
+                    deformationBuffer = RTHandles.Alloc(resolution, resolution, 1, dimension: TextureDimension.Tex2D, colorFormat: formatDeformationBuffer, enableRandomWrite: true, wrapMode: TextureWrapMode.Clamp, name: "Water Deformation");
+                    deformationSGBuffer = RTHandles.Alloc(resolution, resolution, 1, dimension: TextureDimension.Tex2D, colorFormat: formatDeformationSGBuffer, enableRandomWrite: true, wrapMode: TextureWrapMode.Clamp, name: "Water Deformation SG");
                 }
             }
             else if (deformationBuffer != null)

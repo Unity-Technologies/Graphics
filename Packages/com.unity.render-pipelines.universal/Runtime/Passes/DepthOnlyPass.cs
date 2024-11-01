@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var sortFlags = cameraData.defaultOpaqueSortFlags;
             var drawSettings = RenderingUtils.CreateDrawingSettings(this.shaderTagId, renderingData, cameraData, lightData, sortFlags);
             drawSettings.perObjectData = PerObjectData.None;
+            drawSettings.lodCrossFadeStencilMask = 0; // For stencil-based Lod, we use texture dither instead of stencil testing because we have the same shader variants for cross-fade shadow.
             return new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
         }
 

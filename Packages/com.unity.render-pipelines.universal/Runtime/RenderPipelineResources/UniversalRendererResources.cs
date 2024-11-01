@@ -55,6 +55,19 @@ namespace UnityEngine.Rendering.Universal
             set => this.SetValueAndNotify(ref m_StencilDeferredPS, value, nameof(m_StencilDeferredPS));
         }
 
+        [SerializeField]
+        [ResourcePath("Shaders/Utils/StencilDitherMaskSeed.shader")]
+        private Shader m_StencilDitherMaskSeedPS;
+
+        /// <summary>
+        /// Shader to write stencil for dither mask
+        /// </summary>
+        public Shader stencilDitherMaskSeedPS
+        {
+            get => m_StencilDitherMaskSeedPS;
+            set => this.SetValueAndNotify(ref m_StencilDitherMaskSeedPS, value, nameof(m_StencilDitherMaskSeedPS));
+        }
+
         [Header("Decal Renderer Feature Specific")]
         [SerializeField]
         [ResourcePath("Runtime/Decal/DBuffer/DBufferClear.shader")]

@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
                         // This is a local copy of the array element (it's a struct). Remember to add a ref here if you need to modify the real thing.
                         var layerBatch = layerBatches[i];
 
-                        if (layerBatch.lightStats.useAnyLights)
+                        if (layerBatch.lightStats.useLights)
                         {
                             for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
                             {
@@ -303,6 +303,8 @@ namespace UnityEngine.Rendering.Universal
                                 CopyCameraSortingLayerRenderTexture(context, renderingData, copyStoreAction);
                         }
 
+                        RendererLighting.DisableAllKeywords(CommandBufferHelpers.GetRasterCommandBuffer(cmd));
+
                         // Draw light volumes
                         if (drawLights && (layerBatch.lightStats.totalVolumetricUsage > 0))
                         {
@@ -354,6 +356,15 @@ namespace UnityEngine.Rendering.Universal
             LayerUtility.InitializeBudget(m_Renderer2DData.lightRenderTextureMemoryBudget);
             ShadowRendering.InitializeBudget(m_Renderer2DData.shadowRenderTextureMemoryBudget);
             RendererLighting.lightBatch.Reset();
+
+            // Set screenParams when pixel perfect camera is used with the reference resolution
+            camera.TryGetComponent(out PixelPerfectCamera pixelPerfectCamera);
+            if (pixelPerfectCamera != null && pixelPerfectCamera.enabled && pixelPerfectCamera.offscreenRTSize != Vector2Int.zero)
+            {
+                var cameraWidth = pixelPerfectCamera.offscreenRTSize.x;
+                var cameraHeight = pixelPerfectCamera.offscreenRTSize.y;
+                renderingData.commandBuffer.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            }
 
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit && isLitView)

@@ -74,7 +74,6 @@ namespace UnityEngine.Rendering.Universal
         const int k_MaxPyramidSize = 16;
         readonly GraphicsFormat m_DefaultColorFormat;   // The default format for post-processing, follows back-buffer format in URP.
         bool m_DefaultColorFormatIsAlpha;
-        bool m_DefaultColorFormatUseRGBM;
         readonly GraphicsFormat m_SMAAEdgeFormat;
         readonly GraphicsFormat m_GaussianCoCFormat;
 
@@ -182,7 +181,6 @@ namespace UnityEngine.Rendering.Universal
             if (requestHDR)
             {
                 m_DefaultColorFormatIsAlpha = requestAlpha;
-                m_DefaultColorFormatUseRGBM  = false;
 
                 const GraphicsFormatUsage usage = GraphicsFormatUsage.Blend;
                 if (SystemInfo.IsFormatSupported(postProcessParams.requestColorFormat, usage))    // Typically, RGBA16Float.
@@ -202,7 +200,6 @@ namespace UnityEngine.Rendering.Universal
                     m_DefaultColorFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
                         ? GraphicsFormat.R8G8B8A8_SRGB
                         : GraphicsFormat.R8G8B8A8_UNorm;
-                    m_DefaultColorFormatUseRGBM = true;   // Encode HDR data into RGBA8888 as RGBM (RGB, Multiplier)
                 }
             }
             else // SDR
@@ -212,10 +209,6 @@ namespace UnityEngine.Rendering.Universal
                     : GraphicsFormat.R8G8B8A8_UNorm;
 
                 m_DefaultColorFormatIsAlpha = true;
-                // TODO: Bloom uses RGBM to Emulate HDR.
-                // TODO: Lens Flares render into the bloom texture, but do not support RGBM encoding at the moment.
-                // RGBM is disabled in the SDR case for now.
-                m_DefaultColorFormatUseRGBM = false;
             }
 
             // Only two components are needed for edge render texture, but on some vendors four components may be faster.
@@ -420,12 +413,12 @@ namespace UnityEngine.Rendering.Universal
         RenderTextureDescriptor GetCompatibleDescriptor()
             => GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_Descriptor.graphicsFormat);
 
-        RenderTextureDescriptor GetCompatibleDescriptor(int width, int height, GraphicsFormat format, DepthBits depthBufferBits = DepthBits.None)
-            => GetCompatibleDescriptor(m_Descriptor, width, height, format, depthBufferBits);
+        RenderTextureDescriptor GetCompatibleDescriptor(int width, int height, GraphicsFormat format, GraphicsFormat depthStencilFormat = GraphicsFormat.None)
+            => GetCompatibleDescriptor(m_Descriptor, width, height, format, depthStencilFormat);
 
-        internal static RenderTextureDescriptor GetCompatibleDescriptor(RenderTextureDescriptor desc, int width, int height, GraphicsFormat format, DepthBits depthBufferBits = DepthBits.None)
+        internal static RenderTextureDescriptor GetCompatibleDescriptor(RenderTextureDescriptor desc, int width, int height, GraphicsFormat format, GraphicsFormat depthStencilFormat = GraphicsFormat.None)
         {
-            desc.depthBufferBits = (int)depthBufferBits;
+            desc.depthStencilFormat = depthStencilFormat;
             desc.msaaSamples = 1;
             desc.width = width;
             desc.height = height;
@@ -782,7 +775,7 @@ namespace UnityEngine.Rendering.Universal
             var material = m_Materials.subpixelMorphologicalAntialiasing;
             const int kStencilBit = 64;
 
-            RenderingUtils.ReAllocateHandleIfNeeded(ref m_EdgeStencilTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.None, DepthBits.Depth24), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeStencilTexture");
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_EdgeStencilTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.None, GraphicsFormatUtility.GetDepthStencilFormat(24)), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeStencilTexture");
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_EdgeColorTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_EdgeColorTexture");
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_BlendTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point, TextureWrapMode.Clamp, name: "_BlendTexture");
 
@@ -1392,7 +1385,6 @@ namespace UnityEngine.Rendering.Universal
             var bloomMaterial = m_Materials.bloom;
             bloomMaterial.SetVector(ShaderConstants._Params, new Vector4(scatter, clamp, threshold, thresholdKnee));
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.BloomHQ, m_Bloom.highQualityFiltering.value);
-            CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_DefaultColorFormatUseRGBM);
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, enableAlphaOutput);
 
             // Prefilter
@@ -1438,7 +1430,6 @@ namespace UnityEngine.Rendering.Universal
 
             var bloomParams = new Vector4(m_Bloom.intensity.value, tint.r, tint.g, tint.b);
             uberMaterial.SetVector(ShaderConstants._Bloom_Params, bloomParams);
-            uberMaterial.SetFloat(ShaderConstants._Bloom_RGBM, m_DefaultColorFormatUseRGBM ? 1f : 0f);
 
             cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, m_BloomMipUp[0]);
 
@@ -1637,7 +1628,7 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderPropertyId.hdrOutputLuminanceParams, hdrOutputLuminanceParams);
 
             HDROutputUtils.ConfigureHDROutput(material, hdrDisplayColorGamut, hdrOperations);
-            CoreUtils.SetKeyword(m_Materials.uber, ShaderKeywordStrings.HDROverlay, rendersOverlayUI);
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings.HDROverlay, rendersOverlayUI);
         }
 #endregion
 
@@ -1701,6 +1692,9 @@ namespace UnityEngine.Rendering.Universal
             // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
             bool isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !isFsrEnabled;
 
+            // If target format has alpha and post-process needs to process/output alpha.
+            bool isAlphaOutputEnabled = cameraData.isAlphaOutputEnabled;
+
             if (cameraData.imageScalingMode != ImageScalingMode.None)
             {
                 // When FXAA is enabled in scaled renders, we execute it in a separate blit since it's not designed to be used in
@@ -1715,7 +1709,7 @@ namespace UnityEngine.Rendering.Universal
                 // Make sure to remove any MSAA and attached depth buffers from the temporary render targets
                 var tempRtDesc = cameraData.cameraTargetDescriptor;
                 tempRtDesc.msaaSamples = 1;
-                tempRtDesc.depthBufferBits = 0;
+                tempRtDesc.depthStencilFormat = GraphicsFormat.None;
 
                 // Select a UNORM format since we've already performed tonemapping. (Values are in 0-1 range)
                 // This improves precision and is required if we want to avoid excessive banding when FSR is in use.
@@ -1739,6 +1733,11 @@ namespace UnityEngine.Rendering.Universal
                     if (isFsrEnabled)
                     {
                         m_Materials.scalingSetup.EnableKeyword(hdrOperations.HasFlag(HDROutputUtils.Operation.ColorEncoding) ? ShaderKeywordStrings.Gamma20AndHDRInput : ShaderKeywordStrings.Gamma20);
+                    }
+
+                    if (isAlphaOutputEnabled)
+                    {
+                        m_Materials.scalingSetup.EnableKeyword(ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT);
                     }
 
                     RenderingUtils.ReAllocateHandleIfNeeded(ref m_ScalingSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScalingSetupTexture");
@@ -1777,7 +1776,7 @@ namespace UnityEngine.Rendering.Universal
 
                                 var upscaleRtDesc = cameraData.cameraTargetDescriptor;
                                 upscaleRtDesc.msaaSamples = 1;
-                                upscaleRtDesc.depthBufferBits = 0;
+                                upscaleRtDesc.depthStencilFormat = GraphicsFormat.None;
                                 upscaleRtDesc.width = cameraData.pixelWidth;
                                 upscaleRtDesc.height = cameraData.pixelHeight;
 
@@ -1977,7 +1976,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _Params = Shader.PropertyToID("_Params");
             public static readonly int _SourceTexLowMip = Shader.PropertyToID("_SourceTexLowMip");
             public static readonly int _Bloom_Params = Shader.PropertyToID("_Bloom_Params");
-            public static readonly int _Bloom_RGBM = Shader.PropertyToID("_Bloom_RGBM");
             public static readonly int _Bloom_Texture = Shader.PropertyToID("_Bloom_Texture");
             public static readonly int _LensDirt_Texture = Shader.PropertyToID("_LensDirt_Texture");
             public static readonly int _LensDirt_Params = Shader.PropertyToID("_LensDirt_Params");

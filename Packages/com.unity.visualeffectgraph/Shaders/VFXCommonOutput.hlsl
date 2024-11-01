@@ -244,7 +244,7 @@ float3 VFXGetPositionAWS(float3 posWS)
 #if defined(VFX_VARYING_PS_INPUTS)
 float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
 {
-    #if USE_FOG && defined(VFX_VARYING_POSCS)
+    #if defined(VFX_VARYING_POSCS)
         #if defined(VFX_VARYING_POSWS)
             return VFXApplyFog(color, i.VFX_VARYING_POSCS, i.VFX_VARYING_POSWS);
         #else

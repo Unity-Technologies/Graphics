@@ -1032,7 +1032,6 @@ Shader "HDRP/Lit"
 
             // Needed for transparent objects, we could remove if this pass was opaque only
             #pragma shader_feature_local _ALPHATEST_ON
-            #pragma shader_feature_local_fragment _DISABLE_SSR
             #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC _TRANSPARENT_REFRACTIVE_SORT
             #pragma shader_feature_local_fragment _ENABLE_FOG_ON_TRANSPARENT

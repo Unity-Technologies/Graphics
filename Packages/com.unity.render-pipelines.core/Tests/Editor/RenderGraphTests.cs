@@ -1249,7 +1249,7 @@ namespace UnityEngine.Rendering.Tests
 
             // Create a new RTHandle texture
             var redTextureHandle = RTHandles.Alloc(width, height,
-                                               colorFormat: GraphicsFormat.R8G8B8A8_UNorm,
+                                               GraphicsFormat.R8G8B8A8_UNorm,
                                                dimension: TextureDimension.Tex2D,
                                                useMipMap: false,
                                                autoGenerateMips: false,
@@ -1349,6 +1349,8 @@ namespace UnityEngine.Rendering.Tests
             // Read back the data from the buffer
             float[] result2 = new float[bufferSize];
             buffer.GetData(result2);
+
+            buffer.Release();
 
             // Ensure the data has been updated
             for (int i = 0; i < bufferSize; i++)

@@ -58,6 +58,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public LayerMask transparentLayerMask { get; internal set; }
 
+        /// <summary>
+        /// True if the Stencil Lod Cross fade is enabled.
+        /// </summary>
+        public bool stencilLodCrossFadeEnabled { get; internal set; }
+
         /// <inheritdoc/>
         public override void Reset()
         {
@@ -66,6 +71,7 @@ namespace UnityEngine.Rendering.Universal
             supportsDynamicBatching = default;
             perObjectData = default;
             renderingMode = default;
+            stencilLodCrossFadeEnabled = default;
             opaqueLayerMask = -1;
             transparentLayerMask = -1;
         }

@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty waterSimulationResolution;
         public SerializedProperty supportWaterExclusion;
         public SerializedProperty supportWaterDecals;
+        public SerializedProperty supportWaterHorizontalDeformation;
         public SerializedProperty waterDecalAtlasSize;
         public SerializedProperty maximumWaterDecalCount;
         public SerializedProperty waterScriptInteractionsMode;
@@ -125,6 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
             supportWaterExclusion = root.Find((RenderPipelineSettings s) => s.supportWaterExclusion);
             supportWaterDecals = root.Find((RenderPipelineSettings s) => s.supportWaterDecals);
+            supportWaterHorizontalDeformation = root.Find((RenderPipelineSettings s) => s.supportWaterHorizontalDeformation);
             waterDecalAtlasSize = root.Find((RenderPipelineSettings s) => s.waterDecalAtlasSize);
             maximumWaterDecalCount = root.Find((RenderPipelineSettings s) => s.maximumWaterDecalCount);
             waterScriptInteractionsMode = root.Find((RenderPipelineSettings s) => s.waterScriptInteractionsMode);

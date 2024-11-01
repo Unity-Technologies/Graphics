@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -25,6 +26,12 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_DeepFoamDimmer;
 
         HierarchicalBox m_BoxHandle;
+
+        internal enum DefaultWaterDecal
+        {
+            Empty,
+            DeformerAndFoam
+        }
 
         void OnEnable()
         {
@@ -67,6 +74,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_SurfaceFoamDimmerText = EditorGUIUtility.TrTextContent("Surface Foam Dimmer", "Specifies the dimmer for the surface foam.");
         static public readonly GUIContent k_DeepFoamDimmerText = EditorGUIUtility.TrTextContent("Deep Foam Dimmer", "Specifies the dimmer for the deep foam.");
 
+        static public readonly GUIContent k_NewWaterDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Water Decal shader and Material asset templates.");
+        static public readonly string k_NewEmptyWaterDecalText = "Empty Water Decal";
+        static public readonly string k_NewDeformerAndFoamWaterDecalText = "Deformer and Foam Water Decal";
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -80,11 +90,31 @@ namespace UnityEditor.Rendering.HighDefinition
             serializedObject.ApplyModifiedProperties();
         }
 
+        internal void WaterDecalMaterialFieldWithButton(SerializedProperty prop)
+        {
+            const int k_NewFieldWidth = 70;
+
+            var rect = EditorGUILayout.GetControlRect();
+            rect.xMax -= k_NewFieldWidth + 2;
+
+            EditorGUI.PropertyField(rect, prop);
+
+            var newFieldRect = rect;
+            newFieldRect.x = rect.xMax + 2;
+            newFieldRect.width = k_NewFieldWidth;
+
+            if (!EditorGUI.DropdownButton(newFieldRect, k_NewWaterDecalMaterialButtonText, FocusType.Keyboard))
+                return;
+
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent(k_NewEmptyWaterDecalText), false, () => CreateDefaultDecalMaterial(target as MonoBehaviour, DefaultWaterDecal.Empty));
+            menu.AddItem(new GUIContent(k_NewDeformerAndFoamWaterDecalText), false, () => CreateDefaultDecalMaterial(target as MonoBehaviour, DefaultWaterDecal.DeformerAndFoam));
+            menu.DropDown(newFieldRect);
+        }
+
         public void MaterialGUI()
         {
-            WaterSurfaceEditor.MaterialFieldWithButton(null, m_Material, () => {
-                return CreateDefaultDecalMaterial(target as MonoBehaviour);
-            });
+            WaterDecalMaterialFieldWithButton(m_Material);
 
             if (m_Material.objectReferenceValue == null)
                 return;
@@ -116,19 +146,46 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.HelpBox("Water Decals only work with Water Decal Materials.", MessageType.Error);
         }
 
-        public static Material CreateDefaultDecalMaterial(MonoBehaviour obj)
+        public static Material CreateDefaultDecalMaterial(MonoBehaviour obj, DefaultWaterDecal defaultWaterDecal)
         {
             string directory = WaterSurfaceEditor.GetWaterResourcesPath(obj);
             System.IO.Directory.CreateDirectory(directory);
 
-            string baseName = directory + "/" + "New Water Decal Shader Graph";
-            var path = AssetDatabase.GenerateUniqueAssetPath(baseName + ".shadergraph");
-            var shader = ShaderGraph.WaterDecalSubTarget.CreateWaterDecalGraphAtPath(path);
+            string baseName = "";
+            string materialName = "";
+            string path = "";
+            Material material = null;
 
-            Material material = new Material(shader);
-            material.parent = AssetDatabase.LoadAssetAtPath<Material>(path);
-            AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath(baseName + ".mat"));
-            EditorGUIUtility.PingObject(material);
+            switch (defaultWaterDecal)
+            {
+                case DefaultWaterDecal.Empty:
+                    materialName = "New " + k_NewEmptyWaterDecalText;
+                    baseName = directory + "/" + materialName;
+                    path = AssetDatabase.GenerateUniqueAssetPath(baseName + ".shadergraph");
+                    material = new Material(ShaderGraph.WaterDecalSubTarget.CreateWaterDecalGraphAtPath(path));
+                    break;
+                case DefaultWaterDecal.DeformerAndFoam:
+                    materialName = "New " + k_NewDeformerAndFoamWaterDecalText;
+                    baseName = directory + "/" + materialName;
+                    path = AssetDatabase.GenerateUniqueAssetPath(baseName + ".shadergraph");
+                    material = new Material(GraphicsSettings.GetRenderPipelineSettings<WaterSystemRuntimeResources>().waterDecalMigrationShader);
+                    break;
+                default:
+                    Debug.LogError("Water Decal creation failed.");
+                    break;
+            }
+
+            if (material != null)
+            {
+                material.parent = AssetDatabase.LoadAssetAtPath<Material>(path);
+                AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath(baseName + ".mat"));
+                EditorGUIUtility.PingObject(material);
+
+                // Setting this new material on the current water decal
+                WaterDecal waterDecal = obj as WaterDecal;
+                waterDecal.material = material;
+            }
+
             return material;
         }
 

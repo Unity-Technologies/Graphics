@@ -272,13 +272,10 @@ bool EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 #ifdef WATER_FOG_PASS
     underWater = IsUnderWater(posInput.positionSS.xy);
 #elif defined(SUPPORT_WATER_ABSORPTION)
-    if (_EnableWater != 0)
-    {
-        // When viewing object trough the surface from above, we modify opacity
-        // and early return cause fog will be applied on water directly
-        if (EvaluateUnderwaterAbsorption(posInput, underWater, opacity))
-            return false;
-    }
+    // When viewing object trough the surface from above, we modify opacity
+    // and early return cause fog will be applied on water directly
+    if (EvaluateUnderwaterAbsorption(posInput, underWater, opacity))
+        return false;
 #endif
 
     if (_FogEnabled)

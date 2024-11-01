@@ -8,7 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         const float k_FoamIntensityThreshold = 0.015f;
 
-        const string k_DeformFoamPassName = nameof(WaterDecal.PassType.DeformationAndFoam);
+        const string k_DeformPassName = nameof(WaterDecal.PassType.Deformation);
+        const string k_FoamPassName = nameof(WaterDecal.PassType.Foam);
         const string k_SimulationMaskPassName = nameof(WaterDecal.PassType.SimulationMask);
         const string k_LargeCurrentPassName = nameof(WaterDecal.PassType.LargeCurrent);
         const string k_RipplesCurrentPassName = nameof(WaterDecal.PassType.RipplesCurrent);
@@ -16,6 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ActiveWaterDecals;
         int m_DecalAtlasSize;
         int m_MaxDecalCount;
+
+        GlobalKeyword horizontalDeformationKeyword; 
 
         // Buffers used to hold all the water foam generators
         WaterDecalData[] m_WaterDecalDataCPU;
@@ -67,6 +70,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ActiveWaterDecals = m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.supportWaterDecals;
             if (!m_ActiveWaterDecals)
                 return;
+
+            horizontalDeformationKeyword = GlobalKeyword.Create("HORIZONTAL_DEFORMATION");
 
             m_DecalAtlasSize = (int)m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.waterDecalAtlasSize;
             m_MaxDecalCount = m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.maximumWaterDecalCount;
@@ -248,7 +253,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     bool ReserveAtlasSpace(WaterDecal.PassType passType, in VisibleDecalData cpuData) => m_DecalAtlas.ReserveSpace(cpuData.MaterialId(passType), cpuData.resX, cpuData.resY);
 
-                    if ((affectDeformation || affectFoam) && !ReserveAtlasSpace(WaterDecal.PassType.DeformationAndFoam, in cpuData))
+                    if (affectDeformation && !ReserveAtlasSpace(WaterDecal.PassType.Deformation, in cpuData))
+                        needRelayout = true;
+                    if (affectFoam && !ReserveAtlasSpace(WaterDecal.PassType.Foam, in cpuData))
                         needRelayout = true;
                     if (affectMask && !ReserveAtlasSpace(WaterDecal.PassType.SimulationMask, in cpuData))
                         needRelayout = true;
@@ -308,7 +315,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 ref var gpuData = ref m_WaterDecalDataCPU[i];
 
                 // Note: we could have all of these in the same pass like for regular SG decals since they render to the same atlas
-                FetchCoords(in cpuData, WaterDecal.PassType.DeformationAndFoam, k_DeformFoamPassName, ref gpuData.deformFoamScaleOffset);
+                FetchCoords(in cpuData, WaterDecal.PassType.Deformation, k_DeformPassName, ref gpuData.deformScaleOffset);
+                FetchCoords(in cpuData, WaterDecal.PassType.Foam, k_FoamPassName, ref gpuData.foamScaleOffset);
                 FetchCoords(in cpuData, WaterDecal.PassType.SimulationMask, k_SimulationMaskPassName, ref gpuData.maskScaleOffset);
                 FetchCoords(in cpuData, WaterDecal.PassType.LargeCurrent, k_LargeCurrentPassName, ref gpuData.largeCurrentScaleOffset);
                 FetchCoords(in cpuData, WaterDecal.PassType.RipplesCurrent, k_RipplesCurrentPassName, ref gpuData.ripplesCurrentScaleOffset);
@@ -336,8 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var perSurfaceCB = m_ShaderVariablesWaterPerSurface[currentWater.surfaceIndex];
             currentWater.mpb.SetConstantBuffer(HDShaderIDs._ShaderVariablesWaterPerSurface, perSurfaceCB, 0, perSurfaceCB.stride);
-
-            currentWater.CheckDeformationResources();
+            currentWater.CheckDeformationResources(HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportWaterHorizontalDeformation);
             currentWater.CheckFoamResources(cmd);
             currentWater.CheckMaskResources();
             currentWater.CheckCurrentResources();
@@ -412,13 +419,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Clear the render target to black and draw all the deformers to the texture
                     // We render in the SG buffer, blur pass will then output to deformation buffer
-                    CoreUtils.SetRenderTarget(cmd, currentWater.deformationSGBuffer, clearFlag: ClearFlag.Color, Color.black);
+                    CoreUtils.SetRenderTarget(cmd, currentWater.deformationSGBuffer, clearFlag: ClearFlag.Color, Color.clear);
                     cmd.DrawProcedural(Matrix4x4.identity, m_DecalMaterial, m_DeformationDecalPass, MeshTopology.Quads, 4, m_NumActiveWaterDecals, currentWater.mpb);
                     currentWater.deformationBuffer.rt.IncrementUpdateCount(); // For the CPU Simulation
 
                     // Evaluate the normals
                     int numTiles = HDUtils.DivRoundUp((int)currentWater.deformationRes, 8);
 
+                    cmd.SetKeyword(horizontalDeformationKeyword, HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportWaterHorizontalDeformation);
+                 
                     // First we need to clear the edge pixel and blur the deformation a bit
                     cmd.SetComputeTextureParam(m_WaterDeformationCS, m_FilterDeformationKernel, HDShaderIDs._WaterDeformationBuffer, currentWater.deformationSGBuffer);
                     cmd.SetComputeTextureParam(m_WaterDeformationCS, m_FilterDeformationKernel, HDShaderIDs._WaterDeformationBufferRW, currentWater.deformationBuffer);

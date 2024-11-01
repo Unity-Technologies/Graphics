@@ -13,11 +13,6 @@ namespace UnityEngine.Rendering.Universal
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_ShadowPass);
         private static readonly ProfilingSampler m_ProfilingSamplerVolume = new ProfilingSampler(k_ShadowVolumetricPass);
-        private static readonly ProfilingSampler m_ExecuteProfilingSampler = new ProfilingSampler("Draw Shadow");
-        private static readonly ProfilingSampler m_ExecuteLightProfilingSampler = new ProfilingSampler("Draw Light");
-
-        TextureHandle[] intermediateTexture = new TextureHandle[1];
-        static List<Light2D> intermediateLight = new List<Light2D>(1);
 
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -25,18 +20,25 @@ namespace UnityEngine.Rendering.Universal
             throw new NotImplementedException();
         }
 
-        private static void ExecuteShadowPass(UnsafeCommandBuffer cmd, DrawLight2DPass.PassData passData, Light2D light)
+        private static void ExecuteShadowPass(UnsafeCommandBuffer cmd, PassData passData, Light2D light, int batchIndex)
         {
-            using (new ProfilingScope(cmd, m_ExecuteProfilingSampler))
-            {
-                cmd.SetRenderTarget(passData.shadowMap, passData.shadowDepth);
-                cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1, 0);
+            cmd.SetRenderTarget(passData.shadowTextures[batchIndex], passData.shadowDepth);
 
-                var projectedShadowMaterial = passData.rendererData.GetProjectedShadowMaterial();
-                var projectedUnshadowMaterial = passData.rendererData.GetProjectedUnshadowMaterial();
+            // Reusing the depth/stencil so we have to clear it
+            cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1, 0);
 
-                ShadowRendering.PrerenderShadows(cmd, passData.rendererData, ref passData.layerBatch, light, 0, light.shadowIntensity);
-            }
+            var projectedShadowMaterial = passData.rendererData.GetProjectedShadowMaterial();
+            var projectedUnshadowMaterial = passData.rendererData.GetProjectedUnshadowMaterial();
+
+            ShadowRendering.PrerenderShadows(cmd, passData.rendererData, ref passData.layerBatch, light, 0, light.shadowIntensity);
+        }
+
+        internal class PassData
+        {
+            internal LayerBatch layerBatch;
+            internal Renderer2DData rendererData;
+            internal TextureHandle[] shadowTextures;
+            internal TextureHandle shadowDepth;
         }
 
         public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex, bool isVolumetric = false)
@@ -48,82 +50,31 @@ namespace UnityEngine.Rendering.Universal
                 isVolumetric && !layerBatch.lightStats.useVolumetricShadowLights)
                 return;
 
-            var shadowTexture = universal2DResourceData.shadowsTexture;
-            var depthTexture = universal2DResourceData.shadowsDepth;
-
-            using (var builder = graph.AddUnsafePass<DrawLight2DPass.PassData>(!isVolumetric ? k_ShadowPass : k_ShadowVolumetricPass, out var passData, !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume))
+            using (var builder = graph.AddUnsafePass<PassData>(!isVolumetric ? k_ShadowPass : k_ShadowVolumetricPass, out var passData, !isVolumetric ? m_ProfilingSampler : m_ProfilingSamplerVolume))
             {
                 passData.layerBatch = layerBatch;
                 passData.rendererData = rendererData;
-                passData.isVolumetric = isVolumetric;
-                passData.shadowMap = shadowTexture;
-                passData.shadowDepth = depthTexture;
-                passData.normalMap = layerBatch.lightStats.useNormalMap ? universal2DResourceData.normalsTexture[batchIndex] : TextureHandle.nullHandle;
+                passData.shadowTextures = universal2DResourceData.shadowTextures[batchIndex];
+                passData.shadowDepth = universal2DResourceData.shadowDepth;
 
-                if (!isVolumetric)
-                {
-                    passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
-                    passData.depthTexture = universal2DResourceData.intermediateDepth;
-                    builder.UseTexture(passData.depthTexture, AccessFlags.Write);
-                }
-                else
-                {
-                    intermediateTexture[0] = commonResourceData.activeColorTexture;
-                    passData.lightTextures = intermediateTexture;
-                }
+                for (var i = 0; i < passData.shadowTextures.Length; i++)
+                    builder.UseTexture(passData.shadowTextures[i], AccessFlags.Write);
 
-                if (passData.lightTexturesRT == null || passData.lightTexturesRT.Length != passData.lightTextures.Length)
-                    passData.lightTexturesRT = new RenderTargetIdentifier[passData.lightTextures.Length];
-
-                for (int i = 0; i < passData.lightTextures.Length; ++i)
-                    builder.UseTexture(passData.lightTextures[i], AccessFlags.Write);
-
-                if (layerBatch.lightStats.useNormalMap)
-                    builder.UseTexture(universal2DResourceData.normalsTexture[batchIndex]);
-
-                builder.UseTexture(shadowTexture, AccessFlags.Write);
-                builder.UseTexture(depthTexture, AccessFlags.Write);
-
-                foreach (var light in layerBatch.shadowLights)
-                {
-                    if (light == null || !light.m_CookieSpriteTextureHandle.IsValid())
-                        continue;
-
-                    if (!isVolumetric || (isVolumetric && light.volumetricEnabled))
-                        builder.UseTexture(light.m_CookieSpriteTextureHandle);
-                }
+                builder.UseTexture(passData.shadowDepth, AccessFlags.Write);
 
                 builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
-                builder.SetRenderFunc((DrawLight2DPass.PassData data, UnsafeGraphContext context) =>
+                builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>
                 {
-                    for (int i = 0; i < data.layerBatch.shadowLights.Count; ++i)
+                    for (int i = 0; i < data.layerBatch.shadowIndices.Count; ++i)
                     {
-                        intermediateLight.Clear();
-                        intermediateLight.Add(data.layerBatch.shadowLights[i]);
-
                         var cmd = context.cmd;
+                        var index = data.layerBatch.shadowIndices[i];
+                        var light = data.layerBatch.lights[index];
 
                         // Shadow Pass
-                        ExecuteShadowPass(cmd, data, intermediateLight[0]);
-
-                        // Set up MRT
-                        if (Renderer2D.supportsMRT && !data.isVolumetric)
-                        {
-                            for (int j = 0; j < data.lightTextures.Length; ++j)
-                                data.lightTexturesRT[j] = data.lightTextures[j];
-
-                            cmd.SetRenderTarget(data.lightTexturesRT, data.depthTexture);
-                        }
-                        else
-                            cmd.SetRenderTarget(data.lightTextures[0]);
-
-                        // Light Pass
-                        using (new ProfilingScope(cmd, DrawLight2DPass.m_ProfilingSamplerLowLevel))
-                        {
-                            DrawLight2DPass.ExecuteUnsafe(cmd, data, ref data.layerBatch, intermediateLight, true);
-                        }
+                        ExecuteShadowPass(cmd, data, light, i);
                     }
                 });
             }

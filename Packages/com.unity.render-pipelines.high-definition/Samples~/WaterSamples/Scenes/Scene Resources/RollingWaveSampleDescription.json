@@ -1,0 +1,24 @@
+{
+    "introduction": 
+	"""Welcome to the Water System Samples.
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/water.html">Water System</a> allows you to add water to your scenes.
+	
+	This scene showcases a simple rolling wave on an ocean using a <link="Water Decal">Water Decal</link> affecting deformation, simulation mask and foam.
+	
+	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
+	
+<h1>Creating the wave</h1>
+	
+To create the wave, a texture containing the wave deformation is sampled in the <link="WaveDeformer_SG.shadergraph">shader graph</link>: 
+• Before sampling the UV are manipulated for the wave to be symmetrical. 
+• A blending region is also set on the edge of the wave to avoid hard edges on the border of the water decal.
+Finally, a <link="MoveWave.cs">script</link> sets the state of the wave in real time and translates it in the +X direction.  
+
+<h1>Generating the texture</h1>
+
+The texture is generated from a <link="RollingWave.fbx">mesh</link> carefully created containing many slices representing all the possible state of the wave. 
+The <link="MeshBaker.cs">baker script</link> go through all those slices and for each slice, record the position of each vertex and save it in a texture. 
+Each line of the texture represents one slice with each channel corresponding to X, Y and Z relative deformation respectively. 
+To test the script, simply enable the "Baker" object in the hierarchy and press bake to regenerate the texture.""",
+    "samples": []	
+}

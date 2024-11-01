@@ -83,7 +83,7 @@ To set a source material for the `Blit()` command to use in shader graph:
 
 ### Set the Blit pass in a C# script
 
-Shader Graph outputs multiple passes for compatibility reasons. This means you need to manually tell the `Blit()` command to use the correct pass. You can do this in any script that uses a full-screen pass, for example a custom pass or a custom render texture script.
+Shader Graph outputs multiple passes for compatibility reasons. This means you need to manually tell the `Blit()` command to use the correct pass. You can do this in any script that uses a full-screen pass, for example a custom pass or a custom post-process script.
 
 The Blit pass is pass number `0`. Use the following line to reference this pass:
 

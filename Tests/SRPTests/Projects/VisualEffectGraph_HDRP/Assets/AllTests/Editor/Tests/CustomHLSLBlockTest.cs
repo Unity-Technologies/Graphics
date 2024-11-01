@@ -57,14 +57,14 @@ namespace UnityEditor.VFX.Test
             var expectedSource = "VFXAttributes att = (VFXAttributes)0;\r\n" +
                                       "att.position = position;\r\n" +
                                       "att.velocity = velocity;\r\n" +
-                                     $"{function.GetNameWithHashCode()}(att, offset, speed);\r\n" +
+                                     $"{function.GetNameWithHashCode(CustomHLSL.FunctionNameSuffix)}(att, {CustomHLSL.parameterPrefix}offset, {CustomHLSL.parameterPrefix}speed);\r\n" +
                                       "position = att.position;\r\n" +
                                       "velocity = att.velocity;";
             Assert.AreEqual(expectedSource, hlslBlock.source);
             Assert.IsEmpty(hlslBlock.includes);
             Assert.AreEqual(blockName, hlslBlock.name);
 
-            var expectedCustomCode = $"void {function.GetNameWithHashCode()}(inout VFXAttributes attributes, in float3 offset, in float speed)\r\n" +
+            var expectedCustomCode = $"void {function.GetNameWithHashCode(CustomHLSL.FunctionNameSuffix)}(inout VFXAttributes attributes, in float3 offset, in float speed)\r\n" +
                                            "{\n" +
                                            "  attributes.position += offset;\n" +
                                            "  attributes.velocity = float3(0, 0, speed);\n" +
@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.Test
             var expectedSource = "VFXAttributes att = (VFXAttributes)0;\r\n" +
                                  "att.position = position;\r\n" +
                                  "att.velocity = velocity;\r\n" +
-                                 "TestFunction(att, offset, speed);\r\n" +
+                                 $"TestFunction(att, {CustomHLSL.parameterPrefix}offset, {CustomHLSL.parameterPrefix}speed);\r\n" +
                                  "position = att.position;\r\n" +
                                  "velocity = att.velocity;";
             Assert.AreEqual(expectedSource, hlslBlock.source);
@@ -532,7 +532,7 @@ namespace UnityEditor.VFX.Test
 
             //Check input slot contents
             Assert.AreEqual(1, hlslBlock.inputSlots.Count);
-            Assert.AreEqual("param", hlslBlock.inputSlots[0].name);
+            Assert.AreEqual($"{CustomHLSL.parameterPrefix}param", hlslBlock.inputSlots[0].name);
             Assert.AreEqual(VFXValueType.Float, hlslBlock.inputSlots[0].valueType);
         }
 
@@ -619,14 +619,41 @@ void CustomHLSL(inout VFXAttributes attributes)
             var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
 
+            // Act
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+
+            // Assert
+            foreach (var y in VFXTestCommon.CheckCompilation(graph))
+            {
+                yield return y;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Check_CustomHLSL_Twice_Same_Block_Compiles()
+        {
+            // Arrange
+            var hlslCode =
+                "void TestFunction(inout VFXAttributes attributes, in float param)\n" +
+                "{\n" +
+                "    attributes.position = float3(param, param, param);\n" +
+                "}";
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
             MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
 
             // Act
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
-            yield return null;
+            var copyHlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            copyHlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
+            var targetContext = graph.children.OfType<VFXContext>().Single(x => x.contextType == VFXContextType.Update);
+            targetContext.AddChild(copyHlslBlock);
+            view.graphView.OnSave();
 
             // Assert
-            Assert.Pass("No exception should be raised");
+            foreach (var y in VFXTestCommon.CheckCompilation(graph))
+            {
+                yield return y;
+            }
         }
 
         [UnityTest]
@@ -770,6 +797,29 @@ void CustomHLSL(inout VFXAttributes attributes)
             }
 
             yield return null;
+        }
+
+
+        [UnityTest, Description("Cover UUM_83782")]
+        public IEnumerator Check_CustomHLSL_Block_Parameter_Same_Name_As_Attribute()
+        {
+            // Arrange
+            var hlslCode =
+                "void myDir(inout VFXAttributes attributes,in float3 direction)\n" +
+                "{\n" +
+                "   attributes.direction = direction;\n" +
+                "}";
+            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
+
+            // Act
+            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph);
+
+            // Assert
+            foreach (var y in VFXTestCommon.CheckCompilation(graph))
+            {
+                yield return y;
+            }
         }
 
         internal static ShaderInclude CreateShaderFile(string hlslCode, out string destinationPath)

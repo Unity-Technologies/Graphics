@@ -51,9 +51,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma multi_compile _ _FORWARD_PLUS
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
             #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
-
-            #pragma multi_compile_fog
 
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
@@ -64,6 +63,10 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
             #define ENABLE_WIND
             #define VERTEX_COLOR
+
+            #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && SHADER_API_VULKAN && SHADER_API_MOBILE
+            #define SKIP_SHADOWS_LIGHT_INDEX_CHECK 1
+            #endif
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"

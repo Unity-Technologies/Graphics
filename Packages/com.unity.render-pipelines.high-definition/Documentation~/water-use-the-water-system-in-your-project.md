@@ -1,5 +1,5 @@
 
-# Use the Water System in your Project
+# Use the water system in your Project
 
 This page provides an overview of the basic workflow to include a water surface simulation in your project, along with three configuration examples that may help you better understand how to adjust water properties to meet your needs.
 
@@ -95,4 +95,4 @@ To simulate a clean outdoor swimming pool on a clear day with little wind:
 
 
 ## Additional resources
-* <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the Water System</a>
+* <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the water system</a>

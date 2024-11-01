@@ -205,6 +205,7 @@ float4 TransformPosition(float3 posOS)
     v2f vert(appdata v)
     {
         v2f o;
+        ZERO_INITIALIZE(v2f, o);
 
         UNITY_SETUP_INSTANCE_ID(v);
         UNITY_TRANSFER_INSTANCE_ID(v, o);

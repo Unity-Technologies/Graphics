@@ -152,6 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportWater = false,
                 waterSimulationResolution = WaterSimulationResolution.Medium128,
                 supportWaterExclusion = true,
+                supportWaterHorizontalDeformation = false,
 
                 supportWaterDecals = true,
                 waterDecalAtlasSize = WaterAtlasSize.AtlasSize1024,
@@ -268,6 +269,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public WaterSimulationResolution waterSimulationResolution;
         /// <summary>Support Water Surfaces exclusion.</summary>
         public bool supportWaterExclusion;
+        /// <summary>Support Water Surfaces Horizontal Deformation.</summary>
+        public bool supportWaterHorizontalDeformation;
 
         /// <summary>Support Water Surfaces deformation.</summary>
         public bool supportWaterDecals;

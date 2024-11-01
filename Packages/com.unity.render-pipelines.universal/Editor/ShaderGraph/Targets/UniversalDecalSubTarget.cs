@@ -651,8 +651,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.probeOcclusion,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
-                // todo
-                //UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
             public static FieldCollection GBufferProjector = new FieldCollection()
@@ -662,8 +661,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.dynamicLightmapUV,
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.probeOcclusion,
-                // todo
-                //UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
             public static FieldCollection ScreenSpaceMesh = new FieldCollection()
@@ -681,8 +679,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.probeOcclusion,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
-                // todo
-                //UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
         }
         #endregion
@@ -801,7 +798,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
-                { Pragma.MultiCompileFog },
                 { Pragma.EditorSyncCompilation },
             };
 
@@ -812,7 +808,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.MultiCompileInstancing },
-                { Pragma.MultiCompileFog },
                 { Pragma.EditorSyncCompilation },
             };
 
@@ -1081,6 +1076,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.ProbeVolumePregraph },
@@ -1096,6 +1092,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.ProbeVolumePregraph },
@@ -1110,6 +1107,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.ProbeVolumePregraph },

@@ -83,7 +83,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             m_PassData.profilingSampler = m_ProfilingSampler;
             m_PassData.material = m_Material;
 
-            ExecutePass(m_PassData, context, cmd, yflip);
+            ExecutePass(m_PassData,CommandBufferHelpers.GetRasterCommandBuffer(cmd), yflip);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -102,7 +102,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
 
         }
 
-        public static void ExecutePass(PassData passData, ScriptableRenderContext context, CommandBuffer cmd, bool yFlip)
+        public static void ExecutePass(PassData passData, RasterCommandBuffer cmd, bool yFlip)
         {
             using (new ProfilingScope(cmd, passData.profilingSampler))
             {
@@ -123,11 +123,11 @@ public class OutputTextureFeature : ScriptableRendererFeature
             var resourceData = frameData.Get<UniversalResourceData>();
             var cameraData = frameData.Get<UniversalCameraData>();
 
-            using (var builder = renderGraph.AddRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
-                builder.UseColorBuffer(resourceData.activeColorTexture, 0);
-
+                builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.ReadWrite);
                 builder.AllowPassCulling(false);
+                builder.AllowGlobalStateModification(true);
 
                 passData.profilingSampler = m_ProfilingSampler;
                 passData.material = m_Material;
@@ -137,13 +137,11 @@ public class OutputTextureFeature : ScriptableRendererFeature
                 passData.colorTarget = resourceData.activeColorTexture;
                 passData.depthTarget = resourceData.activeDepthTexture;
 
-                builder.SetRenderFunc((PassData data, RenderGraphContext rgContext) =>
+                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
                 {
                     UniversalCameraData cameraData = data.cameraData;
-                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && data.isTargetBackbuffer);
-                    bool yFlip = cameraData.IsRenderTargetProjectionMatrixFlipped(data.colorTarget, data.depthTarget) && !isGameViewFinalTarget;
-
-                    ExecutePass(data, rgContext.renderContext, rgContext.cmd, yFlip);
+                    bool yFlip = cameraData.IsRenderTargetProjectionMatrixFlipped(data.colorTarget, data.depthTarget);
+                    ExecutePass(data, rgContext.cmd, yFlip);
                 });
             }
         }

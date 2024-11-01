@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
-                colorFormat = GraphicsFormat.R16_UInt,
+                format = GraphicsFormat.R16_UInt,
                 slices = TextureXR.slices * (int)RayCountValues.Count,
                 dimension = TextureDimension.Tex2DArray,
                 clearBuffer = true,

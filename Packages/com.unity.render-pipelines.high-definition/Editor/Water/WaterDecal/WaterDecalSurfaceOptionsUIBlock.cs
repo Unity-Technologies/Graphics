@@ -10,11 +10,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Surface Options");
 
-            public static GUIContent affectsDeformationText = new GUIContent("Affect Deformation", "When enabled, this decal can affect deformation.\nDeformation should be a normalized value between -1 and 1.");
+            public static GUIContent affectsDeformationText = new GUIContent("Affect Deformation", "When enabled, this decal can affect deformation.");
             public static GUIContent affectsFoamText = new GUIContent("Affect Foam", "When enabled, this decal can affect foam.");
             public static GUIContent affectsSimulationMaskText = new GUIContent("Affect Simulation Mask", "When enabled, this decal can affect simulation mask and simulation foam mask.");
             public static GUIContent affectsLargeCurrentText = new GUIContent("Affect Large Current", "When enabled, this decal can affect the swell current on oceans and the agitation current current on rivers.");
             public static GUIContent affectsRipplesCurrentText = new GUIContent("Affect Ripples Current", "When enabled, this decal can affect ripples current.");
+            public static string warningSupportWaterHorizontalDeformation = "The current HDRP Asset only support vertical water deformation. If the shader graph uses Horizontal Deformation output, enable horizontal deformation in the current HDRP asset to allow for 3D deformation.";
         }
 
         MaterialProperty affectsDeformation;
@@ -68,6 +69,14 @@ namespace UnityEditor.Rendering.HighDefinition
             AffectProperty(affectsSimulationMask, Styles.affectsSimulationMaskText, true);
             AffectProperty(affectsLargeCurrent, Styles.affectsLargeCurrentText, true);
             AffectProperty(affectsRipplesCurrent, Styles.affectsRipplesCurrentText, true);
+
+            // We display a warning in the inspector if affect deformation is checked and supportWaterHorizontalDeformation isn't in the current HDRP asset
+            bool supportHorizontalDeformation = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportWaterHorizontalDeformation;
+            if (affectsDeformation != null && affectsDeformation.floatValue > 0.0f && !supportHorizontalDeformation)
+            {
+                EditorGUILayout.Space();
+                HDEditorUtils.QualitySettingsHelpBox(Styles.warningSupportWaterHorizontalDeformation, MessageType.Warning, HDRenderPipelineUI.ExpandableGroup.Rendering, "m_RenderPipelineSettings.supportWaterHorizontalDeformation");
+            }
         }
     }
 }

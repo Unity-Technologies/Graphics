@@ -10,25 +10,25 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureDesc GetVolumetricCloudsIntermediateLightingBufferDesc()
         {
             return new TextureDesc(skyReflectionSize, skyReflectionSize, false, true)
-            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true };
+            { format = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true };
         }
 
         TextureDesc GetVolumetricCloudsIntermediateDepthBufferDesc()
         {
             return new TextureDesc(skyReflectionSize, skyReflectionSize, false, true)
-            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true };
+            { format = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true };
         }
 
         TextureDesc GetVolumetricCloudsIntermediateCubeTextureDesc()
         {
             return new TextureDesc(skyReflectionSize, skyReflectionSize, false, false)
-            { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false };
+            { dimension = TextureDimension.Cube, format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false };
         }
 
         TextureDesc GetVolumetricCloudsMetalCopyBufferDesc()
         {
             return new TextureDesc(skyReflectionSize, skyReflectionSize, false, true)
-            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = false };
+            { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = false };
         }
 
         class VolumetricCloudsSkyLowPassData

@@ -98,8 +98,9 @@ struct SpeedTreeFragmentInput
 void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 {
 #if !defined(EFFECT_BILLBOARD)
-    #if defined(LOD_FADE_PERCENTAGE) && (!defined(LOD_FADE_CROSSFADE))
-    input.vertex.xyz = lerp(input.vertex.xyz, input.texcoord2.xyz, lodValue);
+    #if defined(LOD_FADE_PERCENTAGE)
+    UNITY_BRANCH if (unity_LODFade.w <= 1.0)
+        input.vertex.xyz = lerp(input.vertex.xyz, input.texcoord2.xyz, lodValue);
     #endif
 
     // geometry type

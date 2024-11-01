@@ -87,8 +87,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
             };
 
-            if (m_Data.affectsDeformation || m_Data.affectsFoam)
-                result.passes.Add(GeneratePass(WaterDecal.PassType.DeformationAndFoam));
+            if (m_Data.affectsDeformation)
+                result.passes.Add(GeneratePass(WaterDecal.PassType.Deformation));
+            if (m_Data.affectsFoam)
+                result.passes.Add(GeneratePass(WaterDecal.PassType.Foam));
             if (m_Data.affectsSimulationMask)
                 result.passes.Add(GeneratePass(WaterDecal.PassType.SimulationMask));
             if (m_Data.affectsLargeCurrent)
@@ -141,6 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Water specific block descriptors
             public static BlockFieldDescriptor Deformation = new BlockFieldDescriptor(name, "Deformation", "Deformation", "SURFACEDESCRIPTION_DEFORMATION", new FloatControl(0.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor DeformationHorizontal = new BlockFieldDescriptor(name, "HorizontalDeformation", "Horizontal Deformation", "SURFACEDESCRIPTION_HORIZONTALDEFORMATION", new Vector2Control(Vector2.zero), ShaderStage.Fragment);
             public static BlockFieldDescriptor SurfaceFoam = new BlockFieldDescriptor(name, "SurfaceFoam", "SurfaceFoam", "SURFACEDESCRIPTION_SURFACE_FOAM", new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor DeepFoam = new BlockFieldDescriptor(name, "DeepFoam", "DeepFoam", "SURFACEDESCRIPTION_DEEP_FOAM", new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SimulationMask = new BlockFieldDescriptor(name, "SimulationMask", "SimulationMask", "SURFACEDESCRIPTION_SIMULATION_MASK", new Vector3Control(Vector3.one), ShaderStage.Fragment);
@@ -155,6 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return new BlockFieldDescriptor[]
                 {
                     Deformation,
+                    DeformationHorizontal,
                     SurfaceFoam,
                     DeepFoam,
                     SimulationMask,
@@ -170,7 +174,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             if (m_Data.affectsDeformation)
+            {
                 context.AddBlock(WaterDecalBlocks.Deformation);
+                context.AddBlock(WaterDecalBlocks.DeformationHorizontal);
+            }
             if (m_Data.affectsFoam)
             {
                 context.AddBlock(WaterDecalBlocks.SurfaceFoam);
@@ -293,10 +300,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         #region Defines
         struct WaterDecalDefines
         {
-            static readonly KeywordDescriptor deformFoamKeyword = new KeywordDescriptor
+            static readonly KeywordDescriptor deformKeyword = new KeywordDescriptor
+            {
+                displayName = "Deformation Pass",
+                referenceName = "PASS_DEFORMATION",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                stages = KeywordShaderStage.Fragment,
+            };
+
+            static readonly KeywordDescriptor foamKeyword = new KeywordDescriptor
             {
                 displayName = "Deformation And Foam Pass",
-                referenceName = "PASS_DEFORMATION_AND_FOAM",
+                referenceName = "PASS_FOAM",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.Predefined,
                 stages = KeywordShaderStage.Fragment,
@@ -331,7 +347,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             static Dictionary<WaterDecal.PassType, KeywordDescriptor> s_PassDefines = new()
             {
-                { WaterDecal.PassType.DeformationAndFoam, deformFoamKeyword },
+                { WaterDecal.PassType.Foam, foamKeyword },
+                { WaterDecal.PassType.Deformation, deformKeyword },
                 { WaterDecal.PassType.SimulationMask, maskKeyword },
                 { WaterDecal.PassType.LargeCurrent, largeKeyword },
                 { WaterDecal.PassType.RipplesCurrent, ripplesKeyword },
@@ -391,8 +408,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 KeywordCollection keywords = new();
                 switch (pass)
                 {
-                    case WaterDecal.PassType.DeformationAndFoam:
+                    case WaterDecal.PassType.Deformation:
                         keywords.Add(new KeywordCollection { { AffectsDeformation, new FieldCondition(WaterDecalFields.AffectsDeformation, data.affectsDeformation) } });
+                        break;
+                    case WaterDecal.PassType.Foam:
                         keywords.Add(new KeywordCollection { { AffectsFoam, new FieldCondition(WaterDecalFields.AffectsFoam, data.affectsFoam) } });
                         break;
                     case WaterDecal.PassType.SimulationMask:

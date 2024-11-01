@@ -258,6 +258,15 @@ namespace UnityEngine.Rendering.Universal
             float cameraWidth = (float)camera.pixelWidth;
             float cameraHeight = (float)camera.pixelHeight;
 
+            // Overlay cameras don't have a viewport. Must use the computed/inherited viewport instead of the camera one.
+            if (cameraData.renderType == CameraRenderType.Overlay)
+            {
+                // Overlay cameras inherits viewport from base.
+                // pixelRect/Width/Height is the viewport in pixels.
+                cameraWidth = cameraData.pixelWidth;
+                cameraHeight = cameraData.pixelHeight;
+            }
+
             // Use eye texture's width and height as screen params when XR is enabled
             if (cameraData.xr.enabled)
             {
@@ -2256,6 +2265,33 @@ namespace UnityEngine.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
+        }
+
+        private protected int AdjustAndGetScreenMSAASamples(RenderGraph renderGraph, bool useIntermediateColorTarget)
+        {
+            #if UNITY_EDITOR
+                // In the editor, the system render target is always allocated with no msaa
+                // See: ConfigureTargetTexture in PlayModeView.cs
+                return 1;
+            #else
+                // In the players, when URP main rendering is done to an intermediate target and NRP enabled
+                // we disable multisampling for the system backbuffer as a bandwidth optimization
+                // doing so, we avoid storing costly msaa samples back to system memory for nothing
+                bool canOptimizeScreenMSAASamples = UniversalRenderPipeline.canOptimizeScreenMSAASamples
+                                                 && useIntermediateColorTarget
+                                                 && renderGraph.nativeRenderPassesEnabled
+                                                 && Screen.msaaSamples > 1;
+                
+                if (canOptimizeScreenMSAASamples)
+                {
+                    Screen.SetMSAASamples(1);
+                }
+
+                // iOS and macOS corner case
+                bool screenAPIHasOneFrameDelay = (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.IPhonePlayer);
+
+                return screenAPIHasOneFrameDelay ? Mathf.Max(UniversalRenderPipeline.startFrameScreenMSAASamples, 1) : Mathf.Max(Screen.msaaSamples, 1);
+            #endif
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)

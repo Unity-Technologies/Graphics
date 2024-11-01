@@ -90,7 +90,7 @@ HDRP 15 makes the following changes to APV properties:
 
 - Adds a debugging mode to visualize how HDRP samples APV data. To use this mode go to **Rendering Debugger** > **Probe Volume** > **Debug Probe Sampling**.
 
-### Water System
+### Water system
 
 ![](Images/Water2023-1.png)
 

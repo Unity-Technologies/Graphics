@@ -396,6 +396,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },

@@ -67,9 +67,3 @@ In this screenshot, a red box indicates the box gizmo handles.
 
 ![](Images/ProbeVolume-Size-gizmo.png)<br/>
 The resize handles for Adaptive Probe Volumes.
-
-## Probe Volume limitations with Asset Bundles and Addressables
-<a name ="pv-assetbundles"></a>
-Internally, the Probe Volume system uses the Streaming Asset feature to store baked data. This is necessary to allow both efficient loading and streaming of data. The consequence is that Probe Volume baked data is incompatible with Asset Bundles and Addressables as it is explicitly moved inside the Streaming Asset folder upon Player build.
-In order to allow the use of Asset Bundles and Addressables when necessary, a toggle is provided in the Probe Volume Graphics settings: *Disable Streaming Assets*. When enabling this option, the system will no longer use Streaming Assets internally but regular Assets that can be managed manually by the user.
-Enabling this option will also disable the use of Disk Streaming and increase memory consumption in multi-scene setups.

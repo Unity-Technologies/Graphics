@@ -73,6 +73,18 @@ UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplersta
     return result;
 }
 
+#define UnityBuildTexture2DStructNoTexelSize(n) UnityBuildTexture2DStructNoTexelSizeInternal(TEXTURE2D_ARGS(n, sampler##n), n##_ST)
+#define UnityBuildTexture2DStructNoScaleNoTexelSize(n) UnityBuildTexture2DStructNoTexelSizeInternal(TEXTURE2D_ARGS(n, sampler##n), float4(1, 1, 0, 0))
+UnityTexture2D UnityBuildTexture2DStructNoTexelSizeInternal(TEXTURE2D_PARAM(tex, samplerstate), float4 scaleTranslate)
+{
+    UnityTexture2D result;
+    result.tex = tex;
+    result.samplerstate = samplerstate;
+    result.texelSize = float4(1, 1, 1, 1);
+    result.scaleTranslate = scaleTranslate;
+    return result;
+}
+
 
 struct UnityTexture2DArray
 {

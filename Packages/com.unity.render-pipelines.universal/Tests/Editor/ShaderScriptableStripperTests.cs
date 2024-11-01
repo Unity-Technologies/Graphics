@@ -30,6 +30,7 @@ namespace ShaderStrippingAndPrefiltering
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
             public bool IsHDRDisplaySupportEnabled { get; set; }
+            public bool IsRenderCompatibilityMode { get; set; }
 
             public Shader shader { get; set; }
             public ShaderType shaderType { get; set; }

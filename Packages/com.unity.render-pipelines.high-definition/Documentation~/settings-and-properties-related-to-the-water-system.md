@@ -1,10 +1,10 @@
-# Settings and properties related to the Water System
+# Settings and properties related to the water system
 
 This page explains the settings and properties you can use to configure the:
 * [Water Volume Inspector](#volumeinspector)
-* [Water System Volume Override](#watervoloverride)
-* [Water System in the Rendering Debugger](#waterrenderdebug)
-* [Water System in the HDRP Asset](#waterhdrpasset)
+* [Water system volume override](#watervoloverride)
+* [Water system in the rendering debugger](#waterrenderdebug)
+* [Water system in the HDRP asset](#waterhdrpasset)
 
 
 <br/>
@@ -94,7 +94,7 @@ The options are:
 <b>Script Interactions <a name="scriptinteractions"></a></b>
 </td>
 <td>
-Enable to have the ability to query the water surface position and current direction from the simulation. See <a href="water-scripting-in-the-water-system.md">Scripting in the Water System</a> for more information.
+Enable to have the ability to query the water surface position and current direction from the simulation. See <a href="water-scripting-in-the-water-system.md">Scripting in the water system</a> for more information.
 </td>
 </tr>
 
@@ -146,7 +146,7 @@ Determines the speed at which HDRP presents the water simulation. Values above 1
 <b>Water Mask<a name="watermask"></a></b>
 </td>
 <td>
-A texture HDRP uses to attenuate or supress <b>Ripple</b> (green channel) and <b>Swell</b> or <b>Agitation</b> (red channel) water frequencies. For more information, see <a href="water-decals-and-masking-in-the-water-system.md">Decals and masking in the Water System</a>.
+A texture HDRP uses to attenuate or supress <b>Ripple</b> (green channel) and <b>Swell</b> or <b>Agitation</b> (red channel) water frequencies. For more information, see <a href="water-decals-and-masking-in-the-water-system.md">Decals and masking in the water system</a>.
 </td>
 </tr>
 
@@ -864,13 +864,13 @@ Specifies the view of the debug mode used for the water surface.
 <br/>
 
 
-# Water System Volume Override
+# Water system volume override
 
 <a name="watervoloverride"></a>
 
 To use a Volume Override, you must first add a Volume Profile.
 
-See  <a href="water-the-water-system-volume-override.md">The Water System Volume Override</a> for more information.</br>
+See  <a href="water-the-water-system-volume-override.md">The water system Volume Override</a> for more information.</br>
 <table>
 
 <tr>
@@ -933,7 +933,7 @@ Determines the influence of the <a href="https://docs.unity3d.com/2022.2/Documen
 
 <br/>
 
-# Water System in the Rendering Debugger
+# Water system in the rendering debugger
 
 
 <a name="waterrenderdebug"></a>
@@ -943,7 +943,7 @@ The **Main Camera** and **Scene Camera Rendering** tabs of the [Rendering Debugg
 <br/>
 <a name="waterhdrpasset"></a>
 
-# Water System in the HDRP Asset
+# water system in the HDRP Asset
 
-You enable the Water System in the [HDRP Asset](HDRP-Asset.md) as the [Use the Water System in your Project](water-use-the-water-system-in-your-project.md) describes. You can also adjust several related settings in the HDRP Asset.
+You enable the water system in the [HDRP Asset](HDRP-Asset.md) as the [Use the water system in your Project](water-use-the-water-system-in-your-project.md) describes. You can also adjust several related settings in the HDRP Asset.
 

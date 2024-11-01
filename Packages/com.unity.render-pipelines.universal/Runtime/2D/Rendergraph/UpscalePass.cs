@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor desc = cameraTargetDescriptor;
             desc.width = width;
             desc.height = height;
-            desc.depthBufferBits = 0;
+            desc.depthStencilFormat = GraphicsFormat.None;
             RenderingUtils.ReAllocateHandleIfNeeded(ref destination, desc, mode, TextureWrapMode.Clamp, name: "_UpscaleTexture");
 
             upscaleHandle = destination;

@@ -206,16 +206,27 @@ half4 CalculateFinalColor(LightingData lightingData, half alpha)
 half4 CalculateFinalColor(LightingData lightingData, half3 albedo, half alpha, float fogCoord)
 {
     #if defined(_FOG_FRAGMENT)
+    
+    #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+        half fogFactor = 0;
+        if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+        {
+            float viewZ = -fogCoord;
+            float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+            fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+        }
+    #else // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
         #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
         float viewZ = -fogCoord;
         float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
         half fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
-    #else
+        #else
         half fogFactor = 0;
         #endif
-    #else
+    #endif // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+    #else  // #if defined(_FOG_FRAGMENT)
     half fogFactor = fogCoord;
-    #endif
+    #endif // #if defined(_FOG_FRAGMENT)
     half3 lightingColor = CalculateLightingColor(lightingData, albedo);
     half3 finalColor = MixFog(lightingColor, fogFactor);
 

@@ -78,7 +78,6 @@ void vert(
     MotionVectorPassVaryings mvOutput = (MotionVectorPassVaryings)0;
     MotionVectorPassOutput currentFrameMvData = (MotionVectorPassOutput)0;
     output = BuildVaryings(input, currentFrameMvData);
-    ApplyMotionVectorZBias(output.positionCS);
     packedOutput = PackVaryings(output);
 
 #if defined(HAVE_VFX_MODIFICATION) && !VFX_FEATURE_MOTION_VECTORS

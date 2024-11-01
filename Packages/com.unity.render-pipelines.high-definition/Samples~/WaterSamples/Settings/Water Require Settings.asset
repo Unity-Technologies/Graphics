@@ -41,9 +41,19 @@ MonoBehaviour:
     validationType: 0
     uiSectionInt: 16
     uiSubSectionInt: 8
+  - m_name: Water Horizontal Deformation
+    m_description: Enable Water Horizontal Deformation.
+    propertyPath: m_RenderPipelineSettings.supportWaterHorizontalDeformation
+    globalSettingsType: 
+    valueType: 0
+    targetValue: 1
+    validationType: 0
+    uiSectionInt: 16
+    uiSubSectionInt: 8
   - m_name: Water Decals
     m_description: Enable Water Decals.
     propertyPath: m_RenderPipelineSettings.supportWaterDecals
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0

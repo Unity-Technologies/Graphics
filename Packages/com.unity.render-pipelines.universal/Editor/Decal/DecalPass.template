@@ -58,6 +58,9 @@ Pass
 
     $splice(GraphDefines)
 
+    // Includes
+    $splice(PreGraphIncludes)
+
     // -- Properties used by ScenePickingPass
     #ifdef SCENEPICKINGPASS
     float4 _SelectionID;
@@ -68,8 +71,6 @@ Pass
     FRAMEBUFFER_INPUT_X_HALF(GBUFFER3);
     FRAMEBUFFER_INPUT_X_HALF(GBUFFER4);
     #endif
-    // Includes
-    $splice(PreGraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing

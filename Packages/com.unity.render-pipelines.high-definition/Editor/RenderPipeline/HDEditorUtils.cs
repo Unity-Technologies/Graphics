@@ -17,14 +17,8 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class HDEditorUtils
     {
-        internal const string FormatingPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Formating";
-
         internal const string QualitySettingsSheetPath =
             @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/QualitySettings";
-
-        internal const string WizardSheetPath =
-            @"Packages/com.unity.render-pipelines.high-definition/Editor/USS/Wizard";
 
         internal const string HDRPAssetBuildLabel = "HDRP:IncludeInBuild";
 
@@ -381,40 +375,33 @@ namespace UnityEditor.Rendering.HighDefinition
                 GlobalSettingsHelpBox(textBase + "depends on a disabled FrameSetting.", type, field, displayName);
         }
 
-        internal static HDCamera[] GetDisplayedCameras()
+        internal static HDCamera[] GetAllCameras()
         {
-            HashSet<HDCamera> visibleCamera = new();
+            HashSet<HDCamera> cameras = new();
 
+            // Looping through all the scene views
             foreach (SceneView sceneView in SceneView.sceneViews)
             {
                 if (!sceneView.hasFocus) continue;
-                visibleCamera.Add(HDCamera.GetOrCreate(sceneView.camera));
+                cameras.Add(HDCamera.GetOrCreate(sceneView.camera));
             }
 
-            var assembly = typeof(EditorWindow).Assembly;
-            var type = assembly.GetType("UnityEditor.GameView");
-            var targetDisplayProp = type.GetProperty("targetDisplay");
-
-            // This is an optimization to retrieve only the first gameView, to avoid a call to exepensive Resources.FindObjectsOfTypeAll causing lots of slow UI in OnInpsectorGUI calls.
-            EditorWindow gameView = EditorWindow.GetWindow(type);
-            if (gameView.hasFocus)
+            // Looping through all the game views
+            foreach (var camera in HDCamera.GetHDCameras())
             {
-                var targetDisplay = (int)targetDisplayProp.GetValue(gameView);
-                foreach (var camera in HDCamera.GetHDCameras())
-                {
-                    if (camera == null || camera.camera == null)
-                        continue;
-                    if (camera.camera.cameraType == CameraType.Game && camera.camera.targetDisplay == targetDisplay)
-                        visibleCamera.Add(camera);
-                }
-            }
+                if (camera == null || camera.camera == null)
+                    continue;
 
-            return visibleCamera.ToArray();
+                if (camera.camera.cameraType == CameraType.Game)
+                    cameras.Add(camera);
+            }
+            
+            return cameras.ToArray();
         }
 
         internal static bool EnsureFrameSetting(FrameSettingsField field, string displayName)
         {
-            foreach (var camera in GetDisplayedCameras())
+            foreach (var camera in GetAllCameras())
             {
                 if (!camera.frameSettings.IsEnabled(field))
                 {
@@ -433,7 +420,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (VolumeManager.instance.baseComponentTypeArray == null)
                 return true;
 
-            var cameras = GetDisplayedCameras();
+            var cameras = GetAllCameras();
 
             foreach (var camera in cameras)
             {

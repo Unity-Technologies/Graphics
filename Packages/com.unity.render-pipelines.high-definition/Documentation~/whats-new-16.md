@@ -139,7 +139,7 @@ From version 16ayou can stream probe volume data directly from a disk. To use di
 
 For more information, refer to [Probe volume streaming](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@16.0/manual/probevolumes-streaming.html).
 
-### Water System
+### Water system
 ![](Images/WaterSamples.png)
 
 HDRP 16.0 makes the following improvements to the water system:

@@ -503,6 +503,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
                 context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
                 {
+					registerUndo("Change Support VFX Graph");
                     m_SupportVFX = m_SupportVFXToggle.value;
                 });
             }
@@ -1639,7 +1640,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -1658,7 +1658,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.ExcludeRenderers(new[] { Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
             { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -1691,6 +1690,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         // Files that are included with #include_with_pragmas
         const string kDOTS = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl";
+        const string kFog = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl";
         const string kRenderingLayers = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl";
         const string kProbeVolumes = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl";
 
@@ -1699,11 +1699,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kColor, IncludeLocation.Pregraph },
             { kTexture, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
+            { kFoveatedRenderingKeywords, IncludeLocation.Pregraph, true },
+            { kFoveatedRendering, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kInput, IncludeLocation.Pregraph },
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
-            { kFoveatedRenderingKeywords, IncludeLocation.Pregraph, true },
-            { kFoveatedRendering, IncludeLocation.Pregraph },
             { kMipmapDebugMacros, IncludeLocation.Pregraph}
         };
 
@@ -1711,6 +1711,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { kDOTS, IncludeLocation.Pregraph, true },
         };
+
+        public static readonly IncludeCollection FogPregraph = new IncludeCollection
+        {
+            { kFog, IncludeLocation.Pregraph, true },
+        };        
 
         public static readonly IncludeCollection WriteRenderLayersPregraph = new IncludeCollection
         {

@@ -189,6 +189,24 @@ float4 VFXTransformFinalColor(float4 color, float4 posCS)
 
 float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 {
+#if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+   if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+   {
+       float4 fog = (float4)0;
+       fog.rgb = unity_FogColor.rgb;
+
+       float fogFactor = ComputeFogFactor(posCS.z * posCS.w);
+       fog.a = ComputeFogIntensity(fogFactor);
+#if VFX_BLENDMODE_ALPHA || IS_OPAQUE_PARTICLE
+       color.rgb = lerp(fog.rgb, color.rgb, fog.a);
+#elif VFX_BLENDMODE_ADD
+       color.rgb *= fog.a;
+#elif VFX_BLENDMODE_PREMULTIPLY
+       color.rgb = lerp(fog.rgb * color.a, color.rgb, fog.a);
+#endif
+   }
+#else // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
    float4 fog = (float4)0;
    fog.rgb = unity_FogColor.rgb;
 
@@ -202,6 +220,8 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 #elif VFX_BLENDMODE_PREMULTIPLY
    color.rgb = lerp(fog.rgb * color.a, color.rgb, fog.a);
 #endif
+#endif // #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+#endif // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
    return color;
 }
 

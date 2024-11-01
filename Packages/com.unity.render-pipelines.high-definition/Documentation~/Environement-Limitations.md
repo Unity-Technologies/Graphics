@@ -14,7 +14,7 @@ Additionally, atmosphere absorbs part of the sun light before it reaches the pla
 To have precise atmospheric attenuation and per pixel absorption of the sun light, you can disable the `PrecomputedAtmosphericAttenuation` option in the HDRP config package, which can be done using the [Render Pipeline Wizard](Render-Pipeline-Wizard.md). For more info, see [HDRP Config](configure-a-project-using-the-hdrp-config-package.md).
 
 
-### Water System
+### Water system
 
 Water is a refractive transparent object, however for performance reasons, it is necessary to render the depth of the water surface in the depth buffer.
 As a result, other transparent objects that are located behind the water surface will get culled during rendering by z-testing.

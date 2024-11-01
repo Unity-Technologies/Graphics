@@ -710,28 +710,28 @@ namespace UnityEngine.Rendering.HighDefinition
         void CreateTracingTextures(RenderGraph renderGraph, RenderGraphBuilder builder, VolumetricClouds settings, float scale, out TextureHandle cloudsLighting, out TextureHandle cloudsDepth)
         {
             cloudsLighting = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scale, true, true)
-            { colorFormat = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Traced Clouds Lighting" });
+            { format = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Traced Clouds Lighting" });
 
             cloudsDepth = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scale, true, true)
-            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Traced Clouds Depth" });
+            { format = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Traced Clouds Depth" });
         }
 
         void CreateIntermediateTextures(RenderGraph renderGraph, RenderGraphBuilder builder, VolumetricClouds settings, out TextureHandle intermediate1, out TextureHandle intermediate2)
         {
             intermediate1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-            { colorFormat = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 1" });
+            { format = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 1" });
 
             intermediate2 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
-            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 2" });
+            { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 2" });
         }
 
         void CreateOutputTextures(RenderGraph renderGraph, RenderGraphBuilder builder, VolumetricClouds settings, out TextureHandle cloudsLighting, out TextureHandle cloudsDepth)
         {
             cloudsLighting = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Volumetric Clouds Lighting Texture" }));
+            { format = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Volumetric Clouds Lighting Texture" }));
 
             cloudsDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Depth Texture" }));
+            { format = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Depth Texture" }));
         }
 
         static void DoVolumetricCloudsTrace(CommandBuffer cmd, int traceTX, int traceTY, int viewCount, in VolumetricCloudCommonData commonData,

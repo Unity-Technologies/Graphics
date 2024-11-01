@@ -192,34 +192,6 @@ namespace UnityEditor.VFX.Test
             vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Runtime);
         }
 
-        private IEnumerable CheckCompilation(VFXGraph vfxGraph)
-        {
-            var resource = vfxGraph.GetResource();
-            EditorUtility.SetDirty(resource);
-            var path = AssetDatabase.GetAssetPath(vfxGraph);
-            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
-
-            for (int i = 0; i < 4; ++i)
-                yield return null;
-
-            while (ShaderUtil.anythingCompiling)
-                yield return null;
-
-            var computeShaders = AssetDatabase.LoadAllAssetsAtPath(path).OfType<ComputeShader>().ToArray();
-            Assert.AreEqual(3, computeShaders.Length);
-
-            foreach (var computeShader in computeShaders)
-            {
-                var messages = ShaderUtil.GetComputeShaderMessages(computeShader);
-                foreach (var message in messages)
-                    Assert.AreNotEqual(ShaderCompilerMessageSeverity.Error, message.severity, message.message);
-
-                Assert.AreEqual(0, computeShader.FindKernel("CSMain"));
-                Assert.IsTrue(computeShader.IsSupported(0));
-            }
-            yield return null;
-        }
-
         [UnityTest]
         public IEnumerator Combinatory_Position_Shape()
         {
@@ -248,7 +220,7 @@ namespace UnityEditor.VFX.Test
                 initialize.AddChild(positionShape);
             }
 
-            foreach (var yield in CheckCompilation(vfxGraph))
+            foreach (var yield in VFXTestCommon.CheckCompilation(vfxGraph))
             {
                 yield return yield;
             }
@@ -292,7 +264,7 @@ namespace UnityEditor.VFX.Test
                 initialize.AddChild(collisionShape);
             }
 
-            foreach (var yield in CheckCompilation(vfxGraph))
+            foreach (var yield in VFXTestCommon.CheckCompilation(vfxGraph))
             {
                 yield return yield;
             }

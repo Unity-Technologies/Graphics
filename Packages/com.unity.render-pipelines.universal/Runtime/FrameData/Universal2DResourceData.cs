@@ -49,19 +49,19 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle[] _cameraNormalsTexture = new TextureHandle[0];
 
-        internal TextureHandle shadowsTexture
+        internal TextureHandle[][] shadowTextures
         {
-            get => CheckAndGetTextureHandle(ref _shadowsTexture);
-            set => CheckAndSetTextureHandle(ref _shadowsTexture, value);
+            get => CheckAndGetTextureHandle(ref _shadowTextures);
+            set => CheckAndSetTextureHandle(ref _shadowTextures, value);
         }
-        private TextureHandle _shadowsTexture;
+        private TextureHandle[][] _shadowTextures = new TextureHandle[0][];
 
-        internal TextureHandle shadowsDepth
+        internal TextureHandle shadowDepth
         {
-            get => CheckAndGetTextureHandle(ref _shadowsDepth);
-            set => CheckAndSetTextureHandle(ref _shadowsDepth, value);
+            get => CheckAndGetTextureHandle(ref _shadowDepth);
+            set => CheckAndSetTextureHandle(ref _shadowDepth, value);
         }
-        private TextureHandle _shadowsDepth;
+        private TextureHandle _shadowDepth;
 
         internal TextureHandle upscaleTexture
         {
@@ -81,13 +81,16 @@ namespace UnityEngine.Rendering.Universal
         public override void Reset()
         {
             _intermediateDepth = TextureHandle.nullHandle;
-            _shadowsTexture = TextureHandle.nullHandle;
-            _shadowsDepth = TextureHandle.nullHandle;
+            _shadowDepth = TextureHandle.nullHandle;
             _upscaleTexture = TextureHandle.nullHandle;
             _cameraSortingLayerTexture = TextureHandle.nullHandle;
 
             for (int i = 0; i < _cameraNormalsTexture.Length; i++)
                 _cameraNormalsTexture[i] = TextureHandle.nullHandle;
+
+            for (int i = 0; i < _shadowTextures.Length; i++)
+                for (int j = 0; j < _shadowTextures[i].Length; j++)
+                    _shadowTextures[i][j] = TextureHandle.nullHandle;
 
             for (int i = 0; i < _lightTextures.Length; i++)
                 for (int j = 0; j < _lightTextures[i].Length; j++)

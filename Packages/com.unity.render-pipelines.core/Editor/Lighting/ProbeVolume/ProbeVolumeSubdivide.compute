@@ -129,7 +129,7 @@ void JumpFlooding(uint3 id : SV_DispatchThreadID)
         o.x += (o.x < 0) ? _Size.x : 0;
         o.y += (o.y < 0) ? _Size.x : 0;
         o.z += (o.z < 0) ? _Size.x : 0;
-        float4 n1 = _Output[o];
+        float4 n1 = _Input[o];
 
         // Discard invalid samples
         if (n1.w < 0.5)

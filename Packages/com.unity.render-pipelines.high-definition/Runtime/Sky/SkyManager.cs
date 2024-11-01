@@ -812,7 +812,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float dimmer = 1.0f, float anisotropy = 0.7f /*Default value used by volumetric clouds and cloud layer*/)
         {
             var cubemap = renderGraph.CreateTexture(new TextureDesc(m_LowResolution, m_LowResolution)
-                { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
+                { dimension = TextureDimension.Cube, format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
 
             RenderSkyToCubemap(renderGraph, skyContext, hdCamera, cubemap, m_FacePixelCoordToViewDirMatricesLowRes, renderBackgroundClouds, profileId);
             UpdateAmbientProbe(renderGraph, cubemap, outputForClouds: true, null, null, probeBuffer, new Vector4(dimmer, anisotropy, 0.0f, 0.0f), null);
@@ -910,7 +910,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.input = builder.ReadTexture(input);
                 passData.output = output;
                 passData.intermediateTexture = builder.CreateTransientTexture(new TextureDesc(m_Resolution, m_Resolution)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Cube, useMipMap = true, autoGenerateMips = false, filterMode = FilterMode.Trilinear, name = "SkyboxBSDFIntermediate" });
+                { format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Cube, useMipMap = true, autoGenerateMips = false, filterMode = FilterMode.Trilinear, name = "SkyboxBSDFIntermediate" });
 
                 builder.SetRenderFunc(
                 (SkyEnvironmentConvolutionPassData data, RenderGraphContext ctx) =>

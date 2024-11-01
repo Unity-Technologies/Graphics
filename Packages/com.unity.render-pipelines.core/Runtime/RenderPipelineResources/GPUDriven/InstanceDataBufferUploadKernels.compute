@@ -1,3 +1,4 @@
+#pragma exclude_renderers gles
 
 #pragma kernel MainUploadScatterInstances
 

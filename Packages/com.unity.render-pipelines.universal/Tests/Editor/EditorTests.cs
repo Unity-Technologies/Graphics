@@ -8,6 +8,7 @@ using UnityEditor.Rendering.Universal.Internal;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.TestTools;
+using System.Xml.Linq;
 
 class EditorTests
 {
@@ -67,12 +68,12 @@ class EditorTests
         Assert.AreNotEqual(null, asset.defaultLineMaterial);
         Assert.AreNotEqual(null, asset.defaultTerrainMaterial);
         Assert.AreNotEqual(null, asset.defaultShader);
+        Assert.AreNotEqual(null, asset.default2DMaterial);
 
         // URP doesn't override the following materials
         Assert.AreEqual(null, asset.defaultUIMaterial);
         Assert.AreEqual(null, asset.defaultUIOverdrawMaterial);
         Assert.AreEqual(null, asset.defaultUIETC1SupportedMaterial);
-        Assert.AreEqual(null, asset.default2DMaterial);
         Assert.AreEqual(null, asset.default2DMaskMaterial);
 
         Assert.AreNotEqual(null, asset.m_RendererDataList, "A default renderer data should be created when creating a new pipeline.");
@@ -160,5 +161,37 @@ class EditorTests
         Object[] posttestTextures = Resources.FindObjectsOfTypeAll(typeof(Texture));
 
         Assert.AreEqual(pretestTextures.Length, posttestTextures.Length, "A texture leak is detected when using RenderingUtils.ReAllocateIfNeeded.");
+    }
+
+    [TestCase(ShaderPathID.Lit)]
+    [TestCase(ShaderPathID.SimpleLit)]
+    [TestCase(ShaderPathID.Unlit)]
+    [TestCase(ShaderPathID.TerrainLit)]
+    [TestCase(ShaderPathID.ParticlesLit)]
+    [TestCase(ShaderPathID.ParticlesSimpleLit)]
+    [TestCase(ShaderPathID.ParticlesUnlit)]
+    [TestCase(ShaderPathID.BakedLit)]
+    [TestCase(ShaderPathID.SpeedTree7)]
+    [TestCase(ShaderPathID.SpeedTree7Billboard)]
+    [TestCase(ShaderPathID.SpeedTree8)]
+    public void UseDynamicBranchFogKeyword(ShaderPathID shaderPathID)
+    {
+        string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(shaderPathID));
+        var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+        var keywordIdentifiers = new string[] { "FOG_EXP", "FOG_EXP2", "FOG_LINEAR" };
+        var dynamicBranchFogKeyword = UniversalRenderPipeline.useDynamicBranchFogKeyword;
+
+        foreach (var identifier in keywordIdentifiers)
+        {
+            LocalKeyword keyword = new LocalKeyword(shader, identifier);
+            if (dynamicBranchFogKeyword)
+            {
+                Assert.That(keyword.isDynamic, Is.True, $"{identifier} is not dynamic branch keyword.");
+            }
+            else
+            {
+                Assert.That(keyword.isDynamic, Is.False, $"{identifier} is dynamic branch keyword.");
+            }
+        }
     }
 }

@@ -302,12 +302,13 @@ namespace UnityEngine.Rendering
             string name = ""
         )
         {
+            var format = GetFormat(descriptor.graphicsFormat, descriptor.depthStencilFormat);
+
             var result = s_DefaultInstance.Alloc(
                 descriptor.width,
                 descriptor.height,
+                format,
                 descriptor.volumeDepth,
-                (DepthBits)descriptor.depthBufferBits,
-                descriptor.graphicsFormat,
                 filterMode,
                 wrapMode,
                 descriptor.dimension,
@@ -326,6 +327,11 @@ namespace UnityEngine.Rendering
                 name
             );
             return result;
+        }
+
+        static internal GraphicsFormat GetFormat(GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat)
+        {
+            return (depthStencilFormat==GraphicsFormat.None) ? colorFormat : depthStencilFormat;
         }
 
         /// <summary>
@@ -490,7 +496,7 @@ namespace UnityEngine.Rendering
             string name = ""
         )
         {
-            var format = GraphicsFormatUtility.IsDepthStencilFormat(descriptor.depthStencilFormat) ? descriptor.depthStencilFormat : descriptor.graphicsFormat;
+            var format = GetFormat(descriptor.graphicsFormat, descriptor.depthStencilFormat);
 
             return s_DefaultInstance.Alloc(
                 scaleFactor,
@@ -691,7 +697,7 @@ namespace UnityEngine.Rendering
             Assert.IsFalse(descriptor.graphicsFormat != GraphicsFormat.None && descriptor.depthStencilFormat != GraphicsFormat.None,
                 "The RenderTextureDescriptor used to create RTHandle " + name + " contains both graphicsFormat and depthStencilFormat which is not allowed.");
 
-            var format = (descriptor.depthStencilFormat!=GraphicsFormat.None) ? descriptor.depthStencilFormat : descriptor.graphicsFormat;
+            var format = GetFormat( descriptor.graphicsFormat, descriptor.depthStencilFormat);
 
             return s_DefaultInstance.Alloc(
                 scaleFunc,

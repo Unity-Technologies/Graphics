@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
@@ -6,6 +7,21 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [CustomEditor(typeof(SampleWaterSurface))]
+    class SampleWaterSurfaceEditor : VFXSlotContainerEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            var error = SampleWaterSurface.ComputeHDRPConfigurationError();
+            if (!string.IsNullOrEmpty(error.errorID))
+            {
+                EditorGUILayout.HelpBox(error.errorDesc, MessageType.Warning);
+            }
+        }
+    }
+
+
     [VFXHelpURL("Operator-SampleWaterSurface")]
     [VFXInfo(category = "Sampling")]
     class SampleWaterSurface : VFXOperator
@@ -14,11 +30,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static string m_SampleWaterSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/Shaders/SampleWaterSurface.hlsl";
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default)]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.Default), Delayed]
         [Tooltip("Target error value at which the algorithm should stop.")]
         public float error = 0.01f;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.Default)]
-        [Tooltip(" Number of iterations of the search algorithm.")]
+        [Tooltip(" Number of iterations of the search algorithm."), Delayed]
         public int maxIterations = 8;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.Default)]
         [Tooltip("Specifies the nature of the water body that the VFX is sampling.")]
@@ -49,6 +65,30 @@ namespace UnityEditor.Rendering.HighDefinition
             public Vector3 normal;
             [Tooltip("Vector that gives the local current orientation.")]
             public Vector3 currentDirectionWS;
+        }
+
+        public static(string errorID, string errorDesc) ComputeHDRPConfigurationError()
+        {
+            if (HDRenderPipeline.currentAsset == null)
+                return ("HDRenderPipeline_Is_Null", "HDRP RenderPipeline isn't configured.");
+
+            if (!HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportWater)
+                return ("HDRenderPipeline_Doesnt_Support_Water", "Water isn't enabled in HDRP Asset.");
+
+            if (Shader.GetGlobalTexture(HDShaderIDs._WaterDisplacementBuffer) == null)
+                return ("SetGlobalTextures_Hasnt_Been_Called", "Sample Water Surface Operator is expecting a manual call of WaterSurface.SetGlobalTextures.");
+
+            return (string.Empty, string.Empty);
+        }
+
+        internal override void GenerateErrors(VFXErrorReporter report)
+        {
+            base.GenerateErrors(report);
+            var error = ComputeHDRPConfigurationError();
+            if (!string.IsNullOrEmpty(error.errorID))
+            {
+                report.RegisterError(error.errorID, VFXErrorType.Warning, error.errorDesc, this);
+            }
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

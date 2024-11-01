@@ -2,7 +2,6 @@ using System;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
-using UnityEngine.Rendering;
 using Unity.Mathematics;
 using System.Collections.Generic;
 
@@ -181,6 +180,23 @@ namespace UnityEngine.Rendering.Tests
         public RenderPassTestCullInstance(RenderPassTest owner)
         {
             m_Owner = owner;
+        }
+
+        protected internal override bool IsRenderRequestSupported<RequestData>(Camera camera, RequestData data)
+        {
+            return true;
+        }
+
+        protected override void ProcessRenderRequests<RequestData>(ScriptableRenderContext renderContext, Camera camera, RequestData renderRequest)
+        {
+            if (!camera.enabled)
+                return;
+
+            ScriptableCullingParameters cullingParams;
+            camera.TryGetCullingParameters(out cullingParams);
+            renderContext.Cull(ref cullingParams);
+
+            renderContext.Submit();
         }
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
