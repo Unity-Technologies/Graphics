@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Internal resources used by XR rendering
         Material                        occlusionMeshMaterial = null;
+        float                           occlusionMeshScale = 1.0f;
         Material                        mirrorViewMaterial = null;
         MaterialPropertyBlock           mirrorViewMaterialProperty = new MaterialPropertyBlock();
 
@@ -325,7 +326,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (singlePassAllowed && CanUseSinglePass(renderPass))
                 {
-                    var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
+                    var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial, occlusionMeshScale);
 
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
@@ -341,7 +342,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         renderPass.GetRenderParameter(camera, renderParamIndex, out var renderParam);
 
-                        var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial);
+                        var xrPass = XRPass.Create(renderPass, multipassId: framePasses.Count, cullingParams, occlusionMeshMaterial, occlusionMeshScale);
                         xrPass.AddView(renderPass, renderParam);
 
                         AddPassToFrame(xrPass);

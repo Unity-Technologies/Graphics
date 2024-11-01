@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.Universal
         public bool renderTargetIsRenderTexture;
         public ScriptableCullingParameters cullingParameters;
         public XRPass.CustomMirrorView customMirrorView;
+		public float occlusionMeshScale;
     }
 
     internal struct XRViewCreateInfo
@@ -84,7 +85,6 @@ namespace UnityEngine.Rendering.Universal
         internal bool isLateLatchEnabled { get; set; }
         internal bool canMarkLateLatch { get; set; }
         internal bool hasMarkedLateLatch { get; set; }
-
         // Access to view information
         internal Matrix4x4 GetProjMatrix(int viewIndex = 0)  { return views[viewIndex].projMatrix; }
         internal Matrix4x4 GetViewMatrix(int viewIndex = 0)  { return views[viewIndex].viewMatrix; }
@@ -102,6 +102,7 @@ namespace UnityEngine.Rendering.Universal
         Material occlusionMeshMaterial = null;
         Mesh occlusionMeshCombined = null;
         int occlusionMeshCombinedHashCode = 0;
+        float occlusionMeshScale = 1.0f;
 
         internal bool isOcclusionMeshSupported { get => enabled && xrSdkEnabled && occlusionMeshMaterial != null; }
 
@@ -157,6 +158,7 @@ namespace UnityEngine.Rendering.Universal
             passInfo.occlusionMeshMaterial = null;
             passInfo.xrSdkEnabled = false;
             passInfo.copyDepth = false;
+            passInfo.occlusionMeshScale = createInfo.occlusionMeshScale;
 
             return passInfo;
         }
@@ -188,7 +190,7 @@ namespace UnityEngine.Rendering.Universal
             AddViewInternal(new XRView(proj, view, vp, textureArraySlice));
         }
 
-        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial)
+        internal static XRPass Create(XRDisplaySubsystem.XRRenderPass xrRenderPass, int multipassId, ScriptableCullingParameters cullingParameters, Material occlusionMeshMaterial, float occlusionMeshScale)
         {
             XRPass passInfo = GenericPool<XRPass>.Get();
 
@@ -217,6 +219,7 @@ namespace UnityEngine.Rendering.Universal
             passInfo.xrSdkEnabled = true;
             passInfo.copyDepth = xrRenderPass.shouldFillOutDepth;
             passInfo.customMirrorView = null;
+            passInfo.occlusionMeshScale = occlusionMeshScale;
 
             Debug.Assert(passInfo.renderTargetValid, "Invalid render target from XRDisplaySubsystem!");
 
@@ -404,7 +407,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void RenderOcclusionMesh(CommandBuffer cmd)
+        internal void RenderOcclusionMesh(CommandBuffer cmd, bool renderIntoTexture = false)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
@@ -417,12 +420,22 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (singlePassEnabled)
                     {
-                        if (occlusionMeshCombined != null && SystemInfo.supportsRenderTargetArrayIndexFromVertexShader)
+                        // Prefer multiview draw
+                        if (occlusionMeshCombined != null && SystemInfo.supportsMultiview) 
+                        {
+                            // For the multiview code path, keep the multiview state on to propagate geometries to all eye texture slices
+                            cmd.EnableShaderKeyword("XR_OCCLUSION_MESH_COMBINED");
+                            Vector3 scale = new Vector3(occlusionMeshScale, renderIntoTexture? occlusionMeshScale : -occlusionMeshScale, 1.0f);
+                            cmd.DrawMesh(occlusionMeshCombined, Matrix4x4.Scale(scale), occlusionMeshMaterial);
+                            cmd.DisableShaderKeyword("XR_OCCLUSION_MESH_COMBINED");
+                        }
+                        else if (occlusionMeshCombined != null && SystemInfo.supportsRenderTargetArrayIndexFromVertexShader)
                         {
                             StopSinglePass(cmd);
 
                             cmd.EnableShaderKeyword("XR_OCCLUSION_MESH_COMBINED");
-                            cmd.DrawMesh(occlusionMeshCombined, Matrix4x4.identity, occlusionMeshMaterial);
+                            Vector3 scale = new Vector3(occlusionMeshScale, renderIntoTexture ? occlusionMeshScale : -occlusionMeshScale, 1.0f);
+                            cmd.DrawMesh(occlusionMeshCombined, Matrix4x4.Scale(scale), occlusionMeshMaterial);
                             cmd.DisableShaderKeyword("XR_OCCLUSION_MESH_COMBINED");
 
                             StartSinglePass(cmd);
@@ -503,7 +516,7 @@ namespace UnityEngine.Rendering.Universal
         internal void StartSinglePass(CommandBuffer cmd) { }
         internal void StopSinglePass(CommandBuffer cmd) { }
         internal void EndCamera(CommandBuffer cmd, CameraData camera) { }
-        internal void RenderOcclusionMesh(CommandBuffer cmd) { }
+        internal void RenderOcclusionMesh(CommandBuffer cmd, bool yFlip) { }
     }
 }
 #endif
