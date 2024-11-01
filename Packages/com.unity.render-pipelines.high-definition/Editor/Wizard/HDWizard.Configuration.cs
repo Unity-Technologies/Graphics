@@ -161,28 +161,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     IsHdrpAssetGraphicsUsedCorrect, FixHdrpAssetGraphicsUsed),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpGlobalSettingsAssigned,
                     IsHdrpGlobalSettingsUsedCorrect, FixHdrpGlobalSettingsUsed),
-            });
-
-            foreach (var type in EditorGraphicsSettings.GetSupportedRenderPipelineGraphicsSettingsTypesForPipeline<HDRenderPipelineAsset>())
-            {
-                var configStyle = new Style.ConfigStyle($"{type.Name}",
-                    type.IsInstanceOfType(typeof(IRenderPipelineResources))
-                        ? $"Resource - {type.Name} is missing."
-                        : $"Setting - {type.Name} is missing.");
-
-                entryList.Add(
-                    new Entry(QualityScope.Global,
-                        InclusiveMode.HDRP,
-                        configStyle,
-                        () => HDRenderPipelineGlobalSettings.instance != null && HDRenderPipelineGlobalSettings.instance.ContainsSetting(type),
-                        (fromAsync) => HDRenderPipelineGlobalSettings.Ensure(true),
-                        indent: 1
-                        )
-                );
-            }
-
-            entryList.AddRange(new Entry[]
-            {
+                new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpGraphicsSettingsExists,
+                    AreSettingsAndResourcesCorrectInGlobalSettingsAsset,
+                    (fromAsync) => HDRenderPipelineGlobalSettings.Ensure(true), indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileCorrect, FixDefaultVolumeProfile, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpDiffusionProfile, IsDiffusionProfileCorrect, FixDiffusionProfile, indent: 1),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileCorrect, FixDefaultLookDevVolumeProfile, indent: 1),
@@ -194,13 +175,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpLightmapEncoding, IsLightmapCorrect, FixLightmap),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadow, IsShadowCorrect, FixShadow),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpShadowmask, IsShadowmaskCorrect, FixShadowmask),
-                new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpAssetQualityAssigned, IsHdrpAssetQualityUsedCorrect, FixHdrpAssetQualityUsed),
-                new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
                 new Entry(QualityScope.Global, InclusiveMode.HDRP, Style.hdrpMigratableAssets, IsMigratableAssetsCorrect, FixMigratableAssets),
                 new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrXRManagementPackage, IsVRXRManagementPackageInstalledCorrect, FixVRXRManagementPackageInstalled),
                 new Entry(QualityScope.Global, InclusiveMode.XRManagement, Style.vrOculusPlugin, () => false, null),
                 new Entry(QualityScope.Global, InclusiveMode.XRManagement, Style.vrSinglePassInstancing, () => false, null),
-                new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyHelpersPackage, IsVRLegacyHelpersCorrect, FixVRLegacyHelpers)
+                new Entry(QualityScope.Global, InclusiveMode.VR, Style.vrLegacyHelpersPackage, IsVRLegacyHelpersCorrect, FixVRLegacyHelpers),
+                new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpAssetQualityAssigned, IsHdrpAssetQualityUsedCorrect, FixHdrpAssetQualityUsed),
+                new Entry(QualityScope.CurrentQuality, InclusiveMode.HDRP, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
             });
 
             var currentBuildTarget = CalculateSelectedBuildTarget();
@@ -361,28 +342,20 @@ namespace UnityEditor.Rendering.HighDefinition
         }
         QueuedLauncher m_Fixer = new QueuedLauncher();
 
-        void RestartFixAllAfterDomainReload()
+        void RestartFixAllAfterDomainReload(InclusiveMode mode)
         {
             if (m_Fixer.remainingFixes > 0)
+            {
                 HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = true;
+                HDUserSettings.wizardFixAllAfterDomainReloadInclusiveMode = mode;
+            }
         }
 
         void CheckPersistentFixAll()
         {
             if (HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload)
             {
-                switch ((Configuration)HDUserSettings.wizardActiveTab)
-                {
-                    case Configuration.HDRP:
-                        FixHDRPAll();
-                        break;
-                    case Configuration.HDRP_VR:
-                        FixVRAll();
-                        break;
-                    case Configuration.HDRP_DXR:
-                        FixDXRAll();
-                        break;
-                }
+                FixAllEntryInScope(HDUserSettings.wizardFixAllAfterDomainReloadInclusiveMode);
                 m_Fixer.Add(() => HDUserSettings.wizardNeedToRunFixAllAgainAfterDomainReload = false);
             }
         }
@@ -390,12 +363,6 @@ namespace UnityEditor.Rendering.HighDefinition
         #endregion
 
         #region HDRP_FIXES
-
-        bool IsHDRPAllCorrect()
-            => IsAllEntryCorrectInScope(InclusiveMode.HDRP);
-
-        void FixHDRPAll()
-            => FixAllEntryInScope(InclusiveMode.HDRP);
 
         bool IsColorSpaceCorrect()
             => PlayerSettings.colorSpace == ColorSpace.Linear;
@@ -448,9 +415,10 @@ namespace UnityEditor.Rendering.HighDefinition
             QualitySettings.ForEach(() => QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask);
         }
 
+        bool IsNotNullAndAtLastVersion(ScriptableObject so) => so is IMigratableAsset migratableAsset && migratableAsset.IsAtLastVersion();
+
         // To be removed as soon as GraphicsSettings.renderPipelineAsset is removed
-        bool IsHdrpAssetGraphicsUsedCorrect()
-            => GraphicsSettings.defaultRenderPipeline is HDRenderPipelineAsset;
+        bool IsHdrpAssetGraphicsUsedCorrect() => IsNotNullAndAtLastVersion(GraphicsSettings.defaultRenderPipeline);
 
         void FixHdrpAssetGraphicsUsed(bool fromAsync)
         {
@@ -463,13 +431,49 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsHdrpAssetQualityUsedCorrect()
-            => QualitySettings.renderPipeline == null || QualitySettings.renderPipeline is HDRenderPipelineAsset;
+        {
+            if (QualitySettings.renderPipeline == null)
+                return true;
+
+            if (QualitySettings.renderPipeline is not HDRenderPipelineAsset)
+                return false;
+
+            return true;
+        }
+        
 
         void FixHdrpAssetQualityUsed(bool fromAsync)
             => QualitySettings.renderPipeline = null;
 
         bool IsHdrpGlobalSettingsUsedCorrect()
-            => HDRenderPipelineGlobalSettings.instance != null;
+        {
+            var instance = HDRenderPipelineGlobalSettings.instance;
+            if (instance == null)
+                return false;
+
+            if (instance is not IMigratableAsset migratableAsset)
+                return false;
+
+            if (!migratableAsset.IsAtLastVersion())
+                return false;
+
+            return true;
+        }
+
+        bool AreSettingsAndResourcesCorrectInGlobalSettingsAsset()
+        {
+            if (HDRenderPipelineGlobalSettings.instance == null)
+                return false;
+
+            // Look all the available settings and resources for HD, and make sure that they are present in the global settings asset
+            foreach (var type in EditorGraphicsSettings.GetSupportedRenderPipelineGraphicsSettingsTypesForPipeline<HDRenderPipelineAsset>())
+            {
+                if (!HDRenderPipelineGlobalSettings.instance.ContainsSetting(type))
+                    return false;
+            }
+
+            return true;
+        }
 
         void FixHdrpGlobalSettingsUsed(bool fromAsync)
             => HDRenderPipelineGlobalSettings.Ensure();
@@ -617,12 +621,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region HDRP_VR_FIXES
 
-        bool IsVRAllCorrect()
-            => IsAllEntryCorrectInScope(InclusiveMode.VR);
-
-        void FixVRAll()
-            => FixAllEntryInScope(InclusiveMode.VR);
-
         bool vrXRManagementInstalledCheck = false;
         bool IsVRXRManagementPackageInstalledCorrect()
         {
@@ -635,7 +633,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void FixVRXRManagementPackageInstalled(bool fromAsync)
         {
             if (fromAsync)
-                RestartFixAllAfterDomainReload();
+                RestartFixAllAfterDomainReload(InclusiveMode.VR);
             m_PackageInstaller.ProcessAsync(k_XRanagementPackageName, null);
         }
 
@@ -651,19 +649,13 @@ namespace UnityEditor.Rendering.HighDefinition
         void FixVRLegacyHelpers(bool fromAsync)
         {
             if (fromAsync)
-                RestartFixAllAfterDomainReload();
+                RestartFixAllAfterDomainReload(InclusiveMode.VR);
             m_PackageInstaller.ProcessAsync(k_LegacyInputHelpersPackageName, null);
         }
 
         #endregion
 
         #region HDRP_DXR_FIXES
-
-        bool IsDXRAllCorrect()
-            => IsAllEntryCorrectInScope(InclusiveMode.DXR);
-
-        void FixDXRAll()
-            => FixAllEntryInScope(InclusiveMode.DXR);
 
         bool IsDXRAutoGraphicsAPICorrect_WindowsOnly()
             => !PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.StandaloneWindows64) && !PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.StandaloneWindows);

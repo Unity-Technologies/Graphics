@@ -204,6 +204,12 @@ EditorBuildSettings:
     path: Assets/Scenes/057_2D_Lights_Blending.unity
     guid: f6eb3eed1eb0a004797f00a2a4435f32
   - enabled: 1
+    path: Assets/Scenes/058_2D_Lights_Shadow_Blending.unity
+    guid: 52bd9e05675efbe468bd5d25ac5b1402
+  - enabled: 1
+    path: Assets/Scenes/059_2D_Volumetric_Shadergraph.unity
+    guid: 9451115b4ef9efa459de7112b5ac7d9e
+  - enabled: 1
     path: Assets/Scenes/060_2D_Renderer_Feature.unity
     guid: 685e926d45059124dbe53d3d229ea876
   - enabled: 1

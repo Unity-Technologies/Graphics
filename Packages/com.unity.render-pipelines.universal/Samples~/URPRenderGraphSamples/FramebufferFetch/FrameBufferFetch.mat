@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: FrameBufferFetch
-  m_Shader: {fileID: 4800000, guid: 1804fdaaeabb0344d82400027f71e623, type: 3}
+  m_Shader: {fileID: 4800000, guid: 7d8f4c6028fc4cf409b7fb064464fc8f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []

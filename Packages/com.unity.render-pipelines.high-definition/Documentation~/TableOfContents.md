@@ -86,7 +86,7 @@
       * [Choose how to change lighting at runtime](probevolumes-understand-changing-lighting-at-runtime.md)    
       * [Bake different lighting setups with Lighting Scenarios](probevolumes-bakedifferentlightingsetups.md)    
       * [Update light from the sky at runtime with sky occlusion](probevolumes-skyocclusion.md)    
-    * [Streaming](probevolumes-streaming.md)
+    * [Optimize loading Adaptive Probe Volume data](probevolumes-streaming.md)
     * [Fix issues with Adaptive Probe Volumes](probevolumes-fixissues.md)
     * [Adaptive Probe Volume Inspector window reference](probevolumes-inspector-reference.md)
     * [Adaptive Probe Volumes panel reference](probevolumes-lighting-panel-reference.md)

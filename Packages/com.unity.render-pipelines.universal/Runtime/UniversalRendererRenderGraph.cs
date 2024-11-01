@@ -498,30 +498,9 @@ namespace UnityEngine.Rendering.Universal
             // The amount of texture handle wrappers and their subtleties is probably something to be investigated.
             if (isBuiltInTexture)
             {
-                bool msaaSamplesChangedThisFrame = false;
-                int oldSamples = cameraData.cameraTargetDescriptor.msaaSamples;
-#if !UNITY_EDITOR
-                // for safety do this only for the NRP path, even though works also on non NRP, but would need extensive testing
-                if (m_CreateColorAttachment && renderGraph.nativeRenderPassesEnabled && Screen.msaaSamples > 1)
-                {
-                    oldSamples = Mathf.Max(Screen.msaaSamples, oldSamples);
-                    msaaSamplesChangedThisFrame = true;
-                    Screen.SetMSAASamples(1);
-                }
-#endif
-                int numSamples = Mathf.Max(Screen.msaaSamples, 1);
-
-                // Handle edge cases regarding numSamples setup
-                // On OSX & IOS player, the Screen API MSAA samples change request is only applied in the following frame,
-                // as a workaround we keep the old MSAA sample count for the previous frame
-                // this workaround can be removed once the Screen API issue (UUM-42825) is fixed
-                // UPDATE: UUM-42825 is fixed already, but by supplementing relevant documentation. Thus, this behaviour must be maintained until next plan comes
-                // The editor always allocates the system rendertarget with a single msaa sample
-                // See: ConfigureTargetTexture in PlayModeView.cs
-                if (msaaSamplesChangedThisFrame && (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.IPhonePlayer))
-                    numSamples = oldSamples;
-                else if (Application.isEditor)
-                    numSamples = 1;
+                // Backbuffer is the final render target, we obtain its number of MSAA samples through Screen API
+                // in some cases we disable multisampling for optimization purpose
+                int numSamples = AdjustAndGetScreenMSAASamples(renderGraph, m_CreateColorAttachment);
 
                 //BuiltinRenderTextureType.CameraTarget so this is either system render target or camera.targetTexture if non null
                 //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
@@ -586,7 +565,7 @@ namespace UnityEngine.Rendering.Universal
                 var cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
                 cameraTargetDescriptor.useMipMap = false;
                 cameraTargetDescriptor.autoGenerateMips = false;
-                cameraTargetDescriptor.depthBufferBits = (int)DepthBits.None;
+                cameraTargetDescriptor.depthStencilFormat = GraphicsFormat.None;
 
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraColorHandles[0], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: _CameraTargetAttachmentAName);
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraColorHandles[1], cameraTargetDescriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: _CameraTargetAttachmentBName);
@@ -740,7 +719,7 @@ namespace UnityEngine.Rendering.Universal
                             // Fall back to R32_Float if depth copy is disabled.
                             var tempColorDepthDesc = cameraData.cameraTargetDescriptor;
                             tempColorDepthDesc.graphicsFormat = GraphicsFormat.R32_SFloat;
-                            tempColorDepthDesc.depthBufferBits = 0;
+                            tempColorDepthDesc.depthStencilFormat = GraphicsFormat.None;
                             depthHistory.Update(ref tempColorDepthDesc, xrMultipassEnabled);
                         }
                         else
@@ -838,10 +817,31 @@ namespace UnityEngine.Rendering.Universal
             m_DepthNormalPrepass.OnCameraCleanup(cmd);
         }
 
+        private bool m_IssuedGPUOcclusionUnsupportedMsg = false;
+
         /// <summary>
         /// Used to determine if this renderer supports the use of GPU occlusion culling.
         /// </summary>
-        public override bool supportsGPUOcclusion => m_RenderingMode != RenderingMode.Deferred;
+        public override bool supportsGPUOcclusion
+        {
+            get
+            {
+                // UUM-82677: GRD GPU Occlusion Culling on Vulkan breaks rendering on some mobile GPUs
+                //
+                // We currently disable gpu occlusion culling when running on Qualcomm GPUs due to suspected driver issues.
+                // Once the issue is resolved, this logic should be removed.
+                const int kQualcommVendorId = 0x5143;
+                bool isGpuSupported = SystemInfo.graphicsDeviceVendorID != kQualcommVendorId;
+
+                if (!isGpuSupported && !m_IssuedGPUOcclusionUnsupportedMsg)
+                {
+                    Debug.LogWarning("The GPU Occlusion Culling feature is currently unavailable on this device due to suspected driver issues.");
+                    m_IssuedGPUOcclusionUnsupportedMsg = true;
+                }
+
+                return (m_RenderingMode != RenderingMode.Deferred) && isGpuSupported;
+            }
+        }
 
         private static bool m_CreateColorAttachment;
         private static bool m_CreateDepthAttachment;
@@ -1454,7 +1454,6 @@ namespace UnityEngine.Rendering.Universal
             bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing;
             bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget);
             bool xrDepthTargetResolved = resourceData.activeDepthID == UniversalResourceData.ActiveID.BackBuffer;
-            
 
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
@@ -1724,14 +1723,15 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             var colorDesc = descriptor;
-            colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat; colorDesc.depthBufferBits = (int)DepthBits.None;
             colorDesc.msaaSamples = 1;  // Disable MSAA, consider a pixel resolve for half left velocity and half right velocity --> no velocity, which is untrue.
+            colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat;
+            colorDesc.depthStencilFormat = GraphicsFormat.None;
             resourceData.motionVectorColor = CreateRenderGraphTexture(renderGraph, colorDesc, MotionVectorRenderPass.k_MotionVectorTextureName, true);
 
             var depthDescriptor = descriptor;
+            depthDescriptor.msaaSamples = 1;
             depthDescriptor.graphicsFormat = GraphicsFormat.None;
-            //TODO RENDERGRAPH: in some cornercases (f.e. rendering to targetTexture) this is needed. maybe this will be unnece
-            depthDescriptor.depthBufferBits = depthDescriptor.depthBufferBits != 0 ? depthDescriptor.depthBufferBits : 32; depthDescriptor.msaaSamples = 1;
+            depthDescriptor.depthStencilFormat = cameraDepthAttachmentFormat;
             resourceData.motionVectorDepth = CreateRenderGraphTexture(renderGraph, depthDescriptor, MotionVectorRenderPass.k_MotionVectorDepthTextureName, true);
         }
 
@@ -1740,7 +1740,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             var normalDescriptor = descriptor;
-            normalDescriptor.depthBufferBits = 0;
+            normalDescriptor.depthStencilFormat = GraphicsFormat.None;
             normalDescriptor.msaaSamples = 1; // Never use MSAA for the normal texture!
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
@@ -1763,7 +1763,7 @@ namespace UnityEngine.Rendering.Universal
                     m_RenderingLayersTextureName = DeferredLights.k_GBufferNames[m_DeferredLights.GBufferRenderingLayers];
 
                 RenderTextureDescriptor renderingLayersDescriptor = descriptor;
-                renderingLayersDescriptor.depthBufferBits = 0;
+                renderingLayersDescriptor.depthStencilFormat = GraphicsFormat.None;
                 if (!m_RenderingLayerProvidesRenderObjectPass)
                     renderingLayersDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
 
@@ -1783,7 +1783,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
-            var desc = PostProcessPass.GetCompatibleDescriptor(descriptor, descriptor.width, descriptor.height, descriptor.graphicsFormat, DepthBits.None);
+            var desc = PostProcessPass.GetCompatibleDescriptor(descriptor, descriptor.width, descriptor.height, descriptor.graphicsFormat, GraphicsFormat.None);
             resourceData.afterPostProcessColor = CreateRenderGraphTexture(renderGraph, desc, "_AfterPostProcessTexture", true);
         }
 

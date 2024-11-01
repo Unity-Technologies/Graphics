@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 0}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -391,6 +391,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f088dd7e06b462f44a660d1599df72b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  getActiveSettings: 0
   shadowSettings:
     mainLightShadowmapResolution: 8192
     additionalLightShadowmapResolution: 8192
@@ -399,6 +400,7 @@ MonoBehaviour:
     cascade3Split: {x: 0, y: 0}
     cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
     cascadeBorder: 0.1
+    shadowDistance: 56
 --- !u!114 &318619274
 MonoBehaviour:
   m_ObjectHideFlags: 0

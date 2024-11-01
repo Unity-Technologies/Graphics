@@ -813,8 +813,8 @@
     "m_ObjectId": "1f49ac7c90ea4d5bb892b422146984d8",
     "m_Title": "Diffuse Ambient",
     "m_Position": {
-        "x": -397.0001525878906,
-        "y": 265.0
+        "x": -397.0,
+        "y": 253.49996948242188
     }
 }
 
@@ -1416,8 +1416,8 @@
     "m_ObjectId": "56b0fc0ff4cc4dea89c4c33f6fdab97d",
     "m_Title": "Specular Ambient",
     "m_Position": {
-        "x": -845.0,
-        "y": 767.0000610351563
+        "x": -844.9999389648438,
+        "y": 767.4999389648438
     }
 }
 
@@ -1711,7 +1711,7 @@
     "m_DefaultValue": {
         "x": 0.0,
         "y": 0.0,
-        "z": 0.0
+        "z": 1.0
     },
     "m_Labels": []
 }

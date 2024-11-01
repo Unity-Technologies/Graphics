@@ -49,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                    || pass.lightMode == HDShaderPassNames.s_GBufferStr
                    || pass.lightMode == HDShaderPassNames.s_MetaStr
                    || pass.lightMode == HDShaderPassNames.s_MotionVectorsStr
+                   || pass.lightMode == HDShaderPassNames.s_DistortionVectorsStr
                    || pass.lightMode == HDShaderPassNames.s_RayTracingVisibilityStr
                    || pass.lightMode == HDShaderPassNames.s_RayTracingIndirectStr
                    || pass.lightMode == HDShaderPassNames.s_RayTracingForwardStr

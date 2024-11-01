@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 debugView = renderGraph.CreateTexture(new TextureDesc(m_AfterDynamicResUpscaleRes.x, m_AfterDynamicResUpscaleRes.y, false, true)
                 {
                     name = "STP Debug View",
-                    colorFormat = GraphicsFormat.R8G8B8A8_UNorm,
+                    format = GraphicsFormat.R8G8B8A8_UNorm,
                     clearBuffer = true,
                     enableRandomWrite = true
                 });

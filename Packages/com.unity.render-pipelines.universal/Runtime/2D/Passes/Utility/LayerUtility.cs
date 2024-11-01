@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
         private unsafe fixed bool renderTargetUsed[4];
 
         public List<Light2D> lights;
-        public List<Light2D> shadowLights;
+        public List<int> shadowIndices;
         public List<ShadowCasterGroup2D> shadowCasters;
 
         internal int[] activeBlendStylesIndices;
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             lights = new List<Light2D>();
-            shadowLights = new List<Light2D>();
+            shadowIndices = new List<int>();
             shadowCasters = new List<ShadowCasterGroup2D>();
         }
 

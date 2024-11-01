@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
 
             TextureDesc td = new TextureDesc(Vector2.one, true, true);
-            td.colorFormat = GraphicsFormat.R32G32B32A32_SFloat;
+            td.format = GraphicsFormat.R32G32B32A32_SFloat;
             td.useMipMap = false;
             td.autoGenerateMips = false;
 
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Textures used to importance sample the sky (aka environment sampling)
             td.name = "PathTracingSkySamplingBuffer";
-            td.colorFormat = GraphicsFormat.R32_SFloat;
+            td.format = GraphicsFormat.R32_SFloat;
             td.dimension = TextureDimension.Tex2D;
             td.enableRandomWrite = true;
             td.useDynamicScale = false;

@@ -192,6 +192,33 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_NodeSettingsContainer.MarkDirtyRepaint();
         }
 
+        public void RefreshInspectables()
+        {
+            // Set callbacks to newly created Inspectables
+            VisualElement temp = new VisualElement();
+            var inspectables = new List<IInspectable>();
+            FindChildrenRecursive(ParentView, inspectables);
+            foreach (IInspectable inspectable in inspectables)
+            {
+                DrawInspectable(temp, inspectable, null);
+            }
+
+            // And redraw the inspector
+            doesInspectorNeedUpdate = true;
+            Update();
+        }
+
+        private static void FindChildrenRecursive<T>(VisualElement element, List<T> results)
+        {
+            foreach (var child in element.Children())
+            {
+                if (child is T tChild)
+                    results.Add(tChild);
+
+                FindChildrenRecursive(child, results);
+            }
+        }
+
         void DrawInspectable(
             VisualElement outputVisualElement,
             IInspectable inspectable,

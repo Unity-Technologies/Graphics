@@ -47,6 +47,10 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.vertexSH = input.sh;
     #endif
 
+    #if defined(USE_APV_PROBE_OCCLUSION)
+    inputData.probeOcclusion = input.probeOcclusion;
+    #endif
+
     inputData.positionCS = input.positionCS;
     #endif
 }

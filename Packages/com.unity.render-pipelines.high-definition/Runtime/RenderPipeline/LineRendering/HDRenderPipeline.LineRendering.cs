@@ -18,6 +18,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Misc.
         private Material m_LineCompositePass;
+        private int m_LineCompositePassAllIndex;
+        private int m_LineCompositePassColorIndex;
+        private int m_LineCompositePassDepthMovecIndex;
         private static bool s_SupportLineRendering;
 
         void InitializeLineRendering()
@@ -28,6 +31,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             m_LineCompositePass = CoreUtils.CreateEngineMaterial(runtimeShaders.lineCompositePS);
+            m_LineCompositePassAllIndex = m_LineCompositePass.FindPass("CompositeAll");
+            m_LineCompositePassColorIndex = m_LineCompositePass.FindPass("CompositeColorOnly");
+            m_LineCompositePassDepthMovecIndex = m_LineCompositePass.FindPass("CompositeDepthMovecOnly");
 
             m_PrefixSum = new GPUPrefixSum(new GPUPrefixSum.SystemResources
             {
@@ -58,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 TextureDesc td = new TextureDesc(Vector2.one, true, true);
                 {
-                    td.colorFormat = format;
+                    td.format = format;
                     td.useMipMap = false;
                     td.clearBuffer = true;
                     td.clearColor = clearValue;
@@ -110,6 +116,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle lineTargetColor;
             public TextureHandle lineTargetDepth;
             public TextureHandle lineTargetMV;
+
+            public float writeDepthAndMovecAlphaTreshold;
         }
 
         internal static bool LineRenderingIsEnabled(HDCamera hdCamera, out HighQualityLineRenderingVolumeComponent settings)
@@ -238,13 +246,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lineTargetColor = builder.ReadTexture(m_LineColorBuffer);
                 passData.lineTargetDepth = builder.ReadTexture(m_LineDepthBuffer);
                 passData.lineTargetMV    = builder.ReadTexture(m_LineMVBuffer);
+                passData.writeDepthAndMovecAlphaTreshold = settings.writeDepthAlphaThreshold.value;
 
                 builder.SetRenderFunc((LineRendererCompositeData passData, RenderGraphContext context) =>
                 {
                     passData.compositePass.SetTexture(HDShaderIDs._LineColorTexture,  passData.lineTargetColor);
                     passData.compositePass.SetTexture(HDShaderIDs._LineDepthTexture,  passData.lineTargetDepth);
                     passData.compositePass.SetTexture(HDShaderIDs._LineMotionTexture, passData.lineTargetMV);
-                    HDUtils.DrawFullScreen(context.cmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetColor, passData.mainTargetMV }, passData.mainTargetDepth);
+                    passData.compositePass.SetFloat(HDShaderIDs._LineAlphaDepthWriteThreshold, passData.writeDepthAndMovecAlphaTreshold );
+                    if (passData.writeDepthAndMovecAlphaTreshold > 0)
+                    {
+                        HDUtils.DrawFullScreen(context.cmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetColor}, passData.mainTargetDepth, null, m_LineCompositePassColorIndex); //color composite
+                        HDUtils.DrawFullScreen(context.cmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetMV }, passData.mainTargetDepth, null, m_LineCompositePassDepthMovecIndex); //depth & movec composite
+                    }
+                    else
+                    {
+                        HDUtils.DrawFullScreen(context.cmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetColor, passData.mainTargetMV }, passData.mainTargetDepth, null, m_LineCompositePassAllIndex); //composite all
+                    }
+
                 });
             }
         }

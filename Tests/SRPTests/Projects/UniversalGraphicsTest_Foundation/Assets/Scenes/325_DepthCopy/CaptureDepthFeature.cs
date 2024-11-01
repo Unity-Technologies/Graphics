@@ -41,8 +41,8 @@ public class CaptureDepthFeature : ScriptableRendererFeature
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var desc = renderingData.cameraData.cameraTargetDescriptor;
-            desc.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R32_SFloat;
-            desc.depthBufferBits = 0;
+            desc.graphicsFormat = GraphicsFormat.R32_SFloat;
+            desc.depthStencilFormat = GraphicsFormat.None;
             desc.msaaSamples = 1;
 
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_CapturedDepthRT, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_CapturedDepthTexture");

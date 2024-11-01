@@ -307,11 +307,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Temporary textures
                 passData.accTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8_UInt, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false, name = "ReBlur Acc Texture" });
+                { format = GraphicsFormat.R8_UInt, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false, name = "ReBlur Acc Texture" });
                 passData.mipTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false, name = "ReBlur Color Pyramid" });
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false, name = "ReBlur Color Pyramid" });
                 passData.tmpTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false, name = "ReBlur Color Pyramid Bis" });
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false, name = "ReBlur Color Pyramid Bis" });
 
                 // Output resources
                 passData.mainHistory = builder.ReadWriteTexture(renderGraph.ImportTexture(mainHistory));

@@ -159,14 +159,11 @@ EditorBuildSettings:
     path: Assets/Scenes/056_SoftShadowQuality_Custom_8K_4Cascades.unity
     guid: db7018b6563a7684fa69876b4864c270
   - enabled: 1
-    path: Assets/Scenes/057_ShadowsNearPlane_SpotLight.unity
-    guid: 9d08dfe3c5f589d458eddf27b7141993
+    path: Assets/Scenes/057_ShadowsNearPlane_MultipleLights.unity
+    guid: d84b011a8ad60e84a8dcd74c93b57ca4
   - enabled: 1
-    path: Assets/Scenes/057_ShadowsNearPlane_PointLight.unity
-    guid: f28f15ee50dd41e4c90ae7fba33245e6
-  - enabled: 1
-    path: Assets/Scenes/057_ShadowsNearPlane_DirectionalLight.unity
-    guid: e03ea58f281c1774ba3aa9a93f77114c
+    path: Assets/Scenes/057_ShadowsNearPlane_MultipleLights_ShaderGraph.unity
+    guid: 65088e6080ba6954ca8ed4e17ae27c4f
   - enabled: 1
     path: Assets/Scenes/058_LightLeak_PointLight.unity
     guid: 99c9720ab356a0642a771bea13969a05
@@ -425,6 +422,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/220_ScreenSpaceShadows.unity
     guid: 0ed880bcaac387e4eaef5f365a545090
+  - enabled: 1
+    path: Assets/Scenes/220_ScreenSpaceShadowsDecals.unity
+    guid: 88e1d0464058159409e99813b80b13cd
   - enabled: 1
     path: Assets/Scenes/225_DepthPriming.unity
     guid: 06d3d04c77b97ba40969b415bc9a25dd

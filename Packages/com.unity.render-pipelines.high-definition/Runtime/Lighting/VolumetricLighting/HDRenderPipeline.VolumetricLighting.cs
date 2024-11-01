@@ -575,11 +575,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZ8xBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask 8x" });
+                    { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask 8x" });
                     passData.maxZBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask" });
+                    { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask" });
                     passData.dilatedMaxZBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one / 16.0f, true, true)
-                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Dilated MaxZ mask" }));
+                    { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Dilated MaxZ mask" }));
 
                     builder.SetRenderFunc(
                         (GenerateMaxZMaskPassData data, RenderGraphContext ctx) =>
@@ -835,14 +835,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static TextureDesc GetOpticalFogTransmittanceDesc(HDCamera hdCamera)
         {
-            var format = GraphicsFormat.R16_SFloat;
+            var colorFormat = GraphicsFormat.R16_SFloat;
             if (LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera) && Fog.IsMultipleScatteringEnabled(hdCamera, out _))
-                format = GraphicsFormat.R16G16_SFloat;
+                colorFormat = GraphicsFormat.R16G16_SFloat;
 
             return new TextureDesc(Vector2.one, true, true)
             {
                 name = "Optical Fog Transmittance",
-                colorFormat = format,
+                format = colorFormat,
                 clearBuffer = true,
                 clearColor = Color.white,
                 enableRandomWrite = true,
@@ -1077,7 +1077,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.volumetricCB = m_ShaderVariablesVolumetricCB;
 
                     passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                    { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" }));
+                    { slices = s_CurrentVolumetricBufferSize.z, format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" }));
 
                     passData.volumetricAmbientProbeBuffer = m_SkyManager.GetVolumetricAmbientProbeBuffer(hdCamera);
 
@@ -1149,7 +1149,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     debugOverdrawTexture = renderGraph.CreateTexture(
                         new TextureDesc(currParams.viewportSize.x, currParams.viewportSize.y, true, true)
                         {
-                            name = "Volumetric Fog Overdraw", colorFormat = GetColorBufferFormat(),
+                            name = "Volumetric Fog Overdraw", format = GetColorBufferFormat(),
                             clearBuffer = true, clearColor = Color.black
                         });
 
@@ -1370,12 +1370,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
                     passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                    { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLighting" }));
+                    { slices = s_CurrentVolumetricBufferSize.z, format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLighting" }));
 
                     if (passData.filterVolume && passData.filteringNeedsExtraBuffer)
                     {
                         passData.filteringOutputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                        { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLightingFiltered" }));
+                        { slices = s_CurrentVolumetricBufferSize.z, format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLightingFiltered" }));
 
                         CoreUtils.SetKeyword(passData.volumetricLightingFilteringCS, "NEED_SEPARATE_OUTPUT", passData.filteringNeedsExtraBuffer);
                     }

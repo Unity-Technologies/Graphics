@@ -227,8 +227,8 @@ namespace UnityEngine.Rendering
             m_AtlasTexture = RTHandles.Alloc(
                 width: m_Width,
                 height: m_Height,
+                format: m_Format,
                 filterMode: filterMode,
-                colorFormat: m_Format,
                 wrapMode: TextureWrapMode.Clamp,
                 useMipMap: useMipMap,
                 autoGenerateMips: false,

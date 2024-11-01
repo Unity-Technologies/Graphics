@@ -384,6 +384,53 @@ float3 Transform(float3 a, float3 b)
         }
 
         [UnityTest]
+        public IEnumerator Check_CustomHLSL_Operator_Expression_Equality()
+        {
+            // Arrange
+            CustomHLSLBlockTest.CreateShaderFile(defaultHlslCode, out var shaderIncludePath);
+            shaderIncludePath = Path.GetFileName(shaderIncludePath);
+
+            var hlslCode = string.Format("#include \"{0}\"", shaderIncludePath);
+            hlslCode += @"
+float3 Transform(float3 a, float3 b)
+{
+    return a + b;
+}";
+            var hlslOperator_A = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator_A.SetSettingValue("m_HLSLCode", hlslCode);
+
+            var hlslOperator_B = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator_B.SetSettingValue("m_HLSLCode", hlslCode);
+
+            MakeSimpleGraphWithCustomHLSL(hlslOperator_A, out var view, out var graph);
+            graph.AddChild(hlslOperator_B);
+
+            //Insure parent expression are the same
+            var inlineVector3 = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            inlineVector3.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
+            graph.AddChild(inlineVector3);
+            Assert.IsTrue(hlslOperator_A.inputSlots[0].Link(inlineVector3.outputSlots[0]));
+            Assert.IsTrue(hlslOperator_A.inputSlots[1].Link(inlineVector3.outputSlots[0]));
+            Assert.IsTrue(hlslOperator_B.inputSlots[0].Link(inlineVector3.outputSlots[0]));
+            Assert.IsTrue(hlslOperator_B.inputSlots[1].Link(inlineVector3.outputSlots[0]));
+
+            yield return null;
+
+            // Assert, different container, same expression
+            var outputSlot_A = hlslOperator_A.outputSlots[0];
+            var outputSlot_B = hlslOperator_B.outputSlots[0];
+            Assert.AreNotEqual(outputSlot_A, outputSlot_B);
+
+            var expression_A = outputSlot_A.GetExpression();
+            var expression_B = outputSlot_B.GetExpression();
+            Assert.IsInstanceOf<VFXExpressionHLSL>(expression_A);
+            Assert.IsInstanceOf<VFXExpressionHLSL>(expression_B);
+            Assert.AreEqual(expression_A.GetHashCode(), expression_B.GetHashCode());
+            Assert.IsTrue(expression_A.Equals(expression_B));
+            Assert.IsTrue(expression_B.Equals(expression_A));
+        }
+
+        [UnityTest]
         public IEnumerator Check_CustomHLSL_Operator_Twice_Same_Function_Name()
         {
             // Arrange

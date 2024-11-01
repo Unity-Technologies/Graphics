@@ -28,7 +28,7 @@
 Multiple VFX are used in this scene: 
 • For plants, a simple animation using vertex color from a mesh animates the branches separately with sin waves. <i>Open the <link="VFXG_FakeBoids_Fish.vfx">VFX Graph</link> for more information.</i>
 • The school of fish is attracted by a sphere moving in the scene and constrained by box and sphere to stay underwater. <i>Open the <link="VFXG_Alga.vfx">VFX Graph</link> for more information.</i>
-• The bubbles use the Sample Water Surface node in the VFX graph to prevent the bubble to appear above the water surface. <i>Open the <link="VFX_BubblesStream.vfx">VFX Graph</link> for more information.</i>
+• The bubbles use the Sample Water Surface node in the VFX graph to prevent the bubble to appear above the water surface. To bind the water surface to the VFX Graph, a <link="WaterSurfaceBindVFX.cs">script</link> is used one the <link="VFX">VFX parent object</link> to bind one water surface globally. <i>Open the <link="VFX_BubblesStream.vfx">VFX Graph</link> for more information.</i>
 • Lastly, there are lots of floating particles in the water to simulate dirtiness. <i>Open the <link="VFXG_Grain.vfx">VFX Graph</link> for more information.</i>
 
 <h1>Volumetric Fog</h1>

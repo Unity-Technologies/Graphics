@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
-                desc.depthBufferBits = 0;
+                desc.depthStencilFormat = GraphicsFormat.None;
                 desc.msaaSamples = 1;
                 // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
                 // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
                 var desc = cameraData.cameraTargetDescriptor;
-                desc.depthBufferBits = 0;
+                desc.depthStencilFormat = GraphicsFormat.None;
                 desc.msaaSamples = 1;
                 // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
                 // For now, we keep checking for `Blend` until the performance hit of doing the correct checks is evaluated

@@ -20,6 +20,7 @@ ${VFXBegin:VFXPassForwardAdditionalPragma}
 #pragma multi_compile _ DEBUG_DISPLAY
 #pragma multi_compile_fog
 #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging3D.hlsl"
 ${VFXEnd}
 
 ${VFXBegin:VFXPassForwardLitAdditionalPragma}
@@ -168,4 +169,21 @@ void frag(ps_input i
         #error VFX_PASSDEPTH undefined
     #endif
 }
+${VFXEnd}
+
+${VFXBegin:VFXUnlitDebugDisplay}
+#if defined(DEBUG_DISPLAY)
+    InputData inputData;
+    SurfaceData surfaceData;
+    ZERO_INITIALIZE(SurfaceData, surfaceData);
+    ZERO_INITIALIZE(InputData, inputData);
+    surfaceData.albedo = o.color.rgb;
+    surfaceData.alpha = o.color.a;
+
+    half4 debugColor;
+    if (CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
+    {
+        o.color = debugColor;
+    }
+#endif
 ${VFXEnd}

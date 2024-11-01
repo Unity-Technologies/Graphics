@@ -9,6 +9,7 @@ using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 using Unity.Collections;
 using Unity.Profiling;
 using Unity.Mathematics;
+using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
 using System.Linq.Expressions;
@@ -302,20 +303,30 @@ namespace UnityEngine.Rendering
                 {
                     probePositions.Dispose();
                     probePositions = default;
+                }
+
+                if (touchupVolumeInteraction.IsCreated)
+                {
                     touchupVolumeInteraction.Dispose();
                     touchupVolumeInteraction = default;
+                }
+
+                if (validity.IsCreated)
+                {
                     validity.Dispose();
                     validity = default;
-                    if (layer.IsCreated)
-                    {
-                        layer.Dispose();
-                        layer = default;
-                    }
-                    if (offsetVectors.IsCreated)
-                    {
-                        offsetVectors.Dispose();
-                        offsetVectors = default;
-                    }
+                }
+
+                if (layer.IsCreated)
+                {
+                    layer.Dispose();
+                    layer = default;
+                }
+
+                if (offsetVectors.IsCreated)
+                {
+                    offsetVectors.Dispose();
+                    offsetVectors = default;
                 }
             }
         }
@@ -1757,6 +1768,28 @@ namespace UnityEngine.Rendering
             (output as Texture3D).Apply();
         }
 
+        void UpdateValidityTextureWithoutMask(Texture output, NativeArray<byte> input)
+        {
+            // On some platforms, single channel unorm format isn't supported, so validity uses 4 channel unorm format.
+            // Then we can't directly copy the data, but need to account for the 3 unused channels.
+            uint numComponents = GraphicsFormatUtility.GetComponentCount(output.graphicsFormat);
+            if (numComponents == 1)
+            {
+                UpdateDataLocationTexture(output, input);
+            }
+            else
+            {
+                Debug.Assert(output.graphicsFormat == GraphicsFormat.R8G8B8A8_UNorm);
+                var outputNativeArray = (output as Texture3D).GetPixelData<(byte, byte, byte, byte)>(0);
+                Debug.Assert(outputNativeArray.Length >= input.Length);
+                for (int i = 0; i < input.Length; i++)
+                {
+                    outputNativeArray[i] = (input[i], input[i], input[i], input[i]);
+                }
+                (output as Texture3D).Apply();
+            }
+        }
+
         void UpdatePool(List<Chunk> chunkList, CellData.PerScenarioData data, NativeArray<byte> validityNeighMaskData,
             NativeArray<ushort> skyOcclusionL0L1Data, NativeArray<byte> skyShadingDirectionIndices, int chunkIndex, int poolIndex)
         {
@@ -1784,7 +1817,7 @@ namespace UnityEngine.Rendering
                 if (validityNeighMaskData.Length > 0)
                 {
                     if (m_CurrentBakingSet.bakedMaskCount == 1)
-                        UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
+                        UpdateValidityTextureWithoutMask(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
                     else
                         UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.Reinterpret<uint>(1).GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
                 }
@@ -1821,7 +1854,7 @@ namespace UnityEngine.Rendering
             var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInBrickCount() * ProbeBrickPool.kBrickProbeCountTotal;
 
             if (m_CurrentBakingSet.bakedMaskCount == 1)
-                UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
+                UpdateValidityTextureWithoutMask(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
             else
                 UpdateDataLocationTexture(m_TemporaryDataLocation.TexValidity, validityNeighMaskData.Reinterpret<uint>(1).GetSubArray(chunkIndex * chunkSizeInProbes, chunkSizeInProbes));
 

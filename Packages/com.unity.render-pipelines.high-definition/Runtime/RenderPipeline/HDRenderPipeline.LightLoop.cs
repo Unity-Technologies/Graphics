@@ -706,7 +706,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = msaaSamples != MSAASamples.None;
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
-                colorFormat = GraphicsFormat.B10G11R11_UFloatPack32,
+                format = GraphicsFormat.B10G11R11_UFloatPack32,
                 enableRandomWrite = !msaa,
                 bindTextureMS = msaa,
                 msaaSamples = msaaSamples,
@@ -895,7 +895,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO RENDERGRAPH: Check how to avoid this kind of pattern.
                     // Unfortunately, the low level needs this texture to always be bound with UAV enabled, so in order to avoid effectively creating the full resolution texture here,
                     // we need to create a small dummy texture.
-                    passData.sssDiffuseLightingBuffer = builder.CreateTransientTexture(new TextureDesc(1, 1, true, true) { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true });
+                    passData.sssDiffuseLightingBuffer = builder.CreateTransientTexture(new TextureDesc(1, 1, true, true) { format = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true });
                 }
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthPyramidTexture);
@@ -1190,7 +1190,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = !useAsync, clearColor = Color.clear, enableRandomWrite = true, name = transparent ? "SSR_Hit_Point_Texture_Trans" : "SSR_Hit_Point_Texture" });
+                    { format = GraphicsFormat.R16G16_UNorm, clearBuffer = !useAsync, clearColor = Color.clear, enableRandomWrite = true, name = transparent ? "SSR_Hit_Point_Texture_Trans" : "SSR_Hit_Point_Texture" });
 
                     if (usePBRAlgo)
                     {
@@ -1200,7 +1200,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         passData.ssrAccum = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = !useAsync, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }));
+                        { format = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = !useAsync, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" }));
                     }
 
                     builder.SetRenderFunc(
@@ -1464,7 +1464,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lightList = builder.ReadBuffer(lightLists.lightList);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.contactShadowsTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, clearBuffer = clearBuffer, clearColor = Color.clear, name = "ContactShadowsBuffer" }));
+                { format = GraphicsFormat.R32_UInt, enableRandomWrite = true, clearBuffer = clearBuffer, clearColor = Color.clear, name = "ContactShadowsBuffer" }));
 
                 result = passData.contactShadowsTexture;
 

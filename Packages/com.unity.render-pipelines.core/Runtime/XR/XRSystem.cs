@@ -458,11 +458,12 @@ namespace UnityEngine.Experimental.Rendering
         {
             // We can't use descriptor directly because y-flip is forced
             // XRTODO : fix root problem
-            RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(xrDesc.width, xrDesc.height, xrDesc.colorFormat, xrDesc.depthBufferBits, xrDesc.mipCount);
+            RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(xrDesc.width, xrDesc.height, xrDesc.graphicsFormat, xrDesc.depthStencilFormat, xrDesc.mipCount);
             rtDesc.dimension    = xrDesc.dimension;
             rtDesc.volumeDepth  = xrDesc.volumeDepth;
             rtDesc.vrUsage      = xrDesc.vrUsage;
             rtDesc.sRGB         = xrDesc.sRGB;
+            rtDesc.shadowSamplingMode = xrDesc.shadowSamplingMode;
             return rtDesc;
         }
 

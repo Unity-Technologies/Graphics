@@ -55,7 +55,6 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         float4 _Lut_Params;
         float4 _UserLut_Params;
         float4 _Bloom_Params;
-        float _Bloom_RGBM;
         float4 _LensDirt_Params;
         float _LensDirt_Intensity;
         float4 _Distortion_Params1;
@@ -83,7 +82,6 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 
         #define BloomIntensity          _Bloom_Params.x
         #define BloomTint               _Bloom_Params.yzw
-        #define BloomRGBM               _Bloom_RGBM.x
         #define LensDirtScale           _LensDirt_Params.xy
         #define LensDirtOffset          _LensDirt_Params.zw
         #define LensDirtIntensity       _LensDirt_Intensity.x
@@ -133,7 +131,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 if (DistIntensity > 0.0)
                 {
                     float wu = ru * DistTheta;
-                    ru = tan(wu) * (rcp(ru * DistSigma));
+                    ru = tan(wu) * (rcp(ru * DistSigma + HALF_MIN)); // Add HALF_MIN to avoid 1/0
                     uv = uv + ruv * (ru - 1.0);
                 }
                 else
@@ -194,23 +192,17 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 #endif
 
                 #if _BLOOM_HQ
-                half4 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom), _Bloom_Texture_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex);
+                half3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_Bloom_Texture, sampler_LinearClamp), SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom), _Bloom_Texture_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex).xyz;
                 #else
-                half4 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom));
+                half3 bloom = SAMPLE_TEXTURE2D_X(_Bloom_Texture, sampler_LinearClamp, SCREEN_COORD_REMOVE_SCALEBIAS(uvBloom)).xyz;
                 #endif
 
                 #if UNITY_COLORSPACE_GAMMA
-                bloom.xyz *= bloom.xyz; // γ to linear
+                bloom *= bloom; // γ to linear
                 #endif
 
-                UNITY_BRANCH
-                if (BloomRGBM > 0)
-                {
-                    bloom.xyz = DecodeRGBM(bloom);
-                }
-
-                bloom.xyz *= BloomIntensity;
-                color += bloom.xyz * BloomTint;
+                bloom *= BloomIntensity;
+                color += bloom * BloomTint;
 
                 #if defined(BLOOM_DIRT)
                 {
@@ -320,7 +312,8 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #endif
 
             #if _ENABLE_ALPHA_OUTPUT
-            return half4(color, inputColor.a);
+            // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
+            return half4(color, saturate(inputColor.a));
             #else
             return half4(color, 1);
             #endif

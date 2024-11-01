@@ -1234,10 +1234,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     else
                         ExecuteRenderGraph();
 
-#if RENDER_GRAPH_CLEAR_GLOBALS
                     // Clear the shader bindings for all global textures to make sure bindings don't leak outside the graph
                     ClearGlobalBindings();
-#endif
                 }
             }
             catch (Exception e)

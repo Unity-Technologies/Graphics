@@ -101,6 +101,7 @@ namespace UnityEditor.VFX.Block
             var setAttribute = ScriptableObject.CreateInstance<SetAttribute>();
             setAttribute.attribute = vfxAttribute.name;
             setAttribute.Composition = Composition;
+            setAttribute.Random = Random;
             setAttribute.ResyncSlots(true);
             ReplaceModel(setAttribute, this, true, false);
             VFXBlock.CopyInputLinks(setAttribute, this);

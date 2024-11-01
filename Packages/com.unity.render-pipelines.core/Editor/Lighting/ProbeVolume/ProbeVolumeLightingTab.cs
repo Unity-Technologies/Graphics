@@ -490,6 +490,8 @@ namespace UnityEngine.Rendering
             {
                 set = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
                 set.SetDefaults();
+
+                ProbeReferenceVolume.instance.AddPendingSceneRemoval(sceneGUID);
             }
 
             EditorUtility.SetDirty(set);

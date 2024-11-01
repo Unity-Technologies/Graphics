@@ -94,11 +94,11 @@ namespace UnityEngine.Rendering
                     Swap(ref arraySource, ref arrayDest);
                 }
 
-                supportArray.Dispose();
-                counter.Dispose();
-                buckets.Dispose();
-                indices.Dispose();
-                indicesSum.Dispose();
+                supportArray.Dispose(jobHandle);
+                counter.Dispose(jobHandle);
+                buckets.Dispose(jobHandle);
+                indices.Dispose(jobHandle);
+                indicesSum.Dispose(jobHandle);
             }
             else
             {

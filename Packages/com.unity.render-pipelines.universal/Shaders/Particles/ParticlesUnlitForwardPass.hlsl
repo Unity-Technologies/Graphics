@@ -45,6 +45,10 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
     #if defined(DEBUG_DISPLAY) && !defined(PARTICLES_EDITOR_META_PASS)
     inputData.vertexSH = input.vertexSH;
     #endif
+
+#if defined(DEBUG_DISPLAY) && defined(USE_APV_PROBE_OCCLUSION)
+    inputData.probeOcclusion = input.probeOcclusion;
+#endif
 }
 
 void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfaceData)

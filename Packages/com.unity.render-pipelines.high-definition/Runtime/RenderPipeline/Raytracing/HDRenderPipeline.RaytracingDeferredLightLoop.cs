@@ -266,22 +266,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Temporary buffers
                 passData.gbuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, enableRandomWrite = true, name = "GBuffer0" });
+                { format = GraphicsFormat.R8G8B8A8_SRGB, enableRandomWrite = true, name = "GBuffer0" });
                 passData.gbuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer1" });
+                { format = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer1" });
                 passData.gbuffer2 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer2" });
+                { format = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer2" });
                 passData.gbuffer3 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = Builtin.GetLightingBufferFormat(), enableRandomWrite = true, name = "GBuffer3" });
+                { format = Builtin.GetLightingBufferFormat(), enableRandomWrite = true, name = "GBuffer3" });
                 passData.tmpDistanceBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "TMP Distance Buffer" });
+                { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "TMP Distance Buffer" });
 
                 // Output buffers
                 passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
                 passData.litBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Deferred Lighting Result" }));
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Deferred Lighting Result" }));
                 passData.distanceBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" }));
+                { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" }));
 
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
 

@@ -294,9 +294,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -252.0,
+            "x": -253.0,
             "y": 0.0,
-            "width": 218.0,
+            "width": 217.5,
             "height": 142.0
         }
     },
@@ -325,10 +325,10 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_SourceType": 0,
+    "m_SourceType": 1,
     "m_FunctionName": "MainLight",
     "m_FunctionSource": "3beadf505dbc54f4cae878435013d751",
-    "m_FunctionBody": "Enter function body here..."
+    "m_FunctionBody": "#ifdef SHADERGRAPH_PREVIEW\n    direction = normalize(float3(-0.5,0.5,-0.5));\n    color = float3(1,1,1);\n    shadowAtten = 1;\n#else\n    #if defined(UNIVERSAL_PIPELINE_CORE_INCLUDED)\n        float4 shadowCoord = TransformWorldToShadowCoord(worldPos);\n        Light mainLight = GetMainLight(shadowCoord);\n        direction = mainLight.direction;\n        color = mainLight.color;\n        shadowAtten = mainLight.shadowAttenuation;\n    #else\n        direction = normalize(float3(-0.5, 0.5, -0.5));\n        color = float3(1, 1, 1);\n        shadowAtten = 1;\n    #endif\n#endif"
 }
 
 {

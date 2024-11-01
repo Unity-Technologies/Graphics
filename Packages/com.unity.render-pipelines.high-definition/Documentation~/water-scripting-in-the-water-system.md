@@ -49,7 +49,6 @@ public class FitToWaterSurface : MonoBehaviour
 }
 ```
 
-
 ### Multiple objects (with Burst)
 
 ![](Images/water-22.2-multibuoyancy.png)<br/>
@@ -205,7 +204,25 @@ public class FitToWaterSurface_Burst : MonoBehaviour
 }
 ```
 
-## Synchronizing Water Surfaces
+## Add caustics
+
+To enhance the visual fidelity of your water surfaces, you can incorporate realistic [caustics](water-caustics-in-the-water-system.md) into your scenes.
+
+To query the caustics buffer of the water surface at a given point as an additional output, use the [GetCausticsBuffer()](../api/UnityEngine.Rendering.HighDefinition.WaterSurface.html#UnityEngine_Rendering_HighDefinition_WaterSurface_GetCausticsBuffer_System_Single__) function provided by the [WaterSurface](xref:UnityEngine.Rendering.HighDefinition.WaterSurface) class.
+
+## Add foam
+
+To enhance the appearance of waves, shorelines, and water turbulence, you can incorporate foam effects.
+
+To query the foam buffer of the water surface at a given point as an additional output, use the [GetFoamBuffer()](../api/UnityEngine.Rendering.HighDefinition.WaterSurface.html#UnityEngine_Rendering_HighDefinition_WaterSurface_GetFoamBuffer_UnityEngine_Vector2__) function provided by the [WaterSurface](xref:UnityEngine.Rendering.HighDefinition.WaterSurface) class.
+
+## Check waves and ripples
+
+You can retrieve information about the displacement of the water surface due to waves and ripples.
+
+To query the deformation buffer of the water surface at a given point as an additional output, use the [GetDeformationBuffer()](../api/UnityEngine.Rendering.HighDefinition.WaterSurface.html#UnityEngine_Rendering_HighDefinition_WaterSurface_GetDeformationBuffer) function provided by the [WaterSurface](xref:UnityEngine.Rendering.HighDefinition.WaterSurface) class.
+
+## Synchronize water surfaces
 
 When working with multiple water surfaces, it can be useful to synchronize the water simulation of each of the surface.
 In a multiplayer game, this can ensure all clients have a water simulation that is running in sync.
@@ -225,3 +242,7 @@ water.simulationTime = referenceSurface.simulationTime;
 
 The `simulationStart` API works with absolute time data, which simplifies synchronization when sending the value over the network, as you don't have to account for the latency.
 Using the `simulationTime` gives you direct access to the time value used to compute the result of the water simulation and is useful when synchronizing surfaces locally.
+
+With this, it is also possible to synchronize multiple juxtaposed water surfaces (as if it was only one big surface). 
+For the water surfaces to tile properly, the size of the water surfaces need to be an integer multiple of the repetition size and the repetition size needs to be a multiple of 10.
+Example: two 50m * 50m water surfaces with a repetition size of 50 will tile properly, but two 45m * 45m with a repetition size of 45 will show a seam between the surfaces.  

@@ -2,11 +2,14 @@ using UnityEngine;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 
 // In this example we will create a texture reference ContextItem in frameData to hold a reference
 // used by furture passes. This is usefull to avoid additional blit operations copying back and forth
 // to the cameras color attachment. Instead of copying it back after the blit operation we can instead
 // update the reference to the blit destination and use that for future passes.
+// The is the prefered way to share resources between passes. Previously, it was common to use global textures for this.
+// However, it's better to avoid using global textures where you can.
 public class TextureRefRendererFeature : ScriptableRendererFeature
 {
     // The ContextItem used to store the texture reference at.
@@ -78,20 +81,20 @@ public class TextureRefRendererFeature : ScriptableRendererFeature
                         texRef.texture = resourceData.activeColorTexture;
                     }
 
-                    // Setup the descriptor we use for BlitData. We should use the camera target's descriptor as a start.
-                    var cameraData = frameData.Get<UniversalCameraData>();
-                    var descriptor = cameraData.cameraTargetDescriptor;
-                    // We disable MSAA for the blit operations.
-                    descriptor.msaaSamples = 1;
-                    // We disable the depth buffer, since we are only makeing transformations to the color buffer.
-                    descriptor.depthBufferBits = 0;
-
                     // Fill in the pass data using by the render function.
 
                     // Use the old reference from TexRefData.
                     passData.source = texRef.texture;
+
+                    var descriptor = passData.source.GetDescriptor(renderGraph);
+                    // We disable MSAA for the blit operations.
+                    descriptor.msaaSamples = MSAASamples.None;
+                    descriptor.name = $"BlitMaterialRefTex_{mat.name}";
+                    descriptor.clearBuffer = false;
+
                     // Create a new temporary texture to keep the blit result.
-                    passData.destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, $"BlitMaterialRefTex_{mat.name}", false);
+                    passData.destination = renderGraph.CreateTexture(descriptor);
+
                     // Material used in the blit operation.
                     passData.material = mat;
 
@@ -122,55 +125,18 @@ public class TextureRefRendererFeature : ScriptableRendererFeature
     // color attachment.
     class CopyBackRefPass : ScriptableRenderPass
     {
-        // Scale bias is used to blit from source to distination given a 2d scale in the x and y parameters
-        // and an offset in the z and w parameters.
-        static Vector4 scaleBias = new Vector4(1f, 1f, 0f, 0f);
-
-        // The data we want to transfer to the render function after recording.
-        class PassData
-        {
-            // For the blit operation we will need the source and destination of the color attachments.
-            // We don't need a material for the blit operation since we only want to copy it back
-            // without any transformations to the color attachment.
-            public TextureHandle source;
-            public TextureHandle destination;
-        }
-
         // This function blits the reference back to the camera's color attachment.
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             // Early exit if TexRefData doesn't exist within frameData since where is nothing to copy back.
             if (!frameData.Contains<TexRefData>()) return;
-            // Starts the recording of the render graph pass given the name of the pass
-            // and outputting the data used to pass data to the execution of the render function.
-            using (var builder = renderGraph.AddRasterRenderPass<PassData>("Copy Back Pass", out var passData))
-            {
-                // Fetch UniversalResourceData to retrive the camera's active color texture.
-                var resourceData = frameData.Get<UniversalResourceData>();
-                // Fetch TexRefData to retrive the texture reference.
-                var texRef = frameData.Get<TexRefData>();
 
-                // Update the pass data.
-                passData.source = texRef.texture;
-                passData.destination = resourceData.activeColorTexture;
-
-                // Sets input attachment.
-                builder.UseTexture(passData.source);
-                // Sets color attachment 0.
-                builder.SetRenderAttachment(passData.destination, 0);
-
-                // Sets the render function.
-                builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) => ExecutePass(data, rgContext));
-            }
-        }
-
-        // ExecutePass is the render function for each of the blit render graph recordings.
-        // This is good practice to avoid using variables outside of the lambda it is called from.
-        // It is static to avoid using member variables which could cause unintended behaviour.
-        static void ExecutePass(PassData data, RasterGraphContext rgContext)
-        {
-            // Calling blit without a material will copy without any additional tranformations.
-            Blitter.BlitTexture(rgContext.cmd, data.source, scaleBias, 0, false);
+            // Fetch UniversalResourceData to retrive the camera's active color texture.
+            var resourceData = frameData.Get<UniversalResourceData>();
+            // Fetch TexRefData to retrive the texture reference.
+            var texRef = frameData.Get<TexRefData>();
+            
+            renderGraph.AddBlitPass(texRef.texture, resourceData.activeColorTexture, Vector2.one, Vector2.zero, passName: "Blit Back Pass");
         }
     }
 

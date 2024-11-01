@@ -454,7 +454,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Process the reflection probes; skip when pathtracer is on to avoid filling the reflection probe atlas
             if (!hdCamera.IsPathTracingEnabled())
             {
-                HDAdditionalReflectionData[] reflectionProbeArray = GameObject.FindObjectsByType<HDAdditionalReflectionData>(FindObjectsSortMode.None);
+                HDAdditionalReflectionData[] reflectionProbeArray = HDAdditionalReflectionData.GetAllInstances();
                 for (int reflIdx = 0; reflIdx < reflectionProbeArray.Length; ++reflIdx)
                 {
                     HDAdditionalReflectionData reflectionProbe = reflectionProbeArray[reflIdx];

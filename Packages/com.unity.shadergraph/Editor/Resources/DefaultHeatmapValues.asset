@@ -170,10 +170,10 @@ MonoBehaviour:
       m_Category: 6
     - m_NodeName: FadeTransitionNode
       m_Category: 4
-    - m_NodeName: FlipbookNode
-      m_Category: 6
     - m_NodeName: FlipNode
       m_Category: 3
+    - m_NodeName: FlipbookNode
+      m_Category: 6
     - m_NodeName: FloorNode
       m_Category: 2
     - m_NodeName: FogNode
@@ -184,6 +184,8 @@ MonoBehaviour:
       m_Category: 6
     - m_NodeName: GatherTexture2DNode
       m_Category: 0
+    - m_NodeName: GetCameraHeightFromWater
+      m_Category: 1
     - m_NodeName: GradientNode
       m_Category: 0
     - m_NodeName: GradientNoiseNode
@@ -276,8 +278,6 @@ MonoBehaviour:
       m_Category: 7
     - m_NodeName: NormalFromTextureNode
       m_Category: 0
-    - m_NodeName: NormalizeNode
-      m_Category: 5
     - m_NodeName: NormalReconstructZNode
       m_Category: 6
     - m_NodeName: NormalStrengthNode
@@ -286,6 +286,8 @@ MonoBehaviour:
       m_Category: 5
     - m_NodeName: NormalVectorNode
       m_Category: 1
+    - m_NodeName: NormalizeNode
+      m_Category: 5
     - m_NodeName: NotNode
       m_Category: 3
     - m_NodeName: ObjectNode
@@ -342,20 +344,18 @@ MonoBehaviour:
       m_Category: 7
     - m_NodeName: RotateNode
       m_Category: 6
+    - m_NodeName: RoundNode
+      m_Category: 2
     - m_NodeName: RoundedPolygonNode
       m_Category: 9
     - m_NodeName: RoundedRectangleNode
       m_Category: 7
-    - m_NodeName: RoundNode
-      m_Category: 2
     - m_NodeName: SampleCubemapNode
       m_Category: 0
     - m_NodeName: SampleGradient
       m_Category: 8
     - m_NodeName: SampleRawCubemapNode
       m_Category: 0
-    - m_NodeName: SamplerStateNode
-      m_Category: 1
     - m_NodeName: SampleTexture2DArrayNode
       m_Category: 0
     - m_NodeName: SampleTexture2DLODNode
@@ -366,6 +366,8 @@ MonoBehaviour:
       m_Category: 0
     - m_NodeName: SampleVirtualTextureNode
       m_Category: 0
+    - m_NodeName: SamplerStateNode
+      m_Category: 1
     - m_NodeName: SaturateNode
       m_Category: 1
     - m_NodeName: SaturationNode
@@ -432,10 +434,10 @@ MonoBehaviour:
       m_Category: 4
     - m_NodeName: TimeNode
       m_Category: 1
-    - m_NodeName: TransformationMatrixNode
-      m_Category: 1
     - m_NodeName: TransformNode
       m_Category: 7
+    - m_NodeName: TransformationMatrixNode
+      m_Category: 1
     - m_NodeName: TriangleWaveNode
       m_Category: 4
     - m_NodeName: TriplanarNode
@@ -444,12 +446,12 @@ MonoBehaviour:
       m_Category: 2
     - m_NodeName: TwirlNode
       m_Category: 6
+    - m_NodeName: UVNode
+      m_Category: 1
     - m_NodeName: UniversalSampleBufferNode
       m_Category: 0
     - m_NodeName: UnpackData_Water
       m_Category: 2
-    - m_NodeName: UVNode
-      m_Category: 1
     - m_NodeName: Vector1Node
       m_Category: 1
     - m_NodeName: Vector2Node

@@ -599,6 +599,7 @@ VolumetricRayResult TraceVolumetricRay(CloudRay cloudRay)
                         // We reset all the counters and enable active sampling
                         currentPositionWS -= cloudRay.direction * stepS;
                         currentDistance -= stepS;
+                        currentIndex -= 1;
                         activeSampling = true;
                         sequentialEmptySamples = 0;
                     }

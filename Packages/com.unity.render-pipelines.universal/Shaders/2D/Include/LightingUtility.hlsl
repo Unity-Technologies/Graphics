@@ -5,7 +5,7 @@
     #if LIGHT_QUALITY_FAST
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
             half4   lightDirection  : TEXCOORDA;\
-            half2   screenUV   : TEXCOORDB;
+            float2  screenUV   : TEXCOORDB;
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos, lightPosition, lightZDistance)\
             output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz / output.positionCS.w);\
@@ -22,7 +22,7 @@
     #else
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
             half4   positionWS : TEXCOORDA;\
-            half2   screenUV   : TEXCOORDB;
+            float2  screenUV   : TEXCOORDB;
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos, lightPosition, lightZDistance) \
             output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz / output.positionCS.w); \

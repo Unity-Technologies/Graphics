@@ -174,7 +174,7 @@ namespace UnityEditor.Rendering
 
             if (m_PreviewTexture == null)
             {
-                m_PreviewTexture = RTHandles.Alloc(Styles.thumbnailSizeWidth, Styles.thumbnailSizeHeight, colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
+                m_PreviewTexture = RTHandles.Alloc(Styles.thumbnailSizeWidth, Styles.thumbnailSizeHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB);
             }
             if (m_PreviewTextureCache == null)
             {

@@ -141,13 +141,13 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureDesc GetMomentAtlasDesc(string name)
         {
             return new TextureDesc(width / 2, height / 2)
-            { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true };
+            { format = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true };
         }
 
         TextureDesc GetImprovedMomentAtlasDesc()
         {
             return new TextureDesc(width, height)
-            { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = m_MomentName, enableRandomWrite = true, clearColor = Color.black };
+            { format = GraphicsFormat.R32G32B32A32_SFloat, name = m_MomentName, enableRandomWrite = true, clearColor = Color.black };
         }
 
         internal TextureDesc GetAtlasDesc()
@@ -601,9 +601,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.atlasTexture = builder.ReadTexture(atlasTexture);
                 passData.momentAtlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
                 passData.intermediateSummedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black }));
+                { format = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black }));
                 passData.summedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true, clearColor = Color.black }));
+                { format = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true, clearColor = Color.black }));
 
                 builder.SetRenderFunc(
                     (IMBlurMomentPassData data, RenderGraphContext ctx) =>

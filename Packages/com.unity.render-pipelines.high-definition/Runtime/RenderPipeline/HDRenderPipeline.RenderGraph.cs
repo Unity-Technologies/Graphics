@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     colorBuffer = RenderOpaqueFog(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, msaa, in prepassOutput, in transparentPrepass, ref opticalFogTransmittance);
 
-                    RenderClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, in prepassOutput, ref transparentPrepass, ref opticalFogTransmittance);
+                    RenderClouds(m_RenderGraph, hdCamera, colorBuffer, transparentPrepass.depthBufferPreRefraction, in prepassOutput, ref transparentPrepass, ref opticalFogTransmittance);
 
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, opticalFogTransmittance,
                         m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, transparentPrepass, ref prepassOutput, shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         TextureHandle distortionColorPyramid = m_RenderGraph.CreateTexture(
                             new TextureDesc(Vector2.one, true, true)
                             {
-                                colorFormat = GetColorBufferFormat(),
+                                format = GetColorBufferFormat(),
                                 enableRandomWrite = true,
                                 useMipMap = true,
                                 autoGenerateMips = false,
@@ -990,8 +990,15 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateOffscreenUIBuffer(RenderGraph renderGraph, MSAASamples msaaSamples, Rect viewport)
         {
             return renderGraph.CreateTexture(new TextureDesc((int)viewport.width, (int)viewport.height, false, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = false, msaaSamples = msaaSamples, name = "UI Buffer" });
+                { format = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = false, msaaSamples = msaaSamples, name = "UI Color Buffer" });
         }
+
+        TextureHandle CreateOffscreenUIDepthBuffer(RenderGraph renderGraph, MSAASamples msaaSamples, Rect viewport)
+        {
+            return renderGraph.CreateTexture(new TextureDesc((int)viewport.width, (int)viewport.height, false, true)
+                { format = GraphicsFormat.D32_SFloat_S8_UInt, clearBuffer = true, msaaSamples = msaaSamples, name = "UI Depth Buffer" });
+        }
+
 
         TextureHandle RenderTransparentUI(RenderGraph renderGraph, HDCamera hdCamera)
         {
@@ -1002,6 +1009,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // We cannot use rendererlist here because of the path tracing denoiser which will make it invalid due to multiple rendering per frame
                     output = builder.UseColorBuffer(CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples, hdCamera.finalViewport), 0);
+                    builder.UseDepthBuffer(CreateOffscreenUIDepthBuffer(renderGraph, hdCamera.msaaSamples, hdCamera.finalViewport), DepthAccess.Write);
 
                     passData.camera = hdCamera.camera;
                     passData.frameSettings = hdCamera.frameSettings;
@@ -1060,7 +1068,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent)));
 
                 var output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
+                    { format = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
                 if (useDepthBuffer)
                     builder.UseDepthBuffer(prepassOutput.resolvedDepthBuffer, DepthAccess.ReadWrite);
 
@@ -1151,7 +1159,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // if refraction is disabled, we did not create a copy of the depth buffer, so we need to create a dummy one here.
                     passData.depthAndStencil = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { depthBufferBits = DepthBits.Depth32, bindTextureMS = hdCamera.msaaSamples != MSAASamples.None, msaaSamples = hdCamera.msaaSamples, clearBuffer = false, name = "Dummy Depth", disableFallBackToImportedTexture = true, fallBackToBlackTexture = false});
+                    { format = GraphicsFormat.D32_SFloat_S8_UInt, bindTextureMS = hdCamera.msaaSamples != MSAASamples.None, msaaSamples = hdCamera.msaaSamples, clearBuffer = false, name = "Dummy Depth", disableFallBackToImportedTexture = true, fallBackToBlackTexture = false});
                 }
                 else
                 {
@@ -1195,7 +1203,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent
                     // Create a new target here should reuse existing already released one
                     builder.UseColorBuffer(builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Transparency Velocity Dummy" }), index++);
+                        { format = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Transparency Velocity Dummy" }), index++);
                 }
 
                 if (transparentPrepass.enablePerPixelSorting)
@@ -1206,9 +1214,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     builder.UseColorBuffer(builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Before Water Color Dummy" }), index++);
+                    { format = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Before Water Color Dummy" }), index++);
                     builder.UseColorBuffer(builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Before Water Alpha Dummy" }), index++);
+                    { format = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Before Water Alpha Dummy" }), index++);
                 }
 
                 if (colorPyramid != null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && !preRefractionPass)
@@ -1325,7 +1333,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.UseDepthBuffer(downsampledDepth, DepthAccess.ReadWrite);
                 // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
                 var output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one * hdCamera.lowResScale, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black, name = "Low res transparent" }), 0);
+                    { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black, name = "Low res transparent" }), 0);
 
                 builder.SetRenderFunc(
                     (RenderLowResTransparentPassData data, RenderGraphContext context) =>
@@ -1559,10 +1567,10 @@ namespace UnityEngine.Rendering.HighDefinition
             output.depthBufferPreRefraction = CreateDepthBuffer(renderGraph, false, hdCamera.msaaSamples, "CameraDepthStencil PreRefraction", false);
 
             output.beforeRefraction = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, msaaSamples = hdCamera.msaaSamples, clearBuffer = true, name = "Before Refraction" });
+            { format = GraphicsFormat.B10G11R11_UFloatPack32, msaaSamples = hdCamera.msaaSamples, clearBuffer = true, name = "Before Refraction" });
 
             output.beforeRefractionAlpha = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R8_UNorm, msaaSamples = hdCamera.msaaSamples, clearBuffer = true, clearColor = Color.white, name = "Before Refraction Alpha" });
+            { format = GraphicsFormat.R8_UNorm, msaaSamples = hdCamera.msaaSamples, clearBuffer = true, clearColor = Color.white, name = "Before Refraction Alpha" });
 
             bool hasWater = WaterSystem.ShouldRenderWater(hdCamera);
             var refraction = renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cullingResults, hdCamera.camera, m_TransparentDepthPrepassNames,
@@ -1651,6 +1659,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Combine volumetric clouds with prerefraction transparents
             m_VolumetricClouds.CombineVolumetricClouds(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, transparentPrepass, ref opticalFogTransmittance);
+
+            // Compose the lines if the user wants lines in the color pyramid (refraction), but after clouds.
+            ComposeLines(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.motionVectorsBuffer, (int)LineRendering.CompositionMode.BeforeColorPyramidAfterClouds);
 
             var preRefractionList = renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullingResults, hdCamera, true));
             var refractionList = renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullingResults, hdCamera, false));
@@ -2009,7 +2020,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.distortionBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetDistortionBufferFormat(), clearBuffer = true, clearColor = Color.clear, name = "Distortion" }), 0);
+                    new TextureDesc(Vector2.one, true, true) { format = Builtin.GetDistortionBufferFormat(), clearBuffer = true, clearColor = Color.clear, name = "Distortion" }), 0);
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
                 passData.distortionRendererList = builder.UseRendererList(distortionRendererList);
 
@@ -2051,7 +2062,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.applyDistortionMaterial = m_ApplyDistortionMaterial;
                 passData.roughDistortion = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RoughDistortion);
-                passData.sourceColorBuffer = passData.roughDistortion ? builder.ReadTexture(colorPyramidBuffer) : builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "DistortionIntermediateBuffer" });
+                passData.sourceColorBuffer = passData.roughDistortion ? builder.ReadTexture(colorPyramidBuffer) : builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { format = GetColorBufferFormat(), name = "DistortionIntermediateBuffer" });
                 passData.distortionBuffer = builder.ReadTexture(distortionBuffer);
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
@@ -2088,7 +2099,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = GetColorBufferFormat(),
+                    format = GetColorBufferFormat(),
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
                     msaaSamples = msaa ? hdCamera.msaaSamples : MSAASamples.None,

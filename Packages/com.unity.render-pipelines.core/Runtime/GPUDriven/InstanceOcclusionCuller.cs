@@ -279,8 +279,8 @@ namespace UnityEngine.Rendering
                 occluderDepthPyramidSize = minDepthPyramidSize;
                 occluderDepthPyramid = RTHandles.Alloc(
                     occluderDepthPyramidSize.x, occluderDepthPyramidSize.y,
-                    dimension: TextureDimension.Tex2D,
-                    colorFormat: GraphicsFormat.R32_SFloat,
+                    format: GraphicsFormat.R32_SFloat,
+                    dimension: TextureDimension.Tex2D,                    
                     filterMode: FilterMode.Point,
                     wrapMode: TextureWrapMode.Clamp,
                     enableRandomWrite: true,

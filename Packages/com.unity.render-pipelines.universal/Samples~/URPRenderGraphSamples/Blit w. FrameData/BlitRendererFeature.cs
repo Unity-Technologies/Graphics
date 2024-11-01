@@ -80,7 +80,7 @@ public class BlitRendererFeature : ScriptableRendererFeature
                 // We disable MSAA for the blit operations.
                 descriptor.msaaSamples = 1;
                 // We disable the depth buffer, since we are only makeing transformations to the color buffer.
-                descriptor.depthBufferBits = 0;
+                descriptor.depthStencilFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.None;
                 Init(renderGraph, descriptor);
             }
 

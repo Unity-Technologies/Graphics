@@ -70,6 +70,9 @@ void InitializeInputData(Varyings input, out InputData inputData)
 
     #if defined(DEBUG_DISPLAY)
     inputData.uv = input.UV01;
+    #if defined(USE_APV_PROBE_OCCLUSION)
+    inputData.probeOcclusion = input.probeOcclusion;
+    #endif
     #endif
 }
 

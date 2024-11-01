@@ -8,7 +8,7 @@ LightingSettings:
   m_PrefabAsset: {fileID: 0}
   m_Name: 2102_GI_EmissionSettings
   serializedVersion: 7
-  m_GIWorkflowMode: 0
+  m_GIWorkflowMode: 1
   m_EnableBakedLightmaps: 1
   m_EnableRealtimeLightmaps: 1
   m_RealtimeEnvironmentLighting: 1

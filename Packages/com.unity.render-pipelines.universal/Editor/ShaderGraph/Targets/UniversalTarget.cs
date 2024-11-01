@@ -503,6 +503,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
                 context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
                 {
+					registerUndo("Change Support VFX Graph");
                     m_SupportVFX = m_SupportVFXToggle.value;
                 });
             }
@@ -1699,11 +1700,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kColor, IncludeLocation.Pregraph },
             { kTexture, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
+            { kFoveatedRenderingKeywords, IncludeLocation.Pregraph, true },
+            { kFoveatedRendering, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kInput, IncludeLocation.Pregraph },
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
-            { kFoveatedRenderingKeywords, IncludeLocation.Pregraph, true },
-            { kFoveatedRendering, IncludeLocation.Pregraph },
             { kMipmapDebugMacros, IncludeLocation.Pregraph}
         };
 

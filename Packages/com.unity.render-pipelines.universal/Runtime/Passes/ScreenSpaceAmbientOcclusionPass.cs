@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
@@ -430,7 +431,7 @@ namespace UnityEngine.Rendering.Universal
             // Descriptor for the final blur pass
             RenderTextureDescriptor finalTextureDescriptor = cameraData.cameraTargetDescriptor;
             finalTextureDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
-            finalTextureDescriptor.depthBufferBits = 0;
+            finalTextureDescriptor.depthStencilFormat = GraphicsFormat.None;
             finalTextureDescriptor.msaaSamples = 1;
 
             // Descriptor for the AO and Blur passes
@@ -476,7 +477,7 @@ namespace UnityEngine.Rendering.Universal
             int downsampleDivider = m_CurrentSettings.Downsample ? 2 : 1;
             RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.msaaSamples = 1;
-            descriptor.depthBufferBits = 0;
+            descriptor.depthStencilFormat = GraphicsFormat.None;
 
             // AO PAss
             m_AOPassDescriptor = descriptor;

@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.graphicsFormat = GetRenderTextureFormat();
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
-            descriptor.depthBufferBits = 0;
+            descriptor.depthStencilFormat = GraphicsFormat.None;
             descriptor.msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
             descriptor.dimension = TextureDimension.Tex2D;
 
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.graphicsFormat = GetRenderTextureFormat();
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
-            descriptor.depthBufferBits = 0;
+            descriptor.depthStencilFormat = GraphicsFormat.None;
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;
 
@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.graphicsFormat = renderingData.cameraData.cameraTargetDescriptor.graphicsFormat;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
-            descriptor.depthBufferBits = 0;
+            descriptor.depthStencilFormat = GraphicsFormat.None;
             descriptor.msaaSamples = 1;
 
             RenderingUtils.ReAllocateHandleIfNeeded(ref pass.rendererData.cameraSortingLayerRenderTarget, descriptor, FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_CameraSortingLayerTexture");

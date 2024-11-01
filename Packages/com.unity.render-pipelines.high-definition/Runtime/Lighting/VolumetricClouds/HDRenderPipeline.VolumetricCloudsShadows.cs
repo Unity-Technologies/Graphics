@@ -72,11 +72,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Bounds lightSpaceBounds = new Bounds();
             lightSpaceBounds.SetMinMax(new Vector3(float.MaxValue, float.MaxValue, float.MaxValue), new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue));
             lightSpaceBounds.Encapsulate(wsToLSMat.MultiplyPoint(hdCamera.camera.transform.position));
+            float perspectiveCorrectedShadowDistance = settings.shadowDistance.value / cos(hdCamera.camera.fieldOfView * Mathf.Deg2Rad * 0.5f);
             for (int cornerIdx = 0; cornerIdx < 4; ++cornerIdx)
             {
                 Vector3 corner = hdCamera.frustum.corners[cornerIdx + 4];
                 float diag = corner.magnitude;
-                corner = corner / diag * Mathf.Min(settings.shadowDistance.value, diag);
+                corner = corner / diag * Mathf.Min(perspectiveCorrectedShadowDistance, diag);
                 Vector3 posLightSpace = wsToLSMat.MultiplyPoint(corner + hdCamera.camera.transform.position);
                 lightSpaceBounds.Encapsulate(posLightSpace);
             }
@@ -89,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Vector3 corner = hdCamera.frustum.corners[cornerIdx + 4];
                     float diag = corner.magnitude;
-                    corner = corner / diag * Mathf.Min(settings.shadowDistance.value, diag);
+                    corner = corner / diag * Mathf.Min(perspectiveCorrectedShadowDistance, diag);
                     Vector3 posLightSpace = wsToLSMat.MultiplyPoint(-corner + hdCamera.camera.transform.position);
                     lightSpaceBounds.Encapsulate(posLightSpace);
                 }
@@ -238,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Evaluate and bind the shadow
             int shadowResolution = (int)settings.shadowResolution.value;
             TextureHandle shadowTexture = renderGraph.CreateTexture(new TextureDesc(shadowResolution, shadowResolution, false, false)
-            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Texture" });
+            { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Texture" });
 
             using (var builder = renderGraph.AddRenderPass<VolumetricCloudsShadowsData>("Volumetric Clouds Shadows", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
             {
@@ -250,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Manage the resources
                 passData.intermediateShadowTexture = builder.CreateTransientTexture(new TextureDesc(shadowResolution, shadowResolution, false, false)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Temp Texture" });
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Temp Texture" });
                 passData.shadowTexture = builder.ReadWriteTexture(shadowTexture);
 
                 // Evaluate the shadow

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -93,7 +94,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void SetCameraSettings(RenderTextureDescriptor desc, FilterMode filterMode)
         {
-            desc.depthBufferBits = 0;
+            desc.depthStencilFormat = GraphicsFormat.None;
             m_Desc = desc;
             m_FilterMode = filterMode;
 

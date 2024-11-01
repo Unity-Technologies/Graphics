@@ -65,6 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _AtmosphericDepth;
         public float _RcpAtmosphericDepth;
         public float _CelestialLightExposure;
-        public float _PaddingPBS;
+        public float _VolumetricCloudsBottomAltitude;
     }
 }

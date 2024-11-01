@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.useDynamicScale = true;
-            descriptor.depthBufferBits = (int)DepthBits.None;
+            descriptor.depthStencilFormat = GraphicsFormat.None;
             descriptor.enableRandomWrite = true;
             descriptor.msaaSamples = 1;
             descriptor.dimension = TextureDimension.Tex2D;

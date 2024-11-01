@@ -527,6 +527,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             colorMaskTransparentVel = HDShaderIDs._ColorMaskTransparentVelTwo;
             colorMaskAdditionalTarget = HDShaderIDs._ColorMaskTransparentVelOne;
+
+    #if UNITY_EDITOR_WIN
+            // Ideally, we would simply check if "System.Runtime.InteropServices.RuntimeInformation.OSArchitecture" is Arm64. However: under emulation,
+            // OSArchitecture may return X64 on an ARM64 device, so we rely on the "PROCESSOR_ARCHITECTURE" environment variable instead.
+            string architecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE", EnvironmentVariableTarget.Machine).ToLowerInvariant();
+            if (architecture == "aarch64" || architecture == "arm64")
+            {
+                Debug.LogWarning("Unity has detected that Virtual Texturing is being used on Windows ARM64: please note that this is not supported and that issues may arise. It is recommended to disable the feature.");
+            }
+    #endif
 #else
             colorMaskTransparentVel = HDShaderIDs._ColorMaskTransparentVelOne;
             colorMaskAdditionalTarget = HDShaderIDs._ColorMaskTransparentVelTwo;
