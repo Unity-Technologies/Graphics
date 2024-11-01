@@ -5,7 +5,9 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "UnityEditor.TestTools.Graphics",
-        "UnityEngine.TestTools.Graphics"
+        "UnityEngine.TestTools.Graphics",
+        "UniversalEditorTests",
+        "UniversalGraphicsTests"
     ],
     "includePlatforms": [
         "Editor"
