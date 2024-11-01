@@ -18,6 +18,12 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
     #endif
 
+    #if HAS_STRIPS_DATA
+        StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
+        element.relativeIndexInStrip = GetRelativeIndex(index, stripData);
+        element.stripData = stripData;
+    #endif
+
     element.index = index;
     element.instanceIndex = instanceIndex;
     element.instanceActiveIndex = instanceActiveIndex;

@@ -125,6 +125,19 @@ VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
 #if VFX_HAS_INDIRECT_DRAW
 index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
+#endif
+
+#if HAS_STRIPS_DATA
+StripData stripData;
+uint relativeIndexInStrip = 0;
+if (!FindIndexInStrip(index, id, instanceIndex, relativeIndexInStrip, stripData))
+{
+	o.pos.x = VFX_NAN;
+	return o; // cull
+}
+#endif
+
+#if VFX_HAS_INDIRECT_DRAW
 ${VFXLoadAttributes}
 #else
 ${VFXLoadAttributes:{alive}}
@@ -140,7 +153,7 @@ ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
 
 // Initialize built-in needed attributes
-#if HAS_STRIPS
+#if HAS_STRIPS_DATA
 InitStripAttributes(index, attributes, stripData);
 #endif
 ${VFXEnd}
@@ -335,7 +348,7 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
 		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
 		float3 tangent = currentPos - GetParticlePosition(prevIndex,instanceIndex);
 		float sqrLength = dot(tangent, tangent);
-		if (sqrLength > VFX_EPSILON)
+		if (sqrLength > VFX_EPSILON * VFX_EPSILON)
 			prevTangent = tangent * rsqrt(sqrLength);
 	}
 
@@ -345,7 +358,7 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
 		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
 		float3 tangent = GetParticlePosition(nextIndex, instanceIndex) - currentPos;
 		float sqrLength = dot(tangent, tangent);
-		if (sqrLength > VFX_EPSILON)
+		if (sqrLength > VFX_EPSILON * VFX_EPSILON)
 			nextTangent = tangent * rsqrt(sqrLength);
 	}
 

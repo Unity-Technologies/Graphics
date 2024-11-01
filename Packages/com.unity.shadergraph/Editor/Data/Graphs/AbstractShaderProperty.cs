@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Internal
             if (mode == GenerationMode.VFX)
             {
                 // Per-element exposed properties are provided by the properties structure filled by VFX.
-                if (overrideHLSLDeclaration)
+                if (overrideHLSLDeclaration && hlslDeclarationOverride != HLSLDeclaration.Global)
                     return $"PROP.{referenceName}";
                 // For un-exposed global properties, just read from the cbuffer.
                 else

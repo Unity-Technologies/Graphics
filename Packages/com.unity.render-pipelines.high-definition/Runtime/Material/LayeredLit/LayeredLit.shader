@@ -580,6 +580,9 @@ Shader "HDRP/LayeredLit"
     // Include
     //-------------------------------------------------------------------------------------
 
+    // Disable half-precision types in the lit shader since this causes visual corruption in some cases
+    #define PREFER_HALF 0
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"

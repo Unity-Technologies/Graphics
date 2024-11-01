@@ -111,6 +111,20 @@ namespace UnityEditor.VFX
                         "Setting the system Bounds Mode to Automatic will switch the culling flags of the Visual Effect asset" +
                         " to 'Always recompute bounds and simulate'.");
                 }
+
+                if (data.hasStrip)
+                {
+                    bool hasDynamicStripIndex = inputSlots.Any(inputSlot => inputSlot.name == "stripIndex" && inputSlot.HasLink() && inputSlot.LinkedSlots.First().GetExpression().Is(VFXExpression.Flags.PerElement));
+                    if (hasDynamicStripIndex)
+                    {
+                        bool hasParticleCountInStripAttribute = data.GetAttributesForContext(this).Any(attribute => attribute.attrib.Equals(VFXAttribute.ParticleCountInStrip));
+                        if (hasParticleCountInStripAttribute)
+                        {
+                            manager.RegisterError("WrongParticleCountInStrip", VFXErrorType.Warning,
+                                "Using \"Get Particle Count In Strip\" or \"Get Ratio Over Strip\" in this context will only return the correct value if \"Strip Index\" is constant for all particles.");
+                        }
+                    }
+                }
             }
         }
 

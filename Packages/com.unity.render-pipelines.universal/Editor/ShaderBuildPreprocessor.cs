@@ -89,6 +89,22 @@ namespace UnityEditor.Rendering.Universal
 
 
     /// <summary>
+    /// This class is used solely to make sure Shader Prefiltering data inside the
+    /// URP Assets get updated before anything (Like Asset Bundles) are built.
+    /// </summary>
+    class UpdateShaderPrefilteringDataBeforeBuild : IPreprocessShaders
+    {
+        public int callbackOrder => -100;
+
+        public UpdateShaderPrefilteringDataBeforeBuild()
+        {
+            ShaderBuildPreprocessor.GatherShaderFeatures(Debug.isDebugBuild);
+        }
+
+		public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList){}
+    }
+
+    /// <summary>
     /// Preprocess Build class used to determine the shader features used in the project.
     /// Also called when building Asset Bundles.
     /// </summary>
@@ -218,7 +234,7 @@ namespace UnityEditor.Rendering.Universal
 
         // Gathers all the shader features and updates the prefiltering
         // settings for all URP Assets in the quality settings
-        private static void GatherShaderFeatures(bool isDevelopmentBuild)
+        internal static void GatherShaderFeatures(bool isDevelopmentBuild)
         {
             GetGlobalAndPlatformSettings(isDevelopmentBuild);
             GetSupportedFeaturesFromVolumes();

@@ -75,6 +75,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             MainLightShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
 
             m_MainLightShadowmapID = Shader.PropertyToID(k_MainLightShadowMapTextureName);
+
+            m_EmptyMainLightShadowmapTexture = RTHandles.Alloc(Texture2D.blackTexture);
         }
 
         /// <summary>
@@ -96,6 +98,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (!renderingData.shadowData.mainLightShadowsEnabled)
                 return false;
+
+#if UNITY_EDITOR
+            if (CoreUtils.IsSceneLightingDisabled(renderingData.cameraData.camera))
+                return false;
+#endif
 
             using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
 
@@ -168,10 +175,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Resetting of target would clean up the color attachment buffers and depth attachment buffers, which inturn is preventing the leak in the said platform. This is likely a symptomatic fix, but is solving the problem for now.
             if (Application.platform == RuntimePlatform.Android && PlatformAutoDetect.isRunningOnPowerVRGPU)
                 ResetTarget();
-
             if (m_CreateEmptyShadowmap)
-                ConfigureTarget(m_EmptyMainLightShadowmapTexture);
-            else
+            {
+                // Reset pass RTs to null
+                ResetTarget();
+                return;
+            }
                 ConfigureTarget(m_MainLightShadowmapTexture);
             ConfigureClear(ClearFlag.All, Color.black);
         }
@@ -238,7 +247,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Need set the worldToCamera Matrix as that is not set for passes executed before normal rendering,
                 // otherwise shadows will behave incorrectly when Scene and Game windows are open at the same time (UUM-63267).
-                ShadowUtils.SetWorldToCameraMatrix(cmd, renderingData.cameraData.GetViewMatrix());
+                ShadowUtils.SetWorldToCameraAndCameraToWorldMatrices(cmd, renderingData.cameraData.GetViewMatrix());
 
                 var settings = new ShadowDrawingSettings(cullResults, shadowLightIndex, BatchCullingProjectionType.Orthographic);
                 settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.useRenderingLayers;

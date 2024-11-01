@@ -286,6 +286,64 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
+        [UnityTest]
+        public IEnumerator RestoreSelectAfterUndoRedoTest()
+        {
+            //Due to errors occurring from the results of other tests, the graph is reset and then the test is conducted
+            Cleanup();
+            LoadGraph();
+
+            Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
+
+            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateProperty<IList>("menuItems");
+            Assert.IsNotNull(menuItems, "Could not retrieve reference to the menu items of the Blackboard Add Items menu");
+
+            // invoke float menu items on the "add Blackboard Items Menu" to add a property type
+            bool addedFloat = false;
+            foreach (var item in menuItems)
+            {
+                if ( item.GetNonPrivateField<GUIContent>("content").text == "Float" )
+                {
+                    var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
+                    menuFunction?.Invoke();
+                    yield return null;
+                    addedFloat = true;
+                    break;
+                }
+            }
+
+            if (!addedFloat)
+                Assert.Fail("Failed to add a Float property.");
+            
+            var cachedPropertyList = m_Window.graphObject.graph.properties.ToList();
+            var property = cachedPropertyList.Last();   //< last is property added above.
+            var vector1Property = property as Vector1ShaderProperty;
+
+            Assert.IsNotNull(vector1Property, "Last property is not Float.");            
+            var blackboardRow = m_BlackboardTestController.GetBlackboardRow(property);
+            Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
+            var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
+            Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
+            m_GraphEditorView.graphView.ClearSelection();
+            m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
+            Assert.AreEqual(1, m_GraphEditorView.graphView.selection.Count(), "Could not select property!");
+
+            //set value to property
+            m_Window.graphObject.RegisterCompleteObjectUndo("Property Change");
+            vector1Property.value = 0.245f;
+
+            yield return null;
+            Assert.AreEqual("Property Change", Undo.GetCurrentGroupName(), "Failed to register undo.");
+
+
+            Undo.PerformUndo();
+            yield return null;
+            Undo.PerformRedo();
+            yield return null;
+
+            Assert.AreEqual(1, m_GraphEditorView.graphView.selection.Count(), "Failed to restore select property!");
+        }
+
         [Test]
         public void DuplicatePropertyTest()
         {

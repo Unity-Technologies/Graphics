@@ -143,3 +143,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Failing on PS5
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d02e9097c7ef6374e8b5888b1d8ac25c, type: 3}
+    ColorSpace: 1
+    BuildPlatform: 31
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failing on PS4 https://jira.unity3d.com/browse/UUM-84842

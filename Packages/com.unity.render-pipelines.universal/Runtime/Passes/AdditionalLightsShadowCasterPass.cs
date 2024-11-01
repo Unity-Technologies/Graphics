@@ -141,6 +141,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_UnusedAtlasSquareAreas.Capacity = maxVisibleAdditionalLights;
                 m_ShadowResolutionRequests.Capacity = maxVisibleAdditionalLights;
             }
+
+            m_EmptyAdditionalLightShadowmapTexture = RTHandles.Alloc(Texture2D.blackTexture);
         }
 
         /// <summary>
@@ -862,10 +864,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Resetting of target would clean up the color attachment buffers and depth attachment buffers, which inturn is preventing the leak in the said platform. This is likely a symptomatic fix, but is solving the problem for now.
             if (Application.platform == RuntimePlatform.Android && PlatformAutoDetect.isRunningOnPowerVRGPU)
                 ResetTarget();
-
             if (m_CreateEmptyShadowmap)
-                ConfigureTarget(m_EmptyAdditionalLightShadowmapTexture);
-            else
+            {
+                // Reset pass RTs to null
+                ResetTarget();
+                return;
+            }
                 ConfigureTarget(m_AdditionalLightsShadowmapHandle);
 
             ConfigureClear(ClearFlag.All, Color.black);
@@ -946,7 +950,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Need set the worldToCamera Matrix as that is not set for passes executed before normal rendering,
                 // otherwise shadows will behave incorrectly when Scene and Game windows are open at the same time (UUM-63267).
-                ShadowUtils.SetWorldToCameraMatrix(cmd, renderingData.cameraData.GetViewMatrix());
+                ShadowUtils.SetWorldToCameraAndCameraToWorldMatrices(cmd, renderingData.cameraData.GetViewMatrix());
 
                 bool anyShadowSliceRenderer = false;
                 int shadowSlicesCount = m_ShadowSliceToAdditionalLightIndex.Count;

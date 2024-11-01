@@ -5,8 +5,8 @@ ${VFXPragmaRequire}
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
-#if HAS_STRIPS
-RWStructuredBuffer<uint> stripDataBuffer;
+#if HAS_STRIPS_DATA
+StructuredBuffer<uint> stripDataBuffer;
 #endif
 
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
