@@ -31,7 +31,8 @@ namespace UnityEngine.Rendering
         internal enum Version
         {
             Initial,
-            RemoveProbeVolumeSceneData
+            RemoveProbeVolumeSceneData,
+            AssetsAlwaysReferenced,
         }
 
         [Serializable]
@@ -345,6 +346,28 @@ namespace UnityEngine.Rendering
 #endif
                 }
 
+                // Upgrade baking sets from before we always stored asset references.
+                if (version < Version.AssetsAlwaysReferenced && ProbeReferenceVolume.instance.isInitialized)
+                {
+#if UNITY_EDITOR
+                    cellBricksDataAsset.EnsureAssetLoaded();
+                    cellSharedDataAsset.EnsureAssetLoaded();
+                    cellSupportDataAsset.EnsureAssetLoaded();
+                    foreach (var scenario in scenarios)
+                    {
+                        scenario.Value.cellDataAsset.EnsureAssetLoaded();
+                        scenario.Value.cellOptionalDataAsset.EnsureAssetLoaded();
+                        scenario.Value.cellProbeOcclusionDataAsset.EnsureAssetLoaded();
+                    }
+
+                    version = Version.AssetsAlwaysReferenced;
+
+                    // Save immediately since these references must be written to disk for certain functionality
+                    // to work, such as exporting a .unitypackage. Changing in memory is not enough.
+                    UnityEditor.EditorUtility.SetDirty(this);
+                    UnityEditor.AssetDatabase.SaveAssetIfDirty(this);
+#endif
+                }
 #pragma warning restore 618
             }
 
