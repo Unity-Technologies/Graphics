@@ -9,13 +9,6 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore
 
-// TODO: Remove explicit randomwrite shader requirement
-//
-// The randomwrite requirement isn't automatically included in compute shaders even though they cannot work without it.
-// We must explicitly require it here to avoid breaking code that checks against the SHADER_AVAILABLE_RANDOMWRITE define.
-// This code should be removed when the underlying compiler code is updated to implicitly require randomwrite in compute shaders.
-#pragma require randomwrite
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
