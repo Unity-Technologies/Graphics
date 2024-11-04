@@ -4,6 +4,7 @@
 {"supportSSAO":"True"},
 {"supportSSGI":"False"},
 {"supportSubsurfaceScattering":"True"},
+{"subsurfaceScatteringAttenuation":"True"},
 {"sssSampleBudget.m_Values":"[20,40,80]"},
 {"sssSampleBudget.m_SchemaId.m_Id":"With3Levels"},
 {"sssDownsampleSteps.m_Values":"[0,0,0]"},

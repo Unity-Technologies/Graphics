@@ -258,6 +258,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _WorldScalesAndFilterRadiiAndThicknessRemaps[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4]; // X = meters per world unit, Y = filter radius (in mm), Z = remap start, W = end - start
         [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
         public fixed float _DualLobeAndDiffusePower[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4]; // RGB = dual lobe, A = diffuse power
+        [HLSLArray(DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT, typeof(Vector4))]
+        public fixed float _BorderAttenuationColor[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT * 4]; // RGB = dual lobe, A = diffuse power
         // Because of constant buffer limitation, arrays can only hold 4 components elements (otherwise we get alignment issues)
         // We could pack the 16 values inside 4 uint4 but then the generated code is inefficient and generates a lots of swizzle operations instead of a single load.
         // That's why we have 16 uint and only use the first component of each element.

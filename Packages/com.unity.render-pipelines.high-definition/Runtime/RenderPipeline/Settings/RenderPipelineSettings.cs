@@ -103,6 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportShadowMask = true,
                 supportSSAO = true,
                 supportSubsurfaceScattering = true,
+                subsurfaceScatteringAttenuation = true,
                 sssSampleBudget = new IntScalableSetting(new[] { (int)DefaultSssSampleBudgetForQualityLevel.Low,
                                                                  (int)DefaultSssSampleBudgetForQualityLevel.Medium,
                                                                  (int)DefaultSssSampleBudgetForQualityLevel.High }, ScalableSettingSchemaId.With3Levels),
@@ -249,6 +250,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // [ShaderKeywordFilter.RemoveIf(true, keywordNames: "OUTPUT_SPLIT_LIGHTING")]
 #endif
         public bool supportSubsurfaceScattering;
+        /// <summary>Enable SubSurface-Scattering occlusion computation. Enabling this makes the SSS slightly more expensive but add great details to occluded zones with SSS materials.</summary>
+        public bool subsurfaceScatteringAttenuation;
         /// <summary>Sample budget for the Subsurface Scattering algorithm.</summary>
         public IntScalableSetting sssSampleBudget;
         /// <summary>Downsample input texture for the Subsurface Scattering algorithm.</summary>

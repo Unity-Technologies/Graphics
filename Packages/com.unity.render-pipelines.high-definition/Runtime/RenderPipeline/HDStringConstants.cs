@@ -442,6 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumetricMaterialFalloffMode = Shader.PropertyToID("_VolumetricMaterialFalloffMode");
 
         public static readonly int _SSSBufferTexture = Shader.PropertyToID("_SSSBufferTexture");
+        public static readonly int _DiffusionProfileIndexTexture = Shader.PropertyToID("_DiffusionProfileIndexTexture");
         public static readonly int _NormalBufferTexture = Shader.PropertyToID("_NormalBufferTexture");
         public static readonly int _NormalBufferRW = Shader.PropertyToID("_NormalBufferRW");
         public static readonly int _RaytracePrepassBufferTexture = Shader.PropertyToID("_RaytracePrepassBufferTexture");

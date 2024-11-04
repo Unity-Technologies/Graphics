@@ -783,7 +783,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
+    if (surfaceData.subsurfaceMask > 0)
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
 #endif
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;

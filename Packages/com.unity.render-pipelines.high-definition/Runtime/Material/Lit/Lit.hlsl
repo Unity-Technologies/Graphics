@@ -585,6 +585,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     float encodedSpecularOcclusion = surfaceData.specularOcclusion;
 #endif
 
+    // Remove SSS in case the mask is 0
+    if (surfaceData.subsurfaceMask == 0)
+        surfaceData.materialFeatures &= ~(MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING);
+
     // Ensure that surfaceData.coatMask is 0 if the feature is not enabled
     // Warning: overriden by Translucent if using a transmission tint
     float coatMask = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? surfaceData.coatMask : 0.0;
@@ -909,13 +913,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         SSSData sssData;
         float transmissionMask;
 
-        #ifdef DEBUG_DISPLAY
-        // Note that we don't use sssData.subsurfaceMask here. But it is still assign so we can have
-        // the information in the material debug view.
         UnpackFloatInt8bit(inGBuffer0.a, 16, sssData.subsurfaceMask, sssData.diffusionProfileIndex);
-        #else
-        sssData.subsurfaceMask = 0.0f; // Initialize to prevent compiler error, but value is never used
-        #endif
 
         // We read profile from G-Buffer 2 so the compiler can optimize away the read from the G-Buffer 0 to the very end (in PostEvaluateBSDF)
         // When using translucency, we exchange diffusion profile and coat mask

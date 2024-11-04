@@ -1385,6 +1385,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 || !serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue))
             {
                 ++EditorGUI.indentLevel;
+
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.subsurfaceScatteringBorderAttenuation, Styles.subsurfaceScatteringBorderAttenuation);
+
                 serialized.renderPipelineSettings.sssSampleBudget.ValueGUI<int>(Styles.sssSampleBudget);
 
                 EditorGUI.BeginChangeCheck();

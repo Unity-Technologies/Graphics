@@ -22,6 +22,24 @@ For HDRP to detect it, you must add it to the **Diffusion Profile List** of the 
 
 Refer to [Diffusion Profile reference](diffusion-profile-reference.md) for more information.
 
+### Subsurface border attenuation
+
+HDRP includes support for an approximation of occlusion in Subsurface Scattering (SSS), referred to as **Border Attenuation**. When enabled, **Border Attenuation** darkens the Subsurface Scattering effect near the borders of an object. A border is defined as an area where the material transitions to another material without Subsurface Scattering or to a material with a different diffusion profile.
+
+To enable **Border Attenuation**, in the HDRP asset go in the Material Section, under the Subsurface scattering toggle, enable **Support Border Attenuation**.
+
+#### Use cases
+
+Border Attenuation is particularly useful when working with diffusion profiles that have a large radius. It enhances detail in the light simulation, making it especially beneficial for rendering complex surfaces like eyes, which typically present challenges for Subsurface Scattering.
+
+#### Performances
+
+Enabling Border Attenuation incurs a minor performance cost on the GPU. This cost scales linearly with the number of samples used in the Subsurface Scattering process.
+
+#### Border Attenuation Color
+
+When border attenuation is enabled, a new option is available in the diffusion profile allowing you to specify the color for samples that hit the border. This simulates the effect of light being transmitted from one surface to another through Subsurface Scattering. It only affects Subsurface Scattering when two materials with different diffusion profiles are adjacent to each other.
+
 ## Add subsurface scattering to a Material
 
 To add subsurface scattering to a Material:
