@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetRenderTarget(cmd,
                     colorAttachmentHandle, RenderBufferLoadAction.Load, initialStoreAction,
                     depthAttachmentHandle, RenderBufferLoadAction.Load, initialStoreAction,
-                    ClearFlag.None, Color.clear);
+                    GetCameraClearFlag(renderingData.cameraData), Color.clear);
 
                 for (var i = startIndex; i < startIndex + batchesDrawn; i++)
                 {
@@ -415,7 +415,7 @@ namespace UnityEngine.Rendering.Universal
                     CoreUtils.SetRenderTarget(cmd,
                         colorAttachmentHandle, RenderBufferLoadAction.Load, storeAction,
                         depthAttachmentHandle, RenderBufferLoadAction.Load, storeAction,
-                        ClearFlag.None, Color.clear);
+                        GetCameraClearFlag(renderingData.cameraData), Color.clear);
 
                     cmd.SetGlobalColor(k_RendererColorID, Color.white);
 
@@ -455,6 +455,16 @@ namespace UnityEngine.Rendering.Universal
             RendererList objectsWithErrorRendererList = RendererList.nullRendererList;
             RenderingUtils.CreateRendererListObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None, ref objectsWithErrorRendererList);
             RenderingUtils.DrawRendererListObjectsWithError(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), ref objectsWithErrorRendererList);
+        }
+
+        ClearFlag GetCameraClearFlag(CameraData cameraData)
+        {
+            if (Application.platform != RuntimePlatform.OSXEditor &&
+                (cameraData.camera.clearFlags == CameraClearFlags.Skybox ||
+                cameraData.camera.clearFlags == CameraClearFlags.Nothing))
+                return ClearFlag.Color;
+
+            return ClearFlag.None;
         }
 
         Renderer2DData IRenderPass2D.rendererData

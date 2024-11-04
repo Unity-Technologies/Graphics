@@ -359,6 +359,9 @@ namespace UnityEngine.Rendering.Universal
 
                 m_CreateColorTexture = baseRenderer.m_CreateColorTexture;
                 m_CreateDepthTexture = baseRenderer.m_CreateDepthTexture;
+
+                commonResourceData.activeColorID = m_CreateColorTexture ? ActiveID.Camera : ActiveID.BackBuffer;
+                commonResourceData.activeDepthID = m_CreateDepthTexture ? ActiveID.Camera : ActiveID.BackBuffer;
             }
 
             ImportResourceSummary importSummary = GetImportResourceSummary(renderGraph, cameraData);
