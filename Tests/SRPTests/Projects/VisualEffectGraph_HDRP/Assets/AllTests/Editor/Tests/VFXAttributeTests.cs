@@ -222,6 +222,30 @@ namespace UnityEditor.VFX.Test
             return CheckCustomAttributeName<VFXAttributeParameter>(name);
         }
 
+        [Test, Description("Cover regression UUM_83849")]
+        public void Sanitize_Custom_Attribute_With_Same_Name_As_BuiltIn()
+        {
+            var kSourceAsset = "Assets/AllTests/Editor/Tests/Repro_UUM_83849.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+            Assert.IsNotNull(graph);
+
+            var initialize = graph.GetGraph().children.OfType<VFXBasicInitialize>().Single();
+            Assert.IsNotNull(initialize);
+
+            Assert.AreEqual(5u, initialize.children.Count());
+            Assert.AreEqual(5u, initialize.children.OfType<SetAttribute>().Count());
+            var sizeExpected = (string)initialize.children.First().GetSetting("attribute").value;
+            var customExpected = (string)initialize.children.Last().GetSetting("attribute").value;
+            Assert.AreEqual(VFXAttribute.Size.name, sizeExpected);
+            Assert.AreEqual("Seed_1", customExpected);
+
+            var customAttribute = graph.customAttributes.SingleOrDefault(o => o.attributeName == customExpected);
+            Assert.IsNotNull(customAttribute);
+
+            var getAttributeOp = graph.GetGraph().children.OfType<VFXAttributeParameter>().Single();
+            Assert.AreEqual("Seed_1", getAttributeOp.attribute);
+        }
+
         private string CheckCustomAttributeName<T>(string name) where T : VFXModel
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();

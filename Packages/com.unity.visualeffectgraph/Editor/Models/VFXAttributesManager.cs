@@ -403,17 +403,12 @@ namespace UnityEditor.VFX
         {
             name = MakeValidName(name);
 
-            if (TryFind(name, out var existingAttribute))
+            if (TryFindExistingAttributeOrCreate(name, CustomAttributeUtility.GetValueType(type), out newAttribute))
             {
-                if (existingAttribute.type == CustomAttributeUtility.GetValueType(type))
-                {
-                    newAttribute = existingAttribute;
-                    return false;
-                }
-                name = FindUniqueName(name);
+                return false;
             }
 
-            newAttribute = new VFXAttribute(name, CustomAttributeUtility.GetValueType(type), description);
+            newAttribute.description = description;
             m_CustomAttributes.Add(newAttribute);
             return true;
         }
@@ -473,6 +468,31 @@ namespace UnityEditor.VFX
             return VFXParameterController.MakeNameUnique(name, existingNames, false);
         }
 
+
+        private bool TryFindExistingAttributeOrCreate(string name, VFXValueType type, out VFXAttribute attribute)
+        {
+            if (TryFind(name, out attribute))
+            {
+                if (attribute.type == type)
+                {
+                    return true;
+                }
+
+                var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true));
+                var rejectedCandidateNames = new List<string>();
+                name = VFXParameterController.MakeNameUnique(name, existingNames, false, rejectedCandidateNames);
+                foreach (var candidateName in rejectedCandidateNames)
+                {
+                    if (TryFind(candidateName, out attribute) && attribute.type == type)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            attribute = new VFXAttribute(name, type, null);
+            return false;
+        }
 
         private string MakeValidName(string name)
         {
