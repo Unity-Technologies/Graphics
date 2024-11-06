@@ -1707,7 +1707,7 @@ namespace UnityEngine.Rendering
                 Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)WorldToViewport(cam, !isDirLight, isCameraRelative, viewProjMatrix, positionWS + cam.transform.up * adjustedOcclusionRadius);
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
 
-                if (comp.useOcclusion)
+                if (comp.useOcclusion && occlusionRT != null)
                 {
                     cmd.SetGlobalTexture(_FlareOcclusionTex, occlusionRT);
                     cmd.EnableShaderKeyword("FLARE_HAS_OCCLUSION");
