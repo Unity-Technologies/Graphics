@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 
+using UnityEditor.VFX.Block;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -68,13 +69,13 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXValueType.Float3, hlslExpression.valueType);
 
             var function = CustomHLSLBlockTest.GetFunction(hlslOperator);
-            var expectedCode = $"float3 {function.GetNameWithHashCode()}(in float4x4 mat, in float3 vec)\r\n" +
+            var expectedCode = $"float3 {function.GetNameWithHashCode(CustomHLSL.ReturnFunctionSuffix)}(in float4x4 mat, in float3 vec)\r\n" +
                                "{\n" +
                                "    return mat * vec;\n" +
                                "}\r\n" +
-                               $"float3 {function.GetNameWithHashCode()}_Wrapper_Return(float4x4 mat, float3 vec)\r\n" +
+                               $"float3 {function.GetNameWithHashCode(CustomHLSL.ReturnFunctionSuffix)}_Wrapper(float4x4 mat, float3 vec)\r\n" +
                                "{\r\n" +
-                               "\tfloat3 var_2 = 	Transform_65810E99(mat, vec);\r\n" +
+                               $"\tfloat3 var_2 = 	Transform_65810E99_{CustomHLSL.ReturnFunctionSuffix}(mat, vec);\r\n" +
                                "\treturn var_2;\r\n" +
                                "}\r\n";
             Assert.AreEqual(expectedCode, hlslExpression.customCode);
@@ -106,7 +107,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(VFXExpressionOperation.None, hlslExpression.operation);
             Assert.AreEqual(VFXValueType.Float3, hlslExpression.valueType);
-            var expectedGeneratedCode = "float3 Transform_Wrapper_Return(float4x4 mat, float3 vec)\r\n" +
+            var expectedGeneratedCode = "float3 Transform_Wrapper(float4x4 mat, float3 vec)\r\n" +
                                         "{\r\n" +
                                         "\tfloat3 var_2 = \tTransform(mat, vec);\r\n" +
                                         "\treturn var_2;\r\n" +
@@ -794,7 +795,7 @@ float3 DummyFunction()
             void Check_Multiple_Usage_Buffer_Sanity_Check(string source)
             {
                 Assert.IsTrue(source.Contains("ByteAddressBuffer buffer_a;"));
-                Assert.IsTrue(source.Contains("StructuredBuffer<uint> buffer_b;"));
+                Assert.IsTrue(source.Contains("StructuredBuffer<uint> _buffer_b;"));
                 Assert.IsTrue(Regex.IsMatch(source, "void mySamplingOfUAV_In_Block_.*\\(inout VFXAttributes attributes, in ByteAddressBuffer buffer\\)"));
                 Assert.IsTrue(Regex.IsMatch(source, "void myOtherSamplingOfStructured_In_Block_.*\\(inout VFXAttributes attributes, in StructuredBuffer<uint> buffer\\)"));
                 Assert.IsTrue(Regex.IsMatch(source, "float mySamplingOfUAV_In_Operator_.*\\(in ByteAddressBuffer buffer\\)"));
@@ -812,7 +813,7 @@ float3 DummyFunction()
             Assert.IsNotNull(sourceEdition);
 
             vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Runtime);
-            yield return null; 
+            yield return null;
 
             var sourceRuntime = Check_Multiple_Usage_Buffer_Get_Source(vfx);
             Assert.IsNotNull(sourceRuntime);
@@ -921,6 +922,35 @@ float3 DummyFunction()
             }
 
             yield return null;
+        }
+
+        [UnityTest, Description("Cover UUM-83676")]
+        public IEnumerator Check_CustomHLSL_Operator_Multiple_Out_Parameters()
+        {
+            // Arrange
+            var hlslCode =
+                "void Transform(out float first, out float second)" + "\n" +
+                "{" + "\n" +
+                "    first = 1;" + "\n" +
+                "    second = 2;" + "\n" +
+                "}";
+
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
+
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+            var initializeContext = graph.children.OfType<VFXBasicInitialize>().Single();
+            var setPositionBlock = initializeContext.children.Single();
+            yield return null;
+
+            setPositionBlock.inputSlots[0][0][0].Link(hlslOperator.outputSlots[0]);
+            setPositionBlock.inputSlots[0][0][1].Link(hlslOperator.outputSlots[1]);
+            view.graphView.controller.ApplyChanges();
+
+            foreach (var y in VFXTestCommon.CheckCompilation(graph))
+            {
+                yield return y;
+            }
         }
 
         private VFXExpression[] CallBuildExpression(CustomHLSL hlslOperator, VFXExpression[] parentExpressions)
