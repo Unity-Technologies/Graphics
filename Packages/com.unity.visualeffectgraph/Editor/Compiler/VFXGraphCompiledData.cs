@@ -826,6 +826,7 @@ namespace UnityEditor.VFX
             Profiler.BeginSample("VFXEditor.GenerateShaders");
             try
             {
+                var codeGeneratorCache = new VFXCodeGenerator.Cache();
                 var errorMessage = new StringBuilder();
                 foreach (var context in contexts)
                 {
@@ -846,7 +847,7 @@ namespace UnityEditor.VFX
 
                         if (task.doesGenerateShader)
                         {
-                            var generatedContent = VFXCodeGenerator.Build(context, task, compilationMode, contextData, dependencies, enableShaderDebugSymbols, out var errors);
+                            var generatedContent = VFXCodeGenerator.Build(context, task, compilationMode, contextData, dependencies, enableShaderDebugSymbols, codeGeneratorCache, out var errors);
                             if (generatedContent != null && generatedContent.Length > 0)
                             {
                                 contextData.indexInShaderSource = outGeneratedCodeData.Count;

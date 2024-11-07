@@ -21,10 +21,9 @@ Pass
     #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
     #endif
 	#pragma multi_compile _ DEBUG_DISPLAY
-	//#pragma enable_d3d11_debug_symbols
 
 	${VFXIncludeRP("VFXLitVaryings.template")}
-	${VFXIncludeRP("VFXVertexProbeSampling.template"),VFX_MATERIAL_TYPE_SIX_WAY_SMOKE}
+	${VFXIncludeRP("VFXSixWayIncludes.template"),VFX_MATERIAL_TYPE_SIX_WAY_SMOKE}
 
 	struct ps_input
 	{

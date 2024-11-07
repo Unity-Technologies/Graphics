@@ -110,7 +110,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
 
 		VFXAttributes attributes = (VFXAttributes)0;
 		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
-		${VFXLoadAttributes:{alive}}
+		${VFXLoadAttributes}
 #if HAS_STRIPS
         // For strips, we need to render the entire strip, even if some particles are dead.
         const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
@@ -121,7 +121,6 @@ void CSMain(uint3 groupId		: SV_GroupID,
 		if (attributes.alive)
 #endif
 		{
-			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 			${VFXProcessBlocks}
 
 #if !HAS_STRIPS

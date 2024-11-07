@@ -10,8 +10,8 @@ Pass
     ${VFXPassForwardLitAdditionalPragma}
     ${VFXURPForwardDefines}
 
-    ${VFXIncludeRP("VFXLitVaryings.template")}
 	${VFXIncludeRP("VFXVertexProbeSampling.template"),VFX_MATERIAL_TYPE_SIX_WAY_SMOKE}
+    ${VFXIncludeRP("VFXLitVaryings.template")}
 
     struct ps_input
     {

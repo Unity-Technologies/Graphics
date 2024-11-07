@@ -12,7 +12,7 @@
 #endif
 
 #if defined(VFX_MATERIAL_TYPE_SIX_WAY_SMOKE) && (SHADERPASS == SHADERPASS_FORWARD)
-//Do nothing. In Six-way lighting forward pass, these includes are required earlier, defined in VFXVertexProbeSampling.template
+//Do nothing. In Six-way lighting forward pass, these includes are required earlier, defined in VFXSixWayIncludes.template
 #else
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 

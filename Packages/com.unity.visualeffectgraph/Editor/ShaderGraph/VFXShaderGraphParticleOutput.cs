@@ -284,7 +284,7 @@ namespace UnityEditor.VFX
                 var shaderGraph = GetOrRefreshShaderGraphObject();
                 if (shaderGraph != null && !shaderGraph.generatesWithShaderGraph)
                 {
-                    foreach (var def in VFXOldShaderGraphHelpers.GetAdditionalDefinesGetAdditionalReplacement(shaderGraph, currentRP, graphCodes))
+                    foreach (var def in VFXOldShaderGraphHelpers.GetAdditionalDefinesGetAdditionalReplacement(shaderGraph, currentRP, graphCodes, taskType == VFXTaskType.ParticleMeshOutput))
                         yield return def;
                 }
             }

@@ -99,4 +99,4 @@ ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 
 ${VFXInclude("Shaders/ParticleMeshes/Pass.template")}
-${VFXPassDepthCommonFragmentLit}
+${VFXIncludeRP("Templates/VFXPassDepthCommonFragmentLit.template")}
