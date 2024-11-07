@@ -181,7 +181,7 @@ namespace UnityEditor.VFX
                                         m_GraphicsBufferTypeUsagePerContext.Add(context, usages);
                                     }
 
-                                    var usage = expressionBufferWithTypeCollection.Key.usage;
+                                    var usage = expressionBufferWithTypeCollection.Key.Type;
                                     var buffer = expressionBufferWithTypeCollection.Key.parents[0];
                                     if (!usages.TryAdd(buffer, usage) && usages[buffer] != usage)
                                     {
@@ -321,7 +321,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (input.valueType == VFXValueType.Buffer && input is VFXExpressionBufferWithType bufferWithType)
+                if (input is VFXExpressionBufferWithType bufferWithType)
                 {
                     input = input.parents[0]; //Explicitly skip NoOp expression
                 }
@@ -426,14 +426,13 @@ namespace UnityEditor.VFX
             }
 
             public IEnumerable<VFXExpression> RegisteredExpressions => m_EndExpressions.Keys;
-
-            public Dictionary<VFXContext, Dictionary<VFXExpression, BufferUsage>> GraphicsBufferTypeUsagePerContext => m_GraphicsBufferTypeUsagePerContext;
+            public Dictionary<VFXContext, Dictionary<VFXExpression, BufferType>> GraphicsBufferTypeUsagePerContext => m_GraphicsBufferTypeUsagePerContext;
 
             public Dictionary<VFXContext, List<IHLSLCodeHolder>> hlslCodeHoldersPerContext => m_HLSLCollectionPerContext;
 
-            private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new ();
+            private Dictionary<VFXExpression, VFXExpression> m_ReducedCache = new();
             private Dictionary<VFXExpression, HashSet<VFXContext>> m_EndExpressions = new ();
-            private Dictionary<VFXContext, Dictionary<VFXExpression, BufferUsage>> m_GraphicsBufferTypeUsagePerContext = new ();
+            private Dictionary<VFXContext, Dictionary<VFXExpression, BufferType>> m_GraphicsBufferTypeUsagePerContext = new ();
 
             private IEnumerable<VFXLayoutElementDesc> m_GlobalEventAttribute;
             private VFXExpressionContextOption m_ReductionOptions;

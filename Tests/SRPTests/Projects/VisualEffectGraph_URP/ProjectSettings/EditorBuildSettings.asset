@@ -87,6 +87,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/026_RWBuffer.unity
     guid: 6ae9549c79226fb458d7fec09ac258df
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/027_RWTexture.unity
+    guid: 3c54816ebc5cdcc448210af3594252cb
+  - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   - enabled: 1

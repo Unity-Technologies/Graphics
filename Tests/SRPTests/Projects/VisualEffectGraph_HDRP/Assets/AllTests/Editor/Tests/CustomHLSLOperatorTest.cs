@@ -600,34 +600,6 @@ float3 DummyFunction()
             Assert.IsTrue(found, "Unable to find matching include in generated code.");
         }
 
-        public static Array k_Invalid_Texture_Type = new string[] { "Texture2D", "Texture3D", "TextureCube", "Texture2DArray" };
-
-        [UnityTest]
-        public IEnumerator Check_CustomHLSL_Operator_WrongTexture_Type_Used([ValueSource(nameof(k_Invalid_Texture_Type))] string textureType)
-        {
-            // Arrange
-            var paramName = "texture";
-            var hlslCode =
-                $"float3 Transform(in {textureType} {paramName})" + "\n" +
-                "{" + "\n" +
-                "    return float3(0, 0, 0);" + "\n" +
-                "}";
-            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
-            hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
-
-            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
-            yield return null;
-
-            // Act
-            graph.errorManager.GenerateErrors();
-
-            // Assert
-            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslOperator).First(x => x.model == hlslOperator);
-            Assert.IsNotNull(report);
-            Assert.AreEqual(VFXErrorType.Error, report.type);
-            Assert.IsTrue(report.description.StartsWith($"The function parameter '{paramName}' is of type {textureType}.\nPlease use VFXSampler"));
-        }
-
         [UnityTest]
         public IEnumerator Check_CustomHLSL_Operator_Unsupported_Attributes()
         {
@@ -747,7 +719,16 @@ float3 DummyFunction()
             new() { declaration = $"StructuredBuffer<{nameof(CustomHLSLOperatorTestType)}>", implementation = "localValue = inputBuffer[0].position;" },
             new() { declaration = "StructuredBuffer<uint3>", implementation = "localValue = asfloat(inputBuffer[0]);" },
             new() { declaration = "StructuredBuffer<float3>", implementation = "localValue = inputBuffer[0];" },
-            new() { declaration = "RWStructuredBuffer<float3>", implementation = "inputBuffer[0].x += 0.0f; localValue = inputBuffer[0];" }
+            new() { declaration = "RWStructuredBuffer<float3>", implementation = "inputBuffer[0].x += 0.0f; localValue = inputBuffer[0];" },
+
+            new() { declaration = "RWTexture2D<uint>", implementation = "InterlockedAdd(inputBuffer[(int2)0], 1u); localValue = 0.1f;" },
+            new() { declaration = "RWTexture2D<float3>", implementation = "inputBuffer[(int2)0].xyz = (float3)1.0f; localValue = 0.1f;" },
+            new() { declaration = "Texture2D<float3>", implementation = "localValue = inputBuffer[(int2)0].rgb;" },
+            new() { declaration = "Texture2D", implementation = "localValue = inputBuffer[(int2)0].rgb;" },
+
+            new() { declaration = "RWTexture1D<uint>", implementation = "inputBuffer[0] = 1u; localValue = 0.1f;" },
+            //new() { declaration = "RWTexture1DArray<float>", implementation = "inputBuffer[(uint2)0] = 0u; localValue = 0.1f;" }, (see UUM-64315)
+            new() { declaration = "Texture1D", implementation = "localValue = inputBuffer[(uint)0];" }
         };
 
         [UnityTest]
@@ -774,7 +755,8 @@ float3 DummyFunction()
             Assert.IsTrue(blockAttribute.inputSlots[0].Link(hlslOperator.outputSlots[0]));
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            yield return null;
+            for (int i = 0; i < 4; ++i)
+                yield return null;
         }
 
         [UnityTest, Description("Repro case UUM-66018")]

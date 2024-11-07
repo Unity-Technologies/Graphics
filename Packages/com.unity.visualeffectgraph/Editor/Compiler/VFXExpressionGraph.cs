@@ -289,14 +289,14 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXLayoutElementDesc> GlobalEventAttributes => m_GlobalEventAttributes;
 
-        public ReadOnlyDictionary<VFXExpression, BufferUsage> GetBufferTypeUsage(VFXContext context)
+        public ReadOnlyDictionary<VFXExpression, BufferType> GetBufferUsage(VFXContext context)
         {
             if (m_BufferTypeUsagePerContext.TryGetValue(context, out var bufferTypeUsage))
             {
-                return new ReadOnlyDictionary<VFXExpression, BufferUsage>(bufferTypeUsage);
+                return new ReadOnlyDictionary<VFXExpression, BufferType>(bufferTypeUsage);
             }
 
-            return new ReadOnlyDictionary<VFXExpression, BufferUsage>(new Dictionary<VFXExpression, BufferUsage>());
+            return new ReadOnlyDictionary<VFXExpression, BufferType>(new Dictionary<VFXExpression, BufferType>());
         }
 
         public IHLSLCodeHolder[] GetCustomHLSLExpressions(VFXContext context)
@@ -309,7 +309,7 @@ namespace UnityEditor.VFX
         }
 
         private Dictionary<VFXContext, List<IHLSLCodeHolder>> m_CustomHLSLExpressionsPerContext = new();
-        private Dictionary<VFXContext, Dictionary<VFXExpression, BufferUsage>> m_BufferTypeUsagePerContext = new();
+        private Dictionary<VFXContext, Dictionary<VFXExpression, BufferType>> m_BufferTypeUsagePerContext = new();
         private HashSet<VFXExpression> m_Expressions = new HashSet<VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_CPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();
         private Dictionary<VFXExpression, VFXExpression> m_GPUExpressionsToReduced = new Dictionary<VFXExpression, VFXExpression>();

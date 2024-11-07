@@ -11,29 +11,42 @@ namespace UnityEditor.VFX
         string m_FunctionName;
         VFXValueType m_ValueType;
         string m_HlslCode;
-        List<int> m_TextureParentExpressionIndex;
+        int[] m_TextureSamplerParentExpressionIndex;
         string[] m_Includes;
 
         public VFXExpressionHLSL() : this(string.Empty, string.Empty, VFXValueType.None, new [] { VFXValue<int>.Default }, Array.Empty<string>())
         {
         }
 
+        public VFXExpressionHLSL(string functionName, string hlslCode, System.Type returnType, VFXExpression[] parents, string[] includes) : this(functionName, hlslCode, GetVFXValueTypeFromType(returnType), parents, includes)
+        {
+        }
+
         public VFXExpressionHLSL(string functionName, string hlslCode, VFXValueType returnType, VFXExpression[] parents, string[] includes) : base(Flags.InvalidOnCPU, parents)
         {
-            this.m_TextureParentExpressionIndex = new List<int>();
             this.m_FunctionName = functionName;
             this.m_ValueType = returnType;
             this.m_HlslCode = hlslCode;
             this.m_Includes = includes;
-        }
 
-        public VFXExpressionHLSL(string functionName, string hlslCode, System.Type returnType, VFXExpression[] parents, string[] includes) : base(Flags.InvalidOnCPU, parents)
-        {
-            this.m_TextureParentExpressionIndex = new List<int>();
-            this.m_FunctionName = functionName;
-            this.m_ValueType = GetVFXValueTypeFromType(returnType);
-            this.m_HlslCode = hlslCode;
-            this.m_Includes = includes;
+            List<int> samplerExpression = null;
+            for (int i = 0; i < parents.Length; i++)
+            {
+                if (parents[i] is not VFXExpressionBufferWithType && IsTexture(parents[i].valueType))
+                {
+                    samplerExpression ??= new List<int>();
+                    samplerExpression.Add(i);
+                }
+            }
+
+            if (samplerExpression != null)
+            {
+                this.m_TextureSamplerParentExpressionIndex = samplerExpression.ToArray();
+            }
+            else
+            {
+                this.m_TextureSamplerParentExpressionIndex = Array.Empty<int>();
+            }
         }
 
         public override VFXValueType valueType => m_ValueType;
@@ -84,27 +97,18 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
-            m_TextureParentExpressionIndex.Clear();
-            for (int i = 0; i < reducedParents.Length; i++)
-            {
-                if (IsTexture(reducedParents[i].valueType))
-                {
-                    m_TextureParentExpressionIndex.Add(i);
-                }
-            }
-
             var newExpression = (VFXExpressionHLSL)base.Reduce(reducedParents);
             newExpression.m_FunctionName = m_FunctionName;
             newExpression.m_ValueType = m_ValueType;
             newExpression.m_HlslCode = m_HlslCode;
-            newExpression.m_TextureParentExpressionIndex = new List<int>(m_TextureParentExpressionIndex);
+            newExpression.m_TextureSamplerParentExpressionIndex = (int[])m_TextureSamplerParentExpressionIndex.Clone();
             newExpression.m_Includes = (string[])m_Includes.Clone();
             return newExpression;
         }
 
         public sealed override string GetCodeString(string[] parentsExpressions)
         {
-            foreach (var index in m_TextureParentExpressionIndex)
+            foreach (var index in m_TextureSamplerParentExpressionIndex)
             {
                 var expression = parentsExpressions[index];
                 parentsExpressions[index] = $"VFX_SAMPLER({expression})";

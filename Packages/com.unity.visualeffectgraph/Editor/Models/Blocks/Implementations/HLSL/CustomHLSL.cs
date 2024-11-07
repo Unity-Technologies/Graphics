@@ -121,15 +121,34 @@ namespace UnityEditor.VFX.Block
             {
                 foreach (var expression in base.parameters)
                 {
-                    if (expression.exp is VFXGraphicsBufferValue bufferExpression)
+                    if (VFXExpression.IsTexture(expression.exp.valueType))
                     {
-                        var usage = new BufferUsage();
+                        var property = m_Properties.Find(x => x.property.name == expression.name);
+                        bool expressionWithUsage = false;
+                        foreach (var attribute in property.property.attributes.attributes)
+                        {
+                            if (attribute is BufferTypeUsageAttribute bufferTypeUsage)
+                            {
+                                var newExpressionWithUsage = new VFXExpressionBufferWithType(bufferTypeUsage.Type, expression.exp);
+                                expressionWithUsage = true;
+                                yield return new VFXNamedExpression(newExpressionWithUsage, expression.name);
+                                break;
+                            }
+                        }
+
+                        //Binding texture without usage is allowed
+                        if (!expressionWithUsage)
+                            yield return expression;
+                    }
+                    else if (expression.exp is VFXGraphicsBufferValue)
+                    {
+                        var usage = new BufferType();
                         var property = m_Properties.Find(x => x.property.name == expression.name);
                         foreach (var attribute in property.property.attributes.attributes)
                         {
-                            if (attribute is GraphicsBufferUsageAttribute graphicsBufferUsage)
+                            if (attribute is BufferTypeUsageAttribute bufferTypeUsage)
                             {
-                                usage = graphicsBufferUsage.usage;
+                                usage = bufferTypeUsage.Type;
                                 break;
                             }
                         }
@@ -351,9 +370,9 @@ namespace UnityEditor.VFX.Block
         private VFXPropertyWithValue CreateProperty(HLSLFunctionParameter parameter)
         {
             var propertyAttributes = new List<object>();
-            if (parameter.bufferUsage.valid)
+            if (parameter.bufferType.valid)
             {
-                propertyAttributes.Add(new GraphicsBufferUsageAttribute(parameter.bufferUsage));
+                propertyAttributes.Add(new BufferTypeUsageAttribute(parameter.bufferType));
             }
 
             if (!string.IsNullOrEmpty(parameter.tooltip))

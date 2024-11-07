@@ -34,19 +34,6 @@ namespace UnityEditor.VFX.Operator
                 functionsFound[f] = count + 1;
             }
 
-            foreach (var input in selectedFunction.inputs)
-            {
-                if (input.access is HLSLAccess.IN or HLSLAccess.INOUT &&
-                    input.rawType is "Texture2D" or "Texture3D" or "TextureCube" or "Texture2DArray")
-                {
-                    yield return new HLSLWrongHLSLTextureType(input.rawType, input.name);
-                }
-                if (input.rawType is "TextureCubeArray" or "VFXSamplerCubeArray")
-                {
-                    yield return new HLSLTextureCubeArrayNotSupported(input.name);
-                }
-            }
-
             foreach (var message in selectedFunction.inputs)
             {
                 if (message.errors != null)
@@ -293,24 +280,28 @@ namespace UnityEditor.VFX.Operator
             // Specifically handle buffers to specify the templated type
             for (int i = 0; i < inputExpression.Length; i++)
             {
-                if (inputExpression[i] is VFXGraphicsBufferValue bufferExpression)
+                if (VFXExpression.IsTexture(inputExpression[i].valueType))
                 {
                     foreach (var attribute in m_InputProperties[i].property.attributes.attributes)
                     {
-                        if (attribute is GraphicsBufferUsageAttribute graphicsBufferUsageAttribute)
+                        if (attribute is BufferTypeUsageAttribute bufferTypeUsageAttribute)
                         {
-                            if (!graphicsBufferUsageAttribute.usage.valid)
-                                throw new InvalidOperationException("Unexpected invalid GraphicsBufferUsageAttribute");
-
-                            var expressionBufferWithType = new VFXExpressionBufferWithType(graphicsBufferUsageAttribute.usage, bufferExpression);
+                            var expressionBufferWithType = new VFXExpressionBufferWithType(bufferTypeUsageAttribute.Type, inputExpression[i]);
                             inputExpression[i] = expressionBufferWithType;
                             break;
                         }
                     }
-
-                    if (!(inputExpression[i] is VFXExpressionBufferWithType))
+                }
+                else if (inputExpression[i] is VFXGraphicsBufferValue bufferExpression)
+                {
+                    foreach (var attribute in m_InputProperties[i].property.attributes.attributes)
                     {
-                        throw new InvalidOperationException("Unexpected missing GraphicsBufferUsageAttribute");
+                        if (attribute is BufferTypeUsageAttribute bufferUsageAttribute)
+                        {
+                            var expressionBufferWithType = new VFXExpressionBufferWithType(bufferUsageAttribute.Type, bufferExpression);
+                            inputExpression[i] = expressionBufferWithType;
+                            break;
+                        }
                     }
                 }
             }
@@ -451,9 +442,9 @@ namespace UnityEditor.VFX.Operator
         private VFXPropertyWithValue CreateProperty(HLSLFunctionParameter parameter)
         {
             var propertyAttributes = new List<object>();
-            if (parameter.bufferUsage.valid)
+            if (parameter.bufferType.valid)
             {
-                propertyAttributes.Add(new GraphicsBufferUsageAttribute(parameter.bufferUsage));
+                propertyAttributes.Add(new BufferTypeUsageAttribute(parameter.bufferType));
             }
 
             if (!string.IsNullOrEmpty(parameter.tooltip))

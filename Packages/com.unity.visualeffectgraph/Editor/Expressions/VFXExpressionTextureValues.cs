@@ -152,7 +152,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    struct BufferUsage : IEquatable<BufferUsage>
+    struct BufferType : IEquatable<BufferType>
     {
         public enum Container
         {
@@ -163,9 +163,22 @@ namespace UnityEditor.VFX
             Buffer,
             RWBuffer,
             AppendStructuredBuffer,
-            ConsumeStructuredBuffer
+            ConsumeStructuredBuffer,
 
-            //Can be extended to integrate RWTexture2D here
+            Texture1D,
+            Texture2D,
+            Texture3D,
+            TextureCube,
+            Texture1DArray,
+            Texture2DArray,
+            TextureCubeArray,
+            RWTexture1D,
+            RWTexture2D,
+            RWTexture3D,
+            RWTextureCube,
+            RWTexture1DArray,
+            RWTexture2DArray,
+            RWTextureCubeArray,
         }
 
         public Container container { get; private set; }
@@ -173,21 +186,21 @@ namespace UnityEditor.VFX
         public string verbatimType { get; private set; }
         public bool valid => actualType != null;
 
-        public BufferUsage(Container container, string verbatimType, Type actualType)
+        public BufferType(Container container, string verbatimType, Type actualType)
         {
             this.container = container;
             this.actualType = actualType;
             this.verbatimType = verbatimType;
         }
 
-        public bool Equals(BufferUsage other)
+        public bool Equals(BufferType other)
         {
             return container == other.container && actualType == other.actualType && verbatimType == other.verbatimType;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is BufferUsage other && Equals(other);
+            return obj is BufferType other && Equals(other);
         }
 
         public override int GetHashCode()
@@ -195,20 +208,20 @@ namespace UnityEditor.VFX
             return HashCode.Combine(container, actualType, verbatimType);
         }
 
-        public static bool operator ==(BufferUsage lhs, BufferUsage rhs) => lhs.Equals(rhs);
-        public static bool operator !=(BufferUsage lhs, BufferUsage rhs) => !(lhs == rhs);
+        public static bool operator ==(BufferType lhs, BufferType rhs) => lhs.Equals(rhs);
+        public static bool operator !=(BufferType lhs, BufferType rhs) => !(lhs == rhs);
     }
 
 #pragma warning disable 0659
     sealed class VFXExpressionBufferWithType : VFXExpression
     {
-        public VFXExpressionBufferWithType() : this(new BufferUsage(), VFXValue<GraphicsBuffer>.Default)
+        public VFXExpressionBufferWithType() : this(new BufferType(), VFXValue<GraphicsBuffer>.Default)
         {
         }
 
-        public VFXExpressionBufferWithType(BufferUsage usage, VFXExpression graphicsBuffer) : base(Flags.None, new[] { graphicsBuffer })
+        public VFXExpressionBufferWithType(BufferType type, VFXExpression buffer) : base(Flags.None, new[] { buffer })
         {
-            this.usage = usage;
+            this.Type = type;
         }
 
         public override VFXExpressionOperation operation => VFXExpressionOperation.None;
@@ -218,7 +231,7 @@ namespace UnityEditor.VFX
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
         {
             var reduced = (VFXExpressionBufferWithType)base.Reduce(reducedParents);
-            reduced.usage = usage;
+            reduced.Type = Type;
             return reduced;
         }
 
@@ -230,7 +243,7 @@ namespace UnityEditor.VFX
 
         protected override int GetInnerHashCode()
         {
-            return HashCode.Combine(base.GetInnerHashCode(), usage.GetHashCode());
+            return HashCode.Combine(base.GetInnerHashCode(), Type.GetHashCode());
         }
 
         public override bool Equals(object obj)
@@ -242,10 +255,10 @@ namespace UnityEditor.VFX
             if (other == null)
                 return false;
 
-            return other.usage == usage;
+            return other.Type == Type;
         }
 
-        public BufferUsage usage { get; private set; }
+        public BufferType Type { get; private set; }
     }
 #pragma warning restore 0659
 }
