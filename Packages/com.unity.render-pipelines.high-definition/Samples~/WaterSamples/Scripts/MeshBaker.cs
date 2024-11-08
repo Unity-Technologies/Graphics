@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using System.IO;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class MeshBaker : MonoBehaviour
 {
@@ -188,6 +190,7 @@ public class MeshBaker : MonoBehaviour
     }
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(MeshBaker))]
 public class MeshBakerEditor : Editor
 {
@@ -206,3 +209,5 @@ public class MeshBakerEditor : Editor
         }
     }
 }
+
+#endif
