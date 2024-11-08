@@ -181,6 +181,12 @@ namespace UnityEditor.VFX
             return m_TransientData;
         }
 
+        internal void SetTransientData(VFXData data)
+        {
+            Debug.Assert(GetParent() == null, "SetTransientData should only be called on implicit blocks, that have no parents.");
+            m_TransientData = data;
+        }
+
         public override void RefreshErrors()
         {
             if (enabled)

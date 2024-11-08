@@ -742,5 +742,29 @@ namespace UnityEditor.VFX
         }
 
         public virtual IEnumerable<VFXExpression> instancingSplitCPUExpressions { get { return Enumerable.Empty<VFXExpression>(); } }
+
+        protected Dictionary<Type, VFXBlock> implicitBlockCache;
+
+        private void CreateImplicitBlockCacheIfNeeded()
+        {
+            implicitBlockCache ??= new Dictionary<Type, VFXBlock>();
+        }
+
+        protected T GetOrCreateImplicitBlock<T>(VFXData data) where T : VFXBlock
+        {
+            CreateImplicitBlockCacheIfNeeded();
+            if (implicitBlockCache.TryGetValue(typeof(T), out var block))
+            {
+                T typedBlock = block as T;
+                typedBlock.SetTransientData(data);
+                return typedBlock;
+            }
+            else
+            {
+                var newBlock = VFXBlock.CreateImplicitBlock<T>(data);
+                implicitBlockCache.Add(typeof(T), newBlock);
+                return newBlock;
+            }
+        }
     }
 }
