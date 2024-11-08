@@ -166,6 +166,11 @@ VFXContextUI #title #icon
     margin-right: 6px;
 }
 
+VFXContextUI #title #icon.Empty
+{
+    display: none;
+}
+
 VFXContextUI #header-space
 {
     position:absolute;
