@@ -1,6 +1,7 @@
 using System;
 using Unity.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
@@ -151,7 +152,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static bool useDynamicBranchFogKeyword => ShaderOptions.k_UseDynamicBranchFogKeyword == 1;
+        internal static bool UseDynamicBranchFogKeyword()
+        {
+            const string kMemberName = "k_UseDynamicBranchFogKeyword";
+            Type type = typeof(ShaderOptions);
+            MemberInfo[] memberInfo = type.GetMember(kMemberName);
+            if (memberInfo.Length == 0)
+                return false;
+            int value = (int)((FieldInfo)memberInfo[0]).GetValue(null);
+            return value == 1;
+        }
 
         // Match with values in Input.hlsl
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;

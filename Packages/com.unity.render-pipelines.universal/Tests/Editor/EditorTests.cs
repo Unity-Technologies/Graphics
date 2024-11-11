@@ -179,7 +179,7 @@ class EditorTests
         string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(shaderPathID));
         var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
         var keywordIdentifiers = new string[] { "FOG_EXP", "FOG_EXP2", "FOG_LINEAR" };
-        var dynamicBranchFogKeyword = UniversalRenderPipeline.useDynamicBranchFogKeyword;
+        var dynamicBranchFogKeyword = UniversalRenderPipeline.UseDynamicBranchFogKeyword();
 
         foreach (var identifier in keywordIdentifiers)
         {
