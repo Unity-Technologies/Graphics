@@ -33,3 +33,8 @@ To enable STP in the High Definition Render Pipeline (HDRP), do the following:
 3. Set **Dynamic Resolution Type** to **Hardware**.
 
 STP remains active when **Render Scale** is set to **1.0** as it applies temporal anti-aliasing (TAA) to the final rendered output.
+
+## Additional resources
+
+- [Introduction to changing resolution scale](https://docs.unity3d.com/6000.0/Documentation/Manual/resolution-scale-introduction.html)
+
