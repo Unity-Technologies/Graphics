@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.UIElements;
 using UnityEditorInternal;
@@ -362,8 +362,12 @@ namespace UnityEditor.Rendering
                         {
                             var attachmentFoldout = new Foldout();
 
+                            string subResourceText = string.Empty;
+                            if (attachmentInfo.attachment.mipLevel > 0) subResourceText += $" Mip:{attachmentInfo.attachment.mipLevel}";
+                            if (attachmentInfo.attachment.depthSlice > 0) subResourceText += $" Slice:{attachmentInfo.attachment.depthSlice}";
+
                             // Abuse Foldout to allow two-line header (same as above)
-                            attachmentFoldout.text = $"<b>{attachmentInfo.resourceName}</b><br>";
+                            attachmentFoldout.text = $"<b>{attachmentInfo.resourceName + subResourceText}</b><br>";
                             Label attachmentIndexLabel = new Label($"<br>Attachment #{attachmentInfo.attachmentIndex}");
                             attachmentIndexLabel.AddToClassList(Classes.kInfoFoldoutSecondaryText);
 
@@ -384,13 +388,13 @@ namespace UnityEditor.Rendering
 
                             attachmentFoldout.Add(new TextElement
                             {
-                                text = $"<b>Load action:</b> {attachmentInfo.loadAction}\n- {attachmentInfo.loadReason}"
+                                text = $"<b>Load action:</b> {attachmentInfo.attachment.loadAction}\n- {attachmentInfo.loadReason}"
                             });
 
                             bool addMsaaInfo = !string.IsNullOrEmpty(attachmentInfo.storeMsaaReason);
                             string resolvedTexturePrefix = addMsaaInfo ? "Resolved surface: " : "";
 
-                            string storeActionText = $"<b>Store action:</b> {attachmentInfo.storeAction}" +
+                            string storeActionText = $"<b>Store action:</b> {attachmentInfo.attachment.storeAction}" +
                                                      $"\n - {resolvedTexturePrefix}{attachmentInfo.storeReason}";
 
                             if (addMsaaInfo)
