@@ -96,6 +96,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
             colorBufferMaxIndex = -1;
             fragmentInputMaxIndex = -1;
             randomAccessResourceMaxIndex = -1;
+
+            // We do not need to clear colorBufferAccess and fragmentInputAccess as we have the colorBufferMaxIndex and fragmentInputMaxIndex
+            // which are reset above so we only clear depthAccess here.
+            depthAccess = default(TextureAccess);
         }
 
         // Check if the pass has any render targets set-up
