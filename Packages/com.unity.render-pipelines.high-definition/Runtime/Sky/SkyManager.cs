@@ -534,7 +534,6 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < m_CachedSkyContexts.size; ++i)
                 m_CachedSkyContexts[i].Cleanup();
 
-            m_StaticLightingSky.Cleanup();
             lightingOverrideVolumeStack.Dispose();
 
 #if UNITY_EDITOR
