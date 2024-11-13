@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private const int k_ShadowmapBufferBits = 16;
         private const string k_MainLightShadowMapTextureName = "_MainLightShadowmapTexture";
         private const string k_EmptyMainLightShadowMapTextureName = "_EmptyMainLightShadowmapTexture";
-        private static readonly Vector4 s_EmptyShadowParams = new (1, 0, 1, 0);
+        private static readonly Vector4 s_EmptyShadowParams = new (0f, 0f, 1f, 0f);
         private static readonly Vector4 s_EmptyShadowmapSize = new (k_EmptyShadowMapDimensions, 1f / k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions);
 
         // Classes
@@ -52,6 +52,22 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _ShadowOffset1 = Shader.PropertyToID("_MainLightShadowOffset1");
             public static readonly int _ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
             public static readonly int _MainLightShadowmapID = Shader.PropertyToID(k_MainLightShadowMapTextureName);
+        }
+
+        private class PassData
+        {
+            internal UniversalRenderingData renderingData;
+            internal UniversalCameraData cameraData;
+            internal UniversalLightData lightData;
+            internal UniversalShadowData shadowData;
+
+            internal MainLightShadowCasterPass pass;
+
+            internal TextureHandle shadowmapTexture;
+            internal bool emptyShadowmap;
+
+            internal RendererListHandle[] shadowRendererListsHandle = new RendererListHandle[k_MaxCascades];
+            internal RendererList[] shadowRendererLists = new RendererList[k_MaxCascades];
         }
 
         /// <summary>
@@ -201,9 +217,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_EmptyShadowmapNeedsClear = true;
 
                 if (!m_EmptyShadowmapNeedsClear)
-                {
                     return;
-                }
 
                 ConfigureTarget(m_EmptyMainLightShadowmapTexture);
                 m_EmptyShadowmapNeedsClear = false;
@@ -368,22 +382,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     invShadowAtlasHeight,
                     renderTargetWidth, renderTargetHeight));
             }
-        }
-
-        private class PassData
-        {
-            internal UniversalRenderingData renderingData;
-            internal UniversalCameraData cameraData;
-            internal UniversalLightData lightData;
-            internal UniversalShadowData shadowData;
-
-            internal MainLightShadowCasterPass pass;
-
-            internal TextureHandle shadowmapTexture;
-            internal bool emptyShadowmap;
-
-            internal RendererListHandle[] shadowRendererListsHandle = new RendererListHandle[k_MaxCascades];
-            internal RendererList[] shadowRendererLists = new RendererList[k_MaxCascades];
         }
 
         private void InitPassData(
