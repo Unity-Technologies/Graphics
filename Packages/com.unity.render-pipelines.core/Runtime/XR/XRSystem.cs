@@ -436,6 +436,9 @@ namespace UnityEngine.Experimental.Rendering
             if (renderParam0.textureArraySlice != 0 || renderParam1.textureArraySlice != 1)
                 return false;
 
+            if (renderParam0.viewport != renderParam1.viewport)
+                return false;
+
             return true;
         }
 
