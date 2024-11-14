@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 if (renderPass.name == k_PassNameDebugIgnoreList[i])
                     return;
 
-            DebugData.s_PassScriptMetadata.Add(renderPass, new DebugData.PassScriptInfo { filePath = file, line = line });
+            DebugData.s_PassScriptMetadata.TryAdd(renderPass, new DebugData.PassScriptInfo { filePath = file, line = line });
         }
 
         [Conditional("UNITY_EDITOR")]
