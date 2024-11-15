@@ -371,6 +371,7 @@ public unsafe class RenderBRG : MonoBehaviour
                                     staticShadowCaster = false,
                                     allDepthSorted = false,
                                 },
+                                drawCommandsType = BatchDrawCommandType.Direct,
                             };
                             outRange++;
                         }
@@ -506,6 +507,7 @@ public unsafe class RenderBRG : MonoBehaviour
                 };
             draws.drawRanges[0].drawCommandsBegin = 0;
             draws.drawRanges[0].drawCommandsCount = (uint)draws.drawCommandCount;
+            draws.drawRanges[0].drawCommandsType = BatchDrawCommandType.Direct;
 
             return draws;
         }
