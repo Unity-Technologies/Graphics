@@ -156,13 +156,19 @@ class VFXContextEditor : VFXSlotContainerEditor
         var data = (VFXData)dataObject.targetObject;
 
         // Particle context data
-        if (data.type == VFXDataType.Particle)
+        if (data.type == VFXDataType.Particle || data.type == VFXDataType.ParticleStrip)
         {
             VFXDataParticle particleData = data as VFXDataParticle;
             EditorGUILayout.Space();
             {
                 Styles.Row(Styles.header, "Name", "Value");
-                Styles.Row(Styles.cell, "Capacity", particleData.GetSettingValue("capacity").ToString());
+                if(data.type == VFXDataType.Particle)
+                    Styles.Row(Styles.cell, "Capacity", particleData.GetSettingValue("capacity").ToString());
+                else
+                {
+                    Styles.Row(Styles.cell, "Strip Capacity", particleData.GetSettingValue("stripCapacity").ToString());
+                    Styles.Row(Styles.cell, "Particle Per Strip Count", particleData.GetSettingValue("particlePerStripCount").ToString());
+                }
 
                 EditorGUILayout.Space();
 

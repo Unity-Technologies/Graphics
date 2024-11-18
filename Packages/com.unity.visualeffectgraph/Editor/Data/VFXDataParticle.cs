@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
 {
     interface ILayoutProvider
     {
-        void GenerateAttributeLayout(uint capacity, Dictionary<VFXAttribute, int> storedAttribute);
+        void GenerateAttributeLayout(uint capacity, Dictionary<VFXAttribute, int> storedAttribute, bool splitBuckets);
         string GetCodeOffset(VFXAttribute attrib, uint capacity, string index, string instanceIndex);
         uint GetBufferSize(uint capacity);
 
@@ -32,8 +32,14 @@ namespace UnityEditor.VFX
             }
         }
 
-        // return size
-        private int GenerateBucketLayout(List<VFXAttribute> attributes, int bucketId)
+        private void AddBucket(int capacity, int bucketId, int currentOffset)
+        {
+            int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId - 1] + capacity * m_BucketSizes[bucketId - 1];
+            m_BucketOffsets.Add((bucketOffset + 3) & ~3); // align on dword;
+            m_BucketSizes.Add(currentOffset);
+        }
+
+        private void AddAttributeBuckets(List<VFXAttribute> attributes, int capacity, ref int bucketId, bool splitBuckets)
         {
             var sortedAttrib = attributes.OrderByDescending(a => VFXValue.TypeToSize(a.type));
 
@@ -48,52 +54,55 @@ namespace UnityEditor.VFX
             }
 
             int currentOffset = 0;
-            int minAlignment = 0;
             foreach (var block in attribBlocks)
             {
+                if (splitBuckets)
+                    currentOffset = 0;
+
                 foreach (var attrib in block)
                 {
                     int size = VFXValue.TypeToSize(attrib.type);
-                    int alignment = size > 2 ? 4 : size;
-                    minAlignment = Math.Max(alignment, minAlignment);
-                    // align offset
-                    currentOffset = (currentOffset + alignment - 1) & ~(alignment - 1);
                     m_AttributeLayout.Add(attrib, new AttributeLayout(bucketId, currentOffset));
                     currentOffset += size;
                 }
+                if (splitBuckets)
+                {
+                    AddBucket(capacity, bucketId, currentOffset);
+                    bucketId++;
+                }
             }
-
-            return (currentOffset + minAlignment - 1) & ~(minAlignment - 1);
+            if (!splitBuckets)
+            {
+                AddBucket(capacity, bucketId, currentOffset);
+                bucketId++;
+            }
         }
 
-        public void GenerateAttributeLayout(uint capacity, Dictionary<VFXAttribute, int> storedAttribute)
+        public void GenerateAttributeLayout(uint capacity, Dictionary<VFXAttribute, int> storedAttribute, bool splitBuckets = true)
         {
             m_BucketSizes.Clear();
             m_AttributeLayout.Clear();
             m_BucketOffsets.Clear();
 
-            var attributeBuckets = new Dictionary<int, List<VFXAttribute>>();
+            var attributeGroups = new Dictionary<int, List<VFXAttribute>>();
             foreach (var kvp in storedAttribute)
             {
                 List<VFXAttribute> attributes;
-                if (!attributeBuckets.ContainsKey(kvp.Value))
+                if (!attributeGroups.ContainsKey(kvp.Value))
                 {
                     attributes = new List<VFXAttribute>();
-                    attributeBuckets[kvp.Value] = attributes;
+                    attributeGroups[kvp.Value] = attributes;
                 }
                 else
-                    attributes = attributeBuckets[kvp.Value];
+                    attributes = attributeGroups[kvp.Value];
 
                 attributes.Add(kvp.Key);
             }
 
             int bucketId = 0;
-            foreach (var bucket in attributeBuckets)
+            foreach (var group in attributeGroups)
             {
-                int bucketOffset = bucketId == 0 ? 0 : m_BucketOffsets[bucketId - 1] + (int)capacity * m_BucketSizes[bucketId - 1];
-                m_BucketOffsets.Add((bucketOffset + 3) & ~3); // align on dword;
-                m_BucketSizes.Add(GenerateBucketLayout(bucket.Value, bucketId));
-                ++bucketId;
+                AddAttributeBuckets(group.Value, (int)capacity, ref bucketId, splitBuckets);
             }
 
             // Debug log
@@ -485,7 +494,7 @@ namespace UnityEditor.VFX
             else
             {
                 var readSourceAttribute = m_ReadSourceAttributes.ToDictionary(o => o, _ => (int)VFXAttributeMode.ReadSource);
-                m_layoutAttributeSource.GenerateAttributeLayout(m_SourceCount, readSourceAttribute);
+                m_layoutAttributeSource.GenerateAttributeLayout(m_SourceCount, readSourceAttribute, false);
                 m_ownAttributeSourceBuffer = true;
             }
         }
