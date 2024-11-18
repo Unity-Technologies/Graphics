@@ -134,6 +134,8 @@ namespace UnityEditor.VFX
         public virtual bool codeGeneratorCompute { get { return true; } }
         public virtual bool doesIncludeCommonCompute { get { return codeGeneratorCompute; } }
         public virtual VFXContextType contextType { get { return m_ContextType; } }
+
+        public virtual VFXContextType compatibleContextType { get { return contextType; } } 
         public virtual VFXDataType inputType { get { return m_InputType; } }
         public virtual VFXDataType outputType { get { return m_OutputType; } }
         public virtual VFXDataType ownedType { get { return contextType == VFXContextType.Output ? inputType : outputType; } }
@@ -269,11 +271,8 @@ namespace UnityEditor.VFX
             return Accept(block, index);
         }
 
-        public virtual bool Accept(VFXBlock block, int index = -1)
-        {
-            var testedType = contextType == VFXContextType.Output ? inputType : outputType;
-            return ((block.compatibleContexts & contextType) != 0) && ((block.compatibleData & testedType) != 0);
-        }
+        public bool Accept(VFXBlock block, int index = -1) => Accept(block.compatibleContexts, block.compatibleData);
+        public bool Accept(VFXContextType blockContexts, VFXDataType blockData) => (blockContexts & compatibleContextType) == compatibleContextType && (blockData & ownedType) != 0;
 
         public bool CanHaveBlocks()
         {
