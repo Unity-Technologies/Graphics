@@ -337,47 +337,47 @@ namespace UnityEngine.Rendering.Universal
 
         static uint s_warnCounter = 0;
 
-        internal static string ValidateAndWarn(UniversalCameraData cameraData)
+        internal static string ValidateAndWarn(UniversalCameraData cameraData, bool isSTPRequested = false)
         {
-            string warning = null;
+            string reasonWarning = null;
 
-            if(warning == null && !cameraData.postProcessEnabled)
-                warning = "Disabling TAA because camera has post-processing disabled.";
+            if(reasonWarning == null && !cameraData.postProcessEnabled)
+                reasonWarning = "because camera has post-processing disabled.";
 
             if (cameraData.taaHistory == null)
             {
-                warning = "Disabling TAA due to invalid persistent data.";
+                reasonWarning = "due to invalid persistent data.";
             }
 
-            if (warning == null && cameraData.cameraTargetDescriptor.msaaSamples != 1)
+            if (reasonWarning == null && cameraData.cameraTargetDescriptor.msaaSamples != 1)
             {
                 if (cameraData.xr != null && cameraData.xr.enabled)
-                    warning = "Disabling TAA because MSAA is on. MSAA must be disabled globally for all cameras in XR mode.";
+                    reasonWarning = "because MSAA is on. MSAA must be disabled globally for all cameras in XR mode.";
                 else
-                    warning = "Disabling TAA because MSAA is on. Turn MSAA off on the camera or current URP Asset to enable TAA.";
+                    reasonWarning = "because MSAA is on. Turn MSAA off on the camera or current URP Asset.";
             }
 
-            if(warning == null && cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+            if(reasonWarning == null && cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
             {
                 if (additionalCameraData.renderType == CameraRenderType.Overlay ||
                     additionalCameraData.cameraStack.Count > 0)
                 {
-                    warning = "Disabling TAA because camera is stacked.";
+                    reasonWarning = "because camera is stacked.";
                 }
             }
 
-            if (warning == null && cameraData.camera.allowDynamicResolution)
-                warning = "Disabling TAA because camera has dynamic resolution enabled. You can use a constant render scale instead.";
+            if (reasonWarning == null && cameraData.camera.allowDynamicResolution)
+                reasonWarning = "because camera has dynamic resolution enabled. You can use a constant render scale instead.";
 
-            if(warning == null && !cameraData.renderer.SupportsMotionVectors())
-                warning = "Disabling TAA because the renderer does not implement motion vectors. Motion vectors are required for TAA.";
+            if(reasonWarning == null && !cameraData.renderer.SupportsMotionVectors())
+                reasonWarning = "because the renderer does not implement motion vectors. Motion vectors are required.";
 
             const int warningThrottleFrames = 60 * 1; // 60 FPS * 1 sec
             if (s_warnCounter % warningThrottleFrames == 0)
-                Debug.LogWarning(warning);
+                Debug.LogWarning("Disabling TAA " + (isSTPRequested ? "and STP " : "") + reasonWarning);
             s_warnCounter++;
 
-            return warning;
+            return reasonWarning;
         }
 
         internal static void ExecutePass(CommandBuffer cmd, Material taaMaterial, ref CameraData cameraData, RTHandle source, RTHandle destination, RenderTexture motionVectors)

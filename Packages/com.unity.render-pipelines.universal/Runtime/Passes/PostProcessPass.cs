@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.Universal
             // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
             // to tweaking the value here.
             bool useTemporalAA = cameraData.IsTemporalAAEnabled();
-            if (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing && !useTemporalAA)
+            if (cameraData.IsTemporalAARequested() && !useTemporalAA)
                 TemporalAA.ValidateAndWarn(cameraData);
 
             int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useTemporalAA ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);

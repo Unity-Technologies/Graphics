@@ -1426,12 +1426,12 @@ namespace UnityEngine.Rendering.Universal
             }
             else if ((cameraData.renderScale < 1.0f) || (!isScenePreviewOrReflectionCamera && ((cameraData.upscalingFilter == ImageUpscalingFilter.FSR) || (cameraData.upscalingFilter == ImageUpscalingFilter.STP))))
             {
-                // When certain upscalers are enabled, we still consider 100% render scale an upscaling operation. (This behavior is only intended for game view cameras)
+                // When certain upscalers are requested, we still consider 100% render scale an upscaling operation. (This behavior is only intended for game view cameras)
                 // This allows us to run the upscaling shader passes all the time since they improve visual quality even at 100% scale.
 
                 cameraData.imageScalingMode = ImageScalingMode.Upscaling;
 
-                // When STP is enabled, we force temporal anti-aliasing on since it's a prerequisite.
+                // When STP is requested, we force temporal anti-aliasing on since it's a prerequisite.
                 if (cameraData.upscalingFilter == ImageUpscalingFilter.STP)
                 {
                     cameraData.antialiasing = AntialiasingMode.TemporalAntiAliasing;
@@ -1870,7 +1870,7 @@ namespace UnityEngine.Rendering.Universal
                 xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
 #endif
                 bool allocation;
-                if (cameraData.IsSTPEnabled())
+                if (cameraData.IsSTPRequested())
                 {
                     Debug.Assert(cameraData.stpHistory != null);
 
@@ -1893,9 +1893,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.taaHistory.Reset();   // TAA GPUResources is explicitly released if the feature is turned off. We could refactor this to rely on the type request and the "gc" only.
 
-                // In the case where STP is enabled, but TAA gets disabled for various reasons, we should release the STP history resources
-                if (cameraData.IsSTPEnabled())
-                    cameraData.stpHistory.Reset();
+                // In the case where STP is requested, but TAA gets disabled for various reasons so STP is disabled, we should release the STP history resources
+                if (cameraData.IsSTPRequested())
+                    cameraData.stpHistory?.Reset();
             }
         }
 
