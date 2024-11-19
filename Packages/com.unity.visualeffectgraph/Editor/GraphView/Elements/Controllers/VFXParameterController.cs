@@ -159,14 +159,14 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
+                object rootValue = m_Parameter.value;
                 object val = m_Parameter.value;
-
                 List<object> objectStack = new List<object>();
                 foreach (var fieldInfo in m_FieldInfos.Take(m_FieldInfos.Length - 1))
                 {
-                    objectStack.Add(fieldInfo.GetValue(val));
+                    val = fieldInfo.GetValue(val);
+                    objectStack.Add(val);
                 }
-
 
                 object targetValue = value;
                 for (int i = objectStack.Count - 1; i >= 0; --i)
@@ -175,9 +175,8 @@ namespace UnityEditor.VFX.UI
                     targetValue = objectStack[i];
                 }
 
-                m_FieldInfos[0].SetValue(val, targetValue);
-
-                m_Parameter.value = val;
+                m_FieldInfos[0].SetValue(rootValue, targetValue);
+                m_Parameter.value = rootValue;
             }
         }
     }
@@ -498,6 +497,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
+                members.Reverse();
                 foreach (var member in members)
                 {
                     subParameterController = subParameterController.children.FirstOrDefault(t => t.name == member);
