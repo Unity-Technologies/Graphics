@@ -321,6 +321,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2123_APV_Baking_Shadowmask.unity
     guid: 852276b9a099f5f47bb91f7f3ae48c29
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2124_APV_XR.unity
+    guid: 5c98be1d78ca13747a126953d4624c4f
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
     guid: d485acf0535eb4b42a9a3847f4a8274a
   - enabled: 1
