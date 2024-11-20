@@ -351,7 +351,6 @@ namespace UnityEngine.Rendering
 
             var probesJob = new ProbesUpdateJob()
             {
-                initialize = initialize,
                 instances = instances,
                 instanceData = m_InstanceData,
                 sharedInstanceData = m_SharedInstanceData,
@@ -402,7 +401,6 @@ namespace UnityEngine.Rendering
 
             new ProbesUpdateJob()
             {
-                initialize = false,
                 instances = instances,
                 instanceData = m_InstanceData,
                 sharedInstanceData = m_SharedInstanceData,
