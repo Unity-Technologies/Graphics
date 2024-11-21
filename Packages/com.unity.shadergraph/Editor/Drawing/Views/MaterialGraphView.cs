@@ -1478,7 +1478,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     var nodeList = copyGraph.GetNodes<AbstractMaterialNode>();
 
-                    ClampNodesWithinView(graphView, new List<IRectInterface>().Union(nodeList).Union(copyGraph.stickyNotes));
+                    ClampNodesWithinView(graphView,
+                        new List<IRectInterface>()
+                            .Union(nodeList)
+                            .Union(copyGraph.stickyNotes)
+                            .Union(copyGraph.groups)
+                    );
 
                     graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
 
