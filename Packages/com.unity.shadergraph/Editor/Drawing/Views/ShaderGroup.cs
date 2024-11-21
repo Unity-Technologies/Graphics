@@ -53,5 +53,13 @@ namespace UnityEditor.ShaderGraph
 
             return true;
         }
+
+        protected override void SetScopePositionOnly(Rect newPos)
+        {
+            base.SetScopePositionOnly(newPos);
+
+            userData.position = newPos.position;
+        }
+
     }
 }
