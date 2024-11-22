@@ -219,6 +219,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 }
 
                 m_RenderPass.AddResourceRead(versioned);
+                m_Resources.IncrementReadCount(handle);
 
                 if ((flags & AccessFlags.Read) == 0)
                 {
@@ -232,6 +233,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 if ((flags & AccessFlags.Read) != 0)
                 {
                     m_RenderPass.AddResourceRead(m_Resources.GetZeroVersionedHandle(handle));
+                    m_Resources.IncrementReadCount(handle);
                 }
             }
 

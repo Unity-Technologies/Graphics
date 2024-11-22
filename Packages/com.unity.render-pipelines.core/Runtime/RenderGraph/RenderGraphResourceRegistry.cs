@@ -349,6 +349,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderGraphResources[res.iType].resourceArray[res.index].IncrementWriteCount();
         }
 
+        internal void IncrementReadCount(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            m_RenderGraphResources[res.iType].resourceArray[res.index].IncrementReadCount();
+        }
+
         internal void NewVersion(in ResourceHandle res)
         {
             CheckHandleValidity(res);
