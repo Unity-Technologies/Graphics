@@ -122,7 +122,37 @@ namespace UnityEditor.Rendering
             return true;
         }
 
+        private IVisualElementScheduledItem m_PreviousSearch;
+        private string m_PendingSearchString = string.Empty;
+        private const int k_SearchStringLimit = 15;
         void OnSearchFilterChanged(Dictionary<VisualElement, List<TextElement>> elementCache, string searchString)
+        {
+            // Ensure the search string is within the allowed length limit (15 chars max)
+            if (searchString.Length > k_SearchStringLimit)
+            {
+                searchString = searchString[..k_SearchStringLimit];  // Trim to max 15 chars
+                Debug.LogWarning("[Render Graph Viewer] Search string limit exceeded: " + k_SearchStringLimit);
+            }
+
+            // If the search string hasn't changed, avoid repeating the same search
+            if (m_PendingSearchString == searchString)
+                return;
+
+            m_PendingSearchString = searchString;
+
+            if (m_PreviousSearch != null && m_PreviousSearch.isActive)
+                m_PreviousSearch.Pause();
+
+            m_PreviousSearch = rootVisualElement
+                .schedule
+                .Execute(() =>
+                {
+                    PerformSearchAsync(elementCache, searchString);
+                })
+                .StartingIn(5); // Avoid spamming multiple search if the user types really fast
+        }
+
+        private void PerformSearchAsync(Dictionary<VisualElement, List<TextElement>> elementCache, string searchString)
         {
             // Display filter
             foreach (var (foldout, descendants) in elementCache)
