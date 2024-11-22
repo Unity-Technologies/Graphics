@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEditor.SceneManagement;
@@ -510,7 +511,9 @@ namespace UnityEngine.Rendering
             string path = string.IsNullOrEmpty(scene.path) ?
                 ProbeVolumeBakingSet.GetDirectory("Assets/", "Untitled") :
                 ProbeVolumeBakingSet.GetDirectory(scene.path, scene.name);
-            path = System.IO.Path.Combine(path, activeSet.name + ".asset");
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            path = Path.Combine(path, activeSet.name + ".asset");
             path = AssetDatabase.GenerateUniqueAssetPath(path);
 
             AssetDatabase.CreateAsset(activeSet, path);
