@@ -99,7 +99,7 @@ This section uses the example `RedTintRenderPass` Scriptable Render Pass from th
         material = CoreUtils.CreateEngineMaterial(shader);
         redTintRenderPass = new RedTintRenderPass(material);
 
-        renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
+        redTintRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
     }
     ```
 
