@@ -1253,3 +1253,103 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-85648
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support DX11
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support GLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support Metal
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 25
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support XSX
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 24
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support X1
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 26
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support PS5
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 13
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support PS4
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 22
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support Switch
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support Android Vk
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 017307890e4a741e8acc882ddae1555d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 27
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support PS5

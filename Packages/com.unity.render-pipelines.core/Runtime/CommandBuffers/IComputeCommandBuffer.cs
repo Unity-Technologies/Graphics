@@ -588,6 +588,14 @@ namespace UnityEngine.Rendering
         /// <param name="camera">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
         public void DispatchRays(RayTracingShader rayTracingShader, string rayGenName, uint width, uint height, uint depth, Camera camera) ;
 
+        /// <summary>Wraps [DispatchRays](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html) on a CommandBuffer.</summary>
+        /// <param name="rayTracingShader">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        /// <param name="rayGenName">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        /// <param name="argsBuffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        /// <param name="argsOffset">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        /// <param name="camera">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        public void DispatchRays(RayTracingShader rayTracingShader, string rayGenName, GraphicsBuffer argsBuffer, uint argsOffset, Camera camera) ;
+
         /// <summary>Wraps [CopyCounterValue](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.CopyCounterValue.html) on a CommandBuffer.</summary>
         /// <param name="src">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.CopyCounterValue.html)</param>
         /// <param name="dst">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.CopyCounterValue.html)</param>

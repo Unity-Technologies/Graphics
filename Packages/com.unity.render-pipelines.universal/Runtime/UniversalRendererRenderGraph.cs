@@ -245,6 +245,7 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.wrapMode = wrapMode;
             rgDesc.isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None && desc.depthStencilFormat != GraphicsFormat.None;
             rgDesc.vrUsage = desc.vrUsage;
+            rgDesc.enableShadingRate = desc.enableShadingRate;
             rgDesc.useDynamicScale = desc.useDynamicScale;
             rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit;
 
@@ -266,6 +267,7 @@ namespace UnityEngine.Rendering.Universal
             rgDesc.enableRandomWrite = desc.enableRandomWrite;
             rgDesc.filterMode = filterMode;
             rgDesc.wrapMode = wrapMode;
+            rgDesc.enableShadingRate = desc.enableShadingRate;
             rgDesc.useDynamicScale = desc.useDynamicScale;
             rgDesc.useDynamicScaleExplicit = desc.useDynamicScaleExplicit;
 

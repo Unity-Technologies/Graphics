@@ -200,6 +200,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public RenderTextureMemoryless memoryless;
         ///<summary>Special treatment of the VR eye texture used in stereoscopic rendering.</summary>
         public VRTextureUsage vrUsage;
+
+        /// <summary>
+        /// Set to true if the texture is to be used as a shading rate image.
+        /// </summary>
+        /// <remarks>
+        /// Width and height are usually in pixels but if enableShadingRate is set to true, width and height are in tiles.
+        /// See also <a href="https://docs.unity3d.com/Manual/variable-rate-shading">Variable Rate Shading</a>.
+        /// </remarks>
+        public bool enableShadingRate;
+
         ///<summary>Texture name.</summary>
         public string name;
 #if UNITY_2020_2_OR_NEWER
@@ -229,7 +239,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             get { return (DepthBits)GraphicsFormatUtility.GetDepthBits(format); }
             set
-            {                
+            {
                 if (value == DepthBits.None)
                 {
                     if( !GraphicsFormatUtility.IsDepthStencilFormat(format) )
@@ -240,7 +250,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 else
                 {
                     format = GraphicsFormatUtility.GetDepthStencilFormat((int)value);
-                }                
+                }
             }
         }
 
@@ -372,6 +382,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             clearBuffer = true;
             clearColor = Color.black;
             discardBuffer = false;
+            enableShadingRate = input.enableShadingRate;
         }
 
         /// <summary>
@@ -429,6 +440,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #if UNITY_2020_2_OR_NEWER
             hashCode.Append(fastMemoryDesc.inFastMemory);
 #endif
+            hashCode.Append(enableShadingRate);
             return hashCode.value;
         }
 
@@ -474,21 +486,42 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // Textures are going to be reused under different aliases along the frame so we can't provide a specific name upon creation.
             // The name in the desc is going to be used for debugging purpose and render graph visualization.
             if (name == "")
-                name = $"RenderGraphTexture_{m_TextureCreationIndex++}";           
+                name = $"RenderGraphTexture_{m_TextureCreationIndex++}";
+
+            RTHandleAllocInfo rtAllocInfo = new RTHandleAllocInfo(name)
+            {
+                slices = desc.slices,
+                format = desc.format,
+                filterMode = desc.filterMode,
+                wrapModeU = desc.wrapMode,
+                wrapModeV = desc.wrapMode,
+                wrapModeW = desc.wrapMode,
+                dimension = desc.dimension,
+                enableRandomWrite = desc.enableRandomWrite,
+                useMipMap = desc.useMipMap,
+                autoGenerateMips = desc.autoGenerateMips,
+                anisoLevel = desc.anisoLevel,
+                mipMapBias = desc.mipMapBias,
+                isShadowMap = desc.isShadowMap,
+                msaaSamples = (MSAASamples)desc.msaaSamples,
+                bindTextureMS = desc.bindTextureMS,
+                useDynamicScale = desc.useDynamicScale,
+                useDynamicScaleExplicit = desc.useDynamicScaleExplicit,
+                memoryless = desc.memoryless,
+                vrUsage = desc.vrUsage,
+                enableShadingRate = desc.enableShadingRate,
+            };
 
             switch (desc.sizeMode)
             {
                 case TextureSizeMode.Explicit:
-                    graphicsResource = RTHandles.Alloc(desc.width, desc.height, desc.format, desc.slices, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.useDynamicScaleExplicit, desc.memoryless, desc.vrUsage, name);
+                    graphicsResource = RTHandles.Alloc(desc.width, desc.height, rtAllocInfo);
                     break;
                 case TextureSizeMode.Scale:
-                    graphicsResource = RTHandles.Alloc(desc.scale, desc.format, desc.slices, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.useDynamicScaleExplicit, desc.memoryless, desc.vrUsage, name);
+                    graphicsResource = RTHandles.Alloc(desc.scale, rtAllocInfo);
                     break;
                 case TextureSizeMode.Functor:
-                    graphicsResource = RTHandles.Alloc(desc.func, desc.format, desc.slices, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.useDynamicScaleExplicit, desc.memoryless, desc.vrUsage, name);
+                    graphicsResource = RTHandles.Alloc(desc.func, rtAllocInfo);
                     break;
             }
         }

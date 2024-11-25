@@ -151,11 +151,29 @@ namespace UnityEngine.Rendering
         protected RTHandle AllocHistoryFrameRT(int id, int count,
             ref RenderTextureDescriptor desc, string name = "")
         {
-            RenderTextureDescriptor d = desc;
             // Simplified for typical history textures:
             // Sampling is usually bilinear & clamp. Point sample can be a texture.Load() or done with inline samplers.
+            return AllocHistoryFrameRT(id, count, ref desc, FilterMode.Bilinear, name);
+        }
+
+        /// <summary>
+        /// Allocate a history frame RTHandle[] using a descriptor.
+        /// </summary>
+        /// <param name="id">Id for the history RTHandle storage.</param>
+        /// <param name="count">Number of RTHandles allocated for the id.</param>
+        /// <param name="desc">Texture descriptor used for each RTHandle in the allocation.</param>
+        /// <param name="filterMode">Filtering mode of the texture.</param>
+        /// <param name="name">User visible debug name of the texture.</param>
+        /// <returns>Current frame RTHandle in the allocation.</returns>
+        protected RTHandle AllocHistoryFrameRT(int id, int count,
+            ref RenderTextureDescriptor desc,
+            FilterMode filterMode,
+            string name = "")
+        {
+            RenderTextureDescriptor d = desc;
+            // Simplified for typical history textures:
             // No shadows, no mipmaps, no aniso.
-            m_owner.AllocBuffer(id, count, ref desc, FilterMode.Bilinear, TextureWrapMode.Clamp, false, 0, 0, name);
+            m_owner.AllocBuffer(id, count, ref desc, filterMode, TextureWrapMode.Clamp, false, 0, 0, name);
             return GetCurrentFrameRT(0);
         }
 

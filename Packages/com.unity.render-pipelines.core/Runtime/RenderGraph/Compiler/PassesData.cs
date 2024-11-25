@@ -86,6 +86,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public bool hasFoveatedRasterization;
         public int tag; // Arbitrary per node int used by various graph analysis tools
 
+        public ShadingRateFragmentSize shadingRateFragmentSize;
+        public ShadingRateCombiner primitiveShadingRateCombiner;
+        public ShadingRateCombiner fragmentShadingRateCombiner;
+
         public PassMergeState mergeState;
         public int nativePassIndex; // Index of the native pass this pass belongs to
         public int nativeSubPassIndex; // Index of the native subpass this pass belongs to
@@ -104,6 +108,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public int numCreated;
         public int firstDestroy; //base+offset in CompilerContextData.destroyData (use the InputNodes iterator to iterate this more easily)
         public int numDestroyed;
+        public int shadingRateImageIndex; //base+offset in CompilerContextData.fragmentData (there is no iterator, there are always 2 if shading rate is used)
 
         public int fragmentInfoWidth;
         public int fragmentInfoHeight;
@@ -118,7 +123,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public bool beginNativeSubpass; // If true this is the first graph pass of a merged native subpass
         public bool fragmentInfoValid;
         public bool fragmentInfoHasDepth;
+        public bool fragmentInfoHasShadingRateImage => shadingRateImageIndex > 0;
         public bool insertGraphicsFence; // Whether this pass should insert a fence into the command buffer
+        public bool hasShadingRateStates;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Name GetName(CompilerContextData ctx) => ctx.GetFullPassName(passId);
@@ -162,6 +169,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             insertGraphicsFence = false;
             waitOnGraphicsFencePassId = -1;
+
+            hasShadingRateStates = pass.hasShadingRateStates;
+            shadingRateFragmentSize = pass.shadingRateFragmentSize;
+            primitiveShadingRateCombiner = pass.primitiveShadingRateCombiner;
+            fragmentShadingRateCombiner = pass.fragmentShadingRateCombiner;
+            shadingRateImageIndex = -1;
         }
 
         // Helper func to reset and initialize existing PassData struct directly in a data container without costly deep copy (~120bytes) when adding it
@@ -205,6 +218,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             insertGraphicsFence = false;
             waitOnGraphicsFencePassId = -1;
+
+            hasShadingRateStates = pass.hasShadingRateStates;
+            shadingRateFragmentSize = pass.shadingRateFragmentSize;
+            primitiveShadingRateCombiner = pass.primitiveShadingRateCombiner;
+            fragmentShadingRateCombiner = pass.fragmentShadingRateCombiner;
+            shadingRateImageIndex = -1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -218,6 +237,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<PassFragmentData> Fragments(CompilerContextData ctx)
             => ctx.fragmentData.MakeReadOnlySpan(firstFragment, numFragments);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PassFragmentData ShadingRateImage(CompilerContextData ctx)
+            => ctx.fragmentData[shadingRateImageIndex];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<PassFragmentData> FragmentInputs(CompilerContextData ctx)
@@ -473,6 +496,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         SubPassLimitReached, // Addind the next pass would have generated more subpasses than allowed
         EndOfGraph, // The last pass in the graph was reached
         FRStateMismatch, // One pass is using foveated rendering and the other not
+        DifferentShadingRateImages, // The next pass uses a different shading rate image (and we only allow one in a whole NRP)
+        DifferentShadingRateStates, // The next pass uses different shading rate states (and we only allow one set in a whole NRP)
         PassMergingDisabled, // Wasn't merged because pass merging is disabled
         Merged, // I actually got merged
 
@@ -505,7 +530,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             $"The limit of {FixedAttachmentArray<PassFragmentData>.MaxAttachments} native pass attachments would be exceeded when merging with the next pass.",
             $"The limit of {NativePassCompiler.k_MaxSubpass} native subpasses would be exceeded when merging with the next pass.",
             "This is the last pass in the graph, there are no other passes to merge.",
-            "The the next pass uses a different foveated rendering state",
+            "The next pass uses a different foveated rendering state",
+            "The next pass uses a different shading rate image",
+            "The next pass uses a different shading rate rendering state",
             "Pass merging is disabled so this pass was not merged",
             "The next pass got merged into this pass.",
         };
@@ -532,8 +559,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public int height;
         public int volumeDepth;
         public int samples;
+        public int shadingRateImageIndex;
+
         public bool hasDepth;
         public bool hasFoveatedRasterization;
+        public bool hasShadingRateImage => shadingRateImageIndex >= 0;
+        public bool hasShadingRateStates;
+
+        public ShadingRateFragmentSize shadingRateFragmentSize;
+        public ShadingRateCombiner primitiveShadingRateCombiner;
+        public ShadingRateCombiner fragmentShadingRateCombiner;
 
         public NativePassData(ref PassData pass, CompilerContextData ctx)
         {
@@ -566,6 +601,21 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             {
                 fragments.Add(fragment);
             }
+
+            // Shading rate and foveation are distinct systems and mutually exclusive.
+            // Foveation always taking precedence over VRS.
+            if (pass.fragmentInfoHasShadingRateImage && !hasFoveatedRasterization)
+            {
+                shadingRateImageIndex = fragments.size;
+                fragments.Add(pass.ShadingRateImage(ctx));
+            }
+            else
+                shadingRateImageIndex = -1;
+
+            hasShadingRateStates = pass.hasShadingRateStates && !hasFoveatedRasterization;
+            shadingRateFragmentSize = pass.shadingRateFragmentSize;
+            primitiveShadingRateCombiner = pass.primitiveShadingRateCombiner;
+            fragmentShadingRateCombiner = pass.fragmentShadingRateCombiner;
 
             // Graph pass is added as the first native subpass
             TryMergeNativeSubPass(ctx, ref this, ref pass);
@@ -667,6 +717,38 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (nativePass.hasFoveatedRasterization != passToMerge.hasFoveatedRasterization)
                 {
                     return new PassBreakAudit(PassBreakReason.FRStateMismatch, passIdToMerge);
+                }
+
+                // Different shading rate images; only allow one per NRP
+                if (nativePass.hasShadingRateImage != passToMerge.fragmentInfoHasShadingRateImage)
+                {
+                    return new PassBreakAudit(PassBreakReason.DifferentShadingRateImages, passIdToMerge);
+                }
+
+                if (nativePass.hasShadingRateImage)
+                {
+                    var passToMergeSRI = passToMerge.ShadingRateImage(contextData);
+                    var nativePassSRI = nativePass.fragments[nativePass.shadingRateImageIndex];
+                    if (nativePassSRI.resource.index != passToMergeSRI.resource.index)
+                    {
+                        return new PassBreakAudit(PassBreakReason.DifferentShadingRateImages, passIdToMerge);
+                    }
+                }
+
+                // Different shading rate states; only allow one set per NRP
+                if (nativePass.hasShadingRateStates != passToMerge.hasShadingRateStates)
+                {
+                    return new PassBreakAudit(PassBreakReason.DifferentShadingRateStates, passIdToMerge);
+                }
+
+                if (nativePass.hasShadingRateStates)
+                {
+                    if (nativePass.shadingRateFragmentSize != passToMerge.shadingRateFragmentSize ||
+                        nativePass.primitiveShadingRateCombiner != passToMerge.primitiveShadingRateCombiner ||
+                        nativePass.fragmentShadingRateCombiner != passToMerge.fragmentShadingRateCombiner)
+                    {
+                        return new PassBreakAudit(PassBreakReason.DifferentShadingRateStates, passIdToMerge);
+                    }
                 }
             }
 
@@ -973,6 +1055,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     desc.inputs[inputIndex] = inputAttachmentIdx;
 
                     inputIndex++;
+                }
+            }
+
+            // Shading rate images
+            {
+                if (passToMerge.fragmentInfoHasShadingRateImage)
+                {
+                    desc.flags |= SubPassFlags.UseShadingRateImage;
                 }
             }
 

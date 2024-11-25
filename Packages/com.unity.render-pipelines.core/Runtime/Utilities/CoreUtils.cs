@@ -773,6 +773,37 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Set the current shading rate fragment size
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="baseShadingRateFragmentSize">Shading rate fragment size to set</param>
+        public static void SetShadingRateFragmentSize(CommandBuffer cmd, ShadingRateFragmentSize baseShadingRateFragmentSize)
+        {
+            cmd.SetShadingRateFragmentSize(baseShadingRateFragmentSize);
+        }
+
+        /// <summary>
+        /// Set the current shading rate combiner
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="stage">Combiner stage to set</param>
+        /// <param name="combiner">Combiner to set</param>
+        public static void SetShadingRateCombiner(CommandBuffer cmd, ShadingRateCombinerStage stage, ShadingRateCombiner combiner)
+        {
+            cmd.SetShadingRateCombiner(stage, combiner);
+        }
+
+        /// <summary>
+        /// Set the current shading rate image
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="shadingRateImage">Shading rate image render target identifier to set</param>
+        public static void SetShadingRateImage(CommandBuffer cmd, in RenderTargetIdentifier shadingRateImage)
+        {
+            cmd.SetShadingRateImage(shadingRateImage);
+        }
+
+        /// <summary>
         /// Set the current multiple render texture.
         /// </summary>
         /// <param name="cmd">CommandBuffer used for rendering commands.</param>

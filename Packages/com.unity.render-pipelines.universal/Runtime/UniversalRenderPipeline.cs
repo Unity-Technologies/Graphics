@@ -300,11 +300,16 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618
                 });
             }
+
+            // Initializes only if VRS is supported.
+            Vrs.InitializeResources();
         }
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            Vrs.DisposeResources();
+
             if (apvIsEnabled)
             {
                 ProbeReferenceVolume.instance.Cleanup();
@@ -437,7 +442,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
-            
+
             // Bandwidth optimization with Render Graph in some circumstances
             SetupScreenMSAASamplesState(cameraCount);
 

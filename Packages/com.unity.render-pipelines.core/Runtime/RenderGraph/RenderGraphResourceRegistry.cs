@@ -686,7 +686,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return texHandle;
         }
 
-        static RenderTargetIdentifier emptyId = new RenderTargetIdentifier();
+        static RenderTargetIdentifier emptyId = RenderTargetIdentifier.Invalid;
         static RenderTargetIdentifier builtinCameraRenderTarget = new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

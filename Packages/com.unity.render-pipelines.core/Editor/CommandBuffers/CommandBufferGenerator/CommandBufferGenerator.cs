@@ -110,7 +110,9 @@ namespace UnityEditor.Rendering
                 new FunctionInfo("SetFoveatedRenderingMode", textureArg: "", modifiesGlobalState: true),
                 new FunctionInfo("ConfigureFoveatedRendering", textureArg: "", modifiesGlobalState: true),
                 new FunctionInfo("SetWireframe", textureArg: "", modifiesGlobalState: true),
-            };
+                new FunctionInfo("SetShadingRateFragmentSize", textureArg: "", modifiesGlobalState: false),
+                new FunctionInfo("SetShadingRateCombiner", textureArg: "", modifiesGlobalState: false),
+        };
 
         // Functions for unsafe (wrapper around Commandbuffer) only
         static List<FunctionInfo> unsafeFunctions = new List<FunctionInfo> {

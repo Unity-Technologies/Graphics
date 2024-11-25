@@ -598,6 +598,15 @@ namespace UnityEngine.Rendering
 
         public void InvokeOnRenderObjectCallbacks()  {  m_WrappedCommandBuffer.InvokeOnRenderObjectCallbacks(); }
 
+        /// <summary>Wraps [SetShadingRateFragmentSize](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetShadingRateFragmentSize.html) on a CommandBuffer.</summary>
+        /// <param name="shadingRateFragmentSize">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetShadingRateFragmentSize.html)</param>
+        public void SetShadingRateFragmentSize(ShadingRateFragmentSize shadingRateFragmentSize)  {  m_WrappedCommandBuffer.SetShadingRateFragmentSize(shadingRateFragmentSize); }
+
+        /// <summary>Wraps [SetShadingRateCombiner](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetShadingRateCombiner.html) on a CommandBuffer.</summary>
+        /// <param name="stage">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetShadingRateCombiner.html)</param>
+        /// <param name="combiner">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetShadingRateCombiner.html)</param>
+        public void SetShadingRateCombiner(ShadingRateCombinerStage stage, ShadingRateCombiner combiner)  {  m_WrappedCommandBuffer.SetShadingRateCombiner(stage, combiner); }
+
         /// <summary>Wraps [SetComputeFloatParam](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetComputeFloatParam.html) on a CommandBuffer.</summary>
         /// <param name="computeShader">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetComputeFloatParam.html)</param>
         /// <param name="name">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetComputeFloatParam.html)</param>
@@ -1021,6 +1030,14 @@ namespace UnityEngine.Rendering
         /// <param name="depth">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
         /// <param name="camera">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
         public void DispatchRays(RayTracingShader rayTracingShader, string rayGenName, uint width, uint height, uint depth, Camera camera)  {  m_WrappedCommandBuffer.DispatchRays(rayTracingShader, rayGenName, width, height, depth, camera); }
+
+        /// <summary>Wraps [DispatchRays](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html) on a CommandBuffer.</summary>
+        /// <param name="rayTracingShader">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        /// <param name="rayGenName">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        /// <param name="argsBuffer">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        /// <param name="argsOffset">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        /// <param name="camera">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DispatchRays.html)</param>
+        public void DispatchRays(RayTracingShader rayTracingShader, string rayGenName, GraphicsBuffer argsBuffer, uint argsOffset, Camera camera)  {  m_WrappedCommandBuffer.DispatchRays(rayTracingShader, rayGenName, argsBuffer, argsOffset, camera); }
 
         /// <summary>Wraps [DrawMesh](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMesh.html) on a CommandBuffer.</summary>
         /// <param name="mesh">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.DrawMesh.html)</param>

@@ -328,6 +328,25 @@ namespace UnityEngine.Rendering.RenderGraphModule
         BufferHandle UseBufferRandomAccess(BufferHandle tex, int index, bool preserveCounterValue, AccessFlags flags = AccessFlags.Read);
 
         /// <summary>
+        /// Enables Variable Rate Shading (VRS) on the current rasterization pass. Rasterization will use the texture to determine the rate of fragment shader invocation.
+        /// </summary>
+        /// <param name="tex">Shading rate image (SRI) Texture to use during this pass.</param>
+        void SetShadingRateImageAttachment(in TextureHandle tex);
+
+        /// <summary>
+        /// Set shading rate fragment size.
+        /// </summary>
+        /// <param name="shadingRateFragmentSize">Shading rate fragment size to set.</param>
+        void SetShadingRateFragmentSize(ShadingRateFragmentSize shadingRateFragmentSize);
+
+        /// <summary>
+        /// Set shading rate combiner.
+        /// </summary>
+        /// <param name="stage">Shading rate combiner stage to apply combiner to.</param>
+        /// <param name="combiner">Shading rate combiner to set.</param>
+        void SetShadingRateCombiner(ShadingRateCombinerStage stage, ShadingRateCombiner combiner);
+
+        /// <summary>
         /// Specify the render function to use for this pass.
         /// A call to this is mandatory for the pass to be valid.
         /// </summary>

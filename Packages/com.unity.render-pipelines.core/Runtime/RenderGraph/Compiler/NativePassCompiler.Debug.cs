@@ -93,6 +93,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 case PassBreakReason.EndOfGraph:
                     message += "The pass is the last pass in the graph.";
                     break;
+                case PassBreakReason.DifferentShadingRateImages:
+                    message += $"{prevPassName} uses a different shading rate image than {passName}.";
+                    break;
+                case PassBreakReason.DifferentShadingRateStates:
+                    message += $"{prevPassName} uses different shading rate states than {passName}.";
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

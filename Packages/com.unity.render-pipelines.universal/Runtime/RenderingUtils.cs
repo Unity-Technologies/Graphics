@@ -5,6 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -436,8 +437,8 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("Use SystemInfo.IsFormatSupported instead.", false)]
         public static bool SupportsGraphicsFormat(GraphicsFormat format, FormatUsage usage)
         {
-	    GraphicsFormatUsage graphicsFormatUsage = (GraphicsFormatUsage)(1 << (int)usage);
-	    return SystemInfo.IsFormatSupported(format, graphicsFormatUsage);
+            GraphicsFormatUsage graphicsFormatUsage = (GraphicsFormatUsage)(1 << (int)usage);
+            return SystemInfo.IsFormatSupported(format, graphicsFormatUsage);
         }
 
         /// <summary>
@@ -602,11 +603,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="handle">RTHandle to check (can be null)</param>
         /// <param name="descriptor">Descriptor for the RTHandle to match</param>
-        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
-        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
-        /// <param name="anisoLevel">Anisotropic filtering level.</param>
-        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
-        /// <param name="name">Name of the RTHandle.</param>
         /// <param name="scaled">Check if the RTHandle has auto scaling enabled if not, check the widths and heights</param>
         /// <returns></returns>
         internal static bool RTHandleNeedsReAlloc(
@@ -620,18 +616,25 @@ namespace UnityEngine.Rendering.Universal
                 return true;
             if (!scaled && (handle.rt.width != descriptor.width || handle.rt.height != descriptor.height))
                 return true;
+            if (handle.rt.enableShadingRate && handle.rt.graphicsFormat != descriptor.colorFormat)
+                return true;
 
             var rtHandleFormat = (handle.rt.descriptor.depthStencilFormat != GraphicsFormat.None) ? handle.rt.descriptor.depthStencilFormat : handle.rt.descriptor.graphicsFormat;
+            var isShadowMap = handle.rt.descriptor.shadowSamplingMode != ShadowSamplingMode.None;
 
             return
                 rtHandleFormat != descriptor.format ||
                 handle.rt.descriptor.dimension != descriptor.dimension ||
+                handle.rt.descriptor.volumeDepth != descriptor.slices ||
                 handle.rt.descriptor.enableRandomWrite != descriptor.enableRandomWrite ||
+                handle.rt.descriptor.enableShadingRate != descriptor.enableShadingRate ||
                 handle.rt.descriptor.useMipMap != descriptor.useMipMap ||
                 handle.rt.descriptor.autoGenerateMips != descriptor.autoGenerateMips ||
+                isShadowMap != descriptor.isShadowMap ||
                 (MSAASamples)handle.rt.descriptor.msaaSamples != descriptor.msaaSamples ||
                 handle.rt.descriptor.bindMS != descriptor.bindTextureMS ||
                 handle.rt.descriptor.useDynamicScale != descriptor.useDynamicScale ||
+                handle.rt.descriptor.useDynamicScaleExplicit != descriptor.useDynamicScaleExplicit ||
                 handle.rt.descriptor.memoryless != descriptor.memoryless ||
                 handle.rt.filterMode != descriptor.filterMode ||
                 handle.rt.wrapMode != descriptor.wrapMode ||
@@ -847,28 +850,7 @@ namespace UnityEngine.Rendering.Universal
                     return true;
                 }
 
-                var actualFormat = descriptor.graphicsFormat != GraphicsFormat.None ? descriptor.graphicsFormat : descriptor.depthStencilFormat;
-
-                RTHandleAllocInfo allocInfo = new RTHandleAllocInfo();
-                allocInfo.slices = descriptor.volumeDepth;
-                allocInfo.format = actualFormat;
-                allocInfo.filterMode = filterMode;
-                allocInfo.wrapModeU = wrapMode;
-                allocInfo.wrapModeV = wrapMode;
-                allocInfo.wrapModeW = wrapMode;
-                allocInfo.dimension = descriptor.dimension;
-                allocInfo.enableRandomWrite = descriptor.enableRandomWrite;
-                allocInfo.useMipMap = descriptor.useMipMap;
-                allocInfo.autoGenerateMips = descriptor.autoGenerateMips;
-                allocInfo.anisoLevel = anisoLevel;
-                allocInfo.mipMapBias = mipMapBias;
-                allocInfo.msaaSamples = (MSAASamples)descriptor.msaaSamples;
-                allocInfo.bindTextureMS = descriptor.bindMS;
-                allocInfo.useDynamicScale = descriptor.useDynamicScale;
-                allocInfo.memoryless = descriptor.memoryless;
-                allocInfo.vrUsage = descriptor.vrUsage;
-                allocInfo.name = name;
-
+                var allocInfo = CreateRTHandleAllocInfo(descriptor, filterMode, wrapMode, anisoLevel, mipMapBias, name);
                 handle = RTHandles.Alloc(descriptor.width, descriptor.height, allocInfo);
                 return true;
             }
@@ -912,28 +894,7 @@ namespace UnityEngine.Rendering.Universal
                     return true;
                 }
 
-                var actualFormat = descriptor.graphicsFormat != GraphicsFormat.None ? descriptor.graphicsFormat : descriptor.depthStencilFormat;
-
-                RTHandleAllocInfo allocInfo = new RTHandleAllocInfo();
-                allocInfo.slices = descriptor.volumeDepth;
-                allocInfo.format = actualFormat;
-                allocInfo.filterMode = filterMode;
-                allocInfo.wrapModeU = wrapMode;
-                allocInfo.wrapModeV = wrapMode;
-                allocInfo.wrapModeW = wrapMode;
-                allocInfo.dimension = descriptor.dimension;
-                allocInfo.enableRandomWrite = descriptor.enableRandomWrite;
-                allocInfo.useMipMap = descriptor.useMipMap;
-                allocInfo.autoGenerateMips = descriptor.autoGenerateMips;
-                allocInfo.anisoLevel = anisoLevel;
-                allocInfo.mipMapBias = mipMapBias;
-                allocInfo.msaaSamples = (MSAASamples)descriptor.msaaSamples;
-                allocInfo.bindTextureMS = descriptor.bindMS;
-                allocInfo.useDynamicScale = descriptor.useDynamicScale;
-                allocInfo.memoryless = descriptor.memoryless;
-                allocInfo.vrUsage = descriptor.vrUsage;
-                allocInfo.name = name;
-
+                var allocInfo = CreateRTHandleAllocInfo(descriptor, filterMode, wrapMode, anisoLevel, mipMapBias, name);
                 handle = RTHandles.Alloc(scaleFactor, allocInfo);
                 return true;
             }
@@ -977,28 +938,7 @@ namespace UnityEngine.Rendering.Universal
                     return true;
                 }
 
-                var actualFormat = descriptor.graphicsFormat != GraphicsFormat.None ? descriptor.graphicsFormat : descriptor.depthStencilFormat;
-
-                RTHandleAllocInfo allocInfo = new RTHandleAllocInfo();
-                allocInfo.slices = descriptor.volumeDepth;
-                allocInfo.format = actualFormat;
-                allocInfo.filterMode = filterMode;
-                allocInfo.wrapModeU = wrapMode;
-                allocInfo.wrapModeV = wrapMode;
-                allocInfo.wrapModeW = wrapMode;
-                allocInfo.dimension = descriptor.dimension;
-                allocInfo.enableRandomWrite = descriptor.enableRandomWrite;
-                allocInfo.useMipMap = descriptor.useMipMap;
-                allocInfo.autoGenerateMips = descriptor.autoGenerateMips;
-                allocInfo.anisoLevel = anisoLevel;
-                allocInfo.mipMapBias = mipMapBias;
-                allocInfo.msaaSamples = (MSAASamples)descriptor.msaaSamples;
-                allocInfo.bindTextureMS = descriptor.bindMS;
-                allocInfo.useDynamicScale = descriptor.useDynamicScale;
-                allocInfo.memoryless = descriptor.memoryless;
-                allocInfo.vrUsage = descriptor.vrUsage;
-                allocInfo.name = name;
-
+                var allocInfo = CreateRTHandleAllocInfo(descriptor, filterMode, wrapMode, anisoLevel, mipMapBias, name);
                 handle = RTHandles.Alloc(scaleFunc, allocInfo);
                 return true;
             }
@@ -1137,6 +1077,39 @@ namespace UnityEngine.Rendering.Universal
             Vector4 scaleBias = !yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
 
             return scaleBias;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static RTHandleAllocInfo CreateRTHandleAllocInfo(in RenderTextureDescriptor descriptor, FilterMode filterMode, TextureWrapMode wrapMode, int anisoLevel, float mipMapBias, string name)
+        {
+            var actualFormat = descriptor.graphicsFormat != GraphicsFormat.None ? descriptor.graphicsFormat : descriptor.depthStencilFormat;
+
+            // NOTE: this calls default(RTHandleAllocInfo) not RTHandleAllocInfo(string = "")
+            RTHandleAllocInfo allocInfo = new RTHandleAllocInfo();
+            allocInfo.slices = descriptor.volumeDepth;
+            allocInfo.format = actualFormat;
+            allocInfo.filterMode = filterMode;
+            allocInfo.wrapModeU = wrapMode;
+            allocInfo.wrapModeV = wrapMode;
+            allocInfo.wrapModeW = wrapMode;
+            allocInfo.dimension = descriptor.dimension;
+            allocInfo.enableRandomWrite = descriptor.enableRandomWrite;
+            allocInfo.enableShadingRate = descriptor.enableShadingRate;
+            allocInfo.useMipMap = descriptor.useMipMap;
+            allocInfo.autoGenerateMips = descriptor.autoGenerateMips;
+            allocInfo.anisoLevel = anisoLevel;
+            allocInfo.mipMapBias = mipMapBias;
+            allocInfo.isShadowMap = descriptor.shadowSamplingMode != ShadowSamplingMode.None;
+            allocInfo.msaaSamples = (MSAASamples)descriptor.msaaSamples;
+            allocInfo.bindTextureMS = descriptor.bindMS;
+            allocInfo.useDynamicScale = descriptor.useDynamicScale;
+            allocInfo.useDynamicScaleExplicit = descriptor.useDynamicScaleExplicit;
+            allocInfo.memoryless = descriptor.memoryless;
+            allocInfo.vrUsage = descriptor.vrUsage;
+            allocInfo.enableShadingRate = descriptor.enableShadingRate;
+            allocInfo.name = name;
+
+            return allocInfo;
         }
     }
 }

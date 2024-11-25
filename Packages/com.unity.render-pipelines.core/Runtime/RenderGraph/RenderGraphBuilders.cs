@@ -513,5 +513,26 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 }
             }
         }
+
+        public void SetShadingRateImageAttachment(in TextureHandle sriTextureHandle)
+        {
+            CheckNotUseFragment(sriTextureHandle);
+
+            // shading rate image access flag is always read, only 1 mip and 1 slice
+            var newSriTextureHandle = new TextureHandle();
+            newSriTextureHandle.handle = UseResource(sriTextureHandle.handle, AccessFlags.Read);
+
+            m_RenderPass.SetShadingRateImage(newSriTextureHandle, AccessFlags.Read, 0, 0);
+        }
+
+        public void SetShadingRateFragmentSize(ShadingRateFragmentSize shadingRateFragmentSize)
+        {
+            m_RenderPass.SetShadingRateFragmentSize(shadingRateFragmentSize);
+        }
+
+        public void SetShadingRateCombiner(ShadingRateCombinerStage stage, ShadingRateCombiner combiner)
+        {
+            m_RenderPass.SetShadingRateCombiner(stage, combiner);
+        }
     }
 }
