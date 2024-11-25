@@ -95,6 +95,8 @@ The maximum distance from the Camera at which Unity renders decals.
 
 Select this check box to enable the [Rendering Layers](features/rendering-layers.md) functionality.
 
+For more information, refer to [How to use Rendering Layers with Decals](features/rendering-layers#how-to-rendering-layers-decals).
+
 If you enable **Use Rendering Layers**, URP creates a DepthNormal prepass. This makes decals less efficient on GPUs that implement tile-based rendering.
 
 ## Decal Projector component
