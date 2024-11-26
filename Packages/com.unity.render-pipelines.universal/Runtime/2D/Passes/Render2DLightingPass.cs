@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Profiling;
+using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -367,6 +368,15 @@ namespace UnityEngine.Rendering.Universal
 
             LayerUtility.InitializeBudget(m_Renderer2DData.lightRenderTextureMemoryBudget);
             ShadowRendering.InitializeBudget(m_Renderer2DData.shadowRenderTextureMemoryBudget);
+
+            // Set screenParams when pixel perfect camera is used with the reference resolution
+            camera.TryGetComponent(out PixelPerfectCamera pixelPerfectCamera);
+            if (pixelPerfectCamera != null && pixelPerfectCamera.enabled && pixelPerfectCamera.offscreenRTSize != Vector2Int.zero)
+            {
+                var cameraWidth = pixelPerfectCamera.offscreenRTSize.x;
+                var cameraHeight = pixelPerfectCamera.offscreenRTSize.y;
+                renderingData.commandBuffer.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            }
 
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)
