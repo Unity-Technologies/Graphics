@@ -206,6 +206,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     debugResource.textureData.depth = resourceUnversioned.volumeDepth;
                     debugResource.textureData.samples = resourceUnversioned.msaaSamples;
                     debugResource.textureData.format = info.format;
+                    debugResource.textureData.bindMS = resourceUnversioned.bindMS;
+                    debugResource.textureData.clearBuffer = resourceUnversioned.clear;
                     debugResource.memoryless = resourceUnversioned.memoryLess;
 
                     debugResource.consumerList = new List<int>();

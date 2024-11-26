@@ -2472,6 +2472,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                             textureData.depth = renderTargetInfo.volumeDepth;
                             textureData.samples = renderTargetInfo.msaaSamples;
                             textureData.format = renderTargetInfo.format;
+                            textureData.bindMS = renderTargetInfo.bindMS;
 
                             newResource.textureData = textureData;
                         }
