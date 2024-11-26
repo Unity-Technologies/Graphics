@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle m_ActiveCameraDepthAttachment;
         internal RTHandle m_CameraDepthAttachment;
         RTHandle m_XRTargetHandleAlias;
+        internal RTHandle m_CameraDepthAttachment_D3d_11;
         internal RTHandle m_DepthTexture;
         RTHandle m_NormalsTexture;
         RTHandle m_DecalLayersTexture;
@@ -392,6 +393,7 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsShadowCasterPass?.Dispose();
 
             m_CameraDepthAttachment?.Release();
+            m_CameraDepthAttachment_D3d_11?.Release();
             m_DepthTexture?.Release();
             m_NormalsTexture?.Release();
             m_DecalLayersTexture?.Release();
@@ -806,7 +808,11 @@ namespace UnityEngine.Rendering.Universal
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
+                {
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, useDepthPriming, cmd, ref cameraData);
+                    if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
+                        cmd.CopyTexture(m_CameraDepthAttachment, m_CameraDepthAttachment_D3d_11);
+                }    
 
                 m_RenderOpaqueForwardPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
                 m_RenderTransparentForwardPass.m_IsActiveTargetBackBuffer = !intermediateRenderTexture;
@@ -1532,7 +1538,14 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
                     RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
-                    cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
+
+                    if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
+                    {
+                        RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment_D3d_11, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment_Temp");
+                        cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment_D3d_11.nameID);
+                    }
+                    else
+                        cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
 
                     // update the descriptor to match the depth attachment
                     descriptor.depthStencilFormat = depthDescriptor.depthStencilFormat;
