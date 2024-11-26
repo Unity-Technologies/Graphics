@@ -1512,7 +1512,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             cameraData.renderer = renderer;
-            cameraData.requiresDepthTexture |= isSceneViewCamera;
             cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 

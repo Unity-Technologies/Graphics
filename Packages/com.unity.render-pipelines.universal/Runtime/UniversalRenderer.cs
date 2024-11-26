@@ -1901,7 +1901,7 @@ namespace UnityEngine.Rendering.Universal
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
-            return requiresBlitForOffscreenCamera || isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+            return requiresBlitForOffscreenCamera || isScaledRender || cameraData.isHdrEnabled ||
                 !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion ||
                 renderPassInputs.requiresColorTexture || renderPassInputs.requiresColorTextureCreated;
         }
