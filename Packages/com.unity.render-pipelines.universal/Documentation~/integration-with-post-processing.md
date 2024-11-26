@@ -49,7 +49,7 @@ To configure post-processing in a new Scene:
 Now you can use the Volume Override to enable and adjust the settings for the post-processing effect.
 
 > [!NOTE]
-> The GameObject which contains the volume and the camera you wish to apply post-processing to must be on the same Layer.
+> Post-processing effects from a volume apply to a camera only if a value in the **Volume Mask** property of the camera contains the layer that the volume belongs to.
 
 Refer to [Understand Volumes](Volumes.md) for more information.
 
