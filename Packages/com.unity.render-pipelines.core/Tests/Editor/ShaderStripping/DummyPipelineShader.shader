@@ -1,4 +1,4 @@
-Shader "DummyPipeline/VariantStrippingTestsShader"
+Shader "Hidden/DummyPipeline/VariantStrippingTestsShader"
 {
     Properties
     {
