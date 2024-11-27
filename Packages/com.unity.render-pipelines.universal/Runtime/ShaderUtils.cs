@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.Universal
             "Universal Render Pipeline/Nature/SpeedTree7",
             "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
             "Universal Render Pipeline/Nature/SpeedTree8_PBRLit",
+            "SpeedTree9_Dummy_Path", // SpeedTree9 is shadergraph-only and does not have an HLSLF version, but this entry is still required
             "Universal Render Pipeline/Complex Lit",
         };
 
