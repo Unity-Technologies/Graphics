@@ -14,7 +14,7 @@ A GameObject must meet the following requirements to be compatible with the SRP 
 
 ## Shader compatibility
 
-All lit and unlit shaders in the the Universal Render Pipeline (URP) and the High Definition Render Pipeline (HDRP) fit this requirement (except for the particle versions of these shaders).
+All lit and unlit shaders in the Universal Render Pipeline (URP) and the High Definition Render Pipeline (HDRP) fit this requirement (except for the particle versions of these shaders).
 
 For a custom shader to be compatible with the SRP Batcher it must meet the following requirements:
 
