@@ -152,6 +152,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+#if UNITY_EDITOR
         internal static bool UseDynamicBranchFogKeyword()
         {
             const string kMemberName = "k_UseDynamicBranchFogKeyword";
@@ -162,6 +163,7 @@ namespace UnityEngine.Rendering.Universal
             int value = (int)((FieldInfo)memberInfo[0]).GetValue(null);
             return value == 1;
         }
+#endif
 
         // Match with values in Input.hlsl
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
