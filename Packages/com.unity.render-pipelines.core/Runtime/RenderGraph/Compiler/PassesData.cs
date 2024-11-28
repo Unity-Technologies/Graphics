@@ -40,11 +40,15 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return hash;
         }
 
-        public static bool EqualForMerge(PassFragmentData x, PassFragmentData y)
+        // If you modify this, check if struct RenderPassSetup::Attachment in "GfxDevice\RenderPassSetup.h" also needs changes
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool SameSubResource(in PassFragmentData x, in PassFragmentData y)
         {
             // We ignore the version for now we assume if one pass writes version x and the next y they can
             // be merged in the same native render pass
-            return x.resource.index == y.resource.index && x.accessFlags == y.accessFlags && x.mipLevel == y.mipLevel && x.depthSlice == y.depthSlice;
+            // We also do not look at the access flags as they get OR-ed together when adding subpasses to the native pass so the access flags
+            // will always cover the required access (and thus possibly more if required by other passes)
+            return x.resource.index == y.resource.index && x.mipLevel == y.mipLevel && x.depthSlice == y.depthSlice;
         }
     }
 
@@ -693,7 +697,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 for (int i = 0; i < nativePass.fragments.size; ++i)
                 {
-                    if (nativePass.fragments[i].resource.index == fragment.resource.index)
+                    if (PassFragmentData.SameSubResource(nativePass.fragments[i], fragment))
                     {
                         alreadyAttached = true;
                         break;
@@ -723,7 +727,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 for (int i = 0; i < nativePass.fragments.size; ++i)
                 {
-                    if (nativePass.fragments[i].resource.index == fragmentInput.resource.index)
+                    if (PassFragmentData.SameSubResource(nativePass.fragments[i], fragmentInput))
                     {
                         alreadyAttached = true;
                         break;
@@ -816,7 +820,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         int colorAttachmentIdx = -1;
                         for (int fragmentId = 0; fragmentId < fragmentList.size; ++fragmentId)
                         {
-                            if (fragmentList[fragmentId].resource.index == graphPassFragment.resource.index)
+                            if (PassFragmentData.SameSubResource(fragmentList[fragmentId], graphPassFragment))
                             {
                                 colorAttachmentIdx = fragmentId;
                                 break;
@@ -849,7 +853,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     int inputAttachmentIdx = -1;
                     for (int fragmentId = 0; fragmentId < fragmentList.size; ++fragmentId)
                     {
-                        if (fragmentList[fragmentId].resource.index == graphFragmentInput.resource.index)
+                        if (PassFragmentData.SameSubResource(fragmentList[fragmentId], graphFragmentInput))
                         {
                             inputAttachmentIdx = fragmentId;
                             break;
@@ -928,7 +932,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         int colorAttachmentIdx = -1;
                         for (int fragmentId = 0; fragmentId < fragmentList.size; ++fragmentId)
                         {
-                            if (fragmentList[fragmentId].resource.index == graphPassFragment.resource.index)
+                            if (PassFragmentData.SameSubResource(fragmentList[fragmentId], graphPassFragment))
                             {
                                 colorAttachmentIdx = fragmentId;
                                 break;
@@ -955,7 +959,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     int inputAttachmentIdx = -1;
                     for (int fragmentId = 0; fragmentId < fragmentList.size; ++fragmentId)
                     {
-                        if (fragmentList[fragmentId].resource.index == fragmentInput.resource.index)
+                        if (PassFragmentData.SameSubResource(fragmentList[fragmentId], fragmentInput))
                         {
                             inputAttachmentIdx = fragmentId;
                             break;
@@ -1118,7 +1122,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 for (int i = 0; i < nativePass.fragments.size; ++i)
                 {
                     ref var existingAttach = ref nativePass.fragments[i];
-                    if (existingAttach.resource.index == newAttach.resource.index)
+                    if (PassFragmentData.SameSubResource(existingAttach, newAttach))
                     {
                         // Update the attached version access flags and version
                         existingAttach.accessFlags |= newAttach.accessFlags;
@@ -1145,7 +1149,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 for (int i = 0; i < nativePass.fragments.size; ++i)
                 {
                     ref var existingAttach = ref nativePass.fragments[i];
-                    if (existingAttach.resource.index == newAttach.resource.index)
+                    if (PassFragmentData.SameSubResource(existingAttach, newAttach))
                     {
                         // Update the attached version access flags and version
                         existingAttach.accessFlags |= newAttach.accessFlags;

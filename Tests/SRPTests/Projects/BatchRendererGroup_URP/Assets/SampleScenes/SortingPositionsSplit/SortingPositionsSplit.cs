@@ -140,6 +140,7 @@ public class SortingPositionsSplit : MonoBehaviour
 
         drawCommands->drawRanges[0].drawCommandsBegin = 0;
         drawCommands->drawRanges[0].drawCommandsCount = 1;
+        drawCommands->drawRanges[0].drawCommandsType = BatchDrawCommandType.Direct;
 
         drawCommands->drawRanges[0].filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
 

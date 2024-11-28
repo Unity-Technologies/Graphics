@@ -414,6 +414,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var blockDeclared = new HashSet<string>();
             var includesProcessed = new HashSet<string>();
             var defineProcessed = new HashSet<string>();
+            var customCodeProcessed = new HashSet<string>();
 
             int cpt = 0;
             foreach (var current in context.activeFlattenedChildrenWithImplicit)
@@ -421,7 +422,10 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 // Custom HLSL Blocks
                 if (current is IHLSLCodeHolder hlslCodeHolder)
                 {
-                    blockFunction.Write(hlslCodeHolder.customCode);
+                    if (customCodeProcessed.Add(hlslCodeHolder.customCode))
+                    {
+                        blockFunction.Write(hlslCodeHolder.customCode);
+                    }
                     foreach (var includePath in hlslCodeHolder.includes)
                     {
                         if (includesProcessed.Add(includePath))
@@ -442,7 +446,6 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             }
 
             // Custom HLSL Operators
-            var customCodeProcessed = new HashSet<string>();
             foreach (var hlslCodeHolder in taskData.hlslCodeHolders)
             {
                 var customCode = hlslCodeHolder.customCode;

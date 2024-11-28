@@ -591,7 +591,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (passData.perPixelSorting)
                 {
-                    builder.UseDepthBuffer(transparentPrepass.beforeRefraction, DepthAccess.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
+                    builder.UseDepthBuffer(transparentPrepass.depthBufferPreRefraction, DepthAccess.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
                     builder.UseColorBuffer(transparentPrepass.beforeRefraction, 1);
                     builder.UseColorBuffer(transparentPrepass.beforeRefractionAlpha, 2);
                     opticalFogBufferIndex = 3;
@@ -604,6 +604,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!opticalFogTransmittance.IsValid())
                         opticalFogTransmittance = renderGraph.CreateTexture(HDRenderPipeline.GetOpticalFogTransmittanceDesc(hdCamera));
+                    builder.UseDepthBuffer(transparentPrepass.depthBufferPreRefraction, DepthAccess.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
                     builder.UseColorBuffer(opticalFogTransmittance, opticalFogBufferIndex);
                 }
 

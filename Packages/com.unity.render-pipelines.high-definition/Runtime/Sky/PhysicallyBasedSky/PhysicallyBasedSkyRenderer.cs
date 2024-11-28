@@ -562,7 +562,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraPosPS -= (upAltitude.w - 1.0f) * (Vector3)upAltitude.xyz;
 
             bool simpleEarthMode = pbrSky.type.value == PhysicallyBasedSkyModel.EarthSimple;
-            bool customMaterial = pbrSky.renderingMode.value == PhysicallyBasedSky.RenderingMode.Material && pbrSky.material.value != null;
+            bool customMaterial = pbrSky.renderingMode.value == PhysicallyBasedSky.RenderingMode.Material && pbrSky.material.value != null && pbrSky.material.overrideState;
             var material = customMaterial ? pbrSky.material.value : m_PbrSkyMaterial;
 
             // Common material properties

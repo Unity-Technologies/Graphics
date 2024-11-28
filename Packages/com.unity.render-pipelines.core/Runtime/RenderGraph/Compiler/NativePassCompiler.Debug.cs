@@ -36,11 +36,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             {
                 resourceName = pointTo.GetName(ctx, attachment.handle),
                 attachmentIndex = attachmentIndex,
-                loadAction = attachment.loadAction.ToString(),
                 loadReason = loadReason,
-                storeAction = attachment.storeAction.ToString(),
                 storeReason = storeReason,
-                storeMsaaReason = storeMsaaReason
+                storeMsaaReason = storeMsaaReason,
+                attachment = attachment
             };
         }
 
@@ -207,6 +206,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     debugResource.textureData.depth = resourceUnversioned.volumeDepth;
                     debugResource.textureData.samples = resourceUnversioned.msaaSamples;
                     debugResource.textureData.format = info.format;
+                    debugResource.textureData.bindMS = resourceUnversioned.bindMS;
+                    debugResource.textureData.clearBuffer = resourceUnversioned.clear;
                     debugResource.memoryless = resourceUnversioned.memoryLess;
 
                     debugResource.consumerList = new List<int>();
@@ -240,7 +241,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 debugPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
                 debugPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
 
-                RenderGraph.DebugData.s_PassScriptMetadata.TryGetValue(passName, out debugPass.scriptInfo);
+                RenderGraph.DebugData.s_PassScriptMetadata.TryGetValue(graphPass, out debugPass.scriptInfo);
 
                 debugPass.syncFromPassIndex = -1; // TODO async compute support
                 debugPass.syncToPassIndex = -1; // TODO async compute support

@@ -40,7 +40,7 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         ContextType m_SuitableContexts = ContextType.InitAndUpdateAndOutput;
 
-        public VFXContextType compatibleContextType
+        public override VFXContextType compatibleContextType
         {
             get
             {
@@ -70,11 +70,11 @@ namespace UnityEditor.VFX
             {
                 model.RefreshErrors();
             }
-        }
-
-        public override bool Accept(VFXBlock block, int index = -1)
-        {
-            return ((block.compatibleContexts & compatibleContextType) == compatibleContextType);
+            if (model == this && cause == InvalidationCause.kSettingChanged) // Suitable context has changed, refresh valid blocks UI
+            {
+                foreach (var block in children)
+                    block.Invalidate(InvalidationCause.kUIChangedTransient);
+            }
         }
 
         public override bool CanBeCompiled()

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditorInternal.EditMode;
 using RenderingLayerMask = UnityEngine.RenderingLayerMask;
@@ -17,6 +19,16 @@ namespace UnityEditor.Rendering.HighDefinition
         const float k_Limit = 100000;
         const float k_LimitInv = 1 / k_Limit;
 
+
+        static public readonly GUIContent k_NewDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Decal material.");
+        static public readonly string k_NewDecalText = "HDRP Decal";
+        static public readonly string k_NewSGDecalText = "ShaderGraph Decal";
+
+        internal enum DefaultDecal
+        {
+            HDRPDecal,
+            SGDecal
+        }
         static Color fullColor
         {
             get
@@ -715,7 +727,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     ReinitSavedRatioSizePivotPosition();
                 EditorGUI.EndProperty();
 
-                EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
+                DecalMaterialFieldWithButton(m_MaterialProperty);
 
                 bool decalLayerEnabled = false;
                 if (hdrp != null)
@@ -837,6 +849,54 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        internal void DecalMaterialFieldWithButton(SerializedProperty prop)
+        {
+            const int k_NewFieldWidth = 70;
+
+            var rect = EditorGUILayout.GetControlRect();
+            rect.xMax -= k_NewFieldWidth + 2;
+
+            EditorGUI.PropertyField(rect, prop);
+
+            var newFieldRect = rect;
+            newFieldRect.x = rect.xMax + 2;
+            newFieldRect.width = k_NewFieldWidth;
+
+            if (!EditorGUI.DropdownButton(newFieldRect, k_NewDecalMaterialButtonText, FocusType.Keyboard))
+                return;
+
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent(k_NewDecalText), false, () => CreateDefaultDecalMaterial(target as MonoBehaviour, DefaultDecal.HDRPDecal));
+            menu.AddItem(new GUIContent(k_NewSGDecalText), false, () => CreateDefaultDecalMaterial(target as MonoBehaviour, DefaultDecal.SGDecal));
+            menu.DropDown(newFieldRect);
+        }
+
+        public static void CreateDefaultDecalMaterial(MonoBehaviour obj, DefaultDecal defaultDecal)
+        {
+            string materialName = "";
+            var materialIcon = AssetPreview.GetMiniTypeThumbnail(typeof(Material));
+
+            var action = ScriptableObject.CreateInstance<DoCreateDecalDefaultMaterial>();
+            action.decalProjector = obj as DecalProjector;
+
+            switch (defaultDecal)
+            {
+                case DefaultDecal.HDRPDecal:
+                    materialName = "New " + k_NewDecalText;
+                    action.isShaderGraph = false;
+                    break;
+                case DefaultDecal.SGDecal:
+                    materialName = "New " + k_NewSGDecalText;
+                    action.isShaderGraph = true;
+                    break;
+                default:
+                    Debug.LogError("Decal creation failed.");
+                    break;
+            }
+
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, materialName, materialIcon, null);
+        }
+
         [Shortcut("HDRP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
         static void EnterEditModeWithoutPreservingUV(ShortcutArguments args)
         {
@@ -902,6 +962,35 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             QuitEditMode();
+        }
+    }
+
+    class DoCreateDecalDefaultMaterial : ProjectWindowCallback.EndNameEditAction
+    {
+        public DecalProjector decalProjector;
+        public bool isShaderGraph = false;
+        public override void Action(int instanceId, string pathName, string resourceFile)
+        {
+            string shaderGraphName = AssetDatabase.GenerateUniqueAssetPath(pathName + ".shadergraph");
+            string materialName = AssetDatabase.GenerateUniqueAssetPath(pathName + ".mat");
+            Shader shader = null;
+
+            if (isShaderGraph)
+            {
+                shader = DecalSubTarget.CreateDecalGraphAtPath(shaderGraphName);
+            }
+            else
+            {
+                shader = Shader.Find("HDRP/Decal");
+            }
+
+            if (shader != null)
+            { 
+                var material = new Material(shader);
+                AssetDatabase.CreateAsset(material, materialName);
+                ProjectWindowUtil.ShowCreatedAsset(material);
+                decalProjector.material = material;
+            }
         }
     }
 }

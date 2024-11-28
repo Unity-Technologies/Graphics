@@ -37,11 +37,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public static void ExecutePass(RasterCommandBuffer cmd, bool shouldReceiveShadows)
-        {            
+        {
             // This pass is only used when transparent objects should not
             // receive shadows using the setting on the URP Renderer.
             MainLightShadowCasterPass.SetEmptyMainLightShadowParams(cmd);
-            AdditionalLightsShadowCasterPass.SetEmptyAdditionalLightShadowParams(cmd, AdditionalLightsShadowCasterPass.s_EmptyAdditionalLightIndexToShadowParams);            
+            AdditionalLightsShadowCasterPass.SetEmptyAdditionalLightShadowParams(cmd, AdditionalLightsShadowCasterPass.s_EmptyAdditionalLightIndexToShadowParams);
         }
     }
 }

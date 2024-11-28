@@ -6,7 +6,7 @@ Custom Material Inspectors enable you to define how Unity displays properties in
 
 The implementation for custom Material Inspectors differs between URP and HDRP. For example, for compatibility purposes, every custom Material Inspector in HDRP must inherit from `HDShaderGUI` which does not exist in URP. For information on how to create custom Material Inspectors for the respective render pipelines, see:
 
-- **HDRP**: [HDRP custom Material Inspectors](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/hdrp-custom-material-inspector.html).
+- **HDRP**: [HDRP custom Material Inspectors](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/custom-material-inspectors.html).
 - **URP**: [Unity Custom Shader GUI](https://docs.unity3d.com/Manual/SL-CustomShaderGUI.html).
 
 ## Assigning a custom Material Inspector

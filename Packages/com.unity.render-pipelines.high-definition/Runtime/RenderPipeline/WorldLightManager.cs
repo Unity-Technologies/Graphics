@@ -154,12 +154,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightDataGPUArray = new GraphicsBuffer(GraphicsBuffer.Target.Structured, numLightsGpu, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
         }
 
-        internal const int k_MaxPlanarReflectionsOnScreen = 16;
-        internal const int k_MaxCubeReflectionsOnScreen = 64;
-
         internal unsafe void SetPlanarReflectionDataRT(int index, ref Matrix4x4 vp, ref Vector4 scaleOffset)
         {
-            Debug.Assert(index < k_MaxPlanarReflectionsOnScreen);
+            Debug.Assert(index < HDRenderPipeline.k_MaxPlanarReflectionsOnScreen);
 
             for (int j = 0; j < 16; ++j)
                 m_EnvLightReflectionDataRT._PlanarCaptureVPWL[index * 16 + j] = vp[j];
@@ -170,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal unsafe void SetCubeReflectionDataRT(int index, ref Vector4 scaleOffset)
         {
-            Debug.Assert(index < k_MaxCubeReflectionsOnScreen);
+            Debug.Assert(index < HDRenderPipeline.k_MaxCubeReflectionsOnScreen);
 
             for (int j = 0; j < 4; ++j)
                 m_EnvLightReflectionDataRT._CubeScaleOffsetWL[index * 4 + j] = scaleOffset[j];
@@ -354,16 +351,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     //          this to ensure that we don't process more lights than before
                     if ((flagFunc(hdCamera, hdLight, light) & 0xfffffffe) == 0)
                         continue;
-                    
+
                     // TODO-WL: Directional lights
                     if (hdLight.legacyLight.type == LightType.Directional)
                         continue;
-                    
+
                     // Compute the camera relative position
                     Vector3 lightPositionRWS = hdLight.gameObject.transform.position;
                     if (ShaderConfig.s_CameraRelativeRendering != 0)
                         lightPositionRWS -= camPosWS;
-                    
+
                     var lightType = hdLight.legacyLight.type;
                     float lightRange = light.range;
                     bool isAreaLight = lightType.IsArea();
@@ -401,10 +398,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Let's now compute an AABB that matches the previously defined OOBB
                         Bounds lightBounds = new Bounds();
                         OOBBToAABBBounds(oobbCenter, extents, hdLight.gameObject.transform.up, hdLight.gameObject.transform.right, hdLight.gameObject.transform.forward, ref lightBounds);
-                        
+
                         if (!bounds.Intersects(lightBounds))
                             continue;
-                        
+
                         visibleLight.bounds = lightBounds;
                     }
 
@@ -679,7 +676,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightVolume.position = visibleLight.bounds.center;
                     lightVolume.lightType = isAreaLight ? 1u : 0u;
                     lightVolume.shape = isAreaLight || isBoxLight ? 1u : 0u;
-                        
+
                     worldLightsVolumes.bounds.Encapsulate(visibleLight.bounds);
                     realIndex++;
                 }

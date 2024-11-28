@@ -1,6 +1,6 @@
 using System;
+using System.Collections;
 using UnityEngine;
-using UnityEditor;
 using NUnit.Framework;
 using UnityEngine.VFX;
 using UnityEditor.VFX.UI;
@@ -11,6 +11,7 @@ using UnityEditor.Experimental.GraphView;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;
 #if VFX_HAS_TIMELINE
 using UnityEngine.Playables;
@@ -342,6 +343,34 @@ namespace UnityEditor.VFX.Test
             var systemTextField = GetFieldValue<VFXSystemBorder, TextField>(sys, "m_TitleField");
             systemTextField.value = value;
             SetFieldValue(sys, "m_TitleField", systemTextField);
+        }
+
+        internal static IEnumerable CheckCompilation(VFXGraph vfxGraph)
+        {
+            var resource = vfxGraph.GetResource();
+            EditorUtility.SetDirty(resource);
+            var path = AssetDatabase.GetAssetPath(vfxGraph);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            while (ShaderUtil.anythingCompiling)
+                yield return null;
+
+            var computeShaders = AssetDatabase.LoadAllAssetsAtPath(path).OfType<ComputeShader>().ToArray();
+            Assert.AreEqual(3, computeShaders.Length);
+
+            foreach (var computeShader in computeShaders)
+            {
+                var messages = ShaderUtil.GetComputeShaderMessages(computeShader);
+                foreach (var message in messages)
+                    Assert.AreNotEqual(ShaderCompilerMessageSeverity.Error, message.severity, message.message);
+
+                Assert.AreEqual(0, computeShader.FindKernel("CSMain"));
+                Assert.IsTrue(computeShader.IsSupported(0));
+            }
+            yield return null;
         }
 
         internal static void CreateSystems(VFXView view, VFXViewController viewController, int count, int offset, string name = null)

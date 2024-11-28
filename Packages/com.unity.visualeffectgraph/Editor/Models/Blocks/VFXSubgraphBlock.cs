@@ -20,16 +20,7 @@ namespace UnityEditor.VFX
         VFXBlock[] m_SubBlocks;
         VFXGraph m_UsedSubgraph;
 
-        public VisualEffectSubgraphBlock subgraph
-        {
-            get
-            {
-                if (!isValid)
-                    return null;
-
-                return m_Subgraph;
-            }
-        }
+        public VisualEffectSubgraphBlock subgraph => m_Subgraph;
 
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
@@ -49,6 +40,7 @@ namespace UnityEditor.VFX
             {
                 ResyncSlots(true);
                 ResyncCustomAttributes();
+                Invalidate(InvalidationCause.kUIChangedTransient); // if a subgraph block has changed, we need to update it's visual valid state
             }
         }
 
@@ -233,7 +225,7 @@ namespace UnityEditor.VFX
                 if (blockContext == null)
                     return false;
 
-                return (blockContext.compatibleContextType & parent.contextType) == parent.contextType;
+                return base.isValid;
             }
         }
 

@@ -4,6 +4,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEditor.ShortcutManagement;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using static UnityEditorInternal.EditMode;
 
@@ -626,7 +627,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
 
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
+                MaterialFieldWithButton(m_MaterialProperty, k_MaterialContent);
                 materialChanged = EditorGUI.EndChangeCheck();
 
                 EditorUtils.DrawRenderingLayerMask(m_RenderingLayerMask, k_RenderingLayerMaskContent);
@@ -729,6 +730,30 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        internal void MaterialFieldWithButton(SerializedProperty prop, GUIContent label)
+        {
+            const int k_NewFieldWidth = 70;
+
+            var rect = EditorGUILayout.GetControlRect();
+            rect.xMax -= k_NewFieldWidth + 2;
+
+            EditorGUI.PropertyField(rect, prop, label);
+
+            var newFieldRect = rect;
+            newFieldRect.x = rect.xMax + 2;
+            newFieldRect.width = k_NewFieldWidth;
+
+            if (GUI.Button(newFieldRect, k_NewMaterialButtonText))
+            {
+                string materialName = k_NewDecalMaterialText + ".mat";
+                var materialIcon = AssetPreview.GetMiniTypeThumbnail(typeof(Material));
+                var action = ScriptableObject.CreateInstance<DoCreateDecalDefaultMaterial>();
+                action.decalProjector = target as DecalProjector;
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, materialName, materialIcon, null);
+            }
+                
+        }
+
         [Shortcut("URP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
         static void EnterEditModeWithoutPreservingUV(ShortcutArguments args)
         {
@@ -794,6 +819,19 @@ namespace UnityEditor.Rendering.Universal
                 return;
 
             QuitEditMode();
+        }
+    }
+
+    class DoCreateDecalDefaultMaterial : ProjectWindowCallback.EndNameEditAction
+    {
+        public DecalProjector decalProjector;
+        public override void Action(int instanceId, string pathName, string resourceFile)
+        {
+            var shader = DecalProjector.defaultMaterial.shader;
+            var material = new Material(shader);
+            AssetDatabase.CreateAsset(material, pathName);
+            ProjectWindowUtil.ShowCreatedAsset(material);
+            decalProjector.material = material;
         }
     }
 }

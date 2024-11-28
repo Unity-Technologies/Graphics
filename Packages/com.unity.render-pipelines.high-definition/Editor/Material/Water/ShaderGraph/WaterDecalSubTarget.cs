@@ -253,6 +253,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                             StructFields.Varyings.texCoord0,
                             StructFields.Varyings.texCoord1,
                             StructFields.Varyings.instanceID,
+                            StructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,
+                            StructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,
                         }
                     },
 
@@ -273,6 +275,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { Pragma.Vertex("Vert") },
                     { Pragma.Fragment("Frag") },
                     { Pragma.EditorSyncCompilation },
+                    { Pragma.DOTSInstancing },
+                    Pragma.MultiCompileInstancing,
                     //{ Pragma.DebugSymbols },
                 },
                 defines = WaterDecalDefines.GetPassDefines(type),

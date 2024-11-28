@@ -562,7 +562,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public static string MakeNameUnique(string name, HashSet<string> allNames, bool allowSpace = true)
+        public static string MakeNameUnique(string name, HashSet<string> allNames, bool allowSpace = true, List<string> rejectedCandidateNames = null)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -575,7 +575,7 @@ namespace UnityEditor.VFX.UI
             }
             string candidateMainPart = null;
             int cpt = 0;
-            while (allNames.Contains(candidateName))
+            while (allNames.Contains(candidateName, StringComparer.OrdinalIgnoreCase))
             {
                 if (candidateMainPart == null)
                 {
@@ -601,6 +601,7 @@ namespace UnityEditor.VFX.UI
                 candidateName = allowSpace
                     ? $"{candidateMainPart} {cpt}"
                     : $"{candidateMainPart}_{cpt}";
+                rejectedCandidateNames?.Add(candidateName);
             }
 
             return candidateName;

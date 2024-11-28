@@ -463,6 +463,10 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var port in GetPorts(true, false).OfType<VFXEditableDataAnchor>())
             {
+                // Skip because it's not visible
+                if (!port.connected && !expanded)
+                    continue;
+
                 float portLabelWidth = port.GetPreferredLabelWidth();
                 float portControlWidth = port.GetPreferredControlWidth();
 
@@ -515,7 +519,9 @@ namespace UnityEditor.VFX.UI
             var settingsLabelWidth = 0f;
             var inputsLabelWidth = 0f;
             controlWidth = 50f;
-            GetPreferredSettingsWidths(ref settingsLabelWidth, ref controlWidth);
+            // Settings are only visible when node is expanded
+            if (expanded)
+                GetPreferredSettingsWidths(ref settingsLabelWidth, ref controlWidth);
             GetPreferredWidths(ref inputsLabelWidth, ref controlWidth);
             labelWidth = Mathf.Max(settingsLabelWidth, inputsLabelWidth);
             if (labelWidth > 0)
@@ -524,12 +530,9 @@ namespace UnityEditor.VFX.UI
 
         protected virtual void RefreshLayout()
         {
-            if (expanded)
-            {
-                GetWidths(out var labelWidth, out var controlWidth);
-                ApplySettingsWidths(labelWidth);
-                ApplyWidths(labelWidth, controlWidth);
-            }
+            GetWidths(out var labelWidth, out var controlWidth);
+            ApplySettingsWidths(labelWidth);
+            ApplyWidths(labelWidth, controlWidth);
         }
     }
 }

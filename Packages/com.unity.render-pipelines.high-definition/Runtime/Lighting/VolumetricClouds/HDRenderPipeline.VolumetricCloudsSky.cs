@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureDesc GetVolumetricCloudsIntermediateCubeTextureDesc()
         {
             return new TextureDesc(skyReflectionSize, skyReflectionSize, false, false)
-            { slices = TextureXR.slices, dimension = TextureDimension.Cube, format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false };
+            { dimension = TextureDimension.Cube, format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false };
         }
 
         TextureDesc GetVolumetricCloudsMetalCopyBufferDesc()

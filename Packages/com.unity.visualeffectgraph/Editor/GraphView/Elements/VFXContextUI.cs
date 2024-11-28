@@ -118,8 +118,9 @@ namespace UnityEditor.VFX.UI
             }
 
             m_HeaderIcon.image = GetIconForVFXType(controller.model.inputType);
-            m_HeaderIcon.visible = m_HeaderIcon.image != null;
             m_HeaderIcon.SendToBack(); // Actually move it as first child so it's before the title label
+            if (m_HeaderIcon.image == null)
+                m_HeaderIcon.AddToClassList("Empty");
 
             var subTitle = controller.subtitle;
             m_Subtitle.text = controller.subtitle;
@@ -457,8 +458,11 @@ namespace UnityEditor.VFX.UI
 
                 if (references.Any() && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
                 {
-                    var compatibleReferences = references
-                        .Where(x => x != null && x.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType.HasFlag(controller.model.contextType));
+                    var compatibleReferences = references.Where(x =>
+                    {
+                        var subgraphBlock = x?.GetResource()?.GetOrCreateGraph()?.children.OfType<VFXBlockSubgraphContext>().First();
+                        return subgraphBlock != null ? controller.model.Accept(subgraphBlock.compatibleContextType, subgraphBlock.ownedType) : false;
+                    });
 
                     if (compatibleReferences.Any())
                     {
@@ -529,8 +533,12 @@ namespace UnityEditor.VFX.UI
                     foreach (var reference in references)
                     {
                         var graph = reference != null ? reference.GetResource().GetOrCreateGraph() : null;
-                        if (graph != null && graph.children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType.HasFlag(controller.model.contextType))
+                        if (graph != null)
                         {
+                            var subgraphContext = graph.children.OfType<VFXBlockSubgraphContext>().First();
+                            if (!controller.model.Accept(subgraphContext.compatibleContextType, subgraphContext.ownedType))
+                                continue;
+
                             DragAndDrop.AcceptDrag();
                             if (view.HasCustomAttributeConflicts(graph.attributesManager.GetCustomAttributes()))
                             {

@@ -5,7 +5,6 @@ using System.Text;
 
 using UnityEditor.VFX.UI;
 using UnityEngine;
-using PropertyAttribute = UnityEngine.PropertyAttribute;
 
 namespace UnityEditor.VFX.Block
 {
@@ -58,6 +57,9 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "HLSL")]
     class CustomHLSL : VFXBlock, IHLSLCodeHolder
     {
+        public const string FunctionNameSuffix = "Block";
+        public const string parameterPrefix = "_";
+
         const string defaultHlslCode =
             "void CustomHLSL(inout VFXAttributes attributes, in float3 offset, in float speedFactor)" + "\n" +
             "{" + "\n" +
@@ -348,7 +350,7 @@ namespace UnityEditor.VFX.Block
 
         private VFXPropertyWithValue CreateProperty(HLSLFunctionParameter parameter)
         {
-            var propertyAttributes = new List<PropertyAttribute>();
+            var propertyAttributes = new List<object>();
             if (parameter.bufferUsage.valid)
             {
                 propertyAttributes.Add(new GraphicsBufferUsageAttribute(parameter.bufferUsage));
@@ -360,8 +362,8 @@ namespace UnityEditor.VFX.Block
             }
 
             return propertyAttributes.Count > 0
-                ? new VFXPropertyWithValue(new VFXProperty(parameter.type, parameter.name, propertyAttributes.ToArray()))
-                : new VFXPropertyWithValue(new VFXProperty(parameter.type, parameter.name));
+                ? new VFXPropertyWithValue(new VFXProperty(parameter.type, $"{parameterPrefix}{parameter.name}", propertyAttributes.ToArray()))
+                : new VFXPropertyWithValue(new VFXProperty(parameter.type, $"{parameterPrefix}{parameter.name}"));
         }
 
         private string BuildSource()
@@ -387,7 +389,7 @@ namespace UnityEditor.VFX.Block
             // Make the call to custom hlsl function
             var functionName = HasShaderFile()
                 ? m_Function.name
-                : m_Function.GetNameWithHashCode();
+                : m_Function.GetNameWithHashCode(FunctionNameSuffix);
             builder.Append($"{functionName}(");
             if (m_Properties.Count > 0)
             {
@@ -421,7 +423,7 @@ namespace UnityEditor.VFX.Block
                 return string.Empty;
             }
 
-            return m_Function.GetTransformedHLSL();
+            return m_Function.GetTransformedHLSL(FunctionNameSuffix);
         }
 
         public bool Equals(IHLSLCodeHolder other)

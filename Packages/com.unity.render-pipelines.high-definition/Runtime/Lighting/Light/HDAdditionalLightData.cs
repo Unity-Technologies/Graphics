@@ -3347,7 +3347,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RefreshCachedShadow()
         {
             bool wentThroughCachedShadowSystem = lightIdxForCachedShadows >= 0;
-            if (wentThroughCachedShadowSystem)
+            if (!preserveCachedShadow && wentThroughCachedShadowSystem)
                 HDShadowManager.cachedShadowManager.EvictLight(this, legacyLight.type);
 
             RegisterCachedShadowLightOptional();

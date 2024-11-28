@@ -702,7 +702,7 @@ namespace UnityEditor.VFX
         {
             var newAttribute = m_AttributesManager.Duplicate(attributeName);
             var currentIndex = m_CustomAttributes.FindIndex(x => x.attributeName == attributeName);
-            var order = currentIndex >= 0 ? currentIndex + 1 : -1;
+            var order = currentIndex >= 0 ? currentIndex + 1 : m_CustomAttributes.Count;
             if (TryAddCustomAttribute(newAttribute.name, newAttribute.type, newAttribute.description, false, out var attribute))
             {
                 SetCustomAttributeOrder(attribute.name, order);

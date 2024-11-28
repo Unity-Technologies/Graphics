@@ -77,7 +77,15 @@ namespace UnityEditor.Rendering
             m_HelpButton.SetEnabled(!string.IsNullOrEmpty(m_DocumentationURL));
             line.Add(m_HelpButton);
 
-            m_ContextMenuButton = new Button(Background.FromTexture2D(CoreEditorStyles.paneOptionsIcon), () => ShowMenu());
+            m_ContextMenuButton =
+                new Button(Background.FromTexture2D(CoreEditorStyles.paneOptionsIcon), () => ShowMenu())
+                {
+                    style =
+                    {
+                        paddingRight = 2
+                    }
+                };
+
             m_ContextMenuButton.SetEnabled(m_ContextMenuGenerator != null);
             line.Add(m_ContextMenuButton);
             

@@ -322,12 +322,12 @@ namespace UnityEditor.VFX.Block
         public string body { get; }
         public IReadOnlyCollection<IHLSMessage> errorList { get; }
 
-        public string GetTransformedHLSL()
+        public string GetTransformedHLSL(string suffix)
         {
             var transformedBody = new StringBuilder();
             var hlslType = HLSLParser.UnityHLSLType(returnType);
 
-            transformedBody.Append($"{hlslType} {GetNameWithHashCode()}(");
+            transformedBody.Append($"{hlslType} {GetNameWithHashCode(suffix)}(");
 
             transformedBody.AppendJoin(", ", inputs);
             transformedBody.AppendLine(")");
@@ -336,7 +336,7 @@ namespace UnityEditor.VFX.Block
             return transformedBody.ToString();
         }
 
-        public string GetNameWithHashCode() => $"{name}_{body.GetHashCode():X}";
+        public string GetNameWithHashCode(string suffix) => $"{name}_{body.GetHashCode():X}_{suffix}";
 
         private Dictionary<string, string> GetDoc(string rawDoc)
         {

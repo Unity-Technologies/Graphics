@@ -1,4 +1,3 @@
-#if ENABLE_VR && ENABLE_XR_MODULE
 using System;
 
 namespace UnityEngine.Rendering.Universal
@@ -34,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField]
         [ResourcePath("Shaders/XR/XRMirrorView.shader")]
-        public Shader m_xrMirrorViewPS;
+        private Shader m_xrMirrorViewPS;
 
         /// <summary>
         /// XR Mirror View shader.
@@ -47,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField]
         [ResourcePath("Shaders/XR/XRMotionVector.shader")]
-        public Shader m_xrMotionVector;
+        private Shader m_xrMotionVector;
 
         /// <summary>
         /// XR MotionVector shader.
@@ -76,4 +75,3 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
-#endif

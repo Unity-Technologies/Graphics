@@ -34,6 +34,10 @@ namespace UnityEditor.VFX
         {
             GetGraph().TryAddCustomAttribute(attribute, CustomAttributeUtility.GetValueType(AttributeType), string.Empty, false, out var vfxAttribute);
             var vfxAttributeParameter = ScriptableObject.CreateInstance<VFXAttributeParameter>();
+            if (attribute != vfxAttribute.name)
+            {
+                Debug.Log($"[Sanitize] Get Custom Attribute {attribute} has been renamed into {vfxAttribute.name}");
+            }
             vfxAttributeParameter.attribute = vfxAttribute.name;
             vfxAttributeParameter.location = location;
             vfxAttributeParameter.ResyncSlots(true);

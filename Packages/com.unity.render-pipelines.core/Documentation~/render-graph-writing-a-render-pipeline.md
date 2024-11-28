@@ -15,7 +15,7 @@ public class MyRenderPipeline : RenderPipeline
 
     void InitializeRenderGraph()
     {
-        m_RenderGraph = new RenderGraph(“MyRenderGraph”);
+        m_RenderGraph = new RenderGraph("MyRenderGraph");
     }
 
     void CleanupRenderGraph()

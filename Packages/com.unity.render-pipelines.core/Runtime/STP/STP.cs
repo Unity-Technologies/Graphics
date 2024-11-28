@@ -402,6 +402,7 @@ namespace UnityEngine.Rendering
 
                     Vector2Int historyTextureSize = info.useHwDrs ? info.postUpscaleSize : info.preUpscaleSize;
                     TextureDimension texDimension = info.useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D;
+                    int numSlices = info.useTexArray ? TextureXR.slices : 1;
 
                     int width = 0;
                     int height = 0;
@@ -464,7 +465,7 @@ namespace UnityEngine.Rendering
                             int offset = (frameIndex * kNumHistoryTextureTypes) + historyTypeIndex;
 
                             m_textures[offset] = RTHandles.Alloc(
-                                width, height, format, TextureXR.slices, dimension: texDimension, enableRandomWrite: true,
+                                width, height, format, numSlices, dimension: texDimension, enableRandomWrite: true,
                                 name: name, useDynamicScaleExplicit: useDynamicScaleExplicit
                             );
                         }

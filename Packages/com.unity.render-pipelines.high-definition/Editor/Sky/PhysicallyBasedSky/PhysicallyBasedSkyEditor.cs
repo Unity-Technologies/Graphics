@@ -1,5 +1,5 @@
-using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -46,6 +46,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         GUIContent[] m_ModelTypes = { new GUIContent("Earth (Simple)"), new GUIContent("Earth (Advanced)"), new GUIContent("Custom Planet") };
         int[] m_ModelTypeValues = { (int)PhysicallyBasedSkyModel.EarthSimple, (int)PhysicallyBasedSkyModel.EarthAdvanced, (int)PhysicallyBasedSkyModel.Custom };
+
+        static public readonly GUIContent k_NewMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Physically Based Sky Material asset template.");
+        static public readonly GUIContent k_CustomMaterial = EditorGUIUtility.TrTextContent("Material", "Sets a custom material that will be used to render the PBR Sky. If set to None, the default Rendering Mode is used.");
+
+        static public readonly string k_NewSkyMaterialText = "Physically Based Sky";
 
         public override void OnEnable()
         {
@@ -130,7 +135,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hasMaterial)
             {
                 using (new IndentLevelScope())
-                    PropertyField(m_Material);
+                {
+                    MaterialFieldWithButton(m_Material, k_CustomMaterial);
+                }
+                    
             }
 
             DrawHeader("Planet");
@@ -199,6 +207,48 @@ namespace UnityEditor.Rendering.HighDefinition
             DrawHeader("Miscellaneous");
 
             base.CommonSkySettingsGUI();
+        }
+
+        internal void MaterialFieldWithButton(SerializedDataParameter prop, GUIContent label)
+        {
+            using (var scope = new OverridablePropertyScope(prop, prop.displayName, this))
+            {
+                if (!scope.displayed)
+                    return;
+
+                const int k_NewFieldWidth = 70;
+                var rect = EditorGUILayout.GetControlRect();
+                rect.xMax -= k_NewFieldWidth + 2;
+
+                var newFieldRect = rect;
+                newFieldRect.x = rect.xMax + 2;
+                newFieldRect.width = k_NewFieldWidth;
+
+                EditorGUI.PropertyField(rect, prop.value, label);
+
+                if (GUI.Button(newFieldRect, k_NewMaterialButtonText))
+                {
+                    string materialName = "New " + k_NewSkyMaterialText + ".mat";
+                    var materialIcon = AssetPreview.GetMiniTypeThumbnail(typeof(Material));
+                    var action = ScriptableObject.CreateInstance<DoCreatePBRSkyDefaultMaterial>();
+                    action.physicallyBasedSky = target as PhysicallyBasedSky;
+                    ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, materialName, materialIcon, null);
+                }
+            }
+        }
+    }
+
+    class DoCreatePBRSkyDefaultMaterial : ProjectWindowCallback.EndNameEditAction
+    {
+        public PhysicallyBasedSky physicallyBasedSky;
+        public Material material = null;
+        public override void Action(int instanceId, string pathName, string resourceFile)
+        {
+            var shader = GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineRuntimeMaterials>().pbrSkyMaterial;
+            material = new Material(shader);
+            AssetDatabase.CreateAsset(material, pathName);
+            ProjectWindowUtil.ShowCreatedAsset(material);
+            physicallyBasedSky.material.value = material;
         }
     }
 }

@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
+using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -222,6 +223,38 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     hidden = true,
                 });
             }
+        }
+
+        internal static Shader CreateDecalGraphAtPath(string path)
+        {
+            var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
+            target.TrySetActiveSubTarget(typeof(DecalSubTarget));
+
+            var blockDescriptors = new[]
+            {
+                BlockFields.VertexDescription.Position,
+                BlockFields.VertexDescription.Normal,
+                BlockFields.VertexDescription.Tangent,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.NormalTS,
+                HDBlockFields.SurfaceDescription.NormalAlpha,
+                BlockFields.SurfaceDescription.Metallic,
+                BlockFields.SurfaceDescription.Occlusion,
+                BlockFields.SurfaceDescription.Smoothness,
+                HDBlockFields.SurfaceDescription.MAOSAlpha,
+                BlockFields.SurfaceDescription.Emission,
+            };
+
+            var graph = new GraphData();
+            graph.AddContexts();
+            graph.InitializeOutputs(new[] { target }, blockDescriptors);
+
+            graph.path = "Shader Graphs";
+            FileUtilities.WriteShaderGraphToDisk(path, graph);
+            AssetDatabase.Refresh();
+
+            return AssetDatabase.LoadAssetAtPath<Shader>(path);
         }
 
         #region SubShaders
