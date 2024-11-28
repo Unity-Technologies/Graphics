@@ -448,7 +448,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
                 float3 L             = -light.forward;
                 float3 lightToSample = posInput.positionWS - light.positionRWS;
                 float  distProj      = dot(lightToSample, light.forward);
-                float4 distances     = float4(1, 1, 1, distProj);
+                float4 distances     = float4(distProj, distProj * distProj, 1.0f, distProj);
 
                 float4 lightColor = EvaluateLight_Punctual(context, posInput, light, L, distances);
                 // The volumetric light dimmer, unlike the regular light dimmer, is not pre-multiplied.
