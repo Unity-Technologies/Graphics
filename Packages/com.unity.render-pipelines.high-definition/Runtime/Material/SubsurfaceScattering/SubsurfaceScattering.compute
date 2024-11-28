@@ -205,7 +205,13 @@ bool SameProfiles(uint sampleProfileIndex, uint currentProfileIndex)
 
 int GetDiffusionProfileIndexAtPosition(int2 position)
 {
+#if PACK_DIFFUSION_PROFILE
+    // Load from RW texture has only 3 parameter (no mips) and we don't have macro for this one
+    uint p = _DiffusionProfileIndexTexture[COORD_TEXTURE2D_X(uint2(position.x >> 1, position.y))];
+#else
     uint p = LOAD_TEXTURE2D_X_LOD(_DiffusionProfileIndexTexture, uint2(position.x >> 1, position.y), 0);
+#endif
+
     int sampleProfileIndex;
 
     if ((position.x & 1) == 0)
