@@ -1342,3 +1342,43 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: No support PS5
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 79411c8112bdd64429adcd528baacf32, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 22
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/PLATGRAPH-4053
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 79411c8112bdd64429adcd528baacf32, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 22
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/PLATGRAPH-4053
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6e1d9c84fb9f1004798f6be12f277f09, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 22
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/PLATGRAPH-4053
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 38
+    GraphicsDevice: 22
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/PLATGRAPH-4053
