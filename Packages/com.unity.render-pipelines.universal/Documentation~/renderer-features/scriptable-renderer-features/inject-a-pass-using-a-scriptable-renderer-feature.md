@@ -136,6 +136,7 @@ public class MyRendererFeature : ScriptableRendererFeature
     {
         if (shader == null)
         {
+            Debug.LogError("Ensure that you've set a shader in the Scriptable Renderer Feature.");
             return;
         }
         material = CoreUtils.CreateEngineMaterial(shader);
@@ -147,12 +148,13 @@ public class MyRendererFeature : ScriptableRendererFeature
     public override void AddRenderPasses(ScriptableRenderer renderer,
         ref RenderingData renderingData)
     {
-        if (renderingData.cameraData.cameraType == CameraType.Game)
+        if (redTintRenderPass != null &&
+            renderingData.cameraData.cameraType == CameraType.Game)
         {
             renderer.EnqueuePass(redTintRenderPass);
         }
     }
-    public override void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
     {
         CoreUtils.Destroy(material);
     }
