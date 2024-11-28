@@ -8,9 +8,11 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel SubsurfaceScattering
+#pragma kernel PackDiffusionProfile PACK_DIFFUSION_PROFILE
 
 #pragma multi_compile _ ENABLE_MSAA
 #pragma multi_compile _ USE_DOWNSAMPLE
+#pragma multi_compile _ USE_SSS_OCCLUSION
 
 // TODO: use sharp load hoisting on PS4.
 
@@ -69,6 +71,12 @@ StructuredBuffer<uint>  _CoarseStencilBuffer;
     RW_TEXTURE2D_X(float4, _CameraFilteringTexture);  // Target texture
 #else
     RW_TEXTURE2D_X(float4, _CameraColorTexture);      // Target texture
+#endif
+
+#ifdef PACK_DIFFUSION_PROFILE
+    RW_TEXTURE2D_X(uint, _DiffusionProfileIndexTexture);
+#else
+    TYPED_TEXTURE2D_X(uint, _DiffusionProfileIndexTexture);
 #endif
 
 //--------------------------------------------------------------------------------------------------
@@ -187,9 +195,31 @@ struct DebugInfo
 #endif
 };
 
+bool SameProfiles(uint sampleProfileIndex, uint currentProfileIndex)
+{
+#ifdef USE_SSS_OCCLUSION
+    return sampleProfileIndex == currentProfileIndex;
+#endif
+    return true;
+}
+
+int GetDiffusionProfileIndexAtPosition(int2 position)
+{
+    uint p = LOAD_TEXTURE2D_X_LOD(_DiffusionProfileIndexTexture, uint2(position.x >> 1, position.y), 0);
+    int sampleProfileIndex;
+
+    if ((position.x & 1) == 0)
+        sampleProfileIndex = p & 0xF;
+    else
+        sampleProfileIndex = p >> 4;
+
+    return sampleProfileIndex;
+}
+
 void EvaluateSample(uint i, uint n, int2 pixelCoord, int2 cacheOffset,
                     float3 S, float d, float3 centerPosVS, float mmPerUnit, float pixelsPerMm,
-                    float phase, float3 tangentX, float3 tangentY, float4x4 projMatrix, float linearDepth, inout DebugInfo debugInfo,
+                    float phase, float3 tangentX, float3 tangentY, float4x4 projMatrix, float linearDepth,
+                    int currentProfileIndex, float3 borderAttenuationColor, inout DebugInfo debugInfo,
                     inout float3 totalIrradiance, inout float3 totalWeight)
 {
     // The sample count is loop-invariant.
@@ -234,17 +264,33 @@ void EvaluateSample(uint i, uint n, int2 pixelCoord, int2 cacheOffset,
     float4 textureSample = LoadSample(position, cacheOffset);
     float3 irradiance    = textureSample.rgb;
 
+    // Compute bilateral weighting.
+    float  viewZ  = textureSample.a;
+    float  relZ   = viewZ - linearDepth;
+    float3 weight = ComputeBilateralWeight(xy2, relZ, mmPerUnit, S, rcpPdf);
+
+    // For the SSS Occlusion, we take in account all the samples as weight
+    // This is required if we want darkening on zones where less samples are available due to masking.
+    #if USE_SSS_OCCLUSION
+    totalWeight     += weight;
+    #endif
+
     // Check the results of the stencil test.
     if (TestLightingForSSS(irradiance))
     {
-        // Apply bilateral weighting.
-        float  viewZ  = textureSample.a;
-        float  relZ   = viewZ - linearDepth;
-        float3 weight = ComputeBilateralWeight(xy2, relZ, mmPerUnit, S, rcpPdf);
-
-        // Note: if the texture sample if off-screen, (z = 0) -> (viewZ = far) -> (weight ≈ 0).
-        totalIrradiance += weight * irradiance;
-        totalWeight     += weight;
+        int sampleProfileIndex = GetDiffusionProfileIndexAtPosition(position);
+        if (SameProfiles(sampleProfileIndex, currentProfileIndex))
+        {
+            // Note: if the texture sample if off-screen, (z = 0) -> (viewZ = far) -> (weight ≈ 0).
+            totalIrradiance += weight * irradiance;
+            #if !USE_SSS_OCCLUSION
+            totalWeight     += weight;
+            #endif
+        }
+        else
+        {
+            totalIrradiance += weight * irradiance * borderAttenuationColor;
+        }
     }
     else
     {
@@ -302,6 +348,7 @@ void EvaluateSss(uint2 pixelCoord, CacheInfo cacheInfo, CenterInfo centerInfo, i
     float  distScale = sssData.subsurfaceMask;
     float3 S = _ShapeParamsAndMaxScatterDists[profileIndex].rgb;
     float  d = _ShapeParamsAndMaxScatterDists[profileIndex].a;
+    float3 borderAttenuationColor = _BorderAttenuationColor[profileIndex].rgb;
     float  metersPerUnit = _WorldScalesAndFilterRadiiAndThicknessRemaps[profileIndex].x;
     float  filterRadius = _WorldScalesAndFilterRadiiAndThicknessRemaps[profileIndex].y; // In millimeters
 
@@ -393,8 +440,8 @@ void EvaluateSss(uint2 pixelCoord, CacheInfo cacheInfo, CenterInfo centerInfo, i
         // Integrate over the image or tangent plane in the view space.
         EvaluateSample(i, n, pixelCoord, cacheInfo.cacheOffset,
             S, d, centerPosVS, mmPerUnit, pixelsPerMm,
-            phase, tangentX, tangentY, projMatrix, linearDepth, debugInfo,
-            totalIrradiance, totalWeight);
+            phase, tangentX, tangentY, projMatrix, linearDepth, profileIndex,
+            borderAttenuationColor, debugInfo, totalIrradiance, totalWeight);
     }
 
     // Total weight is 0 for color channels without scattering.
@@ -459,7 +506,9 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     bool   passedStencilTest = TestLightingForSSS(centerInfo.irradiance);
 
     // Save some bandwidth by only loading depth values for SSS pixels.
+#if !USE_SSS_OCCLUSION // When Occlusion is enabled we need all the samples in the cache to be valid.
     if (passedStencilTest)
+#endif
     {
         centerInfo.depth = LOAD_TEXTURE2D_X(_DepthTexture, pixelCoord).r;
     }
@@ -559,3 +608,27 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
 
     StoreResult(pixelCoord, irradiance);
 }
+
+#ifdef PACK_DIFFUSION_PROFILE
+[numthreads(8, 8, 1)]
+void PackDiffusionProfile(uint3 groupId          : SV_GroupID,
+                          uint  groupThreadId    : SV_GroupThreadID,
+                          uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 pixelCoord0 = uint2(dispatchThreadId.x * 2, dispatchThreadId.y);
+    uint2 pixelCoord1 = pixelCoord0 + uint2(1, 0);
+    uint packedProfiles = 0;
+
+    // The result of the stencil test allows us to statically determine the material type (SSS).
+    SSSData sssData;
+    DECODE_FROM_SSSBUFFER(pixelCoord0, sssData);
+    packedProfiles |= sssData.diffusionProfileIndex & 0xF;
+
+    DECODE_FROM_SSSBUFFER(pixelCoord1, sssData);
+    packedProfiles |= (sssData.diffusionProfileIndex & 0xF) << 4;
+
+    _DiffusionProfileIndexTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = packedProfiles;
+}
+#endif

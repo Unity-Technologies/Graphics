@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEditor;
 using UnityEngine.Rendering.HighDefinition;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [ExecuteInEditMode]
 public class MoveWave : MonoBehaviour
@@ -58,6 +60,7 @@ public class MoveWave : MonoBehaviour
 	}
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(MoveWave))]
 public class MoveWaveEditor : Editor
 {
@@ -73,4 +76,6 @@ public class MoveWaveEditor : Editor
         }
     }
 }
+
+#endif
 

@@ -132,27 +132,19 @@ void UnlitPassFragment(
     finalColor.rgb *= aoFactor.directAmbientOcclusion;
 #endif
 
-#if defined(_FOG_FRAGMENT)
-#if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
     half fogFactor = 0;
+#if defined(_FOG_FRAGMENT)
+#if defined(FOG_LINEAR_KEYWORD_DECLARED)
     if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
     {
         float viewZ = -input.fogCoord;
         float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
         fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
     }
-#else // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
-#if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-    float viewZ = -input.fogCoord;
-    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
-    half fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
-#else
-    half fogFactor = 0;
-#endif
-#endif // #if USE_DYNAMIC_BRANCH_FOG_KEYWORD && defined(FOG_LINEAR_KEYWORD_DECLARED)
-#else
-    half fogFactor = input.fogCoord;
-#endif
+#endif // #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+#else // #if defined(_FOG_FRAGMENT)
+    fogFactor = input.fogCoord;
+#endif // #if defined(_FOG_FRAGMENT)
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
     finalColor.a = OutputAlpha(finalColor.a, IsSurfaceTypeTransparent(_Surface));
 

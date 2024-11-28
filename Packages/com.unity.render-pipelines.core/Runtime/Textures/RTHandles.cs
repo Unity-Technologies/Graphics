@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 
@@ -48,7 +49,7 @@ namespace UnityEngine.Rendering
         /// Allocate a new fixed sized RTHandle with the default RTHandle System.
         /// </summary>
         /// <param name="width">With of the RTHandle.</param>
-        /// <param name="height">Heigh of the RTHandle.</param>
+        /// <param name="height">height of the RTHandle.</param>
         /// <param name="slices">Number of slices of the RTHandle.</param>
         /// <param name="depthBufferBits">Bit depths of a depth buffer.</param>
         /// <param name="colorFormat">GraphicsFormat of a color buffer.</param>
@@ -122,9 +123,9 @@ namespace UnityEngine.Rendering
         /// Allocate a new fixed sized RTHandle with the default RTHandle System.
         /// </summary>
         /// <param name="width">With of the RTHandle.</param>
-        /// <param name="height">Heigh of the RTHandle.</param>
+        /// <param name="height">height of the RTHandle.</param>
         /// <param name="format">GraphicsFormat of a color or depth stencil buffer.</param>
-        /// <param name="slices">Number of slices of the RTHandle.</param>       
+        /// <param name="slices">Number of slices of the RTHandle.</param>
         /// <param name="filterMode">Filtering mode of the RTHandle.</param>
         /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
         /// <param name="dimension">Texture dimension of the RTHandle.</param>
@@ -146,7 +147,7 @@ namespace UnityEngine.Rendering
             int width,
             int height,
             GraphicsFormat format,
-            int slices = 1,            
+            int slices = 1,
             FilterMode filterMode = FilterMode.Point,
             TextureWrapMode wrapMode = TextureWrapMode.Repeat,
             TextureDimension dimension = TextureDimension.Tex2D,
@@ -169,7 +170,7 @@ namespace UnityEngine.Rendering
                 width,
                 height,
                 format,
-                slices, 
+                slices,
                 filterMode,
                 wrapMode,
                 dimension,
@@ -193,7 +194,7 @@ namespace UnityEngine.Rendering
         /// Allocate a new fixed sized RTHandle with the default RTHandle System.
         /// </summary>
         /// <param name="width">With of the RTHandle.</param>
-        /// <param name="height">Heigh of the RTHandle.</param>
+        /// <param name="height">height of the RTHandle.</param>
         /// <param name="wrapModeU">U coordinate wrapping mode of the RTHandle.</param>
         /// <param name="wrapModeV">V coordinate wrapping mode of the RTHandle.</param>
         /// <param name="wrapModeW">W coordinate wrapping mode of the RTHandle.</param>
@@ -302,36 +303,47 @@ namespace UnityEngine.Rendering
             string name = ""
         )
         {
-            var format = GetFormat(descriptor.graphicsFormat, descriptor.depthStencilFormat);
-
-            var result = s_DefaultInstance.Alloc(
-                descriptor.width,
-                descriptor.height,
-                format,
-                descriptor.volumeDepth,
-                filterMode,
-                wrapMode,
-                descriptor.dimension,
-                descriptor.enableRandomWrite,
-                descriptor.useMipMap,
-                descriptor.autoGenerateMips,
-                isShadowMap,
-                anisoLevel,
-                mipMapBias,
-                (MSAASamples)descriptor.msaaSamples,
-                descriptor.bindMS,
-                descriptor.useDynamicScale,
-                descriptor.useDynamicScaleExplicit,
-                descriptor.memoryless,
-                descriptor.vrUsage,
-                name
-            );
-            return result;
+            return s_DefaultInstance.Alloc(descriptor.width, descriptor.height,
+                GetRTHandleAllocInfo(descriptor, filterMode, wrapMode, anisoLevel, mipMapBias, name));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static internal GraphicsFormat GetFormat(GraphicsFormat colorFormat, GraphicsFormat depthStencilFormat)
         {
             return (depthStencilFormat==GraphicsFormat.None) ? colorFormat : depthStencilFormat;
+        }
+
+        // Internal RtDesc to RtAllocInfo conversion utility function.
+        // Keep internal for future changes.
+        //
+        // NOTE: It has no default values to avoid param ambiguity of the flat RtHandleAlloc API.
+        // NOTE: There isn't 100% field to field mapping, so some fields might need manual adjustment afterwards.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static RTHandleAllocInfo GetRTHandleAllocInfo(in RenderTextureDescriptor desc, FilterMode filterMode, TextureWrapMode wrapMode, int anisoLevel, float mipMapBias, string name)
+        {
+            return new RTHandleAllocInfo(name)
+            {
+                slices = desc.volumeDepth,
+                format = RTHandles.GetFormat(desc.graphicsFormat, desc.depthStencilFormat),
+                filterMode = filterMode,
+                wrapModeU = wrapMode,
+                wrapModeV = wrapMode,
+                wrapModeW = wrapMode,
+                dimension = desc.dimension,
+                enableRandomWrite = desc.enableRandomWrite,
+                useMipMap = desc.useMipMap,
+                autoGenerateMips = desc.autoGenerateMips,
+                isShadowMap = desc.shadowSamplingMode != ShadowSamplingMode.None,
+                anisoLevel = anisoLevel,
+                mipMapBias = mipMapBias,
+                msaaSamples = (MSAASamples)desc.msaaSamples,
+                bindTextureMS = desc.bindMS,
+                useDynamicScale = desc.useDynamicScale,
+                useDynamicScaleExplicit = desc.useDynamicScaleExplicit,
+                memoryless = desc.memoryless,
+                vrUsage = desc.vrUsage,
+                enableShadingRate = desc.enableShadingRate,
+            };
         }
 
         /// <summary>
@@ -431,7 +443,7 @@ namespace UnityEngine.Rendering
         public static RTHandle Alloc(
             Vector2 scaleFactor,
             GraphicsFormat format,
-            int slices = 1,            
+            int slices = 1,
             FilterMode filterMode = FilterMode.Point,
             TextureWrapMode wrapMode = TextureWrapMode.Repeat,
             TextureDimension dimension = TextureDimension.Tex2D,
@@ -496,29 +508,8 @@ namespace UnityEngine.Rendering
             string name = ""
         )
         {
-            var format = GetFormat(descriptor.graphicsFormat, descriptor.depthStencilFormat);
-
-            return s_DefaultInstance.Alloc(
-                scaleFactor,
-                format,
-                descriptor.volumeDepth,    
-                filterMode,
-                wrapMode,
-                descriptor.dimension,
-                descriptor.enableRandomWrite,
-                descriptor.useMipMap,
-                descriptor.autoGenerateMips,
-                isShadowMap,
-                anisoLevel,
-                mipMapBias,
-                (MSAASamples)descriptor.msaaSamples,
-                descriptor.bindMS,
-                descriptor.useDynamicScale,
-                descriptor.useDynamicScaleExplicit,
-                descriptor.memoryless,
-                descriptor.vrUsage,
-                name
-            );
+            return s_DefaultInstance.Alloc(scaleFactor,
+                GetRTHandleAllocInfo(descriptor, filterMode, wrapMode, anisoLevel, mipMapBias, name));
         }
 
         /// <summary>
@@ -697,29 +688,8 @@ namespace UnityEngine.Rendering
             Assert.IsFalse(descriptor.graphicsFormat != GraphicsFormat.None && descriptor.depthStencilFormat != GraphicsFormat.None,
                 "The RenderTextureDescriptor used to create RTHandle " + name + " contains both graphicsFormat and depthStencilFormat which is not allowed.");
 
-            var format = GetFormat( descriptor.graphicsFormat, descriptor.depthStencilFormat);
-
-            return s_DefaultInstance.Alloc(
-                scaleFunc,
-                format,
-                descriptor.volumeDepth,
-                filterMode,
-                wrapMode,
-                descriptor.dimension,
-                descriptor.enableRandomWrite,
-                descriptor.useMipMap,
-                descriptor.autoGenerateMips,
-                isShadowMap,
-                anisoLevel,
-                mipMapBias,
-                (MSAASamples)descriptor.msaaSamples,
-                descriptor.bindMS,
-                descriptor.useDynamicScale,
-                descriptor.useDynamicScaleExplicit,
-                descriptor.memoryless,
-                descriptor.vrUsage,
-                name
-            );
+            return s_DefaultInstance.Alloc(scaleFunc,
+                GetRTHandleAllocInfo(descriptor, filterMode, wrapMode, anisoLevel, mipMapBias, name));
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 # HDRI Sky Volume Override reference
 
-The HDRI Sky Volume Override component exposes options that you can use to define how the High Definition Render Pipeline (HDRP) renders an HDRI sky. 
+The HDRI Sky Volume Override component provides options to define how the High Definition Render Pipeline (HDRP) renders an HDRI sky.
 
 Refer to [Create an HDRI sky](create-an-HDRI-sky.md) for more information.
 
@@ -22,51 +22,52 @@ Refer to [Create an HDRI sky](create-an-HDRI-sky.md) for more information.
   <tr>
     <td><strong>HDRI Sky</strong></td>
     <td></td>
-    <td>Assign a HDRI Texture that HDRP uses to render the sky.</td>
+    <td>Assign an HDRI texture to render the sky in HDRP.</td>
   </tr>
   <tr>
     <td><strong>Distortion Mode</strong></td>
     <td></td>
-    <td>Use the drop-down to select the method that HDRP uses to calculate the sky distortion.<br>&#8226; <strong>None</strong>: No distortion.<br>&#8226; <strong>Procedural</strong>: HDRP distorts the sky using a uniform wind direction.<br>&#8226; <strong>Flowmap</strong>: HDRP distorts the sky with a user provided flowmap.</td>
+    <td>Select how HDRP calculates sky distortion:<br>&#8226; <strong>None</strong>: No distortion.<br>&#8226; <strong>Procedural</strong>: Distorts the sky using uniform wind direction.<br>&#8226; <strong>Flowmap</strong>: Uses a user-provided flowmap for distortion.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Orientation</strong></td>
-    <td>The orientation of the distortion relative to the X world vector (in degrees).<br>This value can be relative to the <strong>Global Wind Orientation</strong> defined in the <strong>Visual Environment</strong>.</td>
+    <td>Set the distortion orientation relative to the X-world vector (degrees).<br/>This can be relative to the <strong>Global Wind Orientation</strong> in the <strong>Visual Environment</strong>.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Speed</strong></td>
-    <td>The speed at which HDRP scrolls the distortion texture.<br>This value can be relative to the <strong>Global Wind Speed</strong> defined in the <strong>Visual Environment</strong>.</td>
+    <td>Define how fast HDRP scrolls the distortion texture. <br>This value can be relative to the <strong>Global Wind Speed</strong> defined in the <strong>Visual Environment</strong>.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Flowmap</strong></td>
-    <td>Assign a flowmap, in LatLong layout, that HDRP uses to distort UVs when rendering the sky.<br>This property only appears when you select <strong>Flowmap</strong> from the <strong>Distortion Mode</strong> drop-down.</td>
+    <td>Assign a LatLong flowmap for sky UV distortion.<br/>Visible only when you select <strong>Flowmap</strong> from the <strong>Distortion Mode</strong> drop-down.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Upper Hemisphere Only</strong></td>
-    <td>Check the box if the flowmap contains distortion for the sky above the horizon only.<br>This property only appears when you select <strong>Flowmap</strong> from the <strong>Distortion Mode</strong> drop-down.</td>
+    <td>Enable if the flowmap distorts only the sky above the horizon.<br/>Visible only when you select <strong>Flowmap</strong> from the <strong>Distortion Mode</strong> drop-down.</td>
   </tr>
   <tr>
     <td><strong>Intensity Mode</strong></td>
     <td></td>
-    <td>Use the drop-down to select the method that HDRP uses to calculate the sky intensity.<br>&#8226; <strong>Exposure</strong>: HDRP calculates intensity from an exposure value in EV100.<br>&#8226; <strong>Multiplier</strong>: HDRP calculates intensity from a flat multiplier.<br>&#8226; <strong>Lux</strong>: HDRP calculates intensity in terms of a target Lux value.</td>
+    <td>Choose how HDRP calculates sky intensity:<br>&#8226; <strong>Exposure</strong>: Based on EV100 exposure.<br>&#8226; <strong>Multiplier</strong>: Applies a flat multiplier.<br>&#8226; <strong>Lux</strong>: Targets a specific Lux value.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Exposure</strong></td>
-    <td>Set the amount of light per unit area that HDRP applies to the HDRI Sky cubemap.<br>This property only appears when you select <strong>Exposure</strong> from the <strong>Intensity Mode</strong> drop-down.</td>
+    <td>Set the light per unit area applied to the HDRI Sky cubemap.<br/>Visible only when you set <strong>Exposure</strong> in <strong>Intensity Mode</strong> from the <strong>Intensity Mode</strong> drop-down.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Multiplier</strong></td>
-    <td>Set the multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value.<br>This property only appears when you select <strong>Multiplier</strong> from the <strong>Intensity Mode</strong> drop-down.</td>
+    <td>Set a multiplier for environment light in the scene.<br/>Visible only when you select <strong>Multiplier</strong> from the <strong>Intensity Mode</strong> drop-down.</td>
+  </tr>
   <tr>
     <td></td>
     <td><strong>Desired Lux Value</strong></td>
-    <td>Set an absolute intensity for the HDR Texture you set in <strong>HDRI Sky</strong>, in <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.1/manual/Physical-Light-Units.html#Lux">Lux</a>. This value represents the light received in a direction perpendicular to the ground. This is similar to the Lux unit you use to represent the Sun, so it's complimentary.<br>This property only appears when you select <strong>Lux</strong> from the <strong>Intensity Mode</strong> drop-down.</td>
+    <td>Set an absolute intensity for the HDR Texture you set in <strong>HDRI Sky</strong>, in <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.1/manual/Physical-Light-Units.html#Lux">Lux</a>. This value represents the light received in a direction perpendicular to the ground. This is similar to the Lux unit you use to represent the Sun, so it's complimentary.<br>Visible only when you select <strong>Lux</strong> from the <strong>Intensity Mode</strong> drop-down.</td>
   </tr>
   <tr>
     <td></td>
@@ -78,10 +79,10 @@ Refer to [Create an HDRI sky](create-an-HDRI-sky.md) for more information.
     <td></td>
     <td>Use the slider to set the angle to rotate the cubemap, in degrees.</td>
   </tr>
-<tr>
+  <tr>
     <td></td>
     <td><strong>Lock Sun</strong></td>
-    <td>Make the Sun rotate automatically when you move the HDRI Sky, and the HDRI Sky rotate automatically when you rotate the Sun.</td>
+    <td>Make the Sun rotate automatically when you move the HDRI Sky, and the HDRI Sky rotate automatically when you rotate the sun.</td>
   </tr>
   <tr>
     <td><strong>Update Mode</strong></td>
@@ -91,7 +92,7 @@ Refer to [Create an HDRI sky](create-an-HDRI-sky.md) for more information.
   <tr>
     <td></td>
     <td><strong>Update Period</strong></td>
-    <td>Set the period (in seconds) for HDRP to update the sky environment. Set the value to 0 if you want HDRP to update the sky environment every frame. This property only appears when you set the <strong>Update Mode</strong> to <strong>Realtime</strong>.</td>
+    <td>Set the update interval in seconds. Use <strong>0</strong> for per-frame updates. Visible only when you set the <strong>Update Mode</strong> to <strong>Realtime</strong>.</td>
   </tr>
 </tbody>
 </table>
@@ -116,19 +117,19 @@ These properties only appear if you enable [advanced properties](https://docs.un
     <td><strong>Backplate</strong></td>
     <td></td>
     <td></td>
-    <td>Indicates whether to project the bottom part of the HDRI onto a plane with various shapes such as a Rectangle, Circle, Ellipse, or Infinite plane.</td>
+    <td>Projects the lower hemisphere of the HDRI onto a selected shape (Rectangle, Circle, Ellipse, or Infinite plane).</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Type</strong></td>
     <td></td>
-    <td>Specifies the shape of the backplate.<br/><br/>&#8226; <strong>Disc</strong>: Projects the bottom of the HDRI texture onto a disc.<br/><br/>&#8226; <strong>Rectangle</strong>: rojects the bottom of the HDRI texture onto a rectangle.<br/><br/>&#8226; <strong>Ellipse</strong>: Projects the bottom of the HDRI texture onto an ellipse.<br/><br/>&#8226; <strong>Infinite</strong>: Projects the bottom of the HDRI texture onto an infinite plane.</td>
+    <td>Specifies the shape of the backplate.<br/><br/>&#8226; <strong>Disc</strong>: Projects the bottom of the HDRI texture onto a disc.<br/><br/>&#8226; <strong>Rectangle</strong>: Projects the bottom of the HDRI texture onto a rectangle.<br/><br/>&#8226; <strong>Ellipse</strong>: Projects the bottom of the HDRI texture onto an ellipse.<br/><br/>&#8226; <strong>Infinite</strong>: Projects the bottom of the HDRI texture onto an infinite plane.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Ground Level</strong></td>
     <td></td>
-    <td>The height of the ground level in the scene.</td>
+    <td>Specifies the height of the ground in the scene.</td>
   </tr>
   <tr>
     <td></td>
@@ -140,25 +141,25 @@ These properties only appear if you enable [advanced properties](https://docs.un
     <td></td>
     <td><strong>Projection</strong></td>
     <td></td>
-    <td>HDRP uses this number to control the projection of the bottom hemisphere of the HDRI on the backplate. Small projection distance implies higher pixels density with more distortion, large projection distance implies less pixels density with less distortion.</td>
+    <td>HDRP uses this number to control the projection of the bottom hemisphere of the HDRI on the backplate. Small projection distance implies higher pixel density with more distortion, large projection distance implies less pixel density with less distortion.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Rotation</strong></td>
     <td></td>
-    <td>The rotation of the physical backplate.</td>
+    <td>Rotates the physical backplate.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Texture Rotation</strong></td>
     <td></td>
-    <td>The rotation of the HDRI texture HDRP projects onto the backplate.</td>
+    <td>Rotates the HDRI texture projected onto the backplate.</td>
   </tr>
   <tr>
     <td></td>
     <td><strong>Texture Offset</strong></td>
     <td></td>
-    <td>The offset value to apply to the texture HDRP projects onto the backplate.</td>
+    <td>Offsets the texture projected onto the backplate.</td>
   </tr>
   <tr>
     <td></td>
@@ -176,7 +177,7 @@ These properties only appear if you enable [advanced properties](https://docs.un
     <td></td>
     <td><strong>Directional Shadow</strong></td>
     <td></td>
-    <td>Indicates whether the backplate receives shadows from the main directional Light.</td>
+    <td>Enables shadows from the main directional light on the backplate.</td>
   </tr>
   <tr>
     <td></td>
@@ -201,4 +202,4 @@ These properties only appear if you enable [advanced properties](https://docs.un
 
 **Note**: To use ambient occlusion in the backplate, increase the value of the **Direct Lighting Strength** property on the [Ambient Occlusion](Override-Ambient-Occlusion.md) component override. As the backplate doesn't have global illumination, it can only get ambient occlusion from direct lighting.
 
-**Limitation**: The backplate only appears in local reflection probes and it doesn't appear in the default sky reflection. This is because the default sky reflection is a cubemap projected at infinity which is incompatible with how Unity renders the backplate.
+**Limitation**: The backplate only appears in local reflection probes and doesn't appear in the default sky reflection. This is because the default sky reflection is a cubemap projected at infinity which is incompatible with how Unity renders the backplate.

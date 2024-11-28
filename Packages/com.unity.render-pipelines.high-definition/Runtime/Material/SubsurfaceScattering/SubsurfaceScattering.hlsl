@@ -174,7 +174,8 @@ void FillMaterialSSS(uint diffusionProfileIndex, float subsurfaceMask, inout BSD
     bsdfData.diffusionProfileIndex = diffusionProfileIndex;
     bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfileIndex].a;
     bsdfData.subsurfaceMask = subsurfaceMask;
-    bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
+    if (subsurfaceMask != 0)
+        bsdfData.materialFeatures |= MATERIALFEATUREFLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
     bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(diffusionProfileIndex) << MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET;
 }
 
@@ -186,8 +187,15 @@ bool ShouldOutputSplitLighting(BSDFData bsdfData)
 float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
 {
     // Subsurface scattering mode
-    uint   texturingMode = (bsdfData.materialFeatures >> MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
-    return ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
+    if (bsdfData.subsurfaceMask != 0)
+    {
+        uint   texturingMode = (bsdfData.materialFeatures >> MATERIALFEATUREFLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
+        return ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
+    }
+    else
+    {
+        return bsdfData.diffuseColor;
+    }
 }
 
 bool GetDualLobeParameters(uint diffusionProfileIndex, out float multiplierA, out float multiplierB, out float lobeMix)

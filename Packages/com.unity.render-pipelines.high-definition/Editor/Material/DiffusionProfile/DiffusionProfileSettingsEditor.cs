@@ -160,6 +160,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 DualSliderWithFields(Styles.smoothnessMultipliers, m_SerializedDiffusionProfileSettings.smoothnessMultipliers, 0.0f, 2.0f);
                 EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.lobeMix);
                 EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.diffusePower);
+                if (HDRenderPipeline.currentAsset == null || HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.subsurfaceScatteringAttenuation)
+                    EditorGUILayout.PropertyField(m_SerializedDiffusionProfileSettings.borderAttenuationColor);
             }
 
             EditorGUILayout.Space();

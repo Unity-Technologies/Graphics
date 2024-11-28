@@ -36,6 +36,8 @@ class TilemapRenderer2DTests
         m_BaseCameraData = m_BaseObj.AddComponent<UniversalAdditionalCameraData>();
 
         m_BaseCamera.allowHDR = false;
+        m_BaseCamera.clearFlags = CameraClearFlags.SolidColor;
+        m_BaseCameraData.camera.clearFlags = CameraClearFlags.SolidColor;
         m_BaseCameraData.SetRenderer(2); // 2D Renderer. See the list of Renderers in CommonAssets/UniversalRPAsset.
         m_BaseCameraData.renderType = CameraRenderType.Base;
         m_BaseCameraData.renderPostProcessing = false;

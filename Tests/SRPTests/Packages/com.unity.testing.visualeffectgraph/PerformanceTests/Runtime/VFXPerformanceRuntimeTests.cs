@@ -111,6 +111,7 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return "VFX.ParticleSystem.RenderMesh";
                 yield return "VFX.ParticleSystem.RenderMeshIndirect";
                 yield return "VFX.Update";
+                yield return "VFX.Prepare";
                 yield return "VFX.PrepareCamera";
                 yield return "VFX.ProcessCamera";
                 yield return "VFX.ProcessCommandList";

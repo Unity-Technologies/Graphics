@@ -261,6 +261,7 @@ public class SimpleBRGExample : MonoBehaviour
         // to the default zero values, except the renderingLayerMask which we have to set to all ones
         // so the instances will be drawn regardless of mask settings when rendering.
         drawCommands->drawRanges[0].filterSettings = new BatchFilterSettings { renderingLayerMask = 0xffffffff, };
+        drawCommands->drawRanges[0].drawCommandsType = BatchDrawCommandType.Direct;
 
         // Finally, write the actual visible instance indices to their array. In a more complicated
         // implementation, this output would depend on what we determined to be visible, but in this example

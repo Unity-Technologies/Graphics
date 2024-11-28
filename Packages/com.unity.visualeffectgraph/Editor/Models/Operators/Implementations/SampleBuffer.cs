@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.Operator
             var expressions = new List<VFXExpression>();
 
             var type = (Type)m_Type;
-            var usage = new BufferUsage(BufferUsage.Container.StructuredBuffer, type.Name, type);
+            var usage = new BufferType(BufferType.Container.StructuredBuffer, type.Name, type);
 
             var bufferWithUsage = new VFXExpressionBufferWithType(usage, buffer);
             foreach (var slot in slots)

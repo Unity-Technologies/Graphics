@@ -156,40 +156,17 @@ namespace UnityEngine.Rendering
             var buffer = new RTHandle[bufferCount];
             m_RTHandles.Add(bufferId, buffer);
 
-            var format = RTHandles.GetFormat(descriptor.graphicsFormat, descriptor.depthStencilFormat);
-
-            RTHandle Alloc(ref RenderTextureDescriptor d, FilterMode fMode, TextureWrapMode wMode, bool isShadow, int aniso, float mipBias, string n)
-            {
-                return m_RTHandleSystem.Alloc(
-                    d.width,
-                    d.height,
-                    format,
-                    d.volumeDepth,
-                    fMode,
-                    wMode,
-                    d.dimension,
-                    d.enableRandomWrite,
-                    d.useMipMap,
-                    d.autoGenerateMips,
-                    isShadow,
-                    aniso,
-                    mipBias,
-                    (MSAASamples)d.msaaSamples,
-                    d.bindMS,
-                    d.useDynamicScale,
-                    d.useDynamicScaleExplicit,
-                    d.memoryless,
-                    d.vrUsage,
-                    n);
-            }
+            RTHandleAllocInfo allocInfo = RTHandles.GetRTHandleAllocInfo(descriptor, filterMode,
+                wrapMode, anisoLevel, mipMapBias, name);
+            allocInfo.isShadowMap = isShadowMap;
 
             // First is autoresized
-            buffer[0] = Alloc(ref descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+            buffer[0] = m_RTHandleSystem.Alloc(descriptor.width, descriptor.height, allocInfo);
 
             // Other are resized on demand
             for (int i = 1, c = buffer.Length; i < c; ++i)
             {
-                buffer[i] = Alloc(ref descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+                buffer[i] = m_RTHandleSystem.Alloc(descriptor.width, descriptor.height, allocInfo);
                 m_RTHandleSystem.SwitchResizeMode(buffer[i], RTHandleSystem.ResizeMode.OnDemand);
             }
         }

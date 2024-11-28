@@ -60,7 +60,7 @@ TEXTURE2D_SHADOW(_AdditionalLightsShadowmapTexture);
 SAMPLER_CMP(sampler_LinearClampCompare);
 
 // GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_START(LightShadows)
 #endif
 
@@ -90,12 +90,12 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 // blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
 // AdditionalLightShadows stays reasonable. It also avoids shader compilation errors on SHADER_API_GLES30
 // devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
-float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data
+float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
 float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
 #endif
 #endif
 
-#ifndef SHADER_API_GLES3
+#ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif
 
@@ -196,7 +196,7 @@ half4 GetAdditionalLightShadowParams(int lightIndex)
         #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
             results = _AdditionalShadowParams_SSBO[lightIndex];
         #else
-            results = _AdditionalShadowParams[lightIndex];            
+            results = _AdditionalShadowParams[lightIndex];
             // workaround: Avoid failing the graphics test using Terrain Shader on Android Vulkan when using dynamic branching for fog keywords.
             #if !SKIP_SHADOWS_LIGHT_INDEX_CHECK
                 results.w = lightIndex < 0 ? -1 : results.w;
@@ -350,15 +350,18 @@ half ComputeCascadeIndex(float3 positionWS)
 
 float4 TransformWorldToShadowCoord(float3 positionWS)
 {
-#ifdef _MAIN_LIGHT_SHADOWS_CASCADE
-    half cascadeIndex = ComputeCascadeIndex(positionWS);
+#if defined(_MAIN_LIGHT_SHADOWS_SCREEN) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    float4 shadowCoord = float4(ComputeNormalizedDeviceCoordinatesWithZ(positionWS, GetWorldToHClipMatrix()), 1.0);
 #else
-    half cascadeIndex = half(0.0);
+    #ifdef _MAIN_LIGHT_SHADOWS_CASCADE
+        half cascadeIndex = ComputeCascadeIndex(positionWS);
+    #else
+        half cascadeIndex = half(0.0);
+    #endif
+    
+    float4 shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 0.0);
 #endif
-
-    float4 shadowCoord = mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
-
-    return float4(shadowCoord.xyz, 0);
+    return shadowCoord;
 }
 
 half MainLightRealtimeShadow(float4 shadowCoord)

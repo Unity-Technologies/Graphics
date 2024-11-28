@@ -73,36 +73,7 @@ namespace UnityEditor.VFX.Block
         public string message { get; }
         public VFXErrorType type => VFXErrorType.Error;
     }
-
-    class HLSLTextureCubeArrayNotSupported : IHLSMessage
-    {
-        public HLSLTextureCubeArrayNotSupported(string paramName)
-        {
-            message = $"The function parameter '{paramName}' is of type TextureCubeArray which is not supported in CustomHLSL";
-        }
-        public string message { get; }
-        public VFXErrorType type => VFXErrorType.Error;
-    }
-
-    class HLSLWrongHLSLTextureType : IHLSMessage
-    {
-        private static Dictionary<string, string> s_TextureTypeMapping = new()
-        {
-            { "Texture2D", "VFXSampler2D"},
-            { "Texture3D", "VFXSampler3D"},
-            { "TextureCube", "VFXSamplerCube"},
-            //{ "TextureCubeArray", "VFXSamplerCubeArray"},
-            { "Texture2DArray", "VFXSampler2DArray"},
-        };
-
-        public HLSLWrongHLSLTextureType(string inputRawType, string paramName)
-        {
-            message = $"The function parameter '{paramName}' is of type {inputRawType}.\nPlease use {s_TextureTypeMapping[inputRawType]} type instead (see documentation)";
-        }
-        public string message { get; }
-        public VFXErrorType type => VFXErrorType.Error;
-    }
-
+    
     class HLSLUnsupportedAttributes : IHLSMessage
     {
         public HLSLUnsupportedAttributes(IEnumerable<string> attributesName)
@@ -184,7 +155,7 @@ namespace UnityEditor.VFX.Block
         public string rawType { get; }
         public string name { get; }
         public string tooltip { get; }
-        public BufferUsage bufferUsage { get; }
+        public BufferType bufferType { get; }
         public string templatedRawType { get; }
         public HLSLAccess access { get; }
         public IReadOnlyCollection<IHLSMessage> errors { get; }
@@ -204,6 +175,18 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        static Type GetTypeFromName(string name)
+        {
+            foreach (var type in VFXLibrary.GetGraphicsBufferType())
+            {
+                if (string.CompareOrdinal(name, type.Name) == 0)
+                    return type;
+            }
+
+            //Some type aren't listed but still supported in CustomHLSL like StructuredBuffer<uint4>
+            return typeof(void);
+        }
+
         HLSLFunctionParameter(string access, string type, string template, string name, string tooltip)
         {
             this.name = name;
@@ -211,25 +194,19 @@ namespace UnityEditor.VFX.Block
             this.rawType = type;
             this.type = HLSLParser.HLSLToUnityType(this.rawType);
 
-            if (this.type == typeof(GraphicsBuffer))
+            if (this.type != null && typeof(Texture).IsAssignableFrom(this.type))
             {
-                if (!Enum.TryParse<BufferUsage.Container>(rawType, out var container))
+                if (Enum.TryParse<BufferType.Container>(rawType, out var container))
+                {
+                    this.bufferType = new BufferType(container, template, GetTypeFromName(template));
+                }
+            }
+            else if (this.type == typeof(GraphicsBuffer))
+            {
+                if (!Enum.TryParse<BufferType.Container>(rawType, out var container))
                     throw new InvalidOperationException("Unknown container type: " + rawType);
 
-                var actualTemplateType = typeof(void);
-                if (!string.IsNullOrEmpty(template))
-                {
-                    foreach (var validType in VFXLibrary.GetGraphicsBufferType())
-                    {
-                        if (template == validType.Name)
-                        {
-                            actualTemplateType = validType;
-                            break;
-                        }
-                    }
-                }
-
-                this.bufferUsage = new BufferUsage(container, template, actualTemplateType);
+                this.bufferType = new BufferType(container, template, GetTypeFromName(template));
             }
 
             this.access = HLSLParser.HLSLAccessToEnum(access);
@@ -489,7 +466,6 @@ namespace UnityEditor.VFX.Block
                 { "float3", typeof(Vector3) },
                 { "float4", typeof(Vector4) },
                 { "float4x4", typeof(Matrix4x4) },
-                { "Texture2D", typeof(Texture2D) },
                 { "VFXSampler2D", typeof(Texture2D) },
                 { "VFXSampler3D", typeof(Texture3D) },
                 { "VFXSampler2DArray", typeof(Texture2DArray) },
@@ -503,9 +479,44 @@ namespace UnityEditor.VFX.Block
                 { "VFXAttributes", typeof(VFXAttribute) },
             };
 
-            foreach (var graphicsBufferContainer in Enum.GetNames(typeof(BufferUsage.Container)))
+            foreach (BufferType.Container bufferContainer in Enum.GetValues(typeof(BufferType.Container)))
             {
-                knownTypes.Add(graphicsBufferContainer, typeof(GraphicsBuffer));
+                Type type;
+                switch (bufferContainer)
+                {
+                    case BufferType.Container.Texture1D:
+                    case BufferType.Container.RWTexture1D:
+                        type = typeof(Texture2D);
+                        break;
+                    case BufferType.Container.Texture1DArray:
+                    case BufferType.Container.RWTexture1DArray:
+                        type = typeof(Texture2DArray);
+                        break;
+                    case BufferType.Container.Texture2D:
+                    case BufferType.Container.RWTexture2D:
+                        type = typeof(Texture2D);
+                        break;
+                    case BufferType.Container.Texture2DArray:
+                    case BufferType.Container.RWTexture2DArray:
+                        type = typeof(Texture2DArray);
+                        break;
+                    case BufferType.Container.Texture3D:
+                    case BufferType.Container.RWTexture3D:
+                        type = typeof(Texture3D);
+                        break;
+                    case BufferType.Container.TextureCube:
+                    case BufferType.Container.RWTextureCube:
+                        type = typeof(Cubemap);
+                        break;
+                    case BufferType.Container.TextureCubeArray:
+                    case BufferType.Container.RWTextureCubeArray:
+                        type = typeof(CubemapArray);
+                        break;
+                    default:
+                        type = typeof(GraphicsBuffer);
+                        break;
+                }
+                knownTypes.Add(bufferContainer.ToString(), type);
             }
 
             return knownTypes;

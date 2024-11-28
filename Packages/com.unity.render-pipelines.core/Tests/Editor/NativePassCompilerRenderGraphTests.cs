@@ -786,6 +786,126 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void MaxReadersAndMaxVersionsAreCorrectForBuffers()
+        {
+            var g = AllocateRenderGraph();
+            var rendertargets = ImportAndCreateBuffers(g);
+
+            var desc = new BufferDesc(1024, 16);
+            var buffer = g.CreateBuffer(desc);
+            var buffer2 = g.CreateBuffer(desc);
+
+            // Render something to extra 0 and write uav
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.UseBufferRandomAccess(buffer, 0, AccessFlags.Write);
+                builder.UseBufferRandomAccess(buffer2, 1, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // Render extra bits to 0 reading from the uav
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.UseBuffer(buffer, AccessFlags.Read);
+                builder.UseBufferRandomAccess(buffer2, 1, AccessFlags.ReadWrite);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+
+            // The resource with the biggest MaxReaders is buffer2:
+            // 1 implicit read (TestPass0) + 1 explicit read (TestPass1) + 1 for the offset.
+            Assert.AreEqual(result.contextData.resources.MaxReaders, 3);
+
+            // The resource with the biggest MaxVersion is buffer2:
+            // 1 explicit write (TestPass0) + 1 explicit readwrite (TestPass1) + 1 for the offset
+            Assert.AreEqual(result.contextData.resources.MaxVersions, 3);
+        }
+
+        [Test]
+        public void MaxReadersAndMaxVersionsAreCorrectForTextures()
+        {
+            var g = AllocateRenderGraph();
+            var rendertargets = ImportAndCreateBuffers(g);
+
+            // Render something to extra 0 and write uav
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(rendertargets.depthBuffer, AccessFlags.Write);
+                builder.UseTexture(rendertargets.extraBuffers[0], AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // Render extra bits to 0 reading from the uav
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(rendertargets.depthBuffer, AccessFlags.Read);
+                builder.UseTexture(rendertargets.extraBuffers[0], AccessFlags.ReadWrite);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // Render extra bits to 0 reading from the uav
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.AllowPassCulling(false);
+                builder.UseTexture(rendertargets.extraBuffers[0], AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+
+            // Resources with the biggest MaxReaders are extraBuffers[0] and depthBuffer (both being equal):
+            // 1 implicit read (TestPass0) + 2 explicit read (TestPass1 & TestPass2) + 1 for the offset
+            Assert.AreEqual(result.contextData.resources.MaxReaders, 4);
+
+            // The resource with the biggest MaxVersion is extraBuffers[0]:
+            // 1 explicit write (TestPass0) + 1 explicit read-write (TestPass1) + 1 for the offset
+            Assert.AreEqual(result.contextData.resources.MaxVersions, 3);
+        }
+
+        [Test]
+        public void MaxReadersAndMaxVersionsAreCorrectForBuffersMultiplePasses()
+        {
+            var g = AllocateRenderGraph();
+            var rendertargets = ImportAndCreateBuffers(g);
+
+            var desc = new BufferDesc(1024, 16);
+            var buffer = g.CreateBuffer(desc);
+            var buffer2 = g.CreateBuffer(desc);
+
+            int indexName = 0;
+
+            for (int i = 0; i < 5; ++i)
+            {
+                // Render something to extra 0 and write uav
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass" + indexName++, out var passData))
+                {
+                    builder.UseBufferRandomAccess(buffer, 0, AccessFlags.Write);
+                    builder.UseBufferRandomAccess(buffer2, 1, AccessFlags.Write);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                // Render extra bits to 0 reading from the uav
+                using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass" + indexName++, out var passData))
+                {
+                    builder.UseBuffer(buffer, AccessFlags.Read);
+                    builder.UseBufferRandomAccess(buffer2, 1, AccessFlags.ReadWrite);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+
+            // The resource with the biggest MaxReaders is buffer2:
+            // 5 implicit read (TestPass0-2-4-6-8) + 5 explicit read (TestPass1-3-5-7-9) + 1 for the offset.
+            Assert.AreEqual(result.contextData.resources.MaxReaders, 11);
+
+            // The resource with the biggest MaxVersion is buffer2:
+            // 5 explicit write (TestPass0-2-4-6-8) + 5 explicit readwrite (TestPass1-3-5-7-9) + 1 for the offset
+            Assert.AreEqual(result.contextData.resources.MaxVersions, 11);
+        }
+
+        [Test]
         public void BuffersWork()
         {
             var g = AllocateRenderGraph();

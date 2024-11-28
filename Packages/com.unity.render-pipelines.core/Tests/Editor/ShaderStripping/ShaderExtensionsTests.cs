@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
              new TestCaseData(Shader.Find("Hidden/Internal-Colored"))
                 .SetName("Given a shader from Built-in, the render pipeline tag is not found and is empty")
                 .Returns((false,string.Empty)),
-             new TestCaseData(Shader.Find("DummyPipeline/VariantStrippingTestsShader"))
+             new TestCaseData(Shader.Find("Hidden/DummyPipeline/VariantStrippingTestsShader"))
                 .SetName("Given a shader with a render pipeline tag, the pipeline is found")
                 .Returns((true, "DummyPipeline"))
         };

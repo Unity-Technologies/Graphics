@@ -50,6 +50,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
     #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    if (surfaceData.subsurfaceMask > 0)
         surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
     #endif
 

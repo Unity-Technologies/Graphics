@@ -82,3 +82,8 @@ Out = SAMPLE_TEXTURE2D_BIAS(TextureInput, SamplerInput, UV, MipBias);
 
 
 ![](Images/CustomMipSupportNodeExample.png)
+
+## Additional resources
+
+- [Introduction to changing resolution scale](https://docs.unity3d.com/6000.0/Documentation/Manual/resolution-scale-introduction.html)
+

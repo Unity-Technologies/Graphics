@@ -284,6 +284,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             public bool culledByRendererList;
             public bool hasSideEffect;
             public bool enableFoveatedRasterization;
+            public bool hasShadingRateImage;
+            public bool hasShadingRateStates;
 
             public void Reset(RenderGraphPass pass, int index)
             {
@@ -293,6 +295,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 enableAsyncCompute = pass.enableAsyncCompute;
                 allowPassCulling = pass.allowPassCulling;
                 enableFoveatedRasterization = pass.enableFoveatedRasterization;
+                hasShadingRateImage = pass.hasShadingRateImage && !pass.enableFoveatedRasterization;
+                hasShadingRateStates = pass.hasShadingRateStates && !pass.enableFoveatedRasterization;
 
                 if (resourceCreateList == null)
                 {
@@ -599,6 +603,20 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public TextureHandle ImportTexture(RTHandle rt)
         {
             return m_Resources.ImportTexture(rt);
+        }
+
+        /// <summary>
+        /// Import an external Variable Rate Shading (VRS) textures to the RenderGraph.
+        /// Any pass writing to an imported texture will be considered having side effects and can't be automatically culled.
+        /// </summary>
+        /// <param name="rt">External shading rate image RTHandle that needs to be imported.</param>
+        /// <returns>New TextureHandle that represents the imported shading rate images in the context of this rendergraph.</returns>
+        public TextureHandle ImportShadingRateImageTexture(RTHandle rt)
+        {
+            if (Vrs.IsShadingRateImageSupported())
+                return m_Resources.ImportTexture(rt);
+
+            return TextureHandle.nullHandle;
         }
 
         /// <summary>
@@ -1096,7 +1114,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
-            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();          
+            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Legacy, sampler);
             renderPass.AllowGlobalState(true);// Old pass types allow global state by default as HDRP relies on it
 
@@ -2149,6 +2167,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         void PreRenderPassSetRenderTargets(in CompiledPassInfo passInfo, RenderGraphPass pass, InternalRenderGraphContext rgContext)
         {
+            if (passInfo.hasShadingRateImage)
+            {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                if (!pass.shadingRateAccess.textureHandle.IsValid())
+                {
+                    throw new InvalidOperationException("MRT setup with invalid variable rate shading images.");
+                }
+#endif
+
+                CoreUtils.SetShadingRateImage(rgContext.cmd, m_Resources.GetTexture(pass.shadingRateAccess.textureHandle));
+            }
+
             var depthBufferIsValid = pass.depthAccess.textureHandle.IsValid();
             if (depthBufferIsValid || pass.colorBufferMaxIndex != -1)
             {
@@ -2219,6 +2249,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (passInfo.enableFoveatedRasterization)
                 rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
 
+            if (passInfo.hasShadingRateStates)
+            {
+                rgContext.cmd.SetShadingRateFragmentSize(pass.shadingRateFragmentSize);
+                rgContext.cmd.SetShadingRateCombiner(ShadingRateCombinerStage.Primitive, pass.primitiveShadingRateCombiner);
+                rgContext.cmd.SetShadingRateCombiner(ShadingRateCombinerStage.Fragment, pass.fragmentShadingRateCombiner);
+            }
+
             PreRenderPassSetRenderTargets(passInfo, pass, rgContext);
 
             if (passInfo.enableAsyncCompute)
@@ -2253,6 +2290,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         void PostRenderPassExecute(ref CompiledPassInfo passInfo, RenderGraphPass pass, InternalRenderGraphContext rgContext)
         {
+            if (passInfo.hasShadingRateStates || passInfo.hasShadingRateImage)
+                rgContext.cmd.ResetShadingRate();
+
             foreach (var tex in pass.setGlobalsList)
             {
                 rgContext.cmd.SetGlobalTexture(tex.Item2, tex.Item1);
@@ -2472,6 +2512,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                             textureData.depth = renderTargetInfo.volumeDepth;
                             textureData.samples = renderTargetInfo.msaaSamples;
                             textureData.format = renderTargetInfo.format;
+                            textureData.bindMS = renderTargetInfo.bindMS;
 
                             newResource.textureData = textureData;
                         }

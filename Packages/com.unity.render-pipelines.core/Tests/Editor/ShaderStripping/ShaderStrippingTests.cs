@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.Tests.ShaderStripping
              new TestCaseData(typeof(StripHalf), Shader.Find("Hidden/Internal-Colored"), 6)
                 .SetName("Given a stripper that reduces the variants to the half, just half of the variants are stripped")
                 .Returns(3),
-             new TestCaseData(typeof(StripNothing), Shader.Find("DummyPipeline/VariantStrippingTestsShader"), 2)
+             new TestCaseData(typeof(StripNothing), Shader.Find("Hidden/DummyPipeline/VariantStrippingTestsShader"), 2)
                 .SetName("Given a shader that is not from the current pipeline, all the variants are stripped")
                 .Returns(0),
         };

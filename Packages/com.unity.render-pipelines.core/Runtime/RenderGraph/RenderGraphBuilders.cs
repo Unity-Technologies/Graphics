@@ -219,6 +219,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 }
 
                 m_RenderPass.AddResourceRead(versioned);
+                m_Resources.IncrementReadCount(handle);
 
                 if ((flags & AccessFlags.Read) == 0)
                 {
@@ -232,6 +233,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 if ((flags & AccessFlags.Read) != 0)
                 {
                     m_RenderPass.AddResourceRead(m_Resources.GetZeroVersionedHandle(handle));
+                    m_Resources.IncrementReadCount(handle);
                 }
             }
 
@@ -510,6 +512,27 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     throw new ArgumentException($"Trying to use an invalid resource (pass {m_RenderPass.name}).");
                 }
             }
+        }
+
+        public void SetShadingRateImageAttachment(in TextureHandle sriTextureHandle)
+        {
+            CheckNotUseFragment(sriTextureHandle);
+
+            // shading rate image access flag is always read, only 1 mip and 1 slice
+            var newSriTextureHandle = new TextureHandle();
+            newSriTextureHandle.handle = UseResource(sriTextureHandle.handle, AccessFlags.Read);
+
+            m_RenderPass.SetShadingRateImage(newSriTextureHandle, AccessFlags.Read, 0, 0);
+        }
+
+        public void SetShadingRateFragmentSize(ShadingRateFragmentSize shadingRateFragmentSize)
+        {
+            m_RenderPass.SetShadingRateFragmentSize(shadingRateFragmentSize);
+        }
+
+        public void SetShadingRateCombiner(ShadingRateCombinerStage stage, ShadingRateCombiner combiner)
+        {
+            m_RenderPass.SetShadingRateCombiner(stage, combiner);
         }
     }
 }

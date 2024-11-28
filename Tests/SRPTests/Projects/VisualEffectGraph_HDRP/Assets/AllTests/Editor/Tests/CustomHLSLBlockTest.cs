@@ -435,31 +435,6 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
-        public IEnumerator Check_CustomHLSL_Block_Texture2D_Type_Used()
-        {
-            // Arrange
-            var paramName = "texture";
-            var hlslCode =
-                $"void TestFunction(inout VFXAttributes attributes, in Texture2D {paramName})\n" +
-                "{\n" +
-                "}";
-            var hlslBlock = ScriptableObject.CreateInstance<CustomHLSL>();
-            hlslBlock.SetSettingValue("m_HLSLCode", hlslCode);
-
-            MakeSimpleGraphWithCustomHLSL(hlslBlock, out var view, out var graph, false /* this test expects shader errors */);
-            yield return null;
-
-            // Act
-            graph.errorManager.GenerateErrors();
-
-            // Assert
-            var report = graph.errorManager.errorReporter.GetDirtyModelErrors(hlslBlock).Single();
-            Assert.IsNotNull(report);
-            Assert.AreEqual(VFXErrorType.Error, report.type);
-            Assert.AreEqual($"The function parameter '{paramName}' is of type Texture2D.\nPlease use VFXSampler2D type instead (see documentation)", report.description);
-        }
-
-        [UnityTest]
         public IEnumerator Check_CustomHLSL_Block_Missing_VFXAttributes()
         {
             // Arrange

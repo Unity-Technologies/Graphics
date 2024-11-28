@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 // - is not shared between layers
                 // - is not used in an mage/video layer (in this case the camera is not exposed at all, so it makes sense to let the compositor manage it)
                 // - it does not force-clear the RT (the first layer of a stack, even if disabled by the user), still clears the RT
-                bool shouldClear = !enabled && m_LayerPositionInStack == 0 && m_Camera;
+                bool shouldClear = m_LayerPositionInStack == 0 && m_Camera;
                 bool isImageOrVideo = (m_Type == LayerType.Image || m_Type == LayerType.Video);
                 if (!isImageOrVideo && !hasLayerOverrides && !shouldClear && !compositor.IsThisCameraShared(m_Camera))
                 {
@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (m_OutputTarget != OutputTarget.CameraStack && m_RenderTarget == null)
             {
                 // If we don't have a valid camera (zero width or height) avoid creating the RT
-                if (compositor.outputCamera.pixelWidth > 0 && compositor.outputCamera.pixelHeight > 0)
+                if (compositor.outputCamera && compositor.outputCamera.pixelWidth > 0 && compositor.outputCamera.pixelHeight > 0)
                 {
                     float resScale = EnumToScale(m_ResolutionScale);
                     int scaledWidth = (int)(resScale * compositor.outputCamera.pixelWidth);
@@ -615,15 +615,19 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             if (m_LayerCamera && m_Camera)
             {
-                m_LayerCamera.enabled = true;
-                m_LayerCamera.cullingMask = 0;
                 var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
                 var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
 
-                cameraData.clearColorMode = cameraDataOrig.clearColorMode;
-                cameraData.clearDepth = true;
+                if (cameraData && cameraDataOrig)
+                {
+                    m_LayerCamera.enabled = true;
+                    m_LayerCamera.cullingMask = 0;
 
-                m_ClearsBackGround = true;
+                    cameraData.clearColorMode = cameraDataOrig.clearColorMode;
+                    cameraData.clearDepth = true;
+
+                    m_ClearsBackGround = true;
+                }
             }
         }
 

@@ -14,7 +14,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             public RenderGraphResourceRegistry m_ResourcesForDebugOnly;
             public List<RenderGraphPass> m_RenderPasses;
             public string debugName;
-            public bool disableCulling;
+            public bool disablePassCulling;
+            public bool disablePassMerging;
         }
 
         internal RenderGraphInputInfo graph;
@@ -59,7 +60,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        public bool Initialize(RenderGraphResourceRegistry resources, List<RenderGraphPass> renderPasses, bool disableCulling, string debugName, bool useCompilationCaching, int graphHash, int frameIndex)
+        public bool Initialize(RenderGraphResourceRegistry resources, List<RenderGraphPass> renderPasses, RenderGraphDebugParams debugParams, string debugName, bool useCompilationCaching, int graphHash, int frameIndex)
         {
             bool cached = false;
             if (!useCompilationCaching)
@@ -69,7 +70,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             graph.m_ResourcesForDebugOnly = resources;
             graph.m_RenderPasses = renderPasses;
-            graph.disableCulling = disableCulling;
+            graph.disablePassCulling = debugParams.disablePassCulling;
+            graph.disablePassMerging = debugParams.disablePassMerging;
             graph.debugName = debugName;
 
             Clear(clearContextData: !useCompilationCaching);
@@ -195,6 +197,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             }
                         }
 
+                        // shading rate
+                        if (inputPass.hasShadingRateImage &&
+                            inputPass.shadingRateAccess.textureHandle.handle.IsValid())
+                        {
+                            ctxPass.shadingRateImageIndex = ctx.fragmentData.Length;
+                            ctx.AddToFragmentList(inputPass.shadingRateAccess, ctxPass.shadingRateImageIndex, 0);
+                        }
+
                         // Grab offset in context fragment list to begin building the fragment input list
                         ctxPass.firstFragmentInput = ctx.fragmentData.Length;
 
@@ -290,7 +300,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                         for (var i = 0; i < resourceTransCount; ++i)
                         {
-                            var resource = resourceTrans[i]; 
+                            var resource = resourceTrans[i];
 
                             // Mark this pass as reading from this version of the resource
                             ctx.resources[resource].RegisterReadingPass(ctx, resource, passId, ctxPass.numInputs);
@@ -328,7 +338,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_CullNodes)))
             {
                 // No need to go further if we don't enable culling
-                if (graph.disableCulling)
+                if (graph.disablePassCulling)
                     return;
 
                 // Cull all passes first
@@ -420,7 +430,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     // There is an native pass currently open, try to add the current graph pass to it
                     else
                     {
-                        var mergeTestResult = NativePassData.TryMerge(contextData, activeNativePassId, passIdx);
+                        var mergeTestResult = graph.disablePassMerging ? new PassBreakAudit(PassBreakReason.PassMergingDisabled, passIdx)
+                                                                       : NativePassData.TryMerge(contextData, activeNativePassId, passIdx);
 
                         // Merge failed, close current native render pass and create a new one
                         if (mergeTestResult.reason != PassBreakReason.Merged)
@@ -594,7 +605,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         var numReaders = pointToVer.numReaders;
                         for (var i = 0; i < numReaders; ++i)
                         {
-                            var depIdx = ResourcesData.IndexReader(outputResource, i);
+                            var depIdx = ctx.resources.IndexReader(outputResource, i);
                             ref var dep = ref ctx.resources.readerData[outputResource.iType].ElementAt(depIdx);
                             ref var depPass = ref ctx.passData.ElementAt(dep.passId);
                             if (pass.asyncCompute != depPass.asyncCompute)
@@ -1094,12 +1105,24 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        private void ValidateAttachmentRenderTarget(in RenderTargetInfo attRenderTargetInfo, RenderGraphResourceRegistry resources, int nativePassWidth, int nativePassHeight, int nativePassMSAASamples)
+        private void ValidateAttachment(in RenderTargetInfo attRenderTargetInfo, RenderGraphResourceRegistry resources, int nativePassWidth, int nativePassHeight, int nativePassMSAASamples, bool isVrs)
         {
             if(RenderGraph.enableValidityChecks)
             {
-                if (attRenderTargetInfo.width != nativePassWidth || attRenderTargetInfo.height != nativePassHeight || attRenderTargetInfo.msaaSamples != nativePassMSAASamples)
-                    throw new Exception("Low level rendergraph error: Attachments in renderpass do not match!");
+                if (isVrs)
+                {
+                    var tileSize = ShadingRateImage.GetAllocTileSize(nativePassWidth, nativePassHeight);
+
+                    if (attRenderTargetInfo.width != tileSize.x || attRenderTargetInfo.height != tileSize.y || attRenderTargetInfo.msaaSamples != 1)
+                    {
+                        throw new Exception("Low level rendergraph error: Shading rate image attachment in renderpass does not match!");
+                    }
+                }
+                else
+                {
+                    if (attRenderTargetInfo.width != nativePassWidth || attRenderTargetInfo.height != nativePassHeight || attRenderTargetInfo.msaaSamples != nativePassMSAASamples)
+                        throw new Exception("Low level rendergraph error: Attachments in renderpass do not match!");
+                }
             }
         }
 
@@ -1132,6 +1155,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
                 }
 
+                if (nativePass.hasShadingRateStates)
+                {
+                    rgContext.cmd.SetShadingRateFragmentSize(nativePass.shadingRateFragmentSize);
+                    rgContext.cmd.SetShadingRateCombiner(ShadingRateCombinerStage.Primitive, nativePass.primitiveShadingRateCombiner);
+                    rgContext.cmd.SetShadingRateCombiner(ShadingRateCombinerStage.Fragment, nativePass.fragmentShadingRateCombiner);
+                }
+
                 // Filling the attachments array to be sent to the rendering command buffer
                 m_BeginRenderPassAttachments.Resize(attachmentCount, NativeArrayOptions.UninitializedMemory);
                 for (var i = 0; i < attachmentCount; ++i)
@@ -1139,7 +1169,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ref var currAttachmentHandle = ref attachments[i].handle;
 
                     resources.GetRenderTargetInfo(currAttachmentHandle, out var renderTargetInfo);
-                    ValidateAttachmentRenderTarget(renderTargetInfo, resources, w, h, s);
+
+                    bool isVrs = (i == nativePass.shadingRateImageIndex);
+                    ValidateAttachment(renderTargetInfo, resources, w, h, s, isVrs);
 
                     ref var currBeginAttachment = ref m_BeginRenderPassAttachments.ElementAt(i);
                     currBeginAttachment = new AttachmentDescriptor(renderTargetInfo.format);
@@ -1228,7 +1260,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
 #endif
 
-                rgContext.cmd.BeginRenderPass(w, h, d, s, attachmentDescArray, depthAttachmentIndex, nativeSubPassArray, graphPassNamesForDebugSpan);
+                rgContext.cmd.BeginRenderPass(w, h, d, s, attachmentDescArray, depthAttachmentIndex, nativePass.shadingRateImageIndex, nativeSubPassArray, graphPassNamesForDebugSpan);
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.Release(safetyHandle);
@@ -1458,6 +1490,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 if (nativePass.hasFoveatedRasterization)
                                 {
                                     rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                                }
+
+                                if (nativePass.hasShadingRateStates || nativePass.hasShadingRateImage)
+                                {
+                                    rgContext.cmd.ResetShadingRate();
                                 }
 
                                 rgContext.cmd.EndRenderPass();

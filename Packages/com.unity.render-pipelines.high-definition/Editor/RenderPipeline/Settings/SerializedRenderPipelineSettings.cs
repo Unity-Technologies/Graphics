@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSSAO;
         public SerializedProperty supportSSGI;
         public SerializedProperty supportSubsurfaceScattering;
+        public SerializedProperty subsurfaceScatteringBorderAttenuation;
         public SerializedScalableSetting sssSampleBudget;
         public SerializedScalableSetting sssDownsampleSteps;
         [FormerlySerializedAs("supportVolumetric")]
@@ -82,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty supportScreenSpaceLensFlare;
         public SerializedProperty supportDataDrivenLensFlare;
-        
+
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
         public SerializedGlobalDecalSettings decalSettings;
@@ -116,6 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportSSAO = root.Find((RenderPipelineSettings s) => s.supportSSAO);
             supportSSGI = root.Find((RenderPipelineSettings s) => s.supportSSGI);
             supportSubsurfaceScattering = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
+            subsurfaceScatteringBorderAttenuation = root.Find((RenderPipelineSettings s) => s.subsurfaceScatteringAttenuation);
             sssSampleBudget = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
             sssDownsampleSteps = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssDownsampleSteps));
             supportVolumetrics = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
@@ -179,7 +181,7 @@ namespace UnityEditor.Rendering.HighDefinition
             lowresTransparentSettings = new SerializedLowResTransparencySettings(root.Find((RenderPipelineSettings s) => s.lowresTransparentSettings));
             xrSettings = new SerializedXRSettings(root.Find((RenderPipelineSettings s) => s.xrSettings));
             postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
-            
+
             supportScreenSpaceLensFlare = root.Find((RenderPipelineSettings s) => s.supportScreenSpaceLensFlare);
             supportDataDrivenLensFlare = root.Find((RenderPipelineSettings s) => s.supportDataDrivenLensFlare);
 

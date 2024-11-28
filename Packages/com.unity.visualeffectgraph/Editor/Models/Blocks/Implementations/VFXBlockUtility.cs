@@ -146,46 +146,6 @@ namespace UnityEditor.VFX.Block
             return "RAND" + ((size != 1) ? size.ToString() : "");
         }
 
-        // TODO Remove that
-        public static string GetSizeVector(VFXContext context, int nbComponents = 3)
-        {
-            var data = context.GetData();
-
-            string size = data.IsCurrentAttributeRead(VFXAttribute.Size, context) ? "size" : VFXAttribute.kDefaultSize.ToString();
-            string scaleX = data.IsCurrentAttributeRead(VFXAttribute.ScaleX, context) ? "scaleX" : "1.0f";
-            string scaleY = nbComponents >= 2 && data.IsCurrentAttributeRead(VFXAttribute.ScaleY, context) ? "scaleY" : "1.0f";
-            string scaleZ = nbComponents >= 3 && data.IsCurrentAttributeRead(VFXAttribute.ScaleZ, context) ? "scaleZ" : "1.0f";
-
-            switch (nbComponents)
-            {
-                case 1: return string.Format("(size * {0})", scaleX);
-                case 2: return string.Format("(size * float2({0},{1}))", scaleX, scaleY);
-                case 3: return string.Format("(size * float3({0},{1},{2}))", scaleX, scaleY, scaleZ);
-                default:
-                    throw new ArgumentException("NbComponents must be between 1 and 3");
-            }
-        }
-
-        // TODO Remove that
-        public static string SetSizesFromVector(VFXContext context, string vector, int nbComponents = 3)
-        {
-            if (nbComponents < 1 || nbComponents > 3)
-                throw new ArgumentException("NbComponents must be between 1 and 3");
-
-            var data = context.GetData();
-
-            string res = string.Empty;
-
-            if (data.IsCurrentAttributeWritten(VFXAttribute.ScaleX, context))
-                res += string.Format("scaleX = {0}.x / size;\n", vector);
-            if (nbComponents >= 2 && data.IsCurrentAttributeWritten(VFXAttribute.ScaleY, context))
-                res += string.Format("scaleY = {0}.y / size;\n", vector);
-            if (nbComponents >= 3 && data.IsCurrentAttributeWritten(VFXAttribute.ScaleZ, context))
-                res += string.Format("scaleZ = {0}.z / size;\n", vector);
-
-            return res.TrimEnd(new[] { '\n' });
-        }
-
         private static bool ConvertToVariadicAttributeIfNeeded(VFXGraph vfxGraph, ref string attribName, out VariadicChannelOptions outChannel)
         {
             try

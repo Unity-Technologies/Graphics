@@ -30,7 +30,7 @@ The unit of [illuminance](Glossary.md#Illuminance). A light source that emits 1 
 
 #### Nits (candela per square meter):
 
-The unit of luminance. Describes the surface power of a visible light source. When you use this unit, the overall power of a light source depends the size of the light source, meaning the the illumination level of a Scene changes depending on the size of the light source.  Highlights that a light source produces conserve their intensity regardless of the size of the surface.
+The unit of luminance. Describes the surface power of a visible light source. When you use this unit, the overall power of a light source depends the size of the light source, meaning the illumination level of a Scene changes depending on the size of the light source.  Highlights that a light source produces conserve their intensity regardless of the size of the surface.
 
 A light source that emits 1 candela of [luminous intensity](Glossary.md#LuminousIntensity) onto an area of 1 square meter has a luminance of 1 candela per square meter.
 

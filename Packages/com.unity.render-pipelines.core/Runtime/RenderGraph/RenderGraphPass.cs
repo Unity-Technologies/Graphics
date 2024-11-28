@@ -29,6 +29,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public TextureAccess[] colorBufferAccess { get; protected set; } = new TextureAccess[RenderGraph.kMaxMRTCount];
         public int colorBufferMaxIndex { get; protected set; } = -1;
 
+        public bool hasShadingRateImage { get; protected set; }
+        public TextureAccess shadingRateAccess { get; protected set; }
+
+        public bool hasShadingRateStates { get; protected set; }
+        public ShadingRateFragmentSize shadingRateFragmentSize { get; protected set; }
+        public ShadingRateCombiner primitiveShadingRateCombiner { get; protected set; }
+        public ShadingRateCombiner fragmentShadingRateCombiner { get; protected set; }
+
         // Used by native pass compiler only
         public TextureAccess[] fragmentInputAccess { get; protected set; } = new TextureAccess[RenderGraph.kMaxMRTCount];
         public int fragmentInputMaxIndex { get; protected set; } = -1;
@@ -96,6 +104,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
             colorBufferMaxIndex = -1;
             fragmentInputMaxIndex = -1;
             randomAccessResourceMaxIndex = -1;
+
+            // We do not need to clear colorBufferAccess and fragmentInputAccess as we have the colorBufferMaxIndex and fragmentInputMaxIndex
+            // which are reset above so we only clear depthAccess here.
+            depthAccess = default(TextureAccess);
+            
+            hasShadingRateImage = false;
+            hasShadingRateStates = false;
+            shadingRateFragmentSize = ShadingRateFragmentSize.FragmentSize1x1;
+            primitiveShadingRateCombiner = ShadingRateCombiner.Keep;
+            fragmentShadingRateCombiner = ShadingRateCombiner.Keep;
         }
 
         // Check if the pass has any render targets set-up
@@ -431,6 +449,22 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             generator.Append(colorBufferMaxIndex);
 
+            generator.Append(hasShadingRateImage);
+            if (hasShadingRateImage)
+            {
+                var handle = shadingRateAccess.textureHandle.handle;
+                if (handle.IsValid())
+                {
+                    ComputeTextureHash(ref generator, handle, resources);
+                    ComputeHashForTextureAccess(ref generator, handle, shadingRateAccess);
+                }
+            }
+
+            generator.Append(hasShadingRateStates);
+            generator.Append((int)shadingRateFragmentSize);
+            generator.Append((int)primitiveShadingRateCombiner);
+            generator.Append((int)fragmentShadingRateCombiner);
+
             for (int i = 0; i < fragmentInputMaxIndex + 1; ++i)
             {
                 var fragmentInputAccessElement = fragmentInputAccess[i];
@@ -486,6 +520,44 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 generator.Append(implicitReadsList[i].index);
 
             generator.Append(GetRenderFuncHash());
+        }
+
+        public void SetShadingRateImage(in TextureHandle shadingRateImage, AccessFlags accessFlags, int mipLevel, int depthSlice)
+        {
+            if (Vrs.IsShadingRateImageSupported())
+            {
+                hasShadingRateImage = true;
+                shadingRateAccess = new TextureAccess(shadingRateImage, accessFlags, mipLevel, depthSlice);
+                AddResourceRead(shadingRateAccess.textureHandle.handle);
+            }
+        }
+
+        public void SetShadingRateFragmentSize(ShadingRateFragmentSize shadingRateFragmentSize)
+        {
+            if (Vrs.IsSupported())
+            {
+                hasShadingRateStates = true;
+                this.shadingRateFragmentSize = shadingRateFragmentSize;
+            }
+        }
+
+        public void SetShadingRateCombiner(ShadingRateCombinerStage stage, ShadingRateCombiner combiner)
+        {
+            if (Vrs.IsShadingRateImageSupported())
+            {
+                switch (stage)
+                {
+                    case ShadingRateCombinerStage.Primitive:
+                        hasShadingRateStates = true;
+                        primitiveShadingRateCombiner = combiner;
+                        break;
+
+                    case ShadingRateCombinerStage.Fragment:
+                        hasShadingRateStates = true;
+                        fragmentShadingRateCombiner = combiner;
+                        break;
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

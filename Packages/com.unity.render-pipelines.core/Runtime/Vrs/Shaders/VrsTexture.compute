@@ -1,0 +1,69 @@
+// #pragma enable_d3d11_debug_symbols
+
+#pragma only_renderers d3d11 xboxone vulkan
+
+#pragma multi_compile VRS_TILE_SIZE_8 VRS_TILE_SIZE_16 VRS_TILE_SIZE_32
+#pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
+#pragma multi_compile _ APPLY_Y_FLIP
+
+#pragma kernel TextureCopy
+#pragma kernel TextureReduce
+
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/Vrs/Shaders/VrsTileSize.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Vrs/Shaders/VrsImage.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Vrs/Shaders/VrsMainTex.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Vrs/Shaders/VrsShadingRates.hlsl"
+
+
+uint GetShadingRateNativeValueFromColor(float3 color)
+{
+    for (uint i = 0; i < SHADING_RATE_FRAGMENT_SIZE_COUNT; ++i)
+    {
+        float3 delta = abs(color - _VrsMainTexLut[i].rgb);
+        if (all(delta < 0.01f))
+            return _ShadingRateNativeValues[i];
+    }
+
+    return _ShadingRateNativeValues[SHADING_RATE_FRAGMENT_SIZE_1X1];
+}
+
+[numthreads(1, 1, 1)]
+void TextureCopy(uint2 tid : SV_DispatchThreadID)
+{
+    float3 color = LoadVrsMainTex(tid).rgb;
+    uint shadingRateNativeValue = GetShadingRateNativeValueFromColor(color);
+    ImageStore(shadingRateNativeValue, tid);
+}
+
+
+groupshared uint2 ldsShadingRate;
+
+[numthreads(VRS_TILE_SIZE, VRS_TILE_SIZE, 1)]
+void TextureReduce(uint2 tid : SV_DispatchThreadID, uint2 gid: SV_GroupID, uint gidx: SV_GroupIndex)
+{
+    // initialize lds: only 1st thread of group does it
+    if (gidx == 0)
+        ldsShadingRate = UnpackShadingRate(_ShadingRateNativeValues[SHADING_RATE_FRAGMENT_SIZE_4x4]);
+
+    // read: 1 thread == 1 pixel in main tex, each thread in group must read
+    float3 color = SampleVrsMainTexFromCoords(tid * _VrsScaleBias.xy).rgb;
+    uint shadingRateNativeValue = GetShadingRateNativeValueFromColor(color);
+    uint2 shadingRate = UnpackShadingRate(shadingRateNativeValue);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // parallel reduce: 1 group == 1 pixel in vrs image
+    // conservative reduce: pick highest rate (hence min)
+    InterlockedMin(ldsShadingRate.x, shadingRate.x);
+    InterlockedMin(ldsShadingRate.y, shadingRate.y);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // store result: only 1st thread of group does it
+    if (gidx == 0)
+    {
+        shadingRateNativeValue = PackShadingRate(ldsShadingRate);
+        ImageStore(shadingRateNativeValue, gid);
+    }
+}

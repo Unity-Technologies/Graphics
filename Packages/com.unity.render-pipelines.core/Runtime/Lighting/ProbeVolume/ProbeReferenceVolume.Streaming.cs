@@ -1231,7 +1231,7 @@ namespace UnityEngine.Rendering
 
             var brickDataAsset = m_CurrentBakingSet.cellBricksDataAsset;
             cellStreamingDesc = brickDataAsset.streamableCellDescs[cellIndex];
-            request.brickStreamingRequest.AddReadCommand(cellStreamingDesc.offset, brickDataAsset.elementSize * cellStreamingDesc.elementCount, (byte*)cellData.bricks.GetUnsafePtr());
+            request.brickStreamingRequest.AddReadCommand(cellStreamingDesc.offset, brickDataAsset.elementSize * Mathf.Min(cellStreamingDesc.elementCount, cellDesc.bricksCount), (byte*)cellData.bricks.GetUnsafePtr());
             request.brickStreamingRequest.RunCommands(brickDataAsset.OpenFile());
 
             // Support Data

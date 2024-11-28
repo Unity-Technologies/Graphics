@@ -21,7 +21,7 @@
 #endif
 
 struct ps_input
-{        
+{
     float4 pos : SV_POSITION;
     #if USE_FLIPBOOK_INTERPOLATION
         float4 uv : TEXCOORD0;
@@ -30,7 +30,7 @@ struct ps_input
         float3 uv : TEXCOORD0;
         #else
         float2 uv : TEXCOORD0;
-        #endif    
+        #endif
     #endif
     #if VFX_SHADERGRAPH_HAS_UV1
     float4 uv1 : COLOR2;
@@ -72,7 +72,7 @@ struct ps_input
     #endif
 
     ${VFXAdditionalInterpolantsDeclaration}
-    
+
     UNITY_VERTEX_OUTPUT_STEREO
     VFX_VERTEX_OUTPUT_INSTANCE_INDEX
 };
@@ -107,4 +107,4 @@ ${VFXURPLitFillVaryings}
 ${VFXEnd}
 
 ${VFXInclude("Shaders/ParticleMeshes/Pass.template")}
-${VFXPassDepthCommonFragmentURPLit}
+${VFXIncludeRP("Templates/VFXPassDepthCommonFragmentLit.template")}

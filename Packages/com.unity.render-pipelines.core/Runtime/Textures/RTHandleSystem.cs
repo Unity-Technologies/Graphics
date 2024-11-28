@@ -79,6 +79,9 @@ namespace UnityEngine.Rendering
         /// <summary> Set to true to automatically generate mipmaps.</summary>
         public bool autoGenerateMips { get; set; }
 
+        /// <summary> Set to true if the texture is sampled as a shadow map.</summary>
+        public bool isShadowMap { get; set; }
+
         /// <summary> Anisotropic filtering level.</summary>
         public int anisoLevel { get; set; }
 
@@ -94,11 +97,23 @@ namespace UnityEngine.Rendering
         /// <summary> See Dynamic Resolution documentation](https://docs.unity3d.com/Manual/DynamicResolution.html)</summary>
         public bool useDynamicScale { get; set; }
 
+        ///<summary> See Dynamic Resolution documentation](https://docs.unity3d.com/Manual/DynamicResolution-control-when-occurs.html)</summary>
+        public bool useDynamicScaleExplicit { get; set; }
+
         /// <summary> Use this property to set the render texture memoryless modes.</summary>
         public RenderTextureMemoryless memoryless { get; set; }
 
         /// <summary> Special treatment of the VR eye texture used in stereoscopic rendering.</summary>
         public VRTextureUsage vrUsage { get; set; }
+
+        /// <summary>
+        /// Set to true if the texture is to be used as a shading rate image.
+        /// </summary>
+        /// <remarks>
+        /// Width and height are usually in pixels but if enableShadingRate is set to true, width and height are in tiles.
+        /// See also <a href="https://docs.unity3d.com/Manual/variable-rate-shading">Variable Rate Shading</a>.
+        /// </remarks>
+        public bool enableShadingRate { get; set; }
 
         /// <summary> Name of the RTHandle.</summary>
         public string name { get; set; }
@@ -119,13 +134,16 @@ namespace UnityEngine.Rendering
             this.enableRandomWrite = false;
             this.useMipMap = false;
             this.autoGenerateMips = true;
+            this.isShadowMap = false;
             this.anisoLevel = 1;
             this.mipMapBias = 0f;
             this.msaaSamples = MSAASamples.None;
             this.bindTextureMS = false;
             this.useDynamicScale = false;
+            this.useDynamicScaleExplicit = false;
             this.memoryless = RenderTextureMemoryless.None;
             this.vrUsage = VRTextureUsage.None;
+            this.enableShadingRate = false;
             this.name = name;
         }
     }
@@ -519,7 +537,7 @@ namespace UnityEngine.Rendering
         /// Allocate a new fixed sized RTHandle.
         /// </summary>
         /// <param name="width">With of the RTHandle.</param>
-        /// <param name="height">Heigh of the RTHandle.</param>
+        /// <param name="height">height of the RTHandle.</param>
         /// <param name="slices">Number of slices of the RTHandle.</param>
         /// <param name="depthBufferBits">Bit depths of a depth buffer.</param>
         /// <param name="colorFormat">GraphicsFormat of a color buffer.</param>
@@ -574,7 +592,7 @@ namespace UnityEngine.Rendering
         /// Allocate a new fixed sized RTHandle.
         /// </summary>
         /// <param name="width">With of the RTHandle.</param>
-        /// <param name="height">Heigh of the RTHandle.</param>
+        /// <param name="height">height of the RTHandle.</param>
         /// <param name="format">GraphicsFormat of a color or depth stencil buffer.</param>
         /// <param name="slices">Number of slices of the RTHandle.</param>
         /// <param name="filterMode">Filtering mode of the RTHandle.</param>
@@ -598,7 +616,7 @@ namespace UnityEngine.Rendering
             int width,
             int height,
             GraphicsFormat format,
-            int slices = 1,            
+            int slices = 1,
             FilterMode filterMode = FilterMode.Point,
             TextureWrapMode wrapMode = TextureWrapMode.Repeat,
             TextureDimension dimension = TextureDimension.Tex2D,
@@ -625,7 +643,7 @@ namespace UnityEngine.Rendering
         /// Allocate a new fixed sized RTHandle.
         /// </summary>
         /// <param name="width">With of the RTHandle.</param>
-        /// <param name="height">Heigh of the RTHandle.</param>
+        /// <param name="height">height of the RTHandle.</param>
         /// <param name="wrapModeU">U coordinate wrapping mode of the RTHandle.</param>
         /// <param name="wrapModeV">V coordinate wrapping mode of the RTHandle.</param>
         /// <param name="wrapModeW">W coordinate wrapping mode of the RTHandle.</param>
@@ -683,7 +701,7 @@ namespace UnityEngine.Rendering
                  wrapModeU,
                  wrapModeV,
                  wrapModeW,
-                 slices,            
+                 slices,
                  filterMode,
                  dimension,
                  enableRandomWrite,
@@ -706,7 +724,7 @@ namespace UnityEngine.Rendering
         /// Allocate a new fixed sized RTHandle.
         /// </summary>
         /// <param name="width">With of the RTHandle.</param>
-        /// <param name="height">Heigh of the RTHandle.</param>
+        /// <param name="height">height of the RTHandle.</param>
         /// <param name="format">GraphicsFormat of the color or a depth stencil buffer.</param>
         /// <param name="wrapModeU">U coordinate wrapping mode of the RTHandle.</param>
         /// <param name="wrapModeV">V coordinate wrapping mode of the RTHandle.</param>
@@ -735,7 +753,7 @@ namespace UnityEngine.Rendering
             TextureWrapMode wrapModeU,
             TextureWrapMode wrapModeV,
             TextureWrapMode wrapModeW = TextureWrapMode.Repeat,
-            int slices = 1,            
+            int slices = 1,
             FilterMode filterMode = FilterMode.Point,
             TextureDimension dimension = TextureDimension.Tex2D,
             bool enableRandomWrite = false,
@@ -756,7 +774,7 @@ namespace UnityEngine.Rendering
             var rt = CreateRenderTexture(
                 width, height, format, slices, filterMode, wrapModeU, wrapModeV, wrapModeW, dimension, enableRandomWrite, useMipMap
                 , autoGenerateMips, isShadowMap, anisoLevel, mipMapBias, msaaSamples, bindTextureMS
-                , useDynamicScale, useDynamicScaleExplicit, memoryless, vrUsage, name);
+                , useDynamicScale, useDynamicScaleExplicit, memoryless, vrUsage, false, name);
 
             var newRT = new RTHandle(this);
             newRT.SetRenderTexture(rt);
@@ -793,6 +811,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScaleExplicit,
             RenderTextureMemoryless memoryless,
             VRTextureUsage vrUsage,
+            bool enableShadingRate,
             string name)
         {
             bool enableMSAA = msaaSamples != MSAASamples.None;
@@ -811,6 +830,13 @@ namespace UnityEngine.Rendering
             }
 
             bool isDepthStencilFormat = GraphicsFormatUtility.IsDepthStencilFormat(format);
+
+            if (enableShadingRate && (isShadowMap || isDepthStencilFormat))
+            {
+                Debug.LogWarning("RTHandle allocated with incompatible enableShadingRate, forcing enableShadingRate to false.");
+                enableShadingRate = false;
+            }
+
             string fullName;
             GraphicsFormat colorFormat, depthStencilFormat, stencilFormat;
             ShadowSamplingMode shadowSamplingMode = ShadowSamplingMode.None;
@@ -822,7 +848,7 @@ namespace UnityEngine.Rendering
                 int depthBits = GraphicsFormatUtility.GetDepthBits(format);
                 if (depthBits < 16) depthBits = 16;
 
-                depthStencilFormat = GraphicsFormatUtility.GetDepthStencilFormat(depthBits, 0);                
+                depthStencilFormat = GraphicsFormatUtility.GetDepthStencilFormat(depthBits, 0);
                 colorFormat = GraphicsFormat.None;
                 stencilFormat = GraphicsFormat.None;
                 shadowSamplingMode = ShadowSamplingMode.CompareDepths;
@@ -859,10 +885,11 @@ namespace UnityEngine.Rendering
                 memoryless = memoryless,
                 useMipMap = useMipMap,
                 autoGenerateMips = autoGenerateMips,
-                enableRandomWrite = enableRandomWrite,                 
+                enableRandomWrite = enableRandomWrite,
                 bindMS = bindTextureMS,
                 useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
-                useDynamicScaleExplicit = m_HardwareDynamicResRequested && useDynamicScaleExplicit
+                useDynamicScaleExplicit = m_HardwareDynamicResRequested && useDynamicScaleExplicit,
+                enableShadingRate = enableShadingRate,
             };
 
             var rt = new RenderTexture(desc);
@@ -876,7 +903,7 @@ namespace UnityEngine.Rendering
 
             rt.wrapModeU = wrapModeU;
             rt.wrapModeV = wrapModeV;
-            rt.wrapModeW = wrapModeW;            
+            rt.wrapModeW = wrapModeW;
 
             rt.Create();
             return rt;
@@ -889,15 +916,16 @@ namespace UnityEngine.Rendering
         /// <param name="height">Height of the RTHandle.</param>
         /// <param name="info">Struct containing details of allocation</param>
         /// <returns>A new RTHandle.</returns>
+        /// <remarks>
+        /// Width and height are usually in pixels but if enableShadingRate is set to true, width and height are in tiles.
+        /// See also <a href="https://docs.unity3d.com/Manual/variable-rate-shading">Variable Rate Shading</a>.
+        /// </remarks>
         public RTHandle Alloc(int width, int height, RTHandleAllocInfo info)
         {
-            bool isShadowMap = false;
-            bool useDynamicScaleExplicit = false;
-
             var rt = CreateRenderTexture(
                  width, height, info.format, info.slices, info.filterMode, info.wrapModeU, info.wrapModeV, info.wrapModeW, info.dimension, info.enableRandomWrite, info.useMipMap
-                 , info.autoGenerateMips, isShadowMap, info.anisoLevel, info.mipMapBias, info.msaaSamples, info.bindTextureMS
-                 , info.useDynamicScale, useDynamicScaleExplicit, info.memoryless, info.vrUsage, info.name);
+                 , info.autoGenerateMips, info.isShadowMap, info.anisoLevel, info.mipMapBias, info.msaaSamples, info.bindTextureMS
+                 , info.useDynamicScale, info.useDynamicScaleExplicit, info.memoryless, info.vrUsage, info.enableShadingRate, info.name);
 
             var newRT = new RTHandle(this);
             newRT.SetRenderTexture(rt);
@@ -908,6 +936,14 @@ namespace UnityEngine.Rendering
             newRT.m_Name = info.name;
 
             newRT.referenceSize = new Vector2Int(width, height);
+
+            if (info.enableShadingRate)
+            {
+                // even though allocation ask for an explicit size, it's possible the
+                // resize mode is changed afterward hence assigning the scaling function
+                // because shading rate image resolution is in tiles
+                newRT.scaleFunc = (refSize) => ShadingRateImage.GetAllocTileSize(refSize);
+            }
 
             return newRT;
         }
@@ -924,9 +960,14 @@ namespace UnityEngine.Rendering
         /// <returns>The calculated dimensions.</returns>
         public Vector2Int CalculateDimensions(Vector2 scaleFactor)
         {
+            return CalculateDimensions(scaleFactor, new Vector2Int(GetMaxWidth(), GetMaxHeight()));
+        }
+
+        static Vector2Int CalculateDimensions(Vector2 scaleFactor, Vector2Int size)
+        {
             return new Vector2Int(
-                Mathf.Max(Mathf.RoundToInt(scaleFactor.x * GetMaxWidth()), 1),
-                Mathf.Max(Mathf.RoundToInt(scaleFactor.y * GetMaxHeight()), 1)
+                Mathf.Max(Mathf.RoundToInt(scaleFactor.x * size.x), 1),
+                Mathf.Max(Mathf.RoundToInt(scaleFactor.y * size.y), 1)
             );
         }
 
@@ -956,7 +997,7 @@ namespace UnityEngine.Rendering
         public RTHandle Alloc(
             Vector2 scaleFactor,
             GraphicsFormat format,
-            int slices = 1,            
+            int slices = 1,
             FilterMode filterMode = FilterMode.Point,
             TextureWrapMode wrapMode = TextureWrapMode.Repeat,
             TextureDimension dimension = TextureDimension.Tex2D,
@@ -977,6 +1018,7 @@ namespace UnityEngine.Rendering
         {
             var actualDimensions = CalculateDimensions(scaleFactor);
 
+            bool enableShadingRate = false; // Not supported, use RTHandleAllocInfo API instead.
             var rth = AllocAutoSizedRenderTexture(actualDimensions.x,
                 actualDimensions.y,
                 slices,
@@ -996,12 +1038,13 @@ namespace UnityEngine.Rendering
                 useDynamicScaleExplicit,
                 memoryless,
                 vrUsage,
+                enableShadingRate,
                 name
             );
 
             rth.referenceSize = actualDimensions;
-
             rth.scaleFactor = scaleFactor;
+
             return rth;
         }
 
@@ -1082,6 +1125,11 @@ namespace UnityEngine.Rendering
         /// <param name="scaleFactor">Constant scale for the RTHandle size computation.</param>
         /// <param name="info">Struct containing details of allocation</param>
         /// <returns>A new RTHandle.</returns>
+        /// <remarks>
+        /// scaleFactor is expected to be based on the reference size in pixels. If enableShadingRate is set to true,
+        /// conversion in tiles is implicitly done prior to allocation.
+        /// See also <a href="https://docs.unity3d.com/Manual/variable-rate-shading">Variable Rate Shading</a>.
+        /// </remarks>
         public RTHandle Alloc(Vector2 scaleFactor, RTHandleAllocInfo info)
         {
             int width = Mathf.Max(Mathf.RoundToInt(scaleFactor.x * GetMaxWidth()), 1);
@@ -1089,7 +1137,18 @@ namespace UnityEngine.Rendering
 
             var rth = AllocAutoSizedRenderTexture(width, height, info);
             rth.referenceSize = new Vector2Int(width, height);
-            rth.scaleFactor = scaleFactor;
+
+            if (info.enableShadingRate)
+            {
+                // shading rate image resolution is in tiles; adjust refSize
+                rth.scaleFunc = (refSize) =>
+                {
+                    var dimensions = CalculateDimensions(scaleFactor, refSize);
+                    return ShadingRateImage.GetAllocTileSize(dimensions);
+                };
+            }
+            else
+                rth.scaleFactor = scaleFactor;
 
             return rth;
         }
@@ -1195,7 +1254,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
         /// <param name="format">GraphicsFormat of a color or depth stencil buffer.</param>
-        /// <param name="slices">Number of slices of the RTHandle.</param>     
+        /// <param name="slices">Number of slices of the RTHandle.</param>
         /// <param name="filterMode">Filtering mode of the RTHandle.</param>
         /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
         /// <param name="dimension">Texture dimension of the RTHandle.</param>
@@ -1216,7 +1275,7 @@ namespace UnityEngine.Rendering
         public RTHandle Alloc(
             ScaleFunc scaleFunc,
             GraphicsFormat format,
-            int slices = 1,            
+            int slices = 1,
             FilterMode filterMode = FilterMode.Point,
             TextureWrapMode wrapMode = TextureWrapMode.Repeat,
             TextureDimension dimension = TextureDimension.Tex2D,
@@ -1237,9 +1296,10 @@ namespace UnityEngine.Rendering
         {
             var actualDimensions = CalculateDimensions(scaleFunc);
 
+            bool enableShadingRate = false; // Not supported, use RTHandleAllocInfo API instead.
             var rth = AllocAutoSizedRenderTexture(actualDimensions.x,
                 actualDimensions.y,
-                slices,                
+                slices,
                 format,
                 filterMode,
                 wrapMode,
@@ -1256,12 +1316,13 @@ namespace UnityEngine.Rendering
                 useDynamicScaleExplicit,
                 memoryless,
                 vrUsage,
+                enableShadingRate,
                 name
             );
 
             rth.referenceSize = actualDimensions;
-
             rth.scaleFunc = scaleFunc;
+
             return rth;
         }
 
@@ -1271,6 +1332,11 @@ namespace UnityEngine.Rendering
         /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
         /// <param name="info">Struct containing details of allocation</param>
         /// <returns>A new RTHandle.</returns>
+        /// <remarks>
+        /// scaleFunc is expected to receive pixel values. If enableShadingRate is set to true,
+        /// conversion in tiles is done prior to allocation so that scaleFunc does not have to handle it.
+        /// See also <a href="https://docs.unity3d.com/Manual/variable-rate-shading">Variable Rate Shading</a>.
+        /// </remarks>
         public RTHandle Alloc(ScaleFunc scaleFunc, RTHandleAllocInfo info)
         {
             var scaleFactor = scaleFunc(new Vector2Int(GetMaxWidth(), GetMaxHeight()));
@@ -1279,16 +1345,29 @@ namespace UnityEngine.Rendering
 
             var rth = AllocAutoSizedRenderTexture(width, height, info);
             rth.referenceSize = new Vector2Int(width, height);
-            rth.scaleFunc = scaleFunc;
+
+            if (info.enableShadingRate)
+            {
+                rth.scaleFunc = (refSize) =>
+                {
+                    var dimensions = scaleFunc(refSize);
+
+                    // shading rate image resolution is in tiles and current values are in pixels.
+                    // Alloc() with a scaling function is based on refSize which is in pixels.
+                    // adjust dimensions
+                    return ShadingRateImage.GetAllocTileSize(dimensions);
+                };
+            }
+            else
+                rth.scaleFunc = scaleFunc;
 
             return rth;
         }
 
-        // Internal function
-        RTHandle AllocAutoSizedRenderTexture(
+        internal RTHandle AllocAutoSizedRenderTexture(
             int width,
             int height,
-            int slices,            
+            int slices,
             GraphicsFormat format,
             FilterMode filterMode,
             TextureWrapMode wrapMode,
@@ -1305,13 +1384,24 @@ namespace UnityEngine.Rendering
             bool useDynamicScaleExplicit,
             RenderTextureMemoryless memoryless,
             VRTextureUsage vrUsage,
+            bool enableShadingRate,
             string name
         )
         {
+            if (enableShadingRate)
+            {
+                // this function is called when auto scaling is needed and always expect size in pixels.
+                // shading rate image resolution is in tiles and current values are in pixels.
+                // then must adjust width and height
+                var actualDimensions = ShadingRateImage.GetAllocTileSize(width, height);
+                width = actualDimensions.x;
+                height = actualDimensions.y;
+            }
+
             var rt = CreateRenderTexture(
                 width, height, format, slices, filterMode, wrapMode, wrapMode, wrapMode, dimension, enableRandomWrite, useMipMap
                 , autoGenerateMips, isShadowMap, anisoLevel, mipMapBias, msaaSamples, bindTextureMS
-                , useDynamicScale, useDynamicScaleExplicit, memoryless, vrUsage, name);
+                , useDynamicScale, useDynamicScaleExplicit, memoryless, vrUsage, enableShadingRate, name);
 
             var rth = new RTHandle(this);
             rth.SetRenderTexture(rt);
@@ -1324,15 +1414,22 @@ namespace UnityEngine.Rendering
             return rth;
         }
 
-        RTHandle AllocAutoSizedRenderTexture(int width, int height, RTHandleAllocInfo info)
+        internal RTHandle AllocAutoSizedRenderTexture(int width, int height, RTHandleAllocInfo info)
         {
-            bool isShadowMap = false;
-            bool useDynamicScaleExplicit = false;
+            if (info.enableShadingRate)
+            {
+                // this function is called when auto scaling is needed and always expect size in pixels.
+                // shading rate image resolution is in tiles and current values are in pixels.
+                // then must adjust width and height
+                var actualDimensions = ShadingRateImage.GetAllocTileSize(width, height);
+                width = actualDimensions.x;
+                height = actualDimensions.y;
+            }
 
             var rt = CreateRenderTexture(
                 width, height, info.format, info.slices, info.filterMode, info.wrapModeU, info.wrapModeV, info.wrapModeW, info.dimension, info.enableRandomWrite, info.useMipMap
-                , info.autoGenerateMips, isShadowMap, info.anisoLevel, info.mipMapBias, info.msaaSamples, info.bindTextureMS
-                , info.useDynamicScale, useDynamicScaleExplicit, info.memoryless, info.vrUsage, info.name);
+                , info.autoGenerateMips, info.isShadowMap, info.anisoLevel, info.mipMapBias, info.msaaSamples, info.bindTextureMS
+                , info.useDynamicScale, info.useDynamicScaleExplicit, info.memoryless, info.vrUsage, info.enableShadingRate, info.name);
 
             var rth = new RTHandle(this);
             rth.SetRenderTexture(rt);

@@ -268,17 +268,17 @@ namespace UnityEditor.VFX
             additionalDefinesDescriptor = new AdditionalCommandDescriptor("VFXDefines", additionalDefines.ToString());
 
             // Load Position Attribute
-            loadPositionAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadPositionAttribute", VFXCodeGenerator.GenerateLoadAttribute("position", context, taskData).ToString().ToString());
+            loadPositionAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadPositionAttribute", VFXCodeGenerator.GenerateLoadAttribute("position", context, taskData).ToString());
 
             // Load Crop Factor Attribute
             var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
-            loadCropFactorAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadCropFactorParameter", VFXCodeGenerator.GenerateLoadParameter("cropFactor", mainParameters, expressionToName).ToString().ToString());
-            loadTexcoordAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadTexcoordParameter", VFXCodeGenerator.GenerateLoadParameter("texCoord", mainParameters, expressionToName).ToString().ToString());
-            loadCurrentFrameIndexParameterDescriptor = new AdditionalCommandDescriptor("VFXLoadCurrentFrameIndexParameter", VFXCodeGenerator.GenerateLoadParameter("currentFrameIndex", mainParameters, expressionToName).ToString().ToString());
-            loadRayTracedScalingAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadRayTracedScaling", VFXCodeGenerator.GenerateLoadParameter("rayTracedScaling", mainParameters, expressionToName).ToString().ToString());
+            loadCropFactorAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadCropFactorParameter", VFXCodeGenerator.GenerateLoadParameter("cropFactor", mainParameters, expressionToName).ToString());
+            loadTexcoordAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadTexcoordParameter", VFXCodeGenerator.GenerateLoadParameter("texCoord", mainParameters, expressionToName).ToString());
+            loadCurrentFrameIndexParameterDescriptor = new AdditionalCommandDescriptor("VFXLoadCurrentFrameIndexParameter", VFXCodeGenerator.GenerateLoadParameter("currentFrameIndex", mainParameters, expressionToName).ToString());
+            loadRayTracedScalingAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadRayTracedScaling", VFXCodeGenerator.GenerateLoadParameter("rayTracedScaling", mainParameters, expressionToName).ToString());
 
             //Set VFX Instancing indices
-            setInstancingIndicesDescriptor = new AdditionalCommandDescriptor("VFXInitInstancing", VFXCodeGenerator.GenerateSetInstancingIndices(context).ToString());
+            setInstancingIndicesDescriptor = new AdditionalCommandDescriptor("VFXInitInstancing", VFXCodeGenerator.GenerateSetInstancingIndices().ToString());
 
             additionalFragInputs = GenerateFragInputs(context, taskData);
         }

@@ -430,8 +430,10 @@ namespace UnityEditor.VFX.UI
                     var parentItem = m_Treeview.GetItemDataForId<IParameterItem>(arg.parentId);
                     if (arg.parentId < 0 || parentItem is PropertyCategory { isRoot: true } and not OutputCategory)
                     {
+                        var parentItemData = m_ParametersController.Find(x => x.id == arg.parentId);
+                        var rootPropertiesCount = parentItemData.children.Count(x => x.data is PropertyItem);
                         fieldId.Add(category.id);
-                        controller.MoveCategory(category.title, childIndex);
+                        controller.MoveCategory(category.title, childIndex - rootPropertiesCount);
                     }
                 }
             }
@@ -544,6 +546,10 @@ namespace UnityEditor.VFX.UI
                 return DragVisualMode.Move;
             }
             else if (arg.dropPosition == DragAndDropPosition.OutsideItems)
+            {
+                return DragVisualMode.Move;
+            }
+            else if (arg.dropPosition == DragAndDropPosition.BetweenItems && parentItem is PropertyCategory && m_Treeview.selectedItem is PropertyItem)
             {
                 return DragVisualMode.Move;
             }

@@ -49,20 +49,14 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (GetParent() == null) return true; // a block is invalid only if added to incompatible context.
-                if ((compatibleContexts & GetParent().contextType) != GetParent().contextType)
-                    return false;
-                if (GetParent() is VFXBlockSubgraphContext subgraphContext)
-                    return (subgraphContext.compatibleContextType & compatibleContexts) == subgraphContext.compatibleContextType;
+                if (GetParent() == null)
+                    return true;
 
-                return true;
+                return GetParent().Accept(this);
             }
         }
 
-        public bool isActive
-        {
-            get { return enabled && isValid; }
-        }
+        public bool isActive => enabled && isValid;
 
         public abstract VFXContextType compatibleContexts { get; }
         public abstract VFXDataType compatibleData { get; }
@@ -185,6 +179,12 @@ namespace UnityEditor.VFX
             if (GetParent() != null)
                 return GetParent().GetData();
             return m_TransientData;
+        }
+
+        internal void SetTransientData(VFXData data)
+        {
+            Debug.Assert(GetParent() == null, "SetTransientData should only be called on implicit blocks, that have no parents.");
+            m_TransientData = data;
         }
 
         public override void RefreshErrors()

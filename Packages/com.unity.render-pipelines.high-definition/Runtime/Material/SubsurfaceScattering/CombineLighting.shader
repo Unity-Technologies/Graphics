@@ -64,7 +64,9 @@ Shader "Hidden/HDRP/CombineLighting"
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                return LOAD_TEXTURE2D_X(_IrradianceSource, input.positionCS.xy);
+                float3 color = LOAD_TEXTURE2D_X(_IrradianceSource, input.positionCS.xy).rgb;
+                // avoid to additive blend the alpha which tends to make it above 1 and cause issues in later passes.
+                return float4(color, 0);
             }
             ENDHLSL
         }
@@ -88,7 +90,9 @@ Shader "Hidden/HDRP/CombineLighting"
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                return LOAD_TEXTURE2D_X(_IrradianceSource, input.positionCS.xy) * GetCurrentExposureMultiplier();
+                float3 color = LOAD_TEXTURE2D_X(_IrradianceSource, input.positionCS.xy).rgb * GetCurrentExposureMultiplier();
+                // avoid to additive blend the alpha which tends to make it above 1 and cause issues in later passes.
+                return float4(color, 0);
             }
             ENDHLSL
         }

@@ -1,6 +1,7 @@
 using System;
 using Unity.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Rendering.Universal;
@@ -151,7 +152,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static bool useDynamicBranchFogKeyword => ShaderOptions.k_UseDynamicBranchFogKeyword == 1;
+#if UNITY_EDITOR
+        internal static bool UseDynamicBranchFogKeyword()
+        {
+            const string kMemberName = "k_UseDynamicBranchFogKeyword";
+            Type type = typeof(ShaderOptions);
+            MemberInfo[] memberInfo = type.GetMember(kMemberName);
+            if (memberInfo.Length == 0)
+                return false;
+            int value = (int)((FieldInfo)memberInfo[0]).GetValue(null);
+            return value == 1;
+        }
+#endif
 
         // Match with values in Input.hlsl
         internal static int lightsPerTile => ((maxVisibleAdditionalLights + 31) / 32) * 32;
@@ -290,11 +302,16 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618
                 });
             }
+
+            // Initializes only if VRS is supported.
+            Vrs.InitializeResources();
         }
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            Vrs.DisposeResources();
+
             if (apvIsEnabled)
             {
                 ProbeReferenceVolume.instance.Cleanup();
@@ -427,7 +444,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
-            
+
             // Bandwidth optimization with Render Graph in some circumstances
             SetupScreenMSAASamplesState(cameraCount);
 
@@ -1428,12 +1445,12 @@ namespace UnityEngine.Rendering.Universal
             }
             else if ((cameraData.renderScale < 1.0f) || (!isScenePreviewOrReflectionCamera && ((cameraData.upscalingFilter == ImageUpscalingFilter.FSR) || (cameraData.upscalingFilter == ImageUpscalingFilter.STP))))
             {
-                // When certain upscalers are enabled, we still consider 100% render scale an upscaling operation. (This behavior is only intended for game view cameras)
+                // When certain upscalers are requested, we still consider 100% render scale an upscaling operation. (This behavior is only intended for game view cameras)
                 // This allows us to run the upscaling shader passes all the time since they improve visual quality even at 100% scale.
 
                 cameraData.imageScalingMode = ImageScalingMode.Upscaling;
 
-                // When STP is enabled, we force temporal anti-aliasing on since it's a prerequisite.
+                // When STP is requested, we force temporal anti-aliasing on since it's a prerequisite.
                 if (cameraData.upscalingFilter == ImageUpscalingFilter.STP)
                 {
                     cameraData.antialiasing = AntialiasingMode.TemporalAntiAliasing;
@@ -1514,7 +1531,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             cameraData.renderer = renderer;
-            cameraData.requiresDepthTexture |= isSceneViewCamera;
             cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
@@ -1874,7 +1890,7 @@ namespace UnityEngine.Rendering.Universal
                 xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
 #endif
                 bool allocation;
-                if (cameraData.IsSTPEnabled())
+                if (cameraData.IsSTPRequested())
                 {
                     Debug.Assert(cameraData.stpHistory != null);
 
@@ -1897,9 +1913,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.taaHistory.Reset();   // TAA GPUResources is explicitly released if the feature is turned off. We could refactor this to rely on the type request and the "gc" only.
 
-                // In the case where STP is enabled, but TAA gets disabled for various reasons, we should release the STP history resources
-                if (cameraData.IsSTPEnabled())
-                    cameraData.stpHistory.Reset();
+                // In the case where STP is requested, but TAA gets disabled for various reasons so STP is disabled, we should release the STP history resources
+                if (cameraData.IsSTPRequested())
+                    cameraData.stpHistory?.Reset();
             }
         }
 

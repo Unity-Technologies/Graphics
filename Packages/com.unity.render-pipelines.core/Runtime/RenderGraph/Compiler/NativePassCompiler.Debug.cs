@@ -93,6 +93,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 case PassBreakReason.EndOfGraph:
                     message += "The pass is the last pass in the graph.";
                     break;
+                case PassBreakReason.DifferentShadingRateImages:
+                    message += $"{prevPassName} uses a different shading rate image than {passName}.";
+                    break;
+                case PassBreakReason.DifferentShadingRateStates:
+                    message += $"{prevPassName} uses different shading rate states than {passName}.";
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -206,6 +212,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     debugResource.textureData.depth = resourceUnversioned.volumeDepth;
                     debugResource.textureData.samples = resourceUnversioned.msaaSamples;
                     debugResource.textureData.format = info.format;
+                    debugResource.textureData.bindMS = resourceUnversioned.bindMS;
+                    debugResource.textureData.clearBuffer = resourceUnversioned.clear;
                     debugResource.memoryless = resourceUnversioned.memoryLess;
 
                     debugResource.consumerList = new List<int>();
@@ -349,7 +357,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             var numReaders = outputDataVersioned.numReaders;
                             for (var i = 0; i < numReaders; ++i)
                             {
-                                var depIdx = ResourcesData.IndexReader(output.resource, i);
+                                var depIdx = ctx.resources.IndexReader(output.resource, i);
                                 ref var dep = ref ctx.resources.readerData[output.resource.iType].ElementAt(depIdx);
 
                                 var outputDependencyPass = ctx.passData[dep.passId];

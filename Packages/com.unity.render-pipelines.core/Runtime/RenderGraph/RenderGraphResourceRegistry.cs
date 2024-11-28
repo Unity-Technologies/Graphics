@@ -349,6 +349,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderGraphResources[res.iType].resourceArray[res.index].IncrementWriteCount();
         }
 
+        internal void IncrementReadCount(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            m_RenderGraphResources[res.iType].resourceArray[res.index].IncrementReadCount();
+        }
+
         internal void NewVersion(in ResourceHandle res)
         {
             CheckHandleValidity(res);
@@ -680,7 +686,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return texHandle;
         }
 
-        static RenderTargetIdentifier emptyId = new RenderTargetIdentifier();
+        static RenderTargetIdentifier emptyId = RenderTargetIdentifier.Invalid;
         static RenderTargetIdentifier builtinCameraRenderTarget = new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

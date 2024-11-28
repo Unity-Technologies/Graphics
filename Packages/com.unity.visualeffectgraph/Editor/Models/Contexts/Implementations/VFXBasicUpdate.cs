@@ -215,7 +215,7 @@ namespace UnityEditor.VFX
                 var data = GetData();
                 if (data.IsCurrentAttributeUsed(VFXAttribute.OldPosition))
                 {
-                    yield return VFXBlock.CreateImplicitBlock<BackupOldPosition>(data);
+                    yield return GetOrCreateImplicitBlock<BackupOldPosition>(data);
                 }
             }
         }
@@ -227,7 +227,7 @@ namespace UnityEditor.VFX
                 var data = GetData();
 
                 if (integration == VFXIntegrationMode.Euler && data.IsCurrentAttributeWritten(VFXAttribute.Velocity))
-                    yield return VFXBlock.CreateImplicitBlock<EulerIntegration>(data);
+                    yield return GetOrCreateImplicitBlock<EulerIntegration>(data);
 
                 if (angularIntegration == VFXIntegrationMode.Euler &&
                     (
@@ -235,7 +235,7 @@ namespace UnityEditor.VFX
                         data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||
                         data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityZ))
                 )
-                    yield return VFXBlock.CreateImplicitBlock<AngularEulerIntegration>(data);
+                    yield return GetOrCreateImplicitBlock<AngularEulerIntegration>(data);
 
                 var lifeTime = GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime);
                 var age = GetData().IsCurrentAttributeUsed(VFXAttribute.Age);
@@ -243,10 +243,10 @@ namespace UnityEditor.VFX
                 if (age || lifeTime)
                 {
                     if (ageParticles)
-                        yield return VFXBlock.CreateImplicitBlock<Age>(data);
+                        yield return GetOrCreateImplicitBlock<Age>(data);
 
                     if (lifeTime && reapParticles)
-                        yield return VFXBlock.CreateImplicitBlock<Reap>(data);
+                        yield return GetOrCreateImplicitBlock<Reap>(data);
                 }
             }
         }

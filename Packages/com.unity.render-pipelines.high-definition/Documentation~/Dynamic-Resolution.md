@@ -19,11 +19,13 @@ HDRP always uses a software method to upscale the result. The method HDRP uses i
 
 To use dynamic resolution in your Project, you must enable dynamic resolution in your [HDRP Asset](HDRP-Asset.md) and then enable it for each [Camera](hdrp-camera-component-reference.md) you want to use it with. To do this:
 
-1. In the Inspector for your HDRP Asset, go to **Rendering** **> Dynamic Resolution** and enable the **Enable** checkbox. For information on how to customize the rest of the HDRP Asset’s global dynamic resolution properties, see the dynamic resolution section of the [HDRP Asset documentation](HDRP-Asset.md#DynamicResolution).
-2. For every [Camera](hdrp-camera-component-reference.md) you want to perform dynamic resolution, go to the **General** section and enable **Allow Dynamic Resolution**.
-3. Add a HD Dynamic Resolution component.
+1. In the Inspector for your HDRP Asset, go to **Rendering** > **Dynamic Resolution** and enable the **Enable** checkbox. For information on how to customize the rest of the HDRP Asset’s global dynamic resolution properties, see the dynamic resolution section of the [HDRP Asset documentation](HDRP-Asset.md#DynamicResolution).
 
-For information about the HD Dynamic Resolution component properties refer to [HD Dynamic Resolution component properties](reference-dynamic-resolution.md).
+2. For each [Camera](hdrp-camera-component-reference.md) you want to perform dynamic resolution, go to the **Rendering** section of the Camera's Inspector and enable the **Allow Dynamic Resolution** checkbox.
+
+3. Add a **HD Dynamic Resolution** component to any GameObject in your scene. Adding this component once in the scene is sufficient, as it globally manages dynamic resolution settings.
+
+For information about the HD Dynamic Resolution component properties, refer to [HD Dynamic Resolution component properties](reference-dynamic-resolution.md).
 
 ## Custom dynamic resolution
 
@@ -149,3 +151,7 @@ The intensity of the sharpening filter used by FSR can be controlled using the *
 
 > [!NOTE]
 > This setting is not available in the editor if the **Override FSR Sharpness** checkbox is not checked. The checkbox itself is not available if the default upscaling filter is set to FSR.
+
+## Additional resources
+
+- [Introduction to changing resolution scale](https://docs.unity3d.com/6000.0/Documentation/Manual/resolution-scale-introduction.html)

@@ -21,7 +21,9 @@ namespace UnityEditor.Rendering.Universal
         static readonly GUIContent k_UVBiasContent = EditorGUIUtility.TrTextContent("Offset", "Sets the offset for the decal Material. Moves the decal along its UV axes.");
         static readonly GUIContent k_OpacityContent = EditorGUIUtility.TrTextContent("Opacity", "Controls the transparency of the decal.");
         static readonly GUIContent k_Offset = EditorGUIUtility.TrTextContent("Pivot", "Controls the position of the pivot point of the decal.");
+        static readonly GUIContent k_NewMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new decal Material asset template.");
 
+        static readonly string k_NewDecalMaterialText = "New Decal";
         static readonly string k_BaseSceneEditingToolText = "<color=grey>Decal Scene Editing Mode:</color> ";
         static readonly string k_EditShapeWithoutPreservingUVName = k_BaseSceneEditingToolText + "Scale";
         static readonly string k_EditShapePreservingUVName = k_BaseSceneEditingToolText + "Crop";

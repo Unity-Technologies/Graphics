@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.HDRP
         {
             get
             {
-                var orient = VFXBlock.CreateImplicitBlock<Orient>(GetData());
+                var orient = GetOrCreateImplicitBlock<Orient>(GetData());
                 orient.mode = Orient.Mode.FaceCameraPosition;
                 yield return orient;
             }

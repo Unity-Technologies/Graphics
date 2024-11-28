@@ -24,12 +24,7 @@ namespace UnityEditor.VFX
 {
     static class VisualEffectGraphPackageInfo
     {
-        public static string assetPackagePath
-        {
-            get
-            {
-                return "Packages/com.unity.visualeffectgraph";
-            }
-        }
+        public static string name => "com.unity.visualeffectgraph";
+        public static string assetPackagePath => $"Packages/{name}";
     }
 }

@@ -21,74 +21,20 @@ namespace UnityEditor.VFX
     {
         public const uint nbThreadsPerGroup = 64u;
 
-        private static string GetIndent(string src, int index)
-        {
-            var indent = "";
-            index--;
-            while (index > 0 && (src[index] == ' ' || src[index] == '\t'))
-            {
-                indent = src[index] + indent;
-                index--;
-            }
-            return indent;
-        }
-
-        //This function insure to keep padding while replacing a specific string
-        public static void ReplaceMultiline(StringBuilder target, string targetQuery, StringBuilder value)
-        {
-            Profiler.BeginSample("ReplaceMultiline");
-
-            string[] delim = { System.Environment.NewLine, "\n" };
-            var valueLines = value.ToString().Split(delim, System.StringSplitOptions.None);
-            // For some reasons, just calling Replace(...) without any index data is orders of magnitude
-            // slower than searching a copy of the string to get the index first. So both codepaths do
-            // exactly that.
-            if (valueLines.Length <= 1)
-            {
-                var replacement = value.ToString();
-                int startIndex = 0;
-                while (true)
-                {
-                    var targetCopy = target.ToString();
-                    var index = targetCopy.IndexOf(targetQuery, startIndex, StringComparison.Ordinal);
-                    if (index == -1)
-                        break;
-                    target.Replace(targetQuery, replacement, index, targetQuery.Length);
-                    startIndex = index;
-                }
-            }
-            else
-            {
-                int startIndex = 0;
-                while (true)
-                {
-                    var targetCopy = target.ToString();
-                    var index = targetCopy.IndexOf(targetQuery, startIndex, StringComparison.Ordinal);
-                    if (index == -1)
-                        break;
-                    var indent = GetIndent(targetCopy, index);
-                    var currentValue = new StringBuilder();
-                    foreach (var line in valueLines)
-                    {
-                        currentValue.Append(indent + line + '\n');
-                    }
-                    var currentValueString = currentValue.ToString();
-                    var toReplace = indent + targetQuery;
-                    index -= indent.Length;
-                    target.Replace(toReplace, currentValueString, index, toReplace.Length);
-                    startIndex = index;
-                }
-            }
-
-            Profiler.EndSample();
-        }
-
         internal static VFXShaderWriter GenerateLoadAttribute(string matching, VFXContext context, VFXTaskCompiledData taskData)
         {
             var r = new VFXShaderWriter();
 
-            var regex = new Regex(matching);
-            var attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name)).ToArray();
+            VFXAttributeInfo[] attributesFromContext;
+            if (matching != null)
+            {
+                var regex = new Regex(matching);
+                attributesFromContext = context.GetData().GetAttributes().Where(o => regex.IsMatch(o.attrib.name)).ToArray();
+            }
+            else
+            {
+                attributesFromContext = context.GetData().GetAttributes().ToArray();
+            }
             var attributesSource = attributesFromContext.Where(a => context.GetData().IsSourceAttributeUsed(a.attrib, context)).ToArray();
             var attributesCurrent = attributesFromContext.Where(a => context.GetData().IsCurrentAttributeUsed(a.attrib, context) || (context.contextType == VFXContextType.Init && context.GetData().IsAttributeStored(a.attrib))).ToArray();
 
@@ -148,7 +94,42 @@ namespace UnityEditor.VFX
 
         private const string eventListOutName = "eventListOut";
 
-        static private VFXShaderWriter GenerateStoreAttribute(string matching, VFXContext context, uint linkedOutCount)
+        internal class Cache
+        {
+            private Dictionary<string, StringBuilder> m_SnippetsMap = new Dictionary<string, StringBuilder>();
+            private Dictionary<string, string> m_TemplateIncludeCache = new Dictionary<string, string>();
+
+            internal void ClearSnippets()
+            {
+                m_SnippetsMap.Clear();
+            }
+            internal bool TryAddSnippet(string key, StringBuilder value)
+            {
+                return m_SnippetsMap.TryAdd(key, value);
+            }
+
+            internal void SetSnippet(string key, StringBuilder value)
+            {
+                m_SnippetsMap[key] = value;
+            }
+
+            internal bool TryGetSnippet(string key, out StringBuilder value)
+            {
+                return m_SnippetsMap.TryGetValue(key, out value);
+            }
+
+            internal void AddTemplateCache(string key, string value)
+            {
+                m_TemplateIncludeCache.Add(key, value);
+            }
+
+            internal bool TryGetTemplateCache(string key, out string value)
+            {
+                return m_TemplateIncludeCache.TryGetValue(key, out value);
+            }
+        }
+
+        internal static VFXShaderWriter GenerateStoreAttribute(string matching, VFXContext context, uint linkedOutCount)
         {
             var r = new VFXShaderWriter();
             var regex = new Regex(matching);
@@ -180,7 +161,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             }
             return r;
         }
-        static internal VFXShaderWriter GenerateSetInstancingIndices(VFXContext context)
+        static internal VFXShaderWriter GenerateSetInstancingIndices()
         {
             var r = new VFXShaderWriter();
 
@@ -193,11 +174,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
 
         static internal VFXShaderWriter GenerateLoadParameter(string matching, VFXNamedExpression[] namedExpressions, Dictionary<VFXExpression, string> expressionToName)
         {
-            var r = new VFXShaderWriter();
-            var regex = new Regex(matching);
-
-            var filteredNamedExpressions = namedExpressions.Where(o => regex.IsMatch(o.name) &&
-                !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name));     // if parameter already in the global scope, there's nothing to do
+            VFXShaderWriter r = new VFXShaderWriter();
+            var filteredNamedExpressions = namedExpressions.Where(o => o.name == matching &&
+                                                                       !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)).ToArray();     // if parameter already in the global scope, there's nothing to do
+            if (filteredNamedExpressions.Length == 0)
+                return r;
 
             bool needScope = false;
             foreach (var namedExpression in filteredNamedExpressions)
@@ -234,6 +215,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             VFXTaskCompiledData taskData,
             HashSet<string> dependencies,
             bool forceShadeDebugSymbols,
+            Cache codeGeneratorCache,
             out List<string> errors)
         {
             string templatePath = null;
@@ -243,7 +225,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 dependencies.Add(AssetDatabase.AssetPathToGUID(templatePath));
             }
 
-            return Build(context, task, templatePath, compilationMode, taskData, dependencies, forceShadeDebugSymbols, out errors);
+            return Build(context, task, templatePath, compilationMode, taskData, dependencies, forceShadeDebugSymbols, codeGeneratorCache, out errors);
         }
 
         private static void GetFunctionName(VFXBlock block, out string functionName, out string comment)
@@ -268,123 +250,6 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             {
                 comment = null;
                 functionName = block.GetType().Name;
-            }
-        }
-
-        static private string FormatPath(string path)
-        {
-            return Path.GetFullPath(path)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-#if !UNITY_EDITOR_LINUX
-                .ToLowerInvariant()
-#endif
-                ;
-        }
-
-        static IEnumerable<Match> GetUniqueMatches(string regexStr, string src)
-        {
-            var regex = new Regex(regexStr);
-            var matches = regex.Matches(src);
-            return matches.Cast<Match>().GroupBy(m => m.Groups[0].Value).Select(g => g.First());
-        }
-
-        static private StringBuilder GetFlattenedTemplateContent(string path, List<string> includes, IEnumerable<string> defines, HashSet<string> dependencies)
-        {
-            var formattedPath = FormatPath(path);
-
-            if (includes.Contains(formattedPath))
-            {
-                var includeHierarchy = new StringBuilder(string.Format("Cyclic VFXInclude dependency detected: {0}\n", formattedPath));
-                foreach (var str in Enumerable.Reverse<string>(includes))
-                    includeHierarchy.Append(str + '\n');
-                throw new InvalidOperationException(includeHierarchy.ToString());
-            }
-
-            includes.Add(formattedPath);
-            var templateContent = new StringBuilder(System.IO.File.ReadAllText(formattedPath));
-
-            foreach (var match in GetUniqueMatches("\\${VFXInclude(RP|)\\(\\\"(.*?)\\\"\\)(,.*)?}", templateContent.ToString()))
-            {
-                var groups = match.Groups;
-                var renderPipelineInclude = groups[1].Value == "RP";
-                var includePath = groups[2].Value;
-
-
-                if (groups.Count > 3 && !String.IsNullOrEmpty(groups[2].Value))
-                {
-                    var allDefines = groups[3].Value.Split(new char[] { ',', ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                    var neededDefines = allDefines.Where(d => d[0] != '!');
-                    var forbiddenDefines = allDefines.Except(neededDefines).Select(d => d.Substring(1));
-                    if (!neededDefines.All(d => defines.Contains(d)) || forbiddenDefines.Any(d => defines.Contains(d)))
-                    {
-                        ReplaceMultiline(templateContent, groups[0].Value, new StringBuilder());
-                        continue;
-                    }
-                }
-
-                string absolutePath;
-                if (renderPipelineInclude)
-                    absolutePath = VFXLibrary.currentSRPBinder.templatePath + "/" + includePath;
-                else
-                    absolutePath = VisualEffectGraphPackageInfo.assetPackagePath + "/" + includePath;
-                dependencies.Add(AssetDatabase.AssetPathToGUID(absolutePath));
-
-                var includeBuilder = GetFlattenedTemplateContent(absolutePath, includes, defines, dependencies);
-                ReplaceMultiline(templateContent, groups[0].Value, includeBuilder);
-            }
-
-            includes.Remove(formattedPath);
-            return templateContent;
-        }
-
-        static private void SubstituteMacros(StringBuilder builder)
-        {
-            var definesToCode = new Dictionary<string, string>();
-            var source = builder.ToString();
-            Regex beginRegex = new Regex("\\${VFXBegin:(.*)}");
-
-            int currentPos = -1;
-            int builderOffset = 0;
-            while ((currentPos = source.IndexOf("${", StringComparison.Ordinal)) != -1)
-            {
-                int endPos = source.IndexOf('}', currentPos);
-                if (endPos == -1)
-                    throw new FormatException("Ill-formed VFX tag (Missing closing brace");
-
-                var tag = source.Substring(currentPos, endPos - currentPos + 1);
-                // Replace any tag found
-                string macro;
-                if (definesToCode.TryGetValue(tag, out macro))
-                {
-                    builder.Remove(currentPos + builderOffset, tag.Length);
-                    var indentedMacro = macro.Replace("\n", "\n" + GetIndent(source, currentPos));
-                    builder.Insert(currentPos + builderOffset, indentedMacro);
-                }
-                else
-                {
-                    const string endStr = "${VFXEnd}";
-                    var match = beginRegex.Match(source, currentPos, tag.Length);
-                    if (match.Success)
-                    {
-                        var macroStartPos = match.Index + match.Length;
-                        var macroEndCodePos = source.IndexOf(endStr, macroStartPos);
-                        if (macroEndCodePos == -1)
-                            throw new FormatException("${VFXBegin} found without ${VFXEnd}");
-
-                        var defineStr = "${" + match.Groups[1].Value + "}";
-                        definesToCode[defineStr] = source.Substring(macroStartPos, macroEndCodePos - macroStartPos);
-
-                        // Remove the define in builder
-                        builder.Remove(match.Index + builderOffset, macroEndCodePos - match.Index + endStr.Length);
-                    }
-                    else if (tag == endStr)
-                        throw new FormatException("${VFXEnd} found without ${VFXBegin}");
-                    else // Remove undefined tag
-                        builder.Remove(currentPos + builderOffset, tag.Length);
-                }
-
-                builderOffset += currentPos;
-                source = builder.ToString(builderOffset, builder.Length - builderOffset);
             }
         }
 
@@ -469,11 +334,11 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var parameterBuffer = new VFXShaderWriter();
             needsGraphValueStruct = parameterBuffer.WriteGraphValuesStruct(taskData.uniformMapper);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBufferTypeDeclaration(taskData.bufferUsage.Values);
+            parameterBuffer.WriteBufferTypeDeclaration(taskData.bufferTypeUsage.Values);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteBuffer(taskData.uniformMapper, taskData.bufferUsage);
+            parameterBuffer.WriteBuffer(taskData.uniformMapper, taskData.bufferTypeUsage);
             parameterBuffer.WriteLine();
-            parameterBuffer.WriteTexture(taskData.uniformMapper, filteredOutTextures);
+            parameterBuffer.WriteTexture(taskData.uniformMapper, taskData.bufferTypeUsage, filteredOutTextures);
             parameterBufferContent = parameterBuffer.ToString();
         }
 
@@ -648,7 +513,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             loadContextData = loadContextDataShaderWriter.ToString();
         }
 
-        static private StringBuilder Build(
+        private static StringBuilder Build(
             VFXContext context,
             VFXTask task,
             string templatePath,
@@ -656,6 +521,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             VFXTaskCompiledData taskData,
             HashSet<string> dependencies,
             bool enableShaderDebugSymbols,
+            Cache codeGeneratorCache,
             out List<string> errors)
         {
             errors = null;
@@ -690,8 +556,10 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
                 }
             }
 
-            var allAdditionalDefines = context.additionalDefines.Concat(task.additionalDefines ?? Enumerable.Empty<string>());
-            var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), allAdditionalDefines, dependencies);
+            VFXShaderSnippets.ShaderGenerationData shaderGenerationData = new VFXShaderSnippets.ShaderGenerationData();
+            codeGeneratorCache.ClearSnippets();
+
+            var allAdditionalDefines = context.additionalDefines.Concat(task.additionalDefines ?? Enumerable.Empty<string>()).ToHashSet();
 
             var allCurrentAttributes = contextData.GetAttributes().Where(a =>
                 (contextData.IsCurrentAttributeUsed(a.attrib, context)) ||
@@ -700,7 +568,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var allSourceAttributes = contextData.GetAttributes().Where(a => (contextData.IsSourceAttributeUsed(a.attrib, context)));
 
             var globalDeclaration = new VFXShaderWriter();
-            globalDeclaration.WriteBufferTypeDeclaration(taskData.bufferUsage.Values);
+            globalDeclaration.WriteBufferTypeDeclaration(taskData.bufferTypeUsage.Values);
             globalDeclaration.WriteLine();
             var particleData = (contextData as VFXDataParticle);
             var systemUniformMapper = particleData.systemUniformMapper;
@@ -708,9 +576,9 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             var needsGraphValueStruct = globalDeclaration.WriteGraphValuesStruct(taskData.uniformMapper);
             globalDeclaration.WriteLine();
 
-            globalDeclaration.WriteBuffer(taskData.uniformMapper, taskData.bufferUsage);
+            globalDeclaration.WriteBuffer(taskData.uniformMapper, taskData.bufferTypeUsage);
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteTexture(taskData.uniformMapper);
+            globalDeclaration.WriteTexture(taskData.uniformMapper, taskData.bufferTypeUsage);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "VFXAttributes");
             globalDeclaration.WriteLine();
             globalDeclaration.WriteAttributeStruct(allSourceAttributes.Select(a => a.attrib), "VFXSourceAttributes");
@@ -719,7 +587,12 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             globalDeclaration.WriteEventBuffers(eventListOutName, taskData.linkedEventOut.Length);
 
             var expressionToName = BuildExpressionToName(context, taskData);
-            BuildContextBlocks(context, taskData, expressionToName, out var blockFunction, out var blockCallFunction, out var blockIncludes, out var blockDefines);
+            shaderGenerationData.m_ExpressionToName = BuildExpressionToName(context, taskData);
+            BuildContextBlocks(context, taskData, expressionToName,
+                out var blockFunction,
+                out var blockCallFunction,
+                out var blockIncludes,
+                out var blockDefines);
 
             //< Final composition
             var globalIncludeContent = new VFXShaderWriter();
@@ -727,7 +600,6 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             if (enableShaderDebugSymbols)
             {
                 globalIncludeContent.WriteLine("#pragma enable_d3d11_debug_symbols");
-                globalIncludeContent.WriteLine();
             }
 
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP " + nbThreadsPerGroup);
@@ -752,13 +624,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             // We consider that tasks are always generating a compute shader.
             bool generateComputes = task.shaderType == VFXTaskShaderType.ComputeShader;
 
-            var renderTemplatePipePath = VFXLibrary.currentSRPBinder.templatePath;
             var renderRuntimePipePath = VFXLibrary.currentSRPBinder.runtimePath;
-            if (!generateComputes && !string.IsNullOrEmpty(renderTemplatePipePath))
-            {
-                string renderPipePasses = renderTemplatePipePath + "/VFXPasses.template";
-                globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), allAdditionalDefines, dependencies));
-            }
 
             if (contextData is ISpaceable)
             {
@@ -781,90 +647,66 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             {
                 perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");
             }
+
             globalIncludeContent.Write(blockDefines.builder.ToString());
             perPassIncludeContent.Write(blockIncludes.builder.ToString());
 
-            ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
-            ReplaceMultiline(stringBuilder, "${VFXGlobalDeclaration}", globalDeclaration.builder);
-            ReplaceMultiline(stringBuilder, "${VFXPerPassInclude}", perPassIncludeContent.builder);
-            ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction.builder);
-            ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);
+            codeGeneratorCache.TryAddSnippet("${VFXGlobalInclude}",globalIncludeContent.builder);
+            codeGeneratorCache.TryAddSnippet("${VFXGlobalDeclaration}", globalDeclaration.builder);
+            codeGeneratorCache.TryAddSnippet("${VFXPerPassInclude}", perPassIncludeContent.builder);
+            codeGeneratorCache.TryAddSnippet("${VFXGeneratedBlockFunction}", blockFunction.builder);
+            codeGeneratorCache.TryAddSnippet("${VFXProcessBlocks}", blockCallFunction.builder);
 
             VFXShaderWriter fillGraphValueStruct = new VFXShaderWriter();
             fillGraphValueStruct.GenerateFillGraphValuesStruct(taskData.uniformMapper, particleData.graphValuesLayout);
-            ReplaceMultiline(stringBuilder, "${VFXLoadGraphValues}", fillGraphValueStruct.builder);
+            codeGeneratorCache.TryAddSnippet("${VFXLoadGraphValues}", fillGraphValueStruct.builder);
 
             VFXShaderWriter loadContextData = new VFXShaderWriter();
             loadContextData.GenerateLoadContextData(particleData.graphValuesLayout);
-            ReplaceMultiline(stringBuilder, "${VFXLoadContextData}", loadContextData.builder);
+            codeGeneratorCache.TryAddSnippet("${VFXLoadContextData}", loadContextData.builder);
 
-            var mainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
-            foreach (var match in GetUniqueMatches("\\${VFXLoadParameter:{(.*?)}}", stringBuilder.ToString()))
-            {
-                var str = match.Groups[0].Value;
-                var pattern = match.Groups[1].Value;
-                var loadParameters = GenerateLoadParameter(pattern, mainParameters, expressionToName);
-                ReplaceMultiline(stringBuilder, str, loadParameters.builder);
-            }
-
+            shaderGenerationData.m_MainParameters = taskData.gpuMapper.CollectExpression(-1).ToArray();
             // Old SG integration
-            VFXOldShaderGraphHelpers.ReplaceShaderGraphTag(stringBuilder, context, mainParameters, expressionToName);
+            VFXOldShaderGraphHelpers.ReplaceShaderGraphTag(context, shaderGenerationData.m_MainParameters, expressionToName, codeGeneratorCache);
 
             //< Load Attribute
-            if (stringBuilder.ToString().Contains("${VFXLoadAttributes}"))
-            {
-                var loadAttributes = GenerateLoadAttribute(".*", context, taskData);
-                ReplaceMultiline(stringBuilder, "${VFXLoadAttributes}", loadAttributes.builder);
-            }
-
-            foreach (var match in GetUniqueMatches("\\${VFXLoadAttributes:{(.*?)}}", stringBuilder.ToString()))
-            {
-                var str = match.Groups[0].Value;
-                var pattern = match.Groups[1].Value;
-                var loadAttributes = GenerateLoadAttribute(pattern, context, taskData);
-                ReplaceMultiline(stringBuilder, str, loadAttributes.builder);
-            }
+            var loadAttributes = GenerateLoadAttribute(null, context, taskData);
+            codeGeneratorCache.TryAddSnippet("${VFXLoadAttributes}", loadAttributes.builder);
 
             //< Store Attribute
-            if (stringBuilder.ToString().Contains("${VFXStoreAttributes}"))
-            {
-                var storeAttribute = GenerateStoreAttribute(".*", context, (uint)taskData.linkedEventOut.Length);
-                ReplaceMultiline(stringBuilder, "${VFXStoreAttributes}", storeAttribute.builder);
-            }
-
-            foreach (var match in GetUniqueMatches("\\${VFXStoreAttributes:{(.*?)}}", stringBuilder.ToString()))
-            {
-                var str = match.Groups[0].Value;
-                var pattern = match.Groups[1].Value;
-                var storeAttributes = GenerateStoreAttribute(pattern, context, (uint)taskData.linkedEventOut.Length);
-                ReplaceMultiline(stringBuilder, str, storeAttributes.builder);
-            }
+            var storeAttribute = GenerateStoreAttribute(".*", context, (uint)taskData.linkedEventOut.Length);
+            codeGeneratorCache.TryAddSnippet("${VFXStoreAttributes}", storeAttribute.builder);
 
             //< Detect needed pragma require
             var useCubeArray = taskData.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
             var pragmaRequire = useCubeArray ? new StringBuilder("#pragma require cubearray") : new StringBuilder();
-            ReplaceMultiline(stringBuilder, "${VFXPragmaRequire}", pragmaRequire);
+            codeGeneratorCache.TryAddSnippet("${VFXPragmaRequire}", pragmaRequire);
+
             if (VFXLibrary.currentSRPBinder != null)
             {
                 var allowedRenderers = new StringBuilder("#pragma only_renderers ");
                 allowedRenderers.Append(String.Join(" ", VFXLibrary.currentSRPBinder.GetSupportedGraphicDevices().Select(d => DeviceTypeToShaderString(d))));
-                ReplaceMultiline(stringBuilder, "${VFXPragmaOnlyRenderers}", allowedRenderers);
+                codeGeneratorCache.TryAddSnippet("${VFXPragmaOnlyRenderers}", allowedRenderers);
             }
 
-            foreach (var addionalReplacement in context.additionalReplacements)
-            {
-                ReplaceMultiline(stringBuilder, addionalReplacement.Key, addionalReplacement.Value.builder);
-            }
+            foreach (var additionalReplacement in context.additionalReplacements)
+                codeGeneratorCache.TryAddSnippet(additionalReplacement.Key, additionalReplacement.Value.builder);
 
-            // Replace defines
-            SubstituteMacros(stringBuilder);
+            shaderGenerationData.m_Context = context;
+            shaderGenerationData.m_TaskData = taskData;
+            shaderGenerationData.m_Defines = allAdditionalDefines;
+            shaderGenerationData.m_Dependencies = dependencies;
+            shaderGenerationData.m_CodeGeneratorCache = codeGeneratorCache;
+            shaderGenerationData.m_HumanReadable = true;
+
+            StringBuilder shaderStringSb = VFXShaderSnippets.GenerateShaderCode(templatePath, shaderGenerationData);
 
             if (VFXViewPreference.advancedLogs)
-                Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
+                Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), shaderStringSb.ToString());
 
             context.EndCompilation();
             Profiler.EndSample();
-            return stringBuilder;
+            return shaderStringSb;
         }
 
         static string DeviceTypeToShaderString(GraphicsDeviceType deviceType) => deviceType switch
@@ -1031,7 +873,8 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             blockCallFunction.WriteCallFunction(methodName,
                 parameters,
                 taskData.gpuMapper,
-                expressionToNameLocal);
+                expressionToNameLocal,
+                taskData.bufferTypeUsage);
 
             if (indexEventCount != -1)
             {

@@ -80,10 +80,9 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
 #if VFX_USE_ALIVE_CURRENT
-		${VFXLoadAttributes:{alive|stripAlive}}
+		${VFXLoadAttributes}
 		if (attributes.alive)
 		{
-			${VFXLoadAttributes:{(?!(alive|stripAlive))(\b\w)}}
 #if VFX_USE_OLDVELOCITY_CURRENT && VFX_USE_VELOCITY_CURRENT
 			attributes.oldVelocity = attributes.velocity;
 #endif

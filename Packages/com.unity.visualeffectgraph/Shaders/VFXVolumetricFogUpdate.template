@@ -3,6 +3,7 @@ ${VFXPragmaOnlyRenderers}
 ${VFXPragmaRequire}
 
 ${VFXGlobalInclude}
+${VFXIncludeRP("VFXPasses.template")}
 ${VFXGlobalDeclaration}
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
 

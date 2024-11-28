@@ -1,0 +1,105 @@
+﻿#ifndef VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH
+#define VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH 0
+#endif
+
+#ifdef VFX_SHADERGRAPH
+	#if (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
+	${SHADERGRAPH_PIXEL_CODE_DEPTHNORMALS}
+	#else
+	${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
+	#endif
+#endif
+
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+int _ObjectId;
+int _PassValue;
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+float4 _SelectionID;
+#endif
+
+#pragma fragment frag
+void frag(ps_input i
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+    #ifdef WRITE_MSAA_DEPTH
+    // We need the depth color as SV_Target0 for alpha to coverage
+    , out float4 outDepthColor : SV_Target0
+    , out float4 outMotionVector : SV_Target1
+    #else
+    // When no MSAA, the motion vector is always the first buffer
+    , out float4 outMotionVector : SV_Target0
+    #endif
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+    #if defined(WRITE_MSAA_DEPTH)
+	#if defined(WRITE_NORMAL_BUFFER)
+	#error Unexpected depth setup mssa + depth normal
+	#endif
+    , out float4 outDepthColor : SV_Target0
+    #elif defined(WRITE_NORMAL_BUFFER)
+	, out float4 outNormalBuffer : SV_Target0
+	#else
+    , out float4 dummy : SV_Target0
+    #endif
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION || VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+    , out float4 outSelection : SV_Target0
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+    , out float4 dummy : SV_Target0
+#endif
+)
+{
+	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+	VFXTransformPSInputs(i);
+	${VFXComputeNormalWS}
+
+    #ifdef VFX_SHADERGRAPH
+        ${VFXAdditionalInterpolantsPreparation}
+		#if (SHADERPASS == SHADERPASS_DEPTHNORMALSONLY)
+		${SHADERGRAPH_PIXEL_CALL_DEPTHNORMALS}
+		#else
+		${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
+		#endif
+        float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+    #else
+        float alpha = VFXGetFragmentColor(i).a;
+		#if VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH
+			#ifdef VFX_PROCEDURAL_UV
+				alpha *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFX_PROCEDURAL_UV(i)).a;
+			#else
+				alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;
+			#endif
+		#endif
+    #endif
+	VFXClipFragmentColor(alpha,i);
+
+	#ifdef WRITE_MSAA_DEPTH
+		outDepthColor = i.VFX_VARYING_POSCS.z;
+		#if VFX_USE_ALPHA_TO_MASK
+			outDepthColor.a = alpha;
+		#endif
+	#endif
+
+	#ifdef WRITE_NORMAL_BUFFER
+		#ifdef VFX_VARYING_NORMAL
+			VFXComputePixelOutputToNormalBuffer(i, normalWS, GetUVData(i), outNormalBuffer);
+		#else
+			//Fallback for point and lines, render normal as if those are face camera plane
+			VFXComputePixelOutputToNormalBuffer(i, VFXGetWorldToViewRotMatrix()[2], GetUVData(i), outNormalBuffer);
+		#endif
+	#endif
+
+	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
+		${VFXComputeOutputMotionVector}
+		outMotionVector = encodedMotionVector;
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
+		outSelection = float4(_ObjectId, _PassValue, 1.0, 1.0);
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_PICKING
+		outSelection = _SelectionID;
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+		#if !defined(WRITE_MSAA_DEPTH) && !defined(WRITE_NORMAL_BUFFER)
+		    dummy = float4(i.VFX_VARYING_POSCS.z, 0,0,0);
+		#endif
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+		dummy = (float4)0;
+	#else
+		#error VFX_PASSDEPTH undefined
+	#endif
+}

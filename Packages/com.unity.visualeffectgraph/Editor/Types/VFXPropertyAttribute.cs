@@ -45,13 +45,13 @@ namespace UnityEditor.VFX
         public bool snapToPower { get; } = false;
     }
 
-    sealed class GraphicsBufferUsageAttribute : PropertyAttribute
+    sealed class BufferTypeUsageAttribute : PropertyAttribute
     {
-        public BufferUsage usage { get; }
+        public BufferType Type { get; }
 
-        public GraphicsBufferUsageAttribute(BufferUsage usage)
+        public BufferTypeUsageAttribute(BufferType type)
         {
-            this.usage = usage;
+            this.Type = type;
         }
     }
 
@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
             { typeof(EnumAttribute),        Type.Enum },
             { typeof(MinMaxAttribute),      Type.MinMax},
             { typeof(LogarithmicAttribute), Type.Logarithmic},
-            { typeof(GraphicsBufferUsageAttribute), Type.GraphicsBufferUsage},
+            { typeof(BufferTypeUsageAttribute), Type.GraphicsBufferUsage},
         };
 
         public VFXPropertyAttributes(params object[] attributes) : this()

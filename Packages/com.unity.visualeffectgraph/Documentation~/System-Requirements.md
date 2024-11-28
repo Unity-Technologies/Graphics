@@ -8,6 +8,7 @@ The following table shows the compatibility of the Visual Effect Graph versions 
 
 | **Package version** | **Minimum Unity version** | **Maximum Unity version** |
 | ------------------- | ------------------------- | ------------------------- |
+| 17.x                | Unity 6                   | Unity 6.1                 |
 | 16.x                | 2023.2                    | 2023.2                    |
 | 15.x                | 2023.1                    | 2023.1                    |
 | 14.x                | 2022.2                    | 2022.2                    |
@@ -25,7 +26,7 @@ The Visual Effect Graph varies in compatibility between the High Definition Rend
 
 | **Package version** | **HDRP**   | **URP**       |
 | ------------------- | ---------- | ------------- |
-| 16.x                | Supported  | Supported     |
+| 17.x                | Supported  | Supported     |
 | 16.x                | Supported  | Supported     |
 | 14.x                | Supported  | Supported     |
 | 13.x                | Supported  | Supported     |

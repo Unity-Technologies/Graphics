@@ -39,4 +39,4 @@ ${VFXPassDepthDefine}
 
 ${VFXInclude("Shaders/ParticlePoints/Pass.template")}
 #define VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH 0
-${VFXPassDepthCommonFragmentUnlit}
+${VFXInclude("Shaders/VFXPassDepthCommonFragmentUnlit.template")}

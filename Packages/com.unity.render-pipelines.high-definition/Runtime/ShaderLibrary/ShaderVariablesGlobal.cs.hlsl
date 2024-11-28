@@ -152,6 +152,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _TransmissionTintsAndFresnel0[16];
     float4 _WorldScalesAndFilterRadiiAndThicknessRemaps[16];
     float4 _DualLobeAndDiffusePower[16];
+    float4 _BorderAttenuationColor[16];
     uint4 _DiffusionProfileHashTable[16];
     uint _EnableSubsurfaceScattering;
     uint _TexturingModeFlags;

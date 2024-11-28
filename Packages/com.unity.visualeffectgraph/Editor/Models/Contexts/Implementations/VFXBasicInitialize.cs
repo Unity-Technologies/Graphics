@@ -243,7 +243,7 @@ namespace UnityEditor.VFX
                 if (hasGPUSpawner)
                 {
                     // Force "alive" attribute when a system can spawn particles from GPU, because we are updating the entire capacity
-                    var block = VFXBlock.CreateImplicitBlock<Block.SetAttribute>(data);
+                    var block = GetOrCreateImplicitBlock<Block.SetAttribute>(data);
                     block.SetSettingValue(nameof(Block.SetAttribute.attribute), VFXAttribute.Alive.name);
                     yield return block;
                 }

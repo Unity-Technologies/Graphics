@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-
 using UnityEditor.VFX.Block;
 using UnityEditor.VFX.UI;
 using UnityEngine;
@@ -75,7 +74,7 @@ namespace UnityEditor.VFX
 
     class VFXAttributesManager : IVFXAttributesManager
     {
-        private readonly List<VFXAttribute> m_CustomAttributes = new ();
+        private readonly Dictionary<string, VFXAttribute> m_CustomAttributes = new (StringComparer.OrdinalIgnoreCase);
 
         private static readonly List<VFXAttribute> s_BuiltInAttributes = new()
         {
@@ -153,34 +152,46 @@ namespace UnityEditor.VFX
 
         public static VFXAttribute[] AffectingAABBAttributes => s_AffectingAABBAttributes.ToArray();
 
+        private static readonly Dictionary<string, VFXAttribute> s_BuiltinAttributeNameMap;
+
+        static VFXAttributesManager()
+        {
+            s_BuiltinAttributeNameMap = new Dictionary<string, VFXAttribute>(StringComparer.OrdinalIgnoreCase);
+            foreach (var attr in s_BuiltInAttributes)
+            {
+                s_BuiltinAttributeNameMap.Add(attr.name, attr);
+            }
+
+            foreach (var attr in s_VariadicAttribute)
+            {
+                s_BuiltinAttributeNameMap.Add(attr.name, attr);
+            }
+        }
+
         /* To be removed when the VFXLibrary will not be static anymore */
         public static VFXAttribute FindBuiltInOnly(string name)
         {
-            var attribute = s_BuiltInAttributes.Find(x => string.Compare(name, x.name, StringComparison.OrdinalIgnoreCase) == 0);
-            if (!string.IsNullOrEmpty(attribute.name))
-            {
-                return attribute;
-            }
-
-            attribute = s_VariadicAttribute.Find(x => string.Compare(name, x.name, StringComparison.OrdinalIgnoreCase) == 0);
-            if (!string.IsNullOrEmpty(attribute.name))
-            {
-                return attribute;
-            }
-
-            return default;
+            if (string.IsNullOrEmpty(name))
+                return default;
+            s_BuiltinAttributeNameMap.TryGetValue(name, out var attribute);
+            return attribute;
         }
 
         public static bool ExistsBuiltInOnly(string name)
         {
-            var index = s_BuiltInAttributes.FindIndex(x => string.Compare(name, x.name, StringComparison.OrdinalIgnoreCase) == 0);
-            if (index != -1)
-                return true;
-            return s_VariadicAttribute.FindIndex(x => string.Compare(name, x.name, StringComparison.OrdinalIgnoreCase) == 0) != -1;
+            return !string.IsNullOrEmpty(name) && s_BuiltinAttributeNameMap.ContainsKey(name);
         }
 
         public static IEnumerable<VFXAttribute> GetBuiltInAttributesOrCombination(bool includeVariadic, bool includeVariadicComponents, bool includeReadOnly, bool includeWriteOnly)
         {
+            if (includeVariadic && includeVariadicComponents && includeReadOnly && includeWriteOnly)
+            {
+                foreach (var attribute in s_BuiltInAttributes)
+                    yield return attribute;
+                foreach (var attribute in s_VariadicAttribute)
+                    yield return attribute;
+                yield break;
+            }
             foreach (var attribute in s_BuiltInAttributes)
             {
                 if (!includeVariadicComponents && s_VariadicComponentsAttributes.Contains(attribute))
@@ -257,7 +268,7 @@ namespace UnityEditor.VFX
                 yield return attribute;
             }
 
-            foreach (var attribute in m_CustomAttributes)
+            foreach (var attribute in m_CustomAttributes.Values)
             {
                 yield return attribute;
             }
@@ -270,7 +281,7 @@ namespace UnityEditor.VFX
                 yield return attribute;
             }
 
-            foreach (var attribute in m_CustomAttributes)
+            foreach (var attribute in m_CustomAttributes.Values)
             {
                 yield return attribute;
             }
@@ -294,9 +305,9 @@ namespace UnityEditor.VFX
 
         public IEnumerable<string> GetCustomAttributeNames()
         {
-            foreach (var attribute in m_CustomAttributes)
+            foreach (var attribute in m_CustomAttributes.Keys)
             {
-                yield return attribute.name;
+                yield return attribute;
             }
         }
 
@@ -315,7 +326,7 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXAttribute> GetCustomAttributes()
         {
-            foreach (var attribute in m_CustomAttributes)
+            foreach (var attribute in m_CustomAttributes.Values)
             {
                 yield return attribute;
             }
@@ -323,14 +334,11 @@ namespace UnityEditor.VFX
 
         public bool TryFind(string name, out VFXAttribute attribute)
         {
-            foreach (var attr in GetAllAttributesOrCombination(true, true, true, true))
-            {
-                if (string.Compare(attr.name, name, StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    attribute = attr;
-                    return true;
-                }
-            }
+            if (s_BuiltinAttributeNameMap.TryGetValue(name, out attribute))
+                return true;
+
+            if (m_CustomAttributes.TryGetValue(name, out attribute))
+                return true;
 
             attribute = default;
             return false;
@@ -363,25 +371,19 @@ namespace UnityEditor.VFX
 
         public bool Exist(string name)
         {
-            foreach (var attribute in GetAllAttributesOrCombination(true, true, true, true))
-            {
-                if (string.Compare(attribute.name, name, StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return ExistsBuiltInOnly(name) || m_CustomAttributes.ContainsKey(name);
         }
 
         public bool TryUpdate(string name, CustomAttributeUtility.Signature type, string description)
         {
-            var customAttribute = m_CustomAttributes.Find(x => string.Compare(x.name, name, StringComparison.OrdinalIgnoreCase) == 0);
+            bool found = m_CustomAttributes.TryGetValue(name, out var customAttribute);
+            if (!found)
+                return false;
             var valueType = CustomAttributeUtility.GetValueType(type);
             if (!string.IsNullOrEmpty(customAttribute.name) && (valueType != customAttribute.type || description != customAttribute.description))
             {
-                m_CustomAttributes.Remove(customAttribute);
-                m_CustomAttributes.Add(new VFXAttribute(name, valueType, description));
+                m_CustomAttributes.Remove(customAttribute.name);
+                m_CustomAttributes.Add(name, new VFXAttribute(name, valueType, description));
 
                 return true;
             }
@@ -391,7 +393,7 @@ namespace UnityEditor.VFX
 
         public bool IsCustom(string name)
         {
-            return m_CustomAttributes.FindIndex(x => string.Compare(x.name, name, StringComparison.OrdinalIgnoreCase) == 0) != -1;
+            return !string.IsNullOrEmpty(name) && m_CustomAttributes.ContainsKey(name);
         }
 
         public void ClearCustomAttributes()
@@ -403,42 +405,37 @@ namespace UnityEditor.VFX
         {
             name = MakeValidName(name);
 
-            if (TryFind(name, out var existingAttribute))
+            if (TryFindExistingAttributeOrCreate(name, CustomAttributeUtility.GetValueType(type), out newAttribute))
             {
-                if (existingAttribute.type == CustomAttributeUtility.GetValueType(type))
-                {
-                    newAttribute = existingAttribute;
-                    return false;
-                }
-                name = FindUniqueName(name);
+                return false;
             }
 
-            newAttribute = new VFXAttribute(name, CustomAttributeUtility.GetValueType(type), description);
-            m_CustomAttributes.Add(newAttribute);
+            newAttribute.description = description;
+            m_CustomAttributes.Add(newAttribute.name, newAttribute);
+
             return true;
         }
 
         public void UnregisterCustomAttribute(string name)
         {
-            m_CustomAttributes.RemoveAll(x => string.Compare(x.name, name, StringComparison.OrdinalIgnoreCase) == 0);
+            m_CustomAttributes.Remove(name);
         }
 
         public RenameStatus TryRename(string oldName, string newName)
         {
-            var existingCustomAttributeIndex = m_CustomAttributes.FindIndex(x => string.Compare(x.name, oldName, StringComparison.OrdinalIgnoreCase) == 0);
-            if (existingCustomAttributeIndex == -1)
+            bool oldFound = m_CustomAttributes.TryGetValue(oldName, out VFXAttribute existingCustomAttribute);
+            if (!oldFound)
             {
                 return RenameStatus.NotFound;
             }
 
-            if (ExistsBuiltInOnly(newName))
+            if(ExistsBuiltInOnly(newName))
             {
                 return RenameStatus.NameUsed;
             }
 
-            var existingCustomAttribute = m_CustomAttributes[existingCustomAttributeIndex];
-            var existingCustomAttributeNewNameIndex = m_CustomAttributes.FindIndex(x => string.Compare(x.name, newName, StringComparison.OrdinalIgnoreCase) == 0);
-            if (existingCustomAttributeNewNameIndex != -1 && existingCustomAttributeNewNameIndex != existingCustomAttributeIndex)
+            bool newFound = m_CustomAttributes.TryGetValue(newName, out VFXAttribute existingCustomAttributeNewName);
+            if (newFound && !existingCustomAttributeNewName.Equals(existingCustomAttribute))
             {
                 return RenameStatus.NameUsed;
             }
@@ -449,9 +446,9 @@ namespace UnityEditor.VFX
                 return RenameStatus.InvalidName;
             }
 
-            m_CustomAttributes.Remove(existingCustomAttribute);
+            m_CustomAttributes.Remove(oldName);
             existingCustomAttribute.Rename(newName);
-            m_CustomAttributes.Add(existingCustomAttribute);
+            m_CustomAttributes.Add(newName, existingCustomAttribute);
             return RenameStatus.Success;
         }
 
@@ -473,6 +470,31 @@ namespace UnityEditor.VFX
             return VFXParameterController.MakeNameUnique(name, existingNames, false);
         }
 
+
+        private bool TryFindExistingAttributeOrCreate(string name, VFXValueType type, out VFXAttribute attribute)
+        {
+            if (TryFind(name, out attribute))
+            {
+                if (attribute.type == type)
+                {
+                    return true;
+                }
+
+                var existingNames = new HashSet<string>(GetAllNamesOrCombination(true, true, true, true));
+                var rejectedCandidateNames = new List<string>();
+                name = VFXParameterController.MakeNameUnique(name, existingNames, false, rejectedCandidateNames);
+                foreach (var candidateName in rejectedCandidateNames)
+                {
+                    if (TryFind(candidateName, out attribute) && attribute.type == type)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            attribute = new VFXAttribute(name, type, null);
+            return false;
+        }
 
         private string MakeValidName(string name)
         {

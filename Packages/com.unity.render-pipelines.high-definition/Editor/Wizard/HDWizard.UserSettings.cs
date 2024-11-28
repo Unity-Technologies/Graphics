@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -81,7 +82,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static bool wizardIsStartPopup
         {
-            get => instance.m_WizardPopupAtStart;
+            get
+            {
+                if (!InternalEditorUtility.isHumanControllingUs || AssetDatabase.IsAssetImportWorkerProcess())
+                    return false;
+
+                return instance.m_WizardPopupAtStart;
+            }
             set
             {
                 instance.m_WizardPopupAtStart = value;

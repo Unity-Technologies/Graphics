@@ -152,6 +152,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_ColorFrontBuffer;
         internal RTHandle m_ActiveCameraDepthAttachment;
         internal RTHandle m_CameraDepthAttachment;
+        internal RTHandle m_CameraDepthAttachment_D3d_11;
         RTHandle m_TargetColorHandle;
         RTHandle m_TargetDepthHandle;
         internal RTHandle m_DepthTexture;
@@ -461,6 +462,7 @@ namespace UnityEngine.Rendering.Universal
             m_AdditionalLightsShadowCasterPass?.Dispose();
 
             m_CameraDepthAttachment?.Release();
+            m_CameraDepthAttachment_D3d_11?.Release();
             m_DepthTexture?.Release();
             m_NormalsTexture?.Release();
             m_DecalLayersTexture?.Release();
@@ -1007,6 +1009,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign camera targets (color and depth)
             ConfigureCameraTarget(m_ActiveCameraColorAttachment, m_ActiveCameraDepthAttachment);
+
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
+                cmd.CopyTexture(m_CameraDepthAttachment, m_CameraDepthAttachment_D3d_11);
 
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
 
@@ -1840,7 +1845,14 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = cameraDepthAttachmentFormat;
                     RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
-                    cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
+
+                    if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
+                    {
+                        RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraDepthAttachment_D3d_11, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment_Temp");
+                        cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment_D3d_11.nameID);
+                    }
+                    else
+                        cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
 
                     // update the descriptor to match the depth attachment
                     descriptor.depthStencilFormat = depthDescriptor.depthStencilFormat;
@@ -1909,7 +1921,7 @@ namespace UnityEngine.Rendering.Universal
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
-            return requiresBlitForOffscreenCamera || isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+            return requiresBlitForOffscreenCamera || isScaledRender || cameraData.isHdrEnabled ||
                 !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion ||
                 renderPassInputs.requiresColorTexture || renderPassInputs.requiresColorTextureCreated;
         }

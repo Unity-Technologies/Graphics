@@ -20,7 +20,6 @@ namespace UnityEditor.VFX
         {
             public Dictionary<string, PassInfo> passInfos;
             HashSet<int> m_AllPorts;
-
             public IEnumerable<int> allPorts
             {
                 get
@@ -42,6 +41,28 @@ namespace UnityEditor.VFX
             }
         }
 
+        private const string kVFXShaderGraphFunctionsIncludeHDRP =
+            "#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl\"" +
+            "\n#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl\"" +
+            "\n#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl\"" +
+            "\n#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl\"" +
+            "\n#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl\"" +
+            "\n#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl\"" +
+            "\n#ifndef SHADERPASS" +
+            "\n#error Shaderpass should be defined at this stage." +
+            "\n#endif" +
+            "\n#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl\"";
+
+        private const string kVFXShaderGraphFunctionsIncludeURP =
+            "#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl\"\n" +
+            "#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl\"\n" +
+            "#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl\"\n" +
+            "#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl\"\n" +
+            "#include \"Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl\"\n" +
+            "#include \"Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl\"\n" +
+            "#include_with_pragmas \"Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl\"\n" +
+            "#include \"Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl\"";
+
         public static readonly RPInfo hdrpInfo = new RPInfo
         {
             passInfos = new Dictionary<string, PassInfo>()
@@ -51,6 +72,7 @@ namespace UnityEditor.VFX
                 { "DepthNormals", new PassInfo()  { vertexPorts = new int[] {}, pixelPorts = new int[] { ShaderGraphVfxAsset.AlphaSlotId, ShaderGraphVfxAsset.AlphaThresholdSlotId, ShaderGraphVfxAsset.NormalSlotId } } }
             }
         };
+
         public static readonly RPInfo hdrpLitInfo = new RPInfo
         {
             passInfos = new Dictionary<string, PassInfo>()
@@ -111,7 +133,7 @@ namespace UnityEditor.VFX
             return graphCodes;
         }
 
-        public static IEnumerable<string> GetAdditionalDefinesGetAdditionalReplacement(ShaderGraphVfxAsset shaderGraph, RPInfo info, Dictionary<string, GraphCode> graphCodes)
+        public static IEnumerable<string> GetAdditionalDefinesGetAdditionalReplacement(ShaderGraphVfxAsset shaderGraph, RPInfo info, Dictionary<string, GraphCode> graphCodes, bool isMesh)
         {
             yield return "VFX_SHADERGRAPH";
 
@@ -145,7 +167,26 @@ namespace UnityEditor.VFX
                     yield return $"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper(CultureInfo.InvariantCulture)}";
 
                 needsPosWS |= NeedsPositionWorldInterpolator(graphCode);
+
+                if (isMesh)
+                {
+                    for (UVChannel uv = UVChannel.UV1; uv <= UVChannel.UV3; ++uv)
+                    {
+                        if (graphCode.requirements.requiresMeshUVs.Contains(uv))
+                        {
+                            int uvi = (int)uv;
+                            yield return $"VFX_SHADERGRAPH_HAS_UV{uvi}";
+                        }
+                    }
+
+                    if (graphCode.requirements.requiresVertexColor)
+                    {
+                        yield return "VFX_SHADERGRAPH_HAS_COLOR";
+                    }
+                }
             }
+
+
 
             // TODO Put that per pass ?
             if (needsPosWS)
@@ -170,7 +211,10 @@ namespace UnityEditor.VFX
                     preProcess.WriteLine("#define REQUIRE_OPAQUE_TEXTURE");
                 if (graphCode.requirements.requiresDepthTexture)
                     preProcess.WriteLine("#define REQUIRE_DEPTH_TEXTURE");
-                preProcess.WriteLine("${VFXShaderGraphFunctionsInclude}\n");
+                string rpIncludes = VFXLibrary.currentSRPBinder.SRPAssetTypeStr == "HDRenderPipelineAsset"
+                    ? kVFXShaderGraphFunctionsIncludeHDRP
+                    : kVFXShaderGraphFunctionsIncludeURP;
+                preProcess.WriteLine(rpIncludes);
                 yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper(CultureInfo.InvariantCulture) + "}", new VFXShaderWriter(preProcess.ToString() + graphCode.code));
 
                 var callSG = new VFXShaderWriter("//Call Shader Graph\n");
@@ -309,14 +353,12 @@ namespace UnityEditor.VFX
                         if (graphCode.requirements.requiresMeshUVs.Contains(uv))
                         {
                             int uvi = (int)uv;
-                            yield return new KeyValuePair<string, VFXShaderWriter>($"VFX_SHADERGRAPH_HAS_UV{uvi}", new VFXShaderWriter("1")); // TODO put that in additionalDefines
                             callSG.builder.AppendLine($"INSG.uv{uvi} = i.uv{uvi};");
                         }
                     }
 
                     if (graphCode.requirements.requiresVertexColor)
                     {
-                        yield return new KeyValuePair<string, VFXShaderWriter>($"VFX_SHADERGRAPH_HAS_COLOR", new VFXShaderWriter("1")); // TODO put that in additionalDefines
                         callSG.builder.AppendLine($"INSG.VertexColor = i.vertexColor;");
                     }
                 }
@@ -345,7 +387,7 @@ i.VFX_VARYING_ALPHATHRESHOLD = OUTSG.AlphaClipThreshold_7;
             }
         }
 
-        public static void ReplaceShaderGraphTag(StringBuilder stringBuilder, VFXContext context, VFXNamedExpression[] namedExpressions, Dictionary<VFXExpression, string> expressionToName)
+        public static void ReplaceShaderGraphTag(VFXContext context, VFXNamedExpression[] namedExpressions, Dictionary<VFXExpression, string> expressionToName, VFXCodeGenerator.Cache codeGeneratorCache)
         {
             var shaderGraph = VFXShaderGraphHelpers.GetShaderGraph(context);
             if (shaderGraph == null || shaderGraph.generatesWithShaderGraph)
@@ -391,9 +433,10 @@ i.VFX_VARYING_ALPHATHRESHOLD = OUTSG.AlphaClipThreshold_7;
                         additionalInterpolantsPreparation.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, filteredNamedExpression.exp.GetCodeString(null));
                 }
             }
-            VFXCodeGenerator.ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsGeneration}", additionalInterpolantsGeneration.builder);
-            VFXCodeGenerator.ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsDeclaration}", additionalInterpolantsDeclaration.builder);
-            VFXCodeGenerator.ReplaceMultiline(stringBuilder, "${VFXAdditionalInterpolantsPreparation}", additionalInterpolantsPreparation.builder);
+
+            codeGeneratorCache.TryAddSnippet("${VFXAdditionalInterpolantsGeneration}",  additionalInterpolantsGeneration.builder);
+            codeGeneratorCache.TryAddSnippet("${VFXAdditionalInterpolantsDeclaration}", additionalInterpolantsDeclaration.builder);
+            codeGeneratorCache.TryAddSnippet("${VFXAdditionalInterpolantsPreparation}", additionalInterpolantsPreparation.builder);
         }
 
     }

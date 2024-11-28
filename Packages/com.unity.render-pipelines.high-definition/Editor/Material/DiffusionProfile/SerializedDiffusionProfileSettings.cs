@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty smoothnessMultipliers;
         internal SerializedProperty lobeMix;
         internal SerializedProperty diffusePower;
+        internal SerializedProperty borderAttenuationColor;
         internal SerializedProperty transmissionMode;
         internal SerializedProperty thicknessRemap;
         internal SerializedProperty worldScale;
@@ -47,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             smoothnessMultipliers = rp.Find(x => x.smoothnessMultipliers);
             lobeMix = rp.Find(x => x.lobeMix);
             diffusePower = rp.Find(x => x.diffuseShadingPower);
+            borderAttenuationColor = rp.Find(x => x.borderAttenuationColor);
             transmissionMode = rp.Find(x => x.transmissionMode);
             thicknessRemap = rp.Find(x => x.thicknessRemap);
             worldScale = rp.Find(x => x.worldScale);

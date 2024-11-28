@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static GUIContent[] s_RenderingMipmapDebugMaterialTextureSlotStrings = null;
         static int[] s_RenderingMipmapDebugMaterialTextureSlotValues = null;
 
-        static List<GUIContent> s_CameraNames = new List<GUIContent>();
+        static List<GUIContent> s_CameraNames = new List<GUIContent>() { new("None") };
         static GUIContent[] s_CameraNamesStrings = { new ("No Visible Camera") };
         static int[] s_CameraNamesValues = { 0 };
 
@@ -2289,8 +2289,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (needsRefreshingCameraFreezeList)
             {
-                s_CameraNames.Insert(0, new GUIContent("None"));
-
                 s_CameraNamesStrings = s_CameraNames.ToArray();
                 s_CameraNamesValues = Enumerable.Range(0, s_CameraNames.Count()).ToArray();
 

@@ -162,7 +162,8 @@ TreeView TemplateContainer {
 }
 
 #FooterPanel {
-    height: 54px;
+    height: 40px;
+    flex-shrink: 0;
     flex-direction: row;
     justify-content: flex-end;
     align-items: flex-end;
@@ -174,4 +175,10 @@ TreeView TemplateContainer {
 
 #FooterPanel Button {
     height: 24px;
+    align-self: center;
+}
+
+#FooterPanel #InstallButton {
+    position: absolute;
+    left: 10px;
 }
