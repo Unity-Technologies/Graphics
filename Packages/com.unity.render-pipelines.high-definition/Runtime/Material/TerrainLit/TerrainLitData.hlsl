@@ -152,8 +152,10 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     GENERIC_ALPHA_TEST(hole, 0.5);
 #endif
 
+#ifndef EDITOR_VISUALIZATION
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
+#endif
 
     TerrainLitSurfaceData terrainLitSurfaceData;
     InitializeTerrainLitSurfaceData(terrainLitSurfaceData);
