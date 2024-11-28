@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<ResourceReaderData> Readers(ResourceHandle h)
         {
-            int firstReader = ResourcesData.IndexReader(h, 0);
+            int firstReader = resources.IndexReader(h, 0);
             int numReaders = resources[h].numReaders;
             return resources.readerData[h.iType].MakeReadOnlySpan(firstReader, numReaders);
         }
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 throw new Exception("Invalid reader id");
             }
 #endif
-            return ref resources.readerData[h.iType].ElementAt(ResourcesData.IndexReader(h, 0) + i);
+            return ref resources.readerData[h.iType].ElementAt(resources.IndexReader(h, 0) + i);
         }
 
         // Data per graph level renderpass

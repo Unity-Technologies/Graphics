@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             var numReaders = outputDataVersioned.numReaders;
                             for (var i = 0; i < numReaders; ++i)
                             {
-                                var depIdx = ResourcesData.IndexReader(output.resource, i);
+                                var depIdx = ctx.resources.IndexReader(output.resource, i);
                                 ref var dep = ref ctx.resources.readerData[output.resource.iType].ElementAt(depIdx);
 
                                 var outputDependencyPass = ctx.passData[dep.passId];

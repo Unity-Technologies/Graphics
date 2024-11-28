@@ -594,7 +594,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         var numReaders = pointToVer.numReaders;
                         for (var i = 0; i < numReaders; ++i)
                         {
-                            var depIdx = ResourcesData.IndexReader(outputResource, i);
+                            var depIdx = ctx.resources.IndexReader(outputResource, i);
                             ref var dep = ref ctx.resources.readerData[outputResource.iType].ElementAt(depIdx);
                             ref var depPass = ref ctx.passData.ElementAt(dep.passId);
                             if (pass.asyncCompute != depPass.asyncCompute)

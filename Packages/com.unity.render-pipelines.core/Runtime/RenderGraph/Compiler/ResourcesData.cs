@@ -146,14 +146,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public void RegisterReadingPass(CompilerContextData ctx, ResourceHandle h, int passId, int index)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (numReaders >= ResourcesData.MaxReaders)
+            if (numReaders >= ctx.resources.MaxReaders)
             {
                 string passName = ctx.GetPassName(passId);
                 string resourceName = ctx.GetResourceName(h);
-                throw new Exception($"Maximum '{ResourcesData.MaxReaders}' passes can use a single graph output as input. Pass {passName} is trying to read {resourceName}.");
+                throw new Exception($"Maximum '{ctx.resources.MaxReaders}' passes can use a single graph output as input. Pass {passName} is trying to read {resourceName}.");
             }
 #endif
-            ctx.resources.readerData[h.iType][ResourcesData.IndexReader(h, numReaders)] = new ResourceReaderData
+            ctx.resources.readerData[h.iType][ctx.resources.IndexReader(h, numReaders)] = new ResourceReaderData
             {
                 passId = passId,
                 inputSlot = index
@@ -167,13 +167,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             for (int r = 0; r < numReaders;)
             {
-                ref var reader = ref ctx.resources.readerData[h.iType].ElementAt(ResourcesData.IndexReader(h, r));
+                ref var reader = ref ctx.resources.readerData[h.iType].ElementAt(ctx.resources.IndexReader(h, r));
                 if (reader.passId == passId)
                 {
                     // It should be removed, switch with the end of the list if we're not already at the end of it
                     if (r < numReaders - 1)
                     {
-                        reader = ctx.resources.readerData[h.iType][ResourcesData.IndexReader(h, numReaders - 1)];
+                        reader = ctx.resources.readerData[h.iType][ctx.resources.IndexReader(h, numReaders - 1)];
                     }
 
                     numReaders--;
@@ -193,8 +193,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativeList<ResourceUnversionedData>[] unversionedData; // Flattened fixed size array storing info per resource id shared between all versions.
         public NativeList<ResourceVersionedData>[] versionedData; // Flattened fixed size array storing up to MaxVersions versions per resource id.
         public NativeList<ResourceReaderData>[] readerData; // Flattened fixed size array storing up to MaxReaders per resource id per version.
-        public const int MaxVersions = 20; // A quite arbitrary limit should be enough for most graphs. Increasing it shouldn't be a problem but will use more memory as these lists use a fixed size upfront allocation.
-        public const int MaxReaders = 100; // A quite arbitrary limit should be enough for most graphs. Increasing it shouldn't be a problem but will use more memory as these lists use a fixed size upfront allocation.
+
+        public int MaxVersions;
+        public int MaxReaders;
 
         public DynamicArray<Name>[] resourceNames;
 
@@ -229,6 +230,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         public void Initialize(RenderGraphResourceRegistry resources)
         {
+            uint maxReaders = 0;
+            uint maxWriters = 0;
+
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
             {
                 RenderGraphResourceType resourceType = (RenderGraphResourceType) t;
@@ -287,7 +291,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         default:
                             throw new Exception("Unsupported resource type: " + t);
                     }
+
+                    maxReaders = Math.Max(maxReaders, rll.readCount);
+                    maxWriters = Math.Max(maxWriters, rll.writeCount);
                 }
+
+                // The first resource is a null resource, so we need to add 1 to the count.
+                MaxReaders = (int)maxReaders + 1;
+                MaxVersions = (int)maxWriters + 1;
 
                 // Clear the other caching structures, they will be filled later
                 versionedData[t].Resize(MaxVersions * numResources, NativeArrayOptions.ClearMemory);
@@ -297,7 +308,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         // Flatten array index
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Index(ResourceHandle h)
+        public int Index(ResourceHandle h)
         {
 #if UNITY_EDITOR // Hot path
             if (h.version < 0 || h.version >= MaxVersions)
@@ -308,7 +319,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         // Flatten array index
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int IndexReader(ResourceHandle h, int readerID)
+        public int IndexReader(ResourceHandle h, int readerID)
         {
 #if UNITY_EDITOR // Hot path
             if (h.version < 0 || h.version >= MaxVersions)
