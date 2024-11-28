@@ -11,8 +11,7 @@ You can also add your own settings. Refer to [Add custom settings](https://docs.
 | **Property**              | **Description**                                              |
 | --------------------------| ------------------------------------------------------------ |
 | Shader Variant Log Level  | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project. • Disabled: HDRP doesn’t log any Shader variant information.• Only SRP Shaders: Only log Shader variant information for HDRP Shaders.• All Shaders: Log Shader variant information for every Shader type. |
-| Export Shader Variants | Controls whether to output shader variant information to a file. |
-
+| Export Shader Variants | Controls whether to output shader variant information to a file. Unity saves the information to the folder with your project files, in `Temp/graphics-settings-stripping.json` and `Temp/shader-stripping.json`. |
 
 ## Custom Post Process Orders
 
