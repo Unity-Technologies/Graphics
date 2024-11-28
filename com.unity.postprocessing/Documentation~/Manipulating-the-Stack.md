@@ -96,9 +96,10 @@ The above examples demonstrate how to create new effects and Volumes at runtime,
   - You must manually destroy the profile when you don't need it anymore
 
 The `PostProcessProfile` class contains the following utility methods to help you manage assigned effects:
+
 | Utility method                                               | **Description**                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [`T AddSettings()`](...api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_AddSettings__1) | Creates, adds and returns a new effect of type `T` to the profile. It throws an exception if it already exist |
+| [`T AddSettings()`](api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_AddSettings__1) | Creates, adds and returns a new effect of type `T` to the profile. It throws an exception if it already exist |
 | [`PostProcessEffectSettings AddSettings(PostProcessEffectSettings effect)`](api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_AddSettings_UnityEngine_Rendering_PostProcessing_PostProcessEffectSettings_) | Adds and returns an effect that you created to the profile.  |
 | [`void RemoveSettings()`](api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_RemoveSettings__1) | Removes an effect from the profile. It throws an exception if it doesn't exist. |
 | [`bool TryGetSettings(out T outSetting)`](...api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_TryGetSettings__1___0__) | Gets an effect from the profile, returns `true` if it found a profile, or `false` if it did not find a profile. |
