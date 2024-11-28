@@ -16,7 +16,7 @@ When you create the Texture, you must apply it to a Material. To do this, you mu
 
 ## Properties
 
-The ambient occlusion properties are in the **Surface Inputs** drop-down of your Shader.
+The ambient occlusion properties are located in the **Mask Map** section of the **Surface Inputs** foldout of your material's **Inspector** window.
 
 | Property                        | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ |
