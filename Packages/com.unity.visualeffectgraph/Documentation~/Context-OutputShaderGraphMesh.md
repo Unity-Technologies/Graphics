@@ -2,7 +2,7 @@
 
 Menu Path : **Context > Output Particle ShaderGraph Mesh**
 
-[!include[](Snippets/Context-OutputShaderGraph-InlineIntro.md)]
+You can use custom Shader Graphs in dedicated Shader Graph Outputs. Refer to [Working with Shader Graph](sg-working-with.md) for more information about the general Shader Graph workflow.
 
 This output is similar to [Output Particle Mesh](Context-OutputParticleMesh.md).
 

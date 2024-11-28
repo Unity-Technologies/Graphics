@@ -25,4 +25,4 @@ The only call that takes any parameters is **BeginRecording**. Here is an explan
 | **ShutterInterval** | The amount of time the shutter is open between two subsequent frames. A value of **0** results in an instant shutter (no motion blur). A value of **1** means there is no (time) gap between two subsequent frames. |
 | **ShutterProfile**  | An animation curve that specifies the shutter position during the shutter interval. Alternatively, you can also provide the time the shutter was fully open; and when the shutter begins closing. |
 
-Before calling the accumulation API, the application should also set the desired `Time.captureDeltaTime`. The example script below demonstrates how to use these API calls.
+Before calling the accumulation API, the application should also set the desired `Time.captureDeltaTime`. Refer to [Combine animations in a script](rendering-combine-animation-sequences-in-script) for an example.
