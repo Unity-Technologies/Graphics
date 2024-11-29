@@ -496,6 +496,9 @@ namespace UnityEditor.VFX
             if (!outputContext.hasShadowCasting)
                 filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "ShadowCaster");
 
+            // SPACEWARP DOES NOT SUPPORT VFX GRAPH FOR NOW, SO WE DISABLE IT HERE
+            filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "XRMotionVectors");
+
             var passes = filteredPasses.ToArray();
 
             var addPragmaRequireCubeArray = data.uniformMapper.textures.Any(o => o.valueType == VFXValueType.TextureCubeArray);
