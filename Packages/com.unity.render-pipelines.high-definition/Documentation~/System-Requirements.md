@@ -33,8 +33,6 @@ For more information, see [System requirements for Unity](https://docs.unity3d.c
 HRDP is compatible with the following platforms:
 
 - Windows and Windows Store, with DirectX 11 or DirectX 12 and Shader Model 5.0
-- Google
-  - Stadia
 - Sony
   - PlayStation 4
   - PlayStation 5
