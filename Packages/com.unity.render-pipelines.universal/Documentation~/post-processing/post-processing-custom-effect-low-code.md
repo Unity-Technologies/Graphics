@@ -1,14 +1,20 @@
-# How to create a custom post-processing effect
+---
+uid: urp-post-processing-custom-effect-low-code
+---
 
-The example on this page shows how to use a Full Screen Render Pass to create a grayscale custom post-processing effect.
+# Create a low-code custom post-processing effect in URP
+
+The example on this page shows how to use the Full Screen Render Pass Renderer Feature to create a grayscale custom post-processing effect.
+
+For more information on the Full Screen Render Pass Renderer Feature, refer to the [Full Screen Pass Renderer Feature reference](../renderer-features/renderer-feature-full-screen-pass.md).
 
 ## Prerequisites
 
 This example requires the following:
 
-- A Unity project with the URP package installed.
+* A Unity project with the URP package installed.
 
-- The **Scriptable Render Pipeline Settings** property refers to a URP asset (**Project Settings** > **Graphics** > **Scriptable Render Pipeline Settings**).
+* The **Scriptable Render Pipeline Settings** property refers to a URP asset (**Project Settings** > **Graphics** > **Scriptable Render Pipeline Settings**).
 
 ## Create a Fullscreen Shader Graph
 
@@ -19,9 +25,9 @@ You must create a Fullscreen Shader Graph to create a custom post-processing eff
 3. In the **URP Sample Buffer** node's **Source Buffer** dropdown menu, select **BlitSource**.
 4. Add a **Vector 3** node.
 5. Assign the **Vector 3** node the following values:
-    - **X** = 0.2126
-    - **Y** = 0.7152
-    - **Z** = 0.0722
+    * **X** = 0.2126
+    * **Y** = 0.7152
+    * **Z** = 0.0722
 6. Add a **Dot Product** node.
 7. Connect the nodes as shown below.
 
@@ -41,13 +47,15 @@ You must create a Fullscreen Shader Graph to create a custom post-processing eff
 
 Once you've created a compatible Shader Graph and Material, you can use the Material with a Full Screen Pass Renderer Feature to create a custom post-processing effect.
 
-1. In the Project window, select a URP Renderer.
-2. In the Inspector, click **Add Renderer Feature** and select **Full Screen Pass Renderer Feature**. For more information on adding Renderer Features refer to [How to add a Renderer Feature to a Renderer](./../urp-renderer-feature-how-to-add.md).
-3. Set the **Post Process Material** to the Material you created with the Fullscreen Shader Graph.
+1. Select your project's Universal Renderer.
+
+    If you created your project using the **Universal 3D** template, you can find the Universal Renderers in the following project folder: **Assets** > **Settings**.
+
+2. In the Inspector, click **Add Renderer Feature** and select **Full Screen Pass Renderer Feature**. For more information on adding Renderer Features refer to [How to add a Renderer Feature to a Renderer](../urp-renderer-feature-how-to-add.md).
+3. Set the **Pass Material** field to the Material you created with the Fullscreen Shader Graph.
 4. Set **Injection Point** to **After Rendering Post Processing**.
 5. Set **Requirements** to **Color**.
 
-You should now see the effect in both Scene view and Game view.
+You should now notice the effect in both Scene view and Game view.
 
 ![Example scene with a grayscale custom post-processing effect.](../Images/post-proc/custom-effect/grayscale-custom-effect.png)
-<br/>*Example scene with a grayscale custom post-processing effect.*
