@@ -10,7 +10,7 @@ The [**Volumetric Clouds** Volume component override](volumetric-clouds-volume-o
 
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
-* In your [HDRP Asset](HDRP Asset) go to **Lighting > Volumetrics > Volumetric Clouds**.
+* In your [HDRP Asset](HDRP-Asset.md) go to **Lighting > Volumetrics > Volumetric Clouds**.
 
 * In your [Frame Settings](Frame-Settings.md) go to **Lighting > Volumetric Clouds**.
 

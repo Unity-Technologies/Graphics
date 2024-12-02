@@ -46,7 +46,7 @@ Forward and Deferred rendering both implement the same features, but the quality
 
 ## Differences between Forward and Deferred rendering in HDRP
 
-| **Feature** | **Forward Rendering** | **Defferred** |
+| **Feature** | **Forward Rendering** | **Deferred** |
 |---|---|---|
 | **Normal shadow bias** | HDRP uses the geometric normal (the vertex normal) of the Material for shadow bias, so Forward Rendering produces fewer shadow artifacts. | HDRP uses the pixel normal of the Material for shadow bias, so Deferred Rendering produces more shadow artifacts. |
 | **Emissive Color** | Ambient Occlusion doesn't affect Emissive Color. | Ambient Occlusion affects Emissive Color due to technical constraints. |
