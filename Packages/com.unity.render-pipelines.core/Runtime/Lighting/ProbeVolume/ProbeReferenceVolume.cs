@@ -1379,7 +1379,7 @@ namespace UnityEngine.Rendering
         {
             if (m_PendingScenesToBeLoaded.ContainsKey(sceneGUID))
                 m_PendingScenesToBeLoaded.Remove(sceneGUID);
-            if (m_ActiveScenes.Contains(sceneGUID))
+            if (m_ActiveScenes.Contains(sceneGUID) && m_CurrentBakingSet != null)
                 m_PendingScenesToBeUnloaded.TryAdd(sceneGUID, m_CurrentBakingSet.GetSceneCellIndexList(sceneGUID));
         }
 
@@ -1546,6 +1546,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void PerformPendingOperations()
         {
+
 #if UNITY_EDITOR
             checksDuringBakeAction?.Invoke();
 #endif
