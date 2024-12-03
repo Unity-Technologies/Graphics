@@ -26,7 +26,7 @@ The following table shows the differences between the Forward and the Deferred R
 
 | Feature | Forward | Forward+ | Deferred |
 |---------|---------|----------|----------|
-| Maximum number of real-time lights per object. | 9 | Unlimited. [The per-Camera limit applies](rendering/forward-plus-rendering-path.md). | Unlimited |
+| Maximum number of real-time lights per object. | 9 | Unlimited. [The per-Camera limit applies](rendering/forward-plus-rendering-path.md#reduce-build-time). | Unlimited |
 | Per-pixel normal encoding | No encoding (accurate normal values). | No encoding (accurate normal values). | Two options:<ul><li>Quantization of normals in G-buffer (loss of accuracy, better performance).</li><li>Octahedron encoding (accurate normals, might have significant performance impact on mobile GPUs).</li></ul>For more information, refer to the section [Encoding of normals in G-buffer](rendering/deferred-rendering-path.md#accurate-g-buffer-normals). |
 | MSAA | Yes | Yes | No |
 | Vertex lighting | Yes | No | No |
