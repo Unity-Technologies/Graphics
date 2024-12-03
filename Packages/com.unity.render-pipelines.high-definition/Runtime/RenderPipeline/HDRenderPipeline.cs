@@ -1166,7 +1166,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = 1.0f;
             }
 
-            m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitCurrentFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.currentViewportSize, hdCamera.historyRTHandleProperties.currentViewportSize);
+            m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitCurrentFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.currentViewportSize, hdCamera.historyRTHandleProperties.currentRenderTargetSize);
             m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
