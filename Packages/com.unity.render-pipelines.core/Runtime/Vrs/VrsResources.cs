@@ -65,10 +65,16 @@ namespace UnityEngine.Rendering
 
         void InitializeResources(VrsRenderPipelineRuntimeResources resources)
         {
+            bool success = InitComputeShader(resources);
+            if (!success)
+            {
+                DisposeResources();
+                return;
+            }
+
             m_VisualizationShader = resources.visualizationShader;
             conversionLutBuffer = resources.conversionLookupTable.CreateBuffer();
             visualizationLutBuffer = resources.visualizationLookupTable.CreateBuffer(true);
-            InitComputeShader(resources);
             AllocFragmentSizeBuffer();
         }
 
@@ -116,13 +122,18 @@ namespace UnityEngine.Rendering
             validatedShadingRateFragmentSizeBuffer.SetData(fragmentSize);
         }
 
-        void InitComputeShader(VrsRenderPipelineRuntimeResources resources)
+        bool InitComputeShader(VrsRenderPipelineRuntimeResources resources)
         {
             // This Compute Shader resource is used for converting an RGB texture to an R8 SRI
             // Don't initialize it if the device does not support image-based VRS
             if (!ShadingRateInfo.supportsPerImageTile)
             {
-                return;
+                return false;
+            }
+
+            if (!SystemInfo.supportsComputeShaders)
+            {
+                return false;
             }
 
             tileSize = ShadingRateInfo.imageTileSize;
@@ -130,7 +141,16 @@ namespace UnityEngine.Rendering
             if (!tileSizeOk)
             {
                 Debug.LogError($"VRS unsupported tile size: {tileSize.x}x{tileSize.y}.");
-                return;
+                return false;
+            }
+
+            // We expect keywords, if the shader was excluded/discarded then no keywords.
+            if (resources.textureComputeShader?.keywordSpace.keywordCount <= 0)
+            {
+                // Invalidate kernel indices in case they were set (shader reload)
+                textureReduceKernel = -1;
+                textureCopyKernel = -1;
+                return false;
             }
 
             textureComputeShader = resources.textureComputeShader;
@@ -138,8 +158,16 @@ namespace UnityEngine.Rendering
             // this keyword need only be set once
             textureComputeShader.EnableKeyword($"{VrsShaders.k_TileSizePrefix}{tileSize.x}");
 
-            textureReduceKernel = textureComputeShader.FindKernel(VrsShaders.k_KernelTextureReduce);
-            textureCopyKernel = textureComputeShader.FindKernel(VrsShaders.k_KernelTextureCopy);
+            // find kernel might fail
+            textureReduceKernel = TryFindKernel(textureComputeShader, VrsShaders.k_KernelTextureReduce);
+            textureCopyKernel = TryFindKernel(textureComputeShader, VrsShaders.k_KernelTextureReduce);
+
+            if (textureReduceKernel == -1 || textureCopyKernel == -1)
+                return false;
+
+            return true;
         }
+
+        static int TryFindKernel(ComputeShader computeShader, string name) => computeShader.HasKernel(name) ? computeShader.FindKernel(name) : -1;
     }
 }

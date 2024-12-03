@@ -1,6 +1,6 @@
 // #pragma enable_d3d11_debug_symbols
 
-#pragma only_renderers d3d11 xboxone vulkan
+#pragma exclude_renderers glcore gles3
 
 #pragma multi_compile VRS_TILE_SIZE_8 VRS_TILE_SIZE_16 VRS_TILE_SIZE_32
 #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY

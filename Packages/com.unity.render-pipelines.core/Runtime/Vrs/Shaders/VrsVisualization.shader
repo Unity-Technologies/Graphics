@@ -12,7 +12,7 @@ Shader "Hidden/Core/VrsVisualization"
             HLSLPROGRAM
             //#pragma enable_d3d11_debug_symbols
 
-            #pragma only_renderers d3d11 xboxone vulkan
+            #pragma exclude_renderers glcore gles3
 
             #pragma vertex Vert
             #pragma fragment Fragment

@@ -33,25 +33,7 @@ namespace UnityEngine.Rendering
 
         internal static readonly int shadingRateFragmentSizeCount = Enum.GetNames(typeof(ShadingRateFragmentSize)).Length;
 
-        /// <summary>
-        /// Checks if shading rate is supported.
-        /// Convenience to abstract tier checks.
-        /// </summary>
-        /// <returns>True if shading rate is supported, false otherwise.</returns>
-        public static bool IsSupported()
-        {
-            return (ShadingRateInfo.supportsPerDrawCall || ShadingRateInfo.supportsPerImageTile);
-        }
-
-        /// <summary>
-        /// Checks if shading rate images are supported.
-        /// Convenience to abstract tier checks
-        /// </summary>
-        /// <returns>True if shading rate images are supported, false otherwise.</returns>
-        public static bool IsShadingRateImageSupported()
-        {
-            return ShadingRateInfo.supportsPerImageTile;
-        }
+        static VrsResources s_VrsResources;
 
         /// <summary>
         /// Check if conversion of color texture to shading rate image is supported.
@@ -61,18 +43,42 @@ namespace UnityEngine.Rendering
         public static bool IsColorMaskTextureConversionSupported()
         {
             return SystemInfo.supportsComputeShaders &&
-                   IsShadingRateImageSupported() &&
-                   s_VrsResources?.textureComputeShader != null;
+                ShadingRateInfo.supportsPerImageTile &&
+                IsInitialized();
         }
 
-        static VrsResources s_VrsResources;
+        /// <summary>
+        /// Checks if VRS resources are initialized.
+        /// Initialization may fail due to platform restrictions.
+        /// </summary>
+        /// <returns>Returns true if the Vrs resources are initialized.</returns>
+        public static bool IsInitialized()
+        {
+            return s_VrsResources != null &&
+                   s_VrsResources.textureComputeShader != null &&
+                   s_VrsResources.textureReduceKernel != -1 &&
+                   s_VrsResources.textureCopyKernel != -1;
+        }
 
         /// <summary>
         /// Preprocess resources found in VrsRenderPipelineRuntimeResources for use at runtime.
         /// </summary>
         public static void InitializeResources()
         {
-            if (IsSupported())
+            // GLES3.0/WebGL2 and older GL platforms do not support compute shaders (for conversion).
+            // Unity does not implement VRS for OpenGL.
+            bool isOpenGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore ||
+                            SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+
+            // NOTE: should match "#pragma exclude_renderers" in shaders.
+            bool isPlatformSupported = !isOpenGL;
+
+            // VRS resources are initialized even on platforms that do not support VRS to allow debugging Color<->VRS conversion.
+            // For example when you are building on a non-VRS platform to a VRS platform.
+            // VRS conversion requires compute shader support.
+            // NOTE: Init might fail.
+            if (SystemInfo.supportsComputeShaders &&
+                isPlatformSupported)
             {
                 var pipelineRuntimeResources = GraphicsSettings.GetRenderPipelineSettings<VrsRenderPipelineRuntimeResources>();
                 s_VrsResources = new VrsResources(pipelineRuntimeResources);
@@ -133,20 +139,20 @@ namespace UnityEngine.Rendering
         {
             if (!IsColorMaskTextureConversionSupported())
             {
-                Debug.LogError($"TextureToShadingRateImage: conversion not supported.");
+                Debug.LogError($"ColorMaskTextureToShadingRateImage: conversion not supported.");
                 return TextureHandle.nullHandle;
             }
 
             var sriDesc = sriTextureHandle.GetDescriptor(renderGraph);
             if (sriDesc.dimension != TextureDimension.Tex2D)
             {
-                Debug.LogError($"TextureToShadingRateImage: Vrs image not a texture 2D.");
+                Debug.LogError($"ColorMaskTextureToShadingRateImage: Vrs image not a texture 2D.");
                 return TextureHandle.nullHandle;
             }
 
             if (colorMaskDimension != TextureDimension.Tex2D && colorMaskDimension != TextureDimension.Tex2DArray)
             {
-                Debug.LogError($"TextureToShadingRateImage: Input texture dimension not supported.");
+                Debug.LogError($"ColorMaskTextureToShadingRateImage: Input texture dimension not supported.");
                 return TextureHandle.nullHandle;
             }
 
@@ -193,6 +199,18 @@ namespace UnityEngine.Rendering
         /// <param name="colorMaskHandle">Output of conversion.</param>
         public static void ShadingRateImageToColorMaskTexture(RenderGraph renderGraph, in TextureHandle sriTextureHandle, in TextureHandle colorMaskHandle)
         {
+            if (s_VrsResources == null)
+            {
+                Debug.LogError($"ShadingRateImageToColorMaskTexture: VRS not initialized.");
+                return;
+            }
+
+            if (!colorMaskHandle.IsValid())
+            {
+                Debug.LogError($"ShadingRateImageToColorMaskTexture: Output target handle is not valid.");
+                return;
+            }
+
             using (var builder = renderGraph.AddRasterRenderPass<VisualizationPassData>("ShadingRateImageToTexture", out var outerPassData, s_VrsResources.visualizationProfilingSampler))
             {
                 outerPassData.material = s_VrsResources.visualizationMaterial;
@@ -253,7 +271,7 @@ namespace UnityEngine.Rendering
             cmd.SetComputeTextureParam(conversionPassData.computeShader, conversionPassData.kernelIndex, VrsShaders.s_ShadingRateImage, conversionPassData.sriTextureHandle);
             cmd.SetComputeVectorParam(conversionPassData.computeShader, VrsShaders.s_ScaleBias, conversionPassData.scaleBias);
 
-            cmd.DispatchCompute(conversionPassData.computeShader, conversionPassData.kernelIndex, conversionPassData.dispatchSize.x, conversionPassData.dispatchSize.x, 1);
+            cmd.DispatchCompute(conversionPassData.computeShader, conversionPassData.kernelIndex, conversionPassData.dispatchSize.x, conversionPassData.dispatchSize.y, 1);
         }
     }
 }

@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             // We do not need to clear colorBufferAccess and fragmentInputAccess as we have the colorBufferMaxIndex and fragmentInputMaxIndex
             // which are reset above so we only clear depthAccess here.
             depthAccess = default(TextureAccess);
-            
+
             hasShadingRateImage = false;
             hasShadingRateStates = false;
             shadingRateFragmentSize = ShadingRateFragmentSize.FragmentSize1x1;
@@ -524,7 +524,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetShadingRateImage(in TextureHandle shadingRateImage, AccessFlags accessFlags, int mipLevel, int depthSlice)
         {
-            if (Vrs.IsShadingRateImageSupported())
+            if (ShadingRateInfo.supportsPerImageTile)
             {
                 hasShadingRateImage = true;
                 shadingRateAccess = new TextureAccess(shadingRateImage, accessFlags, mipLevel, depthSlice);
@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetShadingRateFragmentSize(ShadingRateFragmentSize shadingRateFragmentSize)
         {
-            if (Vrs.IsSupported())
+            if (ShadingRateInfo.supportsPerDrawCall)
             {
                 hasShadingRateStates = true;
                 this.shadingRateFragmentSize = shadingRateFragmentSize;
@@ -543,7 +543,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetShadingRateCombiner(ShadingRateCombinerStage stage, ShadingRateCombiner combiner)
         {
-            if (Vrs.IsShadingRateImageSupported())
+            if (ShadingRateInfo.supportsPerImageTile)
             {
                 switch (stage)
                 {

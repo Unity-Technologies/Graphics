@@ -613,7 +613,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>New TextureHandle that represents the imported shading rate images in the context of this rendergraph.</returns>
         public TextureHandle ImportShadingRateImageTexture(RTHandle rt)
         {
-            if (Vrs.IsShadingRateImageSupported())
+            if (ShadingRateInfo.supportsPerImageTile)
                 return m_Resources.ImportTexture(rt);
 
             return TextureHandle.nullHandle;
