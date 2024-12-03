@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly(TargetsVFX(), systemData.tessellation));
             descriptor.passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation));
             descriptor.passes.Add(HDShaderPasses.GenerateLitForward(TargetsVFX(), systemData.tessellation));
-            if (!systemData.tessellation) // Raytracing don't support tessellation neither VFX
+            if (!systemData.tessellation && supportRaytracing) // Raytracing don't support tessellation
                 descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
             return descriptor;

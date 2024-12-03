@@ -56,6 +56,7 @@ namespace UnityEditor.VFX
             public const string kTag = "OutputType";
             public static FieldDescriptor ParticleMesh = new FieldDescriptor(kTag, "Mesh", "VFX_PARTICLE_MESH 1");
             public static FieldDescriptor ParticlePlanarPrimitive = new FieldDescriptor(kTag, "PlanarPrimitive", "VFX_PARTICLE_PLANAR_PRIMITIVE 1");
+            public static FieldDescriptor RaytracingVFX = new FieldDescriptor(string.Empty, "RaytracingVFX", string.Empty);
         }
 
         internal static void GetFields(ref TargetFieldContext fieldsContext, VFXContext context)
@@ -73,6 +74,10 @@ namespace UnityEditor.VFX
                 case VFXTaskType.ParticleQuadOutput:
                     fieldsContext.AddField(VFXFields.ParticlePlanarPrimitive);
                     break;
+            }
+            if (((VFXAbstractParticleOutput)context).isRayTraced && fieldsContext.pass.lightMode.Contains("DXR"))
+            {
+                fieldsContext.AddField(VFXFields.RaytracingVFX);
             }
         }
 
