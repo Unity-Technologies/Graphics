@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (renderPass.renderPassEvent <= RenderPassEvent.BeforeRenderingTransparents)
                     rpEvent = RenderPassEvent2D.BeforeRendering;
-                else if (renderPass.renderPassEvent <= RenderPassEvent.AfterRenderingTransparents)
+                else if (renderPass.renderPassEvent <= RenderPassEvent.BeforeRenderingPostProcessing)
                     rpEvent = RenderPassEvent2D.BeforeRenderingPostProcessing;
                 else if (renderPass.renderPassEvent <= RenderPassEvent.AfterRenderingPostProcessing)
                     rpEvent = RenderPassEvent2D.AfterRenderingPostProcessing;
