@@ -1089,6 +1089,9 @@ namespace UnityEngine.Rendering
             if (cell.debugProbes != null)
                 return cell.debugProbes;
 
+            if (HasActiveStreamingRequest(cell))
+                return null;
+                
             int maxSubdiv = GetMaxSubdivision() - 1;
 
             if (!cell.data.bricks.IsCreated || cell.data.bricks.Length == 0 || !cell.data.probePositions.IsCreated || !cell.loaded)

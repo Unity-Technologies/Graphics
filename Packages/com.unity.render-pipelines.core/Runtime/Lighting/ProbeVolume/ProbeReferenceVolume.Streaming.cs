@@ -1450,6 +1450,11 @@ namespace UnityEngine.Rendering
             }
         }
 
+        bool HasActiveStreamingRequest(Cell cell)
+        {
+            return diskStreamingEnabled && m_ActiveStreamingRequests.Exists(x => x.cell == cell);
+        }
+
         [Conditional("UNITY_EDITOR")]
         [Conditional("DEVELOPMENT_BUILD")]
         void LogStreaming(string log)
