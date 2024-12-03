@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.Tests
                     Assert.IsTrue(brg.instanceCullingBatcher.GetDrawInstanceData().drawInstances.Length == 3);
 
                     brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
-                    brg.DestroyInstances(instances);
+                    brg.DestroyDrawInstances(instances);
 
                     Assert.IsTrue(brg.instanceCullingBatcher.GetDrawInstanceData().drawInstances.Length == 0);
                 }
@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.Tests
                     GameObject.DestroyImmediate(cameraObject);
 
                     brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
-                    brg.DestroyInstances(instances);
+                    brg.DestroyDrawInstances(instances);
                 }
             }
 
@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.Tests
 
                     GameObject.DestroyImmediate(cameraObject);
                     brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs, instances).Complete();
-                    brg.DestroyInstances(instances);
+                    brg.DestroyDrawInstances(instances);
                 }
             }
 
@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering.Tests
                     GameObject.DestroyImmediate(cameraObject);
 
                     brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
-                    brg.DestroyInstances(instances);
+                    brg.DestroyDrawInstances(instances);
                 }
             }
 
@@ -532,7 +532,7 @@ namespace UnityEngine.Rendering.Tests
                     GameObject.DestroyImmediate(cameraObject);
 
                     brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
-                    brg.DestroyInstances(instances);
+                    brg.DestroyDrawInstances(instances);
                 }
             }
 
@@ -688,7 +688,7 @@ namespace UnityEngine.Rendering.Tests
                     GameObject.DestroyImmediate(cameraObject);
 
                     brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
-                    brg.DestroyInstances(instances);
+                    brg.DestroyDrawInstances(instances);
                 }
             }
 
@@ -805,7 +805,7 @@ namespace UnityEngine.Rendering.Tests
                     GameObject.DestroyImmediate(cameraObject);
 
                     brgContext.ScheduleQueryRendererGroupInstancesJob(objIDs.AsArray(), instances).Complete();
-                    brg.DestroyInstances(instances);
+                    brg.DestroyDrawInstances(instances);
                 }
             }
 
@@ -1148,7 +1148,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 Assert.IsTrue(rendererData.rendererGroupID.Length == 2);
                 dispatched = true;
-            });
+            }, true);
 
             Assert.IsTrue(dispatched);
 
@@ -1162,7 +1162,7 @@ namespace UnityEngine.Rendering.Tests
                 Assert.IsTrue(rendererData.invalidRendererGroupID.Length == 1);
                 Assert.IsTrue(rendererData.invalidRendererGroupID[0] == renderer0.GetInstanceID());
                 dispatched = true;
-            });
+            }, true);
 
             Assert.IsTrue(dispatched);
 
@@ -1173,7 +1173,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 Assert.IsTrue(rendererData.invalidRendererGroupID.Length == 2);
                 dispatched = true;
-            });
+            }, true);
 
             Assert.IsTrue(dispatched);
 
@@ -1217,9 +1217,13 @@ namespace UnityEngine.Rendering.Tests
 
             gpuDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials) =>
             {
+                Assert.IsTrue(rendererData.localBounds.Length == 0);
+                Assert.IsTrue(rendererData.localToWorldMatrix.Length == 0);
+                Assert.IsTrue(rendererData.prevLocalToWorldMatrix.Length == 0);
+                Assert.IsTrue(rendererData.lodGroupID.Length == 0);
                 Assert.IsTrue(rendererData.rendererGroupID.Length == 4);
                 dispatched = true;
-            });
+            }, true);
 
             Assert.IsTrue(dispatched);
 
@@ -1233,7 +1237,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 Assert.IsTrue(rendererData.rendererGroupID.Length == 1);
                 dispatched = true;
-            });
+            }, true);
 
             Assert.IsTrue(dispatched);
 
@@ -1275,7 +1279,7 @@ namespace UnityEngine.Rendering.Tests
             {
                 Assert.IsTrue(rendererData.rendererGroupID.Length == 1);
                 dispatched = true;
-            });
+            }, true);
 
             Assert.IsTrue(dispatched);
 
