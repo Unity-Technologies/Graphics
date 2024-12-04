@@ -421,7 +421,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 m_FixAllButton = new FixAllButton(
                     Style.resolveAll,
-                    () => m_Wizard.IsAllEntryCorrectInScope(m_Mode),
+                    () => m_Wizard.IsAFixAvailableInScope(m_Mode),
                     () => m_Wizard.FixAllEntryInScope(m_Mode));
 
                 bool userOnWindows = RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
