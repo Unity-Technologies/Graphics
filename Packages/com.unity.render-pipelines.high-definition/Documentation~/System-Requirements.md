@@ -30,7 +30,7 @@ This section describes the HDRP package’s target platform requirements. For pl
 
 For more information, see [System requirements for Unity](https://docs.unity3d.com/Manual/system-requirements.html).
 
-HRDP is compatible with the following platforms:
+HDRP is compatible with the following platforms:
 
 - Windows and Windows Store, with DirectX 11 or DirectX 12 and Shader Model 5.0
 - Sony

@@ -50,7 +50,7 @@ The following conditions can cause particles in the scene to face the wrong dire
 - The particle system is only visible in a Custom Pass.
 - There is no override implemented for`AggregateCullingParameters`.
 
-Unity calculates the orientation of the particles in the Built-in Particle System when it executes `AggregateCullingParameters`  during the culling step. This means if there is no override, HRDP doesn't render it properly.
+Unity calculates the orientation of the particles in the Built-in Particle System when it executes `AggregateCullingParameters`  during the culling step. This means if there is no override, HDRP doesn't render it properly.
 
 ## Decals aren't visible
 
