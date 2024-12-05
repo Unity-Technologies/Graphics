@@ -63,6 +63,117 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the tonemapping effect.
     /// </summary>
+    /// <remarks>
+    /// You can add <see cref="VolumeComponent"/> to a <see cref="VolumeProfile"/> in the Editor to apply a tonemapping post-processing effect.
+    /// </remarks>
+    /// <example>
+    /// <para>This sample code shows how settings can be retrieved and modified in runtime:</para>
+    /// <code>
+    /// using System;
+    /// using UnityEngine;
+    /// using UnityEngine.Rendering;
+    /// using UnityEngine.Rendering.Universal;
+    ///
+    /// public class ModifyVolumeComponent : MonoBehaviour
+    /// {
+    ///     [SerializeField] VolumeProfile volumeProfile;
+    ///     [SerializeField] VolumeSettings volumeSettings;
+    ///
+    ///     private bool m_HasRetrievedVolumeComponent;
+    ///     private Tonemapping m_VolumeComponent;
+    ///
+    ///     [Serializable]
+    ///     private struct VolumeSettings
+    ///     {
+    ///         public bool active;
+    ///         public TonemappingModeParameter mode;
+    ///         public NeutralRangeReductionModeParameter neutralHDRRangeReductionMode;
+    ///         public HDRACESPresetParameter acesPreset;
+    ///         public ClampedFloatParameter hueShiftAmount;
+    ///         public BoolParameter detectPaperWhite;
+    ///         public ClampedFloatParameter paperWhite;
+    ///         public BoolParameter detectBrightnessLimits;
+    ///         public ClampedFloatParameter minNits;
+    ///         public ClampedFloatParameter maxNits;
+    ///
+    ///
+    ///         public void SetVolumeComponentSettings(ref Tonemapping volumeComponent)
+    ///         {
+    ///             volumeComponent.active = active;
+    ///             volumeComponent.mode = mode;
+    ///             volumeComponent.neutralHDRRangeReductionMode = neutralHDRRangeReductionMode;
+    ///             volumeComponent.acesPreset = acesPreset;
+    ///             volumeComponent.hueShiftAmount = hueShiftAmount;
+    ///             volumeComponent.detectPaperWhite = detectPaperWhite;
+    ///             volumeComponent.paperWhite = paperWhite;
+    ///             volumeComponent.detectBrightnessLimits = detectBrightnessLimits;
+    ///             volumeComponent.minNits = minNits;
+    ///             volumeComponent.maxNits = maxNits;
+    ///         }
+    ///
+    ///         public void GetVolumeComponentSettings(ref Tonemapping volumeComponent)
+    ///         {
+    ///             active = volumeComponent.active;
+    ///             mode = volumeComponent.mode;
+    ///             neutralHDRRangeReductionMode = volumeComponent.neutralHDRRangeReductionMode;
+    ///             acesPreset = volumeComponent.acesPreset;
+    ///             hueShiftAmount = volumeComponent.hueShiftAmount;
+    ///             detectPaperWhite = volumeComponent.detectPaperWhite;
+    ///             paperWhite = volumeComponent.paperWhite;
+    ///             detectBrightnessLimits = volumeComponent.detectBrightnessLimits;
+    ///             minNits = volumeComponent.minNits;
+    ///             maxNits = volumeComponent.maxNits;
+    ///         }
+    ///     }
+    ///
+    ///     private void Start()
+    ///     {
+    ///         m_HasRetrievedVolumeComponent = GetVolumeComponent(in volumeProfile, ref m_VolumeComponent);
+    ///         if (m_HasRetrievedVolumeComponent)
+    ///             volumeSettings.GetVolumeComponentSettings(ref m_VolumeComponent);
+    ///     }
+    ///
+    ///     private void Update()
+    ///     {
+    ///         if (!m_HasRetrievedVolumeComponent)
+    ///             return;
+    ///
+    ///         volumeSettings.SetVolumeComponentSettings(ref m_VolumeComponent);
+    ///     }
+    ///
+    ///     private static bool GetVolumeComponent(in VolumeProfile volumeProfile, ref Tonemapping volumeComponent)
+    ///     {
+    ///         if (volumeComponent != null)
+    ///             return true;
+    ///
+    ///         if (volumeProfile == null)
+    ///         {
+    ///             Debug.LogError("ModifyVolumeComponent.GetVolumeComponent():\nvolumeProfile has not been assigned.");
+    ///             return false;
+    ///         }
+    ///
+    ///         volumeProfile.TryGet(out Tonemapping component);
+    ///         if (component == null)
+    ///         {
+    ///             Debug.LogError($"ModifyVolumeComponent.GetVolumeComponent():\nMissing component in the \"{volumeProfile.name}\" VolumeProfile ");
+    ///             return false;
+    ///         }
+    ///
+    ///         volumeComponent = component;
+    ///         return true;
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
+    /// <seealso cref="VolumeProfile"/>
+    /// <seealso cref="VolumeComponent"/>
+    /// <seealso cref="IPostProcessComponent"/>
+    /// <seealso cref="VolumeParameter{T}"/>
+    /// <seealso cref="TonemappingModeParameter"/>
+    /// <seealso cref="NeutralRangeReductionModeParameter"/>
+    /// <seealso cref="HDRACESPresetParameter"/>
+    /// <seealso cref="ClampedFloatParameter"/>
+    /// <seealso cref="BoolParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [URPHelpURL("post-processing-tonemapping")]
@@ -125,10 +236,16 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("The maximum brightness of the screen (in nits). This value is defined by the preset when using ACES Tonemap.")]
         public ClampedFloatParameter maxNits = new ClampedFloatParameter(1000.0f, 0.0f, 5000.0f);
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Tells if the post process needs to be rendered or not.
+        /// </summary>
+        /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
         public bool IsActive() => mode.value != TonemappingMode.None;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Tells if the post process can run the effect on-tile or if it needs a full pass.
+        /// </summary>
+        /// <returns><c>true</c> if it can run on-tile, <c>false</c> otherwise.</returns>
         [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => true;
     }

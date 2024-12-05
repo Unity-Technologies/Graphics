@@ -26,6 +26,140 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Screen Space Lens Flare effect.
     /// </summary>
+    /// <remarks>
+    /// You can add <see cref="VolumeComponent"/> to a <see cref="VolumeProfile"/> in the Editor to apply a Screen Space Lens Flare post-processing effect.
+    /// </remarks>
+    /// <example>
+    /// <para>This sample code shows how settings can be retrieved and modified in runtime:</para>
+    /// <code>
+    /// using System;
+    /// using UnityEngine;
+    /// using UnityEngine.Rendering;
+    /// using UnityEngine.Rendering.Universal;
+    ///
+    /// public class ModifyVolumeComponent : MonoBehaviour
+    /// {
+    ///     [SerializeField] VolumeProfile volumeProfile;
+    ///     [SerializeField] VolumeSettings volumeSettings;
+    ///
+    ///     private bool m_HasRetrievedVolumeComponent;
+    ///     private ScreenSpaceLensFlare m_VolumeComponent;
+    ///
+    ///     [Serializable]
+    ///     private struct VolumeSettings
+    ///     {
+    ///         public bool active;
+    ///         public MinFloatParameter intensity;
+    ///         public ColorParameter tintColor;
+    ///         public ClampedIntParameter bloomMip;
+    ///         public MinFloatParameter firstFlareIntensity;
+    ///         public MinFloatParameter secondaryFlareIntensity;
+    ///         public MinFloatParameter warpedFlareIntensity;
+    ///         public Vector2Parameter warpedFlareScale;
+    ///         public ClampedIntParameter samples;
+    ///         public ClampedFloatParameter sampleDimmer;
+    ///         public ClampedFloatParameter vignetteEffect;
+    ///         public ClampedFloatParameter startingPosition;
+    ///         public ClampedFloatParameter scale;
+    ///         public MinFloatParameter streaksIntensity;
+    ///         public ClampedFloatParameter streaksLength;
+    ///         public FloatParameter streaksOrientation;
+    ///         public ClampedFloatParameter streaksThreshold;
+    ///         public ScreenSpaceLensFlareResolutionParameter resolution;
+    ///         public ClampedFloatParameter chromaticAbberationIntensity;
+    ///
+    ///
+    ///         public void SetVolumeComponentSettings(ref ScreenSpaceLensFlare volumeComponent)
+    ///         {
+    ///             volumeComponent.active = active;
+    ///             volumeComponent.firstFlareIntensity = firstFlareIntensity;
+    ///             volumeComponent.secondaryFlareIntensity = secondaryFlareIntensity;
+    ///             volumeComponent.warpedFlareIntensity = warpedFlareIntensity;
+    ///             volumeComponent.warpedFlareScale = warpedFlareScale;
+    ///             volumeComponent.samples = samples;
+    ///             volumeComponent.sampleDimmer = sampleDimmer;
+    ///             volumeComponent.vignetteEffect = vignetteEffect;
+    ///             volumeComponent.startingPosition = startingPosition;
+    ///             volumeComponent.scale = scale;
+    ///             volumeComponent.streaksIntensity = streaksIntensity;
+    ///             volumeComponent.streaksLength = streaksLength;
+    ///             volumeComponent.streaksOrientation = streaksOrientation;
+    ///             volumeComponent.streaksThreshold = streaksThreshold;
+    ///             volumeComponent.resolution = resolution;
+    ///             volumeComponent.chromaticAbberationIntensity = chromaticAbberationIntensity;
+    ///         }
+    ///
+    ///         public void GetVolumeComponentSettings(ref ScreenSpaceLensFlare volumeComponent)
+    ///         {
+    ///             active = volumeComponent.active;
+    ///             firstFlareIntensity = volumeComponent.firstFlareIntensity;
+    ///             secondaryFlareIntensity = volumeComponent.secondaryFlareIntensity;
+    ///             warpedFlareIntensity = volumeComponent.warpedFlareIntensity;
+    ///             warpedFlareScale = volumeComponent.warpedFlareScale;
+    ///             samples = volumeComponent.samples;
+    ///             sampleDimmer = volumeComponent.sampleDimmer;
+    ///             vignetteEffect = volumeComponent.vignetteEffect;
+    ///             startingPosition = volumeComponent.startingPosition;
+    ///             scale = volumeComponent.scale;
+    ///             streaksIntensity = volumeComponent.streaksIntensity;
+    ///             streaksLength = volumeComponent.streaksLength;
+    ///             streaksOrientation = volumeComponent.streaksOrientation;
+    ///             streaksThreshold = volumeComponent.streaksThreshold;
+    ///             resolution = volumeComponent.resolution;
+    ///             chromaticAbberationIntensity = volumeComponent.chromaticAbberationIntensity;
+    ///         }
+    ///     }
+    ///
+    ///     private void Start()
+    ///     {
+    ///         m_HasRetrievedVolumeComponent = GetVolumeComponent(in volumeProfile, ref m_VolumeComponent);
+    ///         if (m_HasRetrievedVolumeComponent)
+    ///             volumeSettings.GetVolumeComponentSettings(ref m_VolumeComponent);
+    ///     }
+    ///
+    ///     private void Update()
+    ///     {
+    ///         if (!m_HasRetrievedVolumeComponent)
+    ///             return;
+    ///
+    ///         volumeSettings.SetVolumeComponentSettings(ref m_VolumeComponent);
+    ///     }
+    ///
+    ///     private static bool GetVolumeComponent(in VolumeProfile volumeProfile, ref ScreenSpaceLensFlare volumeComponent)
+    ///     {
+    ///         if (volumeComponent != null)
+    ///             return true;
+    ///
+    ///         if (volumeProfile == null)
+    ///         {
+    ///             Debug.LogError("ModifyVolumeComponent.GetVolumeComponent():\nvolumeProfile has not been assigned.");
+    ///             return false;
+    ///         }
+    ///
+    ///         volumeProfile.TryGet(out ScreenSpaceLensFlare component);
+    ///         if (component == null)
+    ///         {
+    ///             Debug.LogError($"ModifyVolumeComponent.GetVolumeComponent():\nMissing component in the \"{volumeProfile.name}\" VolumeProfile ");
+    ///             return false;
+    ///         }
+    ///
+    ///         volumeComponent = component;
+    ///         return true;
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
+    /// <seealso cref="VolumeProfile"/>
+    /// <seealso cref="VolumeComponent"/>
+    /// <seealso cref="IPostProcessComponent"/>
+    /// <seealso cref="VolumeParameter{T}"/>
+    /// <seealso cref="MinFloatParameter"/>
+    /// <seealso cref="ColorParameter"/>
+    /// <seealso cref="ClampedIntParameter"/>
+    /// <seealso cref="Vector2Parameter"/>
+    /// <seealso cref="ClampedFloatParameter"/>
+    /// <seealso cref="FloatParameter"/>
+    /// <seealso cref="ScreenSpaceLensFlareResolutionParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Screen Space Lens Flare")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [URPHelpURL("shared/lens-flare/lens-flare-component")]
@@ -67,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ClampedIntParameter samples = new ClampedIntParameter(1, 1, 3);
         /// <summary>
-        /// Controls the value by which each additionnal sample is multiplied. A value of 1 keep the same intensities for all samples. A value of 0.7 multiplies the first sample by 1 (0.7 power 0), the second sample by 0.7 (0.7 power 1) and the third sample by 0.49 (0.7 power 2).
+        /// Controls the value by which each additional sample is multiplied. A value of 1 keep the same intensities for all samples. A value of 0.7 multiplies the first sample by 1 (0.7 power 0), the second sample by 0.7 (0.7 power 1) and the third sample by 0.49 (0.7 power 2).
         /// </summary>
         [AdditionalProperty]
         public ClampedFloatParameter sampleDimmer = new ClampedFloatParameter(0.5f, 0.1f, 1f);
@@ -118,14 +252,16 @@ namespace UnityEngine.Rendering.Universal
         {
             displayName = "Screen Space Lens Flare";
         }
+
         /// <summary>
-        /// Mandatory function, cannot have an Override without it
+        /// Tells if the post process needs to be rendered or not.
         /// </summary>
-        /// <returns></returns>
+        /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
         public bool IsActive()
         {
             return intensity.value > 0;
         }
+
         /// <summary>
         /// Returns true is streakIntensity is above zero.
         /// </summary>
@@ -136,7 +272,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Tells if the post process can run the effect on-tile or if it needs a full pass.
+        /// </summary>
+        /// <returns><c>true</c> if it can run on-tile, <c>false</c> otherwise.</returns>
         [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => false;
     }
