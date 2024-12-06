@@ -1,0 +1,146 @@
+
+#pragma kernel CSVFXPrepareSingleInstance PREFIX_SUM_THREAD_COUNT=1
+#pragma kernel CSVFXBatchSumCount VFX_BATCH_COUNT=CSVFXBatchSumCount PREFIX_SUM_THREAD_COUNT=1024
+#pragma kernel CSVFXBatchSumCount_128 VFX_BATCH_COUNT=CSVFXBatchSumCount_128 PREFIX_SUM_THREAD_COUNT=128
+#pragma kernel CSVFXBuildPrefixSum VFX_BUILD_PREFIX_SUM=CSVFXBuildPrefixSum VFX_USE_INSTANCING=1 PREFIX_SUM_THREAD_COUNT=1024
+#pragma kernel CSVFXBuildPrefixSum_128 VFX_BUILD_PREFIX_SUM=CSVFXBuildPrefixSum_128 VFX_USE_INSTANCING=1 PREFIX_SUM_THREAD_COUNT=128
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3 webgpu
+
+#include "HLSLSupport.cginc"
+
+CBUFFER_START(Uniform)
+    uint dstOffset;
+    uint srcOffset;
+    uint size;
+    float4 instancingConstants;
+    uint2 instancingBufferOffsets;
+CBUFFER_END
+
+#if VFX_USE_INSTANCING
+#define VFX_INSTANCING_ACTIVE_INDIRECTION 1
+#define VFX_INSTANCING_BATCH_INDIRECTION 1
+#define VFX_INSTANCING_FIXED_SIZE 1
+#include "VFXInstancing.hlsl"
+#endif
+
+#define PREFIX_SUM_MAX_SIZE 1024
+#define PREFIX_SUM_PER_THREAD (PREFIX_SUM_MAX_SIZE / PREFIX_SUM_THREAD_COUNT)
+
+StructuredBuffer<uint> srcStructBufferUint;
+RWByteAddressBuffer dstBuffer;
+RWStructuredBuffer<uint> dstStructBuffer;
+
+[numthreads(1, 1, 1)]
+void CSVFXPrepareSingleInstance(uint3 threadId : SV_DispatchThreadID)
+{
+    uint index = threadId.x;
+    if (index < 1)
+    {
+        // Count always placed at the beginning of the buffer
+        const uint srcOffset = 0u;
+        uint count = dstStructBuffer[srcOffset];
+
+        // Copy count to indirect buffer
+        dstBuffer.Store(dstOffset << 2, count);
+
+        // Copy count to prefix sum (after count and total count)
+        dstStructBuffer[srcOffset + 2] = count;
+
+        // reset event count
+        dstStructBuffer[srcOffset] = 0u;
+    }
+}
+
+groupshared unsigned int batchSumCount = 0u;
+[numthreads(PREFIX_SUM_THREAD_COUNT, 1, 1)]
+void VFX_BATCH_COUNT(uint3 threadId : SV_DispatchThreadID)
+{
+    // Initialize to 0 (should not be required)
+    if (threadId.x == 0)
+    {
+        batchSumCount = 0;
+    }
+
+    // Wait for initialization
+    GroupMemoryBarrierWithGroupSync();
+
+    // Accumulate valid threads
+    [unroll]
+    for (int i = 0; i < PREFIX_SUM_PER_THREAD; ++i)
+    {
+        uint index = threadId.x * PREFIX_SUM_PER_THREAD + i;
+        if (index < size)
+        {
+            uint load = srcStructBufferUint[index];
+            uint original;
+            InterlockedAdd(batchSumCount, load, original);
+        }
+    }
+
+    // Wait for all threads to finish adding
+    GroupMemoryBarrierWithGroupSync();
+
+    // Store the final value (only first thread)
+    if (threadId.x == 0)
+    {
+        dstBuffer.Store(dstOffset << 2, batchSumCount);
+    }
+}
+
+groupshared unsigned int prefixSum[PREFIX_SUM_MAX_SIZE];
+[numthreads(PREFIX_SUM_THREAD_COUNT, 1, 1)]
+void VFX_BUILD_PREFIX_SUM(uint3 threadId : SV_DispatchThreadID)
+{
+    // read values from buffer
+    [unroll]
+    for (int i = 0; i < PREFIX_SUM_PER_THREAD; ++i)
+    {
+        uint index = threadId.x * PREFIX_SUM_PER_THREAD + i;
+        if (index < size)
+        {
+            uint srcIndex = index;
+#if VFX_USE_INSTANCING
+        uint instanceIndex, instanceActiveIndex, instanceCurrentIndex;
+        VFXInitInstancing(index, instanceIndex, instanceActiveIndex, instanceCurrentIndex);
+        srcIndex = instanceIndex;
+#endif
+            prefixSum[index] = dstStructBuffer[srcIndex + srcOffset];
+        }
+    }
+
+    // perform prefix sum (Sklansky)
+    for (uint j = 1; j < size; j <<= 1)
+    {
+        GroupMemoryBarrierWithGroupSync();
+        uint mask = ~(j - 1);
+        [unroll]
+        for (int ii = 0; ii < PREFIX_SUM_PER_THREAD; ++ii)
+        {
+            uint index = threadId.x * PREFIX_SUM_PER_THREAD + ii;
+            if ((index & j) != 0)
+                prefixSum[index] += prefixSum[(index & mask) - 1];
+        }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // write values to the buffer
+    [unroll]
+    for (int iii = 0; iii < PREFIX_SUM_PER_THREAD; ++iii)
+    {
+        uint index = threadId.x * PREFIX_SUM_PER_THREAD + iii;
+#if VFX_USE_INSTANCING
+        // reset event count for all instances
+        if (index < instancingBatchSize)
+        {
+            dstStructBuffer[index + srcOffset] = 0u;
+        }
+#endif
+    
+        if (index < size)
+        {
+            dstStructBuffer[index + dstOffset] = prefixSum[index];
+        }
+    }
+}

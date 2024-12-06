@@ -128,7 +128,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if USE_DEAD_LIST && VFX_USE_STRIPALIVE_CURRENT
         else if (attributes.stripAlive)
         {
-            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle
+            uint bufferIndex = ((instanceIndex * ATTACHED_STRIP_COUNT) + index);
+            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, bufferIndex) == ~1) // Attached strip is no longer alive, recycle the particle
             {
 	            uint deadIndex;
 		        InterlockedAdd(deadList[instanceIndex], 1, deadIndex);

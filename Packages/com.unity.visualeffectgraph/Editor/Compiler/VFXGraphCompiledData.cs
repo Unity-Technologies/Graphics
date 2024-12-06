@@ -994,7 +994,8 @@ namespace UnityEditor.VFX
                 if (capacity > 0)
                 {
                     eventBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = capacity + 2, stride = 4 });
+                    // event count (1) + total event count (1) + event prefix sum (1) + source index (capacity)
+                    bufferDescs.Add(new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = 3 + capacity, stride = 4 });
                 }
                 buffers.eventBuffers.Add(data, eventBufferIndex);
             }
@@ -1411,11 +1412,6 @@ namespace UnityEditor.VFX
                     reason |= VFXInstancingDisabledReason.OutputEvent;
                 }
 
-                if (model is VFXBasicGPUEvent)
-                {
-                    reason |= VFXInstancingDisabledReason.GPUEvent;
-                }
-
                 if (model is VFXStaticMeshOutput)
                 {
                     reason |= VFXInstancingDisabledReason.MeshOutput;
@@ -1424,7 +1420,6 @@ namespace UnityEditor.VFX
 
             return reason;
         }
-
 
         public VisualEffectResource visualEffectResource
         {

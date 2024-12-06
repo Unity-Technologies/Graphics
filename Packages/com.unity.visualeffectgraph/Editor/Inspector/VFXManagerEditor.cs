@@ -41,6 +41,7 @@ class VFXManagerEditor : Editor
         {
             serializedObject.FindProperty("m_IndirectShader"),
             serializedObject.FindProperty("m_CopyBufferShader"),
+            serializedObject.FindProperty("m_PrefixSumShader"),
             serializedObject.FindProperty("m_SortShader"),
             serializedObject.FindProperty("m_StripUpdateShader"),
         };
@@ -156,6 +157,7 @@ class VFXManagerEditor : Editor
 
         shaderModified |= SetBuiltInShaderIfNeeded<ComputeShader>(obj, "m_IndirectShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXFillIndirectArgs.compute");
         shaderModified |= SetBuiltInShaderIfNeeded<ComputeShader>(obj, "m_CopyBufferShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXCopyBuffer.compute");
+        shaderModified |= SetBuiltInShaderIfNeeded<ComputeShader>(obj, "m_PrefixSumShader", "Packages/com.unity.visualeffectgraph/Shaders/VFXPrefixSum.compute");
         shaderModified |= SetBuiltInShaderIfNeeded<ComputeShader>(obj, "m_SortShader", "Packages/com.unity.visualeffectgraph/Shaders/Sort.compute");
         shaderModified |= SetBuiltInShaderIfNeeded<ComputeShader>(obj, "m_StripUpdateShader", "Packages/com.unity.visualeffectgraph/Shaders/UpdateStrips.compute");
 

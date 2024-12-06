@@ -154,16 +154,17 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (GetData().IsCurrentAttributeRead(VFXAttribute.OldPosition))
+                VFXDataParticle particleData = GetData() as VFXDataParticle;
+
+                if (particleData.IsCurrentAttributeRead(VFXAttribute.OldPosition))
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.OldPosition, VFXAttributeMode.Write);
                 }
 
-                if (GetData().IsCurrentAttributeWritten(VFXAttribute.Alive) && GetData().dependenciesOut.Any(d => ((VFXDataParticle)d).hasStrip))
+                if (particleData.IsCurrentAttributeWritten(VFXAttribute.Alive) && particleData.attachedStripData != null)
                     yield return new VFXAttributeInfo(VFXAttribute.StripAlive, VFXAttributeMode.ReadWrite);
 
-                VFXDataParticle particleData = GetData() as VFXDataParticle;
                 if (particleData && (particleData.NeedsComputeBounds(this) || particleData.NeedsSharedAabbBuffer()))
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
