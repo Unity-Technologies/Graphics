@@ -512,6 +512,7 @@ Shader "HDRP/AxF"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fragment _ LIGHTMAP_BICUBIC_SAMPLING
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ USE_LEGACY_LIGHTMAPS
@@ -643,6 +644,7 @@ Shader "HDRP/AxF"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_BICUBIC_SAMPLING
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
@@ -692,6 +694,7 @@ Shader "HDRP/AxF"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_BICUBIC_SAMPLING
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
@@ -738,6 +741,7 @@ Shader "HDRP/AxF"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ LIGHTMAP_BICUBIC_SAMPLING
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ MINIMAL_GBUFFER
             #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2

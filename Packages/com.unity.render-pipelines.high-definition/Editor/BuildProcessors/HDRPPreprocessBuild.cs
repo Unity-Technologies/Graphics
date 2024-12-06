@@ -113,6 +113,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static void GetSupportedShaderFeaturesFromAssets(ref List<HDRenderPipelineAsset> hdrpAssets, ref List<ShaderFeatures> rendererFeaturesList)
         {
+            bool useBicubicLightmapSampling = false;
+            if (GraphicsSettings.TryGetRenderPipelineSettings<LightmapSamplingSettings>(out var lightmapSamplingSettings))
+                useBicubicLightmapSampling = lightmapSamplingSettings.useBicubicLightmapSampling;
+
             for (int hdrpAssetIndex = 0; hdrpAssetIndex < hdrpAssets.Count; hdrpAssetIndex++)
             {
                 // Get the asset and check if it's valid
@@ -124,7 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ShaderFeatures hdrpAssetShaderFeatures = GetSupportedShaderFeaturesFromAsset(ref hdrpAsset);
 
                 // Creates a struct containing all the prefiltering settings for this asset
-                ShaderPrefilteringData spd = CreatePrefilteringSettings(ref hdrpAssetShaderFeatures);
+                ShaderPrefilteringData spd = CreatePrefilteringSettings(ref hdrpAssetShaderFeatures, useBicubicLightmapSampling);
 
                 // Update the Prefiltering settings for this URP asset
                 hdrpAsset.UpdateShaderKeywordPrefiltering(ref spd);
@@ -144,11 +148,12 @@ namespace UnityEditor.Rendering.HighDefinition
             return hdrpAssetShaderFeatures;
         }
 
-        private static ShaderPrefilteringData CreatePrefilteringSettings(ref ShaderFeatures shaderFeatures)
+        private static ShaderPrefilteringData CreatePrefilteringSettings(ref ShaderFeatures shaderFeatures, bool useBicubicLightmapSampling)
         {
             ShaderPrefilteringData spd = new();
 
             spd.useLegacyLightmaps = IsFeatureEnabled(shaderFeatures, ShaderFeatures.UseLegacyLightmaps);
+            spd.useBicubicLightmapSampling = useBicubicLightmapSampling;
 
             return spd;
         }

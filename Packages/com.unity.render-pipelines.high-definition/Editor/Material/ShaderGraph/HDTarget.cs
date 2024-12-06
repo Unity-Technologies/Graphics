@@ -1881,6 +1881,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global
         };
+
+        public static KeywordDescriptor LightmapBicubicSampling = new KeywordDescriptor()
+        {
+            displayName = "Lightmap Bicubic Sampling",
+            referenceName = "LIGHTMAP_BICUBIC_SAMPLING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
+        };
     }
     #endregion
 

@@ -381,6 +381,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.StaticLightmap,
                 CoreKeywordDescriptors.DirectionalLightmapCombined,
                 CoreKeywordDescriptors.UseLegacyLightmaps,
+                CoreKeywordDescriptors.LightmapBicubicSampling,
                 CoreKeywordDescriptors.SampleGI,
                 CoreKeywordDescriptors.DBuffer,
                 CoreKeywordDescriptors.DebugDisplay,

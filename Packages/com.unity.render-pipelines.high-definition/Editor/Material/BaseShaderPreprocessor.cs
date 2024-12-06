@@ -85,6 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ScreenSpaceShadowONKeywords;
         protected ShaderKeyword m_ProbeVolumesL1;
         protected ShaderKeyword m_ProbeVolumesL2;
+        protected ShaderKeyword m_LightmapBicubicSampling;
         protected ShaderKeyword m_DecalSurfaceGradient;
         protected ShaderKeyword m_EditorVisualization;
         protected ShaderKeyword m_SupportWater;
@@ -132,6 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
             m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
             m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
+            m_LightmapBicubicSampling = new ShaderKeyword("LIGHTMAP_BICUBIC_SAMPLING");
             m_DecalSurfaceGradient = new ShaderKeyword("DECAL_SURFACE_GRADIENT");
             m_EditorVisualization = new ShaderKeyword("EDITOR_VISUALIZATION");
             m_SupportWater = new ShaderKeyword("SUPPORT_WATER");

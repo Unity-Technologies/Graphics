@@ -1011,6 +1011,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword EVALUATE_SH_VERTEX;
         public static GlobalKeyword ProbeVolumeL1;
         public static GlobalKeyword ProbeVolumeL2;
+        public static GlobalKeyword LIGHTMAP_BICUBIC_SAMPLING;
         public static GlobalKeyword _OUTPUT_DEPTH;
         public static GlobalKeyword LinearToSRGBConversion;
         public static GlobalKeyword _ENABLE_ALPHA_OUTPUT;
@@ -1119,6 +1120,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.EVALUATE_SH_VERTEX = GlobalKeyword.Create(ShaderKeywordStrings.EVALUATE_SH_VERTEX);
             ShaderGlobalKeywords.ProbeVolumeL1 = GlobalKeyword.Create(ShaderKeywordStrings.ProbeVolumeL1);
             ShaderGlobalKeywords.ProbeVolumeL2 = GlobalKeyword.Create(ShaderKeywordStrings.ProbeVolumeL2);
+            ShaderGlobalKeywords.LIGHTMAP_BICUBIC_SAMPLING = GlobalKeyword.Create(ShaderKeywordStrings.LIGHTMAP_BICUBIC_SAMPLING);
             ShaderGlobalKeywords._OUTPUT_DEPTH = GlobalKeyword.Create(ShaderKeywordStrings._OUTPUT_DEPTH);
             ShaderGlobalKeywords.LinearToSRGBConversion = GlobalKeyword.Create(ShaderKeywordStrings.LinearToSRGBConversion);
             ShaderGlobalKeywords._ENABLE_ALPHA_OUTPUT = GlobalKeyword.Create(ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT);
@@ -1429,6 +1431,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for APV with SH L2 </summary>
         public const string ProbeVolumeL2 = "PROBE_VOLUMES_L2";
+
+        /// <summary> Keyword used for bicubic sampling of lightmaps. </summary>
+        public const string LIGHTMAP_BICUBIC_SAMPLING = "LIGHTMAP_BICUBIC_SAMPLING";
 
         /// <summary> Keyword used for opting out of lightmap texture arrays, when using BatchRendererGroup. </summary>
         public const string USE_LEGACY_LIGHTMAPS = "USE_LEGACY_LIGHTMAPS";

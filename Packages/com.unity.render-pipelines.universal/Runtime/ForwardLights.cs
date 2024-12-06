@@ -480,6 +480,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     cmd.SetKeyword(ShaderGlobalKeywords.LightCookies, false);
                 }
+
+                if (GraphicsSettings.TryGetRenderPipelineSettings<LightmapSamplingSettings>(out var lightmapSamplingSettings))
+                    cmd.SetKeyword(ShaderGlobalKeywords.LIGHTMAP_BICUBIC_SAMPLING, lightmapSamplingSettings.useBicubicLightmapSampling);
+                else
+                    cmd.SetKeyword(ShaderGlobalKeywords.LIGHTMAP_BICUBIC_SAMPLING, false);
             }
         }
 

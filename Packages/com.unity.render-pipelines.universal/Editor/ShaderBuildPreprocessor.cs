@@ -121,6 +121,7 @@ namespace UnityEditor.Rendering.Universal
         public static bool s_StripDebugDisplayShaders;
         public static bool s_StripUnusedPostProcessingVariants;
         public static bool s_StripScreenCoordOverrideVariants;
+        public static bool s_StripBicubicLightmapSamplingVariants;
         public static bool s_Strip2DPasses;
         public static bool s_UseSoftShadowQualityLevelKeywords;
         public static bool s_StripXRVariants;
@@ -272,6 +273,11 @@ namespace UnityEditor.Rendering.Universal
                 s_StripScreenCoordOverrideVariants  = urpShaderStrippingSettings.stripScreenCoordOverrideVariants;
             }
 
+            if (GraphicsSettings.TryGetRenderPipelineSettings<LightmapSamplingSettings>(out var lightmapSamplingSettings))
+                s_StripBicubicLightmapSamplingVariants = !lightmapSamplingSettings.useBicubicLightmapSampling;
+            else
+                s_StripBicubicLightmapSamplingVariants = true;
+
             PlatformBuildTimeDetect platformBuildTimeDetect = PlatformBuildTimeDetect.GetInstance();
             bool isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
             if (platformBuildTimeDetect.isSwitch || isShaderAPIMobileDefined)
@@ -386,6 +392,7 @@ namespace UnityEditor.Rendering.Universal
                     !PlayerSettings.allowHDRDisplaySupport || !urpAsset.supportsHDR,
                     s_StripDebugDisplayShaders,
                     s_StripScreenCoordOverrideVariants,
+                    s_StripBicubicLightmapSamplingVariants,
                     s_StripUnusedVariants,
                     ref ssaoRendererFeatures
                     );
@@ -879,6 +886,7 @@ namespace UnityEditor.Rendering.Universal
             bool stripHDR,
             bool stripDebug,
             bool stripScreenCoord,
+            bool stripBicubicLightmap,
             bool stripUnusedVariants,
             ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures
             )
@@ -895,6 +903,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripAlphaOutputKeywords = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.AlphaOutput);
             spd.stripDebugDisplay = stripDebug;
             spd.stripScreenCoordOverride = stripScreenCoord;
+            spd.stripBicubicLightmapSampling = stripBicubicLightmap;
 
             // Rendering Modes
             // Check if only Deferred is being used

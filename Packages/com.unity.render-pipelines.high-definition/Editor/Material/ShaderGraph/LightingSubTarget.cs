@@ -119,6 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pass.keywords.Add(CoreKeywordDescriptors.DirectionalLightmapCombined);
                 pass.keywords.Add(CoreKeywordDescriptors.ProbeVolumes);
                 pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
+                pass.keywords.Add(CoreKeywordDescriptors.LightmapBicubicSampling);
 
                 if (!pass.IsRelatedToRaytracing())
                 {

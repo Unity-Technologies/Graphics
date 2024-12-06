@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.Universal
             public bool stripSoftShadowQualityLevels { get; set; }
             public bool stripDebugDisplayShaders { get; set; }
             public bool stripScreenCoordOverrideVariants { get; set; }
+            public bool stripBicubicLightmapSamplingVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
@@ -63,6 +64,7 @@ namespace UnityEditor.Rendering.Universal
             public bool strip2DPasses { get; set; }
             public bool stripDebugDisplayShaders { get; set; }
             public bool stripScreenCoordOverrideVariants { get; set; }
+            public bool stripBicubicLightmapSamplingVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
@@ -176,6 +178,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ToneMapNeutral;
         LocalKeyword m_FilmGrain;
         LocalKeyword m_ScreenCoordOverride;
+        LocalKeyword m_LightmapBicubicSampling;
         LocalKeyword m_ProbeVolumesL1;
         LocalKeyword m_ProbeVolumesL2;
         LocalKeyword m_EasuRcasAndHDRInput;
@@ -234,6 +237,7 @@ namespace UnityEditor.Rendering.Universal
             m_LightCookies = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightCookies);
 
             m_ScreenCoordOverride = TryGetLocalKeyword(shader, ShaderKeywordStrings.SCREEN_COORD_OVERRIDE);
+            m_LightmapBicubicSampling = TryGetLocalKeyword(shader, ShaderKeywordStrings.LIGHTMAP_BICUBIC_SAMPLING);
             m_ProbeVolumesL1 = TryGetLocalKeyword(shader, ShaderKeywordStrings.ProbeVolumeL1);
             m_ProbeVolumesL2 = TryGetLocalKeyword(shader, ShaderKeywordStrings.ProbeVolumeL2);
             m_EasuRcasAndHDRInput = TryGetLocalKeyword(shader, ShaderKeywordStrings.EasuRcasAndHDRInput);
@@ -381,6 +385,17 @@ namespace UnityEditor.Rendering.Universal
         internal bool StripUnusedFeatures_ScreenCoordOverride(ref IShaderScriptableStrippingData strippingData)
         {
             return strippingData.stripScreenCoordOverrideVariants && strippingData.IsKeywordEnabled(m_ScreenCoordOverride);
+        }
+
+        internal bool StripUnusedFeatures_BicubicLightmapSampling(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.PassHasKeyword(m_LightmapBicubicSampling))
+            {
+                bool useBicubic = !strippingData.stripBicubicLightmapSamplingVariants;
+                return useBicubic != strippingData.IsKeywordEnabled(m_LightmapBicubicSampling);
+            }
+
+            return false;
         }
 
         internal bool StripUnusedFeatures_PunctualLightShadows(ref IShaderScriptableStrippingData strippingData)
@@ -737,7 +752,7 @@ namespace UnityEditor.Rendering.Universal
 
             return strippingData.stripUnusedXRVariants;
         }
-        
+
         internal bool StripUnusedFeatures_CrossFadeLod(ref IShaderScriptableStrippingData strippingData)
         {
             if (!strippingData.IsKeywordEnabled(m_LODFadeCrossFade))
@@ -766,6 +781,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_ScreenCoordOverride(ref strippingData))
+                return true;
+
+            if (StripUnusedFeatures_BicubicLightmapSampling(ref strippingData))
                 return true;
 
             if (StripUnusedFeatures_MixedLighting(ref strippingData))
@@ -1041,7 +1059,7 @@ namespace UnityEditor.Rendering.Universal
             if (strippingData.passName == kPassNameXRMotionVectors && strippingData.stripUnusedXRVariants)
                 return true;
             return false;
-        }        
+        }
 
         internal bool StripUnusedPass(ref IShaderScriptableStrippingData strippingData)
         {
@@ -1123,6 +1141,7 @@ namespace UnityEditor.Rendering.Universal
                 strip2DPasses = ShaderBuildPreprocessor.s_Strip2DPasses,
                 stripDebugDisplayShaders = ShaderBuildPreprocessor.s_StripDebugDisplayShaders,
                 stripScreenCoordOverrideVariants = ShaderBuildPreprocessor.s_StripScreenCoordOverrideVariants,
+                stripBicubicLightmapSamplingVariants = ShaderBuildPreprocessor.s_StripBicubicLightmapSamplingVariants,
                 stripUnusedVariants = ShaderBuildPreprocessor.s_StripUnusedVariants,
                 stripUnusedPostProcessingVariants = ShaderBuildPreprocessor.s_StripUnusedPostProcessingVariants,
                 stripUnusedXRVariants = ShaderBuildPreprocessor.s_StripXRVariants,

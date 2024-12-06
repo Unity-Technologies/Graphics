@@ -1263,6 +1263,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cmd.ConfigureFoveatedRendering(hdCamera.xr.foveatedRenderingInfo);
                 }
+
+                if (GraphicsSettings.TryGetRenderPipelineSettings<LightmapSamplingSettings>(out var lightmapSamplingSettings))
+                    CoreUtils.SetKeyword(cmd, "LIGHTMAP_BICUBIC_SAMPLING", lightmapSamplingSettings.useBicubicLightmapSampling);
+                else
+                    CoreUtils.SetKeyword(cmd, "LIGHTMAP_BICUBIC_SAMPLING", false);
             }
         }
 

@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
         // Decal Layers - Gets overridden in Decal renderer feature if enabled.
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.DecalLayers)]
         private const bool k_DecalLayersDefault = true;
-        
+
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SoftShadowsLow)]
         [SerializeField] private bool m_PrefilterSoftShadowsQualityLow = false;
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SoftShadowsMedium)]
@@ -180,6 +180,11 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.OpenGLCore)]
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS)]
         [SerializeField] private bool m_PrefilterUseLegacyLightmaps = false;
+
+        // Bicubic lightmap sampling
+        [ShaderKeywordFilter.RemoveIf(true,  keywordNames: ShaderKeywordStrings.LIGHTMAP_BICUBIC_SAMPLING)]
+        [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.LIGHTMAP_BICUBIC_SAMPLING)]
+        [SerializeField] private bool m_PrefilterBicubicLightmapSampling = false;
 
         /// <summary>
         /// Data used for Shader Prefiltering. Gathered after going through the URP Assets,
@@ -218,6 +223,8 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSSAOSampleCountLow;
             public bool stripSSAOSampleCountMedium;
             public bool stripSSAOSampleCountHigh;
+
+            public bool stripBicubicLightmapSampling;
         }
 
         /// <summary>
@@ -259,6 +266,8 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterSSAOSampleCountLow            = prefilteringData.stripSSAOSampleCountLow;
             m_PrefilterSSAOSampleCountMedium         = prefilteringData.stripSSAOSampleCountMedium;
             m_PrefilterSSAOSampleCountHigh           = prefilteringData.stripSSAOSampleCountHigh;
+
+            m_PrefilterBicubicLightmapSampling       = prefilteringData.stripBicubicLightmapSampling;
         }
     }
 }

@@ -1269,7 +1269,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
-                // NB Color is not strickly needed for scene picking but adding it here so that there are nodes to be 
+                // NB Color is not strictly needed for scene picking but adding it here so that there are nodes to be
                 // collected for the pixel shader. Some packages might use this to customize the scene picking rendering.
                 validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
@@ -1777,7 +1777,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection FogPregraph = new IncludeCollection
         {
             { kFog, IncludeLocation.Pregraph, true },
-        };        
+        };
 
         public static readonly IncludeCollection WriteRenderLayersPregraph = new IncludeCollection
         {
@@ -2364,6 +2364,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Local,
+        };
+        
+        public static readonly KeywordDescriptor LightmapBicubicSampling = new KeywordDescriptor()
+        {
+            displayName = "Lightmap Bicubic Sampling",
+            referenceName = ShaderKeywordStrings.LIGHTMAP_BICUBIC_SAMPLING,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
         };
     }
     #endregion
