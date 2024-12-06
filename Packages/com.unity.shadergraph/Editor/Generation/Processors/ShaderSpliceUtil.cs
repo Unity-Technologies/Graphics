@@ -34,7 +34,16 @@ namespace UnityEditor.ShaderGraph
             while (index < end)
             {
                 char c = str[index];
-                if (!whitespace.Contains(c))
+                bool containsWhiteSpace = false;
+                foreach (var whiteSpaceChar in whitespace)
+                {
+                    if (c == whiteSpaceChar)
+                    {
+                        containsWhiteSpace = true;
+                        break;
+                    }
+                }
+                if (!containsWhiteSpace)
                 {
                     break;
                 }
@@ -53,12 +62,13 @@ namespace UnityEditor.ShaderGraph
 
             // intermediates
             HashSet<string> includedFiles;
+            Dictionary<string, string[]> includeCache; // this cache is reused across passes
 
             // outputs
             ShaderStringBuilder result;
             AssetCollection assetCollection;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, bool humanReadable, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, bool humanReadable, Dictionary<string, string[]> includeCache, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
@@ -67,6 +77,7 @@ namespace UnityEditor.ShaderGraph
                 this.assetCollection = assetCollection;
                 this.result = outShaderCodeResult ?? new ShaderStringBuilder(humanReadable: humanReadable);
                 includedFiles = new HashSet<string>();
+                this.includeCache = includeCache;
             }
 
             public ShaderStringBuilder GetShaderCode()
@@ -76,8 +87,7 @@ namespace UnityEditor.ShaderGraph
 
             public void ProcessTemplateFile(string filePath)
             {
-                if (File.Exists(filePath) &&
-                    !includedFiles.Contains(filePath))
+                if (!includedFiles.Contains(filePath) && (includeCache.ContainsKey(filePath) || File.Exists(filePath)))
                 {
                     includedFiles.Add(filePath);
 
@@ -88,8 +98,12 @@ namespace UnityEditor.ShaderGraph
                             assetCollection.AddAssetDependency(guid, AssetCollection.Flags.SourceDependency);
                     }
 
-                    string[] templateLines = File.ReadAllLines(filePath);
-                    foreach (string line in templateLines)
+                    string[] templateLines;
+                    if (!includeCache.TryGetValue(filePath, out templateLines))
+                    {
+                        templateLines = File.ReadAllLines(filePath);
+                        includeCache.TryAdd(filePath, templateLines);
+                    }                    foreach (string line in templateLines)
                     {
                         ProcessTemplateLine(line, 0, line.Length);
                     }
@@ -223,8 +237,8 @@ namespace UnityEditor.ShaderGraph
                         {
                             string templatePath = templatePaths[i];
                             includeLocation = Path.Combine(templatePath, param.GetString());
-                            if (File.Exists(includeLocation))
-                            {
+                            bool cacheHit = includeCache.ContainsKey(includeLocation);
+                            if (cacheHit ||  File.Exists(includeLocation))                            {
                                 found = true;
                                 break;
                             }
@@ -243,39 +257,29 @@ namespace UnityEditor.ShaderGraph
                         }
                         else
                         {
-                            int endIndex = result.length;
-                            using (var temp = new ShaderStringBuilder(humanReadable: true))
+                            int oldLength = result.length;
+                            // Wrap in debug mode
+                            if (isDebug)
                             {
-                                // Wrap in debug mode
-                                if (isDebug)
-                                {
-                                    result.AppendLine("//-------------------------------------------------------------------------------------");
-                                    result.AppendLine("// TEMPLATE INCLUDE : " + param.GetString());
-                                    result.AppendLine("//-------------------------------------------------------------------------------------");
-                                    result.AppendNewLine();
-                                }
-
-                                // Recursively process templates
-                                ProcessTemplateFile(includeLocation);
-
-                                // Wrap in debug mode
-                                if (isDebug)
-                                {
-                                    result.AppendNewLine();
-                                    result.AppendLine("//-------------------------------------------------------------------------------------");
-                                    result.AppendLine("// END TEMPLATE INCLUDE : " + param.GetString());
-                                    result.AppendLine("//-------------------------------------------------------------------------------------");
-                                }
-
+                                result.AppendLine("//-------------------------------------------------------------------------------------");
+                                result.AppendLine("// TEMPLATE INCLUDE : " + param.GetString());
+                                result.AppendLine("//-------------------------------------------------------------------------------------");
                                 result.AppendNewLine();
-
-                                // Required to enforce indentation rules
-                                // Append lines from this include into temporary StringBuilder
-                                // Reduce result length to remove this include
-                                temp.AppendLines(result.ToString(endIndex, result.length - endIndex));
-                                result.length = endIndex;
-                                result.AppendLines(temp.ToCodeBlock());
                             }
+
+                            // Recursively process templates
+                            ProcessTemplateFile(includeLocation);
+
+                            // Wrap in debug mode
+                            if (isDebug)
+                            {
+                                result.AppendNewLine();
+                                result.AppendLine("//-------------------------------------------------------------------------------------");
+                                result.AppendLine("// END TEMPLATE INCLUDE : " + param.GetString());
+                                result.AppendLine("//-------------------------------------------------------------------------------------");
+                            }
+
+                            result.ToCodeBlock(oldLength, result.length - oldLength, true);
                         }
                     }
                 }
