@@ -67,12 +67,12 @@ class EditorTests
         Assert.AreNotEqual(null, asset.defaultLineMaterial);
         Assert.AreNotEqual(null, asset.defaultTerrainMaterial);
         Assert.AreNotEqual(null, asset.defaultShader);
+        Assert.AreNotEqual(null, asset.default2DMaterial);
 
         // URP doesn't override the following materials
         Assert.AreEqual(null, asset.defaultUIMaterial);
         Assert.AreEqual(null, asset.defaultUIOverdrawMaterial);
         Assert.AreEqual(null, asset.defaultUIETC1SupportedMaterial);
-        Assert.AreEqual(null, asset.default2DMaterial);
         Assert.AreEqual(null, asset.default2DMaskMaterial);
 
         Assert.AreNotEqual(null, asset.m_RendererDataList, "A default renderer data should be created when creating a new pipeline.");
