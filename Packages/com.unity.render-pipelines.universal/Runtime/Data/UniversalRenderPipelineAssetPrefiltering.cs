@@ -83,13 +83,13 @@ namespace UnityEngine.Rendering.Universal
         })]
         [SerializeField] private bool m_PrefilterXRKeywords = false;
 
-        // Forward+
-        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove,     keywordNames: ShaderKeywordStrings.ForwardPlus)]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new [] { "", ShaderKeywordStrings.ForwardPlus })]
-        [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.ForwardPlus)]
+        // Forward+ / Deferred+
+        [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove,     keywordNames: ShaderKeywordStrings.ClusterLightLoop)]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.Select,     keywordNames: new [] { "", ShaderKeywordStrings.ClusterLightLoop })]
+        [ShaderKeywordFilter.SelectIf(PrefilteringMode.SelectOnly, keywordNames: ShaderKeywordStrings.ClusterLightLoop)]
         [SerializeField] private PrefilteringMode m_PrefilteringModeForwardPlus = PrefilteringMode.Select;
 
-        // Deferred Rendering
+        // Deferred Rendering / Deferred+
         [ShaderKeywordFilter.RemoveIf(PrefilteringMode.Remove, keywordNames: new [] {
             ShaderKeywordStrings._DEFERRED_FIRST_LIGHT, ShaderKeywordStrings._DEFERRED_MAIN_LIGHT,
             ShaderKeywordStrings._DEFERRED_MIXED_LIGHTING, ShaderKeywordStrings._GBUFFER_NORMALS_OCT

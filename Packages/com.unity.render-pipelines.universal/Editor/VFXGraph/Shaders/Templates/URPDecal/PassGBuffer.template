@@ -39,7 +39,7 @@ Pass
     ${VFXIncludeRP("VFXDecalVaryings.template")}
     #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
     #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl"
 
     #if _RENDER_PASS_ENABLED
@@ -82,7 +82,7 @@ Pass
 
     ${VFXIncludeRP("VFXDecal.template")}
 
-    void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, out FragmentOutput fragmentOutput)
+    void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, out GBufferFragOutput fragmentOutput)
     {
         SurfaceData surfaceData;
         ZERO_INITIALIZE(SurfaceData, surfaceData);
@@ -116,29 +116,26 @@ Pass
 #endif
 
         // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
-        half3 packedNormalWS = PackNormal(decalSurfaceData.normalWS.xyz);
-        fragmentOutput.GBuffer0 = half4(decalSurfaceData.baseColor.rgb, decalSurfaceData.baseColor.a);
-        fragmentOutput.GBuffer1 = 0;
-        fragmentOutput.GBuffer2 = half4(packedNormalWS, decalSurfaceData.normalWS.a);
+        half3 packedNormalWS = PackGBufferNormal(decalSurfaceData.normalWS.xyz);
+        fragmentOutput.gBuffer0 = half4(decalSurfaceData.baseColor.rgb, decalSurfaceData.baseColor.a);
+        fragmentOutput.gBuffer1 = 0;
+        fragmentOutput.gBuffer2 = half4(packedNormalWS, decalSurfaceData.normalWS.a);
 #if defined(AFFECT_BASE_COLOR) || defined(AFFECT_EMISSIVE)
-        fragmentOutput.GBuffer3 = half4(decalSurfaceData.emissive + color, decalSurfaceData.baseColor.a);
+        fragmentOutput.color = half4(decalSurfaceData.emissive + color, decalSurfaceData.baseColor.a);
 #else
-        fragmentOutput.GBuffer3 = 0;
+        fragmentOutput.color = 0;
 #endif
-    #if _RENDER_PASS_ENABLED
-        fragmentOutput.GBuffer4 = inputData.positionCS.xy;
-        #if OUTPUT_SHADOWMASK
-            fragmentOutput.GBuffer5 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+        #if defined(GBUFFER_FEATURE_DEPTH)
+        fragmentOutput.depth = inputData.positionCS.z;
         #endif
-    #else
-        #if OUTPUT_SHADOWMASK
-            fragmentOutput.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+
+        #if defined(GBUFFER_FEATURE_SHADOWMASK)
+        fragmentOutput.shadowMask = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
         #endif
-    #endif
     }
 
     #pragma fragment frag
-    void frag(VFX_VARYING_PS_INPUTS i, out FragmentOutput fragmentOutput)
+    void frag(VFX_VARYING_PS_INPUTS i, out GBufferFragOutput fragmentOutput)
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i)
         VFXComputePixelOutputToGBuffer(i, fragmentOutput);

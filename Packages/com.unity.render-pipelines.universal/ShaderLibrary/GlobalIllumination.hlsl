@@ -12,7 +12,7 @@
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #endif
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #endif
 
@@ -249,7 +249,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
 {
     half3 irradiance = half3(0.0h, 0.0h, 0.0h);
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
     float totalWeight = 0.0f;
     uint probeIndex;
     ClusterIterator it = ClusterInit(normalizedScreenSpaceUV, positionWS, 1);
@@ -365,7 +365,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half p
 #endif // _ENVIRONMENTREFLECTIONS_OFF
 }
 
-#if !USE_FORWARD_PLUS
+#if !USE_CLUSTER_LIGHT_LOOP
 half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion)
 {
     return GlossyEnvironmentReflection(reflectVector, positionWS, perceptualRoughness, occlusion, float2(0.0f, 0.0f));
@@ -449,7 +449,7 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 #endif
 }
 
-#if !USE_FORWARD_PLUS
+#if !USE_CLUSTER_LIGHT_LOOP
 half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
     half3 bakedGI, half occlusion, float3 positionWS,
     half3 normalWS, half3 viewDirectionWS)

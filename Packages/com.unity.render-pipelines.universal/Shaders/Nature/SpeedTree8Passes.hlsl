@@ -2,7 +2,7 @@
 #define UNIVERSAL_SPEEDTREE8_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Nature/SpeedTreeCommon.hlsl"
 #include "SpeedTreeUtility.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
@@ -144,7 +144,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
                     // remove anchor position
                     float3 anchor = float3(input.texcoord1.zw, input.texcoord2.w);
                     windyPosition -= anchor;
-                    
+
                     // leaf wind
                     #if defined(_WINDQUALITY_FAST) || defined(_WINDQUALITY_BETTER) || defined(_WINDQUALITY_BEST)
                         #ifdef _WINDQUALITY_BEST
@@ -371,7 +371,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
 }
 
 #ifdef GBUFFER
-FragmentOutput SpeedTree8Frag(SpeedTreeFragmentInput input)
+GBufferFragOutput SpeedTree8Frag(SpeedTreeFragmentInput input)
 #else
 half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 #endif
@@ -468,9 +468,10 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0, inputData.bakedGI, occlusion, inputData.positionWS,
+                                     inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
-    return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color, occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, smoothness, emission + color, occlusion);
 
 #else
     SurfaceData surfaceData;

@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/000_ForwardPlus_Many.unity
     guid: 26e7c5c73aa4db043b3fa9560cde2ea1
   - enabled: 1
+    path: Assets/Scenes/000_DeferredPlus_Many.unity
+    guid: 9ea0353710b4a4560a948d79d8e6b665
+  - enabled: 1
     path: Assets/Scenes/001_SimpleCube.unity
     guid: d0462e56cffa64b7e86823f437fc329c
   - enabled: 1
@@ -53,6 +56,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/010_AdditionalLightsSorted_Deferred.unity
     guid: 85cbe36f834a9444681d081748b85f9f
+  - enabled: 1
+    path: Assets/Scenes/010_AdditionalLightsSorted_DeferredPlus.unity
+    guid: 83bd7131d49af4185bee78a6b2ad6d27
   - enabled: 1
     path: Assets/Scenes/011_PBS_EnvironmentBRDF_SpecularSpheres.unity
     guid: 5ea759cdcf4f74574bc818dbb61b1945
@@ -137,6 +143,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/050_Shader_Graphs_deferred_RenderPass.unity
     guid: 9b853a2e2268046e49558e61eac1350b
+  - enabled: 1
+    path: Assets/Scenes/050_Shader_Graphs_deferredPlus.unity
+    guid: 8beb3a97254e550429b13e17f2865e2b
   - enabled: 1
     path: Assets/Scenes/050_Shader_Graphs_Override.unity
     guid: 773767ac5b09198408c0c084dc243abc

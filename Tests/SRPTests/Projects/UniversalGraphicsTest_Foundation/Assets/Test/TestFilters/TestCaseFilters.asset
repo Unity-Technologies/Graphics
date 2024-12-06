@@ -1382,3 +1382,15 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/PLATGRAPH-4053
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea0353710b4a4560a948d79d8e6b665, type: 3}
+    - {fileID: 102900000, guid: 83bd7131d49af4185bee78a6b2ad6d27, type: 3}
+    - {fileID: 102900000, guid: 8beb3a97254e550429b13e17f2865e2b, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support GLES3

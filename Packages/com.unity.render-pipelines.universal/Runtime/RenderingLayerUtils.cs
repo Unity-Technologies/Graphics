@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
             combinedEvent = Event.Opaque;
             combinedMaskSize = MaskSize.Bits8;
 
-            bool isDeferred = renderingMode == RenderingMode.Deferred;
+            bool isDeferred = renderingMode == RenderingMode.Deferred || renderingMode == RenderingMode.DeferredPlus;
             bool result = false;
             foreach (var rendererFeature in rendererFeatures)
             {

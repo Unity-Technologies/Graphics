@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
             {
                 if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int textureHeightPercent) &&
-                    (fullScreenDebugMode != DebugFullScreenMode.ReflectionProbeAtlas || m_Clustering) &&
+                    (fullScreenDebugMode != DebugFullScreenMode.ReflectionProbeAtlas || usesClusterLightLoop) &&
                     (fullScreenDebugMode != DebugFullScreenMode.STP))
                 {
                     float screenWidth = cameraData.pixelWidth;

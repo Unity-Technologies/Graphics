@@ -1642,7 +1642,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
             cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, false);
             cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ClusterLightLoop, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, false); // Backward compatibility. Deprecated in 6.1.
             cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, false);
             cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBlending, false);
             cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBoxProjection, false);

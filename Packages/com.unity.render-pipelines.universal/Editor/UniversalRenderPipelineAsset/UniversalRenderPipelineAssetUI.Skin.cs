@@ -149,7 +149,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent staticBatchingInfoMessage =
                 EditorGUIUtility.TrTextContent("Static Batching is not recommended when using GPU draw submission modes, performance may improve if Static Batching is disabled in Player Settings.");
             public static GUIContent lightModeErrorMessage =
-                EditorGUIUtility.TrTextContent("Rendering Path must be set to Forward+ for correct lighting and reflections. One or more entries in the RendererList are not set to this mode.");
+                EditorGUIUtility.TrTextContent("Rendering Path must be set to Forward+ or Deferred+ for correct lighting and reflections. One or more entries in the RendererList are not set to this mode.");
             public static GUIContent renderGraphNotEnabledErrorMessage =
                 EditorGUIUtility.TrTextContent("Render Graph must be enabled to use occlusion culling.");
             public static GUIContent stencilLodCrossFadeWarningMessage =

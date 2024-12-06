@@ -2293,10 +2293,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static readonly KeywordDescriptor ForwardPlus = new KeywordDescriptor()
+        public static readonly KeywordDescriptor ClusterLightLoop = new KeywordDescriptor()
         {
-            displayName = "Forward+",
-            referenceName = "_FORWARD_PLUS",
+            displayName = "Cluster Light Loop",
+            referenceName = "_CLUSTER_LIGHT_LOOP",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

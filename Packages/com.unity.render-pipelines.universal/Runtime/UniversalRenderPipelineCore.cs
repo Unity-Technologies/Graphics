@@ -943,7 +943,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword CastingPunctualLightShadow;
         public static GlobalKeyword AdditionalLightsVertex;
         public static GlobalKeyword AdditionalLightsPixel;
-        public static GlobalKeyword ForwardPlus;
+        public static GlobalKeyword ClusterLightLoop;
         public static GlobalKeyword AdditionalLightShadows;
         public static GlobalKeyword ReflectionProbeBoxProjection;
         public static GlobalKeyword ReflectionProbeBlending;
@@ -1015,6 +1015,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword _OUTPUT_DEPTH;
         public static GlobalKeyword LinearToSRGBConversion;
         public static GlobalKeyword _ENABLE_ALPHA_OUTPUT;
+        public static GlobalKeyword ForwardPlus; // Backward compatibility. Deprecated in 6.1.
 
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
@@ -1053,7 +1054,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.CastingPunctualLightShadow = GlobalKeyword.Create(ShaderKeywordStrings.CastingPunctualLightShadow);
             ShaderGlobalKeywords.AdditionalLightsVertex = GlobalKeyword.Create(ShaderKeywordStrings.AdditionalLightsVertex);
             ShaderGlobalKeywords.AdditionalLightsPixel = GlobalKeyword.Create(ShaderKeywordStrings.AdditionalLightsPixel);
-            ShaderGlobalKeywords.ForwardPlus = GlobalKeyword.Create(ShaderKeywordStrings.ForwardPlus);
+            ShaderGlobalKeywords.ClusterLightLoop = GlobalKeyword.Create(ShaderKeywordStrings.ClusterLightLoop);
             ShaderGlobalKeywords.AdditionalLightShadows = GlobalKeyword.Create(ShaderKeywordStrings.AdditionalLightShadows);
             ShaderGlobalKeywords.ReflectionProbeBoxProjection = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeBoxProjection);
             ShaderGlobalKeywords.ReflectionProbeBlending = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeBlending);
@@ -1124,6 +1125,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords._OUTPUT_DEPTH = GlobalKeyword.Create(ShaderKeywordStrings._OUTPUT_DEPTH);
             ShaderGlobalKeywords.LinearToSRGBConversion = GlobalKeyword.Create(ShaderKeywordStrings.LinearToSRGBConversion);
             ShaderGlobalKeywords._ENABLE_ALPHA_OUTPUT = GlobalKeyword.Create(ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT);
+            ShaderGlobalKeywords.ForwardPlus = GlobalKeyword.Create(ShaderKeywordStrings.ForwardPlus); // Backward compatibility. Deprecated in 6.1.
         }
     }
 
@@ -1150,8 +1152,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for per pixel additional lights. </summary>
         public const string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
 
-        /// <summary> Keyword used for Forward+. </summary>
-        internal const string ForwardPlus = "_FORWARD_PLUS";
+        /// <summary> Keyword used for Forward+ & Deferred+. </summary>
+        internal const string ClusterLightLoop = "_CLUSTER_LIGHT_LOOP";
 
         /// <summary> Keyword used for shadows on additional lights. </summary>
         public const string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
@@ -1443,6 +1445,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for enable alpha output. Used in post processing. </summary>
         public const string _ENABLE_ALPHA_OUTPUT = "_ENABLE_ALPHA_OUTPUT";
+
+        /// <summary> Deprecated keyword. Use ClusterLightLoop instead. </summary>
+        internal const string ForwardPlus = "_FORWARD_PLUS"; // Backward compatibility. Deprecated in 6.1.
     }
 
     public sealed partial class UniversalRenderPipeline

@@ -136,7 +136,7 @@ float4 _ScreenSizeOverride;
 
 uint _EnableProbeVolumes;
 
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
 float4 _FPParams0;
 float4 _FPParams1;
 float4 _FPParams2;
@@ -178,7 +178,7 @@ CBUFFER_END
 #endif
 #endif
 
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
 
 CBUFFER_START(urp_ZBinBuffer)
         float4 urp_ZBins[MAX_ZBIN_VEC4S];

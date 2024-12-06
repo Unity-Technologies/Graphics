@@ -18,19 +18,24 @@ struct Light
     uint    layerMask;
 };
 
-#if USE_FORWARD_PLUS && defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
-#define FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK if (_AdditionalLightsColor[lightIndex].a > 0.0h) continue;
+#if USE_CLUSTER_LIGHT_LOOP && defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
+#define CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK if (_AdditionalLightsColor[lightIndex].a > 0.0h) continue;
 #else
-#define FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+#define CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 #endif
 
-#if USE_FORWARD_PLUS
+// _FORWARD_PLUS keyword deprecated in 6.1
+// FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK is only defined for backwards compatibility.
+// This define will be removed in a future release.
+#define FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
+
+#if USE_CLUSTER_LIGHT_LOOP
     #define LIGHT_LOOP_BEGIN(lightCount) { \
     uint lightIndex; \
     ClusterIterator _urp_internal_clusterIterator = ClusterInit(inputData.normalizedScreenSpaceUV, inputData.positionWS, 0); \
     [loop] while (ClusterNext(_urp_internal_clusterIterator, lightIndex)) { \
         lightIndex += URP_FP_DIRECTIONAL_LIGHTS_COUNT; \
-        FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK
+        CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
     #define LIGHT_LOOP_END } }
 #else
     #define LIGHT_LOOP_BEGIN(lightCount) \
@@ -82,7 +87,7 @@ Light GetMainLight()
 {
     Light light;
     light.direction = half3(_MainLightPosition.xyz);
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
 #if defined(LIGHTMAP_ON) && defined(LIGHTMAP_SHADOW_MIXING)
     light.distanceAttenuation = _MainLightColor.a;
 #else
@@ -223,7 +228,7 @@ int GetPerObjectLightIndex(uint index)
 // index to a perObjectLightIndex
 Light GetAdditionalLight(uint i, float3 positionWS)
 {
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
     int lightIndex = i;
 #else
     int lightIndex = GetPerObjectLightIndex(i);
@@ -233,7 +238,7 @@ Light GetAdditionalLight(uint i, float3 positionWS)
 
 Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 {
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
     int lightIndex = i;
 #else
     int lightIndex = GetPerObjectLightIndex(i);
@@ -270,7 +275,7 @@ Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientO
 
 int GetAdditionalLightsCount()
 {
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
     // Counting the number of lights in clustered requires traversing the bit list, and is not needed up front.
     return 0;
 #else

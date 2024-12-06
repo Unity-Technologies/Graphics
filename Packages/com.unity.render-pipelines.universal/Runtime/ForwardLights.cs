@@ -219,8 +219,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 m_LightCount -= lightOffset;
 
-                m_DirectionalLightCount = lightOffset;
-                if (lightData.mainLightIndex != -1 && m_DirectionalLightCount != 0) m_DirectionalLightCount -= 1;
+                // If there's 1 or more directional lights, one of them must be the main light
+                m_DirectionalLightCount = lightOffset > 0 ? lightOffset - 1 : 0;
 
                 var visibleLights = lightData.visibleLights.GetSubArray(lightOffset, m_LightCount);
                 var reflectionProbes = renderingData.cullResults.visibleReflectionProbes;
@@ -438,7 +438,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool lightCountCheck = (cameraData.renderer.stripAdditionalLightOffVariants && lightData.supportsAdditionalLights) || additionalLightsCount > 0;
                 cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, lightCountCheck && additionalLightsPerVertex && !m_UseForwardPlus);
                 cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel,  lightCountCheck && !additionalLightsPerVertex && !m_UseForwardPlus);
-                cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, m_UseForwardPlus);
+                cmd.SetKeyword(ShaderGlobalKeywords.ClusterLightLoop, m_UseForwardPlus);
+                cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, m_UseForwardPlus); // Backward compatibility. Deprecated in 6.1.
 
                 bool isShadowMask = lightData.supportsMixedLighting && m_MixedLightingSetup == MixedLightingSetup.ShadowMask;
                 bool isShadowMaskAlways = isShadowMask && QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask;

@@ -1,7 +1,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 
 struct Attributes
@@ -197,7 +197,7 @@ half4 TerrainLitForwardFragment(Varyings input) : SV_Target
     return color;
 }
 
-FragmentOutput TerrainLitGBufferFragment(Varyings input)
+GBufferFragOutput TerrainLitGBufferFragment(Varyings input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -210,5 +210,5 @@ FragmentOutput TerrainLitGBufferFragment(Varyings input)
     InitializeSurfaceData(tex.rgb, tex.a, surfaceData);
     half4 color = UniversalTerrainLit(inputData, tex.rgb, tex.a);
 
-    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingInvalid);
+    return PackGBuffersSurfaceData(surfaceData, inputData, color.rgb);
 }

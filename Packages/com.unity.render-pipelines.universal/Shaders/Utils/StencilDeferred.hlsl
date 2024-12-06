@@ -2,10 +2,10 @@
 #define UNIVERSAL_STENCIL_DEFERRED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DynamicScaling.hlsl"
-#include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
 struct Attributes
 {
@@ -79,53 +79,7 @@ Varyings Vertex(Attributes input)
     return output;
 }
 
-TEXTURE2D_X(_CameraDepthTexture);
-TEXTURE2D_X_HALF(_GBuffer0);
-TEXTURE2D_X_HALF(_GBuffer1);
-TEXTURE2D_X_HALF(_GBuffer2);
-
-
-#if _RENDER_PASS_ENABLED
-    #define GBUFFER0 0
-    #define GBUFFER1 1
-    #define GBUFFER2 2
-    #define GBUFFER3 3
-
-    FRAMEBUFFER_INPUT_X_HALF(GBUFFER0);
-    FRAMEBUFFER_INPUT_X_HALF(GBUFFER1);
-    FRAMEBUFFER_INPUT_X_HALF(GBUFFER2);
-    FRAMEBUFFER_INPUT_X_FLOAT(GBUFFER3);
-
-    #if OUTPUT_SHADOWMASK && (defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS))
-        #define GBUFFER4 4
-        #define GBUFFER5 5
-        TEXTURE2D_X_HALF(_GBuffer4);
-        TEXTURE2D_X_HALF(_GBuffer5);
-        FRAMEBUFFER_INPUT_X_HALF(GBUFFER4);
-        FRAMEBUFFER_INPUT_X_HALF(GBUFFER5);
-    #elif OUTPUT_SHADOWMASK || defined(_WRITE_RENDERING_LAYERS) || defined(_LIGHT_LAYERS)
-        #define GBUFFER4 4
-        TEXTURE2D_X_HALF(_GBuffer4);
-        FRAMEBUFFER_INPUT_X_HALF(GBUFFER4);
-    #endif
-
-#else
-    #ifdef GBUFFER_OPTIONAL_SLOT_1
-        TEXTURE2D_X_HALF(_GBuffer4);
-    #endif
-
-    #ifdef GBUFFER_OPTIONAL_SLOT_2
-        TEXTURE2D_X(_GBuffer5);
-    #endif
-#endif
-
-#ifdef GBUFFER_OPTIONAL_SLOT_3
-TEXTURE2D_X(_GBuffer6);
-#endif
-
 float4x4 _ScreenToWorld[2];
-// 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
-#define my_point_clamp_sampler sampler_PointClamp
 
 float3 _LightPosWS;
 half3 _LightColor;
@@ -140,6 +94,53 @@ int _CookieLightIndex;
 half4 FragWhite(Varyings input) : SV_Target
 {
     return half4(1.0, 1.0, 1.0, 1.0);
+}
+
+// This structure is used in StructuredBuffer.
+// TODO move some of the properties to half storage (color, attenuation, spotDirection, flag to 16bits, occlusionProbeInfo)
+struct PunctualLightData
+{
+    float3 posWS;
+    float radius2;              // squared radius
+    float4 color;
+    float4 attenuation;         // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
+    float3 spotDirection;       // spotLights support
+    int flags;                  // Light flags (enum kLightFlags and LightFlag in C# code)
+    float4 occlusionProbeInfo;
+    uint layerMask;             // Optional light layer mask
+};
+
+Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, int shadowLightIndex, bool materialFlagReceiveShadowsOff)
+{
+    // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
+
+    half4 probesOcclusion = shadowMask;
+
+    Light light;
+
+    float3 lightVector = punctualLightData.posWS - positionWS.xyz;
+    float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
+
+    half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
+
+    // full-float precision required on some platforms
+    float attenuation = DistanceAttenuation(distanceSqr, punctualLightData.attenuation.xy) * AngleAttenuation(punctualLightData.spotDirection.xyz, lightDirection, punctualLightData.attenuation.zw);
+
+    light.direction = lightDirection;
+    light.color = punctualLightData.color.rgb;
+
+    light.distanceAttenuation = attenuation;
+
+    [branch] if (materialFlagReceiveShadowsOff)
+        light.shadowAttenuation = 1.0;
+    else
+    {
+        light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, lightDirection, shadowMask, punctualLightData.occlusionProbeInfo);
+    }
+
+    light.layerMask = punctualLightData.layerMask;
+
+    return light;
 }
 
 half4 SampleAdditionalLightCookieDeferred(int perObjectLightIndex, float3 samplePositionWS)
@@ -257,37 +258,14 @@ half4 DeferredShading(Varyings input) : SV_Target
      }
 #endif
 
-    half4 shadowMask = 1.0;
+    GBufferData gBufferData = UnpackGBuffers(input.positionCS.xy);
 
-    #if _RENDER_PASS_ENABLED
-    float d        = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER3, input.positionCS.xy).x;
-    half4 gbuffer0 = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER0, input.positionCS.xy);
-    half4 gbuffer1 = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER1, input.positionCS.xy);
-    half4 gbuffer2 = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER2, input.positionCS.xy);
-    #if defined(_DEFERRED_MIXED_LIGHTING)
-    shadowMask = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER4, input.positionCS.xy);
-    #endif
-    #else
-    // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
-    // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
-    float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, sampler_PointClamp, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
-    half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, sampler_PointClamp, screen_uv, 0);
-    half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, sampler_PointClamp, screen_uv, 0);
-    half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, sampler_PointClamp, screen_uv, 0);
-    #if defined(_DEFERRED_MIXED_LIGHTING)
-    shadowMask = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_SHADOWMASK), sampler_PointClamp, screen_uv, 0);
-    #endif
-    #endif
-
-    half surfaceDataOcclusion = gbuffer1.a;
-    uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
-
-    half3 color = 0.0.xxx;
+    half3 color = 0.0;
     half alpha = 1.0;
 
-    #if defined(_DEFERRED_MIXED_LIGHTING)
+    #if defined(GBUFFER_FEATURE_SHADOWMASK)
     // If both lights and geometry are static, then no realtime lighting to perform for this combination.
-    [branch] if ((_LightFlags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
+    [branch] if ((_LightFlags & gBufferData.materialFlags) == kMaterialFlagSubtractiveMixedLighting)
         return half4(color, alpha); // Cannot discard because stencil must be updated.
     #endif
 
@@ -303,20 +281,14 @@ half4 DeferredShading(Varyings input) : SV_Target
     #else
     int eyeIndex = 0;
     #endif
-    float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, d, 1.0));
+    float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, gBufferData.depth, 1.0));
     posWS.xyz *= rcp(posWS.w);
 
-    Light unityLight = GetStencilLight(posWS.xyz, screen_uv, shadowMask, materialFlags);
+    Light unityLight = GetStencilLight(posWS.xyz, screen_uv, gBufferData.shadowMask, gBufferData.materialFlags);
 
-    #ifdef _LIGHT_LAYERS
-        #if _RENDER_PASS_ENABLED
-            float renderingLayers = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER4, input.positionCS.xy).x;
-        #else
-    float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), sampler_PointClamp, screen_uv, 0);
-        #endif
-        uint meshRenderingLayers = DecodeMeshRenderingLayer(renderingLayers);
-        [branch] if (!IsMatchingLightLayer(unityLight.layerMask, meshRenderingLayers))
-            return half4(color, alpha); // Cannot discard because stencil must be updated.
+    #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
+    [branch] if (!IsMatchingLightLayer(unityLight.layerMask, gBufferData.meshRenderingLayers))
+        return half4(color, alpha); // Cannot discard because stencil must be updated.
     #endif
 
     #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
@@ -326,24 +298,28 @@ half4 DeferredShading(Varyings input) : SV_Target
         // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
         // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
         // We must also avoid divide-by-0 that the reciprocal can generate.
-        half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
+        half occlusion = aoFactor.indirectAmbientOcclusion < gBufferData.occlusion ? aoFactor.indirectAmbientOcclusion * rcp(gBufferData.occlusion) : 1.0;
         alpha = occlusion;
         #endif
     #endif
 
-    InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
+    InputData inputData = (InputData)0;
+
+    inputData.positionWS = posWS.xyz;
+    inputData.normalWS = gBufferData.normalWS;
+    inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(posWS.xyz);
 
     #if defined(_LIT)
         #if SHADER_API_MOBILE || SHADER_API_SWITCH
         // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
         bool materialSpecularHighlightsOff = false;
         #else
-        bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
+        bool materialSpecularHighlightsOff = (gBufferData.materialFlags & kMaterialFlagSpecularHighlightsOff);
         #endif
-        BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+        BRDFData brdfData = GBufferDataToBRDFData(gBufferData);
         color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
     #elif defined(_SIMPLELIT)
-        SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
+        SurfaceData surfaceData = GBufferDataToSurfaceData(gBufferData);
         half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
         half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
         half smoothness = exp2(10 * surfaceData.smoothness + 1);
@@ -356,29 +332,13 @@ half4 DeferredShading(Varyings input) : SV_Target
     return half4(color, alpha);
 }
 
-half4 FragFog(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    #if _RENDER_PASS_ENABLED
-        float d = LOAD_FRAMEBUFFER_X_INPUT(GBUFFER3, input.positionCS.xy).x;
-    #else
-        float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
-    #endif
-    float eye_z = LinearEyeDepth(d, _ZBufferParams);
-    float clip_z = UNITY_MATRIX_P[2][2] * -eye_z + UNITY_MATRIX_P[2][3];
-    half fogFactor = ComputeFogFactor(clip_z);
-    half fogIntensity = ComputeFogIntensity(fogFactor);
-    return half4(unity_FogColor.rgb, fogIntensity);
-}
-
 half4 FragSSAOOnly(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
     AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
-    half surfaceDataOcclusion = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, sampler_PointClamp, screen_uv, 0).a;
+    half surfaceDataOcclusion = UnpackGBuffers(input.positionCS.xy).occlusion;
     // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
     // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
     // We must also avoid divide-by-0 that the reciprocal can generate.

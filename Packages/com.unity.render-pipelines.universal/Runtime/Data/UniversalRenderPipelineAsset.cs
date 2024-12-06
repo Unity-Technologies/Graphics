@@ -1671,7 +1671,7 @@ namespace UnityEngine.Rendering.Universal
         static class Strings
         {
             public static readonly string notURPRenderer = $"{nameof(GPUResidentDrawer)} Disabled due to some configured Universal Renderers not being {nameof(UniversalRendererData)}.";
-            public static readonly string forwardPlusMissing = $"{nameof(GPUResidentDrawer)} Disabled due to some configured Universal Renderers not supporting Forward+.";
+            public static readonly string renderingModeIncompatible = $"{nameof(GPUResidentDrawer)} Disabled due to some configured Universal Renderers not using the Forward+ or Deferred+ rendering paths.";
         }
 
         /// <inheritdoc/>
@@ -1680,7 +1680,8 @@ namespace UnityEngine.Rendering.Universal
             message = string.Empty;
             severty = LogType.Warning;
 
-            // if any of the renderers are not set to Forward+ return false
+            // Only the URP rendering paths using the cluster light loop (F+ lights & probes) can be used with GRD,
+            // since BiRP-style per-object lights and reflection probes are incompatible with DOTS instancing.
             foreach (var rendererData in m_RendererDataList)
             {
                 if (rendererData is not UniversalRendererData universalRendererData)
@@ -1689,11 +1690,11 @@ namespace UnityEngine.Rendering.Universal
                     return false;
                 }
 
-                if (universalRendererData.renderingMode == RenderingMode.ForwardPlus)
-                    continue;
-
-                message = Strings.forwardPlusMissing;
-                return false;
+                if (!universalRendererData.usesClusterLightLoop)
+                {
+                    message = Strings.renderingModeIncompatible;
+                    return false;
+                }
             }
 
             return true;

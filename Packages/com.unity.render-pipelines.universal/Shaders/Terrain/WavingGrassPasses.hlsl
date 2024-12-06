@@ -2,7 +2,7 @@
 #define UNIVERSAL_WAVING_GRASS_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
 struct GrassVertexInput
@@ -209,7 +209,7 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
 
 // Used for StandardSimpleLighting shader
 #ifdef TERRAIN_GBUFFER
-FragmentOutput LitPassFragmentGrass(GrassVertexOutput input)
+GBufferFragOutput LitPassFragmentGrass(GrassVertexOutput input)
 #else
 half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 #endif
@@ -226,7 +226,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 
 #ifdef TERRAIN_GBUFFER
     half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
-    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
+    return PackGBuffersSurfaceData(surfaceData, inputData, color.rgb);
 #else
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);

@@ -71,6 +71,8 @@ namespace UnityEditor.Rendering.Universal
         SoftShadowsHigh = (1L << 48),
         AlphaOutput = (1L << 49),
         StencilLODCrossFade = (1L << 50),
+        DeferredPlus = (1L << 51),
+
     }
 
     [Flags]
@@ -214,6 +216,8 @@ namespace UnityEditor.Rendering.Universal
             public bool needsReflectionProbeBoxProjection;
             public bool needsSHVertexForSHAuto;
             public RenderingMode renderingMode;
+            public bool needsDeferredLighting => renderingMode == RenderingMode.Deferred || renderingMode == RenderingMode.DeferredPlus;
+            public bool needsClusterLightLoop => renderingMode == RenderingMode.ForwardPlus || renderingMode == RenderingMode.DeferredPlus;
         }
 
         // Called before the build is started...
@@ -578,9 +582,9 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsSoftShadowsQualityLevels     = rsd.needsSoftShadows && s_UseSoftShadowQualityLevelKeywords;
             rsd.needsShadowsOff                   = !renderer.stripShadowsOffVariants;
             rsd.needsAdditionalLightsOff          = s_KeepOffVariantForAdditionalLights || !renderer.stripAdditionalLightOffVariants;
-            rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred && urpAsset.useRenderingLayers);
-            rsd.needsGBufferAccurateNormals       = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred && universalRenderer.accurateGbufferNormals);
-            rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred);
+            rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && urpAsset.useRenderingLayers);
+            rsd.needsGBufferAccurateNormals       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && universalRenderer.accurateGbufferNormals);
+            rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.needsDeferredLighting);
             rsd.needsReflectionProbeBlending      = urpAsset.reflectionProbeBlending;
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
             rsd.needsProcedural                   = NeedsProceduralKeyword(ref rsd);
@@ -604,6 +608,9 @@ namespace UnityEditor.Rendering.Universal
                 case RenderingMode.ForwardPlus:
                     shaderFeatures |= ShaderFeatures.ForwardPlus;
                     break;
+                case RenderingMode.DeferredPlus:
+                    shaderFeatures |= ShaderFeatures.DeferredPlus;
+                    break;
                 case RenderingMode.Deferred:
                     shaderFeatures |= ShaderFeatures.DeferredShading;
                     break;
@@ -624,11 +631,10 @@ namespace UnityEditor.Rendering.Universal
             if (rendererRequirements.needsAdditionalLightsOff)
                 shaderFeatures |= ShaderFeatures.AdditionalLightsKeepOffVariants;
 
-            // Forward+
-            if (rendererRequirements.renderingMode == RenderingMode.ForwardPlus)
+            // Additional light clustering features (Forward+/Deferred+)
+            if (rendererRequirements.needsClusterLightLoop)
             {
                 shaderFeatures |= ShaderFeatures.AdditionalLightsKeepOffVariants;
-                shaderFeatures |= ShaderFeatures.ForwardPlus;
                 shaderFeatures &= ~(ShaderFeatures.AdditionalLightsPixel | ShaderFeatures.AdditionalLightsVertex);
             }
 
@@ -696,7 +702,7 @@ namespace UnityEditor.Rendering.Universal
 
             bool usesRenderingLayers = false;
             RenderingLayerUtils.Event renderingLayersEvent = RenderingLayerUtils.Event.Opaque;
-            bool isDeferredRenderer = (rendererRequirements.renderingMode == RenderingMode.Deferred);
+
             for (int rendererFeatureIndex = 0; rendererFeatureIndex < rendererFeatures.Count; rendererFeatureIndex++)
             {
                 ScriptableRendererFeature rendererFeature = rendererFeatures[rendererFeatureIndex];
@@ -717,7 +723,7 @@ namespace UnityEditor.Rendering.Universal
                         rendererRequirements.msaaSampleCount, out RenderingLayerUtils.Event rendererEvent, out _))
                 {
                     usesRenderingLayers = true;
-                    RenderingLayerUtils.CombineRendererEvents(isDeferredRenderer, rendererRequirements.msaaSampleCount, rendererEvent, ref renderingLayersEvent);
+                    RenderingLayerUtils.CombineRendererEvents(rendererRequirements.needsDeferredLighting, rendererRequirements.msaaSampleCount, rendererEvent, ref renderingLayersEvent);
                 }
 
                 // Screen Space Shadows...
@@ -778,7 +784,7 @@ namespace UnityEditor.Rendering.Universal
                     }
                     else
                     {
-                        DecalTechnique technique = decal.GetTechnique(isDeferredRenderer, rendererRequirements.needsGBufferAccurateNormals, false);
+                        DecalTechnique technique = decal.GetTechnique(rendererRequirements.needsDeferredLighting, rendererRequirements.needsGBufferAccurateNormals, false);
                         switch (technique)
                         {
                             case DecalTechnique.DBuffer:
@@ -810,7 +816,7 @@ namespace UnityEditor.Rendering.Universal
                     shaderFeatures |= ShaderFeatures.OpaqueWriteRenderingLayers;
                     shaderFeatures |= ShaderFeatures.DepthNormalPassRenderingLayers;
                 }
-                else if (isDeferredRenderer)
+                else if (rendererRequirements.needsDeferredLighting)
                 {
                     // Rendering layers in both Depth Normal and GBuffer passes are needed
                     // as some object might be rendered in forward and others in deferred.
@@ -892,6 +898,7 @@ namespace UnityEditor.Rendering.Universal
             )
         {
             bool isAssetUsingForwardPlus = IsFeatureEnabled(shaderFeatures, ShaderFeatures.ForwardPlus);
+            bool isAssetUsingDeferredPlus = IsFeatureEnabled(shaderFeatures, ShaderFeatures.DeferredPlus);
             bool isAssetUsingDeferred = IsFeatureEnabled(shaderFeatures, ShaderFeatures.DeferredShading);
 
             ShaderPrefilteringData spd = new();
@@ -908,7 +915,7 @@ namespace UnityEditor.Rendering.Universal
             // Rendering Modes
             // Check if only Deferred is being used
             spd.deferredPrefilteringMode = PrefilteringMode.Remove;
-            if (isAssetUsingDeferred)
+            if (isAssetUsingDeferred || isAssetUsingDeferredPlus)
             {
                 // Only Deferred being used...
                 if (!isAssetUsingForward && !isAssetUsingForwardPlus)
@@ -919,7 +926,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Check if only Forward+ is being used
             spd.forwardPlusPrefilteringMode = PrefilteringMode.Remove;
-            if (isAssetUsingForwardPlus)
+            if (isAssetUsingForwardPlus || isAssetUsingDeferredPlus)
             {
                 // Only Forward Plus being used...
                 if (!isAssetUsingForward && !isAssetUsingDeferred)

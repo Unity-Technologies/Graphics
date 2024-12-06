@@ -56,6 +56,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [SerializeField]
+        [ResourcePath("Shaders/Utils/ClusterDeferred.shader")]
+        private Shader m_ClusterDeferred;
+
+        /// <summary>
+        /// Cluster Deferred shader.
+        /// </summary>
+        public Shader clusterDeferred
+        {
+            get => m_ClusterDeferred;
+            set => this.SetValueAndNotify(ref m_ClusterDeferred, value, nameof(m_ClusterDeferred));
+        }
+
+        [SerializeField]
         [ResourcePath("Shaders/Utils/StencilDitherMaskSeed.shader")]
         private Shader m_StencilDitherMaskSeedPS;
 

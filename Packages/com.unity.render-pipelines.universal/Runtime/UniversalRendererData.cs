@@ -30,13 +30,15 @@ namespace UnityEngine.Rendering.Universal
     public enum RenderPathCompatibility
     {
         /// <summary>Forward Rendering Path</summary>
-        Forward     = 1 << 0,
+        Forward      = 1 << 0,
         /// <summary>Deferred Rendering Path</summary>
-        Deferred    = 1 << 1,
+        Deferred     = 1 << 1,
         /// <summary>Forward+ Rendering Path</summary>
-        ForwardPlus = 1 << 2,
+        ForwardPlus  = 1 << 2,
+        /// <summary>Forward+ Rendering Path</summary>
+        DeferredPlus = 1 << 3,
         /// <summary>All Rendering Paths</summary>
-        All         = Forward | Deferred | ForwardPlus
+        All         = Forward | Deferred | ForwardPlus | DeferredPlus
     }
 
     [AttributeUsage(AttributeTargets.Field)]
@@ -146,7 +148,9 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.ApplyRulesIfNotGraphicsAPI(GraphicsDeviceType.Vulkan)]
         [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings._GBUFFER_NORMALS_OCT)]
 #endif
-        [SerializeField] bool m_AccurateGbufferNormals = false;
+        [SerializeField]
+        bool m_AccurateGbufferNormals = false;
+
         [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
 
         /// <inheritdoc/>
@@ -326,6 +330,20 @@ namespace UnityEngine.Rendering.Universal
                 m_IntermediateTextureMode = value;
             }
         }
+
+        /// <summary>
+        /// Returns true if the renderer uses a deferred lighting pass and GBuffers.
+        /// This is true for the Deferred and Deferred+ rendering paths.
+        /// </summary>
+        public bool usesDeferredLighting => m_RenderingMode == RenderingMode.Deferred ||
+                                            m_RenderingMode == RenderingMode.DeferredPlus;
+
+        /// <summary>
+        /// Returns true if the renderer uses a spatially clustered/tiled light list.
+        /// This is true for the Forward+ and Deferred+ rendering paths.
+        /// </summary>
+        public bool usesClusterLightLoop => m_RenderingMode == RenderingMode.ForwardPlus ||
+                                            m_RenderingMode == RenderingMode.DeferredPlus;
 
         /// <inheritdoc/>
         protected override void OnEnable()

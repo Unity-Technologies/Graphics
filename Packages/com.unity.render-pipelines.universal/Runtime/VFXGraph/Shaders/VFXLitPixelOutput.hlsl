@@ -60,7 +60,7 @@ float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, Surfac
 #elif (SHADERPASS == SHADERPASS_GBUFFER)
 
 #ifndef VFX_SHADERGRAPH
-void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 normalWS, const VFXUVData uvData, out FragmentOutput gBuffer)
+void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 normalWS, const VFXUVData uvData, out GBufferFragOutput gBuffer)
 {
     SurfaceData surfaceData;
     InputData inputData;
@@ -69,12 +69,15 @@ void VFXComputePixelOutputToGBuffer(const VFX_VARYING_PS_INPUTS i, const float3 
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
-    gBuffer = BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
+    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
+                                             inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
+                                             inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
+
+    gBuffer = PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
 }
 
 #else
-void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, const float3 normalWS, out FragmentOutput gBuffer)
+void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, SurfaceData surfaceData, const float3 normalWS, out GBufferFragOutput gBuffer)
 {
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
@@ -86,8 +89,11 @@ void VFXComputePixelOutputToGBufferShaderGraph(const VFX_VARYING_PS_INPUTS i, Su
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
-    gBuffer = BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
+    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0,
+                                                 inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
+                                                 inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
+
+    gBuffer = PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
 }
 
 #endif

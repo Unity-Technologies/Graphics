@@ -159,11 +159,17 @@ namespace UnityEditor.Rendering.Universal
 
         private static bool HasCorrectLightingModes(UniversalRenderPipelineAsset asset)
         {
+            // Only the URP rendering paths using the cluster light loop (F+ lights & probes) can be used with GRD,
+            // since BiRP-style per-object lights and reflection probes are incompatible with DOTS instancing.
             foreach (var rendererData in asset.m_RendererDataList)
             {
-                if (rendererData is not UniversalRendererData { renderingMode: RenderingMode.ForwardPlus })
+                if (rendererData is not UniversalRendererData universalRendererData)
+                    return false;
+
+                if (!universalRendererData.usesClusterLightLoop)
                     return false;
             }
+
             return true;
         }
 
