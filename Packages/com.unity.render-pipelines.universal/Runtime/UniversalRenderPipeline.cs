@@ -850,6 +850,8 @@ namespace UnityEngine.Rendering.Universal
                 // Initialize all the data types required for rendering.
                 UniversalLightData lightData;
                 UniversalShadowData shadowData;
+                CullContextData cullData;
+
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
                     CreateUniversalResourceData(frameData);
@@ -857,6 +859,7 @@ namespace UnityEngine.Rendering.Universal
                     shadowData = CreateShadowData(frameData, asset, isForwardPlus);
                     CreatePostProcessingData(frameData, asset);
                     CreateRenderingData(frameData, asset, cmd, isForwardPlus, cameraData.renderer);
+                    cullData = CreateCullContextData(frameData, context);
                 }
 
                 RenderingData legacyRenderingData = new RenderingData(frameData);
@@ -1763,6 +1766,13 @@ namespace UnityEngine.Rendering.Universal
             shadowData.supportsSoftShadows = urpAsset.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
 
             return shadowData;
+        }
+
+        static CullContextData CreateCullContextData(ContextContainer frameData, ScriptableRenderContext context)
+        {
+            var cullData = frameData.Create<CullContextData>();
+            cullData.SetRenderContext(context);
+            return cullData;
         }
 
         private static Vector3 GetMainLightCascadeSplit(int mainLightShadowCascadesCount, UniversalRenderPipelineAsset urpAsset)
