@@ -1,0 +1,38 @@
+{
+    "introduction": 
+	"""Welcome to the Water System Samples.
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/water.html">Water System</a> allows you to add water to your scenes.
+
+	This scene showcases the use of the Water Surface caustics texture using Shader Graph.
+	
+	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
+	
+<h1>Custom Pass Triplanar Caustics</h1>
+	
+• The <link="Custom Pass Triplanar Caustics">Custom Pass</link> basically samples the caustics texture passed by the <link="BindCaustics.cs">script</link> on the <link="Water">Water Surface</link> 3 times to project it in every axis (X, Y, Z)
+• Then, the output is attenuated in the -Y direction, to avoid projecting caustics on flat surfaces facing up. 
+• Also, the absolute world position is used to avoid projecting caustics below the water surface since it's already taken care of by the water system. 
+• Lastly, to simulate range attenuation, a simple distance from a center point to mask caustics outside of this sphere
+
+You can open the <link="SG_CustomPassTriplanarCaustics.shadergraph">Custom Pass Shader Graph</link> for more details.
+
+<h1>Custom Local Volumetric Fog</h1>
+
+• To simulate light rays bouncing on the water surface, a  <link="Local Volumetric Fog">Local Volumetric Fog </link> with a <link="SG_LocalVolumetricFogCaustics.mat">custom material</link> is used.
+• This shader, simply sample the caustics texture passed by the <link="BindCaustics.cs">script</link> on the <link="Water">Water Surface</link> using absolute world position node.
+	  
+You can open the <link="SG_LocalVolumetricFogCaustics.shadergraph">Local Volumetric Fog Shader Graph</link> for more details.
+
+<h1>Water Drops</h1>
+
+<i>This example works only in play mode.</i>
+
+• First, a simple <link="DropsManager.cs">animation script</link> is attached to the <link="WaterDrop">WaterDrop</link> gameobject animating a falling sphere. 
+• Once the sphere fall into the water, the <link="Water Deformation">Water Deformation</link> gameobject is activated and propagate a deformation ripple on the water surface. 
+• Lastly, the <link="DecalProjector">Decal Projector</link> uses the deformation and caustics texture from the water surface to project caustics on the wall. 
+	
+You can open the <link="SG_DecalDeformation.shadergraph">Decal Shader Graph</link> for more details.
+
+""",
+    "samples": []	
+}
