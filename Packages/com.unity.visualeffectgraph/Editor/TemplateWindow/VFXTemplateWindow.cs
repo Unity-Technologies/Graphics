@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+
 using Unity.UI.Builder;
 using UnityEditor.Experimental;
+using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.UI;
 using UnityEditor.VFX.UI;
 
 using UnityEngine;
@@ -37,6 +41,7 @@ namespace UnityEditor.VFX
             public string header { get; }
         }
 
+        private const string LearningSampleName = "Learning Templates";
         private const string VFXTemplateWindowDocUrl = "https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@{0}/manual/Templates-window.html";
         private const string BuiltInCategory = "Default VFX Graph Templates";
         private const string EmptyTemplateName = "Empty VFX";
@@ -44,6 +49,7 @@ namespace UnityEditor.VFX
         private const string LastSelectedGuidKey = "VFXTemplateWindow.LastSelectedGuid";
         private const string CreateNewVFXAssetTitle = "Create new VFX Asset";
         private const string InsertTemplateTitle = "Insert a template into current VFX Asset";
+        private const float PackageManagerTimeout = 5f; // 5s
 
         private static readonly Dictionary<CreateMode, string> s_ModeToTitle = new ()
         {
@@ -69,6 +75,7 @@ namespace UnityEditor.VFX
         private string m_LastSelectedTemplateGuid;
         private VFXView m_VfxView;
         private VFXTemplateDescriptor m_SelectedTemplate;
+        private Button installButton;
 
         private enum CreateMode
         {
@@ -107,6 +114,10 @@ namespace UnityEditor.VFX
             rootVisualElement.name = "VFXTemplateWindowRoot";
             rootVisualElement.Q<Button>("CreateButton").clicked += OnCreate;
             rootVisualElement.Q<Button>("CancelButton").clicked += OnCancel;
+
+            installButton = rootVisualElement.Q<Button>("InstallButton");
+            installButton.clicked += OnInstall;
+            installButton.enabledSelf = TryFindSample(LearningSampleName, out var sample) && !sample.isImported;
 
             m_CustomTemplateIcon = EditorGUIUtility.LoadIcon(Path.Combine(VisualEffectGraphPackageInfo.assetPackagePath, "Editor/Templates/UI/CustomVFXGraph@256.png"));
 
@@ -168,7 +179,7 @@ namespace UnityEditor.VFX
 
         private void OnBeforeAssemblyReload()
         {
-            this.Close();
+            Close();
         }
 
         private void OnDestroy()
@@ -183,6 +194,14 @@ namespace UnityEditor.VFX
             Close();
         }
 
+        private void OnInstall()
+        {
+            if (TryFindSample(LearningSampleName, out var samplePackage))
+            {
+                installButton.enabledSelf = !samplePackage.Import(Sample.ImportOptions.HideImportWindow | Sample.ImportOptions.OverridePreviousImports);
+            }
+        }
+
         private void OnCreate()
         {
             var template = m_ListOfTemplates.selectedIndex != -1 ? (VFXTemplateDescriptor)m_ListOfTemplates.selectedItem : m_SelectedTemplate;
@@ -192,6 +211,42 @@ namespace UnityEditor.VFX
             VFXAnalytics.GetInstance().OnSystemTemplateCreated(template.name);
             m_VfxView = null;
             m_VFXAssetCreationCallback = null;
+        }
+
+        private bool TryFindSample(string sampleName, out Sample sample)
+        {
+            var startTime = Time.time;
+            var searchRequest = Client.Search(VisualEffectGraphPackageInfo.name, true);
+            while (!searchRequest.IsCompleted && Time.time - startTime < PackageManagerTimeout)
+            {
+                Thread.Sleep(20);
+            }
+
+            if (searchRequest is { Result: { Length: 1 }, IsCompleted: true } && searchRequest.Result[0] is { } vfxPackageInfo)
+            {
+                // Workaround for UUM-63664
+                foreach (var extension in PackageManagerExtensions.Extensions)
+                {
+                    extension.OnPackageSelectionChange(vfxPackageInfo);
+                }
+
+                foreach (var samplePackage in Sample.FindByPackage(VisualEffectGraphPackageInfo.name, null))
+                {
+                    if (string.Compare(samplePackage.displayName, sampleName, StringComparison.OrdinalIgnoreCase) ==
+                        0)
+                    {
+                        sample = samplePackage;
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Could not determine if the Learning Sample package is installed");
+            }
+
+            sample = default;
+            return false;
         }
 
         private void CreateNewVisualEffect(string templatePath, Action<string> userCallback)
@@ -238,33 +293,24 @@ namespace UnityEditor.VFX
 
         private VFXViewWindow GetViewWindow() => m_VfxView != null ? VFXViewWindow.GetWindow(m_VfxView) : null;
 
-        private void OnSelectionChanged(IEnumerable<object> obj)
+        private void OnSelectionChanged(IEnumerable<object> newSelection)
         {
-            if (obj == null)
-                throw new ArgumentNullException(nameof(obj));
+            foreach (VFXTemplateDescriptor template in newSelection)
+            {
+                m_SelectedTemplate = template;
+                m_DetailsTitle.text = template.name;
+                m_DetailsDescription.text = template.description;
+                m_LastSelectedTemplateGuid = template.assetGuid;
+                m_LastSelectedIndex = m_ListOfTemplates.selectedIndex;
+                // Maybe set a placeholder screenshot when null
+                m_DetailsScreenshot.image = template.thumbnail;
 
-            var list = new List<object>(obj);
-            if (list.Count == 1)
-            {
-                if (list[0] is VFXTemplateDescriptor template)
-                {
-                    m_SelectedTemplate = template;
-                    m_DetailsTitle.text = template.name;
-                    m_DetailsDescription.text = template.description;
-                    m_LastSelectedTemplateGuid = template.assetGuid;
-                    m_LastSelectedIndex = m_ListOfTemplates.selectedIndex;
-                    m_DetailsScreenshot.image = template.thumbnail;
-                    // Maybe set a placeholder screenshot when null
-                }
-                else
-                {
-                    m_ListOfTemplates.selectedIndex = m_LastSelectedIndex;
-                }
+                // We expect only one item to be selected
+                return;
             }
-            else
-            {
-                throw new NotSupportedException("Cannot select multiple templates");
-            }
+
+            // Reach here when the selection is empty
+            m_ListOfTemplates.selectedIndex = m_LastSelectedIndex;
         }
 
         private void BindTemplateItem(VisualElement item, int index)

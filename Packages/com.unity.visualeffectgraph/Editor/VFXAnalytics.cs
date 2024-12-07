@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 using UnityEditor.Build;
@@ -183,7 +182,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        const string k_PackageName = "com.unity.visualeffectgraph";
         const string k_AdditionalSamples = "VisualEffectGraph Additions";
         const string k_AdditionalHelpers = "OutputEvent Helpers";
 
@@ -440,7 +438,7 @@ namespace UnityEditor.VFX
 
         private bool HasPackage(string sampleName)
         {
-            var sample = Sample.FindByPackage(k_PackageName, null).SingleOrDefault(x => x.displayName == sampleName);
+            var sample = Sample.FindByPackage(VisualEffectGraphPackageInfo.name, null).SingleOrDefault(x => x.displayName == sampleName);
             return sample.isImported;
         }
 

@@ -30,6 +30,10 @@
         </ui:VisualElement>
     </ui:TwoPaneSplitView>
     <ui:VisualElement name="FooterPanel">
+        <ui:Button name="InstallButton"
+                   text="Install learning templates"
+                   tooltip="Imports learning templates featuring visual effects and examples that showcase the functionalities and capabilities of the VFX Graph"
+                   />
         <ui:Button name="CancelButton"
                    text="Cancel"
                    display-tooltip-when-elided="true"
