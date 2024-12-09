@@ -1282,6 +1282,10 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.customBufferFormat, Styles.customBufferFormatContent);
+
+                // VRS is consumed only by custom passes for the time being; put it dependent in the settings too
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVariableRateShading, Styles.supportVariableRateShadingContent);
+
                 --EditorGUI.indentLevel;
             }
 

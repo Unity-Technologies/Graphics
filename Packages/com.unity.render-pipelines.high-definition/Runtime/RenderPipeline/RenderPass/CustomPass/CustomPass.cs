@@ -92,6 +92,11 @@ namespace UnityEngine.Rendering.HighDefinition
         protected virtual bool executeInSceneView => true;
 
         /// <summary>
+        /// True if you want your custom pass to enable and set variable rate shading (VRS) texture. False for regular passes.
+        /// </summary>
+        protected virtual bool enableVariableRateShading => false;
+
+        /// <summary>
         /// Used to select the target buffer when executing the custom pass
         /// </summary>
         public enum TargetBuffer
@@ -146,6 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBufferRG;
             public TextureHandle motionVectorBufferRG;
             public TextureHandle renderingLayerMaskRG;
+            public TextureHandle shadingRateImageRG;
             public BufferHandle waterLineRG;
         }
 
@@ -182,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesGlobal shaderVariablesGlobal;
         }
 
-        RenderTargets ReadRenderTargets(in RenderGraphBuilder builder, in RenderTargets targets)
+        RenderTargets ReadRenderTargets(in RenderGraphBuilder builder, in RenderTargets targets, HDCamera hdCamera)
         {
             RenderTargets output = new RenderTargets();
 
@@ -210,6 +216,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 output.renderingLayerMaskRG = builder.ReadTexture(targets.renderingLayerMaskRG);
             if (targets.waterLineRG.IsValid())
                 output.waterLineRG = builder.ReadBuffer(targets.waterLineRG);
+            if (targets.shadingRateImageRG.IsValid() && hdCamera.vrsEnabled)
+                output.shadingRateImageRG = builder.ReadTexture(targets.shadingRateImageRG);
 
             return output;
         }
@@ -228,10 +236,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.hdCamera = hdCamera;
                 passData.shaderVariablesGlobal = HDRenderPipeline.currentPipeline.GetShaderVariablesGlobalCB();
 
-                this.currentRenderTarget = ReadRenderTargets(builder, targets);
+                this.currentRenderTarget = ReadRenderTargets(builder, targets, hdCamera);
 
                 builder.SetRenderFunc(
-                    (ExecutePassData data, RenderGraphContext ctx) =>
+                    static (ExecutePassData data, RenderGraphContext ctx) =>
                     {
                         var customPass = data.customPass;
 
@@ -256,6 +264,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (customPass.currentRenderTarget.customDepthBuffer.IsValueCreated)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, customPass.currentRenderTarget.customDepthBuffer.Value);
 
+                        // Imported and allocated in Prepass.
+                        RTHandle sriHandle = data.hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Vrs);
+
+                        bool applyVrs = false;
+                        if (customPass.enableVariableRateShading && sriHandle != null)
+                        {
+                            // NOTE: VRS must be set before setting the target. Vulkan VRS is part of a sub-pass which is created on setting the target.
+                            CoreUtils.SetShadingRateImage(ctx.cmd, sriHandle);
+                            CoreUtils.SetShadingRateCombiner(ctx.cmd, ShadingRateCombinerStage.Fragment, ShadingRateCombiner.Override);
+                            applyVrs = true;
+                        }
+
                         if (!customPass.isSetup)
                         {
                             customPass.Setup(ctx.renderContext, ctx.cmd);
@@ -277,12 +297,21 @@ namespace UnityEngine.Rendering.HighDefinition
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
                             ctx.renderGraphPool.GetTempMaterialPropertyBlock(),
+                            sriHandle,
                             customPass.injectionPoint, data.shaderVariablesGlobal
                         );
 
                         customPass.isExecuting = true;
                         customPass.Execute(customPassCtx);
                         customPass.isExecuting = false;
+
+                        if (applyVrs)
+                        {
+                            // Set back default variable shading rate states
+                            // NOTE: VRS must be set before setting the target.
+                            CoreUtils.SetShadingRateImage(ctx.cmd, RenderTargetIdentifier.Invalid);
+                            CoreUtils.SetShadingRateCombiner(ctx.cmd, ShadingRateCombinerStage.Fragment, ShadingRateCombiner.Keep);
+                        }
 
                         // Set back the camera color buffer if we were using a custom buffer as target
                         if (customPass.targetDepthBuffer != TargetBuffer.Camera)

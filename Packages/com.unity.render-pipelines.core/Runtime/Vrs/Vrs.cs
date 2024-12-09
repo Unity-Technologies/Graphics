@@ -273,5 +273,120 @@ namespace UnityEngine.Rendering
 
             cmd.DispatchCompute(conversionPassData.computeShader, conversionPassData.kernelIndex, conversionPassData.dispatchSize.x, conversionPassData.dispatchSize.y, 1);
         }
+
+        /// <summary>
+        /// Converts a color mask texture to a shading rate image.
+        /// Use this function to perform the conversion without the RenderGraph.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for the compute dispatch.</param>
+        /// <param name="sriDestination">Shading rate images to convert to.</param>
+        /// <param name="colorMaskSource">Texture to convert from.</param>
+        /// <param name="yFlip">True if shading rate image should be generated flipped.</param>
+        public static void ColorMaskTextureToShadingRateImageDispatch(CommandBuffer cmd, RTHandle sriDestination, Texture colorMaskSource, bool yFlip = true)
+        {
+            if (sriDestination == null)
+            {
+                Debug.LogError("ColorMaskTextureToShadingRateImageDispatch: VRS destination shading rate texture is null.");
+                return;
+            }
+
+            if (colorMaskSource == null)
+            {
+                Debug.LogError("ColorMaskTextureToShadingRateImageDispatch: VRS source color texture is null.");
+                return;
+            }
+
+            if (!IsInitialized())
+            {
+                Debug.LogError("ColorMaskTextureToShadingRateImageDispatch: VRS is not initialized.");
+                return;
+            }
+
+            var computeShader = s_VrsResources.textureComputeShader;
+            var kernelIndex = s_VrsResources.textureReduceKernel;
+            var colorLutBuffer = s_VrsResources.conversionLutBuffer;
+            var validatedShadingRateFragmentSizeBuffer = s_VrsResources.validatedShadingRateFragmentSizeBuffer;
+
+            int sriDestWidth = sriDestination.rt.width;
+            int sriDestHeight = sriDestination.rt.height;
+            var scaleBias = new Vector4()
+            {
+                x = 1.0f / (sriDestWidth * s_VrsResources.tileSize.x),
+                y = 1.0f / (sriDestHeight * s_VrsResources.tileSize.y),
+                z = sriDestWidth,
+                w = sriDestHeight,
+            };
+
+            var dispatchSize = new Vector2Int(sriDestWidth, sriDestHeight);
+
+            var disableTexture2dXArray = new LocalKeyword(computeShader, VrsShaders.k_DisableTexture2dXArray);
+            if (colorMaskSource?.dimension == TextureDimension.Tex2DArray)
+                cmd.DisableKeyword(computeShader, disableTexture2dXArray);
+            else
+                cmd.EnableKeyword(computeShader, disableTexture2dXArray);
+
+            var yFlipKeyword = new LocalKeyword(computeShader, VrsShaders.k_YFlip);
+            if (yFlip)
+                cmd.EnableKeyword(computeShader, yFlipKeyword);
+            else
+                cmd.DisableKeyword(computeShader, yFlipKeyword);
+
+            cmd.SetComputeTextureParam(computeShader, kernelIndex, VrsShaders.s_MainTex, colorMaskSource);
+            cmd.SetComputeBufferParam(computeShader, kernelIndex, VrsShaders.s_MainTexLut, colorLutBuffer);
+            cmd.SetComputeBufferParam(computeShader, kernelIndex, VrsShaders.s_ShadingRateNativeValues, validatedShadingRateFragmentSizeBuffer);
+            cmd.SetComputeTextureParam(computeShader, kernelIndex, VrsShaders.s_ShadingRateImage, sriDestination);
+            cmd.SetComputeVectorParam(computeShader, VrsShaders.s_ScaleBias, scaleBias);
+
+            cmd.DispatchCompute(computeShader, kernelIndex, dispatchSize.x, dispatchSize.y, 1);
+        }
+
+        /// <summary>
+        /// Converts a shading rate image to a color mask texture.
+        /// Use this function to perform the conversion without the RenderGraph.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for the compute dispatch.</param>
+        /// <param name="sriSource">Shading rate images to convert from.</param>
+        /// <param name="colorMaskDestination">Texture to convert to.</param>
+        public static void ShadingRateImageToColorMaskTextureBlit(CommandBuffer cmd, RTHandle sriSource, RTHandle colorMaskDestination)
+        {
+            if (sriSource == null)
+            {
+                Debug.LogError("ShadingRateImageToColorMaskTextureBlit: VRS source shading rate texture is null.");
+                return;
+            }
+
+            if (colorMaskDestination == null)
+            {
+                Debug.LogError("ShadingRateImageToColorMaskTextureBlit: VRS destination color texture is null.");
+                return;
+            }
+
+            if(!IsInitialized())
+            {
+                Debug.LogError("ShadingRateImageToColorMaskTextureBlit: VRS is not initialized.");
+                return;
+            }
+
+            RTHandle source = sriSource;
+            RTHandle destination = colorMaskDestination;
+
+            var material = s_VrsResources.visualizationMaterial;
+            var lut = s_VrsResources.visualizationLutBuffer;
+            Vector4 visualizationParams = new Vector4(
+                1.0f / s_VrsResources.tileSize.x,
+                1.0f / s_VrsResources.tileSize.y,
+                0,
+                0);
+
+            material.SetTexture(VrsShaders.s_ShadingRateImage, source);
+            material.SetBuffer(VrsShaders.s_VisualizationLut, lut);
+            material.SetVector(VrsShaders.s_VisualizationParams, visualizationParams);
+
+            CoreUtils.SetRenderTarget(cmd, destination);
+            Blitter.BlitTexture(cmd,
+                new Vector4(1, 1, 0, 0),
+                material,
+                0);
+        }
     }
 }

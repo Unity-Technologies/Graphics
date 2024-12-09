@@ -183,6 +183,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP renders custom passes contained in CustomPassVolume components.</summary>
         [FrameSettingsField(0, autoName: CustomPass, customOrderInGroup: 11, tooltip: "When enabled, HDRP renders custom passes contained in CustomPassVolume components.")]
         CustomPass = 6,
+        /// <summary>When enabled, HDRP renders custom passes contained in CustomPassVolume components.</summary>
+        [FrameSettingsField(0, autoName: VariableRateShading, positiveDependencies: new[] { CustomPass }, customOrderInGroup: 12, tooltip: "When enabled, HDRP updates variable rate shading for Cameras using these Frame Settings.")]
+        VariableRateShading = 7,
         /// <summary>When enabled, HDRP can use virtual texturing.</summary>
         [FrameSettingsField(0, autoName: VirtualTexturing, customOrderInGroup: 105, tooltip: "Virtual Texturing needs to be enabled first in Project Settings > Player > Other Settings > Virtual Texturing.")]
         VirtualTexturing = 68,
@@ -756,6 +759,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;
+
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.VariableRateShading] &= renderPipelineSettings.supportCustomPass;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.VariableRateShading] &= renderPipelineSettings.supportVariableRateShading;
+            sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.VariableRateShading] &= camera.cameraType == CameraType.Game;
 
             sanitizedFrameSettings.bitDatas[(uint)FrameSettingsField.CustomPostProcess] &= camera.cameraType != CameraType.Preview;
 

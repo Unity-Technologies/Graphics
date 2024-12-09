@@ -718,6 +718,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
 
+            VrsInitializeResources();
+
 #if UNITY_EDITOR
             GPUInlineDebugDrawer.Initialize();
 #endif
@@ -934,6 +936,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            VrsDisposeResources();
+
             Graphics.ClearRandomWriteTargets();
             Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();

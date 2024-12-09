@@ -2281,6 +2281,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 normalBufferRG = prepassOutput.resolvedNormalBuffer,
                 motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
                 renderingLayerMaskRG = renderingLayerMaskBuffer,
+                shadingRateImageRG = prepassOutput.shadingRateImage,
                 waterLineRG = prepassOutput.waterLine,
             };
 

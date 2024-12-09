@@ -945,6 +945,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/9x_Other/9703_SampleColorBuffer_InjectionPoints_Scaling.unity
     guid: 390b18d2a061ccb498f4162587223a5e
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9704_CustomPass_VRS.unity
+    guid: 0273230a74b7d7c469a48677e882811c
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9800_Compositor.unity
     guid: 708bd21bc204d2342bc1702a5a6de1d3
   - enabled: 1

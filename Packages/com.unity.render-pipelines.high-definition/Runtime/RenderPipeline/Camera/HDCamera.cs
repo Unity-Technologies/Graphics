@@ -1856,6 +1856,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: format, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_{1}_{2}", id, name, frameIndex));
             }
         }
+
+        internal bool vrsEnabled => frameSettings.IsEnabled(FrameSettingsField.VariableRateShading) &&
+                                    camera.cameraType == CameraType.Game &&
+                                    !xr.enabled;
         #endregion
 
 
