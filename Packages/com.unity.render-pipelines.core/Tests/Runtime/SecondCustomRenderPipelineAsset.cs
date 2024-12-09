@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -11,7 +12,7 @@ namespace UnityEngine.Rendering.Tests
 
     class SecondCustomRenderPipeline : RenderPipeline
     {
-        protected override void Render(ScriptableRenderContext context, Camera[] cameras)
+        protected override void Render(ScriptableRenderContext context, List<Camera> cameras)
         {
         }
     }

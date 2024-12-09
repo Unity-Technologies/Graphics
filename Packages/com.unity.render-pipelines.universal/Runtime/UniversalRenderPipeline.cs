@@ -418,30 +418,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if UNITY_2021_1_OR_NEWER
-        /// <inheritdoc/>
-        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
-        {
-            Render(renderContext, new List<Camera>(cameras));
-        }
-
-#endif
-
-#if UNITY_2021_1_OR_NEWER
         /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
-#else
-        /// <inheritdoc/>
-        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
-#endif
         {
             SetHDRState(cameras);
 
-#if UNITY_2021_1_OR_NEWER
             int cameraCount = cameras.Count;
-#else
-            int cameraCount = cameras.Length;
-#endif
             // For XR, HDR and no camera cases, UI Overlay ownership must be enforced
             AdjustUIOverlayOwnership(cameraCount);
 
@@ -476,11 +458,7 @@ namespace UnityEngine.Rendering.Universal
                 RTHandles.SetHardwareDynamicResolutionState(true);
 
                 SortCameras(cameras);
-#if UNITY_2021_1_OR_NEWER
                 for (int i = 0; i < cameras.Count; ++i)
-#else
-                for (int i = 0; i < cameras.Length; ++i)
-#endif
                 {
                     var camera = cameras[i];
                     if (IsGameCamera(camera))
@@ -585,7 +563,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (standardRequest != null)
                 {
-                    Render(context, new Camera[] { camera });
+                    Render(context, new List<Camera>{ camera });
                 }
                 else
                 {

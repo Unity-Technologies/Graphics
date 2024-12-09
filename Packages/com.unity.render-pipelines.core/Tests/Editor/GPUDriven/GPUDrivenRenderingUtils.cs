@@ -1,9 +1,9 @@
 using System;
 using Unity.Collections;
+using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
 using Unity.Mathematics;
-using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.Tests
             renderContext.Submit();
         }
 
-        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+        protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
             foreach (var camera in cameras)
             {
