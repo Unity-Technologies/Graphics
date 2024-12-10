@@ -85,3 +85,12 @@ MonoBehaviour:
     validationType: 0
     uiSectionInt: 32
     uiSubSectionInt: 1
+  - m_name: Volumetric Fog
+    m_description: Enable Volumetric Fog.
+    propertyPath: m_RenderPipelineSettings.supportVolumetrics
+    globalSettingsType: 
+    valueType: 0
+    targetValue: 1
+    validationType: 0
+    uiSectionInt: 32
+    uiSubSectionInt: 1
