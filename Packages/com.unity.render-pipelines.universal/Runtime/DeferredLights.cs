@@ -336,9 +336,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.BeginSample(k_SetupLights);
 
             Camera camera = cameraData.camera;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Use eye texture's scaled width and height as screen params when XR is enabled
+            if (cameraData.xr.enabled)
+            {
+                this.RenderWidth  = camera.allowDynamicResolution ? cameraData.xr.renderTargetScaledWidth : cameraTargetSizeCopy.x;
+                this.RenderHeight = camera.allowDynamicResolution ? cameraData.xr.renderTargetScaledHeight : cameraTargetSizeCopy.y;
+            }
+            else
+#endif
+            {
             // Support for dynamic resolution.
             this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * cameraTargetSizeCopy.x) : cameraTargetSizeCopy.x;
             this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * cameraTargetSizeCopy.y) : cameraTargetSizeCopy.y;
+            }
 
             if (!m_UseDeferredPlus)
             {
