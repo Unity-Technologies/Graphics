@@ -601,8 +601,9 @@ void GetHairAngleLocal(float3 wo, float3 wi, inout HairAngle angles)
 
 void GetHairAngleWorld(float3 V, float3 L, float3 T, inout HairAngle angles)
 {
-    angles.sinThetaO = dot(T, V);
-    angles.sinThetaI = dot(T, L);
+    // It might exceed the range [-1, 1], so explicitly clamp here to prevent nan output from FastASin.
+    angles.sinThetaO = clamp(dot(T, V), -1.0, 1.0);
+    angles.sinThetaI = clamp(dot(T, L), -1.0, 1.0);
 
     float thetaO = FastASin(angles.sinThetaO);
     float thetaI = FastASin(angles.sinThetaI);
