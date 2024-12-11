@@ -79,11 +79,16 @@ namespace UnityEngine.Rendering.HighDefinition
     {
     }
 
-    /// <summary>Light Layers.</summary>
+    /// <summary>
+    /// This enum is obsolete as it has been renamed to <see cref="UnityEngine.Rendering.HighDefinition.RenderingLayerMask"/> which can now use 16 bits.
+    /// </summary>
+    /// <remarks>
+    /// Options for defining LayerMasks to make lights or effects affect only specific renderers.
+    /// </remarks>
     [Flags, Obsolete("LightLayersEnum has been renamed and can now use 16 bits. Use RenderingLayerMask instead @from(2023.1) (UnityUpgradable) -> RenderingLayerMask")]
     public enum LightLayerEnum
     {
-        /// <summary>The light will no affect any object.</summary>
+        /// <summary>The light doesn't affect any object.</summary>
         Nothing = 0,   // Custom name for "Nothing" option
         /// <summary>Light Layer 0.</summary>
         LightLayerDefault = 1 << 0,
@@ -105,11 +110,16 @@ namespace UnityEngine.Rendering.HighDefinition
         Everything = 0xFF, // Custom name for "Everything" option
     }
 
-    /// <summary>Decal Layers.</summary>
+    /// <summary>
+    /// This enum is obsolete as it has been renamed to <see cref="UnityEngine.Rendering.HighDefinition.RenderingLayerMask"/> which can now use 16 bits.
+    /// </summary>
+    /// <remarks>
+    /// Options for defining LayerMasks to make decals affect only specific renderers.
+    /// </remarks>
     [Flags, Obsolete("DecalLayerEnum has been renamed and can now use 16 bits. Use RenderingLayerMask instead @from(2023.1) (UnityUpgradable) -> RenderingLayerMask")]
     public enum DecalLayerEnum
     {
-        /// <summary>The light will no affect any object.</summary>
+        /// <summary>The decal doesn't affect any object.</summary>
         Nothing = 0,   // Custom name for "Nothing" option
         /// <summary>Decal Layer 0.</summary>
         DecalLayerDefault = 1 << 0,
@@ -132,8 +142,11 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// Debug Light Layers Filtering.
+    /// This enum is obsolete as it has been renamed to <see cref="UnityEngine.Rendering.HighDefinition.RenderingLayerMask"/> which can now use 16 bits.
     /// </summary>
+    /// <remarks>
+    /// Options for defining LayerMasks to make lights or effects affect only specific renderers.
+    /// </remarks>
     [Flags, Obsolete("DebugLightLayersMask has been renamed and can now use 16 bits. Use RenderingLayerMask instead @from(2023.1)")]
     public enum DebugLightLayersMask
     {
