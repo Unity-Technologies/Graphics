@@ -5,8 +5,68 @@ using UnityEngine.Assertions;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Debug UI Class
+    /// The `DebugUI` class defines a collection of debug UI components that are useful for debugging and profiling Rendering features
     /// </summary>
+    /// <remarks>
+     /// Widgets can be added to the UI, customized, and manipulated at runtime or during editor sessions. The class supports various
+    /// widget types, including buttons, read-only value fields, and progress bars. It also provides mechanisms for organizing these
+    /// widgets into containers. Each widget has a set of flags to control its visibility and behavior depending on whether it is
+    /// used in the editor or at runtime. The widgets can also contain callbacks for conditional visibility at runtime.
+    /// Important Notes:
+    /// - Widgets can be nested inside containers, allowing for organized groupings of debug UI elements.
+    /// - Widgets may be runtime-only, editor-only, or both, allowing them to behave differently depending on the application's
+    ///   state (e.g., whether it is in the editor or playing at runtime).
+    /// - `DebugUI` also includes helper methods for widget initialization, such as compact initialization using the `NameAndTooltip` struct.
+    ///
+    /// This API lets you do the following: 
+    /// - Specify widget behavior such as "EditorOnly", "RuntimeOnly", "EditorForceUpdate", and "FrequentlyUsed".
+    /// - Show dynamic data with optional formatting.
+    /// - Specify delegate functions to show or hide widgets
+    ///
+    /// <b>Related Resources:</b>
+    /// - [Debug UI Overview](https://docs.unity3d.com/6000.0/Documentation/Manual/urp/features/rendering-debugger.html)
+    /// - [Rendering Debugger Controls](https://docs.unity3d.com/6000.0/Documentation/Manual/urp/features/rendering-debugger-add-controls.html).
+    /// - [Using Rendering Debugger](https://docs.unity.cn/Packages/com.unity.render-pipelines.high-definition@16.0/manual/use-the-rendering-debugger.html).
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// using UnityEngine;
+    /// using UnityEngine.Rendering;
+    ///
+    /// public class DebugUIExample : MonoBehaviour
+    /// {
+    ///     private DebugUI.Button button;
+    ///     private DebugUI.Value timeValue;
+    ///
+    ///     void Start()
+    ///     {
+    ///         // Create a button widget that logs a message when you select it
+    ///         button = new DebugUI.Button
+    ///         {
+    ///             displayName = "Log Message Button",
+    ///             action = () => Debug.Log("Button selected"),
+    ///             isHiddenCallback = () => true,
+    ///         };
+    ///
+    ///         // Create a value widget that displays the current time
+    ///         timeValue = new DebugUI.Value
+    ///         {
+    ///             // Set the display label
+    ///             displayName = "Current Time",
+    ///             
+    ///             // Set the format for the time
+    ///             getter = () => System.DateTime.Now.ToString("HH:mm:ss"),
+    ///             
+    ///             // Set the value to refresh every second
+    ///             refreshRate = 1f
+    ///         };
+    ///
+    ///         // Add widgets to the UI (assuming a panel or container exists)
+    ///         // ....
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     public partial class DebugUI
     {
         /// <summary>
