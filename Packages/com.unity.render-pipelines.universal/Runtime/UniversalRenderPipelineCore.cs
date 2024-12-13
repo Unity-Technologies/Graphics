@@ -219,6 +219,11 @@ namespace UnityEngine.Rendering.Universal
         public ref bool reflectionProbeBlending => ref frameData.Get<UniversalLightData>().reflectionProbeBlending;
 
         /// <summary>
+        /// True if reflection probes are combined into a single atlas texture.
+        /// </summary>
+        public ref bool reflectionProbeAtlas => ref frameData.Get<UniversalLightData>().reflectionProbeAtlas;
+
+        /// <summary>
         /// True if light layers are enabled.
         /// </summary>
         public ref bool supportsLightLayers => ref frameData.Get<UniversalLightData>().supportsLightLayers;
@@ -947,6 +952,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword AdditionalLightShadows;
         public static GlobalKeyword ReflectionProbeBoxProjection;
         public static GlobalKeyword ReflectionProbeBlending;
+        public static GlobalKeyword ReflectionProbeAtlas;
         public static GlobalKeyword SoftShadows;
         public static GlobalKeyword SoftShadowsLow;
         public static GlobalKeyword SoftShadowsMedium;
@@ -1058,6 +1064,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.AdditionalLightShadows = GlobalKeyword.Create(ShaderKeywordStrings.AdditionalLightShadows);
             ShaderGlobalKeywords.ReflectionProbeBoxProjection = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeBoxProjection);
             ShaderGlobalKeywords.ReflectionProbeBlending = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeBlending);
+            ShaderGlobalKeywords.ReflectionProbeAtlas = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeAtlas);
             ShaderGlobalKeywords.SoftShadows = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadows);
             ShaderGlobalKeywords.SoftShadowsLow = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsLow);
             ShaderGlobalKeywords.SoftShadowsMedium = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsMedium);
@@ -1163,6 +1170,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Reflection probe blending. </summary>
         public const string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
+
+        /// <summary> Keyword used for Reflection probe atlas. </summary>
+        public const string ReflectionProbeAtlas = "_REFLECTION_PROBE_ATLAS";
 
         /// <summary> Keyword used for soft shadows. </summary>
         public const string SoftShadows = "_SHADOWS_SOFT";

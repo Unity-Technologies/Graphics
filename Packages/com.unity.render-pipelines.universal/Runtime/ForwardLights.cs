@@ -413,7 +413,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 if (m_UseForwardPlus)
                 {
-                    m_ReflectionProbeManager.UpdateGpuData(CommandBufferHelpers.GetNativeCommandBuffer(cmd), ref renderingData.cullResults);
+                    if (lightData.reflectionProbeAtlas)
+                    {
+                        m_ReflectionProbeManager.UpdateGpuData(CommandBufferHelpers.GetNativeCommandBuffer(cmd), ref renderingData.cullResults);
+                    }
 
                     using (new ProfilingScope(m_ProfilingSamplerFPComplete))
                     {
@@ -450,6 +453,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBlending, lightData.reflectionProbeBlending);
                 cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBoxProjection, lightData.reflectionProbeBoxProjection);
+                cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeAtlas, lightData.reflectionProbeAtlas);
 
                 var asset = UniversalRenderPipeline.asset;
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;

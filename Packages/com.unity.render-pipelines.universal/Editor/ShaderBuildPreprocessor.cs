@@ -72,7 +72,7 @@ namespace UnityEditor.Rendering.Universal
         AlphaOutput = (1L << 49),
         StencilLODCrossFade = (1L << 50),
         DeferredPlus = (1L << 51),
-
+        ReflectionProbeAtlas = (1L << 52),
     }
 
     [Flags]
@@ -214,6 +214,7 @@ namespace UnityEditor.Rendering.Universal
             public bool needsRenderPass;
             public bool needsReflectionProbeBlending;
             public bool needsReflectionProbeBoxProjection;
+            public bool needsReflectionProbeAtlas;
             public bool needsSHVertexForSHAuto;
             public RenderingMode renderingMode;
             public bool needsDeferredLighting => renderingMode == RenderingMode.Deferred || renderingMode == RenderingMode.DeferredPlus;
@@ -587,6 +588,7 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.needsDeferredLighting);
             rsd.needsReflectionProbeBlending      = urpAsset.reflectionProbeBlending;
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
+            rsd.needsReflectionProbeAtlas         = urpAsset.reflectionProbeBlending && (rsd.renderingMode == RenderingMode.DeferredPlus || urpAsset.reflectionProbeAtlas || urpAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled) && rsd.needsClusterLightLoop;
             rsd.needsProcedural                   = NeedsProceduralKeyword(ref rsd);
             rsd.needsSHVertexForSHAuto            = s_UseSHPerVertexForSHAuto;
 
@@ -688,6 +690,10 @@ namespace UnityEditor.Rendering.Universal
             // Reflection Probe Box Projection
             if (rendererRequirements.needsReflectionProbeBoxProjection)
                 shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
+
+            // Reflection Probe Atlas
+            if (rendererRequirements.needsReflectionProbeAtlas)
+                shaderFeatures |= ShaderFeatures.ReflectionProbeAtlas;
 
             if (rendererRequirements.needsSHVertexForSHAuto)
                 shaderFeatures |= ShaderFeatures.AutoSHModePerVertex;
