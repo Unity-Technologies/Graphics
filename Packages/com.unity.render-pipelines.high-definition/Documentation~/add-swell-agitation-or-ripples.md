@@ -1,6 +1,6 @@
-# Add swell, agitation, or ripples
+# Configure swell, agitation, or ripples with a water mask
 
-To add swell, agitation or ripples, use a Water Mask to affect the influence the simulation has on specific areas of the water surface.
+To configure swell, agitation or ripples, use a Water Mask to affect the influence the simulation has on specific areas of the water surface.
 
 Masks take into account the Wrap Mode of the texture. For Ocean, Sea, or Lake water surface types, select **Clamp** rather than the default **Repeat** value.
 

@@ -1,4 +1,4 @@
-# Simulate currents with water decals
+# Simulate currents with a water decal
 
 To add deformation, foam, or current effects to a water surface, use a water decal, which is a texture projected onto the surface.
 
@@ -9,7 +9,13 @@ By default, water decal regions are anchored to the camera. You can also anchor 
 > [!NOTE]
 > For backward compatibility, water decals are disabled by default.
 
-## Water decal shader graph Master Stack
+## Create a water decal
+
+1. In the main menu, select **GameObject** > **Water** > **Water Decal**.
+
+    Unity adds a **Water Decal** GameObject to your scene.
+2. Move the **Water Decal** GameObject to the area of water you want to affect.
+3. To add deformation, foam, or current effects to the water decal shader graph, select the **Water Decal** GameObject, then under **Water Decal (Material)** select **Edit...**.
 
 By default, the water decal shader graph Master Stack contains the following properties:
 
@@ -19,6 +25,7 @@ By default, the water decal shader graph Master Stack contains the following pro
 
 Once you have [enabled mask and current water decals](enable-mask-and-water-decals.md), you can add the following water features through the Graph Inspector:
 
+- **HorizontalDeformation**. 
 - **SimulationMask**
 - **SimulationFoamMask**
 - **LargeCurrent**
@@ -26,17 +33,16 @@ Once you have [enabled mask and current water decals](enable-mask-and-water-deca
 - **RipplesCurrent**
 - **RipplesCurrentInfluence**
 
-## Decal layer masks
+## Enable horizontal deformation
 
-To add foam, you can change material properties (base color, smoothness, normals, etc.) by using a [decal](decals.md) on a water surface. For example, you might use this technique to imitate debris floating on the water.
-**Global Opacity** determines the amount of influence the decal has on the appearance of the water surface.
+To enable horizontal deformation, go to the active [HDRP Asset](hdrp-asset.md), then under **Rendering** > **Water** enable **Horizontal Deformation**.
 
-The following [Decal Shader](decal-material-inspector-reference.md) Surface Options don't work with water surfaces:
-* **Affect Metal**
-* **Affect Ambient Occlusion**
-* **Affect Emission**
-* **Affect Base Color** only produces monochromatic output.
+Enabling horizontal deformation has the following effects:
+
+- HDRP creates a new buffer, which increases the amount of memory HDRP uses.
+- The results of [water scripts](water-scripting-in-the-water-system.md) and [underwater effects](water-underwater-view.md) might be less accurate.
 
 ## Additional resources
 
+- The **RollingWave** scene in the [Water package samples](HDRP-Sample-Content.md#water-samples).
 - [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest)
