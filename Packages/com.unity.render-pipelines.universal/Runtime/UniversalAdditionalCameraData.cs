@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
     /// When set to <c>None</c> no post-processing anti-aliasing pass will be performed.
     /// When set to <c>Fast</c> a fast approximated anti-aliasing pass will render when resolving the camera to screen.
     /// When set to <c>SubpixelMorphologicalAntiAliasing</c> SMAA pass will render when resolving the camera to screen.
-    /// You can choose the SMAA quality by setting <seealso cref="AntialiasingQuality"/>.
+    /// You can choose the SMAA quality by setting <see cref="AntialiasingQuality"/>.
     /// </summary>
     public enum AntialiasingMode
     {
@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Use this to have a <c>SubpixelMorphologicalAntiAliasing</c> SMAA pass rendered when resolving the camera to screen
-        /// You can choose the SMAA quality by setting <seealso cref="AntialiasingQuality"/>.
+        /// You can choose the SMAA quality by setting <see cref="AntialiasingQuality"/>.
         /// </summary>
         [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
         SubpixelMorphologicalAntiAliasing,
@@ -129,15 +129,74 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Contains extension methods for Camera class.
     /// </summary>
+    /// <remarks>
+    /// This class adds extension methods to the <see cref="Camera"/> class.
+    /// It provides helper methods for retrieving the <see cref="UniversalAdditionalCameraData"/>, and
+    /// getting and setting volume update settings.
+    /// </remarks>
+    /// <example>
+    /// <para>This sample code shows how to get <see cref="UniversalAdditionalCameraData"/> and manually update the <see cref="VolumeStack"/> at runtime.</para>
+    /// <code>
+    /// using UnityEngine;
+    /// using UnityEngine.Rendering.Universal;
+    ///
+    /// public class UpdateVolumeStackOnCamera : MonoBehaviour
+    /// {
+    ///     // Reference to the camera component
+    ///     [SerializeField] private Camera cameraToUpdate;
+    ///
+    ///     // Toggle to make the script update the volume framework
+    ///     [SerializeField] private bool shouldUpdateVolumeFramework;
+    ///
+    ///
+    ///     // Update is called once per frame
+    ///     private void Update()
+    ///     {
+    ///         // Leave if the volume framework shouldn't be updated
+    ///         if (!shouldUpdateVolumeFramework)
+    ///             return;
+    ///
+    ///         // Mark that we shouldn't update the volume framework in the next frame
+    ///         shouldUpdateVolumeFramework = false;
+    ///
+    ///         // Check if we have a reference to the camera
+    ///         if (cameraToUpdate == null)
+    ///         {
+    ///             Debug.LogError("UpdateVolumeStackOnCamera.Update(): cameraToUpdate has not been assigned.");
+    ///             return;
+    ///         }
+    ///
+    ///         // Make the camera use the ViaScripting mode so the volume framework only updates when the script calls UpdateVolumeStack().
+    ///         VolumeFrameworkUpdateMode volumeFrameworkUpdateMode = cameraToUpdate.GetVolumeFrameworkUpdateMode();
+    ///         if (volumeFrameworkUpdateMode != VolumeFrameworkUpdateMode.ViaScripting)
+    ///         {
+    ///             cameraToUpdate.SetVolumeFrameworkUpdateMode(VolumeFrameworkUpdateMode.ViaScripting);
+    ///         }
+    ///
+    ///         // Update the volume framework
+    ///         cameraToUpdate.UpdateVolumeStack();
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
+    /// <seealso cref="Camera"/>
+    /// <seealso cref="UniversalAdditionalCameraData"/>
+    /// <seealso cref="VolumeFrameworkUpdateMode"/>
+    /// <seealso cref="LayerMask"/>
+    /// <seealso cref="Transform"/>
+    /// <seealso cref="VolumeManager"/>
+    /// <seealso cref="VolumeStack"/>
     public static class CameraExtensions
     {
         /// <summary>
-        /// Universal Render Pipeline exposes additional rendering data in a separate component.
-        /// This method returns the additional data component for the given camera or create one if it doesn't exist yet.
+        /// Provides additional camera data component that's attached to the given camera.
         /// </summary>
-        /// <param name="camera"></param>
-        /// <returns>The <c>UniversalAdditionalCameraData</c> for this camera.</returns>
-        /// <see cref="UniversalAdditionalCameraData"/>
+        /// <remarks>
+        /// The Universal Render Pipeline exposes various additional rendering data in a separate component named 'UniversalAdditionalCameraData'.
+        /// This method returns the additional data component for the given camera or creates one if it doesn't exist yet.
+        /// </remarks>
+        /// <param name="camera">The <see cref="Camera"/> to use for getting the <see cref="UniversalAdditionalCameraData"/>.</param>
+        /// <returns>The <see cref="UniversalAdditionalCameraData"/> for this camera.</returns>
         public static UniversalAdditionalCameraData GetUniversalAdditionalCameraData(this Camera camera)
         {
             var gameObject = camera.gameObject;
@@ -149,10 +208,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the VolumeFrameworkUpdateMode set on the camera.
+        /// Returns the update frequency for the volume framework associated with the camera.
         /// </summary>
-        /// <param name="camera"></param>
-        /// <returns></returns>
+        /// <remarks>
+        /// Each camera can be set to update the volume framework in each frame, via scripting or using the setting
+        /// set in the <see cref="UniversalRenderPipelineAsset"/>. This method returns the setting for the given camera.
+        /// </remarks>
+        /// <param name="camera">The <see cref="Camera"/> to use for getting the <see cref="VolumeFrameworkUpdateMode"/>.</param>
+        /// <returns>The <see cref="VolumeFrameworkUpdateMode"/> set on this camera.</returns>
         public static VolumeFrameworkUpdateMode GetVolumeFrameworkUpdateMode(this Camera camera)
         {
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
@@ -160,10 +223,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Sets the VolumeFrameworkUpdateMode for the camera.
+        /// Sets the update frequency for the volume framework associated with the camera.
         /// </summary>
-        /// <param name="camera"></param>
-        /// <param name="mode"></param>
+        /// <remarks>
+        /// Each camera can be set to update the volume framework in each frame, via scripting or using the setting
+        /// set in the <see cref="UniversalRenderPipelineAsset"/>. This method is used to change that setting for the given camera.
+        /// </remarks>
+        /// <param name="camera">The <see cref="Camera"/> to use for setting the <see cref="VolumeStack"/>.</param>
+        /// <param name="mode">The <see cref="VolumeFrameworkUpdateMode"/> value to set.</param>
         public static void SetVolumeFrameworkUpdateMode(this Camera camera, VolumeFrameworkUpdateMode mode)
         {
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
@@ -183,10 +250,12 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Updates the volume stack for this camera.
-        /// This function will only update the stack when the camera has VolumeFrameworkUpdateMode set to ViaScripting
-        /// or when it set to UsePipelineSettings and the update mode on the Render Pipeline Asset is set to ViaScripting.
         /// </summary>
-        /// <param name="camera"></param>
+        /// <remarks>
+        /// This method only updates the <see cref="VolumeStack"/> when the camera has `ViaScripting` enabled or if
+        /// the camera is set to `UsePipelineSettings` and the Render Pipeline Asset is set to `ViaScripting`.
+        /// </remarks>
+        /// <param name="camera">The <see cref="Camera"/> to use for updating the <see cref="VolumeStack"/>.</param>
         public static void UpdateVolumeStack(this Camera camera)
         {
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
@@ -195,11 +264,13 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Updates the volume stack for this camera.
-        /// This function will only update the stack when the camera has ViaScripting selected or if
-        /// the camera is set to UsePipelineSettings and the Render Pipeline Asset is set to ViaScripting.
         /// </summary>
-        /// <param name="camera"></param>
-        /// <param name="cameraData"></param>
+        /// <remarks>
+        /// This method only updates the <see cref="VolumeStack"/> when the camera has `ViaScripting` enabled or if
+        /// the camera is set to `UsePipelineSettings` and the Render Pipeline Asset is set to `ViaScripting`.
+        /// </remarks>
+        /// <param name="camera">The <see cref="Camera"/> to use for updating the <see cref="VolumeStack"/>.</param>
+        /// <param name="cameraData">The <see cref="UniversalAdditionalCameraData"/> component on the camera that should be updated.</param>
         public static void UpdateVolumeStack(this Camera camera, UniversalAdditionalCameraData cameraData)
         {
             Assert.IsNotNull(cameraData, "cameraData can not be null when updating the volume stack.");
@@ -218,9 +289,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Destroys the volume stack for this camera.
+        /// Destroys the <see cref="VolumeStack"/> for this camera.
         /// </summary>
-        /// <param name="camera"></param>
+        /// <remarks>
+        /// Each camera can hold a local <see cref="VolumeStack"/>, which contains the state of a volume blending update.
+        /// A global stack is available by default in <see cref="VolumeManager"/> but you can also create your own using
+        /// <see cref="VolumeManager.CreateStack"/> if you need to update the manager with specific
+        /// settings and store the results for later use.
+        /// </remarks>
+        /// <param name="camera">The <see cref="Camera"/> to use for destroying the <see cref="VolumeStack"/>.</param>
         public static void DestroyVolumeStack(this Camera camera)
         {
             UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
@@ -228,10 +305,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Destroys the volume stack for this camera.
+        /// Destroys the <see cref="VolumeStack"/> for this camera.
         /// </summary>
-        /// <param name="camera"></param>
-        /// <param name="cameraData"></param>
+        /// <remarks>
+        /// Each camera can hold a local <see cref="VolumeStack"/>, which contains the state of a Volume blending update.
+        /// A global stack is available by default in <see cref="VolumeManager"/> but you can also create your own using
+        /// <see cref="VolumeManager.CreateStack"/> if you need to update the manager with specific
+        /// settings and store the results for later use.
+        /// </remarks>
+        /// <param name="camera">The <see cref="Camera"/> to use for destroying the <see cref="VolumeStack"/>.</param>
+        /// <param name="cameraData">The <see cref="UniversalAdditionalCameraData"/> component on the camera that should be used.</param>
         public static void DestroyVolumeStack(this Camera camera, UniversalAdditionalCameraData cameraData)
         {
             if (cameraData == null || cameraData.volumeStack == null)
@@ -243,10 +326,14 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the mask and trigger assigned for volumes on the camera.
         /// </summary>
-        /// <param name="camera"></param>
-        /// <param name="cameraData"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="trigger"></param>
+        /// <remarks>
+        /// Each camera has a volume layer mask, containing the selected scene-layers affecting this camera, and
+        /// a Transform that acts as a trigger for volume blending. This method returns those settings for the given camera.
+        /// </remarks>
+        /// <param name="camera">The <see cref="Camera"/> to use for getting the <see cref="LayerMask"/> and trigger.</param>
+        /// <param name="cameraData">The <see cref="UniversalAdditionalCameraData"/> component on the camera that should be used.</param>
+        /// <param name="layerMask">The resulting <see cref="LayerMask"/> used on this <see cref="Camera"/>.</param>
+        /// <param name="trigger">The resulting <see cref="Transform"/> trigger used on this <see cref="Camera"/>.</param>
         internal static void GetVolumeLayerMaskAndTrigger(this Camera camera, UniversalAdditionalCameraData cameraData, out LayerMask layerMask, out Transform trigger)
         {
             // Default values when there's no additional camera data available
@@ -290,6 +377,74 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Class containing various additional camera data used by URP.
     /// </summary>
+    /// <remarks>
+    /// The Universal Render Pipeline (URP) adds this class to every camera.
+    /// It contains URP-specific data and methods that the render pipeline uses.
+    /// </remarks>
+    /// <example>
+    /// <para>This sample code shows how settings can be retrieved and logged in runtime.</para>
+    /// <code>
+    /// using UnityEngine;
+    /// using UnityEngine.Rendering.Universal;
+    ///
+    /// public class LogCameraInformation : MonoBehaviour
+    /// {
+    ///     // Reference to the camera component
+    ///     [SerializeField] private Camera cameraToInspect;
+    ///
+    ///     // Start is called once before the first execution of Update after the MonoBehaviour is created
+    ///     private void Start()
+    ///     {
+    ///         // Make sure there's a reference to the camera. If not, log an error and return.
+    ///         if (cameraToInspect == null)
+    ///         {
+    ///             Debug.LogError("LogCameraInformation.Start(): cameraToInspect has not been assigned.");
+    ///             return;
+    ///         }
+    ///
+    ///         // Get the UniversalAdditionalCameraData component from the camera
+    ///         UniversalAdditionalCameraData additionalCameraData = cameraToInspect.GetUniversalAdditionalCameraData();
+    ///
+    ///         // Print to the console some of the settings contained in the UniversalAdditionalCameraData component.
+    ///         PrintCameraInformation(ref additionalCameraData);
+    ///     }
+    ///
+    ///     // Print to the console some of the available settings in the UniversalAdditionalCameraData component.
+    ///     private static void PrintCameraInformation(ref UniversalAdditionalCameraData cameraData)
+    ///     {
+    ///         string cameraInformation = $"Camera \"{cameraData.name}\" information:\n" +
+    ///                                    $"- renderShadows: {cameraData.renderShadows}\n" +
+    ///                                    $"- requiresDepthOption: {cameraData.requiresDepthOption}\n" +
+    ///                                    $"- requiresColorOption: {cameraData.requiresColorOption}\n" +
+    ///                                    $"- renderType: {cameraData.renderType}\n" +
+    ///                                    $"- cameraStack.Count: {cameraData.cameraStack.Count}\n" +
+    ///                                    $"- clearDepth: {cameraData.clearDepth}\n" +
+    ///                                    $"- requiresDepthTexture: {cameraData.requiresDepthTexture}\n" +
+    ///                                    $"- requiresColorTexture: {cameraData.requiresColorTexture}\n" +
+    ///                                    $"- volumeLayerMask: {cameraData.volumeLayerMask}\n" +
+    ///                                    $"- requiresVolumeFrameworkUpdate: {cameraData.requiresVolumeFrameworkUpdate}\n" +
+    ///                                    $"- renderPostProcessing: {cameraData.renderPostProcessing}\n" +
+    ///                                    $"- antialiasing: {cameraData.antialiasing}\n" +
+    ///                                    $"- antialiasingQuality: {cameraData.antialiasingQuality}\n" +
+    ///                                    $"- taaSettings:\n" +
+    ///                                    $"  - quality: {cameraData.taaSettings.quality}\n" +
+    ///                                    $"  - baseBlendFactor: {cameraData.taaSettings.baseBlendFactor}\n" +
+    ///                                    $"  - jitterScale: {cameraData.taaSettings.jitterScale}\n" +
+    ///                                    $"  - mipBias: {cameraData.taaSettings.mipBias}\n" +
+    ///                                    $"  - varianceClampScale: {cameraData.taaSettings.varianceClampScale}\n" +
+    ///                                    $"  - contrastAdaptiveSharpening: {cameraData.taaSettings.contrastAdaptiveSharpening}\n" +
+    ///                                    $"- resetHistory: {cameraData.resetHistory}\n" +
+    ///                                    $"- stopNaN: {cameraData.stopNaN}\n" +
+    ///                                    $"- dithering: {cameraData.dithering}\n" +
+    ///                                    $"- allowXRRendering: {cameraData.allowXRRendering}\n" +
+    ///                                    $"- useScreenCoordOverride: {cameraData.useScreenCoordOverride}\n" +
+    ///                                    $"- screenCoordScaleBias: {cameraData.screenCoordScaleBias}\n" +
+    ///                                    $"- allowHDROutput: {cameraData.allowHDROutput}\n";
+    ///         Debug.Log(cameraInformation);
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     [ExecuteAlways] // NOTE: This is required to get calls to OnDestroy() always. Graphics resources are released in OnDestroy().
@@ -404,7 +559,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls if a camera should render depth.
         /// The depth is available to be bound in shaders as _CameraDepthTexture.
-        /// <seealso cref="CameraOverrideOption"/>
+        /// <see cref="CameraOverrideOption"/>
         /// </summary>
         public CameraOverrideOption requiresDepthOption
         {
@@ -435,7 +590,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the camera stack. Only valid for Base cameras.
         /// Will return null if it is not a Base camera.
-        /// <seealso cref="CameraRenderType"/>.
+        /// <see cref="CameraRenderType"/>.
         /// </summary>
         public List<Camera> cameraStack
         {
@@ -665,7 +820,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns the current anti-aliasing quality used by this camera.
-        /// <seealso cref="antialiasingQuality"/>.
+        /// <see cref="antialiasingQuality"/>.
         /// </summary>
         public AntialiasingQuality antialiasingQuality
         {
@@ -700,7 +855,7 @@ namespace UnityEngine.Rendering.Universal
         internal MotionVectorsPersistentData motionVectorsPersistentData => m_MotionVectorsPersistentData;
 
         /// <summary>
-        /// Reset post-process history.
+        /// Reset post-process history for Temporal Anti-aliasing (TAA).
         /// </summary>
         public bool resetHistory
         {
@@ -851,15 +1006,15 @@ namespace UnityEngine.Rendering.Universal
             //You cannot call scriptableRenderer here. If you where not in URP, this will actually create the renderer.
             //This can occurs in cross pipeline but also on Dedicated Server where the gfx device do not run. (UUM-75237)
             //Use GetRawRenderer() instead.
-            
+
             m_Camera.DestroyVolumeStack(this);
             if (camera.cameraType != CameraType.SceneView)
                 GetRawRenderer()?.ReleaseRenderTargets();
             m_History?.Dispose();
             m_History = null;
         }
-        
-        
+
+
         ScriptableRenderer GetRawRenderer()
         {
             if (UniversalRenderPipeline.asset is null)
