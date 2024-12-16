@@ -249,11 +249,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Utility that grab all check within the scope or in sub scope included and check if everything is correct
-        bool IsAllEntryCorrectInScope(InclusiveMode scope)
+        bool IsAFixAvailableInScope(InclusiveMode scope)
         {
             foreach (var e in entries)
             {
-                if (!scope.Contains(e.inclusiveScope) || e.check == null)
+                if (!scope.Contains(e.inclusiveScope) || e.check == null || e.fix == null)
                     continue;
                 if (!e.check())
                     return false;
