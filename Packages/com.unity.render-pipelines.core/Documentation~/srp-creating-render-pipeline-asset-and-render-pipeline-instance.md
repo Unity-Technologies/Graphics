@@ -109,7 +109,7 @@ The following example shows how to create a `RenderPipelineAsset` script that de
             renderPipelineAsset = asset;
         }
     
-        protected override void Render(ScriptableRenderContext context, Camera[] cameras) {
+        protected override void Render(ScriptableRenderContext context, List<Camera> cameras) {
             // This is an example of using the data from the Render Pipeline Asset.
             Debug.Log(renderPipelineAsset.exampleString);
             

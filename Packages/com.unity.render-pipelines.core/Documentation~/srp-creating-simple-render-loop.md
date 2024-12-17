@@ -120,7 +120,7 @@ To clear the render target in the Scriptable Render Pipeline, you do the followi
 2. Add the `CommandBuffer` to the queue of commands on the `ScriptableRenderContext`; to do this, call [ScriptableRenderContext.ExecuteCommandBuffer](xref:UnityEngine.Rendering.ScriptableRenderContext.ExecuteCommandBuffer(UnityEngine.Rendering.CommandBuffer)).
 3. Instruct the graphics API to perform the queue of commands on the `ScriptableRenderContext`; to do this, call  [ScriptableRenderContext.Submit](xref:UnityEngine.Rendering.ScriptableRenderContext.Submit).
 
-As with all Scriptable Render Pipeline operations, you use the [RenderPipeline.Render](xref:UnityEngine.Rendering.RenderPipeline.Render(UnityEngine.Rendering.ScriptableRenderContext,UnityEngine.Camera[])) method as the entry point for this code. This example code demonstrates how to do this:
+As with all Scriptable Render Pipeline operations, you use the [RenderPipeline.Render](https://docs.unity3d.com/6000.1/Documentation/ScriptReference/Rendering.RenderPipeline.Render.html) method as the entry point for this code. This example code demonstrates how to do this:
 
 ```lang-csharp
 /* 

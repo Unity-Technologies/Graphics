@@ -32,7 +32,7 @@ public class ExampleRenderPipeline : RenderPipeline
         public ExampleRenderPipeline() {
         }
 
-    protected override void Render(ScriptableRenderContext context, Camera[] cameras) {
+    protected override void Render(ScriptableRenderContext context, List<Camera> cameras) {
         // Create and schedule a command to clear the current render target
         var cmd = new CommandBuffer();
         cmd.ClearRenderTarget(true, true, Color.red);
