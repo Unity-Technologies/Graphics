@@ -44,7 +44,7 @@ Finally, access the Frame Settings structure itself. This controls the actual va
 - **Camera**: `HDAdditionalCameraData.renderingPathCustomFrameSettings`
 - **Reflection Probe**: `HDAdditionalReflectionData.frameSettings`
 
-For information on the API available for `FrameSettings`, including how to edit the value of a Frame Setting, see [FrameSettings Scripting API](framesettings-scripting-api).
+For information on the API available for `FrameSettings`, including how to edit the value of a Frame Setting, see [FrameSettings Scripting API](#framesettings-scripting-api).
 
 ## Frame Setting enumerations
 
