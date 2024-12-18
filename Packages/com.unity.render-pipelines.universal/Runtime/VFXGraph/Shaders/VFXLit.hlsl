@@ -28,6 +28,8 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
     inputData.positionWS = posInputs.positionWS.xyz;
     inputData.normalWS = normalWS;
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(inputData.positionWS);
+    inputData.positionCS = i.VFX_VARYING_POSCS;
+
 #if defined(VFX_MATERIAL_TYPE_SIX_WAY_SMOKE) && defined(VFX_VARYING_TANGENT)
     float signNormal = frontFace ? 1.0 : -1.0f;
     float3 bitangent = cross(i.VFX_VARYING_NORMAL.xyz, i.VFX_VARYING_TANGENT.xyz);

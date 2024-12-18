@@ -149,3 +149,7 @@ The intensity of the sharpening filter used by FSR can be controlled using the *
 
 > [!NOTE]
 > This setting is not available in the editor if the **Override FSR Sharpness** checkbox is not checked. The checkbox itself is not available if the default upscaling filter is set to FSR.
+
+## Additional resources
+
+- [Introduction to changing resolution scale](https://docs.unity3d.com/6000.0/Documentation/Manual/resolution-scale-introduction.html)

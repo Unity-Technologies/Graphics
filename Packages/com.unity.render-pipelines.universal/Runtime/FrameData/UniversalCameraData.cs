@@ -442,12 +442,28 @@ namespace UnityEngine.Rendering.Universal
             return targetTexture != null || IsHandleYFlipped(color ?? depth);
         }
 
+        /// <summary>
+        /// Returns true if temporal anti-aliasing has been requested
+        /// Use IsTemporalAAEnabled() to ensure that TAA is active at runtime
+        /// </summary>
+        /// <returns>True if TAA is requested</returns>
+        internal bool IsTemporalAARequested()
+        {
+            return antialiasing == AntialiasingMode.TemporalAntiAliasing;
+        }
+
+        /// <summary>
+        /// Returns true if the pipeline and the given camera are configured to render with temporal anti-aliasing post processing enabled
+        ///
+        /// Once selected, TAA necessitates some pre-requisites from the pipeline to run, mostly from the camera itself.
+        /// </summary>
+        /// <returns>True if TAA is enabled</returns>
         internal bool IsTemporalAAEnabled()
         {
             UniversalAdditionalCameraData additionalCameraData;
             camera.TryGetComponent(out additionalCameraData);
 
-            return (antialiasing == AntialiasingMode.TemporalAntiAliasing)                                                            // Enabled
+            return IsTemporalAARequested()                                                                                            // Requested
                    && postProcessEnabled                                                                                              // Postprocessing Enabled
                    && (taaHistory != null)                                                                                            // Initialized
                    && (cameraTargetDescriptor.msaaSamples == 1)                                                                       // No MSAA
@@ -457,17 +473,27 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns true if the pipeline is configured to render with the STP upscaler
+        /// Returns true if the STP upscaler has been requested
+        /// Use IsSTPEnabled() to ensure that STP upscaler is active at runtime, it necessitates TAA pre-processing
+        /// </summary>
+        /// <returns>True if STP is requested</returns>
+        internal bool IsSTPRequested()
+        {
+            return (imageScalingMode == ImageScalingMode.Upscaling) && (upscalingFilter == ImageUpscalingFilter.STP);
+        }
+
+        /// <summary>
+        /// Returns true if the pipeline and the given camera are configured to render with the STP upscaler
         ///
         /// When STP runs, it relies on much of the existing TAA infrastructure provided by URP's native TAA. Due to this, URP forces the anti-aliasing mode to
-        /// TAA when STP is enabled to ensure that most TAA logic remains active. A side effect of this behavior is that STP inherits all of the same configuration
+        /// TAA when STP is requested to ensure that most TAA logic remains active. A side effect of this behavior is that STP inherits all of the same configuration
         /// restrictions as TAA and effectively cannot run if IsTemporalAAEnabled() returns false. The post processing pass logic that executes STP handles this
         /// situation and STP should behave identically to TAA in cases where TAA support requirements aren't met at runtime.
         /// </summary>
         /// <returns>True if STP is enabled</returns>
         internal bool IsSTPEnabled()
         {
-            return (imageScalingMode == ImageScalingMode.Upscaling) && (upscalingFilter == ImageUpscalingFilter.STP);
+            return IsSTPRequested() && IsTemporalAAEnabled();
         }
 
         /// <summary>

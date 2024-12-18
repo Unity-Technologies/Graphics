@@ -97,7 +97,7 @@ void Frag(PackedVaryingsToPS packedInput,
     else if (_WaterDebugMode == WATERDEBUGMODE_DEFORMATION)
     {
         // Sample the deformation region
-        float verticalDeformation = SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, decalUV, 0);
+        float verticalDeformation = SAMPLE_TEXTURE2D_LOD(_WaterDeformationBuffer, s_linear_clamp_sampler, decalUV, 0).x;
 
         // Checkerboard pattern to visualize resolution
         float scale = _DeformationRegionResolution;

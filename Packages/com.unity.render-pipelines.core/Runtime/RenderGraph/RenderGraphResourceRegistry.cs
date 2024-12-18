@@ -1109,14 +1109,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void ValidateTextureDesc(in TextureDesc desc)
         {
-            if(RenderGraph.enableValidityChecks)
+            if (RenderGraph.enableValidityChecks)
             {
                 if (desc.format == GraphicsFormat.None )
                 {
                     throw new ArgumentException("Texture was created with with no format. The texture needs to either have a color format or a depth stencil format.");
                 }
 
-                if (desc.dimension == TextureDimension.None)
+                if (desc.dimension == TextureDimension.None || desc.dimension == TextureDimension.Any)
                 {
                     throw new ArgumentException("Texture was created with an invalid texture dimension.");
                 }
@@ -1124,6 +1124,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 if (desc.slices == 0)
                 {
                     throw new ArgumentException("Texture was created with a slices parameter value of zero.");
+                }
+                else if (desc.slices > 1)
+                {
+                    if (desc.dimension == TextureDimension.Tex2D || desc.dimension == TextureDimension.Cube)
+                    {
+                        if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3)
+                            throw new ArgumentException("Non-array texture was created with a slices parameter larger than one.");
+                    }
+                }
+
+                // Bind ms textures need to use the ms texture sampling functions so there is no "silent" fallback or interoperability between a "non-ms texture" and an "ms texture which happens to have 1 sample" 
+                // it's either ms with > 1 sample or "normal texture". This is unlike array textures where you can have an array with 1 slice.
+                if ((int)desc.msaaSamples <= 1 && desc.bindTextureMS == true)
+                {
+                    throw new ArgumentException("A single sample texture was created with bindTextureMS.");
                 }
 
                 if (desc.sizeMode == TextureSizeMode.Explicit)

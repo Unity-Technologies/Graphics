@@ -35,6 +35,7 @@ float GetCurrentExposureMultiplier()
     return LOAD_TEXTURE2D(_ExposureTexture, int2(0, 0)).x;
 }
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
@@ -267,6 +268,7 @@ bool ShouldCull(inout v2f o)
     bool shouldCull = false;
     if (distance(position.xyz + _APVWorldOffset, GetCurrentViewPosition()) > _CullDistance || brickSize > _MaxAllowedSubdiv || brickSize < _MinAllowedSubdiv)
     {
+        ZERO_INITIALIZE(v2f, o);
         DoCull(o);
         shouldCull = true;
     }

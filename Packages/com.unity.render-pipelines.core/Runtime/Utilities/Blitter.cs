@@ -249,7 +249,6 @@ namespace UnityEngine.Rendering
         static internal void DrawTriangle(CommandBuffer cmd, Material material, int shaderPass)
         {
             DrawTriangle(cmd, material, shaderPass, s_PropertyBlock);
-            s_PropertyBlock.Clear();
         }
 
         static internal void DrawTriangle(CommandBuffer cmd, Material material, int shaderPass, MaterialPropertyBlock propertyBlock)
@@ -273,7 +272,6 @@ namespace UnityEngine.Rendering
         static internal void DrawQuad(CommandBuffer cmd, Material material, int shaderPass)
         {
             DrawQuad(cmd, material, shaderPass, s_PropertyBlock);
-            s_PropertyBlock.Clear();
         }
 
         static internal void DrawQuad(CommandBuffer cmd, Material material, int shaderPass, MaterialPropertyBlock propertyBlock)

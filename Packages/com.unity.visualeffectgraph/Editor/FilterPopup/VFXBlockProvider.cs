@@ -54,10 +54,15 @@ namespace UnityEditor.VFX.UI
                     new[] { new KeyValuePair<string, object>(nameof(SetAttribute.attribute), customAttribute.name) }), null);
             }
 
+            var selfPath = m_ContextController.model is VFXBlockSubgraphContext ? AssetDatabase.GetAssetPath(m_ContextController.model) : string.Empty;
+
             foreach (var item in SubGraphCache.GetItems(typeof(VisualEffectSubgraphBlock)))
             {
-                if (((SubGraphCache.AdditionalBlockInfo)item.additionalInfos).compatibleType.HasFlag(m_ContextController.model.contextType)
-                    && ((SubGraphCache.AdditionalBlockInfo)item.additionalInfos).compatibleData.HasFlag(m_ContextController.model.ownedType))
+                if (!string.IsNullOrEmpty(selfPath) && selfPath == item.path) // don't include self
+                    continue;
+
+                var blockInfo = (SubGraphCache.AdditionalBlockInfo)item.additionalInfos;
+                if (m_ContextController.model.Accept(blockInfo.compatibleType, blockInfo.compatibleData))
                 {
                     var variant = new SubgraphVariant(
                         item.name,

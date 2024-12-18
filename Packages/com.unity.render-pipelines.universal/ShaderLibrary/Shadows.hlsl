@@ -90,7 +90,7 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 // blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
 // AdditionalLightShadows stays reasonable. It also avoids shader compilation errors on SHADER_API_GLES30
 // devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
-float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data
+float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
 float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
 #endif
 #endif
