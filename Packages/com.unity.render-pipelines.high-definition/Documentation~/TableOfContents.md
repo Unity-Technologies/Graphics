@@ -1,4 +1,4 @@
-* [HDRP Packge](index.md)
+* [HDRP Package](index.md)
   * [What's new](whats-new.md)
     * [What's new in HDRP 17](whats-new-17.md)
     * [What's new in HDRP 16](whats-new-16.md)

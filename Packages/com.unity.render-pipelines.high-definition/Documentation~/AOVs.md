@@ -42,7 +42,7 @@ You can use AOVs to output the contribution from a selected list of [Lights](Lig
 ## Custom Pass AOVs
 You can use AOVs to output the results of [custom passes](Custom-Pass.md). In particular, you can output the cumulative results of all custom passes that are active on every custom pass injection point. This can be useful to output arbitrary information that custom passes compute, such as the Object ID of the Scene GameObjects.
 
-## Rendering Precission
+## Rendering precision
 By default AOVs are rendering at the precision and format selected in the HDRP asset. If the  AOVRequest is configured with *SetOverrideRenderFormat* option set to true, then rendering will use the same precision as the user allocated AOV output buffer.
 
 ## Scripting API example

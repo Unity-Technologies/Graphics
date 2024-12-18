@@ -61,7 +61,9 @@ The following properties exist in all Deformer types.
 
 | **Property**    |                | **Description**                                              |
 | --------------- | -------------- | ------------------------------------------------------------ |
-| **Scale Mode**  |                | The scaling mode to apply to the deformer. The options are:• **Scale Invariant**: Ignores the scale set in the Transform component and uses the region size directly.• **Inherit from Hierarchy**: Multiplies the Deformer’s region size by the [lossy scale](https://docs.unity3d.com/ScriptReference/Transform-lossyScale.html) of the Transform. Note that since the Deformer uses a top down projection, if the transformation hierarchy is [skewed](https://docs.unity3d.com/Manual/class-Transform.html), the deformer does not scale correctly. |
+| **Scale Mode**  |                | The scaling mode to apply to the deformer. |
+|                 | **Scale Invariant** | Ignores the scale set in the Transform component and uses the region size directly.
+|                 | **Inherit from Hierarchy** | Multiplies the Deformer’s region size by the [lossy scale](https://docs.unity3d.com/ScriptReference/Transform-lossyScale.html) of the Transform. Note that since the Deformer uses a top down projection, if the transformation hierarchy is [skewed](https://docs.unity3d.com/Manual/class-Transform.html), the deformer does not scale correctly. |
 | **Region Size** |                | Control the size of the foam generator in meters.                  |
 | **Type**        |                |                                                              |
 |                 | **Disk**     | Create a foam generator in the shape of a disk.                  |
@@ -79,7 +81,7 @@ These properties are specific to the Texture foam generator type.
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| Texture      | Specifies the texture used to generate the foam. The red channel holds the surface foam and the green channel holds the deep foam.<br>This texture can be a regular texture or a Render Texture, which can be updated at runtime by modifying a render target with a full screen shader graph for example. For a Render Texture, use the R16_UNorm format . |
+| Texture      | Specifies the texture used to generate the foam. The red channel holds the surface foam and the green channel holds the deep foam.<br>This texture can be a regular texture or a Render Texture, which can be updated at runtime by modifying a render target with a full screen shader graph for example. For a Render Texture, use the R16_UNorm format. |
 
 <a name="deformer-type-material"></a>
 

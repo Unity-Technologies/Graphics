@@ -11,17 +11,13 @@ You can also add your own settings. Refer to [Add custom settings](https://docs.
 | **Property**              | **Description**                                              |
 | --------------------------| ------------------------------------------------------------ |
 | Shader Variant Log Level  | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project. • Disabled: HDRP doesn’t log any Shader variant information.• Only SRP Shaders: Only log Shader variant information for HDRP Shaders.• All Shaders: Log Shader variant information for every Shader type. |
-| Export Shader Variants | Controls whether to output shader variant information to a file. |
-
+| Export Shader Variants | Controls whether to output shader variant information to a file. Unity saves the information to the folder with your project files, in `Temp/graphics-settings-stripping.json` and `Temp/shader-stripping.json`. |
 
 ## Custom Post Process Orders
 
 Use this section to select which custom post processing effect HDRP uses in the project and at which stage in the render pipeline it executes them.
 
 HDRP provides one list for each post processing injection point. See the [Custom Post Process](Custom-Post-Process.md) documentation for more details.
-
-![](Images/HDRPgs_Custom_PP.png)
-
 
 ## Frame Settings (Default Values)
 
@@ -48,7 +44,7 @@ You can use the **Volume Profiles** section to assign and edit a [Volume Profile
 
 The **Default Volume Profile Asset** (A) references a Volume Profile in the HDRP package folder called `DefaultSettingsVolumeProfile` by default. Below it, you can add [Volume overrides](volume-component.md), and edit their properties. You can assign your own Volume Profile to this property field. Be aware that this property must always reference a Volume Profile. If you assign your own Volume Profile and then delete it, HDRP automatically re-assigns the `DefaultSettingsVolumeProfile` from the HDRP package folder.
 
-The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](test-and-debug-materials-in-different-lighting-conditions-look-dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except that it overrides [Visual Environment Components](visual-environment-volume-override-reference.md) and sky components.![](Images/HDRPgs_Volume_Profiles.png)
+The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](test-and-debug-materials-in-different-lighting-conditions-look-dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except it overrides [Visual Environment Components](visual-environment-volume-override-reference.md) and sky components.
 
 ## Resources
 
