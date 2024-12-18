@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
         public SerializedProperty supportCustomPass;
+        public SerializedProperty supportVariableRateShading;
         public SerializedProperty customBufferFormat;
         public SerializedProperty renderingLayerMaskBuffer;
         public SerializedScalableSetting planarReflectionResolution;
@@ -143,6 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
             customBufferFormat = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
             renderingLayerMaskBuffer = root.Find((RenderPipelineSettings s) => s.renderingLayerMaskBuffer);
             supportCustomPass = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
+            supportVariableRateShading = root.Find((RenderPipelineSettings s) => s.supportVariableRateShading);
             supportedLitShaderMode = root.Find((RenderPipelineSettings s) => s.supportedLitShaderMode);
             planarReflectionResolution = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.planarReflectionResolution));
             cubeReflectionResolution = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.cubeReflectionResolution));

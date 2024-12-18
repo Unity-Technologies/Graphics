@@ -208,7 +208,7 @@
     * [Water Override for Volumes](water-the-water-system-volume-override.md)
     * [Water surface fluctuations](water-decals-masking-landing.md)
         * [Enable mask and water decals](enable-mask-and-water-decals.md)
-        * [Add swell, agitation, or ripples](add-swell-agitation-or-ripples.md)
+        * [Configure swell, agitation, or ripples](add-swell-agitation-or-ripples.md)
         * [Simulating currents with water decals](simulating-currents-with-water-decals.md)
         * [Simulating foam or ripples with masks](simulating-foam-or-ripples-with-masks.md)
     * [Decals and masking in the water system](water-decals-and-masking-in-the-water-system.md)

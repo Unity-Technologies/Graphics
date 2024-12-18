@@ -1015,7 +1015,7 @@ namespace UnityEngine.Rendering
             if (AdaptiveProbeVolumes.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
                 AdaptiveProbeVolumes.partialBakeSceneList = null;
 
-            if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario))
+            if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario) && activeSet.m_LightingScenarios.Count > 0)
                 activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
 
             // Layout has changed and is incompatible.

@@ -117,6 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportTransparentDepthPostpass = true,
                 colorBufferFormat = ColorBufferFormat.R11G11B10,
                 supportCustomPass = true,
+                supportVariableRateShading = true,
                 customBufferFormat = CustomBufferFormat.R8G8B8A8,
                 supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
                 supportDecals = true,
@@ -316,6 +317,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ColorBufferFormat colorBufferFormat;
         /// <summary>Support custom passes.</summary>
         public bool supportCustomPass;
+        /// <summary>Support variable rate shading.</summary>
+        public bool supportVariableRateShading;
         /// <summary>Custom passes buffer format.</summary>
         public CustomBufferFormat customBufferFormat;
         /// <summary>Supported Lit shader modes.</summary>

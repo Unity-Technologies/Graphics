@@ -1,6 +1,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
 void InitializeInputData(Varyings input, out InputData inputData)
@@ -33,7 +33,7 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-FragmentOutput frag(PackedVaryings packedInput)
+GBufferFragOutput frag(PackedVaryings packedInput)
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
@@ -72,5 +72,5 @@ FragmentOutput frag(PackedVaryings packedInput)
         surfaceData.occlusion = 1;
     #endif
 
-    return SurfaceDataToGbuffer(surfaceData, inputData, float3(0,0,0), kLightingInvalid);
+    return PackGBuffersSurfaceData(surfaceData, inputData, float3(0,0,0));
 }

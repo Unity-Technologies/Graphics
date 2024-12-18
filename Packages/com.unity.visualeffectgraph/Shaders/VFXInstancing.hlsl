@@ -72,7 +72,7 @@ uint VFXGetInstanceActiveIndex(uint instanceCurrentIndex)
 #if VFX_INSTANCING_ACTIVE_INDIRECTION
     if (instancingCurrentCount < instancingActiveCount)
     {
-        instanceActiveIndex = instancingIndirectAndActiveIndirect[instancingActiveIndirectOffset + instanceActiveIndex];
+        instanceActiveIndex = instancingIndirectAndActiveIndirect[instancingActiveIndirectOffset + instanceCurrentIndex];
     }
 #endif
     return instanceActiveIndex;
@@ -124,61 +124,3 @@ uint VFXGetIndirectBufferIndex(uint index, uint instanceActiveIndex)
     return RAW_CAPACITY * instanceActiveIndex + instancingBatchSize + index;
 }
 #endif
-
-#define VFX_GPU_EVENT_SUPPORT_INSTANCING 0
-
-uint VFXGetEventListBufferIndex(uint index, uint instanceActiveIndex)
-{
-#if VFX_GPU_EVENT_SUPPORT_INSTANCING
-    return RAW_CAPACITY * instanceActiveIndex + instancingBatchSize * 2u + index;
-#else
-    return 2u + index;
-#endif
-}
-
-uint VFXGetEventListBufferElementCount(uint instanceActiveIndex)
-{
-#if VFX_GPU_EVENT_SUPPORT_INSTANCING
-    return instancingBatchSize * 0u + instanceActiveIndex;
-#else
-    return 0u;
-#endif
-}
-
-uint VFXGetEventListBufferAccumulatedCount(uint instanceActiveIndex)
-{
-#if VFX_GPU_EVENT_SUPPORT_INSTANCING
-    return instancingBatchSize * 1u + instanceActiveIndex;
-#else
-    return 1u;
-#endif
-}
-
-void AppendEventTotalCount(RWStructuredBuffer<uint> outputBuffer, uint totalCount, uint instanceActiveIndex)
-{
-    uint localInstancingBatchSize = instancingBatchSize;
-#if !VFX_GPU_EVENT_SUPPORT_INSTANCING
-    instanceActiveIndex = 0u;
-    localInstancingBatchSize = 1u;
-#endif
-    InterlockedAdd(outputBuffer[localInstancingBatchSize + instanceActiveIndex], totalCount);
-}
-
-void AppendEventBuffer(RWStructuredBuffer<uint> outputBuffer, uint sourceIndex, uint outputCapacity, uint instanceActiveIndex)
-{
-    uint eventIndex;
-    uint localInstancingBatchSize = instancingBatchSize;
-#if !VFX_GPU_EVENT_SUPPORT_INSTANCING
-    instanceActiveIndex = 0u;
-    localInstancingBatchSize = 1u;
-#endif
-
-    InterlockedAdd(outputBuffer[instanceActiveIndex], 1u, eventIndex);
-
-    [branch]
-    if (eventIndex < outputCapacity)
-    {
-        eventIndex += localInstancingBatchSize * 2u + instanceActiveIndex * outputCapacity;
-        outputBuffer[eventIndex] = sourceIndex;
-    }
-}

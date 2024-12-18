@@ -243,6 +243,49 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
+        /// Used by the render pipeline to retrieve the DynamicResolutionScale value from the XR display.
+        /// One use case for retrieving this value is that render pipeline can properly sync some SRP owned textures to scale accordingly
+        /// </summary>
+        /// <returns> Returns current DynamicResolutionScale value from the XRDisplaySubsystem. </returns>
+        public static float GetDynamicResolutionScale()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+
+            return s_Display.globalDynamicScale;
+#else
+            return 1.0f;
+#endif
+        }
+
+        /// <summary>
+        /// Used by the render pipeline to calculate texture scaled width for XR display if it supports dynamic resolution
+        /// </summary>
+        /// <param name="texture">Input texture that supports dynamic resolution</param>
+        /// <returns> Returns current scaled width of the input texture. </returns>
+        public static int ScaleTextureWidthForXR(RenderTexture texture)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            return s_Display.ScaledTextureWidth(texture);
+#else
+            return 1;
+#endif
+        }
+
+        /// <summary>
+        /// Used by the render pipeline to calculate texture scaled height for XR display if it supports dynamic resolution
+        /// </summary>
+        /// <param name="texture">Input texture that supports dynamic resolution</param>
+        /// <returns> Returns current scaled width of the input texture. </returns>
+        public static int ScaleTextureHeightForXR(RenderTexture texture)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            return s_Display.ScaledTextureHeight(texture);
+#else
+            return 1;
+#endif
+        }
+
+        /// <summary>
         /// Used by the render pipeline to initiate a new rendering frame through a XR layout.
         /// </summary>
         /// <returns> Returns a new default layout. </returns>
@@ -446,10 +489,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             // Convert viewport from normalized to screen space
             Rect viewport = renderParameter.viewport;
-            viewport.x      *= renderPass.renderTargetDesc.width;
-            viewport.width  *= renderPass.renderTargetDesc.width;
-            viewport.y      *= renderPass.renderTargetDesc.height;
-            viewport.height *= renderPass.renderTargetDesc.height;
+            
+            viewport.x      *= renderPass.renderTargetScaledWidth;
+            viewport.width  *= renderPass.renderTargetScaledWidth;
+            viewport.y      *= renderPass.renderTargetScaledHeight;
+            viewport.height *= renderPass.renderTargetScaledHeight;
 
             // XRTODO : remove this line and use XRSettings.useOcclusionMesh instead when it's fixed
             Mesh occlusionMesh = XRGraphicsAutomatedTests.running ? null : renderParameter.occlusionMesh;
@@ -476,7 +520,9 @@ namespace UnityEngine.Experimental.Rendering
             {
                 renderTarget            = xrRenderPass.renderTarget,
                 renderTargetDesc        = XrRenderTextureDescToUnityRenderTextureDesc(xrRenderPass.renderTargetDesc),
-                hasMotionVectorPass     = xrRenderPass.hasMotionVectorPass,
+                renderTargetScaledWidth = xrRenderPass.renderTargetScaledWidth,
+                renderTargetScaledHeight = xrRenderPass.renderTargetScaledHeight,
+                hasMotionVectorPass      = xrRenderPass.hasMotionVectorPass,
                 motionVectorRenderTarget = xrRenderPass.motionVectorRenderTarget,
                 motionVectorRenderTargetDesc = XrRenderTextureDescToUnityRenderTextureDesc(xrRenderPass.motionVectorRenderTargetDesc),
                 cullingParameters       = cullingParameters,

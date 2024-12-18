@@ -49,7 +49,7 @@ You can define the default Visual Effect Event for each [Visual Effect Graph Ass
 
 ## GPU Events
 
-GPU Events are an **Experimental feature** of the Visual Effect Graph. They allow you to spawn particles based on other particles. To enable GPU Events, enable the **Experimental Operators/Blocks** checkbox in the [Visual Effect Preferences](VisualEffectPreferences.md).
+GPU Events allow you to spawn particles based on other particles. 
 
 GPU Events are Event Contexts that rely on data sent from other systems, for example, when a particle dies. The following Update Blocks can send GPU Event Data:
 

@@ -56,6 +56,8 @@ public class VRS_Draw_RendererFeature : ScriptableRendererFeature
         {
             const string passName = "VRS Render Custom Pass";
 
+            if (!Vrs.IsColorMaskTextureConversionSupported()) return;
+
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             if (cameraData.historyManager == null)

@@ -5,6 +5,8 @@ using ShaderPathID = UnityEngine.Rendering.Universal.ShaderPathID;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.Universal.ShaderGraph;
 using UnityEditor.Rendering.Universal.ShaderGUI;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering;
 
 namespace Unity.Rendering.Universal
 {
@@ -81,6 +83,40 @@ namespace Unity.Rendering.Universal
             }
 
             return false;
+        }
+
+        internal static bool HasXRMotionVectorLightModeTag(ShaderID id)
+        {
+            // Currently only these ShaderIDs have a pass with a { "LightMode" = "XRMotionVectors" } tag in URP
+            // (this is a more efficient check than looping over all sub-shaders and their passes and checking the
+            // "LightMode" tag value with FindPassTagValue)
+            switch (id)
+            {
+                case ShaderID.Lit:
+                case ShaderID.Unlit:
+                case ShaderID.SimpleLit:
+                case ShaderID.ComplexLit:
+                case ShaderID.BakedLit:
+                case ShaderID.SG_Unlit:
+                case ShaderID.SG_Lit:
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsSpacewarpSupported()
+        {
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+            bool containsVulkanAPI = false;
+
+            for (int apiIndex = 0; apiIndex < graphicsAPIs.Length; apiIndex++)
+            {
+                containsVulkanAPI = containsVulkanAPI || graphicsAPIs[apiIndex] == GraphicsDeviceType.Vulkan;
+            }
+
+            return platform == BuildTarget.Android && containsVulkanAPI;
         }
 
         internal enum MaterialUpdateType

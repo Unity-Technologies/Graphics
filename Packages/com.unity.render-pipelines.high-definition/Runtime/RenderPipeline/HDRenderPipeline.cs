@@ -718,6 +718,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
 
+            VrsInitializeResources();
+
 #if UNITY_EDITOR
             GPUInlineDebugDrawer.Initialize();
 #endif
@@ -934,6 +936,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            VrsDisposeResources();
+
             Graphics.ClearRandomWriteTargets();
             Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();
@@ -1166,7 +1170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = 1.0f;
             }
 
-            m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitCurrentFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.currentViewportSize, hdCamera.historyRTHandleProperties.currentViewportSize);
+            m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitCurrentFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.currentViewportSize, hdCamera.historyRTHandleProperties.currentRenderTargetSize);
             m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
@@ -1263,6 +1267,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cmd.ConfigureFoveatedRendering(hdCamera.xr.foveatedRenderingInfo);
                 }
+
+                if (GraphicsSettings.TryGetRenderPipelineSettings<LightmapSamplingSettings>(out var lightmapSamplingSettings))
+                    CoreUtils.SetKeyword(cmd, "LIGHTMAP_BICUBIC_SAMPLING", lightmapSamplingSettings.useBicubicLightmapSampling);
+                else
+                    CoreUtils.SetKeyword(cmd, "LIGHTMAP_BICUBIC_SAMPLING", false);
             }
         }
 
@@ -2094,33 +2103,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-#if UNITY_2021_1_OR_NEWER
-        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
-        {
-            Render(renderContext, new List<Camera>(cameras));
-        }
-
-#endif
-
-#if UNITY_2021_1_OR_NEWER
         // Only for internal use, outside of SRP people can call Camera.Render()
         internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
             Render(renderContext, cameras);
         }
 
-#endif
-
         /// <summary>
         /// RenderPipeline Render implementation.
         /// </summary>
         /// <param name="renderContext">Current ScriptableRenderContext.</param>
         /// <param name="cameras">List of cameras to render.</param>
-#if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
-#else
-        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
-#endif
         {
 #if UNITY_EDITOR
             // Build target can change in editor so we need to check if the target is supported
@@ -2148,11 +2142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();
 
-#if UNITY_2021_1_OR_NEWER
             BeginContextRendering(renderContext, cameras);
-#else
-            BeginFrameRendering(renderContext, cameras);
-#endif
 
             // Check if we can speed up FrameSettings process by skipping history
             // or go in detail if debug is activated. Done once for all renderer.
@@ -2431,11 +2421,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderGraph.EndFrame();
             XRSystem.EndLayout();
 
-#if UNITY_2021_1_OR_NEWER
             EndContextRendering(renderContext, cameras);
-#else
-            EndFrameRendering(renderContext, cameras);
-#endif
         }
 
         /// <summary>

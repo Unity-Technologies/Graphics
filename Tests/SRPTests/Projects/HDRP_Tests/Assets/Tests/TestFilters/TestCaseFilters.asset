@@ -363,3 +363,23 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: instability https://jira.unity3d.com/browse/UUM-75549
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0273230a74b7d7c469a48677e882811c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: VRS not supported
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0273230a74b7d7c469a48677e882811c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 2
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: VRS not supported

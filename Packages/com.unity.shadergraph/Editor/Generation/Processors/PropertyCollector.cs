@@ -92,11 +92,18 @@ namespace UnityEditor.ShaderGraph
                     {
                         Debug.LogError("Two properties with the same reference name (" + prop.referenceName + ") using different types");
                     }
-                    else
-                    {
-                        if (!EquivalentHLSLProperties(existingProp, prop))
-                            Debug.LogError("Two properties with the same reference name (" + prop.referenceName + ") produce different HLSL properties");
-                    }
+                    // else
+                    // {
+                        // if (!EquivalentHLSLProperties(existingProp, prop))
+                        // {
+                            // NOTE:
+                            // Shader Graph won't produce a duplicate property.
+                            // Since the type is already the same (as per above)
+                            //  and by way of how targets/properties/subshaders work,
+                            // any duplicate properties in SG will just use the same declaration.
+                            // Debug.LogError("Two properties with the same reference name (" + prop.referenceName + ") produce different HLSL properties");
+                        // }
+                    // }
                 }
             }
             else

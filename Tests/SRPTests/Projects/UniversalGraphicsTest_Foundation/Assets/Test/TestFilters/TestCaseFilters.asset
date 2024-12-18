@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
   m_Name: TestCaseFilters
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
@@ -26,7 +26,7 @@ MonoBehaviour:
     BuildPlatform: 45
     GraphicsDevice: 11
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/PIA-882
   - FilteredScene: {fileID: 0}
@@ -123,7 +123,7 @@ MonoBehaviour:
     BuildPlatform: 2
     GraphicsDevice: 16
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-3312
   - FilteredScene: {fileID: 0}
@@ -133,7 +133,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 18
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Needs fixing on DX12
   - FilteredScene: {fileID: 0}
@@ -145,7 +145,7 @@ MonoBehaviour:
     BuildPlatform: 13
     GraphicsDevice: 11
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Needs MSAA fixing on OpenGLES3
   - FilteredScene: {fileID: 0}
@@ -157,7 +157,7 @@ MonoBehaviour:
     BuildPlatform: 45
     GraphicsDevice: 11
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Needs MSAA fixing on OpenGLES3
   - FilteredScene: {fileID: 0}
@@ -177,7 +177,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 18
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-55074
   - FilteredScene: {fileID: 0}
@@ -188,9 +188,9 @@ MonoBehaviour:
     BuildPlatform: 2
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
-    Reason:
+    Reason: 
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: e983e6ee0e89e14478c8f616dfbc3e20, type: 3}
@@ -199,7 +199,7 @@ MonoBehaviour:
     BuildPlatform: 9
     GraphicsDevice: 16
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Crash on iOS
   - FilteredScene: {fileID: 0}
@@ -211,7 +211,7 @@ MonoBehaviour:
     BuildPlatform: 20
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-56932
   - FilteredScene: {fileID: 0}
@@ -222,7 +222,7 @@ MonoBehaviour:
     BuildPlatform: 9
     GraphicsDevice: 16
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Reflection probe missing sometimes.
   - FilteredScene: {fileID: 0}
@@ -233,7 +233,7 @@ MonoBehaviour:
     BuildPlatform: 13
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Reflection probe missing sometimes.
   - FilteredScene: {fileID: 0}
@@ -248,7 +248,7 @@ MonoBehaviour:
     BuildPlatform: 2
     GraphicsDevice: 16
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-3312
   - FilteredScene: {fileID: 0}
@@ -279,7 +279,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 11
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No GLES on Deferred.
   - FilteredScene: {fileID: 0}
@@ -290,7 +290,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 17
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No GL on Deferred.
   - FilteredScene: {fileID: 0}
@@ -300,7 +300,7 @@ MonoBehaviour:
     BuildPlatform: 9
     GraphicsDevice: 16
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: 'Bug: iPhone yamato instability for unknown reason.'
   - FilteredScene: {fileID: 0}
@@ -340,7 +340,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 18
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1394999/
   - FilteredScene: {fileID: 0}
@@ -350,7 +350,7 @@ MonoBehaviour:
     BuildPlatform: 24
     GraphicsDevice: 21
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305639/
   - FilteredScene: {fileID: 0}
@@ -420,7 +420,7 @@ MonoBehaviour:
     BuildPlatform: 13
     GraphicsDevice: 21
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-56933
   - FilteredScene: {fileID: 0}
@@ -445,7 +445,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 11
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Not supported on GLES3
   - FilteredScene: {fileID: 0}
@@ -463,7 +463,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 17
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Not supported on OpenGL
   - FilteredScene: {fileID: 0}
@@ -473,7 +473,7 @@ MonoBehaviour:
     BuildPlatform: 9
     GraphicsDevice: 16
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: URP-1199
   - FilteredScene: {fileID: 0}
@@ -483,7 +483,7 @@ MonoBehaviour:
     BuildPlatform: 13
     GraphicsDevice: 21
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: URP-1199
   - FilteredScene: {fileID: 0}
@@ -568,9 +568,9 @@ MonoBehaviour:
     BuildPlatform: 13
     GraphicsDevice: 11
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
-    Reason:
+    Reason: 
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: f1e2273404277234a8497f4bc0f9f229, type: 3}
@@ -601,7 +601,7 @@ MonoBehaviour:
     BuildPlatform: 9
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -611,7 +611,7 @@ MonoBehaviour:
     BuildPlatform: 13
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -621,7 +621,7 @@ MonoBehaviour:
     BuildPlatform: 20
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -631,7 +631,7 @@ MonoBehaviour:
     BuildPlatform: 21
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -641,7 +641,7 @@ MonoBehaviour:
     BuildPlatform: 31
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -651,7 +651,7 @@ MonoBehaviour:
     BuildPlatform: 33
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -661,7 +661,7 @@ MonoBehaviour:
     BuildPlatform: 37
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -671,7 +671,7 @@ MonoBehaviour:
     BuildPlatform: 38
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -681,7 +681,7 @@ MonoBehaviour:
     BuildPlatform: 42
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -691,7 +691,7 @@ MonoBehaviour:
     BuildPlatform: 43
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -701,7 +701,7 @@ MonoBehaviour:
     BuildPlatform: 44
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -711,7 +711,7 @@ MonoBehaviour:
     BuildPlatform: 46
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Alembic package is desktop only
   - FilteredScene: {fileID: 0}
@@ -722,7 +722,7 @@ MonoBehaviour:
     BuildPlatform: 24
     GraphicsDevice: 21
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: 'Issues with variants '
   - FilteredScene: {fileID: 0}
@@ -733,7 +733,7 @@ MonoBehaviour:
     BuildPlatform: 13
     GraphicsDevice: 21
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: Bug. UUM-61242
   - FilteredScene: {fileID: 0}
@@ -744,7 +744,7 @@ MonoBehaviour:
     BuildPlatform: 24
     GraphicsDevice: 21
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-57780
   - FilteredScene: {fileID: 0}
@@ -754,7 +754,7 @@ MonoBehaviour:
     BuildPlatform: 24
     GraphicsDevice: 21
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-57771
   - FilteredScene: {fileID: 0}
@@ -764,7 +764,7 @@ MonoBehaviour:
     BuildPlatform: 38
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-57771
   - FilteredScene: {fileID: 0}
@@ -774,7 +774,7 @@ MonoBehaviour:
     BuildPlatform: 31
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-45735
   - FilteredScene: {fileID: 0}
@@ -802,7 +802,7 @@ MonoBehaviour:
     BuildPlatform: 2
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -819,7 +819,7 @@ MonoBehaviour:
     BuildPlatform: 5
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -836,7 +836,7 @@ MonoBehaviour:
     BuildPlatform: 9
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -853,7 +853,7 @@ MonoBehaviour:
     BuildPlatform: 13
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -870,7 +870,7 @@ MonoBehaviour:
     BuildPlatform: 19
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -887,7 +887,7 @@ MonoBehaviour:
     BuildPlatform: 20
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -904,7 +904,7 @@ MonoBehaviour:
     BuildPlatform: 21
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -921,7 +921,7 @@ MonoBehaviour:
     BuildPlatform: 24
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -938,7 +938,7 @@ MonoBehaviour:
     BuildPlatform: 31
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -955,7 +955,7 @@ MonoBehaviour:
     BuildPlatform: 33
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -972,7 +972,7 @@ MonoBehaviour:
     BuildPlatform: 37
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -989,7 +989,7 @@ MonoBehaviour:
     BuildPlatform: 38
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -1006,7 +1006,7 @@ MonoBehaviour:
     BuildPlatform: 41
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -1023,7 +1023,7 @@ MonoBehaviour:
     BuildPlatform: 42
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -1040,7 +1040,7 @@ MonoBehaviour:
     BuildPlatform: 43
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -1057,7 +1057,7 @@ MonoBehaviour:
     BuildPlatform: 44
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -1074,7 +1074,7 @@ MonoBehaviour:
     BuildPlatform: 45
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -1091,7 +1091,7 @@ MonoBehaviour:
     BuildPlatform: 46
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -1108,7 +1108,7 @@ MonoBehaviour:
     BuildPlatform: 47
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No debug display variants available.
   - FilteredScene: {fileID: 0}
@@ -1118,7 +1118,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 18
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-53003
   - FilteredScene: {fileID: 0}
@@ -1128,7 +1128,7 @@ MonoBehaviour:
     BuildPlatform: 43
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-63904
   - FilteredScene: {fileID: 0}
@@ -1138,7 +1138,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 2
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-66357, UUM-67324
   - FilteredScene: {fileID: 0}
@@ -1148,7 +1148,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 11
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-66357
   - FilteredScene: {fileID: 0}
@@ -1158,7 +1158,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 13
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-67324
   - FilteredScene: {fileID: 0}
@@ -1168,7 +1168,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 16
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-67324
   - FilteredScene: {fileID: 0}
@@ -1178,7 +1178,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 18
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-66357, UUM-67324
   - FilteredScene: {fileID: 0}
@@ -1188,7 +1188,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 22
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-67324
   - FilteredScene: {fileID: 0}
@@ -1198,7 +1198,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 24
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-67324
   - FilteredScene: {fileID: 0}
@@ -1208,7 +1208,7 @@ MonoBehaviour:
     BuildPlatform: -2
     GraphicsDevice: 25
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-67324
   - FilteredScene: {fileID: 0}
@@ -1218,7 +1218,7 @@ MonoBehaviour:
     BuildPlatform: 44
     GraphicsDevice: 4
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: UUM-67324
   - FilteredScene: {fileID: 0}
@@ -1229,7 +1229,7 @@ MonoBehaviour:
     BuildPlatform: 20
     GraphicsDevice: 28
     Architecture: 0
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: No support in webgpu
   - FilteredScene: {fileID: 0}
@@ -1239,7 +1239,7 @@ MonoBehaviour:
     BuildPlatform: 9
     GraphicsDevice: 16
     Architecture: 2
-    XrSdk:
+    XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-85648
   - FilteredScene: {fileID: 0}
@@ -1344,7 +1344,7 @@ MonoBehaviour:
     Reason: No support PS5
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 79411c8112bdd64429adcd528baacf32, type: 3}
+    - {fileID: 102900000, guid: 87ee64df2c957224ab067a27a80ea7af, type: 3}
     ColorSpace: -1
     BuildPlatform: 38
     GraphicsDevice: 22
@@ -1382,3 +1382,15 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/PLATGRAPH-4053
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9ea0353710b4a4560a948d79d8e6b665, type: 3}
+    - {fileID: 102900000, guid: 83bd7131d49af4185bee78a6b2ad6d27, type: 3}
+    - {fileID: 102900000, guid: 8beb3a97254e550429b13e17f2865e2b, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No support GLES3

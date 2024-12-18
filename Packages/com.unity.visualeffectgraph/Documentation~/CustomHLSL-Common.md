@@ -1,6 +1,6 @@
 ﻿## Custom HLSL Nodes (block and operator)
 
-These Custom HLSL nodes let you execute custom HLSL code during particle simulation.
+These Custom HLSL nodes enable you to execute custom HLSL code during particle simulation.
 You can use an [operator](Operator-CustomHLSL.md) for horizontal flow or a [block](Block-CustomHLSL.md) for vertical flow (in contexts).    
 
 ![Custom HLSL](Images/custom-hlsl.png)
@@ -15,8 +15,8 @@ You can use an [operator](Operator-CustomHLSL.md) for horizontal flow or a [bloc
 
 ## HLSL Code
 The HLSL code can be either **embedded** in the node or an **HLSL file** can be used.
-You can provide multiple functions in the same HLSL source (embedded or file), in this case, you'll have to pick the desired one in a choice list in the node.    
-To be valid and correctly interpreted by the VFX Graph, some conventions must be adopted.
+Multiple functions can be contained within the same HLSL source (embedded or file); in such cases, you must select the desired function from a dropdown list within the node.
+To ensure validity and correct interpretation by the VFX Graph, adhere to the following conventions.
 
 ## Function declaration
 To be properly recognized by VFX Graph the function must fulfill the following requirements:
@@ -40,8 +40,7 @@ float Distance(in float3 a, in float3 b)
 }
 ```
 
-You may want to write a helper function that you don't want to be exposed in the node's choice list.    
-In that case, simply put this special comment above the function declaration:
+If you wish to write a helper function that should not appear in the node's selection list, use the special comment above the function declaration:
 ```csharp
 /// Hidden
 float SomeFunction(in float a)
@@ -50,7 +49,7 @@ float SomeFunction(in float a)
 }
 ```
 > [!IMPORTANT]
-> When you need to implement helper functions, you must use a HLSL file, not the embedded HLSL code.
+> When implementing helper functions, you must use an HLSL file, not the embedded HLSL code.
 
 ## Supported types
 
@@ -71,30 +70,46 @@ float SomeFunction(in float a)
 
 ### Texture types
 
-| **HLSL Type**          | **Port Type**    | **Description**                                                                  |
-|------------------------|------------------|----------------------------------------------------------------------------------|
-| **VFXSampler2D**       | Texture2D        | A structure containing a sampler state and a two-dimensional texture.            |
-| **VFXSampler3D**       | Texture3D        | A structure containing a sampler state and a three-dimensional texture.          |
-| **VFXSampler2DArray**  | Texture2DArray   | A structure containing a sampler state and an array of two-dimensional textures. |
-| **VFXSamplerCube**     | TextureCube      | A structure containing a sampler state and a cube texture.                       |
+| **HLSL Type**          | **Port Type**  | **Description**                                                                 |
+| ---------------------- | -------------- | --------------------------------------------------------------------------------|
+| **VFXSampler2D**       | Texture2D      | A structure containing a sampler state and a two-dimensional texture.           |
+| **VFXSampler3D**       | Texture3D      | A structure containing a sampler state and a three-dimensional texture.         |
+| **VFXSampler2DArray**  | Texture2DArray | A structure containing a sampler state and an array of two-dimensional textures.|
+| **VFXSamplerCube**     | TextureCube    | A structure containing a sampler state and a cube texture.                      |
+| **Texture1D**          | Texture2D      | A one-dimensional texture.                                                      |
+| **Texture2D**          | Texture2D      | A two-dimensional texture.                                                      |
+| **Texture3D**          | Texture3D      | A three-dimensional texture.                                                    |
+| **TextureCube**        | Cubemap        | A cube texture.                                                                 |
+| **Texture1DArray**     | Texture2DArray | An array of one-dimensional textures.                                           |
+| **Texture2DArray**     | Texture2DArray | An array of two-dimensional textures.                                           |
+| **TextureCubeArray**   | CubemapArray   | An array of cube textures.                                                      |
+| **RWTexture1D**        | Texture2D      | A read-write one-dimensional texture.                                           |
+| **RWTexture2D**        | Texture2D      | A read-write two-dimensional texture.                                           |
+| **RWTexture3D**        | Texture3D      | A read-write three-dimensional texture.                                         |
+| **RWTextureCube**      | Cubemap        | A read-write cube texture.                                                      |
+| **RWTexture1DArray**   | Texture2DArray | A read-write array of one-dimensional textures.                                 |
+| **RWTexture2DArray**   | Texture2DArray | A read-write array of two-dimensional textures.                                 |
+| **RWTextureCubeArray** | CubemapArray   | A read-write array of cube textures.                                            |
 
 ### Buffers
 
-| **HLSL Type**               | **Port Type**  | **Description**                                                                  |
-|-----------------------------|----------------|----------------------------------------------------------------------------------|
-| **StructuredBuffer**        | GraphicsBuffer | A read-only buffer for storing an array of structures or basic HLSL data types.  |
-| **ByteAddressBuffer**       | GraphicsBuffer | A read-only raw buffer.                                                          |
-| **Buffer**                  | GraphicsBuffer | A read-only raw buffer for basic HLSL types.                                     |
-| **AppendStructuredBuffer**  | GraphicsBuffer | A read-only buffer where you can append new entries.                             |
-| **ConsumeStructuredBuffer** | GraphicsBuffer | A read-only buffer where you can remove entries.                                 |
-| **RWBuffer**                | GraphicsBuffer | A read-write raw buffer for basic HLSL types.                                    |
-| **RWStructuredBuffer**      | GraphicsBuffer | A read-write buffer for storing an array of structures or basic HLSL data types. |
-| **RWByteAddressBuffer**     | GraphicsBuffer | A read-write raw buffer.                                                         |
+| **HLSL Type**               | **Port Type**  | **Description**                                                                 |
+| --------------------------- | -------------- | --------------------------------------------------------------------------------|
+| **StructuredBuffer**        | GraphicsBuffer | A read-only buffer for storing an array of structures or basic HLSL data types. |
+| **ByteAddressBuffer**       | GraphicsBuffer | A read-only raw buffer.                                                         |
+| **Buffer**                  | GraphicsBuffer | A read-only raw buffer for basic HLSL types.                                    |
+| **AppendStructuredBuffer**  | GraphicsBuffer | A read-only buffer where you can append new entries.                            |
+| **ConsumeStructuredBuffer** | GraphicsBuffer | A read-only buffer where you can remove entries.                                |
+| **RWBuffer**                | GraphicsBuffer | A read-write raw buffer for basic HLSL types.                                   |
+| **RWStructuredBuffer**      | GraphicsBuffer | A read-write buffer for storing an array of structures or basic HLSL data types.|
+| **RWByteAddressBuffer**     | GraphicsBuffer | A read-write raw buffer.                                                        |
 
 ## Sampling
 
 ### Textures
-The simplest way to sample a texture is to use the VFX Graph structure called VFXSampler2D (or VFXSample3D) which is defined as shown below:
+The CustomHLSL functions are exclusively used within a Compute or Vertex Shader context. This means that derivative functions, such as `ddx` and `ddy`, are unavailable. Consequently, when sampling a texture, you must explicitly specify the mipmap level.
+
+The simplest way to sample a texture is to use the VFX Graph structure called VFXSampler2D (or VFXSampler3D), which is defined as follows:
 ```csharp
 struct VFXSampler2D
 {
@@ -102,43 +117,76 @@ struct VFXSampler2D
     SamplerState s;
 };
 ```
-VFX Graph provides this function: `float4 SampleTexture(VFXSampler2D texure, float2 coordinates)`.    
+VFX Graph provides the function: `float4 SampleTexture(VFXSampler2D texure, float2 coordinates, float level)`.    
+
+```csharp
+float4 CustomSampleTexture(VFXSampler2D inputTexture, float2 uv)
+{	
+    return SampleTexture(inputTexture, uv, 0 /*first level*/);
+}
+```
+
 But you can also use HLSL built-in functions to sample a texture using the VFXSampler2D fields.    
-In that case, since this is used in a compute shader you must specify which mipmap level to sample (use `SampleLevel` for instance).
+
+If a sampler is unnecessary, you can also directly fetch from the texture using coordinates specified in pixel space.
+
+```csharp
+float4 CustomLoadTexture(Texture2D<float4> inputTexture, int x, int y)
+{
+    return inputTexture.Load(int3(x, y, 0 /*first level*/));
+}
+```
+
+
 
 ### Buffers
 You can use two types of buffers: `ByteAddressBuffer` and  `StructuredBuffer<>`.
-In both cases the usage is the same as in any HLSL code:
+The usage for both is consistent with any HLSL code:
+
 - `ByteAddressBuffer`: use the `Load` function
 ```csharp
-uint char = buffer.Load(attributes.particleId % count);
+uint CustomLoadByteAddressBuffer(ByteAddressBuffer buffer, uint address, uint count)
+{	
+    return buffer.Load(address % count);
+}
 ```
-- `StructuredBuffer<>`: use classic index accessor
+- `StructuredBuffer<T>`: use classic index accessor
 ```csharp
-float angle = phase + freq * buffer[attributes.particleId % bufferSize];
+float3 CustomLoadStructuredBuffer(StructuredBuffer<float3> buffer, uint address, uint count)
+{	
+    return buffer[address % count];
+}
 ```
 
 ### Gradient
-Gradients are handled specifically in VFX Graph (they are packed in a single texture) so you must use a dedicated function to sample them.    
+Gradients are specifically handled in VFX Graph (packed into a single texture) requiring a dedicated sampling function.  
 Here is the function definition: `SampleGradient(VFXGradient gradient, float t)`
+
 ```csharp
-float3 color = SampleGradient(grad, t);
+float3 CustomSampleGradient(VFXGradient gradient, float time)
+{
+	return SampleGradient(gradient, time);
+}
 ```
 
 ### Curve
-Sampling a curve is really similar to sampling a gradient.    
+Sampling a curve is similar to sampling a gradient.    
 Here is the function definition: `SampleCurve(VFXCurve curve, float t)`
+
 ```csharp
-float r = SampleCurve(curve, t);
+float CustomSampleCurve(VFXCurve curve, float time)
+{
+	return SampleCurve(curve, time);
+}
 ```
 
 ## HLSL Code Editor
-You can edit your HLSL code directly inside Unity Editor by clicking the `Edit` button on the node in the graph (see screenshot [above](#custom-hlsl-nodes-block-and-operator)).    
+You can edit your HLSL code directly within the Unity Editor by clicking the `Edit` button on the node in the graph (see screenshot [above](#custom-hlsl-nodes-block-and-operator)).    
 The HLSL Code Editor supports the following shortcuts:
 - `Ctrl + Z` and `Ctrl + Y` for Undo/Redo (independent from the Unity Editor undo stack)
 - `Ctrl + S` to save the current HLSL code
 - `Ctrl + Mouse Wheel` to change the font size
 
->If you need to write down the name of a particle attribute, you can drag&drop drop the attribute from the blackboard to the code editor. This way you avoid any risk of typo.    
+>If you need to write down the name of a particle attribute, you can drag&drop drop the attribute from the blackboard to the code editor. This helps avoid any typo.
 
 ![Custom HLSL Editor](Images/custom-hlsl-editor.png)

@@ -12,14 +12,20 @@ namespace UnityEngine.Rendering.HighDefinition
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: "USE_LEGACY_LIGHTMAPS")]
         [SerializeField] private bool m_PrefilterUseLegacyLightmaps = false;
 
+        [ShaderKeywordFilter.RemoveIf(false,  keywordNames: "LIGHTMAP_BICUBIC_SAMPLING")]
+        [ShaderKeywordFilter.SelectIf(true, keywordNames: "LIGHTMAP_BICUBIC_SAMPLING")]
+        [SerializeField] private bool m_PrefilterUseLightmapBicubicSampling = false;
+
         internal struct ShaderPrefilteringData
         {
             public bool useLegacyLightmaps;
+            public bool useBicubicLightmapSampling;
         }
 
         internal void UpdateShaderKeywordPrefiltering(ref ShaderPrefilteringData prefilteringData)
         {
             m_PrefilterUseLegacyLightmaps = prefilteringData.useLegacyLightmaps;
+            m_PrefilterUseLightmapBicubicSampling = prefilteringData.useBicubicLightmapSampling;
         }
     }
 }

@@ -42,6 +42,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent shadowTransparentReceiveLabel = EditorGUIUtility.TrTextContent("Transparent Receive Shadows", "When disabled, none of the transparent objects will receive shadows.");
             public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Error: When using the deferred rendering path, the Renderer requires the control over the 4 highest bits of the stencil buffer to store Material types. The current combination of the stencil override options prevents the Renderer from controlling the required bits. Try changing one of the options to Replace.");
             public static readonly GUIContent intermediateTextureMode = EditorGUIUtility.TrTextContent("Intermediate Texture", "Controls when URP renders via an intermediate texture.");
+            public static readonly GUIContent deferredPlusIncompatibleWarning = EditorGUIUtility.TrTextContent("Deferred+ is only available with Render Graph. In compatibility mode, Deferred+ falls back to Forward+.");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -92,6 +93,9 @@ namespace UnityEditor.Rendering.Universal
                     break;
                 case (int)RenderingMode.ForwardPlus:
                     renderPathCompatibility = RenderPathCompatibility.ForwardPlus;
+                    break;
+                case (int)RenderingMode.DeferredPlus:
+                    renderPathCompatibility = RenderPathCompatibility.DeferredPlus;
                     break;
             }
 
@@ -175,7 +179,14 @@ namespace UnityEditor.Rendering.Universal
                 depthFormatIndex = GetDepthFormatIndex((DepthFormat)m_DepthAttachmentFormat.intValue, m_RenderingMode.intValue);
             }
 
-            if (m_RenderingMode.intValue == (int)RenderingMode.Deferred)
+            if (m_RenderingMode.intValue == (int)RenderingMode.DeferredPlus && GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.HelpBox(Styles.deferredPlusIncompatibleWarning.text, MessageType.Warning);
+                EditorGUI.indentLevel--;
+            }
+
+            if (m_RenderingMode.intValue == (int)RenderingMode.Deferred || m_RenderingMode.intValue == (int)RenderingMode.DeferredPlus)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
@@ -246,7 +257,10 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_DefaultStencilState, Styles.defaultStencilStateLabel, true);
             SerializedProperty overrideStencil = m_DefaultStencilState.FindPropertyRelative("overrideStencilState");
 
-            if (overrideStencil.boolValue && m_RenderingMode.intValue == (int)RenderingMode.Deferred)
+            bool usesDeferredLighting = m_RenderingMode.intValue == (int)RenderingMode.Deferred;
+            usesDeferredLighting |= m_RenderingMode.intValue == (int)RenderingMode.DeferredPlus;
+
+            if (overrideStencil.boolValue && usesDeferredLighting)
             {
                 CompareFunction stencilFunction = (CompareFunction)m_DefaultStencilState.FindPropertyRelative("stencilCompareFunction").enumValueIndex;
                 StencilOp stencilPass = (StencilOp)m_DefaultStencilState.FindPropertyRelative("passOperation").enumValueIndex;

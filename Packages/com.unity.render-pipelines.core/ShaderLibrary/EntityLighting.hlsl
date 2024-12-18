@@ -8,6 +8,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 
 #define LIGHTMAP_RGBM_MAX_GAMMA     real(5.0)       // NB: Must match value in RGBMRanges.h
 #define LIGHTMAP_RGBM_MAX_LINEAR    real(34.493242) // LIGHTMAP_RGBM_MAX_GAMMA ^ 2.2
@@ -208,6 +209,8 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
 #define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D_ARRAY
 #define LIGHTMAP_EXTRA_ARGS float2 uv, float slice
 #define LIGHTMAP_EXTRA_ARGS_USE uv, slice
+#define LIGHTMAP_SLICE_ARG_USE , slice
+#define GET_LIGHTMAP_SIZE(tex, width, height) uint _slices; tex.GetDimensions(width, height, _slices)
 #else
 // ^ Lightmaps are not bound as texture arrays, but as individual textures. The
 // batch is broken every time lightmaps are changed, but this is well-supported
@@ -217,6 +220,8 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
 #define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D
 #define LIGHTMAP_EXTRA_ARGS float2 uv
 #define LIGHTMAP_EXTRA_ARGS_USE uv
+#define LIGHTMAP_SLICE_ARG_USE
+#define GET_LIGHTMAP_SIZE(tex, width, height) tex.GetDimensions(width, height)
 #endif
 
 // For the built-in target, lightmaps are defined with half precision.
@@ -236,6 +241,27 @@ real3 DecodeHDREnvironment(real4 encodedIrradiance, real4 decodeInstructions)
 #define SAMPLE_TEXTURE2D_LIGHTMAP SAMPLE_TEXTURE2D
 #endif
 
+// 4-tap bicubic sampling for lightmaps. Assumes the input texture is bilinearly filtered.
+float4 SampleLightmapBicubic(TEXTURE2D_LIGHTMAP_PARAM(tex, smp), LIGHTMAP_EXTRA_ARGS)
+{
+    float width;
+    float height;
+    GET_LIGHTMAP_SIZE(tex, width, height);
+    float4 texSize = float4(width, height, 1.0/width, 1.0/height);
+
+    float2 xy = uv * texSize.xy + 0.5;
+    float2 ic = floor(xy);
+    float2 fc = frac(xy);
+
+    float2 weights[2], offsets[2];
+    BicubicFilter(fc, weights, offsets);
+
+    return weights[0].y * (weights[0].x * SAMPLE_TEXTURE2D_LIGHTMAP(tex, smp, (ic + float2(offsets[0].x, offsets[0].y) - 0.5) * texSize.zw LIGHTMAP_SLICE_ARG_USE).rgba  +
+                           weights[1].x * SAMPLE_TEXTURE2D_LIGHTMAP(tex, smp, (ic + float2(offsets[1].x, offsets[0].y) - 0.5) * texSize.zw LIGHTMAP_SLICE_ARG_USE).rgba) +
+           weights[1].y * (weights[0].x * SAMPLE_TEXTURE2D_LIGHTMAP(tex, smp, (ic + float2(offsets[0].x, offsets[1].y) - 0.5) * texSize.zw LIGHTMAP_SLICE_ARG_USE).rgba  +
+                           weights[1].x * SAMPLE_TEXTURE2D_LIGHTMAP(tex, smp, (ic + float2(offsets[1].x, offsets[1].y) - 0.5) * texSize.zw LIGHTMAP_SLICE_ARG_USE).rgba);
+}
+
 // isStaticLightmap mean it is not an Enlighten map
 real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), LIGHTMAP_EXTRA_ARGS, float4 transform, bool isStaticLightmap)
 {
@@ -243,7 +269,11 @@ real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler
 
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
+#if defined(LIGHTMAP_BICUBIC_SAMPLING)
+    real4 encodedIlluminance = SampleLightmapBicubic(TEXTURE2D_LIGHTMAP_ARGS(lightmapTex, lightmapSampler), LIGHTMAP_EXTRA_ARGS_USE);
+#else
     real4 encodedIlluminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE).rgba;
+#endif
     // Remark: static lightmap is RGBM for now, dynamic lightmap is RGB9E5
     real3 illuminance = isStaticLightmap ? DecodeLightmap(encodedIlluminance, decodeInstructions) : encodedIlluminance.rgb;
 
@@ -271,7 +301,11 @@ void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSam
     // transform is scale and bias
     uv = uv * transform.xy + transform.zw;
 
+#if defined(LIGHTMAP_BICUBIC_SAMPLING)
+    real4 direction = SampleLightmapBicubic(TEXTURE2D_LIGHTMAP_ARGS(lightmapDirTex, lightmapDirSampler), LIGHTMAP_EXTRA_ARGS_USE);
+#else
     real4 direction = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapDirTex, lightmapDirSampler, LIGHTMAP_EXTRA_ARGS_USE);
+#endif
 
     real halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
     bakeDiffuseLighting += illuminance * halfLambert / max(1e-4, direction.w);

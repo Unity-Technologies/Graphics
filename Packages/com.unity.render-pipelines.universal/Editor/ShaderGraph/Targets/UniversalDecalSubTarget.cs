@@ -986,13 +986,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.UseLegacyLightmaps },
+                { CoreKeywordDescriptors.LightmapBicubicSampling },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
-                { CoreKeywordDescriptors.ForwardPlus },
+                { CoreKeywordDescriptors.ClusterLightLoop },
                 { Descriptors.DecalsNormalBlend },
                 { CoreKeywordDescriptors.LODFadeCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
                 { CoreKeywordDescriptors.DebugDisplay },
@@ -1011,7 +1012,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
-                { CoreKeywordDescriptors.ForwardPlus },
+                { CoreKeywordDescriptors.ClusterLightLoop },
                 { CoreKeywordDescriptors.LightCookies },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { Descriptors.DecalsNormalBlend },
@@ -1024,6 +1025,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.UseLegacyLightmaps },
+                { CoreKeywordDescriptors.LightmapBicubicSampling },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
@@ -1056,7 +1058,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
             const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
             const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
-            const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
+            const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl";
             const string kLODCrossFade = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl";
 
             public static IncludeCollection DecalPregraph = new IncludeCollection

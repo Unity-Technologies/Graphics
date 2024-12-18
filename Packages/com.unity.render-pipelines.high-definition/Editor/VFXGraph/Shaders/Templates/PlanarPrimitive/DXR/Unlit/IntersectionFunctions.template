@@ -1,5 +1,5 @@
             // Needs to be included after the VFX includes
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXRayTracingCommon.hlsl"
+            #include "Packages/com.unity.visualeffectgraph/Shaders/VFXRayTracingCommon.hlsl"
             // Visibility function required for the intersection shader
             bool AABBPrimitiveIsVisible(RayTracingProceduralData rtProceduralData, float2 uv)
             {

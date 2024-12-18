@@ -19,8 +19,35 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// Rendering Layer Mask.
+    /// Options for defining which RenderingLayers affect which renderers.
     /// </summary>
+    /// <remarks>
+    /// This enum is a bitfield, which means that you can combine multiple values using the bitwise OR operator (|).
+    /// </remarks>
+    /// <example>
+    /// <code lang="cs"><![CDATA[
+    /// using UnityEngine;
+    /// using RenderingLayerMask = UnityEngine.Rendering.HighDefinition.RenderingLayerMask;
+    ///
+    /// public class RenderingLayerMaskExample : MonoBehaviour
+    /// {
+    ///     void Start()
+    ///     {
+    ///         // Set the rendering layers for the renderer
+    ///         // The layers are RenderingLayer1 and RenderingLayer2,
+    ///         // so the renderer is affected only by lights and effects in those layers.
+    ///
+    ///         RenderingLayerMask desiredLayerMask = RenderingLayerMask.RenderingLayer1 | RenderingLayerMask.RenderingLayer2;
+    ///         Renderer renderer = GetComponent<Renderer>();
+    ///         if (renderer != null)
+    ///         {
+    ///             // If the Renderer component exists, we set the desired rendering layer mask
+    ///             renderer.renderingLayerMask = (uint)desiredLayerMask;
+    ///         }
+    ///     }
+    /// }
+    /// ]]></code>
+    /// </example>
     [Flags]
     public enum RenderingLayerMask
     {

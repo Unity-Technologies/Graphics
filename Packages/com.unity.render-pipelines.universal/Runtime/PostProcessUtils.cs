@@ -121,8 +121,18 @@ namespace UnityEngine.Rendering.Universal
             float height = source.rt.height;
             if (source.rt.useDynamicScale)
             {
-                width *= ScalableBufferManager.widthScaleFactor;
-                height *= ScalableBufferManager.heightScaleFactor;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (source.rt.vrUsage != VRTextureUsage.None)
+                {
+                    width = XRSystem.ScaleTextureWidthForXR(source.rt);
+                    height = XRSystem.ScaleTextureHeightForXR(source.rt);
+                }
+                else
+#endif
+                {
+                    width *= ScalableBufferManager.widthScaleFactor;
+                    height *= ScalableBufferManager.heightScaleFactor;
+                }
             }
             cmd.SetGlobalVector(ShaderConstants._SourceSize, new Vector4(width, height, 1.0f / width, 1.0f / height));
         }

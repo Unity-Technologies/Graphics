@@ -183,7 +183,7 @@ void Frag(PackedVaryings packedInput,
 #elif defined(DECAL_SCREEN_SPACE)
     out half4 outColor : SV_Target0
 #elif defined(DECAL_GBUFFER)
-    out FragmentOutput fragmentOutput
+    out GBufferFragOutput fragmentOutput
 #elif defined(DECAL_FORWARD_EMISSIVE)
     out half4 outEmissive : SV_Target0
 #elif defined(SCENEPICKINGPASS)
@@ -354,14 +354,16 @@ void Frag(PackedVaryings packedInput,
 
     // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
     #pragma warning (disable : 3578) // The output value isn't completely initialized.
-    half3 packedNormalWS = PackNormal(normalToPack);
-    fragmentOutput.GBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);
-    fragmentOutput.GBuffer1 = 0;
-    fragmentOutput.GBuffer2 = half4(packedNormalWS, surfaceData.normalWS.a);
-    fragmentOutput.GBuffer3 = half4(surfaceData.emissive + color, surfaceData.baseColor.a);
-#if OUTPUT_SHADOWMASK
-    fragmentOutput.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    half3 packedNormalWS = PackGBufferNormal(normalToPack);
+    fragmentOutput.gBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);
+    fragmentOutput.gBuffer1 = 0;
+    fragmentOutput.gBuffer2 = half4(packedNormalWS, surfaceData.normalWS.a);
+    fragmentOutput.color = half4(surfaceData.emissive + color, surfaceData.baseColor.a);
+
+#if defined(GBUFFER_FEATURE_SHADOWMASK)
+    output.shadowMask = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
 #endif
+
     #pragma warning (default : 3578) // Restore output value isn't completely initialized.
 
 #elif defined(DECAL_FORWARD_EMISSIVE)

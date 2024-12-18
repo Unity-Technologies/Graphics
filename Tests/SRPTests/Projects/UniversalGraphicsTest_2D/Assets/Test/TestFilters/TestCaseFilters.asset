@@ -73,3 +73,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: No GPU Skinning
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f2882940e2db8f344878e353fac92b48, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Unstable - see https://jira.unity3d.com/browse/UUM-90539

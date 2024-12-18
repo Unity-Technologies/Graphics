@@ -24,7 +24,7 @@ public class VRS_Texture_RendererFeature : ScriptableRendererFeature
         {
             //const string passName = "Create VRS texture";
 
-           if (!ShadingRateInfo.supportsPerImageTile) return;
+           if (!Vrs.IsColorMaskTextureConversionSupported()) return;
 
            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();

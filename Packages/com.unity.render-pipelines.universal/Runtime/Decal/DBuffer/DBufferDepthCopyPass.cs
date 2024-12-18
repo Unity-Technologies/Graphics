@@ -21,14 +21,14 @@ namespace UnityEngine.Rendering.Universal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             var universalRenderer = cameraData.renderer as UniversalRenderer;
 
-            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
+            bool usesDeferredLighting = universalRenderer.usesDeferredLighting;
             bool useDepthPriming = universalRenderer.useDepthPriming;
             bool isMsaa = cameraData.cameraTargetDescriptor.msaaSamples > 1;
 
             // We must create a temporary depth buffer for dbuffer rendering if the existing one isn't compatible.
             // The deferred path always has compatible depth
             // The forward path only has compatible depth when depth priming is enabled without MSAA
-            bool hasCompatibleDepth = isDeferred || (useDepthPriming && !isMsaa);
+            bool hasCompatibleDepth = usesDeferredLighting || (useDepthPriming && !isMsaa);
             if (!hasCompatibleDepth)
             {
                 var depthDesc = cameraData.cameraTargetDescriptor;

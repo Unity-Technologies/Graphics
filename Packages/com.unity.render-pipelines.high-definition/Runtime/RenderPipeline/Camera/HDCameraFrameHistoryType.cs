@@ -67,6 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
         PathTracingDenoised,
         /// <summary>Denoised vpath-traced volumetrics scattering frame history.</summary>
         PathTracingVolumetricFogDenoised,
+        /// <summary>Variable rate shading.</summary>
+        Vrs,
 
         // For retro compatibility
         /// <summary>Main path tracing output buffer. It is recommended to use the PathTracingOutput enum value instead.</summary>

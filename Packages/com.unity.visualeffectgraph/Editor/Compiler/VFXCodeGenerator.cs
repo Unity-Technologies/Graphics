@@ -647,6 +647,8 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             {
                 perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");
             }
+            if (taskData.linkedEventOut.Length > 0 || context.contextType == VFXContextType.Init)
+                perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXGPUEvent.hlsl\"");
 
             globalIncludeContent.Write(blockDefines.builder.ToString());
             perPassIncludeContent.Write(blockIncludes.builder.ToString());

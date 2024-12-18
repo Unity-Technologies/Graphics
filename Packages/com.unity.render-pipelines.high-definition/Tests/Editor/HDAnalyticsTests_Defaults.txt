@@ -30,6 +30,7 @@
 {"supportTransparentDepthPostpass":"True"},
 {"colorBufferFormat":"R11G11B10"},
 {"supportCustomPass":"True"},
+{"supportVariableRateShading":"True"},
 {"customBufferFormat":"R8G8B8A8"},
 {"supportedLitShaderMode":"DeferredOnly"},
 {"planarReflectionResolution.m_Values":"[Resolution256,Resolution1024,Resolution2048]"},

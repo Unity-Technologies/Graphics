@@ -85,7 +85,7 @@ float3 shadergraph_LWBakedGI(float3 positionWS, float3 normalWS, uint2 positionS
 float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
 {
     float3 reflectVec = reflect(-viewDir, normalOS);
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
     return SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, reflectVec, lod).rgb;
 #else
     return DecodeHDREnvironment(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVec, lod), unity_SpecCube0_HDR);

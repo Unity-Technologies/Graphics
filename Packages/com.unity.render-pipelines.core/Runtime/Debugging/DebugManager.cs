@@ -11,20 +11,70 @@ namespace UnityEngine.Rendering
     using UnityObject = UnityEngine.Object;
 
     /// <summary>
-    /// IDebugData interface.
+    /// Implementing this interface enables integration with Unity's Rendering debugger, providing a way to manage and control the state of debug data.
     /// </summary>
+    ///
+    /// <remarks>
+    /// Use the `IDebugData` interface to register custom debug data. You can reset the data when necessary, which makes it suitable for debugging scenarios
+    /// where you need to clear or reset specific data. For example, when the application state changes or during gameplay session resets, 
+    /// or when the **Reset** button is selected in the **Rendering Debugger** window in the Editor or at runtime.
+    /// </remarks>
+    ///
+    /// <example>
+    /// <code>
+    /// public class MyDebugData : IDebugData
+    /// {
+    ///     private int _value;
+    ///
+    ///     /// Constructor of the debug data that will receive the reset callback
+    ///     public MyDebugData()
+    ///     {
+    ///         _value = 0;
+    ///     }
+    ///
+    ///     public Action GetReset()
+    ///     {
+    ///         /// Specify the callback when the reset operation is being called.
+    ///         return () => _value = 0; // Resets the value to 0
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     public interface IDebugData
     {
-        /// <summary>Get the reset callback for this DebugData</summary>
+        /// <summary>Provides the reset callback for resetting the debug data.</summary>
         /// <returns>The reset callback</returns>
         Action GetReset();
-        //Action GetLoad();
-        //Action GetSave();
     }
 
     /// <summary>
-    /// Manager class for the Debug Window.
+    /// The <see cref="DebugManager"/> class provides a centralized manager for handling Unity's Rendering debugger.
     /// </summary>
+    /// <remarks>
+    /// The DebugManager allows you to register, unregister, and manipulate debug data, panels, and widgets for runtime or editor debugging.
+    /// - Register and manage debug panels and widgets.
+    /// - Refresh and reset the debug UI based on runtime changes.
+    /// - Provides a global instance for easy access from anywhere in the codebase.
+    /// </remarks>
+    ///
+    /// <example>
+    /// <code>
+    /// {
+    ///     /// Create a list to store the new DebugUI widgets
+    ///     /// by creating different DebugUI.Values that display a label with a value.
+    ///     var list = new System.Collections.Generic.List&lt;DebugUI.Widget&gt;
+    ///     {
+    ///         new DebugUI.Value { displayName = "Lighting Intensity", getter = () => 1.0f, setter = value => Debug.Log($"Lighting Intensity set to {value}") },
+    ///         new DebugUI.Value { displayName = "Light Color", getter = () => Color.white, setter = value => Debug.Log($"Light Color set to {value}") }
+    ///     };
+    ///     var items = list.ToArray();
+    ///     
+    ///     /// Obtain the panel from the DebugManager instance, and add the Widgets that we want to display there.
+    ///     var panel = DebugManager.instance.GetPanel("Lighting", true);
+    ///     panel.children.AddRange(items);
+    /// }
+    /// </code>
+    /// </example>
     public sealed partial class DebugManager
     {
         static readonly Lazy<DebugManager> s_Instance = new Lazy<DebugManager>(() => new DebugManager());

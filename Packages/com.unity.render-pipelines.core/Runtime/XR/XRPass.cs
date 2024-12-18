@@ -17,6 +17,8 @@ namespace UnityEngine.Experimental.Rendering
         internal ScriptableCullingParameters cullingParameters;
         internal Material occlusionMeshMaterial;
         internal float occlusionMeshScale;
+        internal int renderTargetScaledWidth;
+        internal int renderTargetScaledHeight;
         internal IntPtr foveatedRenderingInfo;
         internal int multipassId;
         internal int cullingPassId;
@@ -125,6 +127,16 @@ namespace UnityEngine.Experimental.Rendering
         /// Index used for culling. It can be shared between multiple passes.
         /// </summary>
         public int cullingPassId { get; private set; }
+
+        /// <summary>
+        /// Destination render target scaled width if XR dynamic resolution is enabled
+        /// </summary>
+        public int renderTargetScaledWidth { get; private set; }
+
+        /// <summary>
+        /// Destination render target scaled height if XR dynamic resolution is enabled
+        /// </summary>
+        public int renderTargetScaledHeight { get; private set; }
 
         /// <summary>
         /// Destination render target.
@@ -463,6 +475,8 @@ namespace UnityEngine.Experimental.Rendering
             AssignCullingParams(createInfo.cullingPassId, createInfo.cullingParameters);
             renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
             renderTargetDesc = createInfo.renderTargetDesc;
+            renderTargetScaledWidth = createInfo.renderTargetScaledWidth;
+            renderTargetScaledHeight = createInfo.renderTargetScaledHeight;
             motionVectorRenderTarget = new RenderTargetIdentifier(createInfo.motionVectorRenderTarget, 0, CubemapFace.Unknown, -1);
             motionVectorRenderTargetDesc = createInfo.motionVectorRenderTargetDesc;
             hasMotionVectorPass = createInfo.hasMotionVectorPass;

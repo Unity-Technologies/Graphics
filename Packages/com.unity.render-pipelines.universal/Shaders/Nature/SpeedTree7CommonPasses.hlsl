@@ -2,7 +2,7 @@
 #define UNIVERSAL_SPEEDTREE7COMMON_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 #include "SpeedTreeUtility.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
@@ -142,7 +142,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
 }
 
 #ifdef GBUFFER
-FragmentOutput SpeedTree7Frag(SpeedTreeVertexOutput input)
+GBufferFragOutput SpeedTree7Frag(SpeedTreeVertexOutput input)
 #else
 half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 #endif
@@ -216,7 +216,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     #ifdef GBUFFER
         half4 color = half4(inputData.bakedGI * diffuseColor.rgb, diffuse.a);
         surfaceData.occlusion = 1.0;
-        return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
+        return PackGBuffersSurfaceData(surfaceData, inputData, color.rgb);
     #else
         half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
         color.rgb = MixFog(color.rgb, inputData.fogCoord);

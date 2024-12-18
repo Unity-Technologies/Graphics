@@ -278,8 +278,19 @@ namespace UnityEngine.Rendering.Universal
 
             if (camera.allowDynamicResolution)
             {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // Use eye texture's scaled width and height as screen params when XR is enabled
+                if (cameraData.xr.enabled)
+                {
+                    scaledCameraTargetWidth = (float)cameraData.xr.renderTargetScaledWidth;
+                    scaledCameraTargetHeight = (float)cameraData.xr.renderTargetScaledHeight;
+                }
+                else
+#endif
+                {
                 scaledCameraTargetWidth *= ScalableBufferManager.widthScaleFactor;
                 scaledCameraTargetHeight *= ScalableBufferManager.heightScaleFactor;
+                }
             }
 
             float near = camera.nearClipPlane;
@@ -1642,10 +1653,12 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
             cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsVertex, false);
             cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightsPixel, false);
-            cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ClusterLightLoop, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ForwardPlus, false); // Backward compatibility. Deprecated in 6.1.
             cmd.SetKeyword(ShaderGlobalKeywords.AdditionalLightShadows, false);
             cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBlending, false);
             cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBoxProjection, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeAtlas, false);
             cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, false);
             cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
             cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);

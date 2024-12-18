@@ -5,12 +5,17 @@
 // node work by falling to regular texture sampling.
 #define FORCE_VIRTUAL_TEXTURING_OFF 1
 
-#if defined(_FORWARD_PLUS)
+// _FORWARD_PLUS keyword deprecated in 6.1
+// We will emit a warning and define _CLUSTER_LIGHT_LOOP for backwards compatibility.
+// This block will be removed in a future release.
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ForwardPlusKeyword.deprecated.hlsl"
+
+#if defined(_CLUSTER_LIGHT_LOOP)
 #define _ADDITIONAL_LIGHTS 1
 #undef _ADDITIONAL_LIGHTS_VERTEX
-#define USE_FORWARD_PLUS 1
+#define USE_CLUSTER_LIGHT_LOOP 1
 #else
-#define USE_FORWARD_PLUS 0
+#define USE_CLUSTER_LIGHT_LOOP 0
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

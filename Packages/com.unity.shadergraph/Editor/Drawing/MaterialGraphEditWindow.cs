@@ -807,6 +807,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             subGraph.AddNode(subGraphOutputNode);
             subGraph.outputNode = subGraphOutputNode;
 
+            var inputSlots = new List<MaterialSlot>();
+            subGraphOutputNode.GetInputSlots(inputSlots);
+            if (inputSlots.Count == 0)
+                subGraphOutputNode.AddSlot(ConcreteSlotValueType.Vector4);
+
             // Always copy deserialized keyword inputs
             foreach (ShaderKeyword keyword in deserialized.metaKeywords)
             {

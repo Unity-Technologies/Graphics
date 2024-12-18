@@ -476,7 +476,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightLayers },
                 { CoreKeywordDescriptors.DebugDisplay },
                 { CoreKeywordDescriptors.LightCookies },
-                { CoreKeywordDescriptors.ForwardPlus },
+                { CoreKeywordDescriptors.ClusterLightLoop },
             };
 
         }

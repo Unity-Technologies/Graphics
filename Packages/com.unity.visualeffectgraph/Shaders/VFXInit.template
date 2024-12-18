@@ -7,16 +7,20 @@ ${VFXGlobalDeclaration}
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
-#define instancingPrefixSumOffset 0
+
 
 RWByteAddressBuffer attributeBuffer;
 ByteAddressBuffer sourceAttributeBuffer;
 
 
-#if !VFX_USE_SPAWNER_FROM_GPU
+#if VFX_USE_SPAWNER_FROM_GPU
+    StructuredBuffer<uint> eventList;
+    #define instancingPrefixSumOffset (2 * asuint(instancingConstants.z))
+#else
     StructuredBuffer<uint> spawnBuffer;
     #define EVENT_PREFIX_SUM(index)         spawnBuffer[index]
     #define SPAWNCOUNT_PREFIX_SUM_OFFSET    instancingActiveCount
+    #define instancingPrefixSumOffset 0
 #endif
 
 
@@ -27,10 +31,6 @@ CBUFFER_END
 
 #if USE_DEAD_LIST
 RWStructuredBuffer<uint> deadList;
-#endif
-
-#if VFX_USE_SPAWNER_FROM_GPU
-StructuredBuffer<uint> eventList;
 #endif
 
 #if HAS_STRIPS_DATA
@@ -66,11 +66,18 @@ bool GetParticleIndex(inout uint particleIndex, uint stripIndex, uint instanceIn
 void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
-    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;
-#if !VFX_USE_SPAWNER_FROM_GPU
-    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+    uint index = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;
+#if VFX_USE_SPAWNER_FROM_GPU
+    uint indexOffset = 0;
+    [branch]
+    if(instancingCurrentOffset > 0)
+        indexOffset = instancingPrefixSum[instancingCurrentOffset - 1];
+
+    index += indexOffset;
+#else
+    index += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 #endif
-    ${VFXInitInstancingCompute}
+    ${VFXInitInstancing}
 
 	${VFXLoadContextData}
 	uint systemSeed = contextData.systemSeed;
@@ -78,10 +85,18 @@ void CSMain(uint3 groupId          : SV_GroupID,
     ${VFXLoadGraphValues}
 
 #if VFX_USE_SPAWNER_FROM_GPU
-    uint elementCount = eventList[VFXGetEventListBufferElementCount(instanceActiveIndex)];
-    uint totalAccumulatedElementCount = eventList[VFXGetEventListBufferAccumulatedCount(instanceActiveIndex)];
+    if (instanceCurrentIndex == instancingCurrentOffset)
+    {
+        index -= indexOffset;
+    }
+    uint elementCount = eventList[VFXGetEventListBufferPrefixSumIndex(instanceActiveIndex)];
+    if (instanceActiveIndex > 0u)
+    {
+        elementCount -= eventList[VFXGetEventListBufferPrefixSumIndex(instanceActiveIndex - 1)];;
+    }
+    uint totalElementCount = eventList[VFXGetEventListBufferTotalCountIndex(instanceIndex)];
     uint maxThreadId = min(contextData.maxParticleCount, elementCount);
-    uint currentSpawnIndex = totalAccumulatedElementCount - elementCount;
+    uint currentSpawnIndex = totalElementCount - elementCount;
 #else
     uint nbEvents = EVENT_PREFIX_SUM(instanceActiveIndex);
     [branch]
@@ -105,15 +120,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
     if (index < maxThreadId)
     {
-#if VFX_USE_SPAWNER_FROM_GPU
-        int sourceIndex = eventList[VFXGetEventListBufferIndex(id, instanceActiveIndex)];
-#endif
-
-        uint startEventIndex = 0u; //tmp for GPU Events
-#if !VFX_USE_SPAWNER_FROM_GPU
+        uint startEventIndex = 0u;
         int sourceIndex = 0;
 
-        startEventIndex = 0;
+#if VFX_USE_SPAWNER_FROM_GPU
+        sourceIndex = eventList[VFXGetEventListBufferSourceIndex(instanceIndex, RAW_CAPACITY, index)];
+#else
         [branch]
         if (instanceActiveIndex > 0u)
         {
@@ -125,12 +137,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
 
 #endif
 
-		VFXAttributes attributes = (VFXAttributes)0;
-		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
+        VFXAttributes attributes = (VFXAttributes)0;
+        VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
         ${VFXLoadAttributes}
 
-		uint particleIndex = index + currentSpawnIndex;
+        uint particleIndex = index + currentSpawnIndex;
 #if VFX_USE_PARTICLEID_CURRENT
          attributes.particleId = particleIndex;
 #endif

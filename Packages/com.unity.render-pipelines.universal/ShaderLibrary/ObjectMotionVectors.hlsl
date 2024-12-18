@@ -69,7 +69,7 @@ Varyings vert(Attributes input)
         output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
     #endif
 
-#if defined(APLICATION_SPACE_WARP_MOTION)
+#if defined(APPLICATION_SPACE_WARP_MOTION)
     // We do not need jittered position in ASW
     output.positionCSNoJitter = mul(_NonJitteredViewProjMatrix, mul(UNITY_MATRIX_M, input.position));;
     output.positionCS = output.positionCSNoJitter;
@@ -105,7 +105,7 @@ float4 frag(Varyings input) : SV_Target
         LODFadeCrossFade(input.positionCS);
     #endif
 
-    #if defined(APLICATION_SPACE_WARP_MOTION)
+    #if defined(APPLICATION_SPACE_WARP_MOTION)
         return float4(CalcAswNdcMotionVectorFromCsPositions(input.positionCSNoJitter, input.previousPositionCSNoJitter), 1);
     #else
         return float4(CalcNdcMotionVectorFromCsPositions(input.positionCSNoJitter, input.previousPositionCSNoJitter), 0, 0);

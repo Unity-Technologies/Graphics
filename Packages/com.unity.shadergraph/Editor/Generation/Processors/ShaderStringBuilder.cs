@@ -280,6 +280,15 @@ namespace UnityEditor.ShaderGraph
             return m_StringBuilder.ToString();
         }
 
+        public void ToCodeBlock(int startIndex, int length, bool forceHumanReadable)
+        {
+            if (forceHumanReadable || m_HumanReadable)
+            {
+                // Set indentations
+                m_StringBuilder.Replace(Environment.NewLine, Environment.NewLine + k_IndentationString, startIndex, length);
+            }
+        }
+
         public override string ToString()
         {
             return m_StringBuilder.ToString();

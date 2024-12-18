@@ -10,7 +10,7 @@ namespace UnityEditor.VFX
     public struct VFXTemplateDescriptor : IVFXTemplateDescriptor
     {
         /// <summary>
-        /// Name of the template
+        /// Name of the template which will be displayed in the template window
         /// </summary>
         public string name;
         /// <summary>
@@ -30,18 +30,18 @@ namespace UnityEditor.VFX
         /// </summary>
         public Texture2D thumbnail;
         /// <summary>
-        /// Internal use only
+        /// Internal use only: make the bound with the asset
         /// </summary>
         [NonSerialized]
-        public string assetGuid;
+        internal string assetGuid;
         /// <summary>
-        /// Internal use only
+        /// Internal use only: allow to sort built-in templates before user templates
         /// </summary>
         [NonSerialized]
-        public int order;
+        internal int order;
 
         /// <summary>
-        /// Same as the name
+        /// Same as the name, inherited from the interface IVFXTemplateDescriptor
         /// </summary>
         public string header => name;
     }

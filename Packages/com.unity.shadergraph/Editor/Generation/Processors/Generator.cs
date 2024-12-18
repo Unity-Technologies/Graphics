@@ -50,6 +50,8 @@ namespace UnityEditor.ShaderGraph
         readonly GeneratedShader m_PrimaryShader;
         readonly List<BlockNode> m_PrimaryShaderTemporaryBlocks;
 
+        readonly Dictionary<string, string[]> m_IncludeCache;
+
         // direct accessors for primary shader results
         public string generatedShader => m_PrimaryShader.codeString;
         public List<PropertyCollector.TextureInfo> configuredTextures => m_PrimaryShader.assignedTextures;
@@ -131,7 +133,7 @@ namespace UnityEditor.ShaderGraph
             m_AdditionalShaderIDs = additionalShaderIDs.AsReadOnly();
 
             m_PrimaryShaderTemporaryBlocks = new List<BlockNode>();
-
+            m_IncludeCache = new Dictionary<string, string[]>();
             // build the primary shader immediately (and populate the temporary block list for it)
             m_PrimaryShader = BuildShader(null, m_PrimaryShaderTemporaryBlocks);
         }
@@ -1230,7 +1232,7 @@ namespace UnityEditor.ShaderGraph
             // Process Template
             Profiler.BeginSample("ProcessTemplate");
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
-                isDebug, sharedTemplateDirectories, m_AssetCollection, m_HumanReadable);
+                isDebug, sharedTemplateDirectories, m_AssetCollection, m_HumanReadable, m_IncludeCache);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
 

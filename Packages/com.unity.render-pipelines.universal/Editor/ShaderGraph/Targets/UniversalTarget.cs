@@ -1176,6 +1176,45 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return result;
         }
 
+        public static PassDescriptor XRMotionVectors(UniversalTarget target)
+        {
+            var result = new PassDescriptor()
+            {
+                // Definition
+                displayName = "XRMotionVectors",
+                referenceName = "SHADERPASS_XR_MOTION_VECTORS",
+                lightMode = "XRMotionVectors",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = new BlockFieldDescriptor[]{ },
+                validPixelBlocks = new BlockFieldDescriptor[] { },
+
+                // Fields
+                structs = new StructCollection() {
+                    { Structs.SurfaceDescriptionInputs },
+                    { Structs.VertexDescriptionInputs },
+                },
+                requiredFields = new FieldCollection(),
+                fieldDependencies = new DependencyCollection() { },
+
+                // Conditional State
+                renderStates = CoreRenderStates.XRMotionVector(target),
+                pragmas = CorePragmas.XRMotionVectors,
+                defines = new DefineCollection(),
+                keywords = new KeywordCollection(),
+                includes = CoreIncludes.XRMotionVectors,
+            };
+
+            result.defines.Add(CoreKeywordDescriptors.XRMotionVectors, 1);
+
+            return result;
+        }
+
         public static PassDescriptor SceneSelection(UniversalTarget target)
         {
             var result = new PassDescriptor()
@@ -1230,7 +1269,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
-                // NB Color is not strickly needed for scene picking but adding it here so that there are nodes to be 
+                // NB Color is not strictly needed for scene picking but adding it here so that there are nodes to be
                 // collected for the pixel shader. Some packages might use this to customize the scene picking rendering.
                 validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
@@ -1546,6 +1585,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             };
             return result;
         }
+        public static RenderStateCollection XRMotionVector(UniversalTarget target)
+        {
+            var result = new RenderStateCollection
+            {
+                { RenderState.ColorMask("ColorMask RGBA") },
+                { RenderState.Stencil(new StencilDescriptor()
+                    {
+                        WriteMask = "1",
+                        Ref = "1",
+                        Comp = "Always",
+                        Pass = "Replace",
+                    })
+                }
+            };
+            return result;
+        }
 
         // used by lit/unlit targets
         public static RenderStateCollection ShadowCaster(UniversalTarget target)
@@ -1636,6 +1691,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
+        public static readonly PragmaCollection XRMotionVectors = new PragmaCollection
+        {
+            { Pragma.MultiCompileLodCrossfade },
+            { Pragma.ShaderFeatureLocalVertex("_ADD_PRECOMPUTED_VELOCITY") },
+        };
+
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
@@ -1693,6 +1754,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kFog = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl";
         const string kRenderingLayers = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl";
         const string kProbeVolumes = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl";
+        const string kObjectMotionVectors = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl";
 
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
@@ -1715,7 +1777,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection FogPregraph = new IncludeCollection
         {
             { kFog, IncludeLocation.Pregraph, true },
-        };        
+        };
 
         public static readonly IncludeCollection WriteRenderLayersPregraph = new IncludeCollection
         {
@@ -1725,6 +1787,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection ProbeVolumePregraph = new IncludeCollection
         {
             { kProbeVolumes, IncludeLocation.Pregraph, true },
+        };
+
+        public static readonly IncludeCollection ObjectMotionVectors = new IncludeCollection
+        {
+            { kObjectMotionVectors, IncludeLocation.Pregraph, true },
         };
 
         public static readonly IncludeCollection ShaderGraphPregraph = new IncludeCollection
@@ -1774,6 +1841,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             //Post-graph
             { CorePostgraph },
             { kMotionVectorPass, IncludeLocation.Postgraph },
+        };
+
+        public static readonly IncludeCollection XRMotionVectors = new IncludeCollection
+        {
+            // Pre-graph
+            { CorePregraph },
+            { ShaderGraphPregraph },
+            { ObjectMotionVectors },
         };
 
         public static readonly IncludeCollection ShadowCaster = new IncludeCollection
@@ -2034,6 +2109,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+        public static readonly KeywordDescriptor ReflectionProbeAtlas = new KeywordDescriptor()
+        {
+            displayName = "Reflection Probe Atlas",
+            referenceName = "_REFLECTION_PROBE_ATLAS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
         {
             displayName = "Soft Shadows",
@@ -2218,10 +2303,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
-        public static readonly KeywordDescriptor ForwardPlus = new KeywordDescriptor()
+        public static readonly KeywordDescriptor ClusterLightLoop = new KeywordDescriptor()
         {
-            displayName = "Forward+",
-            referenceName = "_FORWARD_PLUS",
+            displayName = "Cluster Light Loop",
+            referenceName = "_CLUSTER_LIGHT_LOOP",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -2277,6 +2362,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "Use Legacy Lightmaps",
             referenceName = ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
+        };
+
+        public static readonly KeywordDescriptor XRMotionVectors = new KeywordDescriptor()
+        {
+            displayName = "Spacewarp Motion Vectors",
+            referenceName = "APPLICATION_SPACE_WARP_MOTION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Local,
+        };
+        
+        public static readonly KeywordDescriptor LightmapBicubicSampling = new KeywordDescriptor()
+        {
+            displayName = "Lightmap Bicubic Sampling",
+            referenceName = ShaderKeywordStrings.LIGHTMAP_BICUBIC_SAMPLING,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global

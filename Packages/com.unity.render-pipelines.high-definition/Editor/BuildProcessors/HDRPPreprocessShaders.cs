@@ -290,6 +290,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 (!settings.supportProbeVolume || settings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
                 return true;
 
+            bool hasBicubicKeyword = shader.keywordSpace.FindKeyword(m_LightmapBicubicSampling.name).isValid;
+            if (hasBicubicKeyword)
+            {
+                bool useBicubicLightmapSampling = false;
+                if (GraphicsSettings.TryGetRenderPipelineSettings<LightmapSamplingSettings>(out var lightmapSamplingSettings))
+                    useBicubicLightmapSampling = lightmapSamplingSettings.useBicubicLightmapSampling;
+                return inputData.shaderKeywordSet.IsEnabled(m_LightmapBicubicSampling) != useBicubicLightmapSampling;
+            }
+
 #if !ENABLE_SENSOR_SDK
             // If the SensorSDK package is not present, make sure that all code related to it is stripped away
             if (inputData.shaderKeywordSet.IsEnabled(m_SensorEnableLidar) || inputData.shaderKeywordSet.IsEnabled(m_SensorOverrideReflectance))

@@ -27,7 +27,7 @@ To make sure Reflection Probes also capture lighting data from Adaptive Probe Vo
 
 1. To include a Light in an Adaptive Probe Volume's baked lighting data, open the Inspector for the Light then set the **Light Mode** to **Mixed** or **Baked**.
 2. To include a GameObject in an Adaptive Probe Volume's baked lighting data, open the Inspector for the GameObject and enable **Contribute Global Illumination**.
-3. To make a GameObject receive baked lighting, open the Inspector for the GameObject and set **Receive Global Illumination** to **Light Probes**. 
+3. To make a GameObject receive baked lighting, open the Inspector for the GameObject, then in the **Mesh Renderer** component set **Receive Global Illumination** to **Light Probes**. 
 
 ### Bake your lighting
 

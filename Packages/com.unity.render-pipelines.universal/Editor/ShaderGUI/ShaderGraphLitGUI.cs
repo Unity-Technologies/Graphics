@@ -37,6 +37,9 @@ namespace UnityEditor
             BaseShaderGUI.UpdateMaterialSurfaceOptions(material, automaticRenderQueue);
             LitGUI.SetupSpecularWorkflowKeyword(material, out bool isSpecularWorkflow);
             BaseShaderGUI.UpdateMotionVectorKeywordsAndPass(material);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            BaseShaderGUI.UpdateXRMotionVectorKeywordsAndPass(material);
+#endif
         }
 
         public override void ValidateMaterial(Material material)

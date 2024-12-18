@@ -26,6 +26,123 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
+    /// <remarks>
+    /// You can add <see cref="VolumeComponent"/> to a <see cref="VolumeProfile"/> in the Editor to apply a Depth Of Field post-processing effect.
+    /// </remarks>
+    /// <example>
+    /// <para>This sample code shows how settings can be retrieved and modified in runtime:</para>
+    /// <code>
+    /// using System;
+    /// using UnityEngine;
+    /// using UnityEngine.Rendering;
+    /// using UnityEngine.Rendering.Universal;
+    ///
+    /// public class ModifyVolumeComponent : MonoBehaviour
+    /// {
+    ///     [SerializeField] VolumeProfile volumeProfile;
+    ///     [SerializeField] VolumeSettings volumeSettings;
+    ///
+    ///     private bool m_HasRetrievedVolumeComponent;
+    ///     private DepthOfField m_VolumeComponent;
+    ///
+    ///     [Serializable]
+    ///     private struct VolumeSettings
+    ///     {
+    ///         public bool active;
+    ///         public DepthOfFieldModeParameter mode;
+    ///         public MinFloatParameter gaussianStart;
+    ///         public MinFloatParameter gaussianEnd;
+    ///         public ClampedFloatParameter gaussianMaxRadius;
+    ///         public BoolParameter highQualitySampling;
+    ///         public MinFloatParameter focusDistance;
+    ///         public ClampedFloatParameter aperture;
+    ///         public ClampedFloatParameter focalLength;
+    ///         public ClampedIntParameter bladeCount;
+    ///         public ClampedFloatParameter bladeCurvature;
+    ///         public ClampedFloatParameter bladeRotation;
+    ///
+    ///
+    ///         public void SetVolumeComponentSettings(ref DepthOfField volumeComponent)
+    ///         {
+    ///             volumeComponent.active = active;
+    ///             volumeComponent.mode = mode;
+    ///             volumeComponent.gaussianStart = gaussianStart;
+    ///             volumeComponent.gaussianEnd = gaussianEnd;
+    ///             volumeComponent.gaussianMaxRadius = gaussianMaxRadius;
+    ///             volumeComponent.highQualitySampling = highQualitySampling;
+    ///             volumeComponent.focusDistance = focusDistance;
+    ///             volumeComponent.aperture = aperture;
+    ///             volumeComponent.focalLength = focalLength;
+    ///             volumeComponent.bladeCount = bladeCount;
+    ///             volumeComponent.bladeCurvature = bladeCurvature;
+    ///             volumeComponent.bladeRotation = bladeRotation;
+    ///         }
+    ///
+    ///         public void GetVolumeComponentSettings(ref DepthOfField volumeComponent)
+    ///         {
+    ///             active = volumeComponent.active;
+    ///             mode = volumeComponent.mode;
+    ///             gaussianStart = volumeComponent.gaussianStart;
+    ///             gaussianEnd = volumeComponent.gaussianEnd;
+    ///             gaussianMaxRadius = volumeComponent.gaussianMaxRadius;
+    ///             highQualitySampling = volumeComponent.highQualitySampling;
+    ///             focusDistance = volumeComponent.focusDistance;
+    ///             aperture = volumeComponent.aperture;
+    ///             focalLength = volumeComponent.focalLength;
+    ///             bladeCount = volumeComponent.bladeCount;
+    ///             bladeCurvature = volumeComponent.bladeCurvature;
+    ///             bladeRotation = volumeComponent.bladeRotation;
+    ///         }
+    ///     }
+    ///
+    ///     private void Start()
+    ///     {
+    ///         m_HasRetrievedVolumeComponent = GetVolumeComponent(in volumeProfile, ref m_VolumeComponent);
+    ///         if (m_HasRetrievedVolumeComponent)
+    ///             volumeSettings.GetVolumeComponentSettings(ref m_VolumeComponent);
+    ///     }
+    ///
+    ///     private void Update()
+    ///     {
+    ///         if (!m_HasRetrievedVolumeComponent)
+    ///             return;
+    ///
+    ///         volumeSettings.SetVolumeComponentSettings(ref m_VolumeComponent);
+    ///     }
+    ///
+    ///     private static bool GetVolumeComponent(in VolumeProfile volumeProfile, ref DepthOfField volumeComponent)
+    ///     {
+    ///         if (volumeComponent != null)
+    ///             return true;
+    ///
+    ///         if (volumeProfile == null)
+    ///         {
+    ///             Debug.LogError("ModifyVolumeComponent.GetVolumeComponent():\nvolumeProfile has not been assigned.");
+    ///             return false;
+    ///         }
+    ///
+    ///         volumeProfile.TryGet(out DepthOfField component);
+    ///         if (component == null)
+    ///         {
+    ///             Debug.LogError($"ModifyVolumeComponent.GetVolumeComponent():\nMissing component in the \"{volumeProfile.name}\" VolumeProfile ");
+    ///             return false;
+    ///         }
+    ///
+    ///         volumeComponent = component;
+    ///         return true;
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
+    /// <seealso cref="VolumeProfile"/>
+    /// <seealso cref="VolumeComponent"/>
+    /// <seealso cref="IPostProcessComponent"/>
+    /// <seealso cref="VolumeParameter{T}"/>
+    /// <seealso cref="DepthOfFieldModeParameter"/>
+    /// <seealso cref="MinFloatParameter"/>
+    /// <seealso cref="ClampedFloatParameter"/>
+    /// <seealso cref="BoolParameter"/>
+    /// <seealso cref="ClampedIntParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [URPHelpURL("post-processing-depth-of-field")]
@@ -97,7 +214,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("The rotation of aperture blades in degrees.")]
         public ClampedFloatParameter bladeRotation = new ClampedFloatParameter(0f, -180f, 180f);
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Tells if the post process needs to be rendered or not.
+        /// </summary>
+        /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
         public bool IsActive()
         {
             if (mode.value == DepthOfFieldMode.Off || SystemInfo.graphicsShaderLevel < 35)
@@ -106,7 +226,10 @@ namespace UnityEngine.Rendering.Universal
             return mode.value != DepthOfFieldMode.Gaussian || SystemInfo.supportedRenderTargetCount > 1;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Tells if the post process can run the effect on-tile or if it needs a full pass.
+        /// </summary>
+        /// <returns><c>true</c> if it can run on-tile, <c>false</c> otherwise.</returns>
         [Obsolete("Unused #from(2023.1)", false)]
         public bool IsTileCompatible() => false;
     }

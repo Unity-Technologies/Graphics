@@ -65,9 +65,9 @@ namespace UnityEngine.Rendering.Universal
 
             if (shouldEnqueue)
             {
-                bool isDeferredRenderingMode = renderer is UniversalRenderer && ((UniversalRenderer)renderer).renderingModeRequested == RenderingMode.Deferred;
+                bool usesDeferredLighting = renderer is UniversalRenderer { usesDeferredLighting: true };
 
-                m_SSShadowsPass.renderPassEvent = isDeferredRenderingMode
+                m_SSShadowsPass.renderPassEvent = usesDeferredLighting
                     ? RenderPassEvent.AfterRenderingGbuffer
                     : RenderPassEvent.AfterRenderingPrePasses + 1; // We add 1 to ensure this happens after depth priming depth copy pass that might be scheduled
 

@@ -1,8 +1,8 @@
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using System.Collections.Generic;
 using UnityEngine.TestTools;
 using Unity.Collections;
 
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Tests
                 this.m_RenderGraph = asset.renderGraph;
             }
 
-            protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+            protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
             {
                 foreach (var camera in cameras)
                 {

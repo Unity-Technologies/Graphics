@@ -2,7 +2,7 @@
 #define UNIVERSAL_PARTICLES_GBUFFER_LIT_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
 
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData inputData)
 {
@@ -109,7 +109,7 @@ VaryingsParticle ParticlesGBufferVertex(AttributesParticle input)
     return output;
 }
 
-FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
+GBufferFragOutput ParticlesGBufferFragment(VaryingsParticle input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -140,9 +140,10 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, (BRDFData)0, 0, inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
+                                     inputData.normalWS, inputData.viewDirectionWS, inputData.normalizedScreenSpaceUV);
 
-    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
+    return PackGBuffersBRDFData(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
 }
 
 #endif // UNIVERSAL_PARTICLES_GBUFFER_LIT_PASS_INCLUDED

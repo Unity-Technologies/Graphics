@@ -24,8 +24,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
         private static readonly RTHandle[] k_ColorAttachment1 = new RTHandle[1];
         private static readonly RTHandle[] k_ColorAttachment2 = new RTHandle[2];
+        internal static readonly string k_CameraNormalsTextureName = "_CameraNormalsTexture";
         private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
-        private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID("_CameraNormalsTexture");
+        private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID(k_CameraNormalsTextureName);
         private static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
 
         /// <summary>

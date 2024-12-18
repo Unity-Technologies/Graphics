@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering
     /// parameter this drawer is for.
     /// </summary>
     /// <remarks>
-    /// If you do not provide a custom editor for a <see cref="VolumeParameter"/>, Unity uses the buil-in property drawers to draw the
+    /// If you do not provide a custom editor for a <see cref="VolumeParameter"/>, Unity uses the built-in property drawers to draw the
     /// property as-is.
     /// </remarks>
     /// <example>

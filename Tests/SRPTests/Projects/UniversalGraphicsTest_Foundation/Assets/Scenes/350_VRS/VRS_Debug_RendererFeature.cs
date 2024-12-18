@@ -35,6 +35,8 @@ public class VRS_Debug_RendererFeature : ScriptableRendererFeature
         {
             const string passName = "VRS Debug Pass";
 
+            if (!Vrs.IsColorMaskTextureConversionSupported()) return;
+
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             if (!enabled)

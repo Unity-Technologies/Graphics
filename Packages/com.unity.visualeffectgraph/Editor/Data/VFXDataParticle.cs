@@ -261,7 +261,9 @@ namespace UnityEditor.VFX
          SerializeField]
         public BoundsSettingMode boundsMode = BoundsSettingMode.Recorded;
 
-        public bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
+        public bool hasStrip => dataType == DataType.ParticleStrip;
+        public bool hasAttachedStrip => IsAttributeStored(VFXAttribute.StripAlive);
+        public VFXDataParticle attachedStripData => (VFXDataParticle)dependenciesOut.FirstOrDefault(d => ((VFXDataParticle)d).hasStrip); // TODO Handle several strip attached
 
         public override void OnSettingModified(VFXSetting setting)
         {
@@ -342,6 +344,12 @@ namespace UnityEditor.VFX
                     yield return "#define STRIP_COUNT " + stripCapacity + "u";
                     yield return "#define PARTICLE_PER_STRIP_COUNT " + particlePerStripCount + "u";
                 }
+                if (hasAttachedStrip)
+                {
+                    var stripData = attachedStripData;
+                    yield return "#define ATTACHED_STRIP_COUNT " + stripData.stripCapacity + "u";
+                }
+
                 yield return "#define RAW_CAPACITY " + capacity + "u";
             }
         }
@@ -529,27 +537,30 @@ namespace UnityEditor.VFX
 
         public override string GetLoadAttributeCode(VFXAttribute attrib, VFXAttributeLocation location)
         {
-            var attributeStore = location == VFXAttributeLocation.Current ? m_layoutAttributeCurrent : m_layoutAttributeSource;
-            var attributeBuffer = location == VFXAttributeLocation.Current ? "attributeBuffer" : "sourceAttributeBuffer";
-            var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
+            bool attribFound = false;
+            string attributeBuffer = null;
+            string codeOffset = null;
 
-            uint attributeCapacity;
             if (location == VFXAttributeLocation.Current)
-                attributeCapacity = alignedCapacity;
-            else
-                attributeCapacity = (parent != null) ? parent.capacity : staticSourceCount;
+            {
+                attribFound = m_StoredCurrentAttributes.ContainsKey(attrib);
+                attributeBuffer = "attributeBuffer";
+                codeOffset = m_layoutAttributeCurrent.GetCodeOffset(attrib, alignedCapacity, "index", "instanceIndex");
+            }
+            else // source attributes
+            {
+                attribFound = m_ReadSourceAttributes.Any(a => a.name == attrib.name);
+                attributeBuffer = "sourceAttributeBuffer";
+                var parent = m_DependenciesIn.OfType<VFXDataParticle>().FirstOrDefault();
+                if (parent != null)
+                    codeOffset = m_layoutAttributeSource.GetCodeOffset(attrib, parent.alignedCapacity, "sourceIndex", "instanceIndex");
+                else
+                    codeOffset = m_layoutAttributeSource.GetCodeOffset(attrib, "sourceIndex", "startEventIndex");
+            }
 
-            var index = location == VFXAttributeLocation.Current ? "index" : "sourceIndex";
-
-            if (location == VFXAttributeLocation.Current && !m_StoredCurrentAttributes.ContainsKey(attrib))
+            if (!attribFound)
                 throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
 
-            if (location == VFXAttributeLocation.Source && !m_ReadSourceAttributes.Any(a => a.name == attrib.name))
-                throw new ArgumentException(string.Format("Attribute {0} does not exist in data layout", attrib.name));
-
-            string codeOffset = location == VFXAttributeLocation.Current
-                ? attributeStore.GetCodeOffset(attrib, attributeCapacity, index, "instanceIndex")
-                : attributeStore.GetCodeOffset(attrib, index, "startEventIndex");
             return string.Format("{0}({3}.Load{1}({2}))", GetCastAttributePrefix(attrib), GetByteAddressBufferMethodSuffix(attrib), codeOffset, attributeBuffer);
         }
 
@@ -1122,9 +1133,17 @@ namespace UnityEditor.VFX
             {
                 FillGraphValuesBuffers(outBufferDescs, systemBufferMappings, m_GraphValuesLayout, out graphValuesBufferIndex);
 
-                FillPrefixSumBuffers(outBufferDescs, systemBufferMappings, staticSourceCount,
-                    out instancesPrefixSumBufferIndex,
-                    out spawnBufferIndex);
+                if (eventGPUFrom != -1)
+                {
+                    // For GPU events, take the prefix sum from the same buffer as the events
+                    instancesPrefixSumBufferIndex = eventGPUFrom;
+                }
+                else
+                {
+                    FillPrefixSumBuffers(outBufferDescs, systemBufferMappings, staticSourceCount,
+                        out instancesPrefixSumBufferIndex,
+                        out spawnBufferIndex);
+                }
             }
 
             // sort buffers
@@ -1287,11 +1306,9 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                bool hasAttachedStrip = IsAttributeStored(VFXAttribute.StripAlive);
                 if (hasAttachedStrip)
                 {
-                    var stripData = dependenciesOut.First(d => ((VFXDataParticle)d).hasStrip); // TODO Handle several strip attached
-                    bufferMappings.Add(new VFXMapping("attachedStripDataBuffer", dependentBuffers.stripBuffers[stripData]));
+                    bufferMappings.Add(new VFXMapping("attachedStripDataBuffer", dependentBuffers.stripBuffers[attachedStripData]));
                 }
 
                 if (needsIndirectBuffer && task.needsIndirectBuffer)
@@ -1458,7 +1475,11 @@ namespace UnityEditor.VFX
             }
 
             outBufferDescs[instancingIndirectAndActiveIndirectBufferIndex] = new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = 1u + (uint)instanceSplitDescs.Count() , stride = 4, mode = ComputeBufferMode.Dynamic };
-            outBufferDescs[instancesPrefixSumBufferIndex] = new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = (uint)instanceSplitDescs.Count() + 1u, stride = 4,  mode = ComputeBufferMode.Dynamic };
+
+            if (instancesPrefixSumBufferIndex != -1 && eventGPUFrom == -1) // only if we have a prefix sum and we are not reusing the GPU event buffer
+            {
+                outBufferDescs[instancesPrefixSumBufferIndex] = new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = (uint)instanceSplitDescs.Count() + 1u, stride = 4, mode = ComputeBufferMode.Dynamic };
+            }
 
             if (hasStrip && hasKill)
             {

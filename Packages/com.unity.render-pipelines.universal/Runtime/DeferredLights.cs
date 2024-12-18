@@ -1,13 +1,7 @@
-using System;
-using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
 using UnityEngine.Rendering.RenderGraphModule;
-using static Unity.Mathematics.math;
-//#define URP_HAS_BURST
 
 // TODO SimpleLit material, make sure when variant is !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), specular is correctly silenced.
 // TODO use InitializeSimpleLitSurfaceData() in all shader code
@@ -59,9 +53,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _SimpleLitDirStencilRef = Shader.PropertyToID("_SimpleLitDirStencilRef");
             public static readonly int _SimpleLitDirStencilReadMask = Shader.PropertyToID("_SimpleLitDirStencilReadMask");
             public static readonly int _SimpleLitDirStencilWriteMask = Shader.PropertyToID("_SimpleLitDirStencilWriteMask");
-            public static readonly int _ClearStencilRef = Shader.PropertyToID("_ClearStencilRef");
-            public static readonly int _ClearStencilReadMask = Shader.PropertyToID("_ClearStencilReadMask");
-            public static readonly int _ClearStencilWriteMask = Shader.PropertyToID("_ClearStencilWriteMask");
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
 
@@ -111,9 +102,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             "Deferred Punctual Light (SimpleLit)",
             "Deferred Directional Light (Lit)",
             "Deferred Directional Light (SimpleLit)",
-            "ClearStencilPartial",
             "Fog",
-            "SSAOOnly"
+            "SSAOOnly",
+        };
+
+        static readonly string[] k_ClusterDeferredPassNames = new string[]
+        {
+            "Deferred Clustered Lights (Lit)",
+            "Deferred Clustered Lights (SimpleLit)",
+            "Fog",
         };
 
         internal enum StencilDeferredPasses
@@ -123,17 +120,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             PunctualSimpleLit,
             DirectionalLit,
             DirectionalSimpleLit,
-            ClearStencilPartial,
             Fog,
-            SSAOOnly
-        };
+            SSAOOnly,
+        }
+
+        internal enum ClusterDeferredPasses
+        {
+            ClusteredLightsLit,
+            ClusteredLightsSimpleLit,
+            Fog,
+        }
 
         static readonly ushort k_InvalidLightOffset = 0xFFFF;
         static readonly string k_SetupLights = "SetupLights";
         static readonly string k_DeferredPass = "Deferred Pass";
+        static readonly string k_DeferredShadingPass = "Deferred Shading";
         static readonly string k_DeferredStencilPass = "Deferred Shading (Stencil)";
         static readonly string k_DeferredFogPass = "Deferred Fog";
-        static readonly string k_ClearStencilPartial = "Clear Stencil Partial";
         static readonly string k_SetupLightConstants = "Setup Light Constants";
         static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes.
         private static readonly ProfilingSampler m_ProfilingSetupLights = new ProfilingSampler(k_SetupLights);
@@ -191,9 +194,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool HasNormalPrepass { get; set; }
         internal bool HasRenderingLayerPrepass { get; set; }
 
-        // This is an overlay camera being rendered.
-        internal bool IsOverlay { get; set; }
-
         internal bool AccurateGbufferNormals { get; set; }
 
         // We browse all visible lights and found the mixed lighting setup every frame.
@@ -219,6 +219,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal GraphicsFormat[] GbufferFormats { get; set; }
         internal RTHandle DepthAttachmentHandle { get; set; }
 
+        // Render Graph only.
+        // True if GBuffer pass has previously been recorded this frame. If false, GBuffers might not contain valid data.
+        internal bool IsGBufferValid { get; set; }
+
         // Visible lights indices rendered using stencil volumes.
         NativeArray<ushort> m_stencilVisLights;
         // Offset of each type of lights in m_stencilVisLights.
@@ -236,23 +240,33 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Hold all shaders for stencil-volume deferred shading.
         Material m_StencilDeferredMaterial;
 
+        // Hold all shaders for light cluster deferred shading.
+        Material m_ClusterDeferredMaterial;
+
         // Pass indices.
         int[] m_StencilDeferredPasses;
+        int[] m_ClusterDeferredPasses;
 
         // Avoid memory allocations.
         Matrix4x4[] m_ScreenToWorld = new Matrix4x4[2];
 
+        ProfilingSampler m_ProfilingSamplerDeferredShadingPass = new ProfilingSampler(k_DeferredShadingPass);
         ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
         ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
-        ProfilingSampler m_ProfilingSamplerClearStencilPartialPass = new ProfilingSampler(k_ClearStencilPartial);
 
         private LightCookieManager m_LightCookieManager;
+
+        bool m_UseDeferredPlus;
 
         internal struct InitParams
         {
             public Material stencilDeferredMaterial;
 
+            public Material clusterDeferredMaterial;
+
             public LightCookieManager lightCookieManager;
+
+            public bool deferredPlus;
         }
 
         internal DeferredLights(InitParams initParams, bool useNativeRenderPass = false)
@@ -265,14 +279,24 @@ namespace UnityEngine.Rendering.Universal.Internal
             DeferredConfig.IsDX10 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 && SystemInfo.graphicsShaderLevel <= 40;
 
             m_StencilDeferredMaterial = initParams.stencilDeferredMaterial;
+            m_ClusterDeferredMaterial = initParams.clusterDeferredMaterial;
 
-            m_StencilDeferredPasses = new int[k_StencilDeferredPassNames.Length];
-            InitStencilDeferredMaterial();
+            if (initParams.deferredPlus)
+            {
+                m_ClusterDeferredPasses = new int[k_ClusterDeferredPassNames.Length];
+                InitClusterDeferredMaterial();
+            }
+            else
+            {
+                m_StencilDeferredPasses = new int[k_StencilDeferredPassNames.Length];
+                InitStencilDeferredMaterial();
+            }
 
             this.AccurateGbufferNormals = true;
             this.UseJobSystem = true;
             this.UseFramebufferFetch = useNativeRenderPass;
             m_LightCookieManager = initParams.lightCookieManager;
+            m_UseDeferredPlus = initParams.deferredPlus;
         }
 
         static ProfilingSampler s_SetupDeferredLights = new ProfilingSampler("Setup Deferred lights");
@@ -312,23 +336,39 @@ namespace UnityEngine.Rendering.Universal.Internal
             Profiler.BeginSample(k_SetupLights);
 
             Camera camera = cameraData.camera;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            // Use eye texture's scaled width and height as screen params when XR is enabled
+            if (cameraData.xr.enabled)
+            {
+                this.RenderWidth  = camera.allowDynamicResolution ? cameraData.xr.renderTargetScaledWidth : cameraTargetSizeCopy.x;
+                this.RenderHeight = camera.allowDynamicResolution ? cameraData.xr.renderTargetScaledHeight : cameraTargetSizeCopy.y;
+            }
+            else
+#endif
+            {
             // Support for dynamic resolution.
             this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * cameraTargetSizeCopy.x) : cameraTargetSizeCopy.x;
             this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * cameraTargetSizeCopy.y) : cameraTargetSizeCopy.y;
+            }
 
-            // inspect lights in lightData.visibleLights and convert them to entries in m_stencilVisLights
-            PrecomputeLights(
-                out m_stencilVisLights,
-                out m_stencilVisLightOffsets,
-                ref lightData.visibleLights,
-                lightData.additionalLightsCount != 0 || lightData.mainLightIndex >= 0
-            );
+            if (!m_UseDeferredPlus)
+            {
+                // inspect lights in lightData.visibleLights and convert them to entries in m_stencilVisLights
+                PrecomputeLights(
+                    out m_stencilVisLights,
+                    out m_stencilVisLightOffsets,
+                    ref lightData.visibleLights,
+                    lightData.additionalLightsCount != 0 || lightData.mainLightIndex >= 0
+                );
+            }
 
             {
                 using (new ProfilingScope(cmd, m_ProfilingSetupLightConstants))
                 {
                     // Shared uniform constants for all lights.
-                    SetupShaderLightConstants(cmd, lightData);
+                    if(!m_UseDeferredPlus)
+                        SetupShaderLightConstants(cmd, lightData);
 
 #if UNITY_EDITOR
                     // This flag is used to strip mixed lighting shader variants when a player is built.
@@ -371,7 +411,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 NativeArray<VisibleLight> visibleLights = lightData.visibleLights;
                 for (int lightIndex = 0; lightIndex < lightData.visibleLights.Length && this.MixedLightingSetup == MixedLightingSetup.None; ++lightIndex)
                 {
-                    Light light = visibleLights.UnsafeElementAtMutable(lightIndex).light;
+                    Light light = visibleLights.UnsafeElementAt(lightIndex).light;
 
                     if (light != null
                         && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
@@ -525,6 +565,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal void Setup(AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass)
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
+            IsGBufferValid = false;
         }
 
         public void OnCameraCleanup(CommandBuffer cmd)
@@ -604,32 +645,30 @@ namespace UnityEngine.Rendering.Universal.Internal
             return block;
         }
 
-        internal void ClearStencilPartial(RasterCommandBuffer cmd)
-        {
-            if (m_FullscreenMesh == null)
-                m_FullscreenMesh = CreateFullscreenMesh();
-
-            using (new ProfilingScope(cmd, m_ProfilingSamplerClearStencilPartialPass))
-            {
-                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.ClearStencilPartial]);
-            }
-        }
-
         internal void ExecuteDeferredPass(RasterCommandBuffer cmd, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData)
         {
             // Workaround for bug.
             // When changing the URP asset settings (ex: shadow cascade resolution), all ScriptableRenderers are recreated but
             // materials passed in have not finished initializing at that point if they have fallback shader defined. In particular deferred shaders only have 1 pass available,
             // which prevents from resolving correct pass indices.
-            if (m_StencilDeferredPasses[0] < 0)
-                InitStencilDeferredMaterial();
-            
+            if (m_UseDeferredPlus)
+            {
+                if (m_ClusterDeferredPasses[0] < 0)
+                    InitClusterDeferredMaterial();
+            }
+            else
+            {
+                if (m_StencilDeferredPasses[0] < 0)
+                    InitStencilDeferredMaterial();
+            }
+
             if (!UseFramebufferFetch)
             {
+                Material deferredMaterial = m_UseDeferredPlus ? m_ClusterDeferredMaterial : m_StencilDeferredMaterial;
                 for (int i = 0; i < GbufferTextureHandles.Length; i++)
                 {
                     if (i != GBufferLightingIndex)
-                        m_StencilDeferredMaterial.SetTexture(k_GBufferShaderPropertyIDs[i], GbufferTextureHandles[i]);
+                        deferredMaterial.SetTexture(k_GBufferShaderPropertyIDs[i], GbufferTextureHandles[i]);
                 }
             }
 
@@ -644,14 +683,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 SetupMatrixConstants(cmd, cameraData);
 
                 // First directional light will apply SSAO if possible, unless there is none.
-                if (!HasStencilLightsOfType(LightType.Directional))
+                if (!m_UseDeferredPlus && !HasStencilLightsOfType(LightType.Directional))
                     RenderSSAOBeforeShading(cmd);
 
-                RenderStencilLights(cmd, lightData, shadowData, cameraData.renderer.stripShadowsOffVariants);
+                if (m_UseDeferredPlus)
+                    RenderClusterLights(cmd, shadowData);
+                else
+                    RenderStencilLights(cmd, lightData, shadowData, cameraData.renderer.stripShadowsOffVariants);
 
                 cmd.SetKeyword(ShaderGlobalKeywords._DEFERRED_MIXED_LIGHTING, false);
 
-                // Legacy fog (Windows -> Rendering -> Lighting Settings -> Fog)
+                // Legacy fog (Windows -> Rendering -> Lighting -> Environment -> Fog)
                 RenderFog(cmd, cameraData.camera.orthographic);
             }
 
@@ -792,6 +834,29 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool HasStencilLightsOfType(LightType type)
         {
             return m_stencilVisLightOffsets[(int)type] != k_InvalidLightOffset;
+        }
+
+        void RenderClusterLights(RasterCommandBuffer cmd, UniversalShadowData shadowData)
+        {
+            if (m_ClusterDeferredMaterial == null)
+            {
+                Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_ClusterDeferredMaterial, GetType().Name);
+                return;
+            }
+
+            Profiler.BeginSample(k_DeferredShadingPass);
+
+            using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredShadingPass))
+            {
+                if (m_FullscreenMesh == null)
+                    m_FullscreenMesh = CreateFullscreenMesh();
+
+                ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, shadowData);
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_ClusterDeferredMaterial, 0, m_ClusterDeferredPasses[(int)ClusterDeferredPasses.ClusteredLightsLit]);
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_ClusterDeferredMaterial, 0, m_ClusterDeferredPasses[(int)ClusterDeferredPasses.ClusteredLightsSimpleLit]);
+            }
+
+            Profiler.EndSample();
         }
 
         void RenderStencilLights(RasterCommandBuffer cmd, UniversalLightData lightData, UniversalShadowData shadowData, bool stripShadowsOffVariants)
@@ -1050,6 +1115,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         void RenderFog(RasterCommandBuffer cmd, bool isOrthographic)
         {
             // Legacy fog does not work in orthographic mode.
+            // TODO: This should be fixed.
             if (!RenderSettings.fog || isOrthographic)
                 return;
 
@@ -1059,7 +1125,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredFogPass))
             {
                 // Fog parameters and shader variant keywords are already set externally.
-                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.Fog]);
+                Material deferredMaterial = m_UseDeferredPlus ? m_ClusterDeferredMaterial : m_StencilDeferredMaterial;
+                int fogPassIndex = m_UseDeferredPlus ? m_ClusterDeferredPasses[(int)ClusterDeferredPasses.Fog] : m_StencilDeferredPasses[(int)StencilDeferredPasses.Fog];
+                cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, deferredMaterial, 0, fogPassIndex);
             }
         }
 
@@ -1087,9 +1155,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._SimpleLitDirStencilRef, (float)StencilUsage.MaterialSimpleLit);
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._SimpleLitDirStencilReadMask, (float)StencilUsage.MaterialMask);
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._SimpleLitDirStencilWriteMask, 0.0f);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilRef, 0.0f);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilReadMask, (float)StencilUsage.MaterialMask);
-            m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilWriteMask, (float)StencilUsage.MaterialMask);
+        }
+
+        void InitClusterDeferredMaterial()
+        {
+            if (m_ClusterDeferredMaterial == null)
+                return;
+
+            // Pass indices can not be hardcoded because some platforms will strip out some passes, offset the index of later passes.
+            for (int pass = 0; pass < k_ClusterDeferredPassNames.Length; ++pass)
+                m_ClusterDeferredPasses[pass] = m_ClusterDeferredMaterial.FindPass(k_ClusterDeferredPassNames[pass]);
+
+            m_ClusterDeferredMaterial.SetFloat(ShaderConstants._LitStencilRef, (float)StencilUsage.MaterialLit);
+            m_ClusterDeferredMaterial.SetFloat(ShaderConstants._LitStencilReadMask, (float)StencilUsage.MaterialMask);
+            m_ClusterDeferredMaterial.SetFloat(ShaderConstants._LitStencilWriteMask, 0.0f);
+            m_ClusterDeferredMaterial.SetFloat(ShaderConstants._SimpleLitStencilRef, (float)StencilUsage.MaterialSimpleLit);
+            m_ClusterDeferredMaterial.SetFloat(ShaderConstants._SimpleLitStencilReadMask, (float)StencilUsage.MaterialMask);
+            m_ClusterDeferredMaterial.SetFloat(ShaderConstants._SimpleLitStencilWriteMask, 0.0f);
         }
 
         static Mesh CreateSphereMesh()

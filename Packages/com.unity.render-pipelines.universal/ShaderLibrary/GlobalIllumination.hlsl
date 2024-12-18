@@ -12,7 +12,7 @@
 #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 #endif
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #endif
 
@@ -249,7 +249,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
 {
     half3 irradiance = half3(0.0h, 0.0h, 0.0h);
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-#if USE_FORWARD_PLUS
+#if USE_CLUSTER_LIGHT_LOOP && defined(_REFLECTION_PROBE_ATLAS)
     float totalWeight = 0.0f;
     uint probeIndex;
     ClusterIterator it = ClusterInit(normalizedScreenSpaceUV, positionWS, 1);
@@ -345,9 +345,9 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion, float2 normalizedScreenSpaceUV)
 {
-#if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half3 irradiance;
 
+#if !defined(_ENVIRONMENTREFLECTIONS_OFF)
 #if defined(_REFLECTION_PROBE_BLENDING)
     irradiance = CalculateIrradianceFromReflectionProbes(reflectVector, positionWS, perceptualRoughness, normalizedScreenSpaceUV);
 #else
@@ -359,13 +359,14 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half p
 
     irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 #endif // _REFLECTION_PROBE_BLENDING
+#else // _ENVIRONMENTREFLECTIONS_OFF
+    irradiance = _GlossyEnvironmentColor.rgb;
+#endif // !_ENVIRONMENTREFLECTIONS_OFF
+
     return irradiance * occlusion;
-#else
-    return _GlossyEnvironmentColor.rgb * occlusion;
-#endif // _ENVIRONMENTREFLECTIONS_OFF
 }
 
-#if !USE_FORWARD_PLUS
+#if !USE_CLUSTER_LIGHT_LOOP
 half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion)
 {
     return GlossyEnvironmentReflection(reflectVector, positionWS, perceptualRoughness, occlusion, float2(0.0f, 0.0f));
@@ -449,7 +450,7 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 #endif
 }
 
-#if !USE_FORWARD_PLUS
+#if !USE_CLUSTER_LIGHT_LOOP
 half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
     half3 bakedGI, half occlusion, float3 positionWS,
     half3 normalWS, half3 viewDirectionWS)

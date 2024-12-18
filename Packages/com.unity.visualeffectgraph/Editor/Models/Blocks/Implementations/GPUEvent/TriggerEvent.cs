@@ -178,6 +178,24 @@ namespace UnityEditor.VFX.Block
                 {
                     report.RegisterError("TriggerOnRateInInit", VFXErrorType.Warning, "The modes Over Time and Over Distance are not designed to work in Initialize. You might consider changing the mode to Always or move the block in Update.", this);
                 }
+
+                if (GetData() is VFXDataParticle dataParticle)
+                {
+                    int stripChildrenCount = 0;
+                    foreach (var dependency in dataParticle.dependenciesOut)
+                    {
+                        if (dependency is VFXDataParticle particleDependency && particleDependency.hasStrip)
+                        {
+                            stripChildrenCount++;
+                        }
+                        if (stripChildrenCount > 1)
+                        {
+                            report.RegisterError("WarningMultipleAttachedStrip", VFXErrorType.Warning,
+                                "Only one child system of strip data type is supported, as parent particles can't die until child particles are also dead, preventing incorrect particle connections and artifacts.", this);
+                            break;
+                        }
+                    }
+                }
             }
         }
 

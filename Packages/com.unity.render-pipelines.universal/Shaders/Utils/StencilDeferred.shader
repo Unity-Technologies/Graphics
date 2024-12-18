@@ -72,10 +72,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile_vertex _ _SPOT
+            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
             // Includes
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -135,10 +136,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _LIGHT_LAYERS
+            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
             // Includes
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -198,10 +200,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _LIGHT_LAYERS
+            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
             // Includes
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -263,10 +266,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _LIGHT_LAYERS
+            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
             // Includes
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -328,10 +332,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
             // Includes
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }
@@ -359,7 +364,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             // -------------------------------------
             // Shader Stages
             #pragma vertex Vertex
-            #pragma fragment FragFog
+            #pragma fragment Frag
 
             // -------------------------------------
             // Defines
@@ -368,66 +373,17 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
-
-            // -------------------------------------
-            // Includes
+            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
-
-            ENDHLSL
-        }
-
-        // 6 - Clear stencil partial
-        // This pass clears stencil between camera stacks rendering.
-        // This is because deferred renderer encodes material properties in the 4 highest bits of the stencil buffer,
-        // but we don't want to keep this information between camera stacks.
-        Pass
-        {
-            Name "ClearStencilPartial"
-
-            // -------------------------------------
-            // Render State Commands
-            ColorMask 0
-            ZTest NotEqual
-            ZWrite Off
-            Cull Off
-
-            // -------------------------------------
-            // Stencil Settings
-            Stencil {
-                Ref [_ClearStencilRef]
-                ReadMask [_ClearStencilReadMask]
-                WriteMask [_ClearStencilWriteMask]
-                Comp NotEqual
-                Pass Zero
-                Fail Keep
-                ZFail Keep
-            }
-
-            HLSLPROGRAM
-            #pragma target 4.5
-
-            // Deferred Rendering Path does not support the OpenGL-based graphics API:
-            // Desktop OpenGL, OpenGL ES 3.0, WebGL 2.0.
-            #pragma exclude_renderers gles3 glcore
-
-            // -------------------------------------
-            // Shader Stages
-            #pragma vertex Vertex
-            #pragma fragment FragWhite
-
-            // -------------------------------------
-            // Defines
-            #define _CLEAR_STENCIL_PARTIAL
 
             // -------------------------------------
             // Includes
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/FogDeferred.hlsl"
 
             ENDHLSL
         }
 
-        // 7 - SSAO Only
+        // 6 - SSAO Only
         // This pass only runs when there is no fullscreen deferred light rendered (no directional light). It will adjust indirect/baked lighting with realtime occlusion
         // by rendering just before deferred shading pass.
         // This pass is also completely discarded from vertex shader when SSAO renderer feature is not enabled.
@@ -462,10 +418,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
+            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
 
             // -------------------------------------
             // Includes
-            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/StencilDeferred.hlsl"
 
             ENDHLSL
         }

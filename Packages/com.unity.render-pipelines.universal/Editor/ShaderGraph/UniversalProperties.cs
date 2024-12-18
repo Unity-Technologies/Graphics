@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string ZWriteControl = "_ZWriteControl";
         public static readonly string QueueControl = "_QueueControl";
         public static readonly string AddPrecomputedVelocity = "_AddPrecomputedVelocity";
+        public static readonly string XrMotionVectorsPass = "_XRMotionVectorsPass";
 
         // Global Illumination requires some properties to be named specifically:
         public static readonly string EmissionMap = "_EmissionMap";

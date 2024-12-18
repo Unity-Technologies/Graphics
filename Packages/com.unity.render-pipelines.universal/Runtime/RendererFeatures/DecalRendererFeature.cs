@@ -273,6 +273,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+            isDeferred |= universalRenderer.renderingMode == RenderingMode.DeferredPlus;
             return GetTechnique(isDeferred, universalRenderer.accurateGbufferNormals);
         }
 
@@ -285,8 +286,7 @@ namespace UnityEngine.Rendering.Universal
                 return DecalTechnique.Invalid;
             }
 
-            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
-            return GetTechnique(isDeferred, universalRenderer.accurateGbufferNormals);
+            return GetTechnique(universalRenderer.usesDeferredLighting, universalRenderer.accurateGbufferNormals);
         }
 
         internal DecalTechnique GetTechnique(bool isDeferred, bool needsGBufferAccurateNormals, bool checkForInvalidTechniques = true)
@@ -422,7 +422,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // the RenderPassEvent needs to be RenderPassEvent.AfterRenderingPrePasses + 1, so we are sure that if depth priming is enabled
                         // this copy happens after the primed depth is copied, so the depth texture is available
-                        m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses + 1, rendererShaders.copyDepthPS, false, universalRenderer.renderingModeActual != RenderingMode.Deferred);
+                        m_CopyDepthPass = new DBufferCopyDepthPass(RenderPassEvent.AfterRenderingPrePasses + 1, rendererShaders.copyDepthPS, false, !universalRenderer.usesDeferredLighting);
                         m_DecalDrawDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
 
                         m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem, m_Settings.decalLayers);
@@ -502,7 +502,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_Technique == DecalTechnique.DBuffer)
             {
                 var universalRenderer = renderer as UniversalRenderer;
-                if (universalRenderer.renderingModeActual == RenderingMode.Deferred)
+                if (universalRenderer.usesDeferredLighting)
                 {
                     m_CopyDepthPass.CopyToDepth = false;
                 }
@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DBufferRenderPass.Setup(renderingData.cameraData);
 
                 var universalRenderer = renderer as UniversalRenderer;
-                if (universalRenderer.renderingModeActual == RenderingMode.Deferred)
+                if (universalRenderer.usesDeferredLighting)
                 {
                     m_DBufferRenderPass.Setup(renderingData.cameraData, renderer.cameraDepthTargetHandle);
 

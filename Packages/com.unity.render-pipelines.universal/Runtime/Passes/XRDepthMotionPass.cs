@@ -10,7 +10,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class XRDepthMotionPass : ScriptableRenderPass
     {
-        private static readonly ShaderTagId k_MotionOnlyShaderTagId = new ShaderTagId("XRMotionVectors");
+        public const string k_MotionOnlyShaderTagIdName = "XRMotionVectors";
+        private static readonly ShaderTagId k_MotionOnlyShaderTagId = new ShaderTagId(k_MotionOnlyShaderTagIdName);
         private PassData m_PassData;
         private RTHandle m_XRMotionVectorColor;
         private TextureHandle xrMotionVectorColor;

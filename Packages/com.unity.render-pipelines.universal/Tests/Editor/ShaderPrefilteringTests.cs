@@ -18,6 +18,7 @@ namespace ShaderStrippingAndPrefiltering
             internal bool stripXRKeywords = true;
             internal bool stripHDRKeywords = true;
             internal bool stripDebugDisplay = true;
+            internal bool stripBicubicLightmapSampling = true;
             internal bool stripScreenCoordOverride = true;
             internal bool stripUnusedVariants = true;
             internal List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures = new List<ScreenSpaceAmbientOcclusionSettings>();
@@ -30,7 +31,7 @@ namespace ShaderStrippingAndPrefiltering
 
             internal ShaderPrefilteringData CreatePrefilteringSettings(ShaderFeatures shaderFeatures)
             {
-                return ShaderBuildPreprocessor.CreatePrefilteringSettings(ref shaderFeatures, isAssetUsingforward, everyRendererHasSSAO, stripXRKeywords, stripHDRKeywords, stripDebugDisplay, stripScreenCoordOverride, stripUnusedVariants, ref ssaoRendererFeatures);
+                return ShaderBuildPreprocessor.CreatePrefilteringSettings(ref shaderFeatures, isAssetUsingforward, everyRendererHasSSAO, stripXRKeywords, stripHDRKeywords, stripDebugDisplay, stripScreenCoordOverride, stripBicubicLightmapSampling, stripUnusedVariants, ref ssaoRendererFeatures);
             }
 
             internal void AssertPrefilteringData(ShaderPrefilteringData expected, ShaderPrefilteringData actual)
@@ -236,6 +237,18 @@ namespace ShaderStrippingAndPrefiltering
             helper.AssertPrefilteringData(expected, actual);
 
             helper.stripDebugDisplay = true;
+            expected = helper.defaultPrefilteringData;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
+            helper.AssertPrefilteringData(expected, actual);
+
+            // Bicubic lightmap sampling
+            helper.stripBicubicLightmapSampling = false;
+            expected = helper.defaultPrefilteringData;
+            expected.stripBicubicLightmapSampling = false;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
+            helper.AssertPrefilteringData(expected, actual);
+
+            helper.stripBicubicLightmapSampling = true;
             expected = helper.defaultPrefilteringData;
             actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
             helper.AssertPrefilteringData(expected, actual);

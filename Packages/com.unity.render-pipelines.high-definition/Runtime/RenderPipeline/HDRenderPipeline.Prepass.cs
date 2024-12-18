@@ -114,6 +114,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Output by the water system to mark underwater pixels (during transparent prepass)
             public BufferHandle waterLine;
+
+            public TextureHandle shadingRateImage;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples, string name = null, bool disableFallback = true)
@@ -303,6 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
             result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, hdCamera.msaaSamples);
             result.stencilBuffer = result.depthBuffer;
             result.renderingLayersBuffer = renderingLayers ? CreateRenderingLayersBuffer(renderGraph, hdCamera.msaaSamples, decalLayers) : renderGraph.defaultResources.blackTextureXR;
+            result.shadingRateImage = hdCamera.vrsEnabled ? renderGraph.ImportShadingRateImageTexture(RequestVrsHistory(hdCamera, 1)) : TextureHandle.nullHandle; // Allocate VRS texture if needed
 
             RenderXROcclusionMeshes(renderGraph, hdCamera, colorBuffer, result.depthBuffer);
 

@@ -376,6 +376,11 @@ namespace UnityEditor
         /// </summary>
         protected MaterialProperty addPrecomputedVelocityProp { get; set; }
 
+        /// <summary>
+        /// The MaterialProperty for xr motion vectors pass (for spacewarp).
+        /// </summary>
+        protected MaterialProperty xrMotionVectorsPassProp { get; set; }
+
         // Common Surface Input properties
 
         /// <summary>
@@ -454,6 +459,7 @@ namespace UnityEditor
             ztestProp = FindProperty(Property.ZTest, properties, false);
             alphaClipProp = FindProperty(Property.AlphaClip, properties, false);
             addPrecomputedVelocityProp = FindProperty(Property.AddPrecomputedVelocity, properties, false);
+            xrMotionVectorsPassProp = FindProperty(Property.XrMotionVectorsPass, properties, false);
 
             // ShaderGraph Lit and Unlit Subtargets only
             castShadowsProp = FindProperty(Property.CastShadows, properties, false);
@@ -616,6 +622,8 @@ namespace UnityEditor
                 DrawQueueOffsetField();
             materialEditor.EnableInstancingField();
             DrawMotionVectorOptions(material);
+
+            DrawXRMotionVectorsPassOption(material);
         }
 
         /// <summary>
@@ -631,6 +639,12 @@ namespace UnityEditor
         {
             if(material.HasProperty(Property.AddPrecomputedVelocity))
                 DrawFloatToggleProperty(EditorUtils.Styles.alembicMotionVectors, addPrecomputedVelocityProp);
+        }
+
+        private void DrawXRMotionVectorsPassOption(Material material)
+        {
+            if (material.HasProperty(Property.XrMotionVectorsPass))
+                DrawFloatToggleProperty(EditorUtils.Styles.xrMotionVectorsPass, xrMotionVectorsPassProp, 0, !IsSpacewarpSupported());
         }
 
         /// <summary>
@@ -743,6 +757,9 @@ namespace UnityEditor
 
         internal static event Action<Material> ShadowCasterPassEnabledChanged;
         internal static event Action<Material> MotionVectorPassEnabledChanged;
+#if ENABLE_VR && ENABLE_XR_MODULE
+        internal static event Action<Material> XRMotionVectorPassEnabledChanged;
+#endif
 
         // this function is shared with ShaderGraph Lit/Unlit GUIs and also the hand-written GUIs
         internal static void UpdateMaterialSurfaceOptions(Material material, bool automaticRenderQueue)
@@ -832,6 +849,29 @@ namespace UnityEditor
             }
         }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        internal static void UpdateXRMotionVectorKeywordsAndPass(Material material)
+        {
+            ShaderID shaderId = GetShaderID(material.shader);
+
+            bool xrMotionVectorPassEnabled = true;
+            if (HasXRMotionVectorLightModeTag(shaderId))
+            {
+                if (material.HasProperty(Property.XrMotionVectorsPass))
+                {
+                    xrMotionVectorPassEnabled = material.GetFloat(Property.XrMotionVectorsPass) != 0.0f;
+                }
+            }
+
+            string motionVectorPass = XRDepthMotionPass.k_MotionOnlyShaderTagIdName;
+            if (material.GetShaderPassEnabled(motionVectorPass) != xrMotionVectorPassEnabled)
+            {
+                material.SetShaderPassEnabled(motionVectorPass, xrMotionVectorPassEnabled);
+                XRMotionVectorPassEnabledChanged?.Invoke(material);
+            }
+        }
+#endif
+
         // this function is shared between ShaderGraph and hand-written GUIs
         internal static void UpdateMaterialRenderQueueControl(Material material)
         {
@@ -918,6 +958,9 @@ namespace UnityEditor
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._NORMALMAP, material.GetTexture("_BumpMap"));
 
             BaseShaderGUI.UpdateMotionVectorKeywordsAndPass(material);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            BaseShaderGUI.UpdateXRMotionVectorKeywordsAndPass(material);
+#endif
 
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);

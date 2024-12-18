@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GlobalSamplers.hlsl"
 #include "Core.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Shadows.deprecated.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
@@ -40,7 +41,11 @@
 #endif
 
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    #if defined(LIGHTMAP_BICUBIC_SAMPLING)
+    #define SAMPLE_SHADOWMASK(uv) SampleLightmapBicubic(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, uv SHADOWMASK_SAMPLE_EXTRA_ARGS);
+    #else
     #define SAMPLE_SHADOWMASK(uv) SAMPLE_TEXTURE2D_LIGHTMAP(SHADOWMASK_NAME, SHADOWMASK_SAMPLER_NAME, uv SHADOWMASK_SAMPLE_EXTRA_ARGS);
+    #endif
 #elif !defined (LIGHTMAP_ON)
     #define SAMPLE_SHADOWMASK(uv) unity_ProbesOcclusion;
 #else

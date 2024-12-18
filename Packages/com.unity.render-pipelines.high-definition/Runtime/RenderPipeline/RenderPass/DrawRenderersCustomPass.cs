@@ -141,6 +141,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public ShaderPass shaderPass = ShaderPass.Forward;
 
+        /// <summary>
+        /// Apply variable rate shading using the shading rate image.
+        /// </summary>
+        public bool variableRateShading = false;
+
+        /// <summary>
+        /// True if you want your custom pass to enable and set variable rate shading (VRS) texture. False for regular passes.
+        /// </summary>
+        protected override bool enableVariableRateShading => variableRateShading;
+
         int fadeValueId;
 
         static ShaderTagId[] forwardShaderTags;

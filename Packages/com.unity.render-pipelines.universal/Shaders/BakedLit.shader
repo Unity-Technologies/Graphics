@@ -20,6 +20,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _AlphaToMask("__alphaToMask", Float) = 0.0
         [HideInInspector] _AddPrecomputedVelocity("_AddPrecomputedVelocity", Float) = 0.0
+        [HideInInspector] _XRMotionVectorsPass("_XRMotionVectorsPass", Float) = 1.0
 
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0
@@ -84,6 +85,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Unity defined keywords
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fragment _ LIGHTMAP_BICUBIC_SAMPLING
             #pragma multi_compile _ USE_LEGACY_LIGHTMAPS
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -339,7 +341,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature_local _ALPHATEST_ON
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma shader_feature_local_vertex _ADD_PRECOMPUTED_VELOCITY
-            #define APLICATION_SPACE_WARP_MOTION 1
+            #define APPLICATION_SPACE_WARP_MOTION 1
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ObjectMotionVectors.hlsl"

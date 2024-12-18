@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             (uint)FrameSettingsField.TransparentPrepass,
             (uint)FrameSettingsField.TransparentPostpass,
             (uint)FrameSettingsField.CustomPass,
+            (uint)FrameSettingsField.VariableRateShading,
             (uint)FrameSettingsField.VirtualTexturing,
             (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
             (uint)FrameSettingsField.ObjectMotionVectors,
