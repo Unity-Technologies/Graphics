@@ -6,6 +6,6 @@ The High Definition Render Pipeline (HDRP) provides a scripting API that allows 
 
 This API is particularly useful when recording path-traced movies. Normally, when editing a Scene, the convergence of path tracing restarts every time the Scene changes, to provide artists an interactive editing workflow that allows them to quickly visualize their changes. However such behavior isn't desirable during recording.
 
-The following image shows a rotating GameObject with path tracing and accumulation motion blur, recorded using the [multi-frame recording API](rendering-multiframe recording API)
+The following image shows a rotating GameObject with path tracing and accumulation motion blur, recorded using the [multi-frame recording API](rendering-multiframe-recording-API.md)
 
 [](Images/path_tracing_recording.png)

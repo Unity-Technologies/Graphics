@@ -60,6 +60,16 @@ namespace UnityEngine.Rendering.Universal
             get => m_DefaultDecalMaterial;
             set => this.SetValueAndNotify(ref m_DefaultDecalMaterial, value);
         }
+
+        [SerializeField]
+        [ResourcePath("Runtime/Materials/Sprite-Unlit-Default.mat")]
+        private Material m_DefaultSpriteMaterial;
+
+        public virtual Material defaultSpriteMaterial
+        {
+            get => m_DefaultSpriteMaterial;
+            set => this.SetValueAndNotify(ref m_DefaultSpriteMaterial, value);
+        }
     }
 }
 #endif

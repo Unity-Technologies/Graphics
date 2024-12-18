@@ -1,7 +1,6 @@
-
-using System;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.UI;
+using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,7 +10,6 @@ internal class SamplesLinkPackageManagerExtension : IPackageManagerExtension
     VisualElement rootVisualElement;
     const string SAMPLEBUTTON_TEXT = "open VFX Graph Samples project on Github";
     const string GITHUB_URL = "https://github.com/Unity-Technologies/VisualEffectGraph-Samples";
-    const string VFX_GRAPH_NAME = "com.unity.visualeffectgraph";
 
     private Button samplesButton;
     private VisualElement parent;
@@ -38,7 +36,7 @@ internal class SamplesLinkPackageManagerExtension : IPackageManagerExtension
         if (samplesButton.parent != null)
             parent = samplesButton.parent;
 
-        bool shouldRender = packageInfo?.name == VFX_GRAPH_NAME;
+        bool shouldRender = packageInfo?.name == VisualEffectGraphPackageInfo.name;
         if (!shouldRender)
         {
             samplesButton.RemoveFromHierarchy();

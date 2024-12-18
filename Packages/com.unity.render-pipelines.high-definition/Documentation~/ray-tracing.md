@@ -16,4 +16,4 @@ Use ray tracing to create realistic lighting and access other data in a scene th
 
 - [Path tracing reference](reference-path-tracing.md)
 - [Recursive rendering override reference](reference-recursive-rendering.md)
-- [Ray Tracing Settings reference](reference-ray-tracing-settings.md
+- [Ray Tracing Settings reference](reference-ray-tracing-settings.md)

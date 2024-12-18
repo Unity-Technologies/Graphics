@@ -21,8 +21,8 @@ To enable streaming, follow these steps:
 
 You can now enable two types of streaming:
 
-- Enable **Enable Disk Streaming** to stream from disk to CPU memory.
-- Enable **Enable GPU Streaming** to stream from CPU memory to GPU memory. You must enable **Enable Disk Streaming** first.
+- Enable **Enable GPU Streaming** to stream from CPU memory to GPU memory. 
+- Enable **Enable Disk Streaming** to stream from disk to CPU memory. You must enable **Enable GPU Streaming** first.
 
 You can configure streaming settings in the same window. Refer to [HDRP Asset](HDRP-Asset.md#Lighting) for more information.
 

@@ -240,8 +240,6 @@ namespace UnityEditor.Rendering
             {
                 VolumeManager.instance.OnVolumeProfileChanged(profile);
                 EditorUtility.SetDirty(profile);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
             }
         }
 

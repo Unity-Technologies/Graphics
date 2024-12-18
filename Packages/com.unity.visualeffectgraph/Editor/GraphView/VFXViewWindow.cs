@@ -354,7 +354,7 @@ namespace UnityEditor.VFX.UI
             if (graphView == null && m_DisplayedResource == null)
                 return;
 
-            VFXViewController controller = graphView.controller;
+            VFXViewController controller = graphView?.controller;
             var filename = "No Asset";
             if (controller != null)
             {

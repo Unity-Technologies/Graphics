@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.UI
         private void OnValueChanged(ChangeEvent<UnityObject> evt)
         {
             var newValueType = evt.newValue != null ? evt.newValue.GetType() : null;
-            if (newValueType != null && newValueType != m_Provider.portType && (newValueType != typeof(RenderTexture) || m_Provider.portType == typeof(CubemapArray)))
+            if (newValueType != null && newValueType != m_Provider.portType && (!typeof(RenderTexture).IsAssignableFrom(newValueType) || m_Provider.portType == typeof(CubemapArray)))
             {
                 m_ObjectField.SetValueWithoutNotify(evt.previousValue);
             }

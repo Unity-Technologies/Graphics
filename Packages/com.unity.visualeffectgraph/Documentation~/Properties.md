@@ -45,6 +45,8 @@ Compound Property Types are made from base data types. These types describe more
 
 Expand Compound Property Types to access their components.
 
+To access components in a script, add an underscore before the component name. For example to access the `radius` component of `MySphere`, use `MySphere_radius`.
+
 ![](Images/PropertyCompound.png)
 
 
