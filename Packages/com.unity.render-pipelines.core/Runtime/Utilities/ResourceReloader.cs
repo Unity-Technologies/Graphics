@@ -15,12 +15,14 @@ namespace UnityEngine.Rendering
     /// The reload call should only be done in Editor context though but it
     /// could be called from runtime entities.
     /// </summary>
+    /// <seealso cref="ReloadAttribute"/>
+    /// <seealso cref="ReloadGroupAttribute"/>
     public static class ResourceReloader
     {
         /// <summary>
         /// Looks for resources in the given <paramref name="container"/> object and reload the ones
-        /// that are missing or broken.
-        /// This version will still return null value without throwing error if the issue is due to
+        /// that are missing or broken, using the <see cref="ReloadAttribute"/> to find the paths.
+        /// This version returns a null value without throwing an error if the issue is
         /// AssetDatabase being not ready. But in this case the assetDatabaseNotReady result will be true.
         /// </summary>
         /// <param name="container">The object containing reload-able resources</param>
@@ -47,7 +49,8 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Looks for resources in the given <paramref name="container"/> object and reload the ones
-        /// that are missing or broken.
+        /// that are missing or broken, using the <see cref="ReloadAttribute"/> to find the paths.
+        /// See <see cref="ReloadAttribute"/> for an example.
         /// </summary>
         /// <param name="container">The object containing reload-able resources</param>
         /// <param name="basePath">The base path for the package</param>
