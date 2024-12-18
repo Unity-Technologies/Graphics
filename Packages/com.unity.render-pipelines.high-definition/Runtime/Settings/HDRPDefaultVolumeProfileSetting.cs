@@ -7,8 +7,34 @@ using UnityEditor.Rendering;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
-    /// Settings class that stores the default volume profile for Volume Framework.
+    /// Graphics Settings container for the default <see cref="VolumeProfile"/> used by the <see cref="HDRenderPipeline"/>.
     /// </summary>
+    /// <remarks>
+    /// To change those settings, go to Editor > Project Settings in the Graphics tab (HDRP).
+    /// Changing this through API is only allowed in the Editor. In the Player, this raises an error.
+    /// </remarks>
+    /// <seealso cref="IRenderPipelineGraphicsSettings"/>
+    /// <example>
+    /// <para> Here is an example of how to get the default volume profile used by HDRP. </para>
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// using UnityEngine.Rendering.HighDefinition;
+    /// 
+    /// public static class URPDefaultVolumeProfileHelper
+    /// {
+    ///     public static VolumeProfile volumeProfile
+    ///     {
+    ///         get
+    ///         {
+    ///             var gs = GraphicsSettings.GetRenderPipelineSettings&lt;URPDefaultVolumeProfileSettings&gt;();
+    ///             if (gs == null) //not in HDRP
+    ///                 return null;
+    ///             return gs.volumeProfile;
+    ///         }
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     [Serializable]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [Categorization.CategoryInfo(Name = "Volume", Order = 0)]
@@ -24,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField][HideInInspector]
         Version m_Version;
 
-        /// <summary>Current version.</summary>
+        /// <summary>Current version of this settings container. Used only for upgrading the project.</summary>
         public int version => (int)m_Version;
         #endregion
 

@@ -7,8 +7,34 @@ using UnityEditor.Rendering;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    /// Settings class that stores the default volume profile for Volume Framework.
+    /// A Graphics Settings container for the default <see cref="VolumeProfile"/> used by <see cref="UniversalRenderPipeline"/>.
     /// </summary>
+    /// <remarks>
+    /// To change those settings, go to Editor > Project Settings in the Graphics tab (URP).
+    /// Changing this through the API is only allowed in the Editor. In the Player, this raises an error.
+    /// </remarks>
+    /// <seealso cref="IRenderPipelineGraphicsSettings"/>
+    /// <example>
+    /// <para> This example demonstrates how to get the default volume profile used by URP. </para>
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// using UnityEngine.Rendering.Universal;
+    /// 
+    /// public static class URPDefaultVolumeProfileHelper
+    /// {
+    ///     public static VolumeProfile volumeProfile
+    ///     {
+    ///         get
+    ///         {
+    ///             var gs = GraphicsSettings.GetRenderPipelineSettings&lt;URPDefaultVolumeProfileSettings&gt;();
+    ///             if (gs == null) //not in URP
+    ///                 return null;
+    ///             return gs.volumeProfile;
+    ///         }
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     [Serializable]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [Categorization.CategoryInfo(Name = "Volume", Order = 0)]
@@ -23,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField][HideInInspector]
         Version m_Version;
 
-        /// <summary>Current version.</summary>
+        /// <summary>Current version of the settings container. Used only for upgrading project.</summary>
         public int version => (int)m_Version;
         #endregion
 

@@ -3,8 +3,33 @@ using System;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Render Graph global settings class.
+    /// A graphics settings container for settings related to the Render Graph for all Scriptable Render Pipelines.
     /// </summary>
+    /// <remarks>
+    /// To change those settings, go to Editor > Project Settings in the Graphics tab.
+    /// Changing this through the API is only allowed in the Editor. In the Player, this raises an error.
+    /// </remarks>
+    /// <seealso cref="IRenderPipelineGraphicsSettings"/>
+    /// <example>
+    /// <para> This example demonstrates how to determine if your project uses RenderGraph's compilation caching. </para>
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// 
+    /// public static class RenderGraphHelper
+    /// {
+    ///     public static bool enableCompilationCaching
+    ///     {
+    ///         get
+    ///         {
+    ///             var gs = GraphicsSettings.GetRenderPipelineSettings&lt;RenderGraphGlobalSettings&gt;();
+    ///             if (gs == null) //not in SRP
+    ///                 return false;
+    ///             return gs.enableCompilationCaching;
+    ///         }
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     [Serializable] 
     [SupportedOnRenderPipeline] 
     [Categorization.CategoryInfo(Name = "Render Graph", Order = 50)]
