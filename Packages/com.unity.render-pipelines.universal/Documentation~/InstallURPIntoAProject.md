@@ -61,4 +61,5 @@ When you upgrade a project from the Built-in Render Pipeline (BiRP) to the Unive
 * [Render Pipeline Converter](features/rp-converter.md)
 * [Upgrade custom shaders for URP compatibility](urp-shaders/birp-urp-custom-shader-upgrade-guide.md)
 * [Find graphics quality settings in URP](birp-onboarding/quality-settings-location.md)
-* [Update graphics quality levels for URP](quality-presets.md)
+* [Update graphics quality levels for URP](birp-onboarding/quality-presets.md)
+

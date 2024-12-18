@@ -179,7 +179,7 @@ If you want to manage multiple Visual Effect instances in the same Scene and wan
 VisualEffect visualEffect;
 VFXEventAttribute eventAttribute;
 
-static readonly ExposedProperty positionAttribute = "Position"
+static readonly ExposedProperty positionAttribute = "position"
 static readonly ExposedProperty enteredTriggerEvent = "EnteredTrigger"
 
 void Start()
