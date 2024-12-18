@@ -4,7 +4,6 @@ You can use instancing to batch process multiple effects, if they have the same 
 
 Instancing is enabled by default, except on Visual Effect Graph Assets that use features that do not support instancing. These include:
 
-- [GPU events](Events.md#gpu-events)
 - [Output Mesh](Context-OutputMesh.md)
 - [Output Event Handlers](OutputEventHandlers.md)
 

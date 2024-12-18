@@ -6,17 +6,9 @@ By default, experimental features are disabled, meaning that they do not appear 
 
 To enable experimental features, go to **Edit** > [**Preferences**](VisualEffectPreferences.md) > **Visual Effects** and enable **Experimental Operators/Blockers**. This gives you access to all nodes marked as experimental in the graph.
 
-![](Images/Experimental-features-enable.png)
+# Experimental features in version 17 / Unity 6
 
-
-# Experimental features in version 16 / Unity 2023.2
 This page lists Visual Effect Graph features that are in an experimental state in version 16. For details, see [Experimental features](ExperimentalFeatures.md).
-
-* GPU events:
-  * [GPUEvent](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@16.0/manual/Context-GPUEvent.html) 
-  * [GPUEventAlways](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@16.0/manual/Block-TriggerEventAlways.html)
-  * [GPUEventOnDie](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@16.0/manual/Block-TriggerEventOnDie.html)
-  * [GPUEventRate](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@16.0/manual/Block-TriggerEventRate.html)
 
 * Velocity from Direction & Speed:
   * [Velocity from Direction & Speed (Change Speed)](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@16.0/manual/Block-VelocityFromDirectionAndSpeed(ChangeSpeed).html)
