@@ -67,11 +67,23 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal static readonly int DepthOfFieldTemp = Shader.PropertyToID("_DepthOfFieldTemp");
         internal static readonly int DepthOfFieldTex = Shader.PropertyToID("_DepthOfFieldTex");
+        internal static readonly int[] MaxCoCMips = new int[] {
+            Shader.PropertyToID("_CoCMip0"), Shader.PropertyToID("_CoCMip1"), Shader.PropertyToID("_CoCMip2"), Shader.PropertyToID("_CoCMip3"),
+            Shader.PropertyToID("_CoCMip4"), Shader.PropertyToID("_CoCMip5"), Shader.PropertyToID("_CoCMip6"), Shader.PropertyToID("_CoCMip7"),
+            Shader.PropertyToID("_CoCMip8"), Shader.PropertyToID("_CoCMip9"), Shader.PropertyToID("_CoCMip10"), Shader.PropertyToID("_CoCMip11")
+        };
+        internal static readonly int MaxCoCTex = Shader.PropertyToID("_MaxCoCTex");
         internal static readonly int Distance = Shader.PropertyToID("_Distance");
         internal static readonly int LensCoeff = Shader.PropertyToID("_LensCoeff");
+        internal static readonly int CoCKernelLimits = Shader.PropertyToID("_CoCKernelLimits");
+        internal static readonly int MaxCoCTexScale = Shader.PropertyToID("_MaxCoCTexScale");
+        internal static readonly int KernelScale = Shader.PropertyToID("_KernelScale");
+        internal static readonly int MarginFactors = Shader.PropertyToID("_MarginFactors");
         internal static readonly int MaxCoC = Shader.PropertyToID("_MaxCoC");
         internal static readonly int RcpMaxCoC = Shader.PropertyToID("_RcpMaxCoC");
         internal static readonly int RcpAspect = Shader.PropertyToID("_RcpAspect");
+        internal static readonly int FgAlphaFactor = Shader.PropertyToID("_FgAlphaFactor");
+        internal static readonly int MaxRingIndex = Shader.PropertyToID("_MaxRingIndex");
         internal static readonly int CoCTex = Shader.PropertyToID("_CoCTex");
         internal static readonly int TaaParams = Shader.PropertyToID("_TaaParams");
 
