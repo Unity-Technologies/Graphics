@@ -13,7 +13,7 @@ The 2D lighting systems includes its own set of 2D Light components, [Shader Gra
 The 2D lighting model was designed specifically to work with 2D worlds that are coplanar and multi-layered. A 2D Light does not require depth separation between it and the object it is lighting. The 2D shadow system also works in coplanar and does not require depth separation.
 
 ### Not physically based
-The lighting calculation in 2D Lights is not physics based as it is with 3D Lights. The details of the lighting model calculation can be found here.
+The lighting calculation in 2D Lights is not physics-based as it is with 3D Lights. The details of the lighting model calculation can be found here.
 
 ### No interoperability with 3D Lights and 3D Renderers
 3D and 2D Lights can only affect 3D and 2D Renderers respectively. 2D Lighting does not work on or effect 3D Renderers such as the [Mesh Renderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html), while 3D Lighting will similarly have no effect on 2D Renderers such as the [Sprite Renderer](https://docs.unity3d.com/Manual/class-SpriteRenderer.html). Currently, to achieve a combination of 2D and 3D Lights and 2D and 3D Renderers in a single Scene, you can use multiple cameras and have one of the cameras render to a [Render Texture](https://docs.unity3d.com/Manual/class-RenderTexture.html), and sample that texture in a material rendered by another camera.

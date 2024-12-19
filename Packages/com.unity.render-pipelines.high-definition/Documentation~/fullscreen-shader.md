@@ -83,7 +83,7 @@ To set a source material for the `Blit()` command to use in shader graph:
 5. In **Node Settings**, enable the **Exposed** toggle so `Blit()`can bind the texture.
 4. Drag the **MainTex** node into your shader graph. 
 5. Press the Spacebar to open the **Create Node** window
-6. In the **Create Node** window, search for the **Texture 2D Array** node and select it to create it in your scene.
+6. In the **Create Node** window, search for the **Sample Texture 2D Array** node and select it to create it in your scene.
 7. Connect the **MainTex** node to the **Texture Array** port of the **Sample Texture 2D Array** node.
 8. Connect the **RBGA** output port of the **Sample Texture 2D Array** to the **Base Color** block in the **Fragment** context.
 9. `Blit()` automatically binds the source texture inside the `_MainTex` property.

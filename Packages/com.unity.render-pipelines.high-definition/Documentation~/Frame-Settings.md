@@ -2,8 +2,6 @@
 
 Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and custom reflections. You can set the default values for Frame Settings for each of these three individually from within the [HDRP Global Settings](Default-Settings-Window.md) tab (menu: **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings**).
 
-![](Images/FrameSettings1.png)
-
 To make Cameras and Reflection Probes use their respective default values for Frame Settings, disable the **Custom Frame Settings** checkbox under the **General** settings of Cameras or under **Capture Settings** of Reflection Probes.
 
 You can override the default value of a Frame Setting on a per component basis. Enable the **Custom Frame Settings** checkbox to set specific Frame Settings for individual Cameras and Reflection Probes. This exposes the Frame Settings Override which gives you access to the same settings as within the HDRP Global Settings. Edit the settings within the Frame Settings Override to create a Frame Settings profile for an individual component.

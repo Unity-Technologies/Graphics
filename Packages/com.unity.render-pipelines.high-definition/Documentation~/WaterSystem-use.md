@@ -24,7 +24,7 @@ This is especially important when you upgrade your project from an earlier versi
 1. Select a global Volume in your scene, such as the **Sky and Fog Volume**.
 2. Click **Add Override**.
 3. Select **Lighting** > **Water Rendering**.
-4. In the **Water Rendering** Volume Override component, set **State** to **Enabled**.
+4. In the **Water Rendering** component, set **State** to **Enabled**.
 
 This is especially important when you upgrade your project from an earlier version of Unity, because water is inactive by default. If your project originates in HDRP 14 (Unity 2022.2) or later, the water implementation may work even if you only enable it in the **Quality** settings.
 
