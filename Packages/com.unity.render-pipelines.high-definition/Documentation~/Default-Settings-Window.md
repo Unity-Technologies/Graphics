@@ -15,7 +15,7 @@ You can use the **Volume Profiles** section to assign and edit a [Volume Profile
 
 The **Default Volume Profile Asset** (A) references a Volume Profile in the HDRP package folder called `DefaultSettingsVolumeProfile` by default. Below it, you can add [Volume overrides](Volume-Components.md), and edit their properties. You can assign your own Volume Profile to this property field. Be aware that this property must always reference a Volume Profile. If you assign your own Volume Profile and then delete it, HDRP automatically re-assigns the `DefaultSettingsVolumeProfile` from the HDRP package folder.
 
-The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](Look-Dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except that it overrides [Visual Environment Components](Override-Visual-Environment.md) and sky components.![](Images/HDRPgs_Volume_Profiles.png)
+The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses in the [LookDev window](Look-Dev.md). This Asset works in almost the same way as the Default Volume Profile Asset, except it overrides [Visual Environment Components](Override-Visual-Environment.md) and sky components.
 
 ## Diffusion Profile Assets
 
@@ -43,8 +43,6 @@ Use this section to set default values for the Frame Settings that all Cameras u
 Use this section to select which custom post processing effect HDRP uses in the project and at which stage in the render pipeline it executes them.
 
 HDRP provides one list for each post processing injection point. See the [Custom Post Process](Custom-Post-Process.md) documentation for more details.
-
-![](Images/HDRPgs_Custom_PP.png)
 
 ## Miscellaneous
 

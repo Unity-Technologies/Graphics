@@ -28,6 +28,8 @@ The Rendering Debugger window is available in the following modes:
 | Runtime    | Console        | Yes (only in Development builds) | Press L3 and R3 (Left Stick and Right Stick) |
 | Runtime    | Mobile         | Yes (only in Development builds) | Use a three-finger double tap |
 
+![The Rendering Debugger overlay in Play mode.](../Images/rendering-debugger-play-mode.jpg)
+
 To enable all the sections of the **Rendering Debugger** in your built application, disable **Strip Debug Variants** in **Project Settings > Graphics > URP Global Settings**. Otherwise, you can only use the [Display Stats](#display-stats) section.
 
 To disable the runtime UI, use the [enableRuntimeUI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.DebugManager.html#UnityEngine_Rendering_DebugManager_enableRuntimeUI) property.
