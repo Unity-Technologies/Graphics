@@ -4,5 +4,9 @@
   "version": "0.1.0",
   "unity": "2020.2",
   "unityRelease": "0b11",
-  "description": "Common XR code for test projects."
+  "description": "Common XR code for test projects.",
+  "dependencies": {
+    "com.unity.xr.management": "4.0.5",
+    "com.unity.xr.legacyinputhelpers": "2.1.8"
+  }
 }

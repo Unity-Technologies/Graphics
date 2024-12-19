@@ -179,15 +179,8 @@ public class UniversalGraphicsTests
 
         if (settings == null || settings.CheckMemoryAllocation)
         {
-			yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
+            yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
         }
-    }
-
-#if UNITY_EDITOR
-    [TearDown]
-    public void DumpImagesInEditor()
-    {
-        UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
 
 #if ENABLE_VR
@@ -197,6 +190,5 @@ public class UniversalGraphicsTests
         XRGraphicsAutomatedTests.running = false;
     }
 
-#endif
 #endif
 }
