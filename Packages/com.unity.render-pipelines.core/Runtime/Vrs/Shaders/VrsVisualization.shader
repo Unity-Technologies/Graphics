@@ -41,4 +41,6 @@ Shader "Hidden/Core/VrsVisualization"
             ENDHLSL
         }
     }
+
+    Fallback Off
 }
