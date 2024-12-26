@@ -1,8 +1,10 @@
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
 {
@@ -56,6 +58,31 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(1, dockArea.m_Panes.Count);
 
             yield return null;
+        }
+
+        [UnityTest, Description("Repro UUM-84307")]
+        public IEnumerator Repro_CustomHLSL_In_Subgraph()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_84307.unitypackage";
+            var vfxPath = VFXTestCommon.tempBasePath + "/Repro_84307.vfx";
+
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets();
+            yield return null;
+
+            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            Assert.IsNotNull(vfxAsset);
+            var vfxGraph = vfxAsset.GetOrCreateResource().GetOrCreateGraph();
+            Assert.IsNotNull(vfxGraph);
+
+            var firstContext = vfxGraph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+            Assert.IsNotNull(firstContext);
+
+            var originalCapacity = (uint)firstContext.GetData().GetSettingValue("capacity");
+            firstContext.GetData().SetSettingValue("capacity", originalCapacity + 1u);
+            Assert.IsTrue(EditorUtility.IsDirty(vfxGraph));
+            AssetDatabase.SaveAssets();
+            Assert.IsFalse(EditorUtility.IsDirty(vfxGraph));
         }
     }
 }
