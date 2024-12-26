@@ -1761,6 +1761,9 @@ namespace UnityEngine.Rendering.Universal
                                 var fsrOutputSize = new Vector2(cameraData.pixelWidth, cameraData.pixelHeight);
                                 FSRUtils.SetEasuConstants(cmd, fsrInputSize, fsrInputSize, fsrOutputSize);
 
+                                if (isAlphaOutputEnabled)
+                                    CoreUtils.SetKeyword(m_Materials.easu, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, isAlphaOutputEnabled);
+
                                 Blitter.BlitCameraTexture(cmd, sourceTex, m_UpscaledTarget, colorLoadAction, RenderBufferStoreAction.Store, m_Materials.easu, 0);
 
                                 // RCAS
