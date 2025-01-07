@@ -29,6 +29,10 @@ namespace UnityEngine.Rendering
     /// <seealso cref="VolumeStack"/>
     public abstract class VolumeParameter : ICloneable
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        internal string debugId { get; set; }
+#endif
+
         /// <summary>
         /// A beautified string for debugger output. This is set on a <c>DebuggerDisplay</c> on every
         /// parameter types.
