@@ -206,6 +206,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return hdCamera;
         }
 
+        //access for editor helpbox checks
+        internal static bool TryGet(Camera camera, out HDCamera hdCamera, int xrMultipassId = 0, HistoryChannel historyChannel = HistoryChannel.RenderLoopHistory)
+            => s_Cameras.TryGetValue((camera, xrMultipassId, historyChannel), out hdCamera);
+
         // internal only for now, to be publicly available when history API is implemented in SRP Core
         /// <summary>
         /// Check if a given history channel is already existing for a pair of camera and XR multi-pass Id.

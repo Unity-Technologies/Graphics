@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.PaniniProjection, "Panini Projection");
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.PaniniProjection);
 
             PropertyField(m_Distance);
             PropertyField(m_CropToFit);
