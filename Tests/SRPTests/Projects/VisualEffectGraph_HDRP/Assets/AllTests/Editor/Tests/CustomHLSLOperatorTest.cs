@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(VFXExpressionOperation.None, hlslExpression.operation);
             Assert.AreEqual(VFXValueType.Float3, hlslExpression.valueType);
-            var expectedGeneratedCode = "float3 Transform_Wrapper(float4x4 mat, float3 vec)\r\n" +
+            var expectedGeneratedCode = "float3 Transform_Return_Wrapper(float4x4 mat, float3 vec)\r\n" +
                                         "{\r\n" +
                                         "\tfloat3 var_2 = \tTransform(mat, vec);\r\n" +
                                         "\treturn var_2;\r\n" +
@@ -919,6 +919,36 @@ float3 DummyFunction()
 
             var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
             hlslOperator.SetSettingValue("m_HLSLCode", hlslCode);
+
+            MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
+            var initializeContext = graph.children.OfType<VFXBasicInitialize>().Single();
+            var setPositionBlock = initializeContext.children.Single();
+            yield return null;
+
+            setPositionBlock.inputSlots[0][0][0].Link(hlslOperator.outputSlots[0]);
+            setPositionBlock.inputSlots[0][0][1].Link(hlslOperator.outputSlots[1]);
+            view.graphView.controller.ApplyChanges();
+
+            foreach (var y in VFXTestCommon.CheckCompilation(graph))
+            {
+                yield return y;
+            }
+        }
+
+        [UnityTest, Description("Cover UUM-83676")]
+        public IEnumerator Check_CustomHLSL_File_Operator_Multiple_Out_Parameters()
+        {
+            // Arrange
+            var hlslCode =
+                "void Transform(out float first, out float second)" + "\n" +
+                "{" + "\n" +
+                "    first = 1;" + "\n" +
+                "    second = 2;" + "\n" +
+                "}";
+
+            var shaderFile = CustomHLSLBlockTest.CreateShaderFile(hlslCode, out var shaderIncludePath);
+            var hlslOperator = ScriptableObject.CreateInstance<CustomHLSL>();
+            hlslOperator.SetSettingValue("m_ShaderFile", shaderFile);
 
             MakeSimpleGraphWithCustomHLSL(hlslOperator, out var view, out var graph);
             var initializeContext = graph.children.OfType<VFXBasicInitialize>().Single();

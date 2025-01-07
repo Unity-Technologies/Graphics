@@ -472,7 +472,7 @@ namespace UnityEditor.VFX.Operator
                 if (!hasShaderFile)
                     hlslCode.Append(m_Function.GetTransformedHLSL(returnedParameterName));
 
-                wrapperFunctionName = $"{functionName}_Wrapper";
+                wrapperFunctionName = hasShaderFile ? $"{m_Function.name}_{returnedParameterName}_Wrapper" : $"{functionName}_Wrapper";
 
                 hlslCode.Append($"{returnType} {wrapperFunctionName}(");
                 var isFirst = true;
