@@ -42,10 +42,16 @@ namespace UnityEngine.Rendering.Universal
         /// <see cref="UniversalAdditionalLightData"/>
         public static UniversalAdditionalLightData GetUniversalAdditionalLightData(this Light light)
         {
-            var gameObject = light.gameObject;
-            bool componentExists = gameObject.TryGetComponent<UniversalAdditionalLightData>(out var lightData);
+            GameObject gameObject = light.gameObject;
+            bool componentExists = gameObject.TryGetComponent(out UniversalAdditionalLightData lightData);
             if (!componentExists)
-                lightData = gameObject.AddComponent<UniversalAdditionalLightData>();
+            {
+                #if UNITY_EDITOR
+                    lightData = UnityEditor.Undo.AddComponent<UniversalAdditionalLightData>(gameObject);
+                #else
+                    lightData = gameObject.AddComponent<UniversalAdditionalLightData>();
+                #endif
+            }
 
             return lightData;
         }
