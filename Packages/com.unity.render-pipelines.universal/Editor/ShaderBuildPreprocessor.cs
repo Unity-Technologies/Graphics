@@ -517,8 +517,12 @@ namespace UnityEditor.Rendering.Universal
             ScriptableRendererData[] rendererDataArray = urpAsset.m_RendererDataList;
             for (int rendererIndex = 0; rendererIndex < rendererDataArray.Length; ++rendererIndex)
             {
+                if (rendererDataArray[rendererIndex] == null)
+                    continue;
+                
                 // Get feature requirements from the renderer
-                ScriptableRenderer renderer = urpAsset.GetRenderer(rendererIndex);
+                // Always create a separate Renderer as we can be in a situation where there's no RP and they will not be disposed later on
+                ScriptableRenderer renderer = rendererDataArray[rendererIndex].InternalCreateRenderer();
                 ScriptableRendererData rendererData = rendererDataArray[rendererIndex];
                 RendererRequirements rendererRequirements = GetRendererRequirements(ref urpAsset, ref renderer, ref rendererData, stripUnusedVariants);
 
@@ -534,6 +538,9 @@ namespace UnityEditor.Rendering.Universal
 
                 // Add the features from the renderer to the combined feature set for this URP Asset
                 combinedURPAssetShaderFeatures |= rendererShaderFeatures;
+                
+                //Dispose a created Scriptable Renderer
+                renderer.Dispose();
             }
 
             return combinedURPAssetShaderFeatures;
