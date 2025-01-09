@@ -2314,7 +2314,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             // If it is within the cached system we need to evict it, unless user explicitly requires not to.
-            if (!preserveCachedShadow && hasShadowCache)
+            // If the shadow was pending placement in the atlas, we also evict it, even if the user wants to preserve it.
+            if ((!preserveCachedShadow || HDShadowManager.cachedShadowManager.LightIsPendingPlacement(lightIdxForCachedShadows, shadowMapType)) && hasShadowCache)
             {
                 HDShadowManager.cachedShadowManager.EvictLight(this, legacyLight.type);
             }
@@ -3347,7 +3348,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RefreshCachedShadow()
         {
             bool wentThroughCachedShadowSystem = lightIdxForCachedShadows >= 0;
-            if (!preserveCachedShadow && wentThroughCachedShadowSystem)
+            if (wentThroughCachedShadowSystem)
                 HDShadowManager.cachedShadowManager.EvictLight(this, legacyLight.type);
 
             RegisterCachedShadowLightOptional();
