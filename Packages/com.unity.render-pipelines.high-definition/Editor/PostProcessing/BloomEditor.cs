@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Bloom, "Bloom");
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Bloom);
 
             base.OnInspectorGUI();
 

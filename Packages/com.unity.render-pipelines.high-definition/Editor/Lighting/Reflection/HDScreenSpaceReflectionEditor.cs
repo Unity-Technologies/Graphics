@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
 
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.RayTracing, "RayTracing");
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.RayTracing);
 
             if (RenderPipelineManager.currentPipeline is not HDRenderPipeline { rayTracingSupported: true })
                 HDRenderPipelineUI.DisplayRayTracingSupportBox();
@@ -261,7 +261,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_Enable, k_EnabledOpaque);
             if (!notSupported)
-                HDEditorUtils.EnsureFrameSetting(FrameSettingsField.SSR, "Screen Space Reflection");
+                HDEditorUtils.EnsureFrameSetting(FrameSettingsField.SSR);
 
             bool transparentSSRSupported = currentAsset.currentPlatformRenderPipelineSettings.supportSSR
                                             && currentAsset.currentPlatformRenderPipelineSettings.supportSSRTransparent
@@ -269,7 +269,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (transparentSSRSupported)
             {
                 PropertyField(m_EnableTransparent, k_EnabledTransparent);
-                HDEditorUtils.EnsureFrameSetting(FrameSettingsField.TransparentSSR, "Transparent");
+                HDEditorUtils.EnsureFrameSetting(FrameSettingsField.TransparentSSR);
             }
             else
             {
