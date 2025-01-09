@@ -2,6 +2,7 @@
 #pragma kernel CSVFXCopyStructBuffer
 #pragma kernel CSVFXInitDeadListBuffer
 #pragma kernel CSVFXZeroInitBuffer
+#pragma kernel CSVFXZeroInitBufferUint
 #pragma kernel CSVFXBatchCopyCountUint
 #pragma kernel CSVFXBatchCopyCountKvp
 #pragma kernel CSVFXInitBoundsBuffer
@@ -74,6 +75,14 @@ void CSVFXZeroInitBuffer(uint3 groupId : SV_GroupID, uint3 threadId : SV_Dispatc
     uint index = groupId.y * dispatchWidth * NB_THREADS_PER_GROUP + threadId.x;
     if (index < size)
         dstBuffer.Store((dstOffset + index) << 2, 0u);
+}
+
+[numthreads(NB_THREADS_PER_GROUP, 1, 1)]
+void CSVFXZeroInitBufferUint(uint3 groupId : SV_GroupID, uint3 threadId : SV_DispatchThreadID)
+{
+    uint index = groupId.y * dispatchWidth * NB_THREADS_PER_GROUP + threadId.x;
+    if (index < size)
+        dstStructBuffer[dstOffset + index] = 0u;
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
