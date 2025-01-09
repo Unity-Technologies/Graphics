@@ -4,7 +4,7 @@ The Planar Reflection Probe component is one of the types of [Reflection Probe](
 
 ## Properties
 
-Planar Reflection Probes share many properties with the the [built-in render pipeline Reflection Probe](https://docs.unity3d.com/Manual/class-ReflectionProbe.html), and the [HDRP cubemap Reflection Probe](Reflection-Probe.md).
+Planar Reflection Probes share many properties with the [built-in render pipeline Reflection Probe](https://docs.unity3d.com/Manual/class-ReflectionProbe.html), and the [HDRP cubemap Reflection Probe](Reflection-Probe.md).
 
 Planar Reflection Probes use the same texture format than the one selected in [HDRP Asset](HDRP-Asset.md) for Color Buffer Format.
 
