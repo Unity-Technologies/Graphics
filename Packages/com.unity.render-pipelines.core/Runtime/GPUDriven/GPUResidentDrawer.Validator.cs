@@ -81,6 +81,11 @@ namespace UnityEngine.Rendering
                 message = Strings.allowInEditModeDisabled;
                 return false;
             }
+			
+			// Disable GRD in any external AssetImporter child process. GRD isn't made for AssetImporter workflow/lifetime
+			// Avoid memory leak warning messages and also some future issues (UUM-90039)
+            if (AssetDatabase.IsAssetImportWorkerProcess())
+                return false;
 #endif
             // If we are forcing the system, no need to perform further checks
             if (IsForcedOnViaCommandLine())
