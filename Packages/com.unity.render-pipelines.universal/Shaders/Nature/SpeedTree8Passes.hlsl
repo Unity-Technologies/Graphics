@@ -122,7 +122,8 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 
     // wind
     #if defined(ENABLE_WIND) && !defined(_WINDQUALITY_NONE)
-        if (_WindEnabled > 0)
+        float windEnabled = dot(_ST_WindVector.xyz, _ST_WindVector.xyz) > 0.0f ? 1.0f : 0.0f;
+        if (windEnabled > 0)
         {
             float3 rotatedWindVector = mul(_ST_WindVector.xyz, (float3x3)UNITY_MATRIX_M);
             float windLength = length(rotatedWindVector);
