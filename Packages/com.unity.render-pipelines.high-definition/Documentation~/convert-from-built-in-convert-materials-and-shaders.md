@@ -14,6 +14,7 @@ To upgrade the Materials in your Scene to HDRP-compatible Materials:
 The automatic upgrade options described above can't upgrade all Materials to HDRP correctly:
 
 * You can't automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion).
+* HDRP can only convert materials from the **Assets** folder of your project. HDRP uses the [error shader](xref:shader-error) for GameObjects that use the default read-only material from the Built-In Render Pipeline, for example [primitives](xref:um-primitive-objects).  
 * Height mapped Materials might look incorrect. This is because HDRP supports more height map displacement techniques and decompression options than the Built-in Render Pipeline. To upgrade a Material that uses a heightmap, modify the Material's **Amplitude** and **Base** properties until the result more closely matches the Built-in Render Pipeline version.
 * You can't upgrade particle shaders. HDRP doesn't support particle shaders, but it does provide Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
 
