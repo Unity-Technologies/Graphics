@@ -1222,7 +1222,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (existingAttach.resource.version > newAttach.resource.version)
                             throw new Exception("Adding an older version while a higher version is already registered with the pass.");
 #endif
-                        existingAttach.resource.version = newAttach.resource.version;
+                        var prevAttachRes = existingAttach.resource;
+                        existingAttach.resource = new ResourceHandle(prevAttachRes, newAttach.resource.version);
                         alreadyAttached = true;
                         break;
                     }
@@ -1249,7 +1250,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (existingAttach.resource.version > newAttach.resource.version)
                             throw new Exception("Adding an older version while a higher version is already registered with the pass.");
 #endif
-                        existingAttach.resource.version = newAttach.resource.version;
+                        var prevAttachRes = existingAttach.resource;
+                        existingAttach.resource = new ResourceHandle(prevAttachRes, newAttach.resource.version);
                         alreadyAttached = true;
                         break;
                     }
