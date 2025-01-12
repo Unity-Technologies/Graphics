@@ -142,6 +142,8 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
 3. <a name="shader"></a>Create the shader that performs the blit operation. Call the shader file `ColorBlit.shader`. The vertex function outputs the full-screen quad position. The fragment function samples the color buffer and returns the `color * float4(0, _Intensity, 0, 1)` value to the render target.
 
+    **Note:** The shader you use with the `Blitter` API must be a hand-coded shader. [Shader Graph](xref:um-shader-graph) shaders aren't compatible with the `Blitter` API.
+
     ```c++
     Shader "ColorBlit"
     {

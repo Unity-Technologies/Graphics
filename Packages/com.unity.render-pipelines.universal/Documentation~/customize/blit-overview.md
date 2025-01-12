@@ -20,6 +20,8 @@ Similar considerations apply to any utilities or wrappers relying on `cmd.Blit` 
 
 Use the [Blitter API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@13.1/api/UnityEngine.Rendering.Blitter.html) in URP projects. This API does not rely on legacy logic, and is compatible with XR, native Render Passes, and other SRP APIs.
 
+The shader you use with the `Blitter` API must be a hand-coded shader. [Shader Graph](xref:um-shader-graph) shaders aren't compatible with the `Blitter` API.
+
 ## Custom full-screen blit example
 
 The [How to perform a full screen blit in URP](../renderer-features/how-to-fullscreen-blit.md) example shows how to create a custom Renderer Feature that performs a full screen blit. The example works in XR and is compatible with SRP APIs.
