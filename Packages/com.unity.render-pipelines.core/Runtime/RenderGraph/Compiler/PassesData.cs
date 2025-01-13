@@ -1216,8 +1216,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ref var existingAttach = ref nativePass.fragments[i];
                     if (PassFragmentData.SameSubResource(existingAttach, newAttach))
                     {
-                        // Update the attached version access flags and version
-                        existingAttach.accessFlags |= newAttach.accessFlags;
+                        var newAttachAccessFlags = newAttach.accessFlags;
+                        // If the existing attachment accessFlag has Discard flag, remove Read flag from newAttach flags, as the content has not to be Loaded
+                        if (existingAttach.accessFlags.HasFlag(AccessFlags.Discard))
+                            newAttachAccessFlags = newAttachAccessFlags & ~AccessFlags.Read;
+
+                        existingAttach.accessFlags |= newAttachAccessFlags;
+                        
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                         if (existingAttach.resource.version > newAttach.resource.version)
                             throw new Exception("Adding an older version while a higher version is already registered with the pass.");
@@ -1244,8 +1249,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ref var existingAttach = ref nativePass.fragments[i];
                     if (PassFragmentData.SameSubResource(existingAttach, newAttach))
                     {
-                        // Update the attached version access flags and version
-                        existingAttach.accessFlags |= newAttach.accessFlags;
+                        var newAttachAccessFlags = newAttach.accessFlags;
+                        // If the existing attachment accessFlag has Discard flag, remove Read flag from newAttach flags, as the content has not to be Loaded
+                        if (existingAttach.accessFlags.HasFlag(AccessFlags.Discard))
+                            newAttachAccessFlags = newAttachAccessFlags & ~AccessFlags.Read;
+
+                        existingAttach.accessFlags |= newAttachAccessFlags;
+
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                         if (existingAttach.resource.version > newAttach.resource.version)
                             throw new Exception("Adding an older version while a higher version is already registered with the pass.");
