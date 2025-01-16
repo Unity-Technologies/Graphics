@@ -440,8 +440,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 float triangleSize = (1 << lod) * cb._GridSize.x / WaterConsts.k_WaterTessellatedMeshResolution;
                 // align grid size on region extent
                 float2 optimalTriangleSize = new float2(
-                    extent.x / Mathf.Max(Mathf.Floor(extent.x / triangleSize), 1),
-                    extent.y / Mathf.Max(Mathf.Floor(extent.y / triangleSize), 1));
+                    extent.x / Mathf.Max(Mathf.Ceil(extent.x / triangleSize), 1),
+                    extent.y / Mathf.Max(Mathf.Ceil(extent.y / triangleSize), 1));
                 cb._GridSize = optimalTriangleSize * cb._GridSize.x / triangleSize;
                 // align grid pos on one region corner
                 float2 corner = -(cb._PatchOffset + 0.5f * cb._GridSize) - cb._RegionExtent;
