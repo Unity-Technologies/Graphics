@@ -3726,6 +3726,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.spotIESCutoffPercent = m_SpotIESCutoffPercent;
             lightRenderData.shapeRadius = m_ShapeRadius;
             lightRenderData.barnDoorLength = m_BarnDoorLength;
+            lightRenderData.barnDoorAngle = m_BarnDoorAngle;
             lightRenderData.affectVolumetric = useVolumetric;
             lightRenderData.affectDiffuse = m_AffectDiffuse;
             lightRenderData.affectSpecular = m_AffectSpecular;
