@@ -1,7 +1,7 @@
 target_editor:
   version: 2023.3
 test_editors:
-  - version: 6000.1
+  - version: trunk
 test_platforms:
   - name: win
     type: Unity::VM
