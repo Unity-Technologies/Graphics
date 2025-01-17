@@ -5,8 +5,8 @@
 
 ---
 
-graphics_repo_nightly_6000.1:
-    name: Graphics repo nightly on 6000.1 on 6000.1
+graphics_repo_weekly_6000.1:
+    name: Graphics repo weekly on 6000.1 on 6000.1
     variables:
         CUSTOM_REVISION: '6000.1/staging'
         TEST_FILTER: .*
