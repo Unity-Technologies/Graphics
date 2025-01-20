@@ -727,7 +727,7 @@ float3 DummyFunction()
             new() { declaration = "Texture2D", implementation = "localValue = inputBuffer[(int2)0].rgb;" },
 
             new() { declaration = "RWTexture1D<uint>", implementation = "inputBuffer[0] = 1u; localValue = 0.1f;" },
-            //new() { declaration = "RWTexture1DArray<float>", implementation = "inputBuffer[(uint2)0] = 0u; localValue = 0.1f;" }, (see UUM-64315)
+            new() { declaration = "RWTexture1DArray<float>", implementation = "inputBuffer[(uint2)0] = 0u; localValue = 0.1f;" },
             new() { declaration = "Texture1D", implementation = "localValue = inputBuffer[(uint)0];" }
         };
 
