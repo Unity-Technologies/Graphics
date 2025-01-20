@@ -1,24 +1,26 @@
-# Add custom graphics settings
+# Add a settings group
 
-You can add custom graphics settings to the **Edit** > **Project Settings** > **Graphics** window, then use the values of the settings to customize your build.
+To add a custom graphics settings group to a Scriptable Render Pipeline, implement the `IRenderPipelineGraphicsSettings` interface.
 
-You can change the values of settings while you're editing your project. Unity makes the values static when it builds your project, so you can't change them at runtime.
+Follow these steps:
 
-## Add a setting
+1. Create a class that implements the `IRenderPipelineGraphicsSettings` interface, then add a `[Serializable]` attribute.
 
-To add a setting, follow these steps:
-
-1. Create a class that implements the `IRenderPipelineGraphicsSettings` interface, and add a `[Serializable]` attribute. This becomes a new settings group in the **Graphics** settings window.
 2. To set which render pipeline the setting applies to, add a `[SupportedOnRenderPipeline]` attribute and pass in a `RenderPipelineAsset` type.
-3. Add a property. This becomes a setting.
-4. Implement the `version` field and set it to `0`. Unity doesn't currently use the `version` field, but you must implement it. 
 
-For example, the following script adds a setting called **My Value** in a settings group called **My Settings**, in the graphics settings for the Universal Render Pipeline (URP).
+    **Note:** If you don't add a `[SupportedOnRenderPipeline]` attribute, the setting applies to any Scriptable Render Pipeline. However each Scriptable Render Pipeline stores its own value for the setting.
+
+3. Implement the `version` property. Unity doesn't currently use the `version` property, but you must implement it. 
+
+Unity adds the new settings group to the **Edit** > **Project Settings** > **Graphics** window.
+
+For example, the following script adds a settings group called **My Settings** in the **Graphics** settings window of the Universal Render Pipeline (URP).
 
 ```c#
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
-using System;
+using UnityEngine.Rendering.Universal;
 
 [Serializable]
 [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))] 
@@ -26,67 +28,30 @@ using System;
 // Create a new settings group by implementing the IRenderPipelineGraphicsSettings interface
 public class MySettings : IRenderPipelineGraphicsSettings
 {
-  // Implement the version field
-  public int version => 0;
+  // Add a private field for the version property
+  int internalVersion = 1;
 
-  // Create a new setting and set its default value to 100.
-  public int myValue = 100;
+  // Implement the public version property
+  public int version => internalVersion;
+
 }
 ```
 
-## Add a reference property
+![](Images/customsettings-settingsgroup.png)<br/>
+The **Edit** > **Project Settings** > **Graphics** window with the new custom settings group from the example script.
 
-[Reference properties](https://docs.unity3d.com/2023.3/Documentation/Manual/EditingValueProperties.html#references) take compatible project assets or GameObjects in the scene as inputs.
+## Change the display order of settings groups
 
-To add a reference property, follow these steps:
-
-1. Create a class that implements the `IRenderPipelineResources` interface. This becomes a new settings group in the Graphics Settings window.
-2. Add a property. This becomes a reference property.
-3. Implement the `version` field and set it to `0`. Unity doesn't currently use the `version` field, but you must implement it. 
-
-For example, the following script adds a reference property called **My Material** that references a material.
+To change where a settings group appears, use the `[UnityEngine.Categorization.CategoryInfo]` attribute. For example, the following code gives the settings group the name **My Settings** and moves the group to the top of the graphics settings window.
 
 ```c#
-using UnityEngine;
-using UnityEngine.Rendering;
-using System;
-
-[Serializable]
-[SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))] 
-
-// Create a new reference property group by implementing the IRenderPipelineResources interface
-public class MySettings: IRenderPipelineResources
+[UnityEngine.Categorization.CategoryInfo(Name = "My Settings", Order = 0)]
+public class MySettings : IRenderPipelineGraphicsSettings
 {
-  // Implement the version field
-  public int version => 0;
-
-  // Create a new reference property that references a material
-  [SerializeField] public Material myMaterial;
+  ...
 }
 ```
 
-To set a default asset, use a [`[ResourcePath]`](https://docs.unity3d.com/2023.3/Documentation/ScriptReference/Rendering.ResourcePathAttribute.html) attribute above the reference property. For example, in the example, add the following line above `public Material myMaterial`.
+## Additional resources
 
-```c#
-[ResourcePath('path-to-default-file')]
-```
-
-## Change the name and layout of a settings group
-
-To change the name of a settings group in the **Graphics** settings window, follow these steps:
-
-1. Add `using System.ComponentModel` to your script.
-2. Add a `[Category]` attribute to your script. For example, `[Category("My Category")]`.
-
-You can also use the [PropertyDrawer](https://docs.unity3d.com/ScriptReference/PropertyDrawer.html) API to further customize the layout of custom settings.
-
-## Set which render pipeline a setting applies to
-
-To set which render pipeline a setting applies to, use the `[SupportedOnRenderPipeline]` attribute and pass in a `RenderPipelineAsset` type.
-
-For example, if your project uses the Universal Rendering Pipeline (URP) and you want your setting to appear only in the **URP** tab of the **Graphics** settings window, use the following code:
-
-```c#
-[SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-```
-
+- [Add a setting](add-custom-graphics-setting.md)
