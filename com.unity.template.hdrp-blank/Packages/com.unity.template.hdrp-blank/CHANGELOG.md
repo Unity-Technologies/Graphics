@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- Upgrade input system version to 1.11.2
+- Upgrade input system version to 1.12.0
 - Set InputHandler to input system exclusive
 
 ## [17.0.5] - 2024-09-22
