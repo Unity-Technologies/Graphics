@@ -169,11 +169,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         abstract class VisualElementUpdatable : VisualElement
         {
-            protected Func<bool> m_Tester;
+            protected Func<Result> m_Tester;
             bool m_HaveFixer;
-            public bool currentStatus { get; private set; }
+            public Result currentStatus { get; private set; }
 
-            protected VisualElementUpdatable(Func<bool> tester, bool haveFixer)
+            protected VisualElementUpdatable(Func<Result> tester, bool haveFixer)
             {
                 m_Tester = tester;
                 m_HaveFixer = haveFixer;
@@ -181,7 +181,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public virtual void CheckUpdate()
             {
-                bool wellConfigured = m_Tester();
+                var wellConfigured = m_Tester();
                 if (wellConfigured != currentStatus)
                     currentStatus = wellConfigured;
 
@@ -190,27 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public void Init() => UpdateDisplay(currentStatus, m_HaveFixer);
 
-            public abstract void UpdateDisplay(bool statusOK, bool haveFixer);
-        }
-
-        class HiddableUpdatableContainer : VisualElementUpdatable
-        {
-            public HiddableUpdatableContainer(Func<bool> tester, bool haveFixer = false) : base(tester, haveFixer) { }
-
-            public override void CheckUpdate()
-            {
-                base.CheckUpdate();
-                if (currentStatus)
-                {
-                    foreach (VisualElementUpdatable updatable in Children().Where(e => e is VisualElementUpdatable))
-                        updatable.CheckUpdate();
-                }
-            }
-
-            new public void Init() => base.Init();
-
-            public override void UpdateDisplay(bool visible, bool haveFixer)
-                => style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+            public abstract void UpdateDisplay(Result status, bool haveFixer);
         }
 
         class ConfigInfoLine : VisualElementUpdatable
@@ -224,6 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
             readonly bool m_SkipErrorIcon;
             private Image m_StatusOk;
             private Image m_StatusKO;
+            private Image m_StatusPending;
             private Button m_Resolver;
             private HelpBox m_HelpBox;
             public ConfigInfoLine(Entry entry)
@@ -232,7 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 m_VisibleStatus = entry.configStyle.messageType == MessageType.Error || entry.forceDisplayCheck;
                 m_SkipErrorIcon = entry.skipErrorIcon;
-                var testLabel = new UnityEngine.UIElements.Label(entry.configStyle.label)
+                var testLabel = new Label(entry.configStyle.label)
                 {
                     name = "TestLabel",
                     style =
@@ -271,8 +252,19 @@ namespace UnityEditor.Rendering.HighDefinition
                         width = 16
                     }
                 };
+                m_StatusPending = new Image()
+                {
+                    image = CoreEditorStyles.iconPending,
+                    name = "StatusPending",
+                    style =
+                    {
+                        height = 16,
+                        width = 16
+                    }
+                };
                 testRow.Add(m_StatusOk);
                 testRow.Add(m_StatusKO);
+                testRow.Add(m_StatusPending);
 
                 Add(testRow);
                 var kind = entry.configStyle.messageType switch
@@ -293,7 +285,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 m_HelpBox = new HelpBox(error, kind);
-                m_HelpBox.Q<UnityEngine.UIElements.Label>().style.flexGrow = 1;
+                m_HelpBox.Q<Label>().style.flexGrow = 1;
 
                 m_Resolver = new Button(() =>
                 {
@@ -319,34 +311,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 Init();
             }
 
-            public override void UpdateDisplay(bool statusOK, bool haveFixer)
+            public override void UpdateDisplay(Result status, bool haveFixer)
             {
                 m_StatusOk.style.display = DisplayStyle.None;
                 m_StatusKO.style.display = DisplayStyle.None;
+                m_StatusPending.style.display = DisplayStyle.None;
 
-                if (!((hierarchy.parent as HiddableUpdatableContainer)?.currentStatus ?? true))
+                if (m_VisibleStatus)
                 {
-                    m_Resolver.style.display = DisplayStyle.None;
-                    m_HelpBox.style.display = DisplayStyle.None;
+                    m_StatusOk.style.display = status == Result.OK ? DisplayStyle.Flex : DisplayStyle.None;
+                    m_StatusPending.style.display = status == Result.Pending ? DisplayStyle.Flex : DisplayStyle.None;
+                    if (!m_SkipErrorIcon)
+                        m_StatusKO.style.display = status == Result.Failed ? DisplayStyle.Flex : DisplayStyle.None;
                 }
-                else
-                {
-                    if (m_VisibleStatus)
-                    {
-                        m_StatusOk.style.display = statusOK ? DisplayStyle.Flex : DisplayStyle.None;
-                        if (!m_SkipErrorIcon)
-                            m_StatusKO.style.display = !statusOK ? DisplayStyle.Flex : DisplayStyle.None;
-                    }
 
-                    m_Resolver.style.display = statusOK || !haveFixer ? DisplayStyle.None : DisplayStyle.Flex;
-                    m_HelpBox.style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
-                }
+                m_Resolver.style.display = status != Result.Failed || !haveFixer ? DisplayStyle.None : DisplayStyle.Flex;
+                m_HelpBox.style.display = status != Result.Failed ? DisplayStyle.None : DisplayStyle.Flex;
             }
         }
 
         class FixAllButton : VisualElementUpdatable
         {
-            public FixAllButton(string label, Func<bool> tester, Action resolver)
+            public FixAllButton(string label, Func<Result> tester, Action resolver)
                 : base(tester, resolver != null)
             {
                 Add(new Button(resolver)
@@ -360,18 +346,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 Init();
             }
 
-            public override void UpdateDisplay(bool statusOK, bool haveFixer)
-                => this.Q(name: "FixAll").style.display = statusOK ? DisplayStyle.None : DisplayStyle.Flex;
+            public override void UpdateDisplay(Result status, bool haveFixer)
+                => this.Q(name: "FixAll").style.display = status != Result.Failed ? DisplayStyle.None : DisplayStyle.Flex;
         }
 
         class ScopeBox : VisualElementUpdatable
         {
-            readonly UnityEngine.UIElements.Label label;
-            bool initTitleBackground;
+            readonly Label label;
 
             public ScopeBox(string title) : base(null, false)
             {
-                label = new UnityEngine.UIElements.Label(title);
+                label = new Label(title);
                 label.AddToClassList("ScopeBoxLabel");
                 AddToClassList("ScopeBox");
                 Add(label);
@@ -383,12 +368,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     updatable.CheckUpdate();
             }
 
-            public override void UpdateDisplay(bool statusOK, bool haveFixer)
+            public override void UpdateDisplay(Result status, bool haveFixer)
             {
                 bool hasChildren = false;
                 foreach (VisualElementUpdatable updatable in Children().Where(e => e is VisualElementUpdatable))
                 {
-                    updatable.UpdateDisplay(statusOK, haveFixer);
+                    updatable.UpdateDisplay(status, haveFixer);
                     hasChildren = true;
                 }
 
@@ -421,7 +406,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 m_FixAllButton = new FixAllButton(
                     Style.resolveAll,
-                    () => m_Wizard.IsAFixAvailableInScope(m_Mode),
+                    () => m_Wizard.IsAFixAvailableInScope(m_Mode) ? Result.OK : Result.Failed,
                     () => m_Wizard.FixAllEntryInScope(m_Mode));
 
                 bool userOnWindows = RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
@@ -469,11 +454,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_FixAllButton.CheckUpdate();
             }
 
-            public override void UpdateDisplay(bool statusOK, bool haveFixer)
+            public override void UpdateDisplay(Result status, bool haveFixer)
             {
-                m_GlobalScope.UpdateDisplay(statusOK, haveFixer);
-                m_CurrentScope.UpdateDisplay(statusOK, haveFixer);
-                m_FixAllButton.UpdateDisplay(statusOK, haveFixer);
+                m_GlobalScope.UpdateDisplay(status, haveFixer);
+                m_CurrentScope.UpdateDisplay(status, haveFixer);
+                m_FixAllButton.UpdateDisplay(status, haveFixer);
             }
         }
 
