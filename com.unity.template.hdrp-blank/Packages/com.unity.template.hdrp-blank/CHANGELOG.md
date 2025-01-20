@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- Upgrade input system version to 1.12.0
+- Upgrade input system version to 1.12.0 so that a warning message is shown on platforms which require additional platform specific input system packages to be installed.
 - Set InputHandler to input system exclusive
 
 ## [17.0.5] - 2024-09-22
