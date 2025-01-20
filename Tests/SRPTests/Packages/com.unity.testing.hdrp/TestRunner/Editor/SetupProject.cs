@@ -1,11 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEditor;
-using UnityEditor.Rendering;
 
 public static class SetupProject
 {
@@ -41,7 +37,6 @@ public static class SetupProject
             if (Options.TryGetValue(arg, out action))
                 action();
         }
-        UnityEditor.TestTools.Graphics.SetupProject.ApplySettings();
     }
 
     [MenuItem("Graphic Tests/Project Setup/RP: Deferred")]
