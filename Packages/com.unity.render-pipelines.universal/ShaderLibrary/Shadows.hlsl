@@ -363,7 +363,7 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
     #else
         half cascadeIndex = half(0.0);
     #endif
-    
+
     float4 shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 0.0);
 #endif
     return shadowCoord;
@@ -501,6 +501,12 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
     half realtimeShadow = AdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, samplingData);
 
     #ifdef CALCULATE_BAKED_SHADOWS
+        // This fading of the baked shadow using the light's shadow strength parameter needs
+        // to be guarded against the Real-Time Shadow keyword as _AdditionalShadowParams is
+        // only included in URP Shaders and updated when real time additional shadows are enabled.
+        #ifndef ADDITIONAL_LIGHT_CALCULATE_SHADOWS
+            shadowParams.x = half(1.0);
+        #endif
         half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels, shadowParams);
     #else
         half bakedShadow = half(1.0);
