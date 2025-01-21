@@ -56,9 +56,7 @@ public class UniversalGraphicsTests
     [UseGraphicsTestCases(universalPackagePath)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
-#if !PLATFORM_PS4  // PS4 has an issue in the image readback code that's affected by the watermark drawing https://jira.unity3d.com/browse/UUM-92944
         Watermark.showDeveloperWatermark = false;
-#endif
         Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
 #if UNITY_WEBGL || UNITY_ANDROID
         RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);

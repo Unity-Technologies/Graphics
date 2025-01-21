@@ -38,6 +38,8 @@ public class HDRP_GraphicTestRunner
         HDCamera[] hdCameras = null;
         Camera camera = null;
 
+        Watermark.showDeveloperWatermark = false;
+
 #if UNITY_EDITOR
         // Load the test settings
         var oldValueShaderUtil = UnityEditor.ShaderUtil.allowAsyncCompilation;
