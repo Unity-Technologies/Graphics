@@ -7,6 +7,7 @@ This page covers the process of how to use the RenderGraph API to write a render
 To begin, your render pipeline needs to maintain at least one instance of [RenderGraph](../api/UnityEngine.Experimental.Rendering.RenderGraphModule.RenderGraph.html). This is the main entry point for the API. You can use more than one instance of a render graph, but be aware that Unity does not share resources across `RenderGraph` instances so for optimal memory usage, only use one instance.
 
 ```c#
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 public class MyRenderPipeline : RenderPipeline
@@ -21,8 +22,11 @@ public class MyRenderPipeline : RenderPipeline
     void CleanupRenderGraph()
     {
         m_RenderGraph.Cleanup();
-          m_RenderGraph = null;
+        m_RenderGraph = null;
     }
+
+    ...
+
 }
 ```
 

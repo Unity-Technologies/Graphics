@@ -647,12 +647,6 @@ namespace UnityEditor.VFX.UI
             toggleBlackboard.value = blackboardVisible;
 
             m_ComponentBoard = new VFXComponentBoard(this);
-#if _ENABLE_RESTORE_BOARD_VISIBILITY
-            bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false);
-            if (componentBoardVisible)
-                ShowComponentBoard();
-            toggleComponentBoard.value = componentBoardVisible;
-#endif
 
             Add(m_Toolbar);
             Add(m_LockedElement);

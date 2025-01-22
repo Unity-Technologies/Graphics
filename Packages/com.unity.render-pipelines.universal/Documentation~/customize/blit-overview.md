@@ -1,25 +1,23 @@
-# URP blit best practices
+# Blit in URP
 
-A blit operation is a process of copying a source texture to a destination texture.
+To blit from one texture to another in a custom render pass in the Universal Render Pipeline (URP), use the [Blitter API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest?subfolder=/api/UnityEngine.Rendering.Blitter.html) from the Core Scriptable Render Pipeline (SRP).
 
-This page provides an overview of different ways to perform a blit operation in URP and best practices to follow when writing custom render passes.
+The shader you use with the `Blitter` API must be a hand-coded shader. [Shader Graph](https://docs.unity3d.com/2022.3/Documentation/Manual/shader-graph.html) shaders aren't compatible with the `Blitter` API.
 
-## The legacy CommandBuffer.Blit API
+**Note:** The recommended best practice is not to use the `CommandBuffer.Blit` or `Graphics.Blit` APIs with URP, or APIs that use them internally such as `RenderingUtils.Blit`. These APIs might break XR rendering, and aren't compatible with native render passes. You can still use `CommandBuffer.Blit` and `Graphics.Blit` with the Built-In Render Pipeline.
 
-Avoid using the [CommandBuffer.Blit](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Rendering.CommandBuffer.Blit.html) API in URP projects.
+For example, add the following:
 
-The [CommandBuffer.Blit](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Rendering.CommandBuffer.Blit.html) API is the legacy API. It implicitly runs extra operations related to changing states, binding textures, and setting render targets. Those operations happen under the hood in SRP projects and are not transparent to the user.
+```c#
+{
+    Blitter.BlitCameraTexture(commandBuffer, sourceTexture, destinationTexture, materialToUse, passNumber);
+}
+```
 
-The API has compatibility issues with the URP XR integration. Using `cmd.Blit` might implicitly enable or disable XR shader keywords, which breaks XR SPI rendering.
+For a full example, refer to [Example of a complete Scriptable Renderer Feature](../renderer-features/how-to-fullscreen-blit.md).
 
-The [CommandBuffer.Blit](https://docs.unity3d.com/2022.1/Documentation/ScriptReference/Rendering.CommandBuffer.Blit.html) API is not compatible with `NativeRenderPass` and `RenderGraph`.
+## Additional resources
 
-Similar considerations apply to any utilities or wrappers relying on `cmd.Blit` internally, `RenderingUtils.Blit` is one such example.
-
-## SRP Blitter API
-
-Use the [Blitter API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@13.1/api/UnityEngine.Rendering.Blitter.html) in URP projects. This API does not rely on legacy logic, and is compatible with XR, native Render Passes, and other SRP APIs.
-
-## Custom full-screen blit example
-
-The [How to perform a full screen blit in URP](../renderer-features/how-to-fullscreen-blit.md) example shows how to create a custom Renderer Feature that performs a full screen blit. The example works in XR and is compatible with SRP APIs.
+- The blit examples in the [URP Package Samples](../package-sample-urp-package-samples.md)
+- [Custom render pass workflow](../renderer-features/custom-rendering-pass-workflow-in-urp.md)
+- [Using textures](../working-with-textures.md)

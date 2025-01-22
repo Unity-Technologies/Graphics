@@ -177,6 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public CullingResults cullingResult;
             public CullingResults cameraCullingResult;
             public HDCamera hdCamera;
+            public ShaderVariablesGlobal shaderVariablesGlobal;
         }
 
         RenderTargets ReadRenderTargets(in RenderGraphBuilder builder, in RenderTargets targets)
@@ -218,6 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cullingResult = cullingResult;
                 passData.cameraCullingResult = cameraCullingResult;
                 passData.hdCamera = hdCamera;
+                passData.shaderVariablesGlobal = HDRenderPipeline.currentPipeline.GetShaderVariablesGlobalCB();
 
                 this.currentRenderTarget = ReadRenderTargets(builder, targets);
 
@@ -262,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
                             ctx.renderGraphPool.GetTempMaterialPropertyBlock(),
-                            customPass.injectionPoint
+                            customPass.injectionPoint, data.shaderVariablesGlobal
                         );
 
                         customPass.isExecuting = true;

@@ -95,7 +95,7 @@ The following steps show how to solve these issues and make a shader compatible 
 
     > **Note**: URP does not support all ShaderLab tags. For more information on which tags URP supports, refer to [URP ShaderLab Pass tags](./urp-shaderlab-pass-tags.md).
 
-4. Replace the `struct v2f` code block with the following `struct Varyings` code block. This changes the struct to use the URP naming convention of `Varyings` instead of `v2f`, and updates the shader to use the correct variables for URP.
+4. Replace the `struct v2f` code block with the following `struct Varyings` code block. This changes the struct to use the URP name of `Varyings` instead of `v2f`, and updates the shader to use the correct variables for URP.
 
     ```c++
     struct Varyings
@@ -106,7 +106,7 @@ The following steps show how to solve these issues and make a shader compatible 
     };
     ```
 
-5. Beneath the include statement and above the `Varyings` struct, define a new struct with the name `Attributes`. This is equivalent to the Built-In Render Pipeline's appdata structs but with the new URP naming conventions.
+5. Beneath the include statement and above the `Varyings` struct, define a new struct with the name `Attributes`. This is equivalent to the Built-In Render Pipeline's `appdata` struct.
 6. Add the variables shown below to the `Attributes` struct.
 
     ```c++
@@ -169,7 +169,7 @@ This custom unlit shader is now compatible with the SRP Batcher and ready for us
 
 Although the shader is now compatible with URP and the SRP Batcher, you can't use use the **Tiling** and **Offset** properties without further changes. To add this functionality to the custom unlit shader, use the following steps.
 
-1. Rename the property `_MainTex` to `_BaseMap` along with any references to this property. This brings the shader code closer to standard URP shader conventions.
+1. Rename the property `_MainTex` to `_BaseMap` along with any references to this property.
 2. Remove the `[NoScaleOffset]` ShaderLab attribute from the `_BaseMap` property. You can now see **Tiling** and **Offset** properties in the shader's Inspector window.
 3. Add the `[MainTexture]` ShaderLab attribute to the `_BaseMap` property and the `[MainColor]` attribute to the `_Color` property. This tells the Editor which property to return when you request the main texture or main color from another part of your project or in the Editor. The `Properties` section of your shader should now look as follows:
 

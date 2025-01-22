@@ -591,6 +591,11 @@ namespace UnityEngine.Rendering.Universal
         /// The default value of `additionalLightsShadowResolutionTierHigh`.
         /// </summary>
         public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
+        
+        /// <summary>
+        /// The list of renderers used by this pipeline asset.
+        /// </summary>
+        internal ReadOnlySpan<ScriptableRenderer> renderers => m_Renderers;
 
 #if UNITY_EDITOR
         [NonSerialized]

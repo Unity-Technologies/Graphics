@@ -1,13 +1,20 @@
+---
+uid: urp-custom-post-processing
+---
+
 # Custom post-processing
 
-The Universal Render Pipeline (URP) provides a variety of pre-built [post-processing effects](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@15.0/manual/integration-with-post-processing.html) that you can adjust to create a particular visual effect or style. URP also lets you create custom post-processing effects using the [Full Screen Pass Renderer Feature](../renderer-features/renderer-feature-full-screen-pass.md). For example, you can implement a grayscale effect to indicate when a player has run out of health.
+The Universal Render Pipeline (URP) provides a variety of pre-built [post-processing effects](../integration-with-post-processing) that you can adjust to create a particular visual effect or style. URP also lets you create custom post-processing effects.
 
-![Scene with no post-processing effects.](../Images/post-proc/custom-effect/no-custom-effect.png)
-<br/>*Scene with no post-processing effects.*
+The following pages describe different approaches to creating custom post-processing effects.
 
-![Scene with grayscale custom post-processing effect.](../Images/post-proc/custom-effect/grayscale-custom-effect.png)
-<br/>*Scene with grayscale custom post-processing effect.*
+| Page | Description |
+|-|-|
+| [Create a low-code custom post-processing effect](post-processing-custom-effect-low-code.md) | How to use a Full Screen Render Pass to create a low-code custom post-processing effect. |
+| [Full Screen Pass Renderer Feature reference](../renderer-features/renderer-feature-full-screen-pass.md) | Understand the Full Screen Pass Renderer Feature. |
+| [Creating a full-screen shader in Shader Graph in URP](../urp-shaders/fullscreen-master-stack-urp.md) | Resources for working with the Fullscreen Master Stack to create full screen shaders in Shader Graph. |
 
-The following page describes how to create a custom post-processing effect using the [Full Screen Pass Renderer Feature](../renderer-features/renderer-feature-full-screen-pass.md).
+## Additional resources
 
-* [How to create a custom post-processing effect](post-processing-custom-effect-low-code.md).
+- [Example of a complete Scriptable Renderer Feature](../renderer-features/how-to-fullscreen-blit.md)
+

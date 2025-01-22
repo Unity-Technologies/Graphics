@@ -727,7 +727,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera overrideHDCamera;
             float originalAspect;
 
-            static Stack<HDCamera> overrideCameraStack = new Stack<HDCamera>();
+            static Stack<HDCamera> overrideCameraStack = new();
+            static Stack<ShaderVariablesGlobal> overrideGlobalVariablesStack = new();
 
             /// <summary>
             /// Overrides the current camera, changing all the matrices and view parameters for the new one.
@@ -817,12 +818,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, XRSystem.emptyPass, allocateHistoryBuffers: false);
                 // Reset the reference size as it could have been changed by the override camera
                 ctx.hdCamera.SetReferenceSize();
-                var globalCB = hdrp.GetShaderVariablesGlobalCB();
+                var globalCB = ctx.currentGlobalState;
                 overrideHDCamera.UpdateShaderVariablesGlobalCB(ref globalCB);
 
                 ConstantBuffer.PushGlobal(ctx.cmd, globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                 overrideCameraStack.Push(overrideHDCamera);
+                overrideGlobalVariablesStack.Push(globalCB);
             }
 
             static bool IsContextValid(CustomPassContext ctx, Camera overrideCamera)
@@ -848,22 +850,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 overrideCamera.aspect = originalAspect;
 
                 // Set back the settings of the previous camera
-                var globalCB = HDRenderPipeline.currentPipeline.GetShaderVariablesGlobalCB();
                 overrideCameraStack.Pop();
                 if (overrideCameraStack.Count > 0)
                 {
                     var previousHDCamera = overrideCameraStack.Peek();
                     previousHDCamera.SetReferenceSize();
-                    previousHDCamera.UpdateShaderVariablesGlobalCB(ref globalCB);
                 }
                 else // If we don't have any nested override camera, then we go back to the original one.
                 {
                     // Reset the reference size as it could have been changed by the override camera
                     ctx.hdCamera.SetReferenceSize();
-                    ctx.hdCamera.UpdateShaderVariablesGlobalCB(ref globalCB);
                 }
 
-                ConstantBuffer.PushGlobal(ctx.cmd, globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                overrideGlobalVariablesStack.Pop();
+                if (overrideGlobalVariablesStack.Count > 0)
+                    ConstantBuffer.PushGlobal(ctx.cmd, overrideGlobalVariablesStack.Peek(), HDShaderIDs._ShaderVariablesGlobal);
+                else
+                    ConstantBuffer.PushGlobal(ctx.cmd, ctx.currentGlobalState, HDShaderIDs._ShaderVariablesGlobal);
             }
         }
 

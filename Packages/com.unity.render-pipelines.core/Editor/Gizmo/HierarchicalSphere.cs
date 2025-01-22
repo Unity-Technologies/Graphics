@@ -118,6 +118,9 @@ namespace UnityEditor.Rendering
         /// <param name="filled">If true, also draw the surface of the hull's sphere</param>
         public void DrawHull(bool filled)
         {
+            if (Event.current.type != EventType.Repaint)
+                return;
+
             Color wireframeColor = m_HandleColor;
             wireframeColor.a = 0.8f;
             using (new Handles.DrawingScope(m_WireframeColor, Matrix4x4.TRS((Vector3)Handles.matrix.GetColumn(3) + center, Quaternion.identity, Vector3.one)))

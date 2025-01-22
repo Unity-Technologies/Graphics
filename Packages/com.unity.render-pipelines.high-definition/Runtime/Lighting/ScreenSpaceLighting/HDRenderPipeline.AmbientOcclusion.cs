@@ -48,7 +48,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                parameters.runningRes = new Vector2(Mathf.RoundToInt(camera.actualWidth * 0.5f), Mathf.RoundToInt(camera.actualHeight * 0.5f));
+                // Ceil is needed because we upsample the AO too, round would loose a pixel is the resolution is odd
+                parameters.runningRes = new Vector2(Mathf.CeilToInt(camera.actualWidth * 0.5f), Mathf.CeilToInt(camera.actualHeight * 0.5f));
                 cb._AOBufferSize = new Vector4(parameters.runningRes.x, parameters.runningRes.y, 1.0f / parameters.runningRes.x, 1.0f / parameters.runningRes.y);
             }
 

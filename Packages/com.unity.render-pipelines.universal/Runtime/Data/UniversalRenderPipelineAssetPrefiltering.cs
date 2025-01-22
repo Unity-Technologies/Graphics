@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal
             SelectVertexAndOff,         // Selects Vertex & OFF variant
             SelectPixel,                // Selects Pixel  & Removes OFF variant
             SelectPixelAndOff,          // Selects Pixel  & OFF variant
+            SelectAll                   // Selects Vertex, Pixel & OFF variant
         }
 
         // Platform specific filtering overrides
@@ -77,6 +78,7 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectVertexAndOff,keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsVertex})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectPixel,       keywordNames: ShaderKeywordStrings.AdditionalLightsPixel)]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectPixelAndOff, keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsPixel})]
+        [ShaderKeywordFilter.SelectIf(PrefilteringModeAdditionalLights.SelectAll,         keywordNames: new string[] {"", ShaderKeywordStrings.AdditionalLightsVertex, ShaderKeywordStrings.AdditionalLightsPixel})]
         [SerializeField] private PrefilteringModeAdditionalLights m_PrefilteringModeAdditionalLight = PrefilteringModeAdditionalLights.SelectPixelAndOff;
 
         // Additional Lights Shadows
@@ -216,6 +218,19 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSSAOSampleCountLow;
             public bool stripSSAOSampleCountMedium;
             public bool stripSSAOSampleCountHigh;
+
+            public static ShaderPrefilteringData GetDefault()
+            {
+                return new ShaderPrefilteringData()
+                {
+                    forwardPlusPrefilteringMode = PrefilteringMode.Select,
+                    deferredPrefilteringMode = PrefilteringMode.Select,
+                    mainLightShadowsPrefilteringMode = PrefilteringModeMainLightShadows.SelectAll,
+                    additionalLightsPrefilteringMode = PrefilteringModeAdditionalLights.SelectAll,
+                    additionalLightsShadowsPrefilteringMode = PrefilteringMode.Select,
+                    screenSpaceOcclusionPrefilteringMode = PrefilteringMode.Select,
+                };
+            }
         }
 
         /// <summary>

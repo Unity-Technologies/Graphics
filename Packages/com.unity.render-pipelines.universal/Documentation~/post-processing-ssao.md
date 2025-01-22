@@ -141,7 +141,7 @@ The reduction in resolution of the Ambient Occlusion Pass by a factor of two red
 
 ### After Opaque
 
-When you enable **After Opaque**, Unity calculates and applies the SSAO effect after the opaque render pass. This can increase performance when used with **Depth** as the **Source** for normal vector values as Unity does not perform the skips depth prepass to calculate SSAO and instead uses the existing depth values.
+When you enable **After Opaque**, Unity calculates and applies the SSAO effect after the opaque render pass. This can increase performance when used with **Depth** as the **Source** for normal vector values as Unity does not perform the depth prepass to calculate SSAO and instead uses the existing depth values. However, this can cause over-darkening of the areas that receive baked occlusion and real-time occlusion.
 
 **After Opaque** can also increase performance on mobile devices that use tile-based rendering.
 
