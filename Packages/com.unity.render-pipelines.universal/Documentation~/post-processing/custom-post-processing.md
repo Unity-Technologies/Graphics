@@ -13,4 +13,8 @@ The following pages describe different approaches to creating custom post-proces
 | [Create a low-code custom post-processing effect](post-processing-custom-effect-low-code.md) | How to use a Full Screen Render Pass to create a low-code custom post-processing effect. |
 | [Full Screen Pass Renderer Feature reference](../renderer-features/renderer-feature-full-screen-pass.md) | Understand the Full Screen Pass Renderer Feature. |
 | [Creating a full-screen shader in Shader Graph in URP](../urp-shaders/fullscreen-master-stack-urp.md) | Resources for working with the Fullscreen Master Stack to create full screen shaders in Shader Graph. |
-| [Example of a complete Scriptable Renderer Feature](../renderer-features/create-custom-renderer-feature.md) | You can use a custom Renderer Feature with a Volume component support for implementing custom post-processing effects. |
+
+## Additional resources
+
+- [Example of a complete Scriptable Renderer Feature](../renderer-features/how-to-fullscreen-blit.md)
+

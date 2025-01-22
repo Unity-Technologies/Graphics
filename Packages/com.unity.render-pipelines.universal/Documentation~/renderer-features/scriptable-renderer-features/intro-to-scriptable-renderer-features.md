@@ -26,4 +26,4 @@ Alternately, the injection of individual Scriptable Render Passes offers the abi
 ## Additional resources
 
 * [Introduction to Scriptable Render Passes](../intro-to-scriptable-render-passes.md)
-* [How to create a Custom Renderer Feature](../create-custom-renderer-feature.md)
+* [Example of a complete Scriptable Renderer Feature](../how-to-fullscreen-blit.md)

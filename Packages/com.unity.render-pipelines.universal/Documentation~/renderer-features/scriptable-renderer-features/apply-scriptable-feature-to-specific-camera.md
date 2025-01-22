@@ -13,7 +13,7 @@ This guide is split into the following sections:
 
 ## Prerequisites
 
-This guide assumes that you already have a complete Scriptable Renderer Feature to work with. If you do not, refer to [How to Create a Custom Renderer Feature](../create-custom-renderer-feature.md).
+This guide assumes that you already have a complete Scriptable Renderer Feature to work with. If you do not, refer to [Example of a complete Scriptable Renderer Feature](../how-to-fullscreen-blit.md).
 
 ## <a name="scriptable-renderer-feature-game-camera"></a>Apply Scriptable Renderer Feature to Game Cameras
 
@@ -43,4 +43,4 @@ This Scriptable Renderer Feature now only applies to Cameras with the Game camer
 
 * [Introduction to Scriptable Renderer Features](./intro-to-scriptable-renderer-features.md)
 * [Introduction to Scriptable Render Passes](../intro-to-scriptable-render-passes.md)
-* [How to create a Custom Renderer Feature](../create-custom-renderer-feature.md)
+* [Example of a complete Scriptable Renderer Feature](../how-to-fullscreen-blit.md)

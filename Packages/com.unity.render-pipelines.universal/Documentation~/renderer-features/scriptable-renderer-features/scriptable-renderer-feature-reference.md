@@ -32,4 +32,4 @@ You can use the following methods within a Scriptable Renderer Pass to handle it
 
 * [Introduction to Scriptable Renderer Features](./intro-to-scriptable-renderer-features.md)
 * [Introduction to Scriptable Render Passes](intro-to-scriptable-renderer-features.md)
-* [How to create a Custom Renderer Feature](../create-custom-renderer-feature.md)
+* [Example of a complete Scriptable Renderer Feature](../how-to-fullscreen-blit.md)

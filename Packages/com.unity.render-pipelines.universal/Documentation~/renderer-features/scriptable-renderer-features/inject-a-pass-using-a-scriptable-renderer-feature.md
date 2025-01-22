@@ -115,49 +115,6 @@ This section uses the example `RedTintRenderPass` Scriptable Render Pass from th
     }
     ```
 
-## <a name="code-renderer-feature"></a>Custom Renderer Feature code
+You can now add the Scriptable Renderer Feature to the active URP asset.
 
-Below is the complete code for the custom Renderer Feature script.
-
-```C#
-using System;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-
-public class MyRendererFeature : ScriptableRendererFeature
-{
-    [SerializeField] private Shader shader;
-    private Material material;
-    private RedTintRenderPass redTintRenderPass;
-
-    public override void Create()
-    {
-        if (shader == null)
-        {
-            Debug.LogError("Ensure that you've set a shader in the Scriptable Renderer Feature.");
-            return;
-        }
-        material = CoreUtils.CreateEngineMaterial(shader);
-        redTintRenderPass = new RedTintRenderPass(material);
-        
-        redTintRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
-    }
-
-    public override void AddRenderPasses(ScriptableRenderer renderer,
-        ref RenderingData renderingData)
-    {
-        if (redTintRenderPass != null &&
-            renderingData.cameraData.cameraType == CameraType.Game)
-        {
-            renderer.EnqueuePass(redTintRenderPass);
-        }
-    }
-    protected override void Dispose(bool disposing)
-    {
-        CoreUtils.Destroy(material);
-    }
-}
-
-```
+For a full example, refer to [Example of a complete Scriptable Renderer Feature](../how-to-fullscreen-blit.md).
