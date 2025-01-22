@@ -323,12 +323,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         }
         else if (shadowSplitIndex == int(_CascadeShadowCount) - 1)
         {
-            // float fade = lightLoopContext.shadowContext.fade;
-            float3 camToPixel = posInput.positionWS - GetPrimaryCameraPosition();
-            float distanceCamToPixel2 = dot(camToPixel, camToPixel);
-
-            HDDirectionalShadowData dsd = lightLoopContext.shadowContext.directionalShadowData;
-            float fade = saturate(distanceCamToPixel2 * dsd.fadeScale + dsd.fadeBias);
+            float fade = lightLoopContext.shadowContext.fade;
             // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
             // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
             // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
@@ -336,7 +331,20 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         }
 
         // See comment in EvaluateBSDF_Punctual
-        shadow = light.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
+        if (light.nonLightMappedOnly)
+        {
+            shadow = min(shadowMask, shadow);
+        }
+        else
+        {
+            // Use shadowmask when shadow value ​​cannot be retrieved due to shadow caster culling.
+            float3 camToPixel = posInput.positionWS - GetPrimaryCameraPosition();
+            float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+
+            HDDirectionalShadowData dsd = lightLoopContext.shadowContext.directionalShadowData;
+            float alpha = saturate(distanceCamToPixel2 * dsd.fadeScale + dsd.fadeBias);
+            shadow = min(shadow, lerp(1.0, shadowMask, alpha * alpha));
+        }
     #endif
 
         shadow = lerp(shadowMask.SHADOW_TYPE_REPLICATE, shadow, light.shadowDimmer);
