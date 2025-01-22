@@ -101,6 +101,9 @@ namespace UnityEngine.Rendering
 
             CleanupShadingAtlas();
 
+            m_ShaderVariablesBuffer?.Release();
+            m_ShaderVariablesBuffer = null;
+
             m_IsInitialized = false;
         }
 
