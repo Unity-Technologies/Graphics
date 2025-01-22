@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [17.0.6] - 2024-10-09
 
-## Changed
+### Changed
 
 - Fixed default managed stripping level
 
