@@ -2424,5 +2424,19 @@ namespace UnityEngine.Rendering.Universal
             // Save ScreenMSAASamples value at beginning of the frame, useful for iOS/macOS
             startFrameScreenMSAASamples = Screen.msaaSamples;
         }
+
+#if UNITY_EDITOR
+        protected override bool IsPreviewSupported(Camera camera, out string reason)
+        {
+            if (camera != null 
+                && camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalData) 
+                && additionalData.renderType == CameraRenderType.Overlay)
+            {
+                reason = "Overlay camera cannot be previewed directly.\nYou need to use a base camera instead.";
+                return false;
+            }
+            return base.IsPreviewSupported(camera, out reason);
+        }
+#endif
     }
 }
