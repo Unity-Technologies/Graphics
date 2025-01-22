@@ -425,16 +425,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void NodeCreationRequest(NodeCreationContext c)
         {
-            if (EditorWindow.focusedWindow == m_EditorWindow) //only display the search window when current graph view is focused
+            if (EditorWindow.focusedWindow != m_EditorWindow || //only display the search window when current graph view is focused
+                m_SearchWindowProvider is not SearcherProvider searcherProvider)
             {
-                m_SearchWindowProvider.connectedPort = null;
-                m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
-                var displayPosition = graphView.cachedMousePosition;
-
-                SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                    item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, displayPosition),
-                    displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
+                return;
             }
+
+            m_SearchWindowProvider.connectedPort = null;
+            m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
+            var displayPosition = graphView.cachedMousePosition;
+
+            SearcherWindow.Show(m_EditorWindow,
+                searcherProvider.LoadSearchWindow(),
+                item => item != null && searcherProvider.OnSearcherSelectEntry(item, displayPosition),
+                displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
         }
 
         // Master Preview, Inspector and Blackboard all need to keep their layouts when hidden in order to restore user preferences.

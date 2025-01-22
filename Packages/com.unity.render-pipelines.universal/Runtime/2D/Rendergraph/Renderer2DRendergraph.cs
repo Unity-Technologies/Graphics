@@ -225,77 +225,16 @@ namespace UnityEngine.Rendering.Universal
             var width = (int)Mathf.Max(1, cameraData.cameraTargetDescriptor.width * renderTextureScale);
             var height = (int)Mathf.Max(1, cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
-            // Intermediate depth desc (size of renderTextureScale)
-            {
-                var depthDescriptor = new RenderTextureDescriptor(width, height);
-                depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
-                depthDescriptor.width = width;
-                depthDescriptor.height = height;
+            CreateCameraNormalsTextures(renderGraph, cameraTargetDescriptor);
 
-                universal2DResourceData.intermediateDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDescriptor, "DepthTexture", true);
-            }
+            CreateLightTextures(renderGraph, width, height);
 
-            // Normal and Light desc
-            {
-                var desc = new RenderTextureDescriptor(width, height);
-                desc.graphicsFormat = RendererLighting.GetRenderTextureFormat();
-                desc.autoGenerateMips = false;
-                desc.depthStencilFormat = GraphicsFormat.None;
+            CreateShadowTextures(renderGraph, width, height);
 
-                for (int i = 0; i < universal2DResourceData.normalsTexture.Length; ++i)
-                    universal2DResourceData.normalsTexture[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true, RendererLighting.k_NormalClearColor);
-
-                for (int i = 0; i < universal2DResourceData.lightTextures.Length; ++i)
-                {
-                    for (var j = 0; j < m_LayerBatches[i].activeBlendStylesIndices.Length; ++j)
-                    {
-                        var index = m_LayerBatches[i].activeBlendStylesIndices[j];
-                        if (!Light2DManager.GetGlobalColor(m_LayerBatches[i].startLayerID, index, out var clearColor))
-                            clearColor = Color.black;
-
-                        universal2DResourceData.lightTextures[i][j] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[index], true, clearColor, FilterMode.Bilinear);
-                    }
-                }
-            }
-
-            // Shadow desc
-            {
-                var desc = new RenderTextureDescriptor(width, height);
-                desc.graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                desc.autoGenerateMips = false;
-                desc.depthStencilFormat = GraphicsFormat.None;
-
-                for (int i = 0; i < universal2DResourceData.shadowTextures.Length; ++i)
-                {
-                    for (var j = 0; j < m_LayerBatches[i].shadowIndices.Count; ++j)
-                    {
-                        universal2DResourceData.shadowTextures[i][j] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowTex", false, FilterMode.Bilinear);
-                    }
-                }
-            }
-
-            // Shadow depth desc
-            {
-                var desc = new RenderTextureDescriptor(width, height);
-                desc.graphicsFormat = GraphicsFormat.None;
-                desc.autoGenerateMips = false;
-                desc.depthStencilFormat = k_DepthStencilFormat; 
-
-                universal2DResourceData.shadowDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ShadowDepth", false, FilterMode.Bilinear);
-            }
-
-            // Camera Sorting Layer desc
             if (m_Renderer2DData.useCameraSortingLayerTexture)
-            {
-                var descriptor = cameraTargetDescriptor;
-                descriptor.msaaSamples = 1;
-                CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref descriptor, out var filterMode);
-                RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraSortingLayerHandle, descriptor, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
-                universal2DResourceData.cameraSortingLayerTexture = renderGraph.ImportTexture(m_CameraSortingLayerHandle);
-            }
+                CreateCameraSortingLayerTexture(renderGraph, cameraTargetDescriptor);
 
-            // now create the attachments
+            // Create the attachments
             if (cameraData.renderType == CameraRenderType.Base) // require intermediate textures
             {
                 RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData);
@@ -339,7 +278,7 @@ namespace UnityEngine.Rendering.Universal
                         depthDescriptor.bindMS = !resolveDepth;
 
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
-                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
+                    depthDescriptor.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
 
                     RenderingUtils.ReAllocateHandleIfNeeded(ref m_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                     commonResourceData.activeDepthID = ActiveID.Camera;
@@ -404,6 +343,75 @@ namespace UnityEngine.Rendering.Universal
 
             if (RequiresDepthCopyPass(cameraData))
                 CreateCameraDepthCopyTexture(renderGraph, cameraTargetDescriptor);
+        }
+
+        void CreateCameraNormalsTextures(RenderGraph renderGraph, RenderTextureDescriptor descriptor)
+        {
+            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+
+            var desc = new RenderTextureDescriptor(descriptor.width, descriptor.height);
+            desc.graphicsFormat = RendererLighting.GetRenderTextureFormat();
+            desc.autoGenerateMips = false;
+            desc.msaaSamples = descriptor.msaaSamples;
+
+            for (int i = 0; i < resourceData.normalsTexture.Length; ++i)
+                resourceData.normalsTexture[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true, RendererLighting.k_NormalClearColor);
+
+        }
+
+        void CreateLightTextures(RenderGraph renderGraph, int width, int height)
+        {
+            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+
+            var desc = new RenderTextureDescriptor(width, height);
+            desc.graphicsFormat = RendererLighting.GetRenderTextureFormat();
+            desc.autoGenerateMips = false;
+
+            for (int i = 0; i < resourceData.lightTextures.Length; ++i)
+            {
+                for (var j = 0; j < m_LayerBatches[i].activeBlendStylesIndices.Length; ++j)
+                {
+                    var index = m_LayerBatches[i].activeBlendStylesIndices[j];
+                    if (!Light2DManager.GetGlobalColor(m_LayerBatches[i].startLayerID, index, out var clearColor))
+                        clearColor = Color.black;
+
+                    resourceData.lightTextures[i][j] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, RendererLighting.k_ShapeLightTextureIDs[index], true, clearColor, FilterMode.Bilinear);
+                }
+            }
+        }
+
+        void CreateShadowTextures(RenderGraph renderGraph, int width, int height)
+        {
+            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+
+            var shadowDesc = new RenderTextureDescriptor(width, height);
+            shadowDesc.graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+            shadowDesc.autoGenerateMips = false;
+
+            for (int i = 0; i < resourceData.shadowTextures.Length; ++i)
+            {
+                for (var j = 0; j < m_LayerBatches[i].shadowIndices.Count; ++j)
+                {
+                    resourceData.shadowTextures[i][j] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, shadowDesc, "_ShadowTex", false, FilterMode.Bilinear);
+                }
+            }
+
+            var shadowDepthDesc = new RenderTextureDescriptor(width, height);
+            shadowDepthDesc.graphicsFormat = GraphicsFormat.None;
+            shadowDepthDesc.autoGenerateMips = false;
+            shadowDepthDesc.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
+
+            resourceData.shadowDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, shadowDepthDesc, "_ShadowDepth", false, FilterMode.Bilinear);
+        }
+
+        void CreateCameraSortingLayerTexture(RenderGraph renderGraph, RenderTextureDescriptor descriptor)
+        {
+            Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
+
+            descriptor.msaaSamples = 1;
+            CopyCameraSortingLayerPass.ConfigureDescriptor(m_Renderer2DData.cameraSortingLayerDownsamplingMethod, ref descriptor, out var filterMode);
+            RenderingUtils.ReAllocateHandleIfNeeded(ref m_CameraSortingLayerHandle, descriptor, filterMode, TextureWrapMode.Clamp, name: CopyCameraSortingLayerPass.k_CameraSortingLayerTexture);
+            resourceData.cameraSortingLayerTexture = renderGraph.ImportTexture(m_CameraSortingLayerHandle);
         }
 
         bool RequiresDepthCopyPass(UniversalCameraData cameraData)
@@ -584,7 +592,7 @@ namespace UnityEngine.Rendering.Universal
             if (shouldRenderUI && outputToHDR)
             {
                 TextureHandle overlayUI;
-                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, k_DepthStencilFormat, out overlayUI);
+                m_DrawOffscreenUIPass.RenderOffscreen(renderGraph, frameData, CoreUtils.GetDefaultDepthStencilFormat(), out overlayUI);
                 commonResourceData.overlayUITexture = overlayUI;
             }
         }
@@ -612,7 +620,7 @@ namespace UnityEngine.Rendering.Universal
                 commonResourceData.debugScreenColor = UniversalRenderer.CreateRenderGraphTexture(renderGraph, colorDesc, "_DebugScreenColor", false);
 
                 RenderTextureDescriptor depthDesc = cameraData.cameraTargetDescriptor;
-                DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, k_DepthStencilFormat, cameraData.pixelWidth, cameraData.pixelHeight);
+                DebugHandler.ConfigureDepthDescriptorForDebugScreen(ref depthDesc, CoreUtils.GetDefaultDepthStencilFormat(), cameraData.pixelWidth, cameraData.pixelHeight);
                 commonResourceData.debugScreenDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, depthDesc, "_DebugScreenDepth", false);
             }
 

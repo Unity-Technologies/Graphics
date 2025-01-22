@@ -6,6 +6,7 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.Testing.XR.Runtime",
         "UnityEngine.TestTools.Graphics",
+        "UnityEditor.TestTools.Graphics",
         "Unity.RenderPipelines.GPUDriven.Runtime"
     ],
     "optionalUnityReferences": [

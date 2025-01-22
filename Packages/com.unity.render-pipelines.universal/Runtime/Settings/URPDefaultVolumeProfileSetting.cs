@@ -7,8 +7,34 @@ using UnityEditor.Rendering;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    /// Settings class that stores the default volume profile for Volume Framework.
+    /// A Graphics Settings container for the default <see cref="VolumeProfile"/> used by <see cref="UniversalRenderPipeline"/>.
     /// </summary>
+    /// <remarks>
+    /// To change those settings, go to Editor > Project Settings in the Graphics tab (URP).
+    /// Changing this through the API is only allowed in the Editor. In the Player, this raises an error.
+    /// </remarks>
+    /// <seealso cref="IRenderPipelineGraphicsSettings"/>
+    /// <example>
+    /// <para> This example demonstrates how to get the default volume profile used by URP. </para>
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// using UnityEngine.Rendering.Universal;
+    /// 
+    /// public static class URPDefaultVolumeProfileHelper
+    /// {
+    ///     public static VolumeProfile volumeProfile
+    ///     {
+    ///         get
+    ///         {
+    ///             var gs = GraphicsSettings.GetRenderPipelineSettings&lt;URPDefaultVolumeProfileSettings&gt;();
+    ///             if (gs == null) //not in URP
+    ///                 return null;
+    ///             return gs.volumeProfile;
+    ///         }
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     [Serializable]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [Categorization.CategoryInfo(Name = "Volume", Order = 0)]
@@ -23,7 +49,19 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField][HideInInspector]
         Version m_Version;
 
-        /// <summary>Current version.</summary>
+        /// <summary>
+        /// Gets the current version of the volume profile settings.
+        /// </summary>
+        /// <remarks>
+        /// The version number tracks the changes made to the settings over time. It can be used to handle migration
+        /// of older settings in the future when updates are made to the system.
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// // Get the current version of the volume profile settings
+        /// int currentVersion = GraphicsSettings.GetRenderPipelineSettings&lt;URPDefaultVolumeProfileSettings&gt;().version;
+        /// </code>
+        /// </example>
         public int version => (int)m_Version;
         #endregion
 
@@ -31,15 +69,27 @@ namespace UnityEngine.Rendering.Universal
         VolumeProfile m_VolumeProfile;
 
         /// <summary>
-        /// The default volume profile asset.
+        /// Gets or sets the default volume profile asset.
         /// </summary>
+        /// <remarks>
+        /// This property allows you to configure the default volume profile used by the Volume Framework.
+        /// Setting this property will automatically update the volume profile used by the system.
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// // Set the default volume profile to a new profile
+        /// var urpDefaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings&lt;URPDefaultVolumeProfileSettings&gt;();
+        /// urpDefaultVolumeProfileSettings.volumeProfile = newVolumeProfile;
+        /// </code>
+        /// </example>
         public VolumeProfile volumeProfile
         {
             get => m_VolumeProfile;
             set => this.SetValueAndNotify(ref m_VolumeProfile, value);
         }
     }
-    
+
+
 #if UNITY_EDITOR
     //Overriding "Reset" in menu that is not called at URPDefaultVolumeProfileSettings creation such Reset()
     struct ResetImplementation : IRenderPipelineGraphicsSettingsContextMenu<URPDefaultVolumeProfileSettings>

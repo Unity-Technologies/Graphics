@@ -432,11 +432,13 @@ namespace UnityEditor.VFX.Operator
                 }
 
                 cachedHLSLCode = strippedHLSL;
-                // Since the "values" is not serialized in MultipleValuesChoice the drop down is empty when the node is restored after undoing deletion.
-                // It's not serialized because it depends on the HLSL code and the HLSL can be changed independently
-                // So the Invalidate is here to update the GUI when the m_AvailableFunctions setting is changed
-                Invalidate(InvalidationCause.kSettingChanged);
             }
+        }
+
+        public override void OnUnknownChange()
+        {
+            ParseCodeIfNeeded();
+            base.OnUnknownChange();
         }
 
         private VFXPropertyWithValue CreateProperty(HLSLFunctionParameter parameter)
@@ -470,7 +472,7 @@ namespace UnityEditor.VFX.Operator
                 if (!hasShaderFile)
                     hlslCode.Append(m_Function.GetTransformedHLSL(returnedParameterName));
 
-                wrapperFunctionName = $"{functionName}_Wrapper";
+                wrapperFunctionName = hasShaderFile ? $"{m_Function.name}_{returnedParameterName}_Wrapper" : $"{functionName}_Wrapper";
 
                 hlslCode.Append($"{returnType} {wrapperFunctionName}(");
                 var isFirst = true;

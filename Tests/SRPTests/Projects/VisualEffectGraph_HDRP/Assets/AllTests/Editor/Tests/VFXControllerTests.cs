@@ -951,6 +951,59 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void UndoRedo_CustomHLSL_Changing_Function_List()
+        {
+            {
+                //Arrange
+                var customHLSLDesc = VFXLibrary.GetOperators().SingleOrDefault(o => o.variant.name.Contains("Custom HLSL"));
+                Assert.IsNotNull(customHLSLDesc);
+                var customHLSL = m_ViewController.AddVFXOperator(new Vector2(0, 0), customHLSLDesc.variant);
+                var twoFunctionCode = "float Fn_A(in float value){{ return value; }}\n";
+                twoFunctionCode += "float Fn_B(in float value){{ return value; }}\n";
+                var threeFunctionCode = twoFunctionCode;
+                threeFunctionCode += "float Fn_C(in float value){{ return value; }}\n";
+
+                customHLSL.SetSettingValue("m_HLSLCode", threeFunctionCode);
+                m_ViewController.ApplyChanges();
+
+                //Forward Execution
+                Undo.IncrementCurrentGroup();
+                var availableFunction = (MultipleValuesChoice<string>)customHLSL.GetSettingValue("m_AvailableFunctions");
+                Assert.IsNotNull(availableFunction.values);
+                Assert.IsTrue(availableFunction.values.SequenceEqual(new[] { "Fn_A", "Fn_B", "Fn_C" }));
+
+                Undo.IncrementCurrentGroup();
+                customHLSL.SetSettingValue("m_HLSLCode", twoFunctionCode);
+                availableFunction = (MultipleValuesChoice<string>)customHLSL.GetSettingValue("m_AvailableFunctions");
+                Assert.IsNotNull(availableFunction.values);
+                Assert.IsTrue(availableFunction.values.SequenceEqual(new[] { "Fn_A", "Fn_B" }));
+
+                Undo.IncrementCurrentGroup();
+                var nodeController = m_ViewController.GetNodeController(customHLSL, 0);
+                Assert.IsNotNull(nodeController);
+                m_ViewController.RemoveElement(nodeController);
+                Assert.AreEqual(0, m_ViewController.graph.children.Count());
+            }
+
+            //Backward execution
+            {
+                Undo.PerformUndo();
+                Assert.AreEqual(1, m_ViewController.graph.children.Count());
+                var customHLSL = m_ViewController.graph.children.OfType<Operator.CustomHLSL>().SingleOrDefault();
+                Assert.IsNotNull(customHLSL);
+
+                var availableFunction = (MultipleValuesChoice<string>)customHLSL.GetSettingValue("m_AvailableFunctions");
+                Assert.IsNotNull(availableFunction.values);
+                Assert.IsTrue(availableFunction.values.SequenceEqual(new[] { "Fn_A", "Fn_B" }));
+
+                Undo.PerformUndo();
+                availableFunction = (MultipleValuesChoice<string>)customHLSL.GetSettingValue("m_AvailableFunctions");
+                Assert.IsNotNull(availableFunction.values);
+                Assert.IsTrue(availableFunction.values.SequenceEqual(new[] { "Fn_A", "Fn_B", "Fn_C" }));
+            }
+        }
+
+        [Test]
         public void DeleteSubSlotWithLink()
         {
             var crossProductDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.variant.name.Contains("Cross"));

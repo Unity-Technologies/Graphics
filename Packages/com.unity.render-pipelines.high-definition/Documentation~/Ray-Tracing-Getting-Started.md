@@ -209,6 +209,8 @@ HDRP ray tracing in Unity isn't compatible with the following features:
 - [Orthographic projection](hdrp-camera-component-reference.md). If you enable orthographic projection mode, you might experience rendering problems with transparent materials, volumetrics, and planar reflections.
 - Ray Traced and Screen Space effects. These don't appear recursively in [Ray Traced Reflections](Ray-Traced-Reflections.md), [Ray Traced Global Illumination](Ray-Traced-Global-Illumination.md) or [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md). This means, for example, you can't see [Screen Space Global Illumination](Override-Screen-Space-GI.md) in [ray-traced reflections](Ray-Traced-Reflections.md).
 - Fully accurate shadow culling. You might see missing shadows in ray-traced effects. You can use **Extend Shadow Culling** to improve accuracy. See [Ray Tracing Settings](Ray-Tracing-Settings.md) for more information.
+- Data-Oriented Technology Stack (DOTS)
+- Entity Component System (ECS)
 
 #### Reflection Probes
 

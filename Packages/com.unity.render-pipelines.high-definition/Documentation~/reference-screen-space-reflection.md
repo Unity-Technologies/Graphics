@@ -2,6 +2,11 @@
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
+For more information, refer to the following:
+
+- [Use the screen space reflection (SSR) override](override-screen-space-reflection.md)
+- [Understand reflection in HDRP](reflection-understand.md)
+
 ### Screen-space
 
 | **Property**                      | **Description**                                              |

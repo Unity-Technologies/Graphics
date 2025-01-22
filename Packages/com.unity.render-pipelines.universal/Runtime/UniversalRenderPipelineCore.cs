@@ -1068,6 +1068,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.SoftShadows = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadows);
             ShaderGlobalKeywords.SoftShadowsLow = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsLow);
             ShaderGlobalKeywords.SoftShadowsMedium = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsMedium);
+            ShaderGlobalKeywords.SoftShadowsHigh = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsHigh);
             ShaderGlobalKeywords.MixedLightingSubtractive = GlobalKeyword.Create(ShaderKeywordStrings.MixedLightingSubtractive);
             ShaderGlobalKeywords.LightmapShadowMixing = GlobalKeyword.Create(ShaderKeywordStrings.LightmapShadowMixing);
             ShaderGlobalKeywords.ShadowsShadowMask = GlobalKeyword.Create(ShaderKeywordStrings.ShadowsShadowMask);
@@ -1554,14 +1555,22 @@ namespace UnityEngine.Rendering.Universal
             {
                 desc = new RenderTextureDescriptor(cameraData.scaledWidth, cameraData.scaledHeight);
                 desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, requestHDRColorBufferPrecision, needsAlpha);
+                desc.depthBufferBits = (int)CoreUtils.GetDefaultDepthBufferBits();
                 desc.depthStencilFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             }
             else
             {
+                // Note: External texture replaces internal (intermediate) color buffer here, ignoring the configured internal rendering color buffer format.
+                // This is incorrect. We should use the internal rendering format throughout and blit the result to the external texture at the end (blit could be skipped if the formats match).
+                // However, this would lead to breaking changes in the URP asset as we would need to move the internal rendering format to the renderer asset.
+                // This way it could be selected separately for each target.
+                // Current workflow/workaround is to simply pick a suitable format for the external texture.
                 desc = camera.targetTexture.descriptor;
                 desc.msaaSamples = msaaSamples;
+                // Note: This does not scale the underlying target size.
+                // Instead, it is the scaled viewport rect size which means the viewport offset into the target is always (0,0).
                 desc.width = cameraData.scaledWidth;
                 desc.height = cameraData.scaledHeight;
 

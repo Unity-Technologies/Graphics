@@ -206,6 +206,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return hdCamera;
         }
 
+        //access for editor helpbox checks
+        internal static bool TryGet(Camera camera, out HDCamera hdCamera, int xrMultipassId = 0, HistoryChannel historyChannel = HistoryChannel.RenderLoopHistory)
+            => s_Cameras.TryGetValue((camera, xrMultipassId, historyChannel), out hdCamera);
+
         // internal only for now, to be publicly available when history API is implemented in SRP Core
         /// <summary>
         /// Check if a given history channel is already existing for a pair of camera and XR multi-pass Id.
@@ -1467,12 +1471,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
                 {
-                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(m_XRViewConstants[viewIndex], resolution, aspect);
+                    transforms[viewIndex] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(m_XRViewConstants[viewIndex], resolution, aspect, ShaderConfig.s_CameraRelativeRendering);
                 }
             }
             else
             {
-                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution, aspect);
+                transforms[0] = ComputePixelCoordToWorldSpaceViewDirectionMatrix(mainViewConstants, resolution, aspect, ShaderConfig.s_CameraRelativeRendering);
             }
         }
 
@@ -2098,7 +2102,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewConstants.viewProjectionNoCameraTrans = gpuVPNoTrans;
 
             var gpuProjAspect = HDUtils.ProjectionMatrixAspect(gpuProj);
-            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize, gpuProjAspect);
+            viewConstants.pixelCoordToViewDirWS = ComputePixelCoordToWorldSpaceViewDirectionMatrix(viewConstants, screenSize, gpuProjAspect, ShaderConfig.s_CameraRelativeRendering);
 
             if (updatePreviousFrameConstants)
             {
@@ -2354,8 +2358,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ///
         /// It is different from the aspect ratio of <paramref name="resolution"/> for anamorphic projections.
         /// </param>
+        /// <param name="cameraRelativeRendering">If non-zero, then assume Camera Relative Rendering is enabled.</param>
         /// <returns></returns>
-        Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1)
+        internal Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(ViewConstants viewConstants, Vector4 resolution, float aspect = -1, int cameraRelativeRendering = 1)
         {
             // In XR mode, or if explicitely required, use a more generic matrix to account for asymmetry in the projection
             var useGenericMatrix = xr.enabled || frameSettings.IsEnabled(FrameSettingsField.AsymmetricProjection);
@@ -2374,7 +2379,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
                     new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
-                var transformT = viewConstants.invViewProjMatrix.transpose * Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f));
+                Matrix4x4 transformT;
+                if (cameraRelativeRendering == 0)
+                {
+                    // In case we are not camera relative, the view matrix used to calculate viewConstants.invViewProjMatrix
+                    // contains translation component, so we need to remove it.
+                    var viewNoTrans = viewConstants.viewMatrix;
+                    viewNoTrans.SetColumn(3, new Vector4(0, 0, 0, 1));
+                    var invViewProj = (viewConstants.projMatrix * viewNoTrans).inverse;
+                    transformT = invViewProj.transpose * Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f));
+                }
+                else
+                {
+                    transformT = viewConstants.invViewProjMatrix.transpose * Matrix4x4.Scale(new Vector3(-1.0f, -1.0f, -1.0f));
+                }
                 return viewSpaceRasterTransform * transformT;
             }
 

@@ -309,9 +309,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2110_IndirectController.unity
     guid: 443ac92abc2bd6a4d94e9e673dbcc29f
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2120_APV_Baking.unity
-    guid: fc784678bf952de4482e78aea61ccdc8
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2121_APV_Baking_Sky_Occlusion.unity
     guid: 7ade3d105a5eb453b96e65e54f9609f8
   - enabled: 1
@@ -444,6 +441,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2323_Shadow_Interlaced_Cascades_Update.unity
     guid: 80b082584c54c094fa194bd14de4f845
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2324_Shadow_Mask_Directional_Blending.unity
+    guid: f24d300b30af57d49b18a301c0ff2e1c
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
   - enabled: 1
@@ -524,9 +524,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3011_MipMapMode_MipRatio.unity
     guid: b9e35fedcf7c00f4891e7b2a6fc414fb
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/3x_DebugView/3012_MipMapMode_MipStreamingPerformance.unity
-    guid: c75d7d73a802a834ca6b668e4e004000
   - enabled: 1
     path: Assets/GraphicTests/Scenes/3x_DebugView/3013_MipMapMode_MipStreamingStatus_PerMaterial.unity
     guid: bcef6a8c1b14ae849bdfd5b864638568

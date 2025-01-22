@@ -56,6 +56,7 @@ public class UniversalGraphicsTests
     [UseGraphicsTestCases(universalPackagePath)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        Watermark.showDeveloperWatermark = false;
         Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
 #if UNITY_WEBGL || UNITY_ANDROID
         RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
@@ -179,15 +180,8 @@ public class UniversalGraphicsTests
 
         if (settings == null || settings.CheckMemoryAllocation)
         {
-			yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
+            yield return ImageAssert.CheckGCAllocWithCallstack(mainCamera, settings?.ImageComparisonSettings);
         }
-    }
-
-#if UNITY_EDITOR
-    [TearDown]
-    public void DumpImagesInEditor()
-    {
-        UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
 
 #if ENABLE_VR
@@ -197,6 +191,5 @@ public class UniversalGraphicsTests
         XRGraphicsAutomatedTests.running = false;
     }
 
-#endif
 #endif
 }

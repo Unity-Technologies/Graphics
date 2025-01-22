@@ -8,16 +8,31 @@ using System.Runtime.CompilerServices;
 
 namespace UnityEngine.Rendering
 {
-    // We need this base class to be able to store a list of VolumeParameter in collections as we
-    // can't store VolumeParameter<T> with variable T types in the same collection. As a result some
-    // of the following is a bit hacky...
-
     /// <summary>
-    /// The base class for all parameters types stored in a <see cref="VolumeComponent"/>.
+    /// The base class for all parameter types stored in a <see cref="VolumeComponent"/>.
+    ///
+    /// This class serves as a base for different parameter types that are used within the Volume system, such as those controlling post-processing effects, lighting settings, and other volume-related parameters.
+    ///
+    /// The <see cref="VolumeParameter"/> class implements the <see cref="ICloneable"/> interface, enabling cloning of the parameter's values for later use or manipulation.
     /// </summary>
+    /// <remarks>
+    /// The <see cref="VolumeParameter"/> class is an abstract base class, and cannot be instantiated directly.
+    /// Derived classes like <see cref="VolumeParameter{T}"/> represent specific parameter types, such as float, vector, or color values, and can be used to configure individual settings in a Volume component.
+    ///
+    /// It is important to note that this class is designed to allow various parameter types to be stored and managed collectively.
+    /// This mechanism enables developers to create complex and configurable Volume components that can be customized with different parameter types (e.g., sliders for float values, color pickers for color values, etc.).
+    /// </remarks>
+    /// <seealso cref="VolumeManager"/>
+    /// <seealso cref="VolumeComponent"/>
     /// <seealso cref="VolumeParameter{T}"/>
+    /// <seealso cref="ICloneable"/>
+    /// <seealso cref="VolumeStack"/>
     public abstract class VolumeParameter : ICloneable
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        internal string debugId { get; set; }
+#endif
+
         /// <summary>
         /// A beautified string for debugger output. This is set on a <c>DebuggerDisplay</c> on every
         /// parameter types.

@@ -7,10 +7,19 @@ using System.Reflection;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// This attribute allows you to add commands to the <b>Add Override</b> popup menu
-    /// on Volumes.
-    /// To filter VolumeComponentMenu based on current Render Pipeline, add SupportedOnRenderPipeline attribute to the class alongside with this attribute.
-    /// </summary>
+    /// This attribute is used to set up a path in the <b>Add Override</b> popup menu in Unity's Volume system.
+    /// It allows you to organize and categorize your Volume components into submenus for easier access and management within the editor.
+     /// </summary>
+    /// <remarks>Specify the name of the menu entry, and use slashes ("/") to create hierarchical submenus in the popup. This is useful for organizing large or complex sets of Volume components.
+    /// To further filter the menu entries based on the active Render Pipeline, you can combine this attribute with the <see cref="SupportedOnRenderPipeline"/> attribute.
+    /// This enables conditional display of Volume components depending on the Render Pipeline being used in the project.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// [VolumeComponentMenu("MyVolumeCategory/LightingEffects")]
+    /// public class CustomLightingVolume : VolumeComponent { ... }
+    /// </code>
+    /// </example>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class VolumeComponentMenu : Attribute
     {
@@ -33,14 +42,14 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
-    /// This attribute allows you to add commands to the <b>Add Override</b> popup menu
-    /// on Volumes and specify for which render pipelines will be supported
+    /// This attribute allows you to add commands to the <b>Add Override</b> popup menu on Volumes,
+    /// while also specifying the render pipeline(s) for which the command will be supported.
     /// </summary>
-    [Obsolete(@"VolumeComponentMenuForRenderPipelineAttribute is deprecated. Use VolumeComponentMenu with SupportedOnCurrentPipeline instead. #from(2023.1)", false)]
+    [Obsolete(@"VolumeComponentMenuForRenderPipelineAttribute is deprecated. Use VolumeComponentMenu with SupportedOnRenderPipeline instead. #from(2023.1)", false)]
     public class VolumeComponentMenuForRenderPipeline : VolumeComponentMenu
     {
         /// <summary>
-        /// The list of pipeline types that the target class supports
+        /// The list of pipeline types that the target class supports.
         /// </summary>
         public Type[] pipelineTypes { get; }
 
@@ -49,14 +58,15 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="menu">The name of the entry in the override list. You can use slashes to
         /// create sub-menus.</param>
-        /// <param name="pipelineTypes">The list of pipeline types that the target class supports</param>
+        /// <param name="pipelineTypes">The list of pipeline types that the target class supports.</param>
+        /// <exception cref="Exception">Thrown when the pipelineTypes is null or the types do not inherit from <see cref="RenderPipeline"/>.</exception>
         public VolumeComponentMenuForRenderPipeline(string menu, params Type[] pipelineTypes)
             : base(menu)
         {
             if (pipelineTypes == null)
-                throw new Exception("Specify a list of supported pipeline");
+                throw new Exception("Specify a list of supported pipeline.");
 
-            // Make sure that we only allow the class types that inherit from the render pipeline
+            // Ensure that we only allow class types that inherit from RenderPipeline
             foreach (var t in pipelineTypes)
             {
                 if (!typeof(RenderPipeline).IsAssignableFrom(t))
@@ -69,20 +79,40 @@ namespace UnityEngine.Rendering
     }
 
 
+
     /// <summary>
-    /// An attribute to hide the volume component to be added through `Add Override` button on the volume component list
+    /// This attribute prevents the component from being included in the list of available
+    /// overrides in the Volume Inspector via the <b>Add Override</b> button.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    [Obsolete("VolumeComponentDeprecated has been deprecated (UnityUpgradable) -> [UnityEngine] UnityEngine.HideInInspector", false)]
+    [Obsolete("VolumeComponentDeprecated has been deprecated (UnityUpgradable) -> [UnityEngine] UnityEngine.HideInInspector #from(2023.1)", false)]
     public sealed class VolumeComponentDeprecated : Attribute
     {
     }
 
+
     /// <summary>
-    /// The base class for all the components that can be part of a <see cref="VolumeProfile"/>.
-    /// The Volume framework automatically handles and interpolates any <see cref="VolumeParameter"/> members found in this class.
+    /// The base class for all components that can be part of a <see cref="VolumeProfile"/>.
+    /// This class serves as the foundation for creating and managing volume components in Unity's
+    /// volume system, enabling the handling of various <see cref="VolumeParameter"/> types in a unified way.
     /// </summary>
+    /// <remarks>The <see cref="VolumeComponent"/> class is automatically integrated into the volume framework,
+    /// which handles interpolation and blending of <see cref="VolumeParameter"/> members at runtime.
+    /// It ensures that parameter values can be adjusted and smoothly transitioned based on different factors,
+    /// such as render pipeline settings, quality settings, or user-defined parameters.
+    ///
+    /// Due to the need to store multiple <see cref="VolumeParameter{T}"/> types in a single collection,
+    /// this base class provides a mechanism to handle them generically. It allows for easy management and
+    /// manipulation of parameters of varying types, ensuring consistency across different volume components.
+    ///
+    /// - Stores and manages a collection of <see cref="VolumeParameter"/> objects..
+    /// - Integrates seamlessly into <see cref="VolumeProfile"/> for enhanced control over rendering and post-processing effects.
+    /// </remarks>
     /// <example>
+    /// <para>
+    /// You can create a custom volume component by inheriting from this base class and defining your own.
+    /// <see cref="VolumeParameter"/> fields. The <see cref="VolumeManager"/> will handle the interpolation and blending for you.
+    /// </para>
     /// <code>
     /// using UnityEngine.Rendering;
     ///
@@ -92,6 +122,12 @@ namespace UnityEngine.Rendering
     ///     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
     /// }
     /// </code>
+    ///
+    /// <para>
+    /// In the example above, the custom component `ExampleComponent` extends `VolumeComponent` and defines a parameter
+    /// (`intensity`) that can be manipulated within the volume framework. The `ClampedFloatParameter` is a type of
+    /// <see cref="VolumeParameter{T}"/> that ensures the value remains within a specified range. 
+    /// </para>
     /// </example>
     [Serializable]
     public partial class VolumeComponent : ScriptableObject
@@ -164,6 +200,17 @@ namespace UnityEngine.Rendering
                     if (filter?.Invoke(field) ?? true)
                     {
                         VolumeParameter volumeParameter = (VolumeParameter)field.GetValue(o);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                        var attr = (DisplayInfoAttribute[])field.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                        if (attr.Length != 0)
+                        {
+                            volumeParameter.debugId = attr[0].name;
+                        }
+                        else
+                        {
+                            volumeParameter.debugId = field.Name;
+                        }
+#endif
                         parameters.Add(volumeParameter);
                     }
                 }

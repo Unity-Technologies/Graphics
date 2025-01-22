@@ -11,11 +11,14 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ForwardPlusKeyword.deprecated.hlsl"
 
 #if defined(_CLUSTER_LIGHT_LOOP)
-#define _ADDITIONAL_LIGHTS 1
-#undef _ADDITIONAL_LIGHTS_VERTEX
 #define USE_CLUSTER_LIGHT_LOOP 1
 #else
 #define USE_CLUSTER_LIGHT_LOOP 0
+#endif
+
+#if USE_CLUSTER_LIGHT_LOOP
+#define _ADDITIONAL_LIGHTS 1
+#undef _ADDITIONAL_LIGHTS_VERTEX
 #endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

@@ -275,6 +275,14 @@ namespace UnityEngine.Rendering.Universal
         {
             Assert.IsNotNull(cameraData, "cameraData can not be null when updating the volume stack.");
 
+            // UUM-91000: The UpdateVolumeStack may happens before the pipeline is constructed.
+            // Repro: enter play mode with a script that trigger this API at Start.
+            if (!VolumeManager.instance.isInitialized)
+            {
+                Debug.LogError($"{nameof(UpdateVolumeStack)} must not be called before {nameof(VolumeManager)}.{nameof(VolumeManager.instance)}.{nameof(VolumeManager.instance.Initialize)}. If you tries calling this from Awake or Start, try instead to use the {nameof(RenderPipelineManager)}.{nameof(RenderPipelineManager.activeRenderPipelineCreated)} callback to be sure your render pipeline is fully initialized before calling this.");
+                return;
+            }
+
             // We only update the local volume stacks for cameras set to ViaScripting.
             // Otherwise it will be updated in the frame.
             if (cameraData.requiresVolumeFrameworkUpdate)

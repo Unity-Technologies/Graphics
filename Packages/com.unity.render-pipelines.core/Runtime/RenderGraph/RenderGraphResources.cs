@@ -13,7 +13,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         Count
     }
 
-    internal struct ResourceHandle : IEquatable<ResourceHandle>
+    // For performance reasons, ResourceHandle is readonly.
+    // To update an existing instance with a new version, recreate it using its copy constructor
+    internal readonly struct ResourceHandle : IEquatable<ResourceHandle>
     {
         // Note on handles validity.
         // PassData classes used during render graph passes are pooled and because of that, when users don't fill them completely,
@@ -24,9 +26,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         const uint kValidityMask = 0xFFFF0000;
         const uint kIndexMask = 0xFFFF;
 
-        uint m_Value;
-        int m_Version; // A freshly created resource always starts at version 0 the first write should bring it to v1
-        
+        private readonly uint m_Value;
+        private readonly int m_Version;
+        private readonly RenderGraphResourceType m_Type;
+
         static uint s_CurrentValidBit = 1 << 16;
         static uint s_SharedResourceValidBit = 0x7FFF << 16;
 
@@ -44,23 +47,25 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return m_Version; }
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set { m_Version = value; } 
         }
-        public RenderGraphResourceType type { get; private set; }
+        public RenderGraphResourceType type
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get { return m_Type; }
+        }
 
         internal ResourceHandle(int value, RenderGraphResourceType type, bool shared)
         {
             Debug.Assert(value <= 0xFFFF);
             m_Value = ((uint)value & kIndexMask) | (shared ? s_SharedResourceValidBit : s_CurrentValidBit);
-            this.type = type;
-            this.m_Version = -1;
+            m_Type = type;
+            m_Version = -1;
         }
 
         internal ResourceHandle(in ResourceHandle h, int version)
         {
             this.m_Value = h.m_Value;
-            this.type = h.type;
+            this.m_Type = h.type;
             this.m_Version = version;
         }
 
