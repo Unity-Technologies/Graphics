@@ -30,7 +30,12 @@
 7. Drag each of the **Texture 2D** properties onto the editor window. Attach each of the properties to the **Input Slots** of the Sample Texture 2D Nodes as shown below. Note that the 'NormalMap' property must be attached to the **Normal Type** Node only.
    ![](Images/2D/2d-urp12-3-attach-properties.png)
    <br/>
-8. Select **Save Asset** to save the Shader.
+
+8. Select the **NormalMap** property, then in the **Graph Inspector** set **Mode** to **Normal Map**.
+
+9. If your sprite texture has transparency, attach the alpha (**A**) output of the **Base Color** texture to the **Alpha** input of the **Fragment** context.
+
+10. Select **Save Asset** to save the Shader.
    ![](Images/2D/2d-urp12-3-save-shader.png)
 
 You can now apply the newly built Shader to materials.

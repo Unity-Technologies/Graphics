@@ -93,3 +93,4 @@ To follow the steps in this example, create a [new Unity project using the **Uni
 6. To raise a call to the `OnDisable()` method: In the Play mode, select Example Cube and clear the checkbox next to the script component title. Unity unsubscribes `WriteLogMessage` from the `RenderPipelineManager.beginCameraRendering` event and stops printing the message in the Console window.
 
     ![Deactivate the script component. Clear the checkbox next to the script component title.](../Images/customizing-urp/deactivate-script-component.png)
+

@@ -21,6 +21,8 @@ This section includes all the menu items under the **Edit > Rendering > Decal La
 
 This section includes all the menu items under the **Edit > Rendering > Materials** menu fold-out.
 
+For more information, refer to [Convert materials and shaders](convert-from-built-in-convert-materials-and-shaders).
+
 | **Item**                                        | **Description**                                              |
 | ----------------------------------------------- | ------------------------------------------------------------ |
 | **Upgrade HDRP Materials to Latest Version**    | Upgrades all HDRP Materials in the project to the latest version. This is useful if HDRP's automatic Material upgrade process fails to upgrade a Material. |
