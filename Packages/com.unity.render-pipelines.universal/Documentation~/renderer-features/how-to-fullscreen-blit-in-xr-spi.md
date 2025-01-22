@@ -1,4 +1,4 @@
-# How to perform a full screen blit in Single Pass Instanced rendering in XR
+# Perform a full screen blit in Single Pass Instanced rendering in XR
 
 The example on this page describes how to create a custom Renderer Feature that performs a full screen blit in Single Pass Instanced rendering in XR.
 

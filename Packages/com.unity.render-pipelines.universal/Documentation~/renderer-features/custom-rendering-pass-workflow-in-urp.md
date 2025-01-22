@@ -11,7 +11,7 @@ To add a custom render pass, complete the following tasks:
 
 Use the `ScriptableRenderPass` to create the code for a custom render pass.
 
-Refer to [Write a Scriptable Render Pass](write-a-scriptable-render-pass.md) for more information.
+Refer to [Perform a full screen blit in Single Pass Instanced rendering in XR](how-to-fullscreen-blit-in-xr-spi.md) for an example.
 
 ## <a name="inject-pass"></a>Inject the custom render pass using the RenderPipelineManager API
 
@@ -29,4 +29,4 @@ To create a Scriptable Renderer Feature, you do the following:
 * Add the Scriptable Renderer Feature to the Universal Renderer asset, so it's included in the rendering pipeline.
 * Enqueue your custom render pass in the Scriptable Renderer Feature.
 
-Refer to [Inject a pass using a Scriptable Renderer Feature](scriptable-renderer-features/inject-a-pass-using-a-scriptable-renderer-feature.md) for more information.
+For more information, refer to [Perform a full screen blit in Single Pass Instanced rendering in XR](how-to-fullscreen-blit-in-xr-spi.md).
