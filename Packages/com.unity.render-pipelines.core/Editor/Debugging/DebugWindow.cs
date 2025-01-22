@@ -11,7 +11,6 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
-
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace UnityEditor.Rendering
@@ -626,6 +625,7 @@ namespace UnityEditor.Rendering
             public readonly Color skinBackgroundColor;
 
             public static GUIStyle centeredLeft = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleLeft };
+            public static GUIStyle centeredLeftAlternate = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleLeft };
             public static float singleRowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             public static int foldoutColumnWidth = 70;
@@ -636,6 +636,12 @@ namespace UnityEditor.Rendering
                 Color textColorLightSkin = new Color32(102, 102, 102, 255);
                 Color backgroundColorDarkSkin = new Color32(38, 38, 38, 128);
                 Color backgroundColorLightSkin = new Color32(128, 128, 128, 96);
+
+                centeredLeftAlternate.normal.background = CoreEditorUtils.CreateColoredTexture2D(
+                    EditorGUIUtility.isProSkin
+                        ? new Color(63 / 255.0f, 63 / 255.0f, 63 / 255.0f, 255 / 255.0f)
+                        : new Color(202 / 255.0f, 202 / 255.0f, 202 / 255.0f, 255 / 255.0f),
+                    "centeredLeftAlternate Background");
 
                 sectionScrollView = new GUIStyle(sectionScrollView);
                 sectionScrollView.overflow.bottom += 1;
@@ -650,6 +656,15 @@ namespace UnityEditor.Rendering
                 skinBackgroundColor = EditorGUIUtility.isProSkin ? backgroundColorDarkSkin : backgroundColorLightSkin;
 
                 labelWithZeroValueStyle.normal.textColor = Color.gray;
+
+                // Make sure that textures are unloaded on domain reloads.
+                void OnBeforeAssemblyReload()
+                {
+                    UnityEngine.Object.DestroyImmediate(centeredLeftAlternate.normal.background);
+                    AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+                }
+
+                AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             }
         }
 

@@ -1046,9 +1046,13 @@ namespace UnityEngine.Rendering
                 {
                     WriteNativeArray(fs, probesL2);
                 }
-                using (var fs = new System.IO.FileStream(cellProbeOcclusionDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
+                if (probeOcclusion.Length > 0)
                 {
-                    WriteNativeArray(fs, probeOcclusion);
+                    // Write the probe occlusion data file, only if this data was baked (shadowmask mode) - UUM-85411
+                    using (var fs = new System.IO.FileStream(cellProbeOcclusionDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
+                    {
+                        WriteNativeArray(fs, probeOcclusion);
+                    }
                 }
                 using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {

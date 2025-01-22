@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Water, "Water");
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Water);
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             bool notSupported = currentAsset != null && !currentAsset.currentPlatformRenderPipelineSettings.supportWater;
             if (notSupported)

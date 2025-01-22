@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.DepthOfField, "Depth Of Field");
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.DepthOfField);
 
             PropertyField(m_FocusMode, Styles.k_DepthOfFieldMode);
 

@@ -76,6 +76,13 @@ namespace UnityEngine.Rendering
             if (serializedBakingSet == null)
                 return;
 
+            #if UNITY_EDITOR
+            // Check if we are trying to load APV data for a scene which has not enabled APV (or it was removed)
+            var bakedData = serializedBakingSet.GetSceneBakeData(sceneGUID);
+            if (bakedData != null && bakedData.hasProbeVolume == false)
+                return;
+            #endif
+
             var refVol = ProbeReferenceVolume.instance;
             refVol.AddPendingSceneLoading(sceneGUID, serializedBakingSet);
         }

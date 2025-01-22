@@ -114,6 +114,7 @@ namespace UnityEngine.Rendering
             public CellStreamingScratchBuffer(int chunkCount, int chunkSize, bool allocateGraphicsBuffers)
             {
                 this.chunkCount = chunkCount;
+                this.chunkSize = chunkSize;
 
                 // With a stride of 4 (one uint)
                 // Number of elements for chunk data: chunkCount * chunkSize / 4
@@ -152,6 +153,7 @@ namespace UnityEngine.Rendering
             public GraphicsBuffer buffer => m_GraphicsBuffers[m_CurrentBuffer];
             public NativeArray<byte> stagingBuffer; // Contains data streamed from disk. To be copied into the graphics buffer.
             public int chunkCount { get; }
+            public int chunkSize { get; }
 
             int m_CurrentBuffer;
             GraphicsBuffer[] m_GraphicsBuffers = new GraphicsBuffer[2];

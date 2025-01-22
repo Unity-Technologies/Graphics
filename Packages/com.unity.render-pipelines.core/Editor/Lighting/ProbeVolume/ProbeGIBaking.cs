@@ -1234,7 +1234,7 @@ namespace UnityEngine.Rendering
             // the dilation process consits in doing a trilinear sample of the higher subdivision brick and override the lower subdiv with that
             // We have to mark the probes on the boundary as valid otherwise leak reduction at runtime will interfere with this method
 
-            
+
             // Use an indirection structure to ensure mem usage stays reasonable
             VoxelToBrickCache cache = new VoxelToBrickCache();
 

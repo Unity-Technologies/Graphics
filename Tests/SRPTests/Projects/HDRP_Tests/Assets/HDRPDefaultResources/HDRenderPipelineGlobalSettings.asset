@@ -829,6 +829,10 @@ MonoBehaviour:
           type: 3}
         m_DofCombineCS: {fileID: 7200000, guid: d9b940a90a2d0884f94990a0dde43a53,
           type: 3}
+        m_DofComputeSlowTilesCS: {fileID: 7200000, guid: b89f86a76de81ee42ae16daad78eb382,
+          type: 3}
+        m_DofComputeApertureShapeCS: {fileID: 7200000, guid: dd5acecb27e20334fa3be332e85172df,
+          type: 3}
         m_MotionBlurMotionVecPrepCS: {fileID: 7200000, guid: ed9438fa777911d48933402087203b15,
           type: 3}
         m_MotionBlurGenTileCS: {fileID: 7200000, guid: 336e1fdbb3a1b8647b06208415f87804,
@@ -1060,6 +1064,8 @@ MonoBehaviour:
           m_InjectionPoint: 3
           m_CustomPostProcessTypesAsString:
           - DepthTAA, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+          - BeforeTAA_CustomPassHack, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+            PublicKeyToken=null
         m_BeforePostProcessCustomPostProcesses:
           m_InjectionPoint: 1
           m_CustomPostProcessTypesAsString:
@@ -1069,6 +1075,8 @@ MonoBehaviour:
           m_InjectionPoint: 4
           m_CustomPostProcessTypesAsString:
           - AfterPPBlurs, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+          - AfterPostProcessBlurs_CustomPassHack, Assembly-CSharp, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
         m_AfterPostProcessCustomPostProcesses:
           m_InjectionPoint: 2
           m_CustomPostProcessTypesAsString:
@@ -1147,17 +1155,17 @@ MonoBehaviour:
           type: 3}
         voxelizeSceneShader: {fileID: 4800000, guid: c8b6a681c7b4e2e4785ffab093907f9e,
           type: 3}
-        traceVirtualOffsetCS: {fileID: 7200000, guid: 805f10d263aac4b4098c0279cd37a4f3,
+        traceVirtualOffsetCS: {fileID: -6772857160820960102, guid: ff2cbab5da58bf04d82c5f34037ed123,
           type: 3}
-        traceVirtualOffsetRT: {fileID: 4807578003741378534, guid: b60511f4aa1443f4d8c0b18f4fec92f4,
+        traceVirtualOffsetRT: {fileID: -5126288278712620388, guid: ff2cbab5da58bf04d82c5f34037ed123,
           type: 3}
-        skyOcclusionCS: {fileID: 7200000, guid: 798f52ec82fa04048a12826bbbbcf7b4,
+        skyOcclusionCS: {fileID: -6772857160820960102, guid: 5a2a534753fbdb44e96c3c78b5a6999d,
           type: 3}
-        skyOcclusionRT: {fileID: 4807578003741378534, guid: dfaf42b38dd001f49a72d8102b709f29,
+        skyOcclusionRT: {fileID: -5126288278712620388, guid: 5a2a534753fbdb44e96c3c78b5a6999d,
           type: 3}
-        renderingLayerCS: {fileID: 7200000, guid: a63c9cf933e3d8f41ae680a372784ebf,
+        renderingLayerCS: {fileID: -6772857160820960102, guid: 94a070d33e408384bafc1dea4a565df9,
           type: 3}
-        renderingLayerRT: {fileID: 4807578003741378534, guid: c2be09c936362eb49a58f08aeb30627a,
+        renderingLayerRT: {fileID: -5126288278712620388, guid: 94a070d33e408384bafc1dea4a565df9,
           type: 3}
     - rid: 1748197788746514447
       type: {class: RenderGraphGlobalSettings, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}

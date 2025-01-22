@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.Tests
                 // Script in project
                 ( "Assets/File.cs", "Assets/File.cs" ),
 
-                // Script in package (this will work regardless of where the package is located, 
+                // Script in package (this will work regardless of where the package is located,
                 // i.e. in Library, embedded in Packages folder, via "file:<path>" dependency or Git URL)
                 ( $"{relativePackagePath}/File.cs".Replace(@"\", "/"), $"{packageInfo.assetPath}/File.cs" ),
 
@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.Tests
                 yield return new TestCaseData($"./{inputPath}".Replace("/", @"\"), expectedResult);
 
                 // Absolute paths, Windows separators
-                yield return new TestCaseData($"{projectPath}/{inputPath}".Replace("/", @"\"), expectedResult);  
+                yield return new TestCaseData($"{projectPath}/{inputPath}".Replace("/", @"\"), expectedResult);
 #endif
             }
         }

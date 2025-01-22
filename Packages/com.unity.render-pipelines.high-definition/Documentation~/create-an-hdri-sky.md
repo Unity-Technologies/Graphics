@@ -15,7 +15,7 @@ Tip: [Unity HDRI Pack](https://assetstore.unity.com/packages/essentials/beta-pro
 
 After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sky**. The [Visual Environment](visual-environment-volume-override-reference.md) override controls which type of sky the Volume uses. To set the Volume to use **HDRI Sky**:
 
-1. In the **Visual Environment** override, go to the **Sky** > **Sky Type**
+1. In the **Visual Environment** override, go to **Sky** > **Sky Type**.
 2. Set **Sky Type** to **HDRI Sky**.
 
 HDRP now renders an **HDRI Sky** for any Camera this Volume affects.
@@ -23,4 +23,3 @@ HDRP now renders an **HDRI Sky** for any Camera this Volume affects.
 Refer to the [HDRI Sky Volume Override Reference](hdri-sky-volume-override-reference.md) for more information.
 
 [!include[](snippets/volume-override-api.md)]
-
