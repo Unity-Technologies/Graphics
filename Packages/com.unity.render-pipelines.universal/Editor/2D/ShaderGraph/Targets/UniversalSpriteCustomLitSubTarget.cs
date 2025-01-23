@@ -265,11 +265,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static KeywordCollection Lit = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DebugDisplay },
+                { CoreKeywordDescriptors.UseSkinnedSprite },
             };
 
             public static KeywordCollection Forward = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DebugDisplay },
+                { CoreKeywordDescriptors.UseSkinnedSprite },
             };
         }
         #endregion
@@ -277,6 +279,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Includes
         static class SpriteLitIncludes
         {
+            const string kSpriteCore2D = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl";
             const string kSpriteUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteUnlitPass.hlsl";
             const string k2DNormal = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl";
             const string kSpriteNormalPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteNormalPass.hlsl";
@@ -287,6 +290,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { kSpriteCore2D, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -299,6 +303,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { k2DNormal, IncludeLocation.Pregraph },
+                { kSpriteCore2D, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -310,6 +315,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { kSpriteCore2D, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },

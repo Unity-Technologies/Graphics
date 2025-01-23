@@ -65,6 +65,12 @@
 | ![Image](images/ComputeDeformationNodeThumb.png)             | ![Image](images/LinearBlendSkinningNodeThumb.png)            |
 | Passes compute deformed vertex data to a vertex shader. Only works with the [Entities Graphics package](https://docs.unity3d.com/Packages/com.unity.entities.graphics@latest/). | Applies Linear Blend Vertex Skinning. Only works with the [Entities Graphics package](https://docs.unity3d.com/Packages/com.unity.entities.graphics@latest/). |
 
+## Sprite Deformation
+| [Sprite Skinning Node](Sprite-Skinning-Node)     |
+| :----------------------------------------------------------- |
+| ![Image](images/SpriteSkinningNodeThumb.png)                 |
+| Applies Vertex Skinning on Sprites. Only works with the [2D Animation](https://docs.unity3d.com/Packages/com.unity.2d.animation@latest/). |
+
 ## PBR
 
 |    [**Dielectric Specular**](Dielectric-Specular-Node.md)    |      [**Metal Reflectance**](Metal-Reflectance-Node.md)      |

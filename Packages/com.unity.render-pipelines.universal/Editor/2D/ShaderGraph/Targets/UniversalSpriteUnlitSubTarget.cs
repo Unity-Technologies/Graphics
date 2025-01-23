@@ -218,6 +218,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static KeywordCollection Unlit = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DebugDisplay },
+                { CoreKeywordDescriptors.UseSkinnedSprite },
             };
         }
         #endregion
@@ -225,6 +226,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Includes
         static class SpriteUnlitIncludes
         {
+            const string kSpriteCore2D = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl";
             const string kSpriteUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteUnlitPass.hlsl";
 
             public static IncludeCollection Unlit = new IncludeCollection
@@ -232,6 +234,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
+                { kSpriteCore2D, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },

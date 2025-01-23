@@ -73,3 +73,23 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: No GPU Skinning
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f712c34bbb63bee4e84fcf16f3405237, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No GPU Skinning
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2938527f2d599194aa960e86202cf28c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No GPU Skinning
