@@ -7,37 +7,41 @@ This guide explains how to modify a post-processing script to create time-based 
 Use the `QuickVolume` method to quickly spawn new volumes in the scene, to create time-based events or temporary states:
 
 ```csharp
-[
 public PostProcessVolume QuickVolume(int layer, float priority, params PostProcessEffectSettings[] settings)
-]
 ```
 The following example demonstrates how to use a script to create a pulsating vignette effect:
 
 ```csharp
-[
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
+
 public class VignettePulse : MonoBehaviour
 {
-   PostProcessVolume m_Volume;
-   Vignette m_Vignette
-   void Start()
+  PostProcessVolume m_Volume;
+  Vignette m_Vignette;
+
+  void Start()
   {
       // Create an instance of a vignette
-       m_Vignette = ScriptableObject.CreateInstance<Vignette>();
-       m_Vignette.enabled.Override(true);
-       m_Vignette.intensity.Override(1f);
+      m_Vignette = ScriptableObject.CreateInstance<Vignette>();
+      m_Vignette.enabled.Override(true);
+      m_Vignette.intensity.Override(1f);
+      
       // Use the QuickVolume method to create a volume with a priority of 100, and assign the vignette to this volume
-       m_Volume = PostProcessManager.instance.QuickVolume(gameObject.layer, 100f, m_Vignette);
-   void Update()
+      m_Volume = PostProcessManager.instance.QuickVolume(gameObject.layer, 100f, m_Vignette);
+  }
+
+  void Update()
   {
        // Change vignette intensity using a sinus curve
-        m_Vignette.intensity.value = Mathf.Sin(Time.realtimeSinceStartup);
+      m_Vignette.intensity.value = Mathf.Sin(Time.realtimeSinceStartup);
   }
-   void OnDestroy()
+
+  void OnDestroy()
   {
-       RuntimeUtilities.DestroyVolume(m_Volume, true, true);
+      RuntimeUtilities.DestroyVolume(m_Volume, true, true);
   }
+
 }
 ```
 
@@ -92,9 +96,10 @@ The above examples demonstrate how to create new effects and Volumes at runtime,
   - You must manually destroy the profile when you don't need it anymore
 
 The `PostProcessProfile` class contains the following utility methods to help you manage assigned effects:
+
 | Utility method                                               | **Description**                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [`T AddSettings()`](...api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_AddSettings__1) | Creates, adds and returns a new effect of type `T` to the profile. It throws an exception if it already exist |
+| [`T AddSettings()`](api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_AddSettings__1) | Creates, adds and returns a new effect of type `T` to the profile. It throws an exception if it already exist |
 | [`PostProcessEffectSettings AddSettings(PostProcessEffectSettings effect)`](api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_AddSettings_UnityEngine_Rendering_PostProcessing_PostProcessEffectSettings_) | Adds and returns an effect that you created to the profile.  |
 | [`void RemoveSettings()`](api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_RemoveSettings__1) | Removes an effect from the profile. It throws an exception if it doesn't exist. |
 | [`bool TryGetSettings(out T outSetting)`](...api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_TryGetSettings__1___0__) | Gets an effect from the profile, returns `true` if it found a profile, or `false` if it did not find a profile. |
