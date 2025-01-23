@@ -110,7 +110,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             m_AllocatedMaterialPropertyBlocks.Clear();
         }
-
+        
+        internal bool IsEmpty()
+        {
+            return m_AllocatedArrays.Count == 0 && m_AllocatedMaterialPropertyBlocks.Count == 0;
+        }
+        
         // Regular pooling API. Only internal use for now
         internal T Get<T>() where T : class, new()
         {
