@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    [HDRPHelpURL("Override-Volumetric-Clouds")]
+    [HDRPHelpURL("create-realistic-clouds-volumetric-clouds")]
     public sealed partial class VolumetricClouds : VolumeComponent
     {
         /// <summary>

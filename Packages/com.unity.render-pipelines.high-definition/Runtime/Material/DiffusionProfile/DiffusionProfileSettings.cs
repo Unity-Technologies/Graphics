@@ -242,7 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Class for Diffusion Profile settings
     /// </summary>
-    [HDRPHelpURLAttribute("Diffusion-Profile")]
+    [HDRPHelpURLAttribute("diffusion-profile-reference")]
     [Icon("Packages/com.unity.render-pipelines.high-definition/Editor/Icons/Processed/DiffusionProfile Icon.asset")]
     public partial class DiffusionProfileSettings : ScriptableObject
     {

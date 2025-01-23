@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [VolumeComponentMenu("Sky/Physically Based Sky")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
-    [HDRPHelpURL("Override-Physically-Based-Sky")]
+    [HDRPHelpURL("create-a-physically-based-sky")]
     public partial class PhysicallyBasedSky : SkySettings
     {
         /// <summary>

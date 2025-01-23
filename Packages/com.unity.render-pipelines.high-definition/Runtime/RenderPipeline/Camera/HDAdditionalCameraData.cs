@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Additional component that holds HDRP specific parameters for Cameras.
     /// </summary>
-    [HDRPHelpURLAttribute("HDRP-Camera")]
+    [HDRPHelpURLAttribute("hdrp-camera-component-reference")]
     [AddComponentMenu("")] // Hide in menu
     [DisallowMultipleComponent, ExecuteAlways]
     [RequireComponent(typeof(Camera))]
