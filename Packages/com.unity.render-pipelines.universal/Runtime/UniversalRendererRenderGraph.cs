@@ -636,7 +636,13 @@ namespace UnityEngine.Rendering.Universal
                 // Configure the copy depth pass based on the allocated depth texture
                 m_CopyDepthPass.MssaSamples = depthDescriptor.msaaSamples;
                 m_CopyDepthPass.CopyToDepth = depthTextureIsDepthFormat;
-                m_CopyDepthPass.m_CopyResolvedDepth = !depthDescriptor.bindMS;
+
+                var copyResolvedDepth = !depthDescriptor.bindMS;
+                m_CopyDepthPass.m_CopyResolvedDepth = copyResolvedDepth;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                m_XRCopyDepthPass.m_CopyResolvedDepth = copyResolvedDepth;
+#endif
             }
             else
             {
