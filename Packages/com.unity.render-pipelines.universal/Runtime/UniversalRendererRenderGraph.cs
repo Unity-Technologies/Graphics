@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.Universal
             // Gather render pass history requests and update history textures.
             UpdateCameraHistory(cameraData);
 
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled);
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera);
 
             // Enable depth normal prepass if it's needed by rendering layers
             if (m_RenderingLayerProvidesByDepthNormalPass)
@@ -1137,15 +1137,10 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingPrePasses);
 
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled);
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera);
 
             if (m_RenderingLayerProvidesByDepthNormalPass)
                 renderPassInputs.requiresNormalsTexture = true;
-
-#if UNITY_EDITOR
-            if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled() && cameraData.isSceneViewCamera)
-                renderPassInputs.requiresNormalsTexture = true;
-#endif
 
             bool isDeferred = this.renderingModeActual == RenderingMode.Deferred;
 
