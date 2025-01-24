@@ -1011,7 +1011,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // Apply XR display's viewport scale to URP's dynamic resolution solution
                     float scaleToApply = XRSystem.GetRenderViewportScale();
-                    if (baseCamera.allowDynamicResolution && XRSystem.GetDynamicResolutionScale() < 1.0f)
+                    if (XRSystem.GetDynamicResolutionScale() < 1.0f)
                     {
                         // If XR dynamic resolution is enabled use the XRSystem dynamic resolution scale
                         // Smaller than 1.0 renderViewport scale are not supported to have the best performance gain
