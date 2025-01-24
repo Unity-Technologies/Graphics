@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         protected Dictionary<int, SortedList<int, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (Type resource, int frameIndex)>>();
 
         // This list allows us to determine if all resources were correctly released in the frame when validity checks are enabled.
-        // This is useful to warn in case of user error or avoid leaks when a render graph execution errors occurs for example.
+        // This is useful to warn in case of user error or avoid leaks when a render graph execution error occurs for example.
         List<(int, Type)> m_FrameAllocatedResources = new List<(int, Type)>();
         const int kStaleResourceLifetime = 10;
 
