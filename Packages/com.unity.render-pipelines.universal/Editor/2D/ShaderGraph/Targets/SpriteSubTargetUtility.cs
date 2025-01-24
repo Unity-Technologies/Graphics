@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             // Only support SpriteColor legacy block if BaseColor/Alpha are not active
             var descs = context.blocks.Select(x => x.descriptor);
-            bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);
+            bool useLegacyBlocks = descs.Contains(BlockFields.SurfaceDescriptionLegacy.SpriteColor);
             context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
 
             // Surface Type
@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static void GetDefaultActiveBlocks(ref TargetActiveBlockContext context, UniversalTarget target)
         {
             // Only support SpriteColor legacy block if BaseColor/Alpha are not active
-            bool useLegacyBlocks = !context.currentBlocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.currentBlocks.Contains(BlockFields.SurfaceDescription.Alpha);
+            bool useLegacyBlocks = context.currentBlocks.Contains(BlockFields.SurfaceDescriptionLegacy.SpriteColor);
             context.AddBlock(BlockFields.SurfaceDescriptionLegacy.SpriteColor, useLegacyBlocks);
 
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
