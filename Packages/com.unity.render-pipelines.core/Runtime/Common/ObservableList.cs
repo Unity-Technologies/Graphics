@@ -45,7 +45,8 @@ namespace UnityEngine.Rendering
     /// <typeparam name="T">Type of the list.</typeparam>
     public class ObservableList<T> : IList<T>
     {
-        IList<T> m_List;
+        List<T> m_List;
+        private readonly Comparison<T> m_Comparison;
 
         /// <summary>
         /// Added item event.
@@ -98,18 +99,23 @@ namespace UnityEngine.Rendering
         /// Constructor.
         /// </summary>
         /// <param name="capacity">Allocation size.</param>
-        public ObservableList(int capacity)
+        /// <param name="comparison">The comparision if you want the list to be sorted</param>
+        public ObservableList(int capacity, Comparison<T> comparison = null)
         {
             m_List = new List<T>(capacity);
+            m_Comparison = comparison;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="collection">Input list.</param>
-        public ObservableList(IEnumerable<T> collection)
+        /// <param name="comparison">The comparision if you want the list to be sorted</param>
+        public ObservableList(IEnumerable<T> collection, Comparison<T> comparison = null)
         {
             m_List = new List<T>(collection);
+            m_Comparison = comparison;
+            Sort(); // Make sure the given list is sorted
         }
 
         void OnEvent(ListChangedEventHandler<T> e, int index, T item)
@@ -145,6 +151,7 @@ namespace UnityEngine.Rendering
         public void Add(T item)
         {
             m_List.Add(item);
+            Sort();
             OnEvent(ItemAdded, m_List.IndexOf(item), item);
         }
 
@@ -166,6 +173,7 @@ namespace UnityEngine.Rendering
         public void Insert(int index, T item)
         {
             m_List.Insert(index, item);
+            Sort();
             OnEvent(ItemAdded, index, item);
         }
 
@@ -247,6 +255,14 @@ namespace UnityEngine.Rendering
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        private void Sort()
+        {
+            if (m_Comparison != null)
+            {
+                m_List.Sort(m_Comparison);
+            }
         }
     }
 }

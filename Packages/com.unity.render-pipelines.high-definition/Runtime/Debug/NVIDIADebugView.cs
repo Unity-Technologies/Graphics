@@ -164,8 +164,8 @@ namespace UnityEngine.NVIDIA
 
             m_DlssViewStateTable.children.Add(m_DlssViewStateTableHeader);
 
-            m_DebugWidget = new DebugUI.Container() {
-                displayName = "NVIDIA device debug view",
+            m_DebugWidget = new DebugUI.Foldout() {
+                displayName = "NVIDIA Device settings",
                 children =
                 {
                     new DebugUI.Value()
@@ -217,19 +217,19 @@ namespace UnityEngine.NVIDIA
                         {
                             new DebugUI.Value()
                             {
-                                getter = () => c.data.validFeature ? "Valid" : ""
+                                getter = () => c.data.validFeature ? "Valid" : "-"
                             },
                             new DebugUI.Value()
                             {
-                                getter = () => c.data.validFeature ? resToString(c.data.execData.subrectWidth, c.data.execData.subrectHeight) : ""
+                                getter = () => c.data.validFeature ? resToString(c.data.execData.subrectWidth, c.data.execData.subrectHeight) : "-"
                             },
                             new DebugUI.Value()
                             {
-                                getter = () => c.data.validFeature ? resToString(c.data.initData.outputRTWidth, c.data.initData.outputRTHeight) : ""
+                                getter = () => c.data.validFeature ? resToString(c.data.initData.outputRTWidth, c.data.initData.outputRTHeight) : "-"
                             },
                             new DebugUI.Value()
                             {
-                                getter = () => c.data.validFeature ? c.data.initData.quality.ToString() : ""
+                                getter = () => c.data.validFeature ? c.data.initData.quality.ToString() : "-"
                             }
                         }
                 };
@@ -237,7 +237,16 @@ namespace UnityEngine.NVIDIA
                 m_DlssViewStateTableRows[r] = dlssStateRow;
             }
             m_DlssViewStateTable.children.Add(m_DlssViewStateTableRows);
+            m_DlssViewStateTable.isHiddenCallback = () =>
+            {
+                foreach (var row in m_DlssViewStateTableRows)
+                {
+                    if (!row.isHidden)
+                        return false;
+                }
 
+                return true;
+            };
 
             return m_DebugWidget;
         }

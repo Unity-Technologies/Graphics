@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering
             /// </summary>
             public Panel()
             {
-                children = new ObservableList<Widget>();
+                children = new ObservableList<Widget>(0, (widget, widget1) => widget.order.CompareTo(widget1.order));
                 children.ItemAdded += OnItemAdded;
                 children.ItemRemoved += OnItemRemoved;
             }

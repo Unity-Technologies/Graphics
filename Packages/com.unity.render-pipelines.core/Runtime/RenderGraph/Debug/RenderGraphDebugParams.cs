@@ -134,8 +134,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             var list = GetWidgetList(name);
             m_DebugItems = list.ToArray();
-            m_DebugPanel = debugPanel != null ? debugPanel : DebugManager.instance.GetPanel(name.Length == 0 ? "Render Graph" : name, true);
-            m_DebugPanel.children.Add(m_DebugItems);
+            m_DebugPanel = debugPanel != null ? debugPanel : DebugManager.instance.GetPanel(name.Length == 0 ? "Rendering" : name, true);
+
+            var foldout = new DebugUI.Foldout() { displayName = name, };
+            foldout.children.Add(m_DebugItems);
+            m_DebugPanel.children.Add(foldout);
         }
 
         public void UnRegisterDebug(string name)
