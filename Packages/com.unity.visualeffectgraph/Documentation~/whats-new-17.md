@@ -1,10 +1,10 @@
-# What's new in version 17 / Unity 2023.3
+# What's new in version 17 / Unity 6
 
-This page contains an overview of new features, improvements, and issues resolved in version 17 of the Visual Effect Graph, embedded in Unity 2023.3.
+This page contains an overview of new features, improvements, and issues resolved in version 17 of the Visual Effect Graph, embedded in Unity 6.
 
 ## Added
 
-The following is a list of features Unity added to version 17 of the Visual Effect Graph embedded in Unity 2023.3. Each entry includes a summary of the feature and a link to any relevant documentation.
+The following is a list of features Unity added to version 17 of the Visual Effect Graph embedded in Unity 6. Each entry includes a summary of the feature and a link to any relevant documentation.
 
 ### URP Camera Buffer
 
@@ -59,7 +59,7 @@ The [Shortcut Manager](https://docs.unity3d.com/2023.3/Documentation/Manual/Shor
 
 <video src="Images/whatnew_17_BlockBanner.mp4" width="700" height="auto" autoplay="true" loop="true" controls></video>
 
-The following is a list of improvements Unity made to the Visual Effect Graph in version 17, embedded in Unity 2023.3. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
+The following is a list of improvements Unity made to the Visual Effect Graph in version 17, embedded in Unity 6. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
 
 ### Collider Shape Blocks:
 [Collider blocks](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@17.0/manual/Block-CollideWithSphere.html) have been combined so that you can easily switch between shapes. Several options have been added, and stability and accuracy have been greatly improved.
