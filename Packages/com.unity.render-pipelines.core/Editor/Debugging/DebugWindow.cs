@@ -11,7 +11,6 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
-using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace UnityEditor.Rendering
 {
@@ -44,7 +43,8 @@ namespace UnityEditor.Rendering
             hideFlags = HideFlags.HideAndDontSave;
         }
     }
-
+    
+    [CoreRPHelpURL("Rendering-Debugger")]
     sealed class DebugWindow : EditorWindowWithHelpButton, IHasCustomMenu
     {
         static Styles s_Styles;
@@ -74,37 +74,6 @@ namespace UnityEditor.Rendering
         {
             get => DebugManager.instance.displayEditorUI;
             private set => DebugManager.instance.displayEditorUI = value;
-        }
-
-        protected override void OnHelpButtonClicked()
-        {
-            //Deduce documentation url and open it in browser
-            var url = GetSpecificURL() ?? GetDefaultURL();
-            Application.OpenURL(url);
-        }
-
-        string GetDefaultURL()
-        {
-            //Find package info of the current CoreRP package
-            return $"https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@{DocumentationInfo.version}/manual/Rendering-Debugger.html";
-        }
-
-        string GetSpecificURL()
-        {
-            //Find package info of the current RenderPipeline
-            var currentPipeline = GraphicsSettings.currentRenderPipeline;
-            if (currentPipeline == null)
-                return null;
-
-            if (!DocumentationUtils.TryGetPackageInfoForType(currentPipeline.GetType(), out var packageName, out var version))
-                return null;
-
-            return packageName switch
-            {
-                "com.unity.render-pipelines.universal" => $"https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@{version}/manual/features/rendering-debugger.html",
-                "com.unity.render-pipelines.high-definition" => $"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@{version}/manual/Render-Pipeline-Debug-Window.html",
-                _ => null
-            };
         }
 
         [DidReloadScripts]
@@ -508,10 +477,23 @@ namespace UnityEditor.Rendering
                 {
                     using (new EditorGUILayout.VerticalScope())
                     {
+                        var selectedPanel = panels[m_Settings.selectedPanel];
+                        
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            var style = new GUIStyle(CoreEditorStyles.sectionHeaderStyle) { fontStyle = FontStyle.Bold };
+                            EditorGUILayout.LabelField(new GUIContent(selectedPanel.displayName), style);
+                            
+                            // Context menu
+                            var rect = GUILayoutUtility.GetLastRect();
+                            var contextMenuRect = new Rect(rect.xMax, rect.y + 4f, 16f, 16f);
+                            
+                            CoreEditorUtils.ShowHelpButton(contextMenuRect, selectedPanel.documentationUrl, new GUIContent($"{selectedPanel.displayName} panel."));
+                        }
+
                         const float leftMargin = 4f;
                         GUILayout.Space(leftMargin);
-                        var selectedPanel = panels[m_Settings.selectedPanel];
-
+                        
                         using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_ContentScroll))
                         {
                             TraverseContainerGUI(selectedPanel);

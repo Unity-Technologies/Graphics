@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Screen Space Lens Flare")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    [HDRPHelpURL("Screen-Space-Lens-Flare")]
+    [HDRPHelpURL("shared/lens-flare/Override-Screen-Space-Lens-Flare")]
     public class ScreenSpaceLensFlare : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

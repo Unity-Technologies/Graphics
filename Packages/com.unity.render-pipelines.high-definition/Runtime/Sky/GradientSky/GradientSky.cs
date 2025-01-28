@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [VolumeComponentMenu("Sky/Gradient Sky")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [SkyUniqueID((int)SkyType.Gradient)]
-    [HDRPHelpURL("Override-Gradient-Sky")]
+    [HDRPHelpURL("create-a-gradient-sky")]
     public class GradientSky : SkySettings
     {
         /// <summary>Top color of the gradient sky.</summary>

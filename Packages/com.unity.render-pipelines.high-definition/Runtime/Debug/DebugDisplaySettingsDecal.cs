@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [DisplayInfo(name = "Decals", order = 5)]
+        [HDRPHelpURL("understand-decals")]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Decals";
