@@ -52,7 +52,7 @@
         },
         {
             "name": "com.unity.2d.animation",
-            "expression": "10.0.0-pre.1",
+            "expression": "10.0.0",
             "define": "USING_2DANIMATION"
         }
     ],

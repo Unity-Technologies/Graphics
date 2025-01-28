@@ -137,6 +137,8 @@
         * Mesh Deformation
           * [Compute Deformation](Compute-Deformation-Node)
           * [Linear Blend Skinning](Linear-Blend-Skinning-Node)
+        * Sprite Deformation
+          * [Sprite Skinning](Sprite-Skinning-Node)
         * PBR
             * [Dielectric Specular](Dielectric-Specular-Node)
             * [Metal Reflectance](Metal-Reflectance-Node)

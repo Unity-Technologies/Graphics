@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    class RenderGraphTests
+    partial class RenderGraphTests
     {
         // For RG Record/Hash/Compile testing, use m_RenderGraph
         RenderGraph m_RenderGraph;
@@ -165,10 +165,16 @@ namespace UnityEngine.Rendering.Tests
             m_Camera = null;
         }
 
+        void ClearCompiledGraphAndHash()
+        {
+            m_RenderGraph.ClearCurrentCompiledGraph();
+            DelegateHashCodeUtils.ClearCache();
+        }
+
         [SetUp]
         public void SetupRenderGraph()
         {
-            m_RenderGraph.ClearCompiledGraph();
+            ClearCompiledGraphAndHash();
         }
 
         class RenderGraphTestPassData
@@ -724,193 +730,6 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void ComputeHashDifferentPerResolution()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(256, 256) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            TextureHandle texture1 = m_RenderGraph.CreateTexture(new TextureDesc(512, 512) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture1, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreNotEqual(hash0, hash1);
-        }
-
-        [Test]
-        public void ComputeHashDifferentForMSAA()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, msaaSamples = MSAASamples.None });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, msaaSamples = MSAASamples.MSAA4x });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreNotEqual(hash0, hash1);
-        }
-
-        [Test]
-        public void ComputeHashDifferentForRenderFunc()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
-            }
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreNotEqual(hash0, hash1);
-        }
-
-        [Test]
-        public void ComputeHashDifferentForMorePasses()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc3(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
-            {
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0));
-                builder.ReadTexture(texture0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
-            }
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc3);
-            }
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
-            {
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0));
-                builder.ReadTexture(texture0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
-            }
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreNotEqual(hash0, hash1);
-        }
-
-        [Test]
-        public void ComputeHashSameForOneSetup()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc3(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            static void RecordRenderGraph(RenderGraph renderGraph)
-            {
-                TextureHandle texture0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm });
-
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-                {
-                    builder.UseColorBuffer(texture0, 0);
-                    builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-                }
-
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
-                {
-                    builder.UseColorBuffer(texture0, 0);
-                    builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc3);
-                }
-
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
-                {
-                    builder.WriteTexture(renderGraph.ImportBackbuffer(0));
-                    builder.ReadTexture(texture0);
-                    builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
-                }
-            }
-
-            RecordRenderGraph(m_RenderGraph);
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            RecordRenderGraph(m_RenderGraph);
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreEqual(hash0, hash1);
-        }
-
-        [Test]
         public void GetDescAndInfoForImportedTextureWorks()
         {
             RenderTextureDescriptor desc = new RenderTextureDescriptor(37, 53, GraphicsFormat.R16G16_SNorm, GraphicsFormat.None, 4);
@@ -1369,6 +1188,49 @@ namespace UnityEngine.Rendering.Tests
                         Assert.DoesNotThrow(delegate { context.cmd.SetGlobalTexture(k_DefaultWhiteTextureID, data.transientTexture); });
                         // Put back white instead
                         context.cmd.SetGlobalTexture(k_DefaultWhiteTextureID, data.whiteTexture);
+                    });
+                }
+            };
+
+            m_Camera.Render();
+        }
+
+        class TempAllocTestData
+        {
+            public TextureHandle whiteTexture;
+        }
+
+        [Test]
+        public void GetTempMaterialPropertyBlockAreReleasedAfterRenderGraphNodeExecution()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddUnsafePass<TempAllocTestData>("MPBPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    passData.whiteTexture = m_RenderGraph.defaultResources.whiteTexture;
+
+                    builder.SetRenderFunc((TempAllocTestData data, UnsafeGraphContext context) =>
+                    {
+                        // no temp alloc yet
+                        Assert.IsTrue(context.renderGraphPool.IsEmpty());
+
+                        var mpb = context.renderGraphPool.GetTempMaterialPropertyBlock();
+                        mpb.SetTexture(k_DefaultWhiteTextureID, data.whiteTexture);
+
+                        // memory temporarily allocated
+                        Assert.IsFalse(context.renderGraphPool.IsEmpty());
+                    });
+                }
+
+                using (var builder = m_RenderGraph.AddUnsafePass<TempAllocTestData>("PostPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((TempAllocTestData data, UnsafeGraphContext context) =>
+                    {
+                        // memory has been deallocated at the end of the previous RG node, no leak
+                        Assert.IsTrue(context.renderGraphPool.IsEmpty());
                     });
                 }
             };

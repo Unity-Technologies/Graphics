@@ -223,16 +223,17 @@ namespace UnityEngine.Rendering
             };
         }
 
-
-        [DisplayInfo(name = "GPU Resident Drawer", order = 5)]
+        [DisplayInfo(name = "Rendering", order = 5)]
+        [CurrentPipelineHelpURL("gpu-resident-drawer")]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
-            public override string PanelName => "GPU Resident Drawer";
-
             public override DebugUI.Flags Flags => DebugUI.Flags.EditorForceUpdate;
 
             public SettingsPanel(DebugDisplayGPUResidentDrawer data)
             {
+                var foldout = new DebugUI.Foldout() { displayName = Strings.drawerSettingsContainerName, };
+                AddWidget(foldout);
+
                 var helpBox = new DebugUI.MessageBox()
                 {
                     displayName = "Not Supported",
@@ -244,10 +245,9 @@ namespace UnityEngine.Rendering
                     },
                     isHiddenCallback = () => GPUResidentDrawer.IsEnabled()
                 };
+                foldout.children.Add(helpBox);
 
-                AddWidget(helpBox);
-
-                AddWidget(new Container()
+                foldout.children.Add(new Container()
                 {
                     displayName = Strings.occlusionCullingTitle,
                     isHiddenCallback = () => !GPUResidentDrawer.IsEnabled(),
@@ -265,14 +265,12 @@ namespace UnityEngine.Rendering
                 });
                 AddOcclusionContextStatsWidget(data);
 
-                AddWidget(new DebugUI.Container()
+                foldout.children.Add(new DebugUI.BoolField
                 {
-                    displayName = Strings.drawerSettingsContainerName,
-                    isHiddenCallback = () => !GPUResidentDrawer.IsEnabled(),
-                    children =
-                    {
-                        new DebugUI.BoolField { nameAndTooltip = Strings.displayBatcherStats, getter = () => data.displayBatcherStats, setter = value => data.displayBatcherStats = value},
-                    }
+                    nameAndTooltip = Strings.displayBatcherStats,
+                    getter = () => data.displayBatcherStats,
+                    setter = value => data.displayBatcherStats = value,
+                    isHiddenCallback = () => !GPUResidentDrawer.IsEnabled()
                 });
 
                 AddInstanceCullingStatsWidget(data);

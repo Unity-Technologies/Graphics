@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering
     /// <para> This example demonstrates how to determine if your project uses RenderGraph's compilation caching. </para>
     /// <code>
     /// using UnityEngine.Rendering;
-    /// 
+    ///
     /// public static class RenderGraphHelper
     /// {
     ///     public static bool enableCompilationCaching
@@ -30,8 +30,8 @@ namespace UnityEngine.Rendering
     /// }
     /// </code>
     /// </example>
-    [Serializable] 
-    [SupportedOnRenderPipeline] 
+    [Serializable]
+    [SupportedOnRenderPipeline]
     [Categorization.CategoryInfo(Name = "Render Graph", Order = 50)]
     [Categorization.ElementInfo(Order = 0)]
     public class RenderGraphGlobalSettings : IRenderPipelineGraphicsSettings

@@ -32,10 +32,8 @@ Each configuration is separated into two scopes:
 - **Global:** Changes the configuration settings in the Unity Editor, [HDRP graphics settings](Default-Settings-Window.md), or [HDRP Asset](HDRP-Asset.md)
 - **Current Quality:** Changes the configuration settings in the [HDRP Asset](HDRP-Asset.md) set in [Quality settings](quality-settings.md). If no asset is assigned in the **Quality** settings, this mode uses the [HDRP Asset](HDRP-Asset.md) set in the [Graphics settings window](Default-Settings-Window.md).
 
-<a name="HDRPTab"></a>
-
 ### HDRP
-
+<a name="HDRPTab"></a>
 This section provides you with configuration options to help you make your Unity Project use HDRP.
 
 ![](Images/RenderPipelineWizardHDRPTab.png)
@@ -62,10 +60,8 @@ This section provides you with configuration options to help you make your Unity
 | **Assigned - Quality**   | Checks to make sure you have assigned either an [HDRP Asset](HDRP-Asset.md) or null to the **Quality Settings** field corresponding to the currently used quality (menu: **Edit** &gt; **Project Settings** &gt; **Quality**).<br />If the value is null, all **Current Quality** related configuration will be the one from the [HDRP Asset](HDRP-Asset.md) used in **Global**.<br />Select the **Fix** button to nullify the field. |
 | **SRP Batcher**          | Checks to make sure that [Scriptable Render Pipeline Batcher](xref:um-srp-batcher) is enabled.<br/>Select the **Fix** button to enable it in the used HDRP Asset. |
 
-<a name="VRTab"></a>
-
 ### HDRP + VR
-
+<a name="VRTab"></a>
 This section provides extra configuration options to help you set up your HDRP Project to support virtual reality. If you can't find an option in this section of the documentation, refer to the [HDRP section](#HDRPTab) options. This is only supported on Windows OS. You can adjust the extra configuration options in the  **Global** scope.
 
 ![](Images/RenderPipelineWizardVRTab.png)
@@ -107,10 +103,8 @@ This section provides extra configuration options to help you set up your HDRP P
 </tbody>
 </table>
 
-<a name="DXRTab"></a>
-
 ### HDRP + DXR
-
+<a name="DXROptionalTab"></a>
 This section provides extra configuration options to help you set up your HDRP Project to support ray tracing. If you can't find an option in this section of the documentation, refer to the [HDRP tab](#HDRPTab) options. This is only supported on Windows OS.
 
 ![](Images/RenderPipelineWizardDXRTab.png)

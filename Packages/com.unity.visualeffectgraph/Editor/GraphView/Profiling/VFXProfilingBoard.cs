@@ -95,6 +95,7 @@ namespace UnityEditor.VFX.UI
             capabilities |= Capabilities.Movable;
 
             RegisterCallback<MouseDownEvent>(OnMouseClick);
+            RegisterCallback<MouseUpEvent>(e=> e.StopPropagation());
             // Prevent graphview from zooming in/out when using the mouse wheel over the component board
             RegisterCallback<WheelEvent>(e => e.StopPropagation());
 
@@ -167,6 +168,7 @@ namespace UnityEditor.VFX.UI
         void OnMouseClick(MouseDownEvent e)
         {
             m_View.SetBoardToFront(this);
+            e.StopPropagation();
         }
 
         public void Detach()

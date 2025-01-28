@@ -295,15 +295,18 @@ namespace UnityEditor.VFX
 
         private void OnSelectionChanged(IEnumerable<object> newSelection)
         {
-            foreach (VFXTemplateDescriptor template in newSelection)
+            foreach (var item in newSelection)
             {
-                m_SelectedTemplate = template;
-                m_DetailsTitle.text = template.name;
-                m_DetailsDescription.text = template.description;
-                m_LastSelectedTemplateGuid = template.assetGuid;
-                m_LastSelectedIndex = m_ListOfTemplates.selectedIndex;
-                // Maybe set a placeholder screenshot when null
-                m_DetailsScreenshot.image = template.thumbnail;
+                if (item is VFXTemplateDescriptor template)
+                {
+                    m_SelectedTemplate = template;
+                    m_DetailsTitle.text = template.name;
+                    m_DetailsDescription.text = template.description;
+                    m_LastSelectedTemplateGuid = template.assetGuid;
+                    m_LastSelectedIndex = m_ListOfTemplates.selectedIndex;
+                    // Maybe set a placeholder screenshot when null
+                    m_DetailsScreenshot.image = template.thumbnail;
+                }
 
                 // We expect only one item to be selected
                 return;

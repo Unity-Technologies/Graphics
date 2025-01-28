@@ -26,21 +26,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static class Strings
         {
+            public const string decals = "Decals";
             public const string containerName = "Atlas Texture For Decals";
             public static readonly NameAndTooltip displayAtlas = new() { name = "Display Atlas", tooltip = "Enable the checkbox to debug and display the decal atlas for a Camera in the top left of that Camera's view." };
             public static readonly NameAndTooltip mipLevel = new() { name = "Mip Level", tooltip = "Use the slider to select the mip level for the decal atlas." };
         }
 
-        [DisplayInfo(name = "Decals", order = 5)]
+        [DisplayInfo(name = "Rendering", order = 5)]
+        [HDRPHelpURL("understand-decals")]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
-            public override string PanelName => "Decals";
             public SettingsPanel(DebugDisplaySettingsDecal data)
             {
-                AddWidget(new DebugUI.RuntimeDebugShadersMessageBox());
-                AddWidget(new DebugUI.Container()
+                var foldout = new DebugUI.Foldout() { displayName = Strings.decals, opened = true };
+                AddWidget(foldout);
+
+                foldout.children.Add(new DebugUI.RuntimeDebugShadersMessageBox());
+                foldout.children.Add(new DebugUI.Container()
                 {
-                    displayName = Strings.containerName,
+                    displayName = $"#{Strings.containerName}",
                     children =
                     {
                         new DebugUI.BoolField { nameAndTooltip = Strings.displayAtlas, getter = () => data.displayAtlas, setter = value => data.displayAtlas = value},

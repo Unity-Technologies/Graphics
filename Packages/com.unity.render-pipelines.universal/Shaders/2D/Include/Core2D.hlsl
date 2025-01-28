@@ -3,8 +3,8 @@
 
 #if defined(SKINNED_SPRITE)
 
-    #define UNITY_SKINNED_VERTEX_INPUTS         float4 blendWeights : BLENDWEIGHTS; uint4  blendIndices : BLENDINDICES;
-    #define UNITY_SKINNED_VERTEX_COMPUTE(x)     x.positionOS = UnitySkinSprite(x.positionOS, x.blendIndices, x.blendWeights, unity_SpriteProps.z);
+    #define UNITY_SKINNED_VERTEX_INPUTS         float4 weights : BLENDWEIGHTS; uint4 indices : BLENDINDICES;
+    #define UNITY_SKINNED_VERTEX_COMPUTE(x)     x.positionOS = UnitySkinSprite(x.positionOS, x.indices, x.weights, unity_SpriteProps.z, 1.0f);
 
 #else
 
@@ -20,23 +20,23 @@ float3 UnityFlipSprite( in float3 pos, in float2 flip )
     return float3(pos.xy * flip, pos.z);
 }
 
-float3 UnitySkinSprite( in float3 positionOS, in uint4 blendIndices, in float4 blendWeights, in float offset )
+float3 UnitySkinSprite( in float3 inputData, in uint4 blendIndices, in float4 blendWeights, in float offset, in float w )
 {
-    float4 vertex = float4(positionOS, 1.0);
+    float4 outputData = float4(inputData, w);
 
-#if defined(SKINNED_SPRITE)
+#if defined(SKINNED_SPRITE) && !defined(SHADERGRAPH_PREVIEW)
     UNITY_BRANCH
     if (offset >= 0)
     {
-        vertex =
-            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.x], vertex) * blendWeights.x +
-            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.y], vertex) * blendWeights.y +
-            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.z], vertex) * blendWeights.z +
-            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.w], vertex) * blendWeights.w;
+        outputData =
+            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.x], outputData) * blendWeights.x +
+            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.y], outputData) * blendWeights.y +
+            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.z], outputData) * blendWeights.z +
+            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.w], outputData) * blendWeights.w;
     }
 #endif // SKINNED_SPRITE
 
-    return vertex.xyz;
+    return outputData.xyz;
 }
 
 #ifdef UNITY_INSTANCING_ENABLED

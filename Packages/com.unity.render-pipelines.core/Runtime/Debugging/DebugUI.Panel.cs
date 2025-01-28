@@ -53,13 +53,17 @@ namespace UnityEngine.Rendering
             /// Callback used when the panel is set dirty.
             /// </summary>
             public event Action<Panel> onSetDirty = delegate { };
+            
+#if UNITY_EDITOR
+            public string documentationUrl { get; set; }
+#endif
 
             /// <summary>
             /// Constructor.
             /// </summary>
             public Panel()
             {
-                children = new ObservableList<Widget>();
+                children = new ObservableList<Widget>(0, (widget, widget1) => widget.order.CompareTo(widget1.order));
                 children.ItemAdded += OnItemAdded;
                 children.ItemRemoved += OnItemRemoved;
             }

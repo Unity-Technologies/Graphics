@@ -17,24 +17,27 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [DisplayInfo(name = "Render Graph", order = 10)]
+        [DisplayInfo(name = "Rendering", order = 10)]
+        [CurrentPipelineHelpURL(pageName: "features/rendering-debugger-reference", pageHash: "render-graph")]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
-            public override string PanelName => "Render Graph";
             public SettingsPanel(DebugDisplaySettingsRenderGraph _)
             {
+                var foldout = new DebugUI.Foldout() { displayName = "Render Graph", };
+                AddWidget(foldout);
+
                 bool usingRenderGraph = false;
                 foreach (var graph in RenderGraph.GetRegisteredRenderGraphs())
                 {
                     usingRenderGraph = true;
                     var list = graph.GetWidgetList();
                     foreach (var item in list)
-                        AddWidget(item);
+                        foldout.children.Add(item);
                 }
 
                 if (!usingRenderGraph)
                 {
-                    AddWidget(new DebugUI.MessageBox()
+                    foldout.children.Add(new DebugUI.MessageBox()
                     {
                         displayName =
                             "Warning: The current render pipeline does not have Render Graphs Registered",

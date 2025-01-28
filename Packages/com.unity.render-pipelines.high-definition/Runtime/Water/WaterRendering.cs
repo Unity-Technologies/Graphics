@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Water Rendering")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    [HDRPHelpURL("Override-Water-Rendering")]
+    [HDRPHelpURL("water-use-the-water-system-in-your-project")]
     public sealed partial class WaterRendering : VolumeComponent
     {
         /// <summary>

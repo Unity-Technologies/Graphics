@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
     ///   state (e.g., whether it is in the editor or playing at runtime).
     /// - `DebugUI` also includes helper methods for widget initialization, such as compact initialization using the `NameAndTooltip` struct.
     ///
-    /// This API lets you do the following: 
+    /// This API lets you do the following:
     /// - Specify widget behavior such as "EditorOnly", "RuntimeOnly", "EditorForceUpdate", and "FrequentlyUsed".
     /// - Show dynamic data with optional formatting.
     /// - Specify delegate functions to show or hide widgets
@@ -53,10 +53,10 @@ namespace UnityEngine.Rendering
     ///         {
     ///             // Set the display label
     ///             displayName = "Current Time",
-    ///             
+    ///
     ///             // Set the format for the time
     ///             getter = () => System.DateTime.Now.ToString("HH:mm:ss"),
-    ///             
+    ///
     ///             // Set the value to refresh every second
     ///             refreshRate = 1f
     ///         };
@@ -103,6 +103,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public abstract class Widget
         {
+            /// <summary>
+            /// The order of the widget
+            /// </summary>
+            public int order { get; set; } = 0;
+
             // Set to null until it's added to a panel, be careful
             /// <summary>
             /// Panels containing the widget.

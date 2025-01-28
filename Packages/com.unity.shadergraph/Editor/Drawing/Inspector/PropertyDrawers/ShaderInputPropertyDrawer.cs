@@ -404,7 +404,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         };
                     }
 
-                    var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property",
+                    var help = HelpBoxRow.CreateUpgradePrompt($"{typeString} Property",
                         () => property.ChangeVersion(property.latestVersion),
                         dismissAction);
                     if (help != null)
@@ -424,9 +424,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     case IShaderPropertyDrawer propDrawer:
                         propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);
                         break;
-                    case UnityEditor.ShaderGraph.Serialization.MultiJsonInternal.UnknownShaderPropertyType unknownProperty:
-                        var helpBox = new HelpBoxRow(MessageType.Warning);
-                        helpBox.Add(new Label("Cannot find the code for this Property, a package may be missing."));
+                    case UnityEditor.ShaderGraph.Serialization.MultiJsonInternal.UnknownShaderPropertyType:
+                        var helpBox = new HelpBoxRow("Cannot find the code for this Property, a package may be missing.", MessageType.Warning);
                         propertySheet.Add(helpBox);
                         break;
                     case Vector1ShaderProperty vector1Property:
@@ -1290,12 +1289,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (keyword.keywordDefinition == KeywordDefinition.ShaderFeature && isSubGraph)
             {
-                var help = new HelpBoxRow(MessageType.Info);
-                var warning = new TextElement();
-                warning.tabIndex = 1;
-                warning.style.alignSelf = Align.Center;
-                warning.text = "Shader Feature Keywords in SubGraphs do not generate variant permutations.";
-                help.Add(warning);
+                var help = new HelpBoxRow("Shader Feature Keywords in SubGraphs do not generate variant permutations.", MessageType.Info);
                 propertySheet.Add(help);
             }
 

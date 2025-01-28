@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [VolumeComponentMenu("Sky/HDRI Sky")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [SkyUniqueID((int)SkyType.HDRI)]
-    [HDRPHelpURL("Override-HDRI-Sky")]
+    [HDRPHelpURL("create-an-hdri-sky")]
     public partial class HDRISky : SkySettings
     {
         /// <summary>

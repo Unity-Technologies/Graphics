@@ -106,13 +106,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void GraphSettingsTabClicked(TabButton button)
         {
             m_GraphSettingsTabFocused = true;
-            m_ScrollView.mode = ScrollViewMode.Vertical;
         }
 
         void NodeSettingsTabClicked(TabButton button)
         {
             m_GraphSettingsTabFocused = false;
-            m_ScrollView.mode = ScrollViewMode.VerticalAndHorizontal;
         }
 
         public void InitializeGraphSettings()

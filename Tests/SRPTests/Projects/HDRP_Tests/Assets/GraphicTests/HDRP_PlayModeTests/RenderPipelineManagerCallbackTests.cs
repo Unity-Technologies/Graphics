@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool isRenderRequest { get; set; }
             public uint renderCountTimes { get; set; }
             public ExpectedTriggeredTimes expectedTriggeredTimes { get; set; }
-            
+
             public Action<Camera, HDAdditionalCameraData, RenderTexture> setUpAction { get; set; }
             public Action<Camera, HDAdditionalCameraData, RenderTexture> tearDownAction { get; set; }
 
@@ -43,18 +43,19 @@ namespace UnityEngine.Rendering.HighDefinition
         private Camera m_Camera;
         private HDAdditionalCameraData m_AdditionalCameraData;
         private RenderTexture m_RT;
-        
+
         [SetUp]
         public void Setup()
         {
             var go = new GameObject($"{nameof(RenderPipelineManagerCallbackTests)}_Main");
             m_Camera = go.AddComponent<Camera>();
             m_AdditionalCameraData = go.AddComponent<HDAdditionalCameraData>();
-            
+
             // Avoid that the camera renders outside the submit render request
             m_Camera.enabled = false;
 
             m_RT = new RenderTexture(256, 256, 16, RenderTextureFormat.ARGB32);
+            Debug.Log($"{m_RT.depth} - {m_RT.depthStencilFormat} - {m_RT.depthBuffer}");
             m_RT.Create();
         }
 
@@ -232,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (cameras.Contains(m_Camera))
                     beginContextCalledTimes++;
             }
-            
+
 
             uint endCameraCalledTimes = 0u;
             void ActionEndRendering(ScriptableRenderContext context, Camera camera)
@@ -240,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (camera == m_Camera)
                     endCameraCalledTimes++;
             }
-            
+
             uint endContextCalledTimes = 0u;
             void ActionEndContext(ScriptableRenderContext context, List<Camera> cameras)
             {
@@ -252,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderPipelineManager.beginCameraRendering += ActionBeginRendering;
             RenderPipelineManager.endCameraRendering += ActionEndRendering;
             RenderPipelineManager.endContextRendering += ActionEndContext;
-            
+
             test.setUpAction?.Invoke(m_Camera, m_AdditionalCameraData, m_RT);
 
             for (int i = 0; i < test.renderCountTimes; ++i)
