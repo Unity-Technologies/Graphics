@@ -414,7 +414,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     break;
                 case TextureSizeMode.Functor:
                     if (func != null)
-                        hashCode.Append(func);
+                        hashCode.Append(DelegateHashCodeUtils.GetFuncHashCode(func));
                     break;
                 case TextureSizeMode.Scale:
                     hashCode.Append(scale);
