@@ -57,7 +57,9 @@ you can use filters to apply common color processing operations to Sub-layers. T
 **Note**: It is possible to implement the functionality of many filters with nodes in the Composition Graph, but if you use the built-in filters instead, it makes the Composition Graph simpler.
 
 #### Chroma Keying
+
 Applies a chroma keying algorithm to the Sub-layer. When you select this filter, you can use the following properties to customize it.
+
 | **Property** | **Description** |
 | ---- | ---- |
 |**Key Color**| Specifies a color to indicate the areas of the image to mask/make transparent. |
