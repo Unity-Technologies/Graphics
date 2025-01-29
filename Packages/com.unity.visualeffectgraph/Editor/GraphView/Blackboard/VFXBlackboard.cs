@@ -1225,6 +1225,11 @@ namespace UnityEditor.VFX.UI
             return m_Treeview.Query<VFXBlackboardAttributeRow>().Where(x => attributeNames.Any(y => VFXAttributeHelper.IsMatching(y, x.attribute.title, true))).ToList();
         }
 
+        public void ClearAllAttributesHighlights()
+        {
+            m_Treeview.Query<VFXBlackboardAttributeRow>().ForEach(r => r.RemoveFromClassList("hovered"));
+        }
+
         public void OnControllerChanged(ref ControllerChangedEvent e)
         {
             switch (e.change)
