@@ -41,11 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = graph.AddRasterRenderPass<PassData>(k_NormalPass, out var passData, m_ProfilingSampler))
             {
-                var filterSettings = FilteringSettings.defaultValue;
-                filterSettings.renderQueueRange = RenderQueueRange.all;
-                filterSettings.layerMask = -1;
-                filterSettings.renderingLayerMask = 0xFFFFFFFF;
-                filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
+                LayerUtility.GetFilterSettings(rendererData, ref layerBatch, out var filterSettings);
 
                 var drawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, renderingData, cameraData, lightData, SortingCriteria.CommonTransparent);
                 var sortSettings = drawSettings.sortingSettings;
