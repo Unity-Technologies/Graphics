@@ -1,9 +1,5 @@
 # Set up ray tracing
 
-The High Definition Render Pipeline (HDRP) includes preview ray tracing support from Unity 2019.3. Ray tracing allows you to access data that's not on screen. For example, you can use it to request position data, normal data, or lighting data, and then use this data to compute quantities that are hard to approximate using classic rasterization techniques.
-
-For information about the hardware ray tracing requires, refer to [Ray tracing hardware requirements](raytracing-requirements.md)
-
 ## Integrate ray tracing into your HDRP Project
 
 Before you use ray tracing features in your HDRP Project, you need to set up your HDRP Project for ray tracing support. HDRP only supports ray tracing using the DirectX 12 API, so ray tracing only works in the Unity Editor or the Windows Unity Player when they render with DirectX 12. You need to change the default graphics API of your HDRP project from DirectX 11 to DirectX 12.
@@ -144,83 +140,4 @@ To build your Project to a Unity Player, ray tracing requires that the build use
 
 To check whether it's possible to use ray tracing in a Scene, HDRP includes a menu option that validates each GameObject in the Scene. If you don't setup GameObjects correctly, this process throws warnings in the Console window. For the list of things this option checks for, see [Menu items](Menu-Items.md#other). To use it:
 1. Click **Edit** > **Render Pipeline** > **HD Render Pipeline**  > **Check Scene Content for Ray Tracing**.
-2. In the Console window (menu: **Window > General > Console**), check if there are any warnings.
-
-<a name="RayTracingMeshes"></a>
-
-## Ray tracing and Meshes
-
-HDRP changes how it handles Meshes in your scene when you integrate a ray traced effect into your project.
-
-When you enable ray tracing, HDRP automatically creates a ray tracing acceleration structure. This structure allows Unity to calculate ray tracing for Meshes in your scene efficiently in real time.
-
-As a result, ray tracing can change how some Meshes appear in your scene in the following ways:
-
-- If your Mesh has a Material assigned that doesn't have the HDRenderPipeline tag, HDRP doesn't add it to the acceleration structure and doesn't apply any ray traced effects to the mesh as a result.
-- If a Mesh has a combination of Materials that are single and double-sided, HDRP flags all Materials you have assigned to this mesh as double-sided.
-
-To include a GameObject in ray tracing effects, adjust the Ray Tracing settings in the GameObject's [Mesh Renderer component](https://docs.unity3d.com/Manual/class-MeshRenderer.html#ray-tracing).
-
-## Ray tracing light culling
-Ray tracing requires HDRP to cull lights differently to how it culls lights for rasterization. With rasterization, only lights that affect the current frustum matter. Since ray tracing uses off-screen data for effects such as reflection, HDRP needs to consider lights that affect off screen geometry. For this reason, HDRP defines a range around the camera where it gathers light. To control this range, use the [Light Cluster](Ray-Tracing-Light-Cluster.md) Volume override. It's important to set a range that accurately represents the environment scale. A higher range makes HDRP include lights further away, but it also increases the resource intensity of light culling for ray tracing.
-
-## Ray tracing mode
-HDRP includes two ray tracing modes that define how it evaluates certain ray-traced effects. The modes are:
-
-* **Performance**: This mode targets real-time applications. If you select this mode, ray-traced effects include presets that you can change to balance performance with quality.
-* **Quality**: This mode targets technical demos and applications that want the best quality results.
-
-HDRP exposes different properties for some ray-traced effects based on the ray tracing mode you use..
-
-You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change the ray tracing mode for your entire Project:
-
-1. Click on your [HDRP Asset](HDRP-Asset.md) in the Project window to view it in the Inspector.
-2. In the **Rendering** section, enable the **Realtime Raytracing** checkbox, open the **Supported Ray Tracing Mode** drop-down and select a ray tracing mode from open.
-
-If you select the **Both** option, you can change the ray tracing mode for each ray-traced effect. To do this:
-
-1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component that includes a ray-traced effect.
-2. In the Inspector for the ray-traced effect, change the **Mode** property to use the ray tracing mode you want the effect to use. This changes the properties available in the Inspector.
-
-
-## Ray tracing project
-
-You can find a ray tracing project that contains all the effects mentioned above in the [Small Office Ray Tracing sample project](https://github.com/Unity-Technologies/SmallOfficeRayTracing).
-This Project is already set up with ray tracing support.
-
-## Limitations
-### Platform support
-
-HDRP supports ray tracing for DirectX 12 and specific console platforms. Consult console-specific documentation for more information.
-
-### Feature compatibility
-
-HDRP ray tracing in Unity isn't compatible with the following features:
-
-- Vertex animation, for example wind deformation of vegetation.
-- [Decals](decals.md).
-- Ray tracing is not compatible with the detail meshes and trees in the [Terrain system](https://docs.unity3d.com/Manual/script-Terrain.html). It is compatible with terrain geometry. To include detailed meshes and trees in ray traced reflections, use [mixed tracing](Override-Screen-Space-Reflection.md#mixed-tracing).
-- Box-shaped spot lights.
-- Volumetric [fog](create-a-local-fog-effect.md).
-- [Tessellation](Tessellation.md).
-- Per-pixel displacement techniques such as parallax occlusion mapping, depth offset, and non-terrain height maps.
-- MSAA.
-- [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html) or [Graphics.RenderMesh](https://docs.unity3d.com/ScriptReference/Graphics.RenderMesh.html), because rasterization and ray tracing are different ways of generating an image.
-- [Orthographic projection](hdrp-camera-component-reference.md). If you enable orthographic projection mode, you might experience rendering problems with transparent materials, volumetrics, and planar reflections.
-- Ray Traced and Screen Space effects. These don't appear recursively in [Ray Traced Reflections](Ray-Traced-Reflections.md), [Ray Traced Global Illumination](Ray-Traced-Global-Illumination.md) or [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md). This means, for example, you can't see [Screen Space Global Illumination](Override-Screen-Space-GI.md) in [ray-traced reflections](Ray-Traced-Reflections.md).
-- Fully accurate shadow culling. You might see missing shadows in ray-traced effects. You can use **Extend Shadow Culling** to improve accuracy. See [Ray Tracing Settings](Ray-Tracing-Settings.md) for more information.
-
-#### Reflection Probes
-
-Although ray-traced rendering results include data from [Reflection Probes](Reflection-Probe.md), Reflection Probes do not capture geometry that HDRP renders with ray tracing.
-
-### Unsupported shader graph nodes for ray tracing
-
-When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the [ray tracing shader node](SGNode-Raytracing-Quality.md). Here is the list of the incompatible nodes:
-- DDX, DDY and DDXY nodes, and NormalFromHeight nodes.
-- All the nodes under **Inputs** > **Geometry** (Position, View Direction, Normal, etc.) in View Space mode.
-Furthermore, Shader Graphs that use [Custom Interpolators](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Custom-Interpolators.html) aren't supported in ray tracing.
-
-### Unsupported features of path tracing
-
-For information about unsupported features of path tracing, see [Path tracing limitations](path-tracing-limitations.md).
+2. In the Console window, check if there are any warnings.

@@ -94,6 +94,7 @@
     * [Probe Adjustment Volume component reference](probevolumes-adjustment-volume-component-reference.md)
     * [Override the Adaptive Probe Volumes baking backend](probevolumes-override-backend.md)
   * [Ray tracing](ray-tracing.md)
+    * [Introduction to ray tracing](ray-tracing-introduction.md)
     * [Set up ray tracing](Ray-Tracing-Getting-Started.md)
     * [Implement ray tracing with shader graph](SGNode-Raytracing-Quality.md)
     * [Ray Tracing and animations](Ray-Tracing-Animations.md)
