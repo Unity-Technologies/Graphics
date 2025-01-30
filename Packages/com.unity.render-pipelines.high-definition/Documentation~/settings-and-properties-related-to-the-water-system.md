@@ -176,10 +176,10 @@ Determines the speed at which HDRP presents the water simulation. Values above 1
 
 <tr>
 <td>
-<b><a name="watermask"></a>Water Mask</b>
+<b><a name="simulationmask"></a>Simulation Mask</b>
 </td>
 <td>
-Set the texture HDRP uses to reduce or stop water frequencies depending on the water surface type.<br/><ul> <li><b>Ocean:</b> Reduces swell (red channel), agitation (green), and ripples (blue).</li> <li><b>River:</b> Reduces agitation (red channel) and ripples (green channel).</li> <li><b>Pool:</b> Reduces ripples (red channel).</li></ul>The Water Mask reduces the intensity of these water effects by multiplying the mask values with the corresponding water properties in the shader. Darker areas (closer to black) reduce the intensity, while lighter areas (closer to white) increase it.<br/>For more information, refer to <a href="water-decals-and-masking-in-the-water-system.html">Decals and masking in the Water System</a>.
+Set the texture HDRP uses to reduce or stop water frequencies depending on the water surface type.<br/><ul> <li><b>Ocean:</b> Reduces swell (red channel), agitation (green), and ripples (blue).</li> <li><b>River:</b> Reduces agitation (red channel) and ripples (green channel).</li> <li><b>Pool:</b> Reduces ripples (red channel).</li></ul>The simulation mask reduces the intensity of these water effects by multiplying the mask values with the corresponding water properties in the shader. Darker areas (closer to black) reduce the intensity, while lighter areas (closer to white) increase it.<br/>For more information, refer to <a href="water-decals-and-masking-in-the-water-system.html">Decals and masking in the Water System</a>.
 </td>
 </tr>
 
@@ -521,77 +521,77 @@ X
 
 
 <tr>
-<td rowspan ="7">
+<td rowspan ="9">
 
 </td>
-<td rowspan ="7">
+<td rowspan ="9">
 X
 </td>
-<td rowspan ="7">
+<td rowspan ="9">
 X
 </td>
+</tr>
+
+<tr>
 <td colspan ="2">
 <b>Foam</b>
 </td>
 </tr>
 
 <tr>
+  <td><b>Persistence Multiplier</b></td>
+  <td>Determines the lifespan of surface foam. Higher values cause foam to persist longer and leave a trail.</td>
+</tr>
+<tr>
 <td>
-<b>Simulation Foam Amount</b>
+<b>Current Influence</b>
 </td>
-<td>Determines the amount of surface foam. Higher values generate larger foam patches. The <b>Wind Speed Dimmer</b> configuration determines which <b>Distant Wind Speed</b> values generate foam, and how much; refer to <a href="water-foam-in-the-water-system.html">Foam in the water system</a>.</td>
+<td>Specifies the influence of the swell current on foam. A value of zero means foam stays still, a value of one makes the foam match with current direction and speed. Ripple motion doesn't have any impact on foam.</td>
 </tr>
 
 <tr>
 <td>
-<b>Simulation Foam Smoothness</b>
+<b>Color</b>
 </td>
-<td>Determines the lifespan of surface foam. Higher values cause foam to persist longer and leave a trail.</td>
+<td>Determines the foam color, which HDRP multiplies by the foam texture to produce the final appearance.</td>
+</tr>
+
+<tr>
+<td>
+<b>Smoothness</b>
+</td>
+<td>Determines how much the foam reflects light.</td>
 </tr>
 
 <tr>
 <td>
 <b>Texture Tiling</b>
 </td>
-<td>Determines the tile size of the foam texture, in meters.</td>
+<td>Sets the per-meter tiling for the foam texture.</td>
 </tr>
 
 <tr>
-<td>
-<b>Custom Texture</b>
-</td>
-<td>Choose a texture Unity can use to define foam's appearance. If this is <b>None</b>, HDRP uses the default texture.</td>
+  <td><b>Wind Speed Dimmer</b></td>
+  <td>Determines foam intensity. The normalized <b>Distant Wind Speed</b> determines the X axis value. The spline editor configures the Y axis value. Refer to <a href="water-foam-in-the-water-system.html">Foam in the water system</a> for more information.</td>
+</tr>
+<tr>
+  <td><b>Simulation Foam Amount</b></td>
+  <td>Determines the amount of surface foam. Higher values generate larger foam patches.</td>
 </tr>
 
 <tr>
-<td>
-<b>Mask</b>
-</td>
-<td>Select a texture whose red channel Unity uses to reduce or remove foam.</td>
-</tr>
-
-<tr>
-<td>
-<b>Wind Speed Dimmer</b>
-</td>
-<td>Determines foam intensity. The normalized <b>Distant Wind Speed</b> determines the X axis value. The spline editor configures the Y axis value. Refer to <a href="water-foam-in-the-water-system.html">Foam in the water system</a> for more information.</td>
-</tr>
-
-
-
-<tr>
-<td rowspan="16">
-X
-</td>
-<td rowspan="16">
-X
-</td>
-<td rowspan="16">
-X
-</td>
-<td colspan="2">
-<b>Appearance</b>
-</td>
+  <td rowspan="16">
+    X
+  </td>
+  <td rowspan="16">
+    X
+  </td>
+  <td rowspan="16">
+    X
+  </td>
+  <td colspan="2">
+  <b>Appearance</b>
+  </td>
 </tr>
 
 <tr>
@@ -1016,7 +1016,6 @@ Determines the influence of the <a href="https://docs.unity3d.com/2022.2/Documen
 </tr>
 
 </table>
-
 
 <br/>
 

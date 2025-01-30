@@ -1,9 +1,9 @@
 # Decals and masking in the water system
 
 ## Masks
-You can use a **Water Mask** to affect the influence the simulation has on specific areas of the water surface.
+You can use a simulation mask to affect the influence the simulation has on specific areas of the water surface.
 
-Masks take into account the **Wrap Mode** of the texture on the importer. For **Ocean, Sea, or Lake** water surface types, choose **Clamp** rather the default, **Repeat**.
+Masks take into account the **Wrap Mode** of the texture on the importer. For **Ocean, Sea, or Lake** water surface types, choose **Clamp** rather than the default, **Repeat**.
 
 <table>
 <tr>
@@ -16,7 +16,7 @@ Masks take into account the **Wrap Mode** of the texture on the importer. For **
 </tr>
 <tr>
 <td colspan="2">
-In this example, the Red channel attenuates the First and Second bands with a gradient. The noise on the Green channel attenuates ripples. See the <a href="settings-and-properties-related-to-the-water-system.md#watermask">Water Mask property description</a> for more information.
+In this example, the Red channel attenuates the First and Second bands with a gradient. The noise on the Green channel attenuates ripples. See the <a href="settings-and-properties-related-to-the-water-system.md#simulationmask">Simulation Mask property description</a> for more information.
 </td>
 </tr>
 </table>
