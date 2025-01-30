@@ -14,13 +14,13 @@
 	border-bottom-color: var(--unity-colors-inspector_titlebar-border);
 }
 
-.title > Image
+.title__icon
 {
 	max-width: 120px;
 	max-height: 69px;
 }
 
-.title > Label
+.title__text
 {
 	margin-left: 25px;
 	padding: 0px 0px 0px 0px;
@@ -36,20 +36,22 @@
 	margin-bottom: 16px;
 }
 
-.section *
+.section__header 
+{
+	font-size: 20px;
+	white-space: normal;
+	-unity-font-style: bold;
+}
+
+.section__body
 {
 	font-size: 14px;
 	white-space: normal;
 }
 
-.header 
+.section__link 
 {
-	font-size: 20px;
-	-unity-font-style: bold;
-}
-
-.link 
-{
+	font-size: 14px;
 	white-space: nowrap;
 	overflow: hidden;
 	border-bottom-width: 0px; 
@@ -58,7 +60,7 @@
 	color: var(--link-color);
 }
 
-.link:hover
+.section__link:hover
 {
 	border-bottom-width: 1px; 
 	margin-bottom: -1px;
