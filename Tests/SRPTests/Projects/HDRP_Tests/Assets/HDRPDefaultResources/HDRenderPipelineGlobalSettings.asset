@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 781cc897cf8675041a751163b51f97dd, type: 3}
   m_Name: HDRenderPipelineGlobalSettings
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   m_CustomPostProcessOrdersSettings:
     m_Version: 0
     m_BeforeTransparentCustomPostProcesses:

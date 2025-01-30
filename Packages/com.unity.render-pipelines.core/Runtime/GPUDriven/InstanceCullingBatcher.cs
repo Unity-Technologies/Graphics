@@ -302,13 +302,41 @@ namespace UnityEngine.Rendering
     }
 
     [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
+    internal struct UpdatePackedMaterialDataCacheJob : IJob
+    {
+        [ReadOnly] public NativeArray<int>.ReadOnly materialIDs;
+        [ReadOnly] public NativeArray<GPUDrivenPackedMaterialData>.ReadOnly packedMaterialDatas;
+
+        public NativeParallelHashMap<int, GPUDrivenPackedMaterialData> packedMaterialHash;
+
+        private void ProcessMaterial(int i)
+        {
+            var materialID = materialIDs[i];
+            var packedMaterialData = packedMaterialDatas[i];
+
+            if (materialID == 0)
+                return;
+
+            // Cache the packed material so we can detect a change in material that would need to update the renderer data.
+            packedMaterialHash[materialID] = packedMaterialData;
+        }
+
+        public void Execute()
+        {
+            for (int i = 0; i < materialIDs.Length; ++i)
+                ProcessMaterial(i);
+        }
+    }
+
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal struct CreateDrawBatchesJob : IJob
     {
         [ReadOnly] public bool implicitInstanceIndices;
         [ReadOnly] public NativeArray<InstanceHandle> instances;
         [ReadOnly] public GPUDrivenRendererGroupData rendererData;
-        [ReadOnly] public NativeParallelHashMap<int, BatchMeshID> batchMeshHash;
-        [ReadOnly] public NativeParallelHashMap<int, BatchMaterialID> batchMaterialHash;
+        [ReadOnly] public NativeParallelHashMap<int, BatchMeshID>.ReadOnly batchMeshHash;
+        [ReadOnly] public NativeParallelHashMap<int, BatchMaterialID>.ReadOnly batchMaterialHash;
+        [ReadOnly] public NativeParallelHashMap<int, GPUDrivenPackedMaterialData>.ReadOnly packedMaterialDataHash;
 
         public NativeParallelHashMap<RangeKey, int> rangeHash;
         public NativeList<DrawRange> drawRanges;
@@ -375,7 +403,6 @@ namespace UnityEngine.Rendering
             var lightmapIndex = rendererData.lightmapIndex[i];
             var packedRendererData = rendererData.packedRendererData[i];
             var rendererPriority = rendererData.rendererPriority[i];
-            var lodGroupID = rendererData.lodGroupID[i];
 
             int instanceCount;
             int instanceOffset;
@@ -419,6 +446,8 @@ namespace UnityEngine.Rendering
             }
 
             // Scan all materials once to retrieve whether this renderer is indirect-compatible or not (and store it in the RangeKey).
+            Span<GPUDrivenPackedMaterialData> packedMaterialDatas = stackalloc GPUDrivenPackedMaterialData[materialsCount];
+
             var supportsIndirect = true;
             for (int matIndex = 0; matIndex < materialsCount; ++matIndex)
             {
@@ -429,8 +458,21 @@ namespace UnityEngine.Rendering
                 }
 
                 var materialIndex = rendererData.materialIndex[materialsOffset + matIndex];
-                var packedMaterialData = rendererData.packedMaterialData[materialIndex];
+                GPUDrivenPackedMaterialData packedMaterialData;
+
+                if (rendererData.packedMaterialData.Length > 0)
+                {
+                    packedMaterialData = rendererData.packedMaterialData[materialIndex];
+                }
+                else
+                {
+                    var materialID = rendererData.materialID[materialIndex];
+                    bool isFound = packedMaterialDataHash.TryGetValue(materialID, out packedMaterialData);
+                    Assert.IsTrue(isFound);
+                }
                 supportsIndirect &= packedMaterialData.isIndirectSupported;
+
+                packedMaterialDatas[matIndex] = packedMaterialData;
             }
 
             var rangeKey = new RangeKey
@@ -456,7 +498,7 @@ namespace UnityEngine.Rendering
 
                 var materialIndex = rendererData.materialIndex[materialsOffset + matIndex];
                 var materialID = rendererData.materialID[materialIndex];
-                var packedMaterialData = rendererData.packedMaterialData[materialIndex];
+                var packedMaterialData = packedMaterialDatas[matIndex];
 
                 if (materialID == 0)
                 {
@@ -520,10 +562,8 @@ namespace UnityEngine.Rendering
 
         public void Execute()
         {
-            {
-                for (int i = 0; i < rendererData.rendererGroupID.Length; ++i)
-                    ProcessRenderer(i);
-            }
+            for (int i = 0; i < rendererData.rendererGroupID.Length; ++i)
+                ProcessRenderer(i);
         }
     }
 
@@ -718,6 +758,7 @@ namespace UnityEngine.Rendering
         private NativeParallelHashMap<uint, BatchID> m_GlobalBatchIDs;
         private InstanceCuller m_Culler;
         private NativeParallelHashMap<int, BatchMaterialID> m_BatchMaterialHash;
+        private NativeParallelHashMap<int, GPUDrivenPackedMaterialData> m_PackedMaterialHash;
         private NativeParallelHashMap<int, BatchMeshID> m_BatchMeshHash;
 
         private int m_CachedInstanceDataBufferLayoutVersion;
@@ -725,6 +766,7 @@ namespace UnityEngine.Rendering
         private OnCullingCompleteCallback m_OnCompleteCallback;
 
         public NativeParallelHashMap<int, BatchMaterialID> batchMaterialHash => m_BatchMaterialHash;
+        public NativeParallelHashMap<int, GPUDrivenPackedMaterialData> packedMaterialHash => m_PackedMaterialHash;
 
         public InstanceCullingBatcher(RenderersBatchersContext batcherContext, InstanceCullingBatcherDesc desc, BatchRendererGroup.OnFinishedCulling onFinishedCulling)
         {
@@ -774,6 +816,7 @@ namespace UnityEngine.Rendering
             m_CachedInstanceDataBufferLayoutVersion = -1;
             m_OnCompleteCallback = desc.onCompleteCallback;
             m_BatchMaterialHash = new NativeParallelHashMap<int, BatchMaterialID>(64, Allocator.Persistent);
+            m_PackedMaterialHash = new NativeParallelHashMap<int, GPUDrivenPackedMaterialData>(64, Allocator.Persistent);
             m_BatchMeshHash = new NativeParallelHashMap<int, BatchMeshID>(64, Allocator.Persistent);
 
             m_GlobalBatchIDs = new NativeParallelHashMap<uint, BatchID>(6, Allocator.Persistent);
@@ -806,6 +849,7 @@ namespace UnityEngine.Rendering
             m_DrawInstanceData = null;
 
             m_BatchMaterialHash.Dispose();
+            m_PackedMaterialHash.Dispose();
             m_BatchMeshHash.Dispose();
         }
 
@@ -902,12 +946,12 @@ namespace UnityEngine.Rendering
             m_Culler.EnsureValidOcclusionTestResults(viewInstanceID);
         }
 
-        public void DestroyInstances(NativeArray<InstanceHandle> instances)
+        public void DestroyDrawInstances(NativeArray<InstanceHandle> instances)
         {
             if (instances.Length == 0)
                 return;
 
-            Profiler.BeginSample("DestroyInstances");
+            Profiler.BeginSample("DestroyDrawInstances");
 
             m_DrawInstanceData.DestroyDrawInstances(instances);
 
@@ -929,6 +973,7 @@ namespace UnityEngine.Rendering
                 {
                     destroyedBatchMaterials.Add(destroyedBatchMaterial.value);
                     m_BatchMaterialHash.Remove(destroyedMaterial);
+                    m_PackedMaterialHash.Remove(destroyedMaterial);
                     m_BRG.UnregisterMaterial(destroyedBatchMaterial);
                 }
             }
@@ -1007,6 +1052,7 @@ namespace UnityEngine.Rendering
 
             int totalMaterialsNum = m_BatchMaterialHash.Count() + newMaterialIDs.Length;
             m_BatchMaterialHash.Capacity = Math.Max(m_BatchMaterialHash.Capacity, Mathf.CeilToInt(totalMaterialsNum / 1023.0f) * 1024);
+            m_PackedMaterialHash.Capacity = m_BatchMaterialHash.Capacity;
 
             new RegisterNewInstancesJob<BatchMaterialID>
             {
@@ -1020,22 +1066,37 @@ namespace UnityEngine.Rendering
             newBatchMaterialIDs.Dispose();
         }
 
+        public JobHandle SchedulePackedMaterialCacheUpdate(NativeArray<int> materialIDs, NativeArray<GPUDrivenPackedMaterialData> packedMaterialDatas)
+        {
+            return new UpdatePackedMaterialDataCacheJob
+            {
+                materialIDs = materialIDs.AsReadOnly(),
+                packedMaterialDatas = packedMaterialDatas.AsReadOnly(),
+                packedMaterialHash = m_PackedMaterialHash
+            }.Schedule();
+        }
+
         public void BuildBatch(
             NativeArray<InstanceHandle> instances,
             NativeArray<int> usedMaterialIDs,
             NativeArray<int> usedMeshIDs,
-            in GPUDrivenRendererGroupData rendererData)
+            in GPUDrivenRendererGroupData rendererData,
+            bool registerMaterialsAndMeshes)
         {
-            RegisterBatchMaterials(usedMaterialIDs);
-            RegisterBatchMeshes(usedMeshIDs);
+            if (registerMaterialsAndMeshes)
+            {
+                RegisterBatchMaterials(usedMaterialIDs);
+                RegisterBatchMeshes(usedMeshIDs);
+            }
 
             new CreateDrawBatchesJob
             {
                 implicitInstanceIndices = rendererData.instancesCount.Length == 0,
                 instances = instances,
                 rendererData = rendererData,
-                batchMeshHash = m_BatchMeshHash,
-                batchMaterialHash = m_BatchMaterialHash,
+                batchMeshHash = m_BatchMeshHash.AsReadOnly(),
+                batchMaterialHash = m_BatchMaterialHash.AsReadOnly(),
+                packedMaterialDataHash = m_PackedMaterialHash.AsReadOnly(),
                 rangeHash = m_DrawInstanceData.rangeHash,
                 drawRanges = m_DrawInstanceData.drawRanges,
                 batchHash = m_DrawInstanceData.batchHash,

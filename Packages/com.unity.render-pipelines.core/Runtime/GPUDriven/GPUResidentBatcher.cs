@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering
     {
         private RenderersBatchersContext m_BatchersContext;
         private GPUDrivenProcessor m_GPUDrivenProcessor;
-        private GPUDrivenRendererDataCallback m_UpdateRendererDataCallback;
+        private GPUDrivenRendererDataCallback m_UpdateRendererInstancesAndBatchesCallback;
+        private GPUDrivenRendererDataCallback m_UpdateRendererBatchesCallback;
 
         internal RenderersBatchersContext batchersContext { get => m_BatchersContext; }
         internal OcclusionCullingCommon occlusionCullingCommon { get => m_BatchersContext.occlusionCullingCommon; }
@@ -28,7 +29,8 @@ namespace UnityEngine.Rendering
         {
             m_BatchersContext = batcherContext;
             m_GPUDrivenProcessor = gpuDrivenProcessor;
-            m_UpdateRendererDataCallback = UpdateRendererData;
+            m_UpdateRendererInstancesAndBatchesCallback = UpdateRendererInstancesAndBatches;
+            m_UpdateRendererBatchesCallback = UpdateRendererBatches;
 
             m_InstanceCullingBatcher = new InstanceCullingBatcher(batcherContext, instanceCullerBatcherDesc, OnFinishedCulling);
         }
@@ -74,9 +76,9 @@ namespace UnityEngine.Rendering
             m_InstanceCullingBatcher.DestroyMaterials(destroyedMaterials);
         }
 
-        public void DestroyInstances(NativeArray<InstanceHandle> instances)
+        public void DestroyDrawInstances(NativeArray<InstanceHandle> instances)
         {
-            m_InstanceCullingBatcher.DestroyInstances(instances);
+            m_InstanceCullingBatcher.DestroyDrawInstances(instances);
         }
 
         public void DestroyMeshes(NativeArray<int> destroyedMeshes)
@@ -91,7 +93,7 @@ namespace UnityEngine.Rendering
 
             var instances = new NativeList<InstanceHandle>(rendererGroupIDs.Length, Allocator.TempJob);
             m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances).Complete();
-            DestroyInstances(instances.AsArray());
+            DestroyDrawInstances(instances.AsArray());
             instances.Dispose();
 
             m_BatchersContext.FreeRendererGroupInstances(rendererGroupIDs);
@@ -113,13 +115,14 @@ namespace UnityEngine.Rendering
             m_BatchersContext.occlusionCullingCommon.UpdateInstanceOccluders(renderGraph, occluderParams, occluderSubviewUpdates);
         }
 
-        public void UpdateRenderers(NativeArray<int> renderersID)
+        public void UpdateRenderers(NativeArray<int> renderersID, bool materialUpdateOnly = false)
         {
             if (renderersID.Length == 0)
                 return;
 
             m_GPUDrivenProcessor.enablePartialRendering = false;
-            m_GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID, m_UpdateRendererDataCallback);
+            m_GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(renderersID,
+                materialUpdateOnly ? m_UpdateRendererBatchesCallback : m_UpdateRendererInstancesAndBatchesCallback, materialUpdateOnly);
             m_GPUDrivenProcessor.enablePartialRendering = false;
         }
 
@@ -133,6 +136,12 @@ namespace UnityEngine.Rendering
         }
 #endif
 
+        public JobHandle SchedulePackedMaterialCacheUpdate(NativeArray<int> materialIDs,
+            NativeArray<GPUDrivenPackedMaterialData> packedMaterialDatas)
+        {
+            return m_InstanceCullingBatcher.SchedulePackedMaterialCacheUpdate(materialIDs, packedMaterialDatas);
+        }
+
         public void PostCullBeginCameraRendering(RenderRequestBatcherContext context)
         {
             m_InstanceCullingBatcher.PostCullBeginCameraRendering(context);
@@ -143,14 +152,14 @@ namespace UnityEngine.Rendering
             m_BatchersContext.UpdateAmbientProbeAndGpuBuffer(forceUpdate: false);
         }
 
-        private void UpdateRendererData(in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials)
+        private void UpdateRendererInstancesAndBatches(in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials)
         {
             FreeRendererGroupInstances(rendererData.invalidRendererGroupID);
 
             if (rendererData.rendererGroupID.Length == 0)
                 return;
 
-            Profiler.BeginSample("GPUResidentInstanceBatcher.UpdateRendererData");
+            Profiler.BeginSample("GPUResidentInstanceBatcher.UpdateRendererInstancesAndBatches");
             {
                 // --------------------------------------------------------------------------------------------------------------------------------------
                 // Allocate and Update CPU instance data
@@ -191,12 +200,49 @@ namespace UnityEngine.Rendering
                         instances,
                         rendererData.materialID,
                         rendererData.meshID,
-                        rendererData);
+                        rendererData, true);
 
                 }
                 Profiler.EndSample();
 
                 instances.Dispose();
+            }
+            Profiler.EndSample();
+        }
+
+        private void UpdateRendererBatches(in GPUDrivenRendererGroupData rendererData, IList<Mesh> meshes, IList<Material> materials)
+        {
+            if (rendererData.rendererGroupID.Length == 0)
+                return;
+
+            Profiler.BeginSample("GPUResidentInstanceBatcher.UpdateRendererBatches");
+            {
+                // --------------------------------------------------------------------------------------------------------------------------------------
+                // Get Instances
+                // --------------------------------------------------------------------------------------------------------------------------------------
+                var instances = new NativeList<InstanceHandle>(rendererData.localToWorldMatrix.Length, Allocator.TempJob);
+
+                Profiler.BeginSample("QueryInstances");
+                {
+                    m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererData.rendererGroupID, instances).Complete();
+                }
+                Profiler.EndSample();
+
+                // --------------------------------------------------------------------------------------------------------------------------------------
+                // Instance culling batcher
+                // --------------------------------------------------------------------------------------------------------------------------------------
+
+                Profiler.BeginSample("InstanceCullingBatcher.BuildBatch");
+                {
+                    m_InstanceCullingBatcher.BuildBatch(
+                        instances.AsArray(),
+                        rendererData.materialID,
+                        rendererData.meshID,
+                        rendererData, false);
+                    instances.Dispose();
+                }
+                Profiler.EndSample();
+
             }
             Profiler.EndSample();
         }

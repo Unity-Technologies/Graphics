@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
     internal struct InstanceHandle : IEquatable<InstanceHandle>, IComparable<InstanceHandle>
     {
         // Don't use this index to reference GPU data. This index is to reference CPU data only.
-        // To reference GPU data convert InstahceHandle to GPUInstanceIndex.
+        // To reference GPU data convert InstanceHandle to GPUInstanceIndex.
         public int index { get; private set; }
 
         // This is unique instance index for each instance type.
