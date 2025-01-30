@@ -138,7 +138,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
 
     // Was the object of this pixel moving?
     uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, centerCoord));
-    if ((stencilValue & _ObjectMotionStencilBit) != 0)
+    if ((stencilValue & _ObjectMotionStencilBit) != 0 && any(abs(velocity) > 0))
         historyRejectionResult = historyRejectionResult | HISTORYREJECTIONFLAGS_MOTION;
 
     // If none of the previous conditions have failed, the the history is valid
