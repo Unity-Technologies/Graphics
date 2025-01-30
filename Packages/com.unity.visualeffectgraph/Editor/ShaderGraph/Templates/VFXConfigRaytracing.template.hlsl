@@ -1,6 +1,6 @@
 ﻿#include "Packages/com.unity.visualeffectgraph/Shaders/VFXRayTracingCommon.hlsl"
 
-void GetVFXInstancingIndices(out int index, out int instanceIndex, out int instanceActiveIndex)
+void GetVFXInstancingIndices(out uint index, out uint instanceIndex, out uint instanceActiveIndex)
 {
     #ifdef VFX_RT_DECIMATION_FACTOR
     int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
@@ -8,8 +8,8 @@ void GetVFXInstancingIndices(out int index, out int instanceIndex, out int insta
     int rayTracingDecimationFactor = 1;
     #endif
     index = PrimitiveIndex() * rayTracingDecimationFactor;
-    instanceIndex =  asuint(_InstanceIndex);
-    instanceActiveIndex = asuint(_InstanceActiveIndex);
+    instanceIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceIndex));
+    instanceActiveIndex = asuint(UNITY_ACCESS_INSTANCED_PROP(PerInstance, _InstanceActiveIndex));
     VFXGetInstanceCurrentIndex(index);
 }
 
@@ -63,7 +63,17 @@ void BuildFragInputsFromVFXIntersection(AttributeData attributeData, out FragInp
     output.texCoord2 = float4(attributeData.barycentrics,0,0);
     output.texCoord3 = float4(attributeData.barycentrics,0,0);
 
-    output.color = float4(attributes.color, attributes.alpha);
+    #if VFX_USE_COLOR_CURRENT
+    float3 color = attributes.color;
+    #else
+    float3 color = float3(1,1,1);
+    #endif
+    #if VFX_USE_ALPHA_CURRENT
+    float alpha = attributes.alpha;
+    #else
+    float alpha = 1;
+    #endif
+    output.color = float4(color, alpha);
 
     // Compute the world space normal
     float3 normalWS = normalize(-WorldToPrimitive(attributes, size3)[2].xyz);
