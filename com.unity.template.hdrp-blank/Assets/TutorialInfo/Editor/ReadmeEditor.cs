@@ -7,12 +7,8 @@ using UnityEngine.UIElements;
 [InitializeOnLoad]
 sealed class ReadmeEditor : Editor
 {
-    const string k_ussFormat = "Assets/TutorialInfo/Scripts/Editor/ReadmeEditor{0}.uss";
     const string k_ShowedReadmeSessionStateName = "ReadmeEditor.showedReadme";
     const string k_ReadmeSourceDirectory = "Assets/TutorialInfo";
-
-    bool m_ImGUIStyleInitialized;
-    [SerializeField] GUIStyle m_TitleStyle;
 
     static ReadmeEditor()
         => EditorApplication.delayCall += SelectReadmeAutomatically;
@@ -82,17 +78,23 @@ sealed class ReadmeEditor : Editor
 
     public override VisualElement CreateInspectorGUI()
     {
-        VisualElement root = new();
-        root.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(string.Format(k_ussFormat,"")));
-        root.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(string.Format(k_ussFormat, EditorGUIUtility.isProSkin ? "Dark" : "Light")));
-
         var readme = (Readme)target;
+
+        VisualElement root = new();
+        root.styleSheets.Add(readme.commonStyle);
+        root.styleSheets.Add(EditorGUIUtility.isProSkin ? readme.darkStyle : readme.lightStyle);
+
+        VisualElement ChainWithClass(VisualElement created, string className)
+        {
+            created.AddToClassList(className);
+            return created;
+        }
 
         //Header
         VisualElement title = new();
         title.AddToClassList("title");
-        title.Add(new Image() { image = readme.icon });
-        title.Add(new Label(readme.title));
+        title.Add(ChainWithClass(new Image() { image = readme.icon }, "title__icon"));
+        title.Add(ChainWithClass(new Label(readme.title), "title__text"));
         root.Add(title);
 
         //Content
@@ -102,19 +104,14 @@ sealed class ReadmeEditor : Editor
             part.AddToClassList("section");
 
             if (!string.IsNullOrEmpty(section.heading))
-            {
-                var header = new Label(section.heading);
-                header.AddToClassList("header");
-                part.Add(header);
-            }
+                part.Add(ChainWithClass(new Label(section.heading), "section__header"));
 
             if (!string.IsNullOrEmpty(section.text))
-                part.Add(new Label(section.text));
+                part.Add(ChainWithClass(new Label(section.text), "section__body"));
 
             if (!string.IsNullOrEmpty(section.linkText))
             {
-                var link = new Label(section.linkText);
-                link.AddToClassList("link");
+                var link = ChainWithClass(new Label(section.linkText), "section__link");
                 link.RegisterCallback<ClickEvent>(evt => Application.OpenURL(section.url));
                 part.Add(link);
             }
