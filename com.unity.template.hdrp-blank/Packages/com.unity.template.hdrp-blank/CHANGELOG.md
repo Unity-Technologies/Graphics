@@ -4,6 +4,14 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [17.0.7] - 2025-01-27
+
+### Changed
+
+- Upgrade input system version to 1.12.0 so that a warning message is shown on platforms which require additional platform specific input system packages to be installed.
+- Set InputHandler to input system exclusive
+
+
 ## [17.0.6] - 2024-10-09
 
 ### Changed
