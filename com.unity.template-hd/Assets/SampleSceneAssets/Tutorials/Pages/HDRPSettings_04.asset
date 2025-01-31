@@ -39,16 +39,16 @@ MonoBehaviour:
       Text:
         m_Untranslated: "Settings for post-processing, Fog, Sky, etc. can be applied
           to all scenes in this project by default, by using a <b>Default Volume
-          Profile Asset.</b> It is particulalry useful to rely on this system to
+          Profile Asset.</b> It is particularly useful to rely on this system to
           ensure the consistency of the HDRP settings between all the scenes.\n\n1.
-          Go to <b>Edit</b> > <b>Project Settings</b> > <b>Graphics</b> > <b>HDRP
-          Global Settings</b> and review the <b>Default Volume Profile Asset</b>
-          assigned to the project.\n\n2. Disable HDRI Sky. \n\nSee that the Sky in
+          Go to <b>Edit</b> > <b>Project Settings</b> > <b>Graphics</b> > <b>Pipeline
+          Specific Settings</b> > <b>HDRP</b> and review the <b>Default Profile</b>
+          assigned to the project.\n\n2. In the scene, through the <i>Hierarchy</i>
+          window, disable <i>HDRI Sky</i> by selecting the GameObject <b>Lighting</b>
+          > <b>Volumes</b> > <b>Volume Global</b>.\n\nSee that the Sky in
           the Scene has now disappeared and fallen back on the Background color defined
-          in <b>Edit</b> > <b>Preferences</b> > <b>Colors</b> (dark grey by default).\n\n3.
-          Undo your changes.\n\nFor convenience and quick access, we also added an
-          instance of these settings in the Scene. You can access them with the <i>Hierarchy,</i>
-          in <b>Lighting</b> > <b>Volumes</b> > <b>Volume Global.</b> "
+		  in <b>Edit</b> > <b>Preferences</b> > <b>Colors</b> (dark grey by default).\n\n3.
+          Undo your changes."
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
       m_Video: {fileID: 0}
