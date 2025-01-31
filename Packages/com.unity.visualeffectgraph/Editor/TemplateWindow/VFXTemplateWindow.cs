@@ -215,34 +215,48 @@ namespace UnityEditor.VFX
 
         private bool TryFindSample(string sampleName, out Sample sample)
         {
-            var startTime = Time.time;
-            var searchRequest = Client.Search(VisualEffectGraphPackageInfo.name, true);
-            while (!searchRequest.IsCompleted && Time.time - startTime < PackageManagerTimeout)
+            try
             {
-                Thread.Sleep(20);
-            }
-
-            if (searchRequest is { Result: { Length: 1 }, IsCompleted: true } && searchRequest.Result[0] is { } vfxPackageInfo)
-            {
-                // Workaround for UUM-63664
-                foreach (var extension in PackageManagerExtensions.Extensions)
+                var startTime = Time.time;
+                var searchRequest = Client.Search(VisualEffectGraphPackageInfo.name, true);
+                while (!searchRequest.IsCompleted && Time.time - startTime < PackageManagerTimeout)
                 {
-                    extension.OnPackageSelectionChange(vfxPackageInfo);
+                    Thread.Sleep(20);
                 }
 
-                foreach (var samplePackage in Sample.FindByPackage(VisualEffectGraphPackageInfo.name, null))
+                if (searchRequest is { Result: { Length: 1 }, IsCompleted: true } && searchRequest.Result[0] is { } vfxPackageInfo)
                 {
-                    if (string.Compare(samplePackage.displayName, sampleName, StringComparison.OrdinalIgnoreCase) ==
-                        0)
+                    // Workaround for UUM-63664
+                    foreach (var extension in PackageManagerExtensions.Extensions)
                     {
-                        sample = samplePackage;
-                        return true;
+                        try
+                        {
+                            extension.OnPackageSelectionChange(vfxPackageInfo);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogWarning($"An error occured while trying to select a package extension.\n{e.Message}");
+                        }
+                    }
+
+                    foreach (var samplePackage in Sample.FindByPackage(VisualEffectGraphPackageInfo.name, null))
+                    {
+                        if (string.Compare(samplePackage.displayName, sampleName, StringComparison.OrdinalIgnoreCase) ==
+                            0)
+                        {
+                            sample = samplePackage;
+                            return true;
+                        }
                     }
                 }
+                else
+                {
+                    Debug.LogWarning($"Could not determine if the {sampleName} package is installed");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Debug.LogWarning("Could not determine if the Learning Sample package is installed");
+                Debug.LogWarning($"Something went wrong while trying to retrieve {sampleName} package info\n{ex.Message}");
             }
 
             sample = default;
