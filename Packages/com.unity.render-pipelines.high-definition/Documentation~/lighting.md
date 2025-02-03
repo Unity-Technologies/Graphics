@@ -15,6 +15,7 @@ Learn how to create and use lights in the High Definition Render Pipeline (HDRP)
 |[Global Illumination](global-illumination.md)|Create realistic diffuse lighting.|
 |[Volumetric lighting](lighting-volumetric.md)|Use the HDRP volume system to apply screen space lighting effects.|
 |[Test and debug lighting](lighting-test-debug.md)|Identify and fix issues with lights in HDRP.|
+|[Improve lightmap resolution](lightmapping-improve-resolution.md)|Use bicubic sampling to improve the resolution of lightmaps.|
 
 ## Additional resources
 

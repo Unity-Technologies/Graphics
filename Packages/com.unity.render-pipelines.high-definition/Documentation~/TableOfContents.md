@@ -128,6 +128,7 @@
       * [Calculate accurate reflection and refraction](Reflection-Proxy-Volume.md)
     * [Use Screen space refraction](Override-Screen-Space-Refraction.md)
     * [Use screen space reflection](Override-Screen-Space-Reflection.md)
+  * [Improve the visual fidelity of lightmaps](lightmapping-improve-visual-fidelity.md)
 * [Materials and surfaces](materials-and-surfaces.md)
   * [Transparent and translucent materials](transparent-and-translucent-materials.md)
     * [Understand refraction](understand-refraction.md)
