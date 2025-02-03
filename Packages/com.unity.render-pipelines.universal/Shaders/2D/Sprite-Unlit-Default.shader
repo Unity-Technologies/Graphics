@@ -199,6 +199,4 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             ENDHLSL
         }
     }
-
-    Fallback "Sprites/Default"
 }
