@@ -1,4 +1,4 @@
-# Decals and masking in the Water System
+# Decals and masking in the water system
 
 ## Masks
 You can use a **Water Mask** to affect the influence the simulation has on specific areas of the water surface.

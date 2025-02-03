@@ -70,9 +70,9 @@ https://github.com/Unity-Technologies/WaterScenes
 
 ![Water Scenes](Images/HDRPDemos-Water.png)
 
-This project demonstrates the following HDRP Water System features:
+This project demonstrates the following HDRP water system features:
 
-* Water System
+* Water system
 * Visual Effect Graph
 * Shader Graph
 * Custom Render Texture
