@@ -2764,7 +2764,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TArcSphere, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"sphere":{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":90.0},"scale":{"x":0.0,"y":1.0,"z":1.0}},"radius":0.7699999809265137},"arc":3.140000104904175}'
+      m_SerializableObject: '{"sphere":{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":90.0},"scale":{"x":0.00009999999747378752,"y":1.0,"z":1.0}},"radius":0.7699999809265137},"arc":3.140000104904175}'
     m_Space: 0
   m_Property:
     name: arcSphere
@@ -6922,7 +6922,7 @@ MonoBehaviour:
   - {fileID: 8926484042661616384}
   - {fileID: 8926484042661616390}
   - {fileID: 8926484042661616424}
-  m_UIPosition: {x: 2246, y: 1847}
+  m_UIPosition: {x: 2276, y: 1861}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7084,7 +7084,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 5
+      m_SerializableObject: -1310
     m_Space: -1
   m_Property:
     name: _Anim_Speed
@@ -7119,7 +7119,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
+      m_SerializableObject: 27.4
     m_Space: -1
   m_Property:
     name: _Anim_Offset
@@ -8578,8 +8578,8 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2026, y: 1964}
-  m_UICollapsed: 1
+  m_UIPosition: {x: 1978, y: 1876}
+  m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 8926484042661616492}
@@ -8620,7 +8620,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":3.450000047683716,"y":-10.0}'
+      m_SerializableObject: '{"x":3.5,"y":-5.0}'
     m_Space: -1
   m_Property:
     name: Min
@@ -8722,7 +8722,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":6.0,"y":10.0}'
+      m_SerializableObject: '{"x":10.0,"y":5.0}'
     m_Space: -1
   m_Property:
     name: Max
