@@ -405,7 +405,7 @@ namespace UnityEngine.Rendering.Universal
         protected void OnEnable()
         {
             if (m_ShadowShape2DProvider != null)
-                m_ShadowShape2DProvider.Enabled(m_ShadowShape2DComponent);
+                m_ShadowShape2DProvider.Enabled(m_ShadowShape2DComponent, m_ShadowMesh);
 
             m_ShadowCasterGroup = null;
 
@@ -423,7 +423,7 @@ namespace UnityEngine.Rendering.Universal
             ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
 
             if (m_ShadowShape2DProvider != null)
-                m_ShadowShape2DProvider.Disabled(m_ShadowShape2DComponent);
+                m_ShadowShape2DProvider.Disabled(m_ShadowShape2DComponent, m_ShadowMesh);
 
 #if UNITY_EDITOR
             SortingLayer.onLayerAdded -= OnSortingLayerAdded;
