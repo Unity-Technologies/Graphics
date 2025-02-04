@@ -49,7 +49,7 @@ This section lists the Blocks that are compatible with Fragment Contexts in the 
 [!include[](snippets/shader-graph-blocks/haze-extent.md)]
 [!include[](snippets/shader-graph-blocks/haziness.md)]
 [!include[](snippets/shader-graph-blocks/hazy-gloss-max-dielectric-f0.md)]
-[!include[](snippets/shader-graph-blocks/ior.md)]
+[!include[](snippets/shader-graph-blocks/eye-ior.md)]
 [!include[](snippets/shader-graph-blocks/iridescence-coat-fixup-tir.md)]
 [!include[](snippets/shader-graph-blocks/iridescence-coat-fixup-tir-clamp.md)]
 [!include[](snippets/shader-graph-blocks/iridescence-mask.md)]
