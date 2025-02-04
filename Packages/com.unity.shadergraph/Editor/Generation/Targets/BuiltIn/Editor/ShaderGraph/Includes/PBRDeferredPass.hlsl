@@ -55,7 +55,7 @@ void PBRDeferredFragment(v2f_surf IN, SurfaceOutputStandard o,
     out half4 outGBuffer1 : SV_Target1,
     out half4 outGBuffer2 : SV_Target2,
     out half4 outEmission : SV_Target3
-#if defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+#if OUTPUT_SHADOWMASK
     , out half4 outShadowMask : SV_Target4
 #endif
 )
@@ -126,7 +126,7 @@ void PBRDeferredFragment(v2f_surf IN, SurfaceOutputStandard o,
 
   // call lighting function to output g-buffer
   outEmission = LightingStandard_Deferred (o, worldViewDir, gi, outGBuffer0, outGBuffer1, outGBuffer2);
-  #if defined(SHADOWS_SHADOWMASK) && (UNITY_ALLOWED_MRT_COUNT > 4)
+  #if OUTPUT_SHADOWMASK
     outShadowMask = UnityGetRawBakedOcclusions (IN.lmap.xy, worldPos);
   #endif
   #ifndef UNITY_HDR_ON
