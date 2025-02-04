@@ -131,6 +131,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma multi_compile _ SKINNED_SPRITE
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             struct Attributes
