@@ -387,6 +387,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_ZBinBuffer.Dispose();
                 m_TileBuffer.Dispose();
             }
+            m_LightCookieManager?.Dispose();
+            m_LightCookieManager = null;
         }
 
         void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel, out uint lightLayerMask)
