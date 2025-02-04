@@ -184,15 +184,15 @@ MonoBehaviour:
     contents: 'The periodic burst allows us to spawn a number of particles every
       X seconds.
 
-      
+
 
       The number of particles we spawn per burst is synchronized
       with our number of strips.
 
-      
 
-      With each burst, the number of
-      spawned particles will be distributed across each strip.
+
+      With each burst, the number of spawned
+      particles will be distributed across each strip.
 
 '
     theme: Black
@@ -242,16 +242,16 @@ MonoBehaviour:
     contents: 'We are getting the lifetime value from the Spawn Context by using
       a Get Lifetime node and changing its location setting to Source.
 
-      
+
 
       From
       here, we subtract a random value. Our random number should be unique to each
       strip instead of unique to each particle.
 
-      
 
-      We can accomplish
-      this by changing the seed value to PerParticleStrip instead of PerParticle.
+
+      We can accomplish this by
+      changing the seed value to PerParticleStrip instead of PerParticle.
 
 '
     theme: Black
@@ -1887,7 +1887,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.TArcSphere, Unity.VisualEffectGraph.Editor,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"sphere":{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":0.0,"z":1.0}},"radius":0.25},"arc":6.283185005187988}'
+      m_SerializableObject: '{"sphere":{"transform":{"position":{"x":0.0,"y":0.0,"z":0.0},"angles":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":0.00009999999747378752,"z":1.0}},"radius":0.25},"arc":6.283185005187988}'
     m_Space: 0
   m_Property:
     name: arcSphere
