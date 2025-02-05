@@ -293,7 +293,8 @@ namespace UnityEditor.VFX
                 if (useAlphaClipping)
                     return true;
                 //For Motion & Shadow, allow use a alpha clipping and it shares the same value as color clipping for transparent particles
-                if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting))
+                // Ray traced transparent particle should also expose an alpha threshold for effects using visibility pass like RTAO.
+                if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting || isRayTraced))
                     return true;
                 return false;
             }
