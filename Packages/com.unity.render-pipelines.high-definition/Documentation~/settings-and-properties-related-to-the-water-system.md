@@ -48,16 +48,13 @@ Water type
 </td>
 </tr>
 
-
 <tr>
-<td rowspan="6">
+<td rowspan="10">
 X</td>
-<td rowspan="6">
-X
-</td>
-<td rowspan="6">
-X
-</td>
+<td rowspan="10">
+X</td>
+<td rowspan="10">
+X</td>
 <td colspan="2">
 <b>General</b>
 </td>
@@ -82,7 +79,7 @@ Specifies the shape of the water surface.
 The options are:
 <ul>
 <li><b>Quad</b>: Based on a square.</li>
-<li><b>InstanceQuads</b>: Creates a finite water surface with multiple instanced grids to keep a higher vertex density.</li>
+<li><b>Instanced Quads</b>: Creates a finite water surface with multiple instanced grids to keep a higher vertex density.</li>
 <li><b>Custom Mesh</b>: Based  on a Mesh you provide. Overrides the vertical position of the vertices to keep the surface of the water consistently level.</li>
 <li><b>Infinite</b> (<b>Ocean, Sea, or Lake</b> only): Bounds the water surface with the Global Volume.</li>
 </ul>
@@ -117,13 +114,49 @@ Only available if <b>Script Interactions</b> is active. Enable to have HDRP incl
 </tr>
 
 <tr>
+<td>
+<b><a name="tessellation"></a>Tessellation</b>
+</td>
+<td>
+Enable to implement tessellation.
+</td>
+</tr>
+
+<tr>
+<td>
+- <b>Max Tessellation Factor</b>
+</td>
+<td>
+Set the level of detail HDRP applies to the surface geometry relative to the camera's position. A higher maximum tessellation factor makes the water surface more detailed and responsive to waves but increases the computational load.
+</td>
+</tr>
+
+<tr>
+<td>
+- <b>Tessellation Factor Fade Start</b>
+</td>
+<td>
+Set the distance from the camera where the tessellation detail begins to decrease.
+</td>
+</tr>
+
+<tr>
+<td>
+- <b>Tessellation Factor Fade Range</b>
+</td>
+<td>
+Set the distance from the camera at which the tessellation factor reaches 0.
+</td>
+</tr>
+
+<tr>
 <td rowspan="3">
 X
 </td>
 <td rowspan="3">
 X
 </td>
-<td rowspan="3" >
+<td rowspan="3">
 X
 </td>
 <td colspan="2">
@@ -143,9 +176,64 @@ Determines the speed at which HDRP presents the water simulation. Values above 1
 
 <tr>
 <td>
-<b>Water Mask<a name="watermask"></a></b>
+<b><a name="watermask"></a>Water Mask</b>
 </td>
 <td>
+Set the texture HDRP uses to reduce or stop water frequencies depending on the water surface type.<br/><ul> <li><b>Ocean:</b> Reduces swell (red channel), agitation (green), and ripples (blue).</li> <li><b>River:</b> Reduces agitation (red channel) and ripples (green channel).</li> <li><b>Pool:</b> Reduces ripples (red channel).</li></ul>The Water Mask reduces the intensity of these water effects by multiplying the mask values with the corresponding water properties in the shader. Darker areas (closer to black) reduce the intensity, while lighter areas (closer to white) increase it.<br/>For more information, refer to <a href="water-decals-and-masking-in-the-water-system.html">Decals and masking in the Water System</a>.
+</td>
+</tr>
+
+<tr>
+<td rowspan="5">
+X
+</td>
+<td rowspan="5">
+X
+</td>
+<td rowspan="5" >
+X
+</td>
+<td colspan="2">
+<b>Water Decals</b>
+</td>
+</tr>
+
+<tr>
+<td>
+<b>Region Size</b>
+</td>
+<td>
+Set the width and length in meters of the region HDRP applies the Water Decal to.
+</td>
+</tr>
+
+
+<tr>
+<td>
+<b>Region Anchor</b>
+</td>
+<td>
+Anchor the Water Decal to a GameObject. By default, the region follows the camera. To make the region static, anchor it to the water surface.
+</td>
+</tr>
+
+
+<tr>
+<td>
+<b>Deformation</b>
+</td>
+<td>
+Enable to activate the option for creating a deformation decal.
+</td>
+</tr>
+
+
+<tr>
+<td>
+<b>Foam</b>
+</td>
+<td>
+Enable to activate the option for creating a foam decal.
 A texture HDRP uses to attenuate or supress <b>Ripple</b> (green channel) and <b>Swell</b> or <b>Agitation</b> (red channel) water frequencies. For more information, see <a href="water-decals-and-masking-in-the-water-system.md">Decals and masking in the water system</a>.
 </td>
 </tr>
@@ -171,7 +259,7 @@ X
 <b>Repetition Size</b>
 </td>
 <td>
-The size of the water <a href="water-water-system-simulation.md#patchgrid">patch</a> in meters. Higher values result in less visible repetition. Also affects the <b>Maximum Amplitude</b> of <b>Swell</b> or <b>Agitation</b> frequency bands.
+The size of the water <a href="water-water-system-simulation.html#patchgrid">patch</a> in meters. Higher values result in less visible repetition. Also affects the <b>Maximum Amplitude</b> of <b>Swell</b> or <b>Agitation</b> simulation bands.
 </td>
 </tr>
 
@@ -241,12 +329,12 @@ Simulation Band properties
 <td>
 <b>Amplitude Dimmer</b> (<b>Ocean, Sea, or Lake</b>)<br/>
 <ul>
-<li><b>First band</b>: The degree to which amplitude attenuates on the first frequency band of the Swell.</li>
-<li><b>Second Band</b>: The degree to which amplitude attenuates on the second frequency band of the Swell.</li></UL>
+<li><b>First band</b>: The degree to which amplitude reduces on the first simulation band of the Swell.</li>
+<li><b>Second Band</b>: The degree to which amplitude reduces on the second simulation band of the Swell.</li></UL>
 
 <br/>
 <b>Amplitude Dimmer</b> (<b>River</b>)<br/>
-A dimmer that determines the degree to which amplitude can attenuate on the Agitation frequency band. For example, if your <b>Amplitude</b> value is 10 meters and you set this property to 0.5, your <b>Agitation</b> is 5 meters high.<br/>
+A dimmer that determines the degree to which amplitude can reduce on the Agitation simulation band. For example, if your <b>Amplitude</b> value is 10 meters and you set this property to 0.5, your <b>Agitation</b> is 5 meters high.<br/>
 
 
 </td>
@@ -257,7 +345,7 @@ A dimmer that determines the degree to which amplitude can attenuate on the Agit
 <b>Fade</b>
 </td>
 <td>
-<a href="#additionalproperties">Additional property</a>. When this option is active, HDRP begins fading the contribution of this frequency band at the distance from the camera that the <b>Range</b> value specifies. This helps minimize distant aliasing artifacts.
+<a href="#additionalproperties">Additional property</a>. When this option is active, HDRP begins fading the contribution of this simulation band at the distance from the camera that the <b>Range</b> value specifies. This helps minimize distant aliasing artifacts.
 </td>
 </tr>
 
@@ -266,7 +354,7 @@ A dimmer that determines the degree to which amplitude can attenuate on the Agit
 - <b>Range</b>
 </td>
 <td>
-<a href="#additionalproperties">Additional property</a>. The distance from the camera in meters at which HDRP begins to fade the contribution of this frequency band.
+<a href="#additionalproperties">Additional property</a>. The distance from the camera in meters at which HDRP begins to fade the contribution of this simulation band.
 </td>
 </tr>
 
@@ -372,7 +460,7 @@ Determines the orientation and constant speed of the current that displaces ripp
 <b>Fade</b>
 </td>
 <td>
-<a href="#additionalproperties">Additional property</a>. When this option is active, HDRP begins fading the contribution of this frequency band at the distance from the camera that corresponds to the <b>Range</b> value in meters. This helps minimize distant aliasing artifacts.
+<a href="#additionalproperties">Additional property</a>. When this option is active, HDRP begins fading the contribution of this simulation band at the distance from the camera that corresponds to the <b>Range</b> value in meters. This helps minimize distant aliasing artifacts.
 </td>
 </tr>
 
@@ -381,7 +469,7 @@ Determines the orientation and constant speed of the current that displaces ripp
 - <b>Range</b>
 </td>
 <td>
-<a href="#additionalproperties">Additional property</a>. The distance from the camera, in meters, at which HDRP begins to fade the contribution of this frequency band.
+<a href="#additionalproperties">Additional property</a>. The distance from the camera, in meters, at which HDRP begins to fade the contribution of this simulation band.
 </td>
 </tr>
 
@@ -419,7 +507,7 @@ X
 </td>
 </tr>
 
-<tr>  
+<tr>
 <td>
 <b>Area Size</b>
 </td>
@@ -452,7 +540,7 @@ X
 <td>
 <b>Simulation Foam Amount</b>
 </td>
-<td>Determines the amount of surface foam. Higher values generate larger foam patches. The <b>Wind Speed Dimmer</b> configuration determines which <b>Distant Wind Speed</b> values generate foam, and how much; see <a href="water-foam-in-the-water-system.md">Foam in the water system</a>.</td>
+<td>Determines the amount of surface foam. Higher values generate larger foam patches. The <b>Wind Speed Dimmer</b> configuration determines which <b>Distant Wind Speed</b> values generate foam, and how much; refer to <a href="water-foam-in-the-water-system.html">Foam in the water system</a>.</td>
 </tr>
 
 <tr>
@@ -480,14 +568,14 @@ X
 <td>
 <b>Mask</b>
 </td>
-<td>Select a texture whose red channel Unity uses to attenuate and suppress foam.</td>
+<td>Select a texture whose red channel Unity uses to reduce or remove foam.</td>
 </tr>
 
 <tr>
 <td>
 <b>Wind Speed Dimmer</b>
 </td>
-<td>Determines foam intensity. The normalized <b>Distant Wind Speed</b> determines the X axis value. The spline editor configures the Y axis value. See <a href="water-foam-in-the-water-system.md">Foam in the water system</a> for more information.</td>
+<td>Determines foam intensity. The normalized <b>Distant Wind Speed</b> determines the X axis value. The spline editor configures the Y axis value. Refer to <a href="water-foam-in-the-water-system.html">Foam in the water system</a> for more information.</td>
 </tr>
 
 
@@ -870,7 +958,7 @@ Specifies the view of the debug mode used for the water surface.
 
 To use a Volume Override, you must first add a Volume Profile.
 
-See  <a href="water-the-water-system-volume-override.md">The water system Volume Override</a> for more information.</br>
+Refer to <a href="water-the-water-system-volume-override.md">The water system Volume Override</a> for more information.</br>
 <table>
 
 <tr>
