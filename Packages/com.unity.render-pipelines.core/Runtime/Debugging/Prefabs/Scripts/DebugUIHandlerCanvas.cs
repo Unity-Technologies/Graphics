@@ -159,6 +159,18 @@ namespace UnityEngine.Rendering.UI
 
                 if (!m_PrefabsMap.TryGetValue(child.GetType(), out prefab))
                 {
+                    foreach (var pair in m_PrefabsMap)
+                    {
+                        if (pair.Key.IsAssignableFrom(child.GetType()))
+                        {
+                            prefab = pair.Value;
+                            break;
+                        }
+                    }
+                }
+
+                if (prefab == null)
+                {
                     Debug.LogWarning("DebugUI widget doesn't have a prefab: " + child.GetType());
                     continue;
                 }

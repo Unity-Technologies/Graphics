@@ -1774,11 +1774,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             widgetList.Add(new DebugUI.RuntimeDebugShadersMessageBox());
 
+            string url = DocumentationInfo.GetPackageLink(Documentation.packageName, Documentation.version, "rendering-debugger-window-reference", "rendering-panel");
             var renderingSettings = new DebugUI.Foldout
             {
                 nameAndTooltip = RenderingStrings.RenderingSettings,
                 opened = true, // By default this general section is opened
-                order = int.MinValue
+                order = int.MinValue,
+                documentationUrl = url,
             };
 
             widgetList.Add(renderingSettings);
@@ -2140,7 +2142,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             m_DebugRenderingItems = widgetList.ToArray();
-            var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
+            var panel = DebugManager.instance.GetPanel(k_PanelRendering,true);
             panel.children.Add(m_DebugRenderingItems);
         }
 
@@ -2232,39 +2234,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 strings[i] = new GUIContent(string.Format("Slot {0}", i));
                 values[i] = i;
-            }
-        }
-
-        internal static void RegisterCamera(IFrameSettingsHistoryContainer container)
-        {
-            string name = container.panelName;
-            if (s_CameraNames.FindIndex(x => x.text.Equals(name)) < 0)
-            {
-                s_CameraNames.Add(new GUIContent(name));
-                needsRefreshingCameraFreezeList = true;
-            }
-
-            if (!FrameSettingsHistory.IsRegistered(container))
-            {
-                var history = FrameSettingsHistory.RegisterDebug(container);
-                DebugManager.instance.RegisterData(history);
-            }
-        }
-
-        internal static void UnRegisterCamera(IFrameSettingsHistoryContainer container)
-        {
-            string name = container.panelName;
-            int indexOfCamera = s_CameraNames.FindIndex(x => x.text.Equals(name));
-            if (indexOfCamera > 0)
-            {
-                s_CameraNames.RemoveAt(indexOfCamera);
-                needsRefreshingCameraFreezeList = true;
-            }
-
-            if (FrameSettingsHistory.IsRegistered(container))
-            {
-                DebugManager.instance.UnregisterData(container);
-                FrameSettingsHistory.UnRegisterDebug(container);
             }
         }
 

@@ -138,6 +138,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public virtual void Reset()
         {
+            foreach (IDebugDisplaySettingsData setting in m_Settings)
+            {
+                setting.Reset();
+            }
+
             m_Settings.Clear();
         }
 

@@ -262,6 +262,32 @@ namespace UnityEditor.Rendering
                 UpdateWidgetStates(panel);
         }
 
+        DebugState GetOrCreateDebugStateForValueField(DebugUI.Widget widget)
+        {
+            // Skip runtime & readonly only items
+            if (widget.isInactiveInEditor)
+                return null;
+
+            if (widget is not DebugUI.IValueField valueField)
+                return null;
+
+            string guid = widget.queryPath;
+            if (!m_WidgetStates.TryGetValue(guid, out var state) || state == null)
+            {
+                var widgetType = widget.GetType();
+                if (s_WidgetStateMap.TryGetValue(widgetType, out Type stateType))
+                {
+                    Assert.IsNotNull(stateType);
+                    state = (DebugState)CreateInstance(stateType);
+                    state.queryPath = guid;
+                    state.SetValue(valueField.GetValue(), valueField);
+                    m_WidgetStates[guid] = state;
+                }
+            }
+
+            return state;
+        }
+
         void UpdateWidgetStates(DebugUI.IContainer container)
         {
             // Skip runtime only containers, we won't draw them so no need to serialize them either
@@ -273,26 +299,10 @@ namespace UnityEditor.Rendering
             {
                 // Skip non-serializable widgets but still traverse them in case one of their
                 // children needs serialization support
-                if (widget is DebugUI.IValueField valueField)
-                {
-                    // Skip runtime & readonly only items
-                    if (widget.isInactiveInEditor)
-                        return;
+                var state = GetOrCreateDebugStateForValueField(widget);
 
-                    string guid = widget.queryPath;
-                    if (!m_WidgetStates.TryGetValue(guid, out var state) || state == null)
-                    {
-                        var widgetType = widget.GetType();
-                        if (s_WidgetStateMap.TryGetValue(widgetType, out Type stateType))
-                        {
-                            Assert.IsNotNull(stateType);
-                            var inst = (DebugState)CreateInstance(stateType);
-                            inst.queryPath = guid;
-                            inst.SetValue(valueField.GetValue(), valueField);
-                            m_WidgetStates[guid] = inst;
-                        }
-                    }
-                }
+                if (state != null)
+                    continue;
 
                 // Recurse if the widget is a container
                 if (widget is DebugUI.IContainer containerField)
@@ -317,7 +327,7 @@ namespace UnityEditor.Rendering
 
         void ApplyState(string queryPath, DebugState state)
         {
-            if (!(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
+            if (state == null || !(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
                 return;
 
             widget.SetValue(state.GetValue());
@@ -544,17 +554,26 @@ namespace UnityEditor.Rendering
             if (widget.isInactiveInEditor || widget.isHidden)
                 return;
 
-            // State will be null for stateless widget
-            m_WidgetStates.TryGetValue(widget.queryPath, out DebugState state);
-
             GUILayout.Space(4);
 
             if (!s_WidgetDrawerMap.TryGetValue(widget.GetType(), out DebugUIDrawer drawer))
             {
-                EditorGUILayout.LabelField("Drawer not found (" + widget.GetType() + ").");
+                foreach (var pair in s_WidgetDrawerMap)
+                {
+                    if (pair.Key.IsAssignableFrom(widget.GetType()))
+                    {
+                        drawer = pair.Value;
+                        break;
+                    }
+                }
             }
+
+            if (drawer == null)
+                EditorGUILayout.LabelField("Drawer not found (" + widget.GetType() + ").");
             else
             {
+                var state = GetOrCreateDebugStateForValueField(widget);
+
                 drawer.Begin(widget, state);
 
                 if (drawer.OnGUI(widget, state))

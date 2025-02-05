@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEngine.Rendering.RenderGraphModule;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
@@ -7,6 +8,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Render Graph-related Rendering Debugger settings.
     /// </summary>
+    [CurrentPipelineHelpURL(pageName: "features/rendering-debugger-reference", pageHash: "render-graph")]
     class DebugDisplaySettingsRenderGraph : IDebugDisplaySettingsData
     {
         public DebugDisplaySettingsRenderGraph()
@@ -18,12 +20,15 @@ namespace UnityEngine.Rendering
         }
 
         [DisplayInfo(name = "Rendering", order = 10)]
-        [CurrentPipelineHelpURL(pageName: "features/rendering-debugger-reference", pageHash: "render-graph")]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public SettingsPanel(DebugDisplaySettingsRenderGraph _)
             {
-                var foldout = new DebugUI.Foldout() { displayName = "Render Graph", };
+                var foldout = new DebugUI.Foldout()
+                {
+                    displayName = "Render Graph",
+                    documentationUrl = typeof(DebugDisplaySettingsRenderGraph).GetCustomAttribute<HelpURLAttribute>()?.URL
+                };
                 AddWidget(foldout);
 
                 bool usingRenderGraph = false;

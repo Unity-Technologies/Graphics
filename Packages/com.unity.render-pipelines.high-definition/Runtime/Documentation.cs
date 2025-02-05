@@ -9,6 +9,11 @@ namespace UnityEngine.Rendering.HighDefinition
             : base(pageName, Documentation.packageName)
         {
         }
+
+        public HDRPHelpURLAttribute(string pageName, string pageHash)
+            : base(pageName, pageHash, Documentation.packageName)
+        {
+        }
     }
 
     internal class Documentation : DocumentationInfo

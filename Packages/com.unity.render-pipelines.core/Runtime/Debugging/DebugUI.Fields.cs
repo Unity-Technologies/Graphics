@@ -399,6 +399,64 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// A dropdown that contains a list of cameras
+        /// </summary>
+        public class CameraSelector : ObjectPopupField
+        {
+            /// <summary>
+            /// A dropdown that contains a list of cameras
+            /// </summary>
+            public CameraSelector()
+            {
+                displayName = "Camera";
+                getObjects = () => cameras;
+            }
+
+            private Camera[] m_CamerasArray;
+            private List<Camera> m_Cameras = new List<Camera>();
+
+            IEnumerable<Camera> cameras
+            {
+                get
+                {
+                    m_Cameras.Clear();
+
+#if UNITY_EDITOR
+                    if (UnityEditor.SceneView.lastActiveSceneView != null)
+                    {
+                        var sceneCamera = UnityEditor.SceneView.lastActiveSceneView.camera;
+                        if (sceneCamera != null)
+                            m_Cameras.Add(sceneCamera);
+                    }
+#endif
+
+                    if (m_CamerasArray == null || m_CamerasArray.Length != Camera.allCamerasCount)
+                    {
+                        m_CamerasArray = new Camera[Camera.allCamerasCount];
+                    }
+
+                    Camera.GetAllCameras(m_CamerasArray);
+
+                    foreach (var camera in m_CamerasArray)
+                    {
+                        if (camera == null)
+                            continue;
+
+                        if (camera.cameraType != CameraType.Preview && camera.cameraType != CameraType.Reflection)
+                        {
+                            if (!camera.TryGetComponent<IAdditionalData>(out var additionalData))
+                                Debug.LogWarning($"Camera {camera.name} does not contain an additional camera data component. Open the Game Object in the inspector to add additional camera data.");
+                            else
+                                m_Cameras.Add(camera);
+                        }
+                    }
+
+                    return m_Cameras;
+                }
+            }
+        }
+
+        /// <summary>
         /// Enumerator field with history.
         /// </summary>
         public class HistoryEnumField : EnumField

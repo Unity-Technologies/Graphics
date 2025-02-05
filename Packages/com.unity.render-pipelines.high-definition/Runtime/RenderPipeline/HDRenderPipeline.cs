@@ -665,19 +665,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
 #endif
 
-#if UNITY_EDITOR
-            // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
-            // All scene view will share the same FrameSettings for now as sometimes Dispose is called after
-            // another instance of HDRenderPipeline constructor is called.
-
-            Camera firstSceneViewCamera = UnityEditor.SceneView.sceneViews.Count > 0 ? (UnityEditor.SceneView.sceneViews[0] as UnityEditor.SceneView).camera : null;
-            if (firstSceneViewCamera != null)
-            {
-                var history = FrameSettingsHistory.RegisterDebug(null, true);
-                DebugManager.instance.RegisterData(history);
-            }
-#endif
-
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
