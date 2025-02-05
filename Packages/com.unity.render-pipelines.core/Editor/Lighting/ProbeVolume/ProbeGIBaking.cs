@@ -443,6 +443,7 @@ namespace UnityEngine.Rendering
             public int reflectionProbeCount;
 
             public NativeArray<int> positionRemap;
+            public NativeArray<Vector3> originalPositions;
             public NativeArray<Vector3> sortedPositions;
 
             // Workers
@@ -452,6 +453,9 @@ namespace UnityEngine.Rendering
             public LightingBaker lightingJob;
             public RenderingLayerBaker layerMaskJob;
             public int cellIndex;
+
+            public Thread fixSeamsThread;
+            public bool doneFixingSeams;
 
             // Progress reporting
             public BakingStep step;
@@ -466,6 +470,7 @@ namespace UnityEngine.Rendering
                 reflectionProbeCount = requests.Count;
 
                 jobs = CreateBakingJobs(bakingSet, requests.Count != 0);
+                originalPositions = probePositions.ToArray(Allocator.Persistent);
                 SortPositions(probePositions, requests);
 
                 virtualOffsetJob = virtualOffsetOverride ?? new DefaultVirtualOffset();
@@ -625,6 +630,7 @@ namespace UnityEngine.Rendering
                     job.Dispose();
 
                 positionRemap.Dispose();
+                originalPositions.Dispose();
                 sortedPositions.Dispose();
 
                 skyOcclusionJob.encodedDirections.Dispose();
@@ -883,6 +889,7 @@ namespace UnityEngine.Rendering
             SkyOcclusion,
             RenderingLayerMask,
             Integration,
+            FixSeams,
             FinalizeCells,
 
             Last = FinalizeCells + 1
@@ -1057,6 +1064,39 @@ namespace UnityEngine.Rendering
                 }
             }
 
+            if (s_BakeData.step == BakingStep.FixSeams)
+            {
+                // Start fixing seams in the background
+                if (s_BakeData.fixSeamsThread == null)
+                {
+                    s_BakeData.doneFixingSeams = false;
+                    s_BakeData.fixSeamsThread = new Thread(() =>
+                    {
+                        FixSeams(
+                            s_BakeData.positionRemap,
+                            s_BakeData.originalPositions,
+                            s_BakeData.lightingJob.irradiance,
+                            s_BakeData.lightingJob.validity,
+                            s_BakeData.lightingJob.occlusion,
+                            s_BakeData.skyOcclusionJob.occlusion,
+                            s_BakeData.layerMaskJob.renderingLayerMasks);
+
+                        s_BakeData.doneFixingSeams = true;
+                    });
+                    s_BakeData.fixSeamsThread.Start();
+                }
+                // Wait until fixing seams is done
+                else
+                {
+                    if (s_BakeData.doneFixingSeams)
+                    {
+                        s_BakeData.fixSeamsThread.Join();
+                        s_BakeData.fixSeamsThread = null;
+                        s_BakeData.step++;
+                    }
+                }
+            }
+
             if (s_BakeData.step == BakingStep.FinalizeCells)
             {
                 FinalizeCell(s_BakeData.cellIndex++, s_BakeData.positionRemap,
@@ -1135,6 +1175,13 @@ namespace UnityEngine.Rendering
             {
                 LightingBaker.cancel = true;
                 s_BakeData.bakingThread.Join();
+                LightingBaker.cancel = false;
+            }
+
+            if (s_BakeData.fixSeamsThread != null)
+            {
+                LightingBaker.cancel = true;
+                s_BakeData.fixSeamsThread.Join();
                 LightingBaker.cancel = false;
             }
 
@@ -1227,13 +1274,22 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static void FixSeams(NativeArray<int> positionRemap, NativeArray<Vector3> positions, NativeArray<SphericalHarmonicsL2> sh, NativeArray<float> validity, NativeArray<uint> renderingLayerMasks)
+        internal static void FixSeams(
+            NativeArray<int> positionRemap,
+            NativeArray<Vector3> positions,
+            NativeArray<SphericalHarmonicsL2> sh,
+            NativeArray<float> validity,
+            NativeArray<Vector4> probeOcclusion,
+            NativeArray<Vector4> skyOcclusion,
+            NativeArray<uint> renderingLayerMasks)
         {
             // Seams are caused are caused by probes on the boundary between two subdivision levels
             // The idea is to find first them and do a kind of dilation to smooth the values on the boundary
             // the dilation process consits in doing a trilinear sample of the higher subdivision brick and override the lower subdiv with that
             // We have to mark the probes on the boundary as valid otherwise leak reduction at runtime will interfere with this method
 
+            bool doProbeOcclusion = probeOcclusion.IsCreated && probeOcclusion.Length > 0;
+            bool doSkyOcclusion = skyOcclusion.IsCreated && skyOcclusion.Length > 0;
 
             // Use an indirection structure to ensure mem usage stays reasonable
             VoxelToBrickCache cache = new VoxelToBrickCache();
@@ -1326,7 +1382,9 @@ namespace UnityEngine.Rendering
                     if (bakedRenderingLayerMasks) probeRenderingLayerMask = renderingLayerMasks[i];
 
                     float weightSum = 0.0f;
-                    SphericalHarmonicsL2 trilinear = default;
+                    SphericalHarmonicsL2 shTrilinear = default;
+                    Vector4 probeOcclusionTrilinear = Vector4.zero;
+                    Vector4 skyOcclusionTrilinear = Vector4.zero;
                     for (int o = 0; o < 8; o++)
                     {
                         Vector3Int offset = GetSampleOffset(o);
@@ -1349,24 +1407,44 @@ namespace UnityEngine.Rendering
                             }
 
                             // Do the lerp in compressed format to match result on GPU
-                            var sample = sh[positionRemap[index]];
-                            BakingCell.CompressSH(ref sample, 1.0f, false);
+                            var shSample = sh[positionRemap[index]];
+                            BakingCell.CompressSH(ref shSample, 1.0f, false);
 
                             float trilinearW =
                                 ((offset.x == 1) ? fract.x : 1.0f - fract.x) *
                                 ((offset.y == 1) ? fract.y : 1.0f - fract.y) *
                                 ((offset.z == 1) ? fract.z : 1.0f - fract.z);
 
-                            trilinear += sample * trilinearW;
+                            shTrilinear += shSample * trilinearW;
+
+                            if (doProbeOcclusion)
+                                probeOcclusionTrilinear += probeOcclusion[positionRemap[index]] * trilinearW;
+
+                            if (doSkyOcclusion)
+                                skyOcclusionTrilinear += skyOcclusion[positionRemap[index]] * trilinearW;
+
                             weightSum += trilinearW;
                         }
                     }
 
                     if (weightSum != 0.0f)
                     {
-                        trilinear *= 1.0f / weightSum;
-                        BakingCell.DecompressSH(ref trilinear);
-                        sh[i] = trilinear;
+                        shTrilinear *= 1.0f / weightSum;
+                        BakingCell.DecompressSH(ref shTrilinear);
+                        sh[i] = shTrilinear;
+
+                        if (doProbeOcclusion)
+                        {
+                            probeOcclusionTrilinear *= 1.0f / weightSum;
+                            probeOcclusion[i] = probeOcclusionTrilinear;
+                        }
+
+                        if (doSkyOcclusion)
+                        {
+                            skyOcclusionTrilinear *= 1.0f / weightSum;
+                            skyOcclusion[i] = skyOcclusionTrilinear;
+                        }
+
                         validity[i] = k_MinValidityForLeaking;
                     }
                 }
