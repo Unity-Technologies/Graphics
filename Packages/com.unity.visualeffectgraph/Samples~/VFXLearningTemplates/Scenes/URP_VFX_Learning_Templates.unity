@@ -42,7 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -138,6 +139,10 @@ PrefabInstance:
     - target: {fileID: 2480961561797308085, guid: 2be12f8c25180574d8decb431753349d, type: 3}
       propertyPath: m_fontSize
       value: 0.33
+      objectReference: {fileID: 0}
+    - target: {fileID: 4331302149752468931, guid: 2be12f8c25180574d8decb431753349d, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4331302149752468931, guid: 2be12f8c25180574d8decb431753349d, type: 3}
       propertyPath: m_MotionVectors
@@ -655,55 +660,6 @@ ReflectionProbe:
   m_UseOcclusionCulling: 1
   m_Importance: 1
   m_CustomBakedTexture: {fileID: 0}
---- !u!1 &1105596119
-GameObject:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1105596121}
-  - component: {fileID: 1105596120}
-  m_Layer: 0
-  m_Name: StaticLightingSky
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1105596120
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1105596119}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Profile: {fileID: 0}
-  m_StaticLightingSkyUniqueID: 0
-  m_StaticLightingCloudsUniqueID: 0
-  m_StaticLightingVolumetricClouds: 0
-  bounces: 1
---- !u!4 &1105596121
-Transform:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1105596119}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1144947244 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1138625154127575168, guid: 3c7f1b206ee1ad14fa10fe4a52e3ac1d, type: 3}
@@ -730,6 +686,10 @@ PrefabInstance:
     - target: {fileID: 907854142252066071, guid: feb637fe12022d74092c99f5541d3ae7, type: 3}
       propertyPath: m_Name
       value: Multi-Strip Single Burst
+      objectReference: {fileID: 0}
+    - target: {fileID: 4331302149752468931, guid: feb637fe12022d74092c99f5541d3ae7, type: 3}
+      propertyPath: m_MotionVectors
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8670998143652503691, guid: feb637fe12022d74092c99f5541d3ae7, type: 3}
       propertyPath: m_LocalPosition.x
@@ -889,6 +849,10 @@ PrefabInstance:
     - target: {fileID: 907854142252066071, guid: 01826727a168a334c8d8c8d3286dfcfa, type: 3}
       propertyPath: m_Name
       value: Multi-Strips GPU-Event
+      objectReference: {fileID: 0}
+    - target: {fileID: 4331302149752468931, guid: 01826727a168a334c8d8c8d3286dfcfa, type: 3}
+      propertyPath: m_MotionVectors
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5691893393116993651, guid: 01826727a168a334c8d8c8d3286dfcfa, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
@@ -1632,6 +1596,10 @@ PrefabInstance:
       propertyPath: m_text
       value: Flipbook Mode
       objectReference: {fileID: 0}
+    - target: {fileID: 6826812481613331729, guid: f113d0ccb1b81b4479655f9ffc2c6fce, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7944082677738466757, guid: f113d0ccb1b81b4479655f9ffc2c6fce, type: 3}
       propertyPath: m_Name
       value: Flipbook Mode
@@ -1809,6 +1777,10 @@ PrefabInstance:
     - target: {fileID: 1817607501510996640, guid: 4efc07ba5e4244f49b669c1195159b31, type: 3}
       propertyPath: m_text
       value: Pivot Advanced
+      objectReference: {fileID: 0}
+    - target: {fileID: 2089673204035604282, guid: 4efc07ba5e4244f49b669c1195159b31, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3279388426819690478, guid: 4efc07ba5e4244f49b669c1195159b31, type: 3}
       propertyPath: m_Name
@@ -2024,6 +1996,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Multiple Outputs
       objectReference: {fileID: 0}
+    - target: {fileID: 7109451932390839492, guid: eebc6455237c7314b9342f9e212e0d6a, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8997099017505394610, guid: eebc6455237c7314b9342f9e212e0d6a, type: 3}
       propertyPath: m_text
       value: Multiple Outputs
@@ -2065,6 +2041,10 @@ PrefabInstance:
     - target: {fileID: 4284893062815126990, guid: 3c7f1b206ee1ad14fa10fe4a52e3ac1d, type: 3}
       propertyPath: m_text
       value: Sample Mesh
+      objectReference: {fileID: 0}
+    - target: {fileID: 4562020359568992340, guid: 3c7f1b206ee1ad14fa10fe4a52e3ac1d, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5522409840308690376, guid: 3c7f1b206ee1ad14fa10fe4a52e3ac1d, type: 3}
       propertyPath: m_text
@@ -2553,6 +2533,10 @@ PrefabInstance:
     - target: {fileID: 2940475897326916551, guid: 880de12b545a1a2438644f5c247282f7, type: 3}
       propertyPath: m_text
       value: Rotation & Angular Velocity
+      objectReference: {fileID: 0}
+    - target: {fileID: 3240298076116676189, guid: 880de12b545a1a2438644f5c247282f7, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3639503130760246571, guid: 880de12b545a1a2438644f5c247282f7, type: 3}
       propertyPath: m_text
@@ -3150,6 +3134,10 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1492776379069395777, guid: 412c1cdff46ae03479699e5a7f3a04c3, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2609221245420102549, guid: 412c1cdff46ae03479699e5a7f3a04c3, type: 3}
       propertyPath: m_Name
       value: Capacity
@@ -3322,6 +3310,10 @@ PrefabInstance:
       propertyPath: m_text
       value: Bounds
       objectReference: {fileID: 0}
+    - target: {fileID: 8420386570866849152, guid: 6eb8621b47204894c9333821234ac421, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3417,6 +3409,10 @@ PrefabInstance:
       propertyPath: m_text
       value: Orient Fixed Axis
       objectReference: {fileID: 0}
+    - target: {fileID: 6828556995096964873, guid: 1a6c43a48e42673409aa07b3b71ee93d, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7944719983080112093, guid: 1a6c43a48e42673409aa07b3b71ee93d, type: 3}
       propertyPath: m_Name
       value: Orient Fixed Axis
@@ -3497,6 +3493,10 @@ PrefabInstance:
       propertyPath: m_text
       value: Rotation & Angle
       objectReference: {fileID: 0}
+    - target: {fileID: 8707264772094501886, guid: 5ca1ce248ce780c4ca7d6f0a069b4213, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -3576,6 +3576,10 @@ PrefabInstance:
     - target: {fileID: 3721953089920304497, guid: c31527918c314b74ab9528f8e8dc07c6, type: 3}
       propertyPath: m_text
       value: TexIndex Advanced
+      objectReference: {fileID: 0}
+    - target: {fileID: 4632813927293726957, guid: c31527918c314b74ab9528f8e8dc07c6, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4932142436098444663, guid: c31527918c314b74ab9528f8e8dc07c6, type: 3}
       propertyPath: m_text
@@ -3815,6 +3819,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Orient Face Camera
       objectReference: {fileID: 0}
+    - target: {fileID: 3152436703348429237, guid: 12e803e211bda394c8e3552d3bc250f6, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3424643007967177775, guid: 12e803e211bda394c8e3552d3bc250f6, type: 3}
       propertyPath: m_text
       value: Orient Face Camera
@@ -3997,6 +4005,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Orient Advanced
       objectReference: {fileID: 0}
+    - target: {fileID: 7159415236870988298, guid: e87a782c1562c324b8cc5d10beb585ad, type: 3}
+      propertyPath: m_MotionVectors
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7449561713384546192, guid: e87a782c1562c324b8cc5d10beb585ad, type: 3}
       propertyPath: m_text
       value: Orient Advanced
@@ -4151,7 +4163,6 @@ PrefabInstance:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1105596121}
   - {fileID: 598609723193756365}
   - {fileID: 1406233240}
   - {fileID: 2029994001}
