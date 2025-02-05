@@ -11,6 +11,7 @@ void ApplyDecalToSurfaceDataNoNormal(DecalSurfaceData decalSurfaceData, inout Su
     {
         float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
         surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSBlend.x + decalSpecularColor * (1.0f - decalSurfaceData.MAOSBlend.x);
+        surfaceData.baseColor = ComputeDiffuseColor(surfaceData.baseColor, decalSurfaceData.mask.x);
     }
 #else
     surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSBlend.x + decalSurfaceData.mask.x;
