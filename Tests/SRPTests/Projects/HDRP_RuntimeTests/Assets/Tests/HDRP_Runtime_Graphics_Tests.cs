@@ -39,6 +39,11 @@ public class HDRP_Runtime_Graphics_Tests
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
     )]
     [IgnoreGraphicsTest(
+        "003-VirtualTexturing",
+        "Unstable: https://jira.unity3d.com/browse/UUM-51336",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxSeries }
+    )]
+    [IgnoreGraphicsTest(
         "003-VirtualTexturing-Forward",
         "",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
