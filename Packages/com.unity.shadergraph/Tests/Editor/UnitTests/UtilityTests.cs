@@ -9,28 +9,28 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void ConvertToValidHLSLIdentifier()
         {
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier(""), "_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier(" "), "_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("_"), "_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("9"), "_9");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("q"), "q");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("b#"), "b");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("{t"), "t");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("&Y~"), "Y");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("a_Az_Z0_9_"), "a_Az_Z0_9_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier(" a_Az_Z0_9_"), "a_Az_Z0_9_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("a_Az_Z0_9_ "), "a_Az_Z0_9_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier(" a_Az_Z0_9_ "), "a_Az_Z0_9_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("  a_Az_Z0_9_"), "a_Az_Z0_9_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("a_Az_Z0_9_  "), "a_Az_Z0_9_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("  a_Az_Z0_9_  "), "a_Az_Z0_9_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("_ _"), "_"); // double underscore sequences are not valid
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("      "), "_");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("*1   "), "_1");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("  *-(1)"), "_1");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("*z-1>"), "z_1");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("*^#@$w)!(r+-"), "w_r");
-            Assert.AreEqual(NodeUtils.ConvertToValidHLSLIdentifier("  1   var  * q-30 ( 0 ) (1)   "), "_1_var_q_30_0_1");
+            Assert.AreEqual("_", NodeUtils.ConvertToValidHLSLIdentifier(""));
+            Assert.AreEqual("_", NodeUtils.ConvertToValidHLSLIdentifier(" "));
+            Assert.AreEqual("_", NodeUtils.ConvertToValidHLSLIdentifier("_"));
+            Assert.AreEqual("_9", NodeUtils.ConvertToValidHLSLIdentifier("9"));
+            Assert.AreEqual("q", NodeUtils.ConvertToValidHLSLIdentifier("q"));
+            Assert.AreEqual("b", NodeUtils.ConvertToValidHLSLIdentifier("b#"));
+            Assert.AreEqual("t", NodeUtils.ConvertToValidHLSLIdentifier("{t"));
+            Assert.AreEqual("Y", NodeUtils.ConvertToValidHLSLIdentifier("&Y~"));
+            Assert.AreEqual("a_Az_Z0_9_", NodeUtils.ConvertToValidHLSLIdentifier("a_Az_Z0_9_"));
+            Assert.AreEqual("a_Az_Z0_9_", NodeUtils.ConvertToValidHLSLIdentifier(" a_Az_Z0_9_"));
+            Assert.AreEqual("a_Az_Z0_9_", NodeUtils.ConvertToValidHLSLIdentifier("a_Az_Z0_9_ "));
+            Assert.AreEqual("a_Az_Z0_9_", NodeUtils.ConvertToValidHLSLIdentifier(" a_Az_Z0_9_ "));
+            Assert.AreEqual("a_Az_Z0_9_", NodeUtils.ConvertToValidHLSLIdentifier("  a_Az_Z0_9_"));
+            Assert.AreEqual("a_Az_Z0_9_", NodeUtils.ConvertToValidHLSLIdentifier("a_Az_Z0_9_  "));
+            Assert.AreEqual("a_Az_Z0_9_", NodeUtils.ConvertToValidHLSLIdentifier("  a_Az_Z0_9_  "));
+            Assert.AreEqual("_", NodeUtils.ConvertToValidHLSLIdentifier("_ _")); // double underscore sequences are not valid
+            Assert.AreEqual("_", NodeUtils.ConvertToValidHLSLIdentifier("      "));
+            Assert.AreEqual("_1", NodeUtils.ConvertToValidHLSLIdentifier("*1   "));
+            Assert.AreEqual("_1", NodeUtils.ConvertToValidHLSLIdentifier("  *-(1)"));
+            Assert.AreEqual("z_1", NodeUtils.ConvertToValidHLSLIdentifier("*z-1>"));
+            Assert.AreEqual("w_r", NodeUtils.ConvertToValidHLSLIdentifier("*^#@$w)!(r+-"));
+            Assert.AreEqual("_1_var_q_30_0_1", NodeUtils.ConvertToValidHLSLIdentifier("  1   var  * q-30 ( 0 ) (1)   "));
         }
 
         [Test]
