@@ -5,8 +5,11 @@ using UnityEditor;
 using NUnit.Framework;
 using UnityEngine;
 
-public class EnableGPUSkinning : MonoBehaviour
+public class GPUSkinningToggle : MonoBehaviour
 {
+
+    public bool useGPUSkinning = true;
+    private bool useGPUSkinningSetting;
     private void Start()
     {
         var spriteRenderer = Object.FindAnyObjectByType<SpriteRenderer>();
@@ -16,12 +19,13 @@ public class EnableGPUSkinning : MonoBehaviour
 #if UNITY_EDITOR
     private void OnEnable()
     {
-        PlayerSettings.gpuSkinning = true;
+        useGPUSkinningSetting = PlayerSettings.gpuSkinning;
+        PlayerSettings.gpuSkinning = useGPUSkinning;
     }
 
     private void OnDisable()
     {
-        PlayerSettings.gpuSkinning = false;
+        PlayerSettings.gpuSkinning = useGPUSkinningSetting;
     }
 #endif
 }

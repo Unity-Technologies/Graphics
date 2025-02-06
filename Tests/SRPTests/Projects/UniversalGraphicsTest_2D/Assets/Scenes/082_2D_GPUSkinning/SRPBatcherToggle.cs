@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class SRPBatcherToggle : MonoBehaviour
 {
+    public bool useSRPBatcher = false;
     private bool useScriptableRenderPipelineBatching;
     // called second
     void OnEnable()
@@ -13,7 +14,7 @@ public class SRPBatcherToggle : MonoBehaviour
         var universalAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
         Debug.LogFormat("OnEnable {0}", universalAsset.useSRPBatcher);
         useScriptableRenderPipelineBatching = universalAsset.useSRPBatcher;
-        universalAsset.useSRPBatcher = false;
+        universalAsset.useSRPBatcher = useSRPBatcher;
     }
 
     private void Update()
