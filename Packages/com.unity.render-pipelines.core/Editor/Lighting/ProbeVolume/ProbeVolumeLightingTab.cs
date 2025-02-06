@@ -48,6 +48,7 @@ namespace UnityEngine.Rendering
             public static readonly string msgEnableAll = "Some loaded Scenes are disabled by this Baking Set. These Scenes will not contribute to the generation of probe data.";
             public static readonly string msgUnloadOther = "Scene(s) not belonging to this Baking Set are currently loaded in the Hierarchy. This might result in incorrect lighting.";
             public static readonly string msgLoadForBake = "Some scene(s) in this Baking Set are not currently loaded in the Hierarchy. This might result in missing or incomplete lighting.";
+            public static readonly string msgIncorrectBakingSet = "The currently loaded scenes do not match the assigned Baking Set. To resolve this, make sure to load the scenes that correspond to the assigned Baking Set, unload any scenes that don’t belong, and verify the scene setup before generating lighting to ensure everything bakes correctly.";
 
             public const float statusLabelWidth = 80;
 
@@ -221,6 +222,19 @@ namespace UnityEngine.Rendering
             Initialize();
 
             var prv = ProbeReferenceVolume.instance;
+            // The CurrentBakingSet may change when you open an additional Scene with APV
+            if (prv.currentBakingSet != activeSet)
+            {
+                if (prv.currentBakingSet == null)
+                {
+                    m_SingleSceneMode = true;
+                }
+                else
+                {
+                    OpenBakingSet(prv.currentBakingSet);
+                }
+            }
+
             // In single scene mode, user can't control active set, so we automatically create a new one
             // in case the active scene doesn't have a baking set so that we can display baking settings
             // Clone the current activeSet if possible so that it's seamless when eg. duplicating a scene
@@ -358,6 +372,7 @@ namespace UnityEngine.Rendering
             {
                 if (newSet != null) { EditorUtility.SetDirty(newSet); newSet.singleSceneMode = false; }
                 activeSet = newSet;
+                ProbeReferenceVolume.instance.SetActiveBakingSet(activeSet);
             }
 
             if (activeSet != null)
@@ -477,6 +492,24 @@ namespace UnityEngine.Rendering
                         foreach (var scene in scenesToEnable)
                             activeSet.SetSceneBaking(scene.guid, true);
                     }
+                }
+            }
+
+            if (activeSet == ProbeReferenceVolume.instance.currentBakingSet)
+            {
+                hasWarnings = true;
+                foreach (var sceneDataList in ProbeReferenceVolume.instance.perSceneDataList)
+                {
+                    if (sceneDataList.bakingSet == activeSet)
+                    {
+                        hasWarnings = false;
+                        break;
+                    }
+                }
+
+                if (hasWarnings)
+                {
+                    EditorGUILayout.HelpBox(Styles.msgIncorrectBakingSet, MessageType.Warning);
                 }
             }
 
@@ -787,10 +820,14 @@ namespace UnityEngine.Rendering
                 // Find the set in which the new active scene belongs
                 var set = ProbeVolumeBakingSet.GetBakingSetForScene(scene);
 
-                if (set != null)
-                {
-                    activeSet = set;
+                activeSet = set;
 
+                if (set == null)
+                {
+                    m_SingleSceneMode = true;
+                }
+                else
+                {
                     // If we load a new scene that doesn't have the current scenario, change it
                     if (!set.m_LightingScenarios.Contains(prv.lightingScenario))
                         prv.SetActiveScenario(set.m_LightingScenarios[0], false);
