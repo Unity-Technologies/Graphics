@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseUp(MouseDownEvent e)
         {
-            if (e.clickCount == 2)
+            if (e.clickCount == 2 && e.button == (int)MouseButton.LeftMouse)
             {
                 VFXNodeUI slotContainer = (VFXNodeUI)target;
 
