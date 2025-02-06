@@ -38,11 +38,10 @@ MonoBehaviour:
         m_Untranslated: Congratulations!
       Text:
         m_Untranslated: "In this tutorial, you learned the basics of HDRP settings.\n\nYou
-          can also watch  a<a href=\"https://youtu.be/yqCHiZrgKzs?t=243\">video</a>
+          can also watch a <a href=\"https://youtu.be/yqCHiZrgKzs?t=243\">video</a>
           tutorial to learn more about the Graphics settings.\n\nFor more details,
           check out the corresponding documentation:\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/HDRP-Asset.html\">HDRP
-          assets</a>\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Scalability-Manual.html\">Scalability
-          (Quality levels)</a>\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Frame-Settings.html\">Frame
+          assets</a>\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/quality-settings.html\">Quality Settings</a>\n\u2022<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Frame-Settings.html\">Frame
           Settings</a>"
       m_Tutorial: {fileID: 0}
       m_Image: {fileID: 0}
