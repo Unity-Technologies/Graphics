@@ -1241,6 +1241,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 "Wrap",
                 TextureSamplerState.WrapMode.Repeat,
                 out var wrapVisualElement));
+
+            propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                newValue =>
+                {
+                    this._preChangeValueCallback("Change property value");
+                    TextureSamplerState state = samplerStateShaderProperty.value;
+                    state.anisotropic = (TextureSamplerState.Anisotropic)newValue;
+                    samplerStateShaderProperty.value = state;
+                    this._postChangeValueCallback(false, ModificationScope.Graph);
+                    this.inspectorUpdateDelegate();
+                },
+                samplerStateShaderProperty.value.anisotropic,
+                "Aniso",
+                TextureSamplerState.Anisotropic.None,
+                out var anisoVisualElement));
         }
 
         void HandleGradientPropertyField(PropertySheet propertySheet, GradientShaderProperty gradientShaderProperty)

@@ -253,9 +253,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         Application.OpenURL("https://unity.com/features/shader-graph");
                     });
-                    menu.AddItem(new GUIContent("Shader Graph Forums"), false, () =>
+                    menu.AddItem(new GUIContent("Shader Graph Discussions"), false, () =>
                     {
-                        Application.OpenURL("https://forum.unity.com/forums/shader-graph.346/");
+                        Application.OpenURL("https://discussions.unity.com/tag/Shader-Graph");
                     });
                     menu.AddItem(new GUIContent("Shader Graph Roadmap"), false, () =>
                     {
