@@ -56,6 +56,14 @@ namespace UnityEditor.ShaderGraph
             // add the right click context menu
             IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
             this.AddManipulator(contextMenuManipulator);
+
+            if (property != null)
+            {
+                property.onAfterVersionChange += () =>
+                {
+                    m_TriggerInspectorUpdate?.Invoke();
+                };
+            }
         }
 
         // Updating the text label of the output slot

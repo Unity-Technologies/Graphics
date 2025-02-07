@@ -373,6 +373,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphEditorView.HandleGraphChanges(wasUndoRedoPerformed);
                 graphObject.graph.ClearChanges();
 
+                if (wasUndoRedoPerformed)
+                {
+                    graphEditorView.inspectorView.RefreshInspectables();
+                }
+
                 if (updateTitle)
                     UpdateTitle();
             }
