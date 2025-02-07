@@ -74,10 +74,10 @@ Shader "Hidden/HDRP/DownsampleDepth"
 #else
             uint2 fullResUpperCorner = uint2((((float2)input.positionCS.xy - 0.5f) * 2.0) + 0.5f);
             float4 depths;
-			depths.x = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner, 0);
-            depths.y = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner + uint2(0, 1), 0);
-            depths.z = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner + uint2(1, 0), 0);
-            depths.w = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner + uint2(1, 1), 0);
+			depths.x = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner, 0).r;
+            depths.y = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner + uint2(0, 1), 0).r;
+            depths.z = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner + uint2(1, 0), 0).r;
+            depths.w = LOAD_TEXTURE2D_X_LOD(_SourceDownsampleDepth, fullResUpperCorner + uint2(1, 1), 0).r;
 
             float minDepth = MinDepth(depths);
         #if MIN_DOWNSAMPLE
