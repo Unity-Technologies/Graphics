@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.Universal
 
         bool RequiresIntermediateAttachments(UniversalCameraData cameraData, ref RenderPassInputSummary renderPassInputs)
         {
-            bool requiresDepthPrepass = RequireDepthPrepass(cameraData, ref renderPassInputs);
+            var requiresDepthPrepass = RequireDepthPrepass(cameraData, ref renderPassInputs);
 
             var requireColorTexture = HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always;
             requireColorTexture |= HasPassesRequiringIntermediateTexture();

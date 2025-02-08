@@ -1940,6 +1940,7 @@ namespace UnityEngine.Rendering.Universal
             var cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
             int msaaSamples = cameraTargetDescriptor.msaaSamples;
             bool isScaledRender = cameraData.imageScalingMode != ImageScalingMode.None;
+            bool isScalableBufferManagerUsed = IsScalableBufferManagerUsed(cameraData);
             bool isCompatibleBackbufferTextureDimension = cameraTargetDescriptor.dimension == TextureDimension.Tex2D;
             bool requiresExplicitMsaaResolve = msaaSamples > 1 && PlatformRequiresExplicitMsaaResolve();
             bool isOffscreenRender = cameraData.targetTexture != null && !isSceneViewCamera;
@@ -1949,6 +1950,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 isScaledRender = false;
+                isScalableBufferManagerUsed = false;
                 isCompatibleBackbufferTextureDimension = cameraData.xr.renderTargetDesc.dimension == cameraTargetDescriptor.dimension;
             }
 #endif
@@ -1957,9 +1959,27 @@ namespace UnityEngine.Rendering.Universal
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
-            return requiresBlitForOffscreenCamera || isScaledRender || cameraData.isHdrEnabled ||
+            return requiresBlitForOffscreenCamera || isScaledRender || isScalableBufferManagerUsed || cameraData.isHdrEnabled ||
                 !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion ||
-                renderPassInputs.requiresColorTexture || renderPassInputs.requiresColorTextureCreated;
+                renderPassInputs.requiresColorTexture || renderPassInputs.requiresColorTextureCreated ;
+        }
+
+        // There is two ways to control the dynamic resolution in URP:
+        // - By using the ScalableBufferManager API (https://docs.unity3d.com/2022.2/Documentation/Manual/DynamicResolution.html).
+        // - By using the cameraData.renderScale property on the URP asset.
+        // When checking the requirements to use an intermediate texture, we only consider the cameraData.renderScale property and not the ScalableBufferManager API.
+        // When Dynamic Resolution is enabled on the camera and a scale factor (from ScalableBufferManager) is different than 1, we need to use an intermediate texture.
+        // Note: cameraData.renderScale resizes screen space textures, while dynamic resolution (ScalableBufferManager) doesn't and instead uses memory aliasing.
+        // These features are different and should work independently, though they can be used together at the same time.
+        bool IsScalableBufferManagerUsed(UniversalCameraData cameraData)
+        {
+            const float epsilon = 0.0001f;
+
+            bool dynamicResEnabled = cameraData.camera.allowDynamicResolution;
+            bool scaledWidthActive = Mathf.Abs(ScalableBufferManager.widthScaleFactor - 1.0f) > epsilon;
+            bool scaledHeightActive = Mathf.Abs(ScalableBufferManager.heightScaleFactor - 1.0f) > epsilon;
+
+            return dynamicResEnabled && (scaledWidthActive || scaledHeightActive);
         }
 
         bool CanCopyDepth(UniversalCameraData cameraData)
