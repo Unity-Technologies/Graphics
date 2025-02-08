@@ -43,6 +43,11 @@ public class HDRP_Graphics_Tests
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5 }
     )]
     [IgnoreGraphicsTest(
+        "5001_PathTracing",
+        "jira: https://jira.unity3d.com/browse/GFXFEAT-1332",
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
+    )]
+    [IgnoreGraphicsTest(
         "5007_PathTracing_Materials_SG_Lit",
         "issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsPlayer }
