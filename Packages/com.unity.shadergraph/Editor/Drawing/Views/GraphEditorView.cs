@@ -487,7 +487,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.Add(m_MasterPreviewView);
 
             masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
-            m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+            m_MasterPreviewView.onResized += UpdateSerializedWindowLayout;
         }
 
         void CreateInspector()
