@@ -183,6 +183,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return (saved || okToClose);
         }
 
+        bool firstUpdate = true;
         void Update()
         {
             if (m_HasError)
@@ -381,13 +382,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphEditorView.inspectorView.RefreshInspectables();
                 }
 
-                if (updateTitle)
+                if (updateTitle && !firstUpdate)
                     UpdateTitle();
+                firstUpdate = false;
             }
             catch (Exception e)
             {
                 m_HasError = true;
-                m_GraphEditorView = null;
+                graphEditorView = null;
                 graphObject = null;
                 Debug.LogException(e);
                 throw;
@@ -416,9 +418,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        void OnPlayMode(PlayModeStateChange change)
+        {
+            if (change == PlayModeStateChange.ExitingEditMode)
+                graphEditorView = null;
+        }
+
         void OnEnable()
         {
             this.SetAntiAliasing(4);
+
+            EditorApplication.playModeStateChanged += OnPlayMode;
         }
 
         void OnDisable()
@@ -431,6 +441,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             Resources.UnloadUnusedAssets();
 
             WereWindowResourcesDisposed = true;
+
+            EditorApplication.playModeStateChanged -= OnPlayMode;
         }
 
         // returns true only when the file on disk doesn't match the graph we last loaded or saved to disk (i.e. someone else changed it)
@@ -1196,7 +1208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 Debug.LogException(e);
                 m_HasError = true;
-                m_GraphEditorView = null;
+                graphEditorView = null;
                 graphObject = null;
                 throw;
             }
@@ -1276,7 +1288,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             catch (Exception)
             {
                 m_HasError = true;
-                m_GraphEditorView = null;
+                graphEditorView = null;
                 graphObject = null;
                 throw;
             }

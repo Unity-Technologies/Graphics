@@ -1423,13 +1423,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+            var edges = edgesToUpdate.ToArray();
+            edgesToUpdate.Dispose();
             schedule.Execute(() =>
             {
-                foreach (Edge e in edgesToUpdate)
+                foreach (Edge e in edges)
                 {
                     e.UpdateEdgeControl();
                 }
-                edgesToUpdate.Dispose();
             }).StartingIn(0);
         }
 

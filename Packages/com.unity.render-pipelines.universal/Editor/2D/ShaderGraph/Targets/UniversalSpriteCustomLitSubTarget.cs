@@ -112,6 +112,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     defines = new DefineCollection(),
                     keywords = SpriteLitKeywords.Lit,
                     includes = SpriteLitIncludes.Lit,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
                 if (target.disableTint)
@@ -150,6 +153,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
                     includes = SpriteLitIncludes.Normal,
+
+                    // Custom Interpolator Support
+                    customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
                 if (target.disableTint)

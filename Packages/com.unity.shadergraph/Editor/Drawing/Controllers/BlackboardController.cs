@@ -612,6 +612,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Called by GraphDataStore.Subscribe after the model has been changed
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
+            if (ViewModel == null) return;
             // Reconstruct view-model first
             // TODO: hide this more generically for category types.
             bool useDropdowns = graphData.isSubGraph;
