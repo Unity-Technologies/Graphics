@@ -34,24 +34,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader autodeskInteractiveMaskedPS;
 
             /// <summary>
-            /// Terrain Detail Lit shader.
-            /// </summary>
-            [Reload("Shaders/Terrain/TerrainDetailLit.shader")]
-            public Shader terrainDetailLitPS;
-
-            /// <summary>
-            /// Terrain Detail Grass shader.
-            /// </summary>
-            [Reload("Shaders/Terrain/WavingGrass.shader")]
-            public Shader terrainDetailGrassPS;
-
-            /// <summary>
-            /// Waving Grass Billboard shader.
-            /// </summary>
-            [Reload("Shaders/Terrain/WavingGrassBillboard.shader")]
-            public Shader terrainDetailGrassBillboardPS;
-
-            /// <summary>
             /// SpeedTree7 shader.
             /// </summary>
             [Reload("Shaders/Nature/SpeedTree7.shader")]

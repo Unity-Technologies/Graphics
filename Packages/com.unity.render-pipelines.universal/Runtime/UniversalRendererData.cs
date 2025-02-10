@@ -127,12 +127,30 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             [Reload("Shaders/ObjectMotionVectors.shader")]
             public Shader objectMotionVector;
-            
+
             /// <summary>
             /// Data Driven Lens Flare shader.
             /// </summary>
             [Reload("Shaders/PostProcessing/LensFlareDataDriven.shader")]
             public Shader dataDrivenLensFlare;
+
+            /// <summary>
+            /// Terrain Detail Lit shader.
+            /// </summary>
+            [Reload("Shaders/Terrain/TerrainDetailLit.shader")]
+            public Shader terrainDetailLitPS;
+
+            /// <summary>
+            /// Terrain Detail Grass shader.
+            /// </summary>
+            [Reload("Shaders/Terrain/WavingGrass.shader")]
+            public Shader terrainDetailGrassPS;
+
+            /// <summary>
+            /// Waving Grass Billboard shader.
+            /// </summary>
+            [Reload("Shaders/Terrain/WavingGrassBillboard.shader")]
+            public Shader terrainDetailGrassBillboardPS;
         }
 
         /// <summary>
