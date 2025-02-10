@@ -59,16 +59,28 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        private bool IsPixelPerfectCameraEnabled(UniversalCameraData cameraData)
+        {
+            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
+            return ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None;
+        }
+
         ImportResourceSummary GetImportResourceSummary(RenderGraph renderGraph, UniversalCameraData cameraData)
         {
             ImportResourceSummary output = new ImportResourceSummary();
 
             bool clearColor = cameraData.renderType == CameraRenderType.Base;
             bool clearDepth = cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth;
-            bool clearBackbufferOnFirstUse = (cameraData.renderType == CameraRenderType.Base) && !m_CreateColorTexture;
+
+            // Clear back buffer color if pixel perfect crop frame is used
+            // Non-base cameras the back buffer should never be cleared
+            bool ppcEnabled = IsPixelPerfectCameraEnabled(cameraData);
+            bool clearColorBackbufferOnFirstUse = (cameraData.renderType == CameraRenderType.Base) && (!m_CreateColorTexture || ppcEnabled);
+            bool clearDepthBackbufferOnFirstUse = (cameraData.renderType == CameraRenderType.Base) && !m_CreateColorTexture;
 
             // if the camera background type is "uninitialized" clear using a yellow color, so users can clearly understand the underlying behaviour
             Color cameraBackgroundColor = (cameraData.camera.clearFlags == CameraClearFlags.Nothing) ? Color.yellow : cameraData.backgroundColor;
+            Color backBufferBackgroundColor = ppcEnabled ? Color.black : cameraBackgroundColor;
 
             if (IsSceneFilteringEnabled(cameraData.camera))
             {
@@ -92,12 +104,12 @@ namespace UnityEngine.Rendering.Universal
             output.cameraDepthParams.clearColor = cameraBackgroundColor;
             output.cameraDepthParams.discardOnLastUse = false;
 
-            output.backBufferColorParams.clearOnFirstUse = clearBackbufferOnFirstUse;
-            output.backBufferColorParams.clearColor = cameraBackgroundColor;
+            output.backBufferColorParams.clearOnFirstUse = clearColorBackbufferOnFirstUse;
+            output.backBufferColorParams.clearColor = backBufferBackgroundColor;
             output.backBufferColorParams.discardOnLastUse = false;
 
-            output.backBufferDepthParams.clearOnFirstUse = clearBackbufferOnFirstUse;
-            output.backBufferDepthParams.clearColor = cameraBackgroundColor;
+            output.backBufferDepthParams.clearOnFirstUse = clearDepthBackbufferOnFirstUse;
+            output.backBufferDepthParams.clearColor = backBufferBackgroundColor;
             output.backBufferDepthParams.discardOnLastUse = true;
 
             if (cameraData.targetTexture != null)
@@ -628,8 +640,7 @@ namespace UnityEngine.Rendering.Universal
             bool anyPostProcessing = postProcessingData.isEnabled && m_PostProcessPasses.isCreated;
 
             cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
-            bool isPixelPerfectCameraEnabled = ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None;
-            bool requirePixelPerfectUpscale = isPixelPerfectCameraEnabled && ppc.requiresUpscalePass;
+            bool requirePixelPerfectUpscale = IsPixelPerfectCameraEnabled(cameraData) && ppc.requiresUpscalePass;
 
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
