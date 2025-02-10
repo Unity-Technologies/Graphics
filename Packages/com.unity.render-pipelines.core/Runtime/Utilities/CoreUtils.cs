@@ -1831,6 +1831,20 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Return the GraphicsFormat of Depth-only RenderTarget preferred for the current platform.
+        /// </summary>
+        /// <returns>The GraphicsFormat of Depth-only RenderTarget preferred for the current platform.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static GraphicsFormat GetDefaultDepthOnlyFormat()
+        {
+#if UNITY_SWITCH || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
+            return GraphicsFormatUtility.GetDepthStencilFormat(24, 0); // returns GraphicsFormat.D24_UNorm when hardware supports it
+#else
+            return GraphicsFormat.D32_SFloat;
+#endif
+        }
+
+        /// <summary>
         /// Return the number of DepthStencil RenderTarget depth bits preferred for the current platform.
         /// </summary>
         /// <returns>The number of DepthStencil RenderTarget depth bits preferred for the current platform.</returns>
