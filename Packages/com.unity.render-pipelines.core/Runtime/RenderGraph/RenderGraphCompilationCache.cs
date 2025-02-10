@@ -49,7 +49,7 @@ class RenderGraphCompilationCache
         where T : RenderGraph.ICompiledGraph
     {
         s_Hash = hash;
-        int index = hashEntries.FindIndex(0, hashEntries.size, (value) => value.hash == s_Hash);
+        int index = hashEntries.FindIndex(value => value.hash == s_Hash);
         if (index != -1)
         {
             ref var entry = ref hashEntries[index];
