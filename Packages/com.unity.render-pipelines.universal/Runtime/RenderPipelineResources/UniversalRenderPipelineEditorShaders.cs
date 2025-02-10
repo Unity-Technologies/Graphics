@@ -43,39 +43,6 @@ namespace UnityEngine.Rendering.Universal
         }
         #endregion
 
-        #region Terrain
-        [Header("Terrain")]
-        [SerializeField]
-        [ResourcePath("Shaders/Terrain/TerrainDetailLit.shader")]
-        private Shader m_TerrainDetailLit;
-
-        public Shader terrainDetailLitShader
-        {
-            get => m_TerrainDetailLit;
-            set => this.SetValueAndNotify(ref m_TerrainDetailLit, value);
-        }
-
-        [SerializeField]
-        [ResourcePath("Shaders/Terrain/WavingGrassBillboard.shader")]
-        private Shader m_TerrainDetailGrassBillboard;
-
-        public Shader terrainDetailGrassBillboardShader
-        {
-            get => m_TerrainDetailGrassBillboard;
-            set => this.SetValueAndNotify(ref m_TerrainDetailGrassBillboard, value);
-        }
-
-        [SerializeField]
-        [ResourcePath("Shaders/Terrain/WavingGrass.shader")]
-        private Shader m_TerrainDetailGrass;
-
-        public Shader terrainDetailGrassShader
-        {
-            get => m_TerrainDetailGrass;
-            set => this.SetValueAndNotify(ref m_TerrainDetailGrass, value);
-        }
-        #endregion
-
         #region SpeedTree
         [Header("SpeedTree")]
         [SerializeField]
