@@ -801,7 +801,10 @@ namespace UnityEditor.Rendering
 
                     rowRect.xMin += 2;
                     rowRect.xMax -= 2;
-                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName), DebugWindow.Styles.centeredLeft);
+
+                    bool isAlternate = r % 2 == 0;
+
+                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName),isAlternate ? DebugWindow.Styles.centeredLeft : DebugWindow.Styles.centeredLeftAlternate);
                     rowRect.xMin -= 2;
                     rowRect.xMax += 2;
 
@@ -812,7 +815,7 @@ namespace UnityEditor.Rendering
                             rowRect.x += rowRect.width;
                             rowRect.width = columns[visible[c]].width;
                             if (!row.isHidden)
-                                DisplayChild(rowRect, row.children[visible[c] - 1]);
+                                DisplayChild(rowRect, row.children[visible[c] - 1], isAlternate);
                         }
                         rowRect.y += rowRect.height;
                     }
@@ -855,7 +858,7 @@ namespace UnityEditor.Rendering
             return new Rect(rect.x + size, rect.y + size, rect.width - 2 * size, rect.height - 2 * size);
         }
 
-        internal void DisplayChild(Rect rect, DebugUI.Widget child)
+        internal void DisplayChild(Rect rect, DebugUI.Widget child, bool isAlternate)
         {
             rect.xMin += 2;
             rect.xMax -= 2;
@@ -869,7 +872,7 @@ namespace UnityEditor.Rendering
                 if (child.GetType() == typeof(DebugUI.Value))
                 {
                     var widget = Cast<DebugUI.Value>(child);
-                    EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()));
+                    EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()), isAlternate ? DebugWindow.Styles.centeredLeft : DebugWindow.Styles.centeredLeftAlternate);
                 }
                 else if (child.GetType() == typeof(DebugUI.ColorField))
                 {
