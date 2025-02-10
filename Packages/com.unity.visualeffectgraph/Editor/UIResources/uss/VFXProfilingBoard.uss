@@ -118,7 +118,9 @@ VFXProfilingBoard, #component-container
 {
     margin-left: 4px;
     margin-right: 4px;
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/debug.png");
+    width: 16px;
+    height: 16px;
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_debug.png");
 }
 
 .unity-foldout__toggle

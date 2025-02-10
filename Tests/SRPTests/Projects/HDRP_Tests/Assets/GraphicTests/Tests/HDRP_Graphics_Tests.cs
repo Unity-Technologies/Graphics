@@ -128,6 +128,12 @@ public class HDRP_Graphics_Tests
     [IgnoreGraphicsTest("3012_MipMapMode_MipStreamingPerformance$", "There seems to be issues with the texture-streaming behaviour on all platforms.")]
     [IgnoreGraphicsTest("4012_MotionBlur_CameraOnly$", "Missing ref-image.")]
     [IgnoreGraphicsTest(
+        "4075_PhysicalCamera-gateFit$",
+        "Noisy result in Linux + VK..",
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Vulkan },
+        runtimePlatforms: new []{ RuntimePlatform.LinuxEditor }
+    )]
+    [IgnoreGraphicsTest(
         "4088_DRS-DLSS-Hardware$",
         "Instability https://jira.unity3d.com/browse/UUM-75549",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }

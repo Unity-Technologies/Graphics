@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
-
+using UnityEngine.Rendering.HighDefinition;
 
 [ExecuteInEditMode]
 [SelectionBaseAttribute]
 /// <summary>
 /// This component generates a procedural color checker. 
 /// </summary>
+[HDRPHelpURL("color-checker-tool-reference")]
 public class ColorCheckerTool : MonoBehaviour
 {
     /// <summary>

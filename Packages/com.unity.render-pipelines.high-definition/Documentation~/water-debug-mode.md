@@ -3,12 +3,12 @@
 For authoring purposes, the water surface component has debug view modes. Those views are available in Miscellaneous section in the water surface component. 
 They are especially useful for placing the different areas (Mask, Deformation, Foam) precisely. 
 
-## Water Mask
-The Water Mask mode displays the reduction of each simulation band. White means no reduction. Black means 100% reduction. 
-You can select which channel of the water mask to debug by using the **Water Mask Mode** dropdown. 
+## Simulation Mask
+The Simulation Mask mode displays the reduction of each simulation band. White means no reduction. Black means 100% reduction. 
+You can select which channel of the water mask to debug by using the **Simulation Mask Mode** dropdown. 
 Note that, for saving texture space, the red channel always attenuate the first band (First swell band for oceans, Agitation for rivers, Ripples for pools), green channel, the second band (Second swell band for oceans, ripples for rivers)... etc
 
-![](Images/water-debug-watermask.png)
+![](Images/water-debug-simulationmask.png)
 
 
 ## Simulation Foam Mask

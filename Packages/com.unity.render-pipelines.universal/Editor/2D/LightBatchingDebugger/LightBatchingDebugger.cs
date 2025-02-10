@@ -51,13 +51,17 @@ namespace UnityEditor.Rendering.Universal
         {
             get
             {
+                return renderer2DData?.lightCullResult;
+            }
+        }
+
+        Renderer2DData renderer2DData
+        {
+            get
+            {
                 // Game view main camera
                 var renderer = Camera.main?.GetUniversalAdditionalCameraData().scriptableRenderer as Renderer2D;
-                var data = renderer?.GetRenderer2DData();
-                if (data != null && data.lightCullResult.IsGameView())
-                    return data?.lightCullResult;
-
-                return null;
+                return renderer?.GetRenderer2DData();
             }
         }
 
@@ -69,7 +73,7 @@ namespace UnityEditor.Rendering.Universal
             batchList.Clear();
 
             var layers = Light2DManager.GetCachedSortingLayer();
-            var batches = LayerUtility.CalculateBatches(lightCullResult, out var batchCount);
+            var batches = LayerUtility.CalculateBatches(renderer2DData, out var batchCount);
 
             for (var i = 0; i < batchCount; i++)
             {

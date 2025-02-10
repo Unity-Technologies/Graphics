@@ -1,6 +1,6 @@
 # Exclude part of a water surface
 
-Sometimes you might want to prevent water from appearing on top of other surfaces. For static environments, you can use a [water mask](water-decals-and-masking-in-the-water-system.md) to make sure the water stays under the terrain. For dynamic objects, it’s more practical to use a water excluder. A water excluder is a GameObject that marks pixels on screen that should not receive a water surface. 
+Sometimes you might want to prevent water from appearing on top of other surfaces. For static environments, you can use a [simulation mask](water-decals-and-masking-in-the-water-system.md) to make sure the water stays under the terrain. For dynamic objects, it’s more practical to use a water excluder. A water excluder is a GameObject that marks pixels on screen that should not receive a water surface. 
 
 You can use a water excluder to remove a water surface inside a floating object. The following example shows a water excluder applied to the inside of a boat.
 

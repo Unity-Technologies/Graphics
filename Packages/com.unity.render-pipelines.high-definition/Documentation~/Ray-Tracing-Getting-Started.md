@@ -123,15 +123,15 @@ To make HDRP calculate ray tracing effects for [Cameras](hdrp-camera-component-r
 
 To enable ray tracing by default:
 
-1. Open the Project Settings window (menu:  **Edit > Project Settings**), then select the HDRP Default Settings tab.
-2. Select Camera from the Default Frame Settings For drop-down.
-3. In the **Rendering** section, enable **Ray Tracing**.
+1. From the main menu, select **Edit** &gt; **Project Settings**.
+2. In the **Project Settings** window, go to the **Pipeline Specific Settings** section, then select the **HDRP** tab.
+3. Under **Frame Settings (Default Values)** &gt; **Camera** &gt; **Rendering**, enable **Ray Tracing**.
 
-To enable ray tracing for a specific Camera:
+To enable ray tracing for a specific camera:
 
-1. Click on the Camera in the Scene or Hierarchy to view it in the Inspector.
-2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
-3. in the **Rendering** section, enable **Ray Tracing**.
+1. Select the camera in the scene or **Hierarchy** window to view it in the **Inspector** window.
+2. In the **Rendering** section, enable **Custom Frame Settings**. This exposes frame settings for this camera only.
+3. Use the foldout (triangle) to expand **Rendering**, then enable **Ray Tracing**.
 
 #### Build settings
 

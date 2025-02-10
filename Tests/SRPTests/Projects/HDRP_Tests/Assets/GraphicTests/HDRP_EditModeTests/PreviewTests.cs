@@ -165,7 +165,7 @@ namespace UnityEditor.Previews
 
             yield return AssetPreviewTesting.CompareAssetPreview<Material>(
                 "Assets/GraphicTests/Common/Materials/LitMetallicEmissive.mat",
-                "Assets/ReferenceImages/Preview/LitMetallicEmissive.png",
+                "Assets/PreviewTestsImages/LitMetallicEmissive.png",
                 threshold);
 
             EditorApplication.ExitPlaymode();
