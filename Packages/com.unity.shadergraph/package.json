@@ -6,7 +6,7 @@
   "displayName": "Shader Graph",
   "dependencies": {
     "com.unity.render-pipelines.core": "17.0.3",
-    "com.unity.searcher": "4.9.2"
+    "com.unity.searcher": "4.9.3"
   },
   "samples": [
     {
@@ -30,6 +30,11 @@
       "description": "This sample contains a collection of Shader Graph assets that are ready to be used in production.  The collection includes shaders for rocks, decals, water, terrain details, and many more.  It also includes post-process examples, weather effects, and shaders that behave similarly to the URP and HDRP Lit shaders.",
       "path": "Samples~/ProductionReady",
       "dependencies":["com.unity.render-pipelines.core/Samples~/Common","com.unity.shadergraph/Samples~/Common"]
+    },
+    {
+      "displayName": "UGUI Shaders",
+      "description": "This sample is all about creating 2D UI elements using the Canvas target in HDRP or URP. It provides a set of subgraphs to speed up and simplify the process of creating buttons, widgets, backgrounds, and other UI elements. It also contains examples of how these subgraphs can be used together to create dynamic UI elements that are fast to render and don't require any texture memory.",
+      "path": "Samples~/UGUIShaders"
     }
   ]
 }
