@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
-            m_LayerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult, out m_BatchCount);
+            m_LayerBatches = LayerUtility.CalculateBatches(m_Renderer2DData, out m_BatchCount);
 
             // Initialize textures dependent on batch size
             if (resourceData.normalsTexture.Length != m_BatchCount)
@@ -541,7 +541,7 @@ namespace UnityEngine.Rendering.Universal
             var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
 
             // Set Global Properties and Textures
-            GlobalPropertiesPass.Setup(renderGraph, cameraData);
+            GlobalPropertiesPass.Setup(renderGraph, frameData, m_Renderer2DData, cameraData);
 
             // Main render passes
 
@@ -569,7 +569,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ref var layerBatch = ref m_LayerBatches[i];
 
-                LayerUtility.GetFilterSettings(m_Renderer2DData, ref m_LayerBatches[i], cameraSortingLayerBoundsIndex, out var filterSettings);
+                LayerUtility.GetFilterSettings(m_Renderer2DData, ref m_LayerBatches[i], out var filterSettings);
                 m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches, i, ref filterSettings);
 
                 // Shadow Volumetric Pass
@@ -581,17 +581,9 @@ namespace UnityEngine.Rendering.Universal
                 // Camera Sorting Layer Pass
                 if (m_Renderer2DData.useCameraSortingLayerTexture)
                 {
-                    // Split Render Pass if CameraSortingLayer is in the middle of a batch
-                    if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound)
+                    if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex <= layerBatch.layerRange.upperBound)
                     {
-                        m_CopyCameraSortingLayerPass.Render(renderGraph, commonResourceData.activeColorTexture, universal2DResourceData.cameraSortingLayerTexture);
-
-                        filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
-                        m_RendererPass.Render(renderGraph, frameData, m_Renderer2DData, ref m_LayerBatches, i, ref filterSettings);
-                    }
-                    else if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound)
-                    {
-                        m_CopyCameraSortingLayerPass.Render(renderGraph, commonResourceData.activeColorTexture, universal2DResourceData.cameraSortingLayerTexture);
+                        m_CopyCameraSortingLayerPass.Render(renderGraph, frameData);
                     }
                 }
             }
