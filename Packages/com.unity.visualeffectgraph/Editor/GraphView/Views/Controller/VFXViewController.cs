@@ -682,11 +682,20 @@ namespace UnityEditor.VFX.UI
 
         public void RemoveElement(Controller element, bool explicitDelete = false)
         {
+            bool HasCustomAttributes(VFXModel model)
+            {
+                return model is IVFXAttributeUsage attributeUsage &&
+                       attributeUsage.usedAttributes.Any(x => graph.attributesManager.IsCustom(x.name));
+            }
+
             VFXModel removedModel = null;
+            bool needSyncCustomAttributes = false;
+
             if (element is VFXContextController contextController)
             {
                 VFXContext context = contextController.model;
                 removedModel = context;
+                needSyncCustomAttributes = HasCustomAttributes(removedModel);
                 contextController.NodeGoingToBeRemoved();
 
                 // Remove connections from context
@@ -716,6 +725,7 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXBlockController block)
             {
                 removedModel = block.model;
+                needSyncCustomAttributes = HasCustomAttributes(removedModel);
                 block.NodeGoingToBeRemoved();
                 block.contextController.RemoveBlock(block.model);
 
@@ -724,6 +734,7 @@ namespace UnityEditor.VFX.UI
             else if (element is VFXParameterNodeController parameter)
             {
                 removedModel = parameter.model;
+                needSyncCustomAttributes = HasCustomAttributes(removedModel);
                 parameter.NodeGoingToBeRemoved();
                 parameter.parentController.model.RemoveNode(parameter.infos);
                 RemoveFromGroupNodes(parameter);
@@ -736,6 +747,7 @@ namespace UnityEditor.VFX.UI
                 if (element is VFXNodeController nodeController)
                 {
                     removedModel = nodeController.model;
+                    needSyncCustomAttributes = HasCustomAttributes(removedModel);
                     container = removedModel as IVFXSlotContainer;
                     nodeController.NodeGoingToBeRemoved();
                     RemoveFromGroupNodes(nodeController);
@@ -743,6 +755,7 @@ namespace UnityEditor.VFX.UI
                 else
                 {
                     removedModel = ((VFXParameterController)element).model;
+                    needSyncCustomAttributes = HasCustomAttributes(removedModel);
                     container = (IVFXSlotContainer)removedModel;
                     foreach (var parameterNode in m_SyncedModels[removedModel])
                     {
@@ -814,7 +827,7 @@ namespace UnityEditor.VFX.UI
                 Debug.LogErrorFormat("Unexpected type : {0}", element.GetType().FullName);
             }
 
-            if (removedModel is IVFXAttributeUsage attributeUsage && attributeUsage.usedAttributes.Any(x => graph.attributesManager.IsCustom(x.name)))
+            if (needSyncCustomAttributes)
             {
                 graph.SyncCustomAttributes();
             }
