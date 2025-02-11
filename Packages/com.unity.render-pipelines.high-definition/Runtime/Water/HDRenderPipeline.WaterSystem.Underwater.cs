@@ -84,8 +84,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (currentWater.volumeBounds != null)
                     {
+                        var closestPointInVolumeBounds = currentWater.volumeBounds.ClosestPoint(cameraWSPos);
+                        bool isInBounds = (closestPointInVolumeBounds - cameraWSPos).sqrMagnitude < float.Epsilon;
+
                         // If the specified bounds contains the camera, we found a match
-                        if (currentWater.volumeBounds.bounds.Contains(cameraWSPos) && currentPriority < currentWater.volumePrority)
+                        if (isInBounds && currentPriority < currentWater.volumePrority)
                         {
                             m_UnderWaterUpHeight = new Vector4(upDirection.x, upDirection.y, upDirection.z, float.MinValue);
                             m_UnderWaterSurfaceIndex = surfaceIdx;
