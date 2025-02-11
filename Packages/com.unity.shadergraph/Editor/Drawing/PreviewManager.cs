@@ -323,6 +323,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        Dictionary<string, PropertyType> propertyTypeCache;
         public void HandleGraphChanges()
         {
             foreach (var node in m_Graph.addedNodes)
@@ -379,6 +380,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_NodesShaderChanged.Add(node);
                     m_TopologyDirty = true;
                 }
+            }
+
+            bool mpbNeedsRebuild = false;
+            if (propertyTypeCache == null)
+                propertyTypeCache = new();
+            foreach (var property in m_Graph.properties)
+            {
+                // if the reference name of a property type becomes associated with a different property type,
+                // the property sheet will emit an error. This error is sort of a false positive, but to comply
+                // we need to rebuild the MPB whenever a reference name's corresponding type is different.
+                mpbNeedsRebuild |= propertyTypeCache.TryGetValue(property.referenceName, out var propType) && propType != property.propertyType;
+                propertyTypeCache[property.referenceName] = property.propertyType;
+            }
+            if (mpbNeedsRebuild)
+            {
+                m_NodesPropertyChanged.UnionWith(m_Graph.GetNodes<AbstractMaterialNode>());
+                m_SharedPreviewPropertyBlock = new();
             }
 
             // remove the nodes from the state trackers
