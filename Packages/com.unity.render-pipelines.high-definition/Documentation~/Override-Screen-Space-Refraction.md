@@ -28,4 +28,4 @@ You can also use the [Volume Scripting API](Volumes-API.md) to change **Screen W
 
 ## Additional resources
 
-- [Refraction in HDRP](Override-Screen-Space-Refraction.md)
+- [Transparent and translucent materials](transparent-and-translucent-materials.md)
