@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Class controlling which sky is used for static and baked lighting.
     /// </summary>
-    [HDRPHelpURLAttribute("Static-Lighting-Sky")]
+    [HDRPHelpURLAttribute("Environment-Lighting")]
     [ExecuteAlways]
     [AddComponentMenu("")] // Hide this object from the Add Component menu
     public class StaticLightingSky : MonoBehaviour

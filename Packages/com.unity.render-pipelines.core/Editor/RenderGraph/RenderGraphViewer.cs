@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Rendering.Analytics;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UIElements;
@@ -13,7 +14,8 @@ namespace UnityEditor.Rendering
     /// Editor window class for the Render Graph Viewer
     /// </summary>
     [MovedFrom("")]
-    public partial class RenderGraphViewer : EditorWindow
+    [CoreRPHelpURL(packageName: "com.unity.render-pipelines.universal", pageName: "render-graph-view")]
+    public partial class RenderGraphViewer : EditorWindowWithHelpButton
     {
         static partial class Names
         {
