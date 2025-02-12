@@ -384,6 +384,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Cleanup()
         {
+            s_DataFrameUpdate = -1;
+            
             if (m_PrecomputedData != null)
             {
                 s_PrecomputationCache.Release(m_LastPrecomputationParamHash);
