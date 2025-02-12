@@ -19,58 +19,42 @@ public class HDRP_Runtime_Graphics_Tests
     [IgnoreGraphicsTest("005", "Was excluded from the build settings")]
     [IgnoreGraphicsTest("007|008", "Temporary ignore due to light baking")]
     [IgnoreGraphicsTest(
-        "001-HDTemplate",
+        "001-HDTemplate$",
         "https://jira.unity3d.com/browse/UUM-48116",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
     )]
     [IgnoreGraphicsTest(
-        "002-HDMaterials",
+        "002-HDMaterials$",
         "",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
     )]
     [IgnoreGraphicsTest(
-        "003-VirtualTexturing",
-        "",
-        graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
+        "003-VirtualTexturing$",
+        "Unstable: https://jira.unity3d.com/browse/UUM-51336"
     )]
     [IgnoreGraphicsTest(
-        "003-VirtualTexturing",
-        "VT not supported on Switch",
-        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
+        "003-VirtualTexturing-Forward$",
+        "Unstable: https://jira.unity3d.com/browse/UUM-51336"
     )]
     [IgnoreGraphicsTest(
-        "003-VirtualTexturing",
-        "Unstable: https://jira.unity3d.com/browse/UUM-51336",
-        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxSeries }
+        "004-CloudsFlaresDecals$",
+        "Area with cloud-coverage is blue on Intel-based MacOS (CI).",
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+        architectures: new [] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
-        "003-VirtualTexturing-Forward",
-        "",
-        graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
-    )]
-    [IgnoreGraphicsTest(
-        "003-VirtualTexturing-Forward",
-        "VT not supported on Switch",
-        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
-    )]
-    [IgnoreGraphicsTest(
-        "003-VirtualTexturing-Forward",
-        "https://jira.unity3d.com/browse/UUM-51336",
-        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxSeries }
-    )]
-    [IgnoreGraphicsTest(
-        "007-BasicAPV",
+        "007-BasicAPV$",
         "https://jira.unity3d.com/browse/UUM-54029",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal },
         architectures: new Architecture[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
-        "012-SVL_Check",
+        "012-SVL_Check$",
         "https://jira.unity3d.com/browse/UUM-70791",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS4 }
     )]
     [IgnoreGraphicsTest(
-        "012-SVL_Check",
+        "012-SVL_Check$",
         "https://jira.unity3d.com/browse/UUM-70791",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5 }
     )]

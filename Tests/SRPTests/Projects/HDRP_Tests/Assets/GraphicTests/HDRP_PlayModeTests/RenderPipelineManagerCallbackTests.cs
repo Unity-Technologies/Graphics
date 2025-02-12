@@ -207,18 +207,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private const int k_WarmUpRenderCount = 10;
-
         [UnityTest, TestCaseSource(nameof(TestCaseSourceProvider))]
         public IEnumerator Execute(TestCaseSetup test)
         {
-            // Skip a few frames for the Render Pipeline to Stabilize
-            for (int i = 0; i < k_WarmUpRenderCount; i++)
-            {
-                m_Camera.Render();
-                yield return new WaitForEndOfFrame();
-            }
-
             // Subscribe to RP manager callbacks
             uint beginCameraCalledTimes = 0u;
             void ActionBeginRendering(ScriptableRenderContext context, Camera camera)
