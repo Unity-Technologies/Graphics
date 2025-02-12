@@ -93,6 +93,23 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        // if the trigger block is in an update context with implicit reap,
+        // die condition have to be tested explicitly as the implicit reap happens after this block, at the very end.
+        private bool NeedsImplicitReapCheck
+        {
+            get
+            {
+                var context = GetParent();
+                if (context != null && (GetData()?.IsCurrentAttributeWritten(VFXAttribute.Lifetime) ?? false))
+                {                  
+                    var reapParticles = context.GetSetting("reapParticles");
+                    return reapParticles.valid && (bool)reapParticles.value;
+                }
+
+                return false;
+            }
+        }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
@@ -114,9 +131,12 @@ namespace UnityEditor.VFX.Block
                             break;
                         }
                     case Mode.OnDie:
-                        yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
                         yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
-                        yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
+                        if (NeedsImplicitReapCheck)
+                        {
+                            yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
+                            yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
+                        }
                         break;
                     case Mode.OnCollide:
                         yield return new VFXAttributeInfo(VFXAttribute.HasCollisionEvent, VFXAttributeMode.Read);
@@ -139,7 +159,10 @@ namespace UnityEditor.VFX.Block
                     case Mode.OverDistance:
                         return GetRateSource();
                     case Mode.OnDie:
-                        return "eventCount = (age + deltaTime > lifetime || !alive) ? count : 0;";
+                        if (NeedsImplicitReapCheck)
+                            return "eventCount = (age + deltaTime > lifetime || !alive) ? count : 0;";
+                        else
+                            return "eventCount = !alive ? count : 0;";
                     case Mode.OnCollide:
                         return " eventCount = hasCollisionEvent ? count : 0;";
                     default:
