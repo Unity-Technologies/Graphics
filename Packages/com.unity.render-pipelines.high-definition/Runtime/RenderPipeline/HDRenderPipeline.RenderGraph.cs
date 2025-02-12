@@ -262,6 +262,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             });
                         GenerateColorPyramid(m_RenderGraph, hdCamera, colorBuffer, distortionColorPyramid, FullScreenDebugMode.PreRefractionColorPyramid, distortionRendererList);
                         currentColorPyramid = distortionColorPyramid;
+
+
+                        // The color pyramid for distortion is not an history, so it need to be sampled appropriate RT handle scale. Thus we need to update it
+                        var newScale = new Vector4(RTHandles.rtHandleProperties.rtHandleScale.x, RTHandles.rtHandleProperties.rtHandleScale.y, 0, 0);
+                        m_ShaderVariablesGlobalCB._ColorPyramidUvScaleAndLimitCurrentFrame = newScale;
+                        PushGlobalCameraParams(m_RenderGraph, hdCamera);
                     }
 
                     using (new RenderGraphProfilingScope(m_RenderGraph, ProfilingSampler.Get(HDProfileId.Distortion)))
