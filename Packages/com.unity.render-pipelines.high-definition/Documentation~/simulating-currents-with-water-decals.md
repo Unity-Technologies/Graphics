@@ -40,7 +40,7 @@ To enable horizontal deformation, go to the active [HDRP Asset](hdrp-asset.md), 
 Enabling horizontal deformation has the following effects:
 
 - HDRP creates a new buffer, which increases the amount of memory HDRP uses.
-- The results of [water scripts](water-scripting-in-the-water-system.md) and [underwater effects](water-underwater-view.md) might be less accurate.
+- The results of water scripts and [underwater effects](water-underwater-view.md) might be less accurate.
 
 ## Additional resources
 

@@ -91,7 +91,7 @@ The options are:
 <b>Script Interactions <a name="scriptinteractions"></a></b>
 </td>
 <td>
-Enable to have the ability to query the water surface position and current direction from the simulation. Refer to <a href="water-scripting-in-the-water-system.md">Scripting in the water system</a> for more information.
+Enable to have the ability to query the water surface position and current direction from the simulation.
 </td>
 </tr>
 
