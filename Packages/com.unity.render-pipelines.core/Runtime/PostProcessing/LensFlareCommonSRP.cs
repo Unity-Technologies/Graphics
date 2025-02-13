@@ -112,30 +112,47 @@ namespace UnityEngine.Rendering
         {
         }
 
-        private static readonly bool s_SupportsLensFlare16bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Render);
-        private static readonly bool s_SupportsLensFlare32bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render);
+        static readonly bool s_SupportsLensFlare16bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Render);
+        static readonly bool s_SupportsLensFlare32bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render);
+        static readonly bool s_SupportsLensFlare16bitsFormatWithLoadStore = SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.LoadStore);
+        static readonly bool s_SupportsLensFlare32bitsFormatWithLoadStore = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.LoadStore);
 
-        /// <summary>
-        /// Check if we can use an OcclusionRT
-        /// </summary>
-        /// <returns>return true if we can have the OcclusionRT</returns>
-        static public bool IsOcclusionRTCompatible()
+        // UUM-91313: Some Android Vulkan devices (Adreno 540) don't support R16_SFloat with GraphicsFormatUsage.LoadStore,
+        // which is required when creating a render texture with enableRandomWrite flag. Random writes are only needed by
+        // the merge step (compute shader using the texture as UAV), so we enable the flag only if merging is enabled.
+        static bool requireOcclusionRTRandomWrite => mergeNeeded > 0;
+
+        static bool CheckOcclusionBasedOnDeviceType()
         {
 #if UNITY_SERVER
             return false;
 #else
-            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU &&
-                    (s_SupportsLensFlare16bitsFormat || s_SupportsLensFlare32bitsFormat); //Caching this, because SupportsRenderTextureFormat allocates memory. Go figure.
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
+                   SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
+                   SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                   SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU;
 #endif
+        }
+
+        /// <summary>
+        /// Check if we can create OcclusionRT texture to be used as render target
+        /// </summary>
+        /// <returns>Returns true if a supported format is found</returns>
+        public static bool IsOcclusionRTCompatible()
+        {
+            if (requireOcclusionRTRandomWrite)
+            {
+                return CheckOcclusionBasedOnDeviceType() &&
+                       (s_SupportsLensFlare16bitsFormatWithLoadStore || s_SupportsLensFlare32bitsFormatWithLoadStore);
+            }
+            return CheckOcclusionBasedOnDeviceType() &&
+                    (s_SupportsLensFlare16bitsFormat || s_SupportsLensFlare32bitsFormat);
         }
 
         static GraphicsFormat GetOcclusionRTFormat()
         {
             // SystemInfo.graphicsDeviceType == {GraphicsDeviceType.Direct3D12, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.PlayStation5, ...}
-            if (s_SupportsLensFlare16bitsFormat)
+            if (requireOcclusionRTRandomWrite ? s_SupportsLensFlare16bitsFormatWithLoadStore : s_SupportsLensFlare16bitsFormat)
                 return GraphicsFormat.R16_SFloat;
             else
                 // Needed a R32_SFloat for Metal or/and DirectX < 11.3
@@ -163,7 +180,7 @@ namespace UnityEngine.Rendering
                         height: Mathf.Max(mergeNeeded * (maxLensFlareWithOcclusionTemporalSample + 1), 1),
                         format: GetOcclusionRTFormat(),
                         slices: TextureXR.slices,
-                        enableRandomWrite: true,
+                        enableRandomWrite: requireOcclusionRTRandomWrite,
                         dimension: TextureDimension.Tex2DArray);
                 }
             }
