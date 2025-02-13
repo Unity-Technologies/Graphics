@@ -43,8 +43,13 @@ public class HDRP_Graphics_Tests
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5 }
     )]
     [IgnoreGraphicsTest(
-        "5001_PathTracing",
+        "5001_PathTracing|5010_PathTracingAlpha",
         "jira: https://jira.unity3d.com/browse/GFXFEAT-1332",
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
+    )]
+    [IgnoreGraphicsTest(
+        "5005_PathTracing_Fog",
+        "jira: https://jira.unity3d.com/browse/GFXFEAT-1334",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
     )]
     [IgnoreGraphicsTest(
