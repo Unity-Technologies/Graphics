@@ -1543,7 +1543,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = m_Materials.finalPass;
                 passData.settings = settings;
 
-                if (settings.requireHDROutput && m_EnableColorEncodingIfNeeded)
+                if (settings.requireHDROutput && m_EnableColorEncodingIfNeeded && cameraData.rendersOverlayUI)
                     builder.UseTexture(overlayUITexture, AccessFlags.Read);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
