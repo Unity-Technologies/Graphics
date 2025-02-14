@@ -101,7 +101,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             // }
 
             // display warning if the current render pipeline doesn't support virtual texturing
-            HelpBoxRow help = new HelpBoxRow(MessageType.Warning);
             string labelText;
             IVirtualTexturingEnabledRenderPipeline vtRp =
                 GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
@@ -120,13 +119,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (!string.IsNullOrEmpty(labelText))
             {
-                var label = new Label(labelText)
-                {
-                    name = "message-warn"
-                };
-                label.style.whiteSpace = WhiteSpace.Normal;
-                propertySheet.Add(help, (row) => row.Add(label));
+                propertySheet.Add(new HelpBoxRow(labelText, MessageType.Warning));
             }
+
             propertyVisualElement = propertySheet;
             return propertySheet;
         }

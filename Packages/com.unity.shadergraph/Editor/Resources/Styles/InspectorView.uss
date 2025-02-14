@@ -93,3 +93,8 @@ ScrollView {
     width: 0;
     min-width: 100%;
 }
+
+.InspectorView #GraphSettingsContainer {
+    width: 0;
+    min-width: 100%;
+}
