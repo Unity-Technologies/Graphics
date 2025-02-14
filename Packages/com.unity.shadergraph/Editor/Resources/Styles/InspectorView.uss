@@ -53,13 +53,6 @@ ScrollView {
     border-top-right-radius: 6px;
 }
 
-.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
-    background-color: #393939;
-}
-
-.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
-    background-color: #393939;
-}
 
 #maxItemsMessageLabel {
     visibility: hidden;
@@ -87,14 +80,14 @@ ScrollView {
     border-top-width: 1px;
 }
 
-.InspectorView #NodeSettingsContainer {
-    padding-left: 3px;
-    padding-right: 6px;
+.InspectorView #NodeSettingsContainer, .InspectorView #GraphSettingsContainer {
+    padding-top: 4px;
+    padding-bottom: 4px;
     width: 0;
     min-width: 100%;
 }
 
-.InspectorView #GraphSettingsContainer {
-    width: 0;
-    min-width: 100%;
+.InspectorView #NodeSettingsContainer {
+    padding-left: 3px;
+    padding-right: 6px;
 }

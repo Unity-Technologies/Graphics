@@ -31,7 +31,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public override string UxmlName => "GraphInspector";
         public override string layoutKey => "UnityEditor.ShaderGraph.InspectorWindow";
 
-        TabbedView m_GraphInspectorView;
+        TabView m_GraphInspectorView;
+        Tab m_GraphSettingsTab;
+        Tab m_NodeSettingsTab;
+
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
 
@@ -80,14 +83,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public InspectorView(InspectorViewModel viewModel) : base(viewModel)
         {
-            m_GraphInspectorView = m_MainContainer.Q<TabbedView>("GraphInspectorView");
+            m_GraphInspectorView = m_MainContainer.Q<TabView>("GraphInspectorView");
+            m_GraphSettingsTab = m_GraphInspectorView.Q<Tab>("GraphSettingsTab");
+            m_NodeSettingsTab = m_GraphInspectorView.Q<Tab>("NodeSettingsTab");
+
             m_GraphSettingsContainer = m_GraphInspectorView.Q<VisualElement>("GraphSettingsContainer");
             m_NodeSettingsContainer = m_GraphInspectorView.Q<VisualElement>("NodeSettingsContainer");
             m_MaxItemsMessageLabel = m_GraphInspectorView.Q<Label>("maxItemsMessageLabel");
             m_ContentContainer.Add(m_GraphInspectorView);
             m_ScrollView = this.Q<ScrollView>();
-            m_GraphInspectorView.Q<TabButton>("GraphSettingsButton").OnSelect += GraphSettingsTabClicked;
-            m_GraphInspectorView.Q<TabButton>("NodeSettingsButton").OnSelect += NodeSettingsTabClicked;
+
+            m_GraphSettingsTab.selected += GraphSettingsTabClicked;
+            m_NodeSettingsTab.selected += NodeSettingsTabClicked;
 
             isWindowScrollable = true;
             isWindowResizable = true;
@@ -100,15 +107,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
 
             // By default at startup, show graph settings
-            m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("GraphSettingsButton"));
+            m_GraphInspectorView.activeTab = m_GraphSettingsTab;
         }
 
-        void GraphSettingsTabClicked(TabButton button)
+        void GraphSettingsTabClicked(Tab _)
         {
             m_GraphSettingsTabFocused = true;
         }
 
-        void NodeSettingsTabClicked(TabButton button)
+        void NodeSettingsTabClicked(Tab _)
         {
             m_GraphSettingsTabFocused = false;
         }
@@ -176,7 +183,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 {
                     // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
                     // Node Settings tab so we can make the assumption they want to see that tab
-                    m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("NodeSettingsButton"));
+                    m_GraphInspectorView.activeTab = m_NodeSettingsTab;
                 }
             }
             catch (Exception e)
@@ -245,8 +252,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_AllActivePropertyDrawers.Clear();
             m_PropertyDrawerList.Clear();
             m_graphSettingsPropertyDrawer = null;
-            m_GraphInspectorView.Q<TabButton>("GraphSettingsButton").OnSelect -= GraphSettingsTabClicked;
-            m_GraphInspectorView.Q<TabButton>("NodeSettingsButton").OnSelect -= NodeSettingsTabClicked;
+            m_GraphInspectorView.Q<Tab>("GraphSettingsTab").selected -= GraphSettingsTabClicked;
+            m_GraphInspectorView.Q<Tab>("NodeSettingsTab").selected -= NodeSettingsTabClicked;
             m_GraphInspectorView = null;
             m_GraphSettingsContainer = null;
             m_NodeSettingsContainer = null;
