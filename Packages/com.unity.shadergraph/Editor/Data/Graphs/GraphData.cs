@@ -2048,7 +2048,7 @@ namespace UnityEditor.ShaderGraph
             {
                 removedNodeEdges.AddRange(m_Edges);
                 foreach (var edge in removedNodeEdges)
-                    RemoveEdgeNoValidate(edge);
+                    RemoveEdgeNoValidate(edge, false);
             }
 
             using (var nodesToRemove = PooledList<AbstractMaterialNode>.Get())
