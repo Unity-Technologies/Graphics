@@ -211,6 +211,7 @@ HDRP ray tracing in Unity isn't compatible with the following features:
 - Fully accurate shadow culling. You might see missing shadows in ray-traced effects. You can use **Extend Shadow Culling** to improve accuracy. See [Ray Tracing Settings](Ray-Tracing-Settings.md) for more information.
 - Data-Oriented Technology Stack (DOTS)
 - Entity Component System (ECS)
+- Water
 
 #### Reflection Probes
 
