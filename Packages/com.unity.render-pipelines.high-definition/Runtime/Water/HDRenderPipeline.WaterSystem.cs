@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string k_TessellationPass = "Tessellation";
         readonly static string[] k_PassesGBuffer = new string[] { k_WaterGBufferPass, k_LowResGBufferPass };
         readonly static string[] k_PassesGBufferTessellation = new string[] { k_WaterGBufferPass + k_TessellationPass, k_LowResGBufferPass };
-        readonly static string[] k_PassesWaterDebug = new string[] { k_WaterDebugPass + k_TessellationPass, k_WaterDebugPass + k_LowResGBufferPass };
+        readonly static string[] k_PassesWaterDebug = new string[] { k_WaterDebugPass, k_WaterDebugPass + k_LowResGBufferPass };
 
         // Other internal rendering data
         MaterialPropertyBlock m_WaterMaterialPropertyBlock;

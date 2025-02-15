@@ -461,8 +461,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     GenerateWaterGBufferPass(false, true, systemData.debugSymbols),
                     // Low res gbuffer
                     GenerateWaterGBufferPass(true, false, systemData.debugSymbols),
-                    // Debug pass, always use tessellation to reduce variants
-                    GenerateWaterDebugPass(false, true, systemData.debugSymbols),
+                    // Debug pass, never use tessellation to reduce variants
+                    GenerateWaterDebugPass(false, false, systemData.debugSymbols),
                     GenerateWaterDebugPass(true, false, systemData.debugSymbols),
                 };
                 return passes;
