@@ -10,6 +10,50 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.3] - 2025-02-13
+
+This version is compatible with Unity 6000.0.39f1.
+
+### Changed
+- Removed duplicate LIGHTMAP_ON and DIRLIGHTMAP_COMBINED variants when generating shaders for builtin-deferred.
+- Added a new set of sample content - Shader Graph UGUI Shaders - to the Shader Graph package that contains examples of how to use the new Canvas target in Shader Graph to create dynamic UI elements. This new sample can be imported from the Sample tab of the Package Manager after selecting the Shader Graph package
+
+### Fixed
+- Added an issue where convert-to subgraph would sometimes result in an exception.
+- Added an issue where the GI Node would only display correctly after deserialization.
+- Added support for perceptual color mode for gradients in shader graph.
+- Fixed an issue where an HDRP fullscreen shader graph imported into a URP project would fail to import under some circumstances.
+- Fixed shader graph built-in pipeline variants not getting stripped when an SRP is active.
+- Fixed an issue where moving a property node in a Shader Graph with no targets would log an error.
+- Fixed an issue where the Custom Function node's "Body" field would expand off-screen instead of scrolling.
+- Disallowed shader variant related settings to be set to negative values.
+- Fixed a null reference exception when shader variant project settings were changed under certain circumstances.
+- Fixed an issue where the Graph Inspector would not update after changing a node's precision from the context menu.
+- Fixed an issue where using a color picker would cause the main preview to display cyan until the color picker was closed.
+- Fixed an issue where some keyboard shortcuts did not display with the correct alignment in context menus.
+- Fixed an issue so users can no longer select 'Delete' for context blocks.
+- Fixed identifier collision detection on properties.
+- Added sticky note checks to the group shortcuts.
+- Fixed node previews toggle shortcut.
+- Fixed an issue in ShaderGraph where undoing changes to a property after modifying its value in the Graph Inspector would cause the property to become deselected.
+- Fixed an issue in Shader Graph with an undeclared identifier error around foveated rendering area.
+- Fixed a bug that Normal From Height node in a shader graph might return an invalid value when using 16-bit half precision.
+- Fixed 'Objects are trying to be loaded during a domain backup' errors due to invalid serialization of some shader graphs.
+- Changed the name displayed in a Graph inspector when a selected BlockNode has changed.
+- Fixed an issue so that pasting an empty group positions it based on the cursor's location.
+- Fixed an issue with low quality Graph Inspector and Open Shader Graph User Manual icons.
+- Added padding to Shader Graph Preferences settings.
+- Addressed an issue where precision mismatch could result in an asset failing to import.
+- Fixed an issue that caused errors in the Feature Examples sample content for Shader Graph.
+- Fixed the issue with `NullReferenceException` when updating a legacy node for second time through undo.
+- Fixed an issue where a shader graph was reverted to its last saved state when entering Play Mode without saving changes.
+- [Metal] Fix shader compilation errors due to Foveated Rendering when building URP 3D template.
+- Fixed an issue where Unity pragmas were not used in files included by the Custom Function Node, and added a "Use Pragmas" toggle to enable/disable them as needed.
+- Fixed an issue where the Main Light Direction node always returned 0 on the built-in render pipeline.
+- Fixed an issue where the shader graph was not marked dirty when toggling checkboxes in its Graph Settings.
+- Fixed missing documentation about the Custom Render Texture in Shader Graph.
+- Fixed "Shader error in 'ProBuilder6/Standard Vertex Color': 'PBRDeferredFragment'" error logged in the console when compiling the shader.
+
 ## [17.0.2] - 2024-04-02
 
 This version is compatible with Unity 6000.0.0b15.
