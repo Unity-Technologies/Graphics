@@ -1,8 +1,19 @@
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
+    UNITY_SETUP_INSTANCE_ID(input);
+
+#ifdef UNITY_INSTANCING_ENABLED
+    input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteFlip);
+#endif
+
     output = BuildVaryings(input);
     output.normalWS = -GetViewForwardDir();
+
+#ifdef UNITY_INSTANCING_ENABLED
+    output.color *= unity_SpriteColor;
+#endif
+
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
