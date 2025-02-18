@@ -10,6 +10,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.11] - 2025-02-13
+
+This version is compatible with Unity 2022.3.59f1.
+
+### Fixed
+- Added issues where shaders generated for iOS or Android may not compile correctly due to precision.
+- Fixed an issue where the Baked GI Node was not displaying correctly after initially adding it to a graph.
+- Added support for perceptual color mode for gradients in shader graph.
+- Fixed issues with the Feature Examples sample and Production Ready Shaders sample.
+- Fixed an issue where cross pipeline shader graphs would run into NRE.
+- Disallowed shader variant related settings to be set to negative values.
+- Added a null reference exception when shader variant project settings were changed under certain circumstances.
+- Users can no longer select 'Delete' for context blocks.
+- Fixed a bug where the Custom Function node's "Body" field would expand off-screen instead of scrolling.
+- Fixed an issue in ShaderGraph where undoing changes to a property after modifying its value in the Graph Inspector would cause the property to become deselected.
+- Fixed 'Objects are trying to be loaded during a domain backup' errors due to invalid serialization of some shader graphs.
+- Fixed a bug that Normal From Height node in a shader graph might return an invalid value when using 16-bit half precision.
+- The name displayed in the Graph inspector when a BlockNode is selected has changed.
+- Added issue where precision mismatch could result in an asset failing to import.
+- Fixed a bug that a shader graph is reverted to its last saved state when entering Play Mode without saving changes.
+- Fixed an issue where the Main Light Direction node always returned 0 on the built-in render pipeline.
+- Fixed Shader Graph undeclared identifier error around foveated rendering area.
+- Fixed so that pasting an empty group positions it based on the cursor's location.
+- Fixed Shader warnings in URP ShaderGraph when using the Normal From Texture node.
+- Fixed/improved identifier collision detection on properties.
+- Fix NullReferenceException thrown when updating a legacy node for second time through undo.
+
 ## [14.0.10] - 2024-04-03
 
 This version is compatible with Unity 2022.3.24f1.

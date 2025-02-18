@@ -10,6 +10,49 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.11] - 2025-02-13
+
+This version is compatible with Unity 2022.3.59f1.
+
+### Added
+- RenderPipelineManager callbacks are raised from UniversalRenderPipeline.SingleCameraRequest.
+
+### Changed
+- Updated URP documentation to explicitly mention that calling Submit() on a command buffer provided by URP from an user pass is not valid.
+- Create the Global Settings asset in to the current opened folder.
+- Create the Global Settings asset in to the current opened folder.
+
+### Fixed
+- Fixed an issue where screen space decals wouldn't respect light cookies.
+- Fixed an issue where using the "Accurate G-buffer Normals" feature for deferred rendering on mobile platforms would cause a large amount of artifacts.
+- Pass name when the pass is "LightMode" = "Universal2D".
+- Fixed an issue where the built in error shader didn't work correctly with depth priming.
+- Scriptable TAA settings.
+- Runtime intensity of non real-time reflection probes are now immediately reflected in scene view.
+- Removed duplicated code in UniversalRenderer.cs.
+- Fixed broken setting shadow rendering layer is not changing shadow when using shadowRenderingLayers in the script.
+- Disabled faulty NRP for Editor-only FinalCopyDepth pass in URP 3D.
+- Fixed incorrect scaling in copy depth pass when dynamic resolution is enabled.
+- Fixed an issue with enabling instancing at runtime for a Decal material.
+- Disabled fallback behavior on FSR EASU shader to prevent build errors on machines with old GPUs.
+- Fixed an issue where glClientWaitSync: Expected application to have kicked everything until job: 96089 (possibly by calling glFlush)" are thrown in the Android Player on some devices with PowerVR Rogue GE8320 GPU.
+- Fixed camera offset in the UI editor for the RenderObject RenderFeature.
+- Fixed an issue where Shader Prefiltering data wasn't updated properly for Asset Bundles.
+- Fixed shadow-map sampling artifacts present when using the Unlit DrawMode in the SceneView.
+- Fixed scene-view wireframe rendering when using depth-priming.
+- Fixed an issue where reflection probes would not render correctly on some platforms in some cases.
+- Overlay Camera Clear Depth ignored on some Android devices when using Vulkan Graphics API.
+- Stop spamming about c-buffer layout mispatch in GPU-instancing-enabled speed tree materials when enabling Rendering Layers.
+- Fixed an issue where WorldToCamera matrix wasn't set before rendering shadows.
+- Fixed a redundant empty line in a tooltip for Cast Shadows toggle in the URP Asset for Additional lights.
+- Fixed an issue where Camera view is not rendered on PowerVR Rogue GE8320 GPU'S if Shadows are enabled in URP Asset and Camera stack contains Overlay Camera's.
+- Fixed the CameraDepthAttachment turning black for DX11.
+- Fixed sorting the Reflection Probe by resolution.
+- Added SS Shadow coord transform to TransformWorldToShadowCoord.
+- Fixed an issue where variants were being stripped out in Scriptable Stripping when "Strip Unused Variants" was disabled.
+- Reduced banding on FSR upscaled render target by changing render target formats.
+- Fixed light cookie texture memory leak when entering Playmode.
+
 ## [14.0.10] - 2024-04-03
 
 This version is compatible with Unity 2022.3.24f1.
