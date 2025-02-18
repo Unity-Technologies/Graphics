@@ -62,7 +62,6 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.UseTexture(passData.shadowDepth, AccessFlags.Write);
 
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>

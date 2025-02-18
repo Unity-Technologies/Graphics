@@ -27,9 +27,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.newCameraTargetSize = newCameraTargetSize;
 
-                // This pass only modifies shader constants so we need to set some special flags to ensure it isn't culled or optimized away
+                // This pass only modifies shader constants
                 builder.AllowGlobalStateModification(true);
-                builder.AllowPassCulling(false);
 
                 builder.SetRenderFunc(static (UpdateCameraResolutionPassData data, UnsafeGraphContext ctx) =>
                 {
@@ -2005,7 +2004,6 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PostFXSetupPassData>("Setup PostFX passes", out var passData,
                 ProfilingSampler.Get(URPProfileId.RG_SetupPostFX)))
             {
-
                 builder.AllowGlobalStateModification(true);
                 builder.SetRenderFunc(static (PostFXSetupPassData data, RasterGraphContext context) =>
                 {

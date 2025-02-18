@@ -112,7 +112,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>

@@ -104,7 +104,6 @@ namespace UnityEngine.Rendering.Universal
 
                     SetGlobalLightTextures(graph, builder, passData.lightTextures, cameraData, ref layerBatch, rendererData);
 
-                    builder.AllowPassCulling(false);
                     builder.AllowGlobalStateModification(true);
 
                     builder.SetRenderFunc((SetGlobalPassData data, RasterGraphContext context) =>
@@ -152,7 +151,6 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
                 builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture);
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
                 builder.UseAllGlobalTextures(true);
 

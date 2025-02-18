@@ -128,7 +128,6 @@ public class DepthBlitCopyDepthPass : ScriptableRenderPass
             builder.UseTexture(src, AccessFlags.Read);
             builder.SetRenderAttachment(dest, 0, AccessFlags.Write);
             builder.AllowGlobalStateModification(true);
-            builder.AllowPassCulling(false);
 
             builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
             {

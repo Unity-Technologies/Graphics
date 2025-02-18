@@ -1547,7 +1547,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Scene view camera should always resolve target (not stacked)
                 m_FinalDepthCopyPass.Setup(m_DepthTexture, k_CameraTarget);
-                m_FinalDepthCopyPass.MssaSamples = 0;
+                m_FinalDepthCopyPass.MsaaSamples = 0;
                 m_FinalDepthCopyPass.CopyToBackbuffer = cameraData.isGameCamera;
                 // Turning off unnecessary NRP in Editor because of MSAA mistmatch between CameraTargetDescriptor vs camera backbuffer
                 // NRP layer considers this being a pass with MSAA samples by checking CameraTargetDescriptor taken from RP asset

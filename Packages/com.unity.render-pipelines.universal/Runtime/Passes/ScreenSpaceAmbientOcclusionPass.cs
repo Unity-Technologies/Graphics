@@ -339,7 +339,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Shader keyword changes are considered as global state modifications
                 builder.AllowGlobalStateModification(true);
-                builder.AllowPassCulling(false);
 
                 // Fill in the Pass data...
                 InitSSAOPassData(ref passData);

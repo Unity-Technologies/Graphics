@@ -458,8 +458,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     shadowTexture = graph.defaultResources.defaultShadowTexture;
                 }
 
-                // Need this as shadowmap is only used as Global Texture and not a buffer, so would get culled by RG
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 if (shadowTexture.IsValid())

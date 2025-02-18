@@ -634,7 +634,7 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.Camera;
 
                 // Configure the copy depth pass based on the allocated depth texture
-                m_CopyDepthPass.MssaSamples = depthDescriptor.msaaSamples;
+                m_CopyDepthPass.MsaaSamples = depthDescriptor.msaaSamples;
                 m_CopyDepthPass.CopyToDepth = depthTextureIsDepthFormat;
 
                 var copyResolvedDepth = !depthDescriptor.bindMS;
@@ -1668,7 +1668,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!xrDepthTargetResolved && cameraData.xr.copyDepth)
                 {
                     m_XRCopyDepthPass.CopyToDepthXR = true;
-                    m_XRCopyDepthPass.MssaSamples = 1;
+                    m_XRCopyDepthPass.MsaaSamples = 1;
                     m_XRCopyDepthPass.Render(renderGraph, frameData, resourceData.backBufferDepth, resourceData.cameraDepth, bindAsCameraDepth: false, "XR Depth Copy");
                 }
             }
@@ -1690,7 +1690,7 @@ namespace UnityEngine.Rendering.Universal
                 bool backbufferDepthRequired = (cameraData.isSceneViewCamera || cameraData.isPreviewCamera || UnityEditor.Handles.ShouldRenderGizmos());
                 if (m_RequiresIntermediateAttachments && backbufferDepthRequired)
                 {
-                    m_FinalDepthCopyPass.MssaSamples = 0;
+                    m_FinalDepthCopyPass.MsaaSamples = 0;
                     m_FinalDepthCopyPass.CopyToBackbuffer = cameraData.isGameCamera;
                     m_FinalDepthCopyPass.Render(renderGraph, frameData, resourceData.backBufferDepth, resourceData.cameraDepth, false, "Final Depth Copy");
                 }
@@ -1907,7 +1907,6 @@ namespace UnityEngine.Rendering.Universal
                 passData.texture = handle;
                 builder.UseTexture(handle, AccessFlags.Read);
 
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetGlobalTextureAfterPass(handle, nameId);

@@ -149,7 +149,6 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Rendering PrePass", out var passData, m_ProfilingSampler))
             {
                 renderingLayerTexture = renderGraph.ImportTexture(m_ColoredRenderingLayersTextureHandle);
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
                 passData.mat = m_Material;
 

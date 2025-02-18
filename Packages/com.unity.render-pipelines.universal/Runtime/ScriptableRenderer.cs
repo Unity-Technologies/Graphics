@@ -929,7 +929,6 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraTargetSizeCopy = new Vector2Int(passData.cameraData.cameraTargetDescriptor.width, passData.cameraData.cameraTargetDescriptor.height);
                 passData.isTargetBackbuffer = isTargetBackbuffer;
 
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
@@ -1068,7 +1067,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.cameraData = cameraData;
 
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((BeginXRPassData data, RasterGraphContext context) =>
@@ -1109,7 +1107,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 passData.cameraData = cameraData;
 
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((EndXRPassData data, RasterGraphContext context) =>
