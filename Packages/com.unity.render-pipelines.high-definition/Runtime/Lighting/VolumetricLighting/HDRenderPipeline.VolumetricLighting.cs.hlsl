@@ -61,7 +61,7 @@ CBUFFER_START(ShaderVariablesVolumetric)
     float4x4 _CameraInverseViewProjection_NO;
     uint _VolumeCount;
     uint _IsObliqueProjectionMatrix;
-    uint _Padding1;
+    float _HalfVoxelArcLength;
     uint _Padding2;
 CBUFFER_END
 

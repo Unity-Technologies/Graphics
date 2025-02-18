@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint _VolumeCount;
         public uint _IsObliqueProjectionMatrix;
-        public uint _Padding1;
+        public float _HalfVoxelArcLength;
         public uint _Padding2;
     }
 
@@ -990,6 +990,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MaxSliceCount = (uint)maxSliceCount;
             cb._MaxVolumetricFogDistance = fog.depthExtent.value;
             cb._VolumeCount = (uint)m_VisibleLocalVolumetricFogVolumes.Count;
+            // Compute the arc length of a single froxel at 1m from the camera.
+            // This value can be used to quickly compute the arc length of a single froxel
+            cb._HalfVoxelArcLength = Mathf.Deg2Rad * hdCamera.camera.fieldOfView / currParams.viewportSize.y / 2.0f;
 
             if (updateVoxelizationFields)
             {

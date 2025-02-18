@@ -351,10 +351,15 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
             // Is it worth evaluating the light?
             if (sampleLight)
             {
-                float lightSqRadius = light.size.x;
+                // Each froxel in the VBuffer is curved following a spherical shape around the camera position
+                // To compute the arc length of the froxel, we can take the arc length of a forxel at 1m from the camera and multiply it by
+                // the distance to the current froxel.
+                float voxelArcLength = _HalfVoxelArcLength * tEntr;
+                // Modify the light radius to ensure that it's at least the size of the froxel, reducing the aliasing close to the center of the light.
+                light.size.x = max(light.size.x, voxelArcLength);
 
                 float t, distSq, rcpPdf;
-                ImportanceSamplePunctualLight(rndVal, light.positionRWS, lightSqRadius,
+                ImportanceSamplePunctualLight(rndVal, light.positionRWS, light.size.x,
                                               ray.originWS, ray.jitterDirWS,
                                               tEntr, tExit,
                                               t, distSq, rcpPdf);
