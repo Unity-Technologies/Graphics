@@ -10,6 +10,139 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.3] - 2025-02-13
+
+This version is compatible with Unity 6000.2.0a1.
+
+### Changed
+- Improved shader source generation performance.
+- Improved VFX compilation time by avoiding redundant instanciation of implicit blocks.
+- Added a missing button in the VFX template window to quickly install learning templates.
+- Optimized the particle attribute layout for a smaller memory footprint.
+- Reduced the main thread cost of `VFX.Update` by moving some transform-related operations to other threads.
+- Performance optimization on the attributes manager.
+- Enable threaded `RenderQueue` extraction for VFX renderers.
+- Modified the code generation process to skip creating DXR-related code when ray tracing is not enabled in the output.
+- Improved shader generation time by implementing a local include template cache.
+- Enabled instancing support for VFX using GPU events.
+- Added a missing button in the VFX template window to quickly install learning templates.
+
+### Fixed
+- Incorrect sanitization of SetCustomAttribute when Random was different than Random.Off
+- Missing delayed field for Sample Water Surface Operator.
+- Unexpected log "Expression graph was marked as dirty after compiling context for UI" while using Custom HLSL based operators.
+- Using the same name as a built-in attribute in a custom HLSL function's parameter would lead to a compilation error.
+- Creating a Custom HLSL operator with two outputs could prevent the generated shader from compiling
+- Fixed VFX particles GBuffer pass with URP Render Graph.
+- Particle outputs connected to particle strip systems don't render last particle.
+- Fixed an issue when importing old VFX asset in Unity6 using custom attribute with same name as built-in attribute.
+- Fixed an issue subgraph blocks did not accept correct types of block based on their suitable context.
+- Fixed an issue where CustomRenderTexture could not be used in VFX Graph object fields.
+- Fixed a small cursor offset when drawing a rectangle selection.
+- Fixed usage of FogNode always returning 1.0 in URP.
+- Fixed an argument exception that used Arc Transform in blackboard.
+- Fixed arc Shape properties in blackboard not applied in VFXGraph.
+- Fixed an issue where reordering properties inside a category were not possible.  Also reordering a category could not work if there was properties at the root (with no category)
+- Fixed port's label was not be visible when node is collapsed.
+- Fixed an exception that could prevent opening a VFX in one specific case.
+- Fixed a potential crash that could occur when adding the render node of sleeping systems.
+- Fixed an issue where CustomHLSL was incorrectly marking parent assets as dirty.
+- Fixed emissive decal when using color attribute for emissive.
+- Fixed sprites in Texture Sheet Animation module in HDRP.
+- Fixed an issue where direct material modification in VFXRenderer could lead to crashes.
+- Fixed a potential memory-intensive strip buffer initialization by moving it to a compute dispatch.
+
+- Fixed `NullReferenceExpection` happening with disconnected output contexts.
+- Fix VFX ray tracing shader errors when using flipbook or when not using the color attribute.
+- This PR fix resolves minor issues related to VFX graph content sample package.
+- This PR fix resolves minor issues related to VFX graph content sample package.
+- This PR fix resolves minor issues related to VFX graph content sample package.
+- This PR fix resolves minor issues related to VFX graph content sample package.
+- This PR fix resolves minor issues related to VFX graph content sample package.
+- This PR fix resolves minor issues related to VFX graph content sample package.
+- Fixed an issue where the VFX Graph template window appeared empty when the Terrain Tools package was installed.
+- Fixed occasional crashes when modifying exposed properties when in paused play mode.
+- Fixed errors that occurred when deleting Integration Update Rotation and Trigger blocks in the VFX Graph.
+- Fixed HLSL blocks so that they accept parameters that don't have an `in` attribute.
+- Fixed incorrect error message on Custom HLSL.
+- Improved CustomHLSL to consider custom HLSL and includes workflow.
+- Added support for more HLSL function prototype declaration.
+- Resolved a corner case issue where the presence of multiple instances of the same buffer led to a compilation failure.
+- A compilation issue occured when declaring a gradient in ShaderGraph blackboard.
+- Fixed NullReferenceException when enabling Decal Layers in HDRP.
+- Fixed exposed properties reset when editing multiple VFX at the same time on inspector.
+- Fixed incorrect source spawnCount.
+- Fixed exception when a category color is reset in the node search.
+- Fixed a rare crash when destroying a VFX instance during rendering.
+- Updated the starter template Description and some default VFX resources.
+- Force culling when VFX rendering is disabled.
+- VFX Graph VFXOutputEventHandlers Sample now compatible with Cinemachine 3.x.
+- Disabled compile menu when authoring subgraphs.
+- Fixed the ability to add blocks to subgraph context.
+- Fixed some UI elements could overflow their reserved space.
+- Fixed "int" type could not be parsed when the access modifier is not specified.
+- Fixed unexpected CustomHLSL includes in neighbors contexts.
+- Fixed potential exception message in the console when opening any VFX Graph.
+- Fixed potential crash when using the Noise Module in a particle system.
+- Fixed output properties in subgraphs had misplaced wire connector.
+- Fixed a leak while spamming ReInit.
+- Fixed compilation error when using the Six-way Lit Output with Adaptive Probe Volumes.
+- Custom HLSL can be missing when connected to several contexts.
+- Improved how the sleep state is updated for particle systems receiving GPU events.
+- Wrong mesh rendered with instancing, when using multi mesh and exposed submesh mask.
+- Fixed potential crash and correctness when using a system with multiple Volumetric Fog Outputs.
+- Fixed SpawnIndex attribute when using instancing.
+- Fixed an exception when trying to create curl noise sub-variant nodes.
+- Fixed variadic attributes to not be allowed to be used in custom HLSL code.
+- Fixed random texture rendered with instancing when using exposed texture set to None.
+- Fixed a crash that occurred when visualizing a VFX preview with raytracing enabled.
+- Fixed a potential division by zero in RayBoxIntersection code.
+- Fixed an issue where copying or pasting in a different asset in a context with a block that used a custom attribute would lose the custom attribute type and fallback to float.
+
+
+- Fixed missing drag area to change a value for inline float, uint and int operators.
+- Fixed several UX issues in the VFX Graph blackboard.
+- Fixed copy/pasting a selection from a graph to another when the selection contains multiple times the same property node.
+- Fixed compatibility between Flipbook and Vector2 field types.
+- Added error feedback in case of incorrect setup of the Position Sequential Circle block.
+- Read unexposed shader global properties when using a Shader Graph output.
+- Fixed ParticleIndexInStrip, StripIndex, and ParticleCountinStrip attributes when used in quad or mesh outputs (previously all returning 0).
+- Fixed rendering unwanted particles when rendering particle strip systems as particles (previously rendering entire capacity).
+- Fixed strips with immortal particles disappearing with instancing on.
+- Fixed an issue where Convert Output to Output Particle ShaderGraph Octagon or Triangle generates an exception.
+- Fixed corrupted graph when a custom type was missing.
+- Fixed node search expand/collapse button, which could be blurry, depending on screen DPI setting.
+- Fixed sticky note resizing could be broken.
+- Fixed a crash that would uccur during the update of a Visual Effect when deleting a used Texture.
+- Fixed an issue where strip tangent was not computed correctly when using Shader Graph output.
+- Fixed two different HLSL parsing issues with VFX Graph custom HLSL.
+- Fixed an issue where Tooltips were not displaying. 
+- Fixed capacity field in the Particle System Info panel not being refreshed when modifying system capacity.
+- Fixed overdraw debug mode of unlit particles in URP.
+- Improved Water integration to prevent an unexpected error from dispatch.
+- Incorrect sanitization of SetCustomAttribute when Random was different than Random.Off.
+- Missing delayed field for Sample Water Surface Operator.
+- Unexpected log "Expression graph was marked as dirty after compiling context for UI" while using Custom HLSL based operators.
+- Particle outputs connected to particle strip systems don't render last particle.
+- Fixed an issue when using the same name as a built-in attribute in a custom HLSL function's parameter would lead to a compilation error.
+- Fixed an issue when creating a Custom HLSL operator with two outputs could prevent the generated shader from compiling.
+- Fixed an issue with VFX particles GBuffer pass with URP Render Graph.
+- Fixed an issue when importing old VFX asset in Unity6 using custom attribute with same name as built-in attribute.
+- Subgraph blocks now accept correct types of block based on their suitable context.
+- Fixed port's label was not be visible when node is collapsed.
+- Fixed an exception that could prevent opening a VFX in one specific case.
+- Fixed CustomRenderTexture could not be used in VFX Graph object fields.
+- Fixed reordering properties inside a category was not possible anymore.
+Also reordering a category could not work if there was properties at the root (with no category)
+- Fixed a small cursor offset when drawing a rectangle selection
+- This PR fix resolves minor issues related to VFX graph content sample package.
+- This PR fix resolves minor issues related to VFX graph content sample package.
+- This PR fix resolves minor issues related to VFX graph content sample package.
+- Fix emissive decal when using color attribute for emissive.
+- Fix NullReferenceExpection happening with disconnected output contexts.
+- Fix occasional crashes when modifying exposed properties when in paused play mode
+- Fixed VFX Graph template window was empty when the Terrain Tool package is installed
+
 ## [17.0.2] - 2024-04-02
 
 This version is compatible with Unity 6000.0.0b15.

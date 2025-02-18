@@ -10,6 +10,161 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.3] - 2025-02-13
+
+This version is compatible with Unity 6000.2.0a1.
+
+### Changed
+- Wizard - Simplified the list of validations for IRenderPipelineGraphicsSettings.
+- Improved the water sample by adding a cave scene using caustics and deformation texture.
+- Improved Depth usage performance for some platforms.
+- Added SG custom refraction example to Transparency sample.
+- Added environment samples showcasing environment effects together.
+- Optimised the water vertex shader.
+- Improved decal region resolution on non-infinite surfaces.
+- Reduced memory usage when foam is disabled.
+- Improved the batching of the Lit shaders in HDRP.
+- Allow using Solid Angle Culling Mode in Ray Tracing Settings volume override. This ray tracing culling mode rejects objects that are small enough or that are far away from the camera position based on their projected solid angle. These will not be added to the ray tracing acceleration structure.
+- Added the option to compose hair before color pyramid but after clouds.
+- Added a slider to High Quality Line Rendering Volume Component to specify when to omit depth and motion vector write if alpha is too low.
+- Simplified the list of validations for `IRenderPipelineGraphicsSettings`.
+- Improved water sample by adding a cave scene using caustics and deformation texture.
+
+### Fixed
+- Fixed layer index out of range in LayeredLitGUI.
+- Fixed advanced upsampler settings not visible on platforms where they are not supported.
+- Fixed cloud layers not being drawn behind transparent refractive objects.
+- Fixed HairVertex instancing-related shader-compilation issues.
+- Ignore material variants with log message.
+- Ensure custom post-processing effects are disabled when post-processing is disabled.
+- Fixed black line artifacts on top of the screen with DRS and downsampled SSAO.
+- Fixed wrong SSR when using a shader graph with a clear coat value of 0.
+- Fixed Screen-Space Subsurface Scattering leaking from material with a subsurface mask set to 0.
+- Fixed a bug that caused HDAdditionalLightData with preserveCachedShadow to be evicted from the cachedShadowManager.
+- Fixed an issue where DebugDisplay Camera list grew beyond number of active cameras, every time a camera was registered or unregistered.
+- Fixed a shader error when using water excluder with entities.
+- Fixed an issue by adding clamp to HairAngleWorld to prevent nan from FastASin.
+- Fixed an issue to avoid calling the Cleanup method twice so the celestial data remains.
+- Fixed errors that would occur when building the XR player with Water System enabled.
+- Removed the "Setting MRTs without a depth buffer is not supported" error in Volumetric Clouds Combine pass.
+- Fixed visual artifacts when using the Graphics Compositor on the editor on MacOS. The issue occurred when changing the "Output Camera" and the "Clear Color" field was disabled.
+- Fixed invalid global state pushed when using override camera rendering in the CustomPassUtils functions.
+- Fixed shader warning in sub-surface scattering compute.
+- Fixed color pyramid sampling when distortion is enabled after the distortion pass.
+- Removed the FixAll button from the High Definition Render Pipeline (HDRP) Wizard when no automated fix is available.
+- Added a condition to the Receiver Motion Rejection feature that checks whether a pixel has actually moved.
+- Fixed an issue where High Definition Render Pipeline (HDRP) ambient scene lighting was leaking into the material preview window.
+- Fixed an issue that prevented changing the Shadow Map resolution for `HDAdditionalLightData` when using `preserveCachedShadow`.
+- Fixed an issue with High Definition Render Pipeline (HDRP) sky rendering when Camera Relative Rendering is disabled.
+
+
+- Fixed visual artifacts that occurred when blending cascade shadows and distance shadow masks.
+- Updated the High Definition Render Pipeline (HDRP) Wizard to no longer assume a check failure while awaiting a reply from the Package Manager. The Wizard now displays a specific pending icon during this process.
+- Fixed an issue where the padding in the Lighting window was different between tabs.
+- Fixed a Sensor SDK compilation issue in DXR-enabled HDRP projects.
+- Fixed an issue where underwater collider bounds checks were inaccurate when the collider was rotated.
+- Added framesettings to render volumetric clouds in half resolution to reduce jittering.
+- Fixed invalid AABB errors for some projects.
+- Fixed an issuse with viewport flickering when multi-frame rendering API is used with certain parameters.
+- Optimized water foam reprojection when it's unused.
+- Fixed `materialValidatorDebugModeEnumIndex` so that it does not get stuck in the Rendering Debugger when enabling another mode.
+- Fixed a corruption issue when using a non square atlas and improve blit performance.
+- Improved the Rendering Debugger to allow changing the mat cap values.
+- Added a shortcut to modify the Advanced properties within the Water System Inspector:
+- Fixed inconsistent text capitalizations in various parts of the Editor.
+- Fixed reflection probe baking exception when fog multiple scattering is enabled in certain conditions.
+- Fixed a potentially deadlocking StageRasterBin kernel in Hair system.
+- Fixed Alpha missing from HQ line rendering.
+- Fixed an icons used by the HDRP wizard issue.
+- Fixed shader warnings from TAA shader on Metal.
+- Fixed format error in public documentation.
+- Fixed an issue where the default terrain shader for HDRP was outputting incorrect albedo values to the lightmapper.
+- Fixed missing API to sync clouds over network.
+- Fixed issue when directional light dimmer is set to 0.
+- Fixed eye dropper not showing on the PBR sky inspector.
+- XRMultipass - RenderPipelineManager.beginCameraRendering and RenderPipelineManager.endCameraRendering was called 1 time for each pass instead of 1 time for each camera.
+- Fixed static lighting sky used when baking multiple scenes.
+- Fixed artefacts on borders between volumetric clouds and geometry.
+- Fixed perceptual blending option on volumetric clouds.
+- Fixed graphical issue when resizing Reflection Probe sizes on macOS.
+- Fixed an issue where Terrains with 4 layers or less displayed a checker texture when using debug views.
+- Fixed volumetric fog samples broken link.
+- Fixed material samples broken link.
+- Fixed a crash when creating renderers in a Custom Pass (HDRP).
+- Fixed volumetric fog reprojection buffers allocated even if the denoising mode is not set to Reprojection.
+- Fixed world space UI not outputting motion vectors.
+- Fixed an out of range exception in HDRP when reaching the max amount of shadows on screen.
+- Fixed a crash in HDRP when reaching the max amount of shadows on screen.
+- Fixed lens flare screen space and bloom frame settings confusion.
+- Fixed range remap for decal materials.
+- Fixed water mask applied before deformation.
+- Fixed error when drawing water excluder gizmo.
+- Cull water decals based on distance to camera.
+- Fixed water decals not affecting simulation mask.
+- Fixed foam and deformation using separate regions.
+- Fixed deformation offset when water surface is rotated.
+- Fixed water decal gizmo when scale is non uniform.
+- Fixed decals not updated in atlas when ShaderGraph is saved.
+- Changed `ProbeSettings.cubeResolution` field from internal to public.
+- Fixed time of day script in environement sample.
+- Fixed light culling for raytracing.
+- Fixed a disc area light calculation used for light unit conversion, which was previously incorrect by a factor of Pi.
+- Fixed clouds rendering on top of geometry.
+- Fixed clouds interaction with thin geometry.
+- Allowed TAAU, CAS, and STP to execute after the DoF or after all the post-processes like the other advanced upsamplers.
+- Fixed broken link in fullscreen samples.
+- Fixed missing UNITY_MATRIX_IT_MV define in HDRP shaders.
+- Fixed an issue where UI images using render textures would not render properly with HDR enabled.
+- Fixed an issue where reimporting ShaderGraph trigged a UnityVCS/Perfoce local checkout.
+- Fixed SSMS slider not showing when volumetric fog was disabled.
+- Fixed offscreen UI rendering when HDR is enabled.
+- Set the 'Maximum Shadows on Screen' limit to 65536 in order not to exceed the maximum size of the buffer.
+- Fixed an issue that caused the Disable Color Tint setting in a shader graph to have no effect.
+- Fixed TAA Contrast Adaptive Sharpening when no upsampling was enabled.
+- Fixed an issue with EndCameraRendering being called before renderContext submission.
+- Fixed depth issues that occurred during transparent object rendering when dynamic scaling was used with fractional values.
+- Fixed an issue to push the correct cascade shadow matrix for each cascade.
+- Fixed an issue so light intensity now correctly increases when 'Lux at Distance' increases and vice versa.
+- Fixed depth of field blocky artifacts when using a high blur radius.
+- Fixed some depth of field jittering with objects in the near field and TAA enabled.
+- PBR depth of field now has a bokeh shape that corresponds better to the aperture settings of the camera.
+- Fixed an issue where alpha clamping to BloomPrefilter.compute was missing.
+- Fixed volumetric cloud clipping through geometry.
+- Fixed an issue where HDProbes created depth resources that were never used, leading to unnecessary GPU memory usage.
+- Fixed an issue where HDRP CustomPass created an unnecessary color resource, leading to unnecessary GPU memory usage.
+- Fixed a sun flicker where the sun is close to cloud boundaries.
+- Fixed an issue where cascade shadows and distance shadowmask were not blended properly.
+- Updated HDRP to use the new TextureDesc field format instead of colorFormat and depthBufferBits to avoid a performance regression and subtle issues.
+- Fixed distortion in Unlit Shader Graph.
+- Fixed the artifact of non-physical DOF if it's used with TAA and dynamic resolution; The artifacts appear for a frame after the screen resolution changes.
+- Fixed UI overflow and stencil based effects not working in HDRP.
+- Fixed uninitalized/unused shader warnings.
+- Fixed `WorldLightManager.Collect` so it no longer has poor performance when a large amount of GameObjects are present in the scene.
+- Fixed an issue that would cause volumetric shadow clipping issues in some camera angles.
+- Fixed the option to edit advanced upsampling that aren't visible on platforms when they're not supported.
+- Ensure custom post-processing effects are disabled when post-processing is disabled.
+- Ignore material variants with log message.
+- Fixed HairVertex instancing-related shader-compilation issues.
+- Fixed cloud layers not being drawn behind transparent refractive objects.
+- Fixed an issue that caused HDAdditionalLightData with preserveCachedShadow to be evicted from the cachedShadowManager.
+- Fixed an issue with shader error when using water excluder with entities.
+- Fixed to avoid calling the Cleanup method twice so the celestial data remains.
+- Fixed errors when building XR player with Water System enabled.
+- Removed 'Setting MRTs without a depth buffer is not supported' error in Volumetric Clouds Combine pass.
+- Fixed an issue by adding clamp to HairAngleWorld to prevent nan from FastASin.
+- Fixed layer index out of range in LayeredLitGUI.
+- Fixed HDRP wizard to not show FixAll button anymore when no automated fix is available.
+- Fixes the bug where DebugDisplay Camera list grew beyond number of active cameras, every time a camera was registered or unregistered.
+- Fixed black line artifacts on top of the screen with DRS and downsampled SSAO
+- Fixed invalid global state pushed when using override camera rendering in the CustomPassUtils functions.
+- Fixed an issue that caused an inability to change the Shadow Map resolution for HDAdditionalLightData with preserveCachedShadow.
+- Fixed HDRP sky rendering when Camera Relative Rendering is disabled.
+- High Definition Render Pipeline's Wizard will no longer assume a check fail while waiting a reply from the Package Manager and will display a specific pending icon.
+- Fixed wrong SSR when using a shader graph with a clear coat value of 0.
+- Fixed artifacts when blending cascade shadows and distance shadowmask.
+- Fixed an issue by adding a condition to the Receiver Motion Rejection function(feature) to check that the pixel has actually moved.
+- Fixed an issue where the padding in the Lighting window was different between tabs.
+
 ## [17.0.2] - 2024-04-02
 
 This version is compatible with Unity 6000.0.0b15.
