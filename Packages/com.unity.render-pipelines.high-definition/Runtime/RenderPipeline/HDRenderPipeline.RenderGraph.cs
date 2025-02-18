@@ -1588,7 +1588,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hasWater)
             {
                 // Render the water gbuffer (and prepare for the transparent SSR pass)
-                output.waterGBuffer = m_WaterSystem.RenderWaterGBuffer(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, lightLists);
+                output.waterGBuffer = m_WaterSystem.RenderWaterGBuffer(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, output.depthBufferPreRefraction, lightLists);
 
                 // Render Water Line
                 m_WaterSystem.RenderWaterLine(renderGraph, hdCamera, prepassOutput.depthBuffer, ref output);
