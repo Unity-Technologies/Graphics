@@ -10,6 +10,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.15] - 2025-02-13
+
+This version is compatible with Unity 2021.3.49f1.
+
+### Fixed
+- Fixed an issue where cookie sampling looks corrupt when targeting mobile platforms.
+- Fixed compiler error when using single precision on Mobile targets
+- Disable fallback behavior on FSR EASU shader to prevent build errors on machines with old GPUs
+- Reduced banding on FSR upscaled render target by changing render target formats
+- Fixed an issue where glClientWaitSync: Expected application to have kicked everything until job: 96089 (possibly by calling glFlush)" are thrown in the Android Player on some devices with PowerVR Rogue GE8320 GPU.
+- Fixed camera offset in the UI editor for the RenderObject RenderFeature.
+- Fixed shadow-map sampling artifacts present when using the Unlit DrawMode in the SceneView.
+- Disabled depth priming for cameras with depth only render targets.
+- Fixed multiview support for the XR Occlusion Mesh pass.
+- Stop spamming about c-buffer layout mispatch in GPU-instancing-enabled speed tree materials when enabling Rendering Layers.
+- Fixed a redundant empty line in a tooltip for Cast Shadows toggle in the URP Asset for Additional lights.
+- Fixed sorting the Reflection Probe by resolution.
+- Universal RP: Fixed an issue where Camera view is not rendered on PowerVR Rogue GE8320 GPU'S if Shadows are enabled in URP Asset and Camera stack contains Overlay Camera's.
+- Fixed light cookie texture memory leak when entering Playmode.
+- Fixed Implicit truncation of vector type shader warning.
+
 ## [12.1.14] - 2024-04-03
 
 This version is compatible with Unity 2021.3.38f1.
