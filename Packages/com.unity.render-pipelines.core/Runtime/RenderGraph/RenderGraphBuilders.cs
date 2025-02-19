@@ -119,9 +119,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             try
             {
-
                 if (disposing)
                 {
+                    m_RenderGraph.RenderGraphState = RenderGraphState.RecordingGraph;
+
                     // Use all globals simply means this... we do a UseTexture on all globals so the pass has the correct dependencies.
                     // This of course goes to show how bad an idea shader-system wide globals really are dependency/lifetime tracking wise :-)
                     if (m_RenderPass.useAllGlobalTextures)
@@ -510,7 +511,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 }
                 else
                 {
-                    throw new ArgumentException($"Trying to use an invalid resource (pass {m_RenderPass.name}).");
+                    throw new Exception($"Trying to use an invalid resource (pass {m_RenderPass.name}).");
                 }
             }
         }

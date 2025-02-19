@@ -315,6 +315,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (m_Disposed)
                 return;
 
+            m_RenderGraph.RenderGraphState = RenderGraphState.RecordingGraph;
             m_RenderGraph.OnPassAdded(m_RenderPass);
             m_Disposed = true;
         }

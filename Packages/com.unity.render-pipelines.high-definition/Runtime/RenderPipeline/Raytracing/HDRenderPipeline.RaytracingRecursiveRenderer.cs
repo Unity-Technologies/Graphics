@@ -102,7 +102,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!validEffect)
                 return colorBuffer;
 
-            using (var builder = renderGraph.AddRenderPass<RecursiveRenderingPassData>("Recursive Rendering Evaluation", out var passData, ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering)))
+            RecursiveRenderingPassData passData;
+
+            using (var builder = renderGraph.AddRenderPass<RecursiveRenderingPassData>("Recursive Rendering Evaluation", out passData, ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering)))
             {
                 builder.EnableAsyncCompute(false);
 
@@ -188,11 +190,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Run the computation
                         ctx.cmd.DispatchRays(data.recursiveRenderingRT, m_RayGenShaderName, (uint)data.texWidth, (uint)data.texHeight, (uint)data.viewCount);
                     });
-
-                PushFullScreenDebugTexture(m_RenderGraph, passData.debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
-
-                return passData.outputBuffer;
             }
+
+            PushFullScreenDebugTexture(m_RenderGraph, passData.debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
+
+            return passData.outputBuffer;
         }
     }
 }

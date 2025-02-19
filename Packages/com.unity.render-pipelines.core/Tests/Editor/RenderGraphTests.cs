@@ -5,6 +5,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.TestTools;
 using Unity.Collections;
+using UnityEngine.Rendering.RendererUtils;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -31,6 +32,8 @@ namespace UnityEngine.Rendering.Tests
 
     partial class RenderGraphTests
     {
+        const string k_InvalidOperationMessage = "InvalidOperationException: ";
+
         // For RG Record/Hash/Compile testing, use m_RenderGraph
         RenderGraph m_RenderGraph;
 
@@ -40,6 +43,8 @@ namespace UnityEngine.Rendering.Tests
         // For RG Execute/Submit testing with rendering, use m_RenderGraphTestPipeline and m_RenderGraph in its recordRenderGraphBody
         RenderGraphTestPipelineAsset m_RenderGraphTestPipeline;
         RenderGraphTestGlobalSettings m_RenderGraphTestGlobalSettings;
+
+        Dictionary<RenderGraphState, List<Action>> m_GraphStateActions = new Dictionary<RenderGraphState, List<Action>>();
 
         // We need a camera to execute the render graph and a game object to attach a camera
         GameObject m_GameObject;
@@ -83,7 +88,7 @@ namespace UnityEngine.Rendering.Tests
                     if (!camera.enabled)
                         continue;
 
-                    var cmd = new CommandBuffer { name = "Rendering command buffer" };
+                    var cmd = CommandBufferPool.Get();
 
                     RenderGraphParameters rgParams = new()
                     {
@@ -93,13 +98,29 @@ namespace UnityEngine.Rendering.Tests
                         invalidContextForTesting = false
                     };
 
-                    m_RenderGraph.BeginRecording(rgParams);
+                    try
+                    {
+                        // Necessary to reinitialize the state, since we have many tests which do not use this system but directly adding
+                        // passes to the graph (to test the compilation) and destroying them without executing them with camera.Render()
+                        // (e.g GraphicsPassWriteWaitOnAsyncPipe). So the state becomes RecordGraph because of the Builder.Destroy logic.
+                        m_RenderGraph.RenderGraphState = RenderGraphState.Idle;
 
-                    asset.recordRenderGraphBody?.Invoke(renderContext, camera, cmd);
+                        m_RenderGraph.BeginRecording(rgParams);
+
+                        asset.recordRenderGraphBody?.Invoke(renderContext, camera, cmd);
+                    }
+                    catch (Exception e)
+                    {
+                        if (m_RenderGraph.ResetGraphAndLogException(e))
+                            throw;
+                        return;
+                    }
 
                     m_RenderGraph.EndRecordingAndExecute();
 
                     renderContext.ExecuteCommandBuffer(cmd);
+
+                    CommandBufferPool.Release(cmd);
                 }
                 renderContext.Submit();
             }
@@ -132,6 +153,10 @@ namespace UnityEngine.Rendering.Tests
 
             // Getting the RG from the custom asset pipeline
             m_RenderGraph = m_RenderGraphTestPipeline.renderGraph;
+            m_RenderGraph.nativeRenderPassesEnabled = true;
+
+            // Necessary to disable it for the Unit Tests, as the caller is not the same.
+            RenderGraph.RenderGraphExceptionMessages.enableCaller = false;
 
             // We need a real ScriptableRenderContext and a camera to execute the Render Graph
             m_GameObject = new GameObject("testGameObject")
@@ -895,7 +920,7 @@ namespace UnityEngine.Rendering.Tests
             // record and execute render graph calls
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
-                using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPassWithNoRenderFunc", out var passData))
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPassWithNoRenderFunc", out var passData))
                 {
                     builder.AllowPassCulling(false);
 
@@ -1234,6 +1259,200 @@ namespace UnityEngine.Rendering.Tests
                     });
                 }
             };
+        }
+
+        [Test]
+        public void RenderGraphThrowsException_ErrorsWhenRecordingPass()
+        {
+            PopulateRecordingPassAPIActions();
+
+            ExecuteRenderGraphAPIActions(RenderGraphState.RecordingPass);
+        }
+
+        [Test]
+        public void RenderGraphThrowsException_ErrorsWhenRecordingGraph()
+        {
+            PopulateRecordingGraphAPIActions();
+
+            ExecuteRenderGraphAPIActions(RenderGraphState.RecordingGraph);
+        }
+
+        [Test]
+        public void RenderGraphThrowsException_ErrorsWhenExecutingGraph()
+        {
+            PopulateExecutingAPIActions();
+
+            ExecuteRenderGraphAPIActions(RenderGraphState.Executing);
+        }
+
+        [Test]
+        public void RenderGraphThrowsException_ErrorsWhenRecordingPassAndExecutingGraph()
+        {
+            PopulateRecordingPassAndExecutingGraphAPIActions();
+
+            ExecuteRenderGraphAPIActions(RenderGraphState.RecordingPass | RenderGraphState.Executing);
+        }
+
+        [Test]
+        public void RenderGraphThrowsException_ErrorsWhenRecordingPassAndGraphAndExecutingGraph()
+        {
+            PopulateActiveGraphAPIActions();
+
+            ExecuteRenderGraphAPIActions(RenderGraphState.Active);
+        }
+
+        // It's forbidden to use these APIs in RecordingPass mode.
+        void PopulateRecordingPassAPIActions()
+        {
+            var errorAPIPassName = "TestPassMustThrowException";
+            var recordingPassActions = new List<Action>
+            {
+                () => m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>(errorAPIPassName, out var passData2),
+                () => m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>(errorAPIPassName, out var passData2),
+                () => m_RenderGraph.AddComputePass<RenderGraphTestPassData>(errorAPIPassName, out var passData2),
+                () => m_RenderGraph.AddRenderPass<RenderGraphTestPassData>(errorAPIPassName, out var passData2)
+            };
+
+            m_GraphStateActions.Add(RenderGraphState.RecordingPass, recordingPassActions);
+        }
+
+        // It's forbidden to use these APIs in RecordingGraph mode.
+        void PopulateRecordingGraphAPIActions()
+        {
+            var recordingGraphActions = new List<Action>();
+
+            // Empty for the moment
+
+            m_GraphStateActions.Add(RenderGraphState.RecordingGraph, recordingGraphActions);
+        }
+
+        // It's forbidden to use these APIs in Executing mode.
+        void PopulateExecutingAPIActions()
+        {
+            var textureHandle = new TextureHandle();
+            var flagActions = RenderGraphState.Executing;
+            var executingActions = new List<Action>
+            {
+                // Texture APIs
+                () => m_RenderGraph.CreateTexture(textureHandle),
+                () => m_RenderGraph.CreateTextureIfInvalid(new TextureDesc(), ref textureHandle),
+                () => m_RenderGraph.CreateTexture(new TextureDesc()),
+                () => m_RenderGraph.ImportTexture(null),
+                () => m_RenderGraph.ImportTexture(null, new ImportResourceParams()),
+                () => m_RenderGraph.ImportTexture(null, new RenderTargetInfo(), new ImportResourceParams()),
+                () => m_RenderGraph.ImportTexture(null, isBuiltin: false),
+
+                // Buffer APIs
+                () => m_RenderGraph.CreateBuffer(new BufferDesc()),
+                () => m_RenderGraph.CreateBuffer(new BufferHandle()),
+                () => m_RenderGraph.ImportBuffer(null),
+                () => m_RenderGraph.ImportBackbuffer(new RenderTargetIdentifier(), new RenderTargetInfo()),
+                () => m_RenderGraph.ImportBackbuffer(new RenderTargetIdentifier()),
+
+                // RendererList APIs
+                () => m_RenderGraph.CreateRendererList(new RendererListDesc()),
+                () => m_RenderGraph.CreateRendererList(new RendererListParams()),
+                () => m_RenderGraph.CreateGizmoRendererList(m_Camera, GizmoSubset.PreImageEffects),
+                () => m_RenderGraph.CreateUIOverlayRendererList(m_Camera),
+                () => m_RenderGraph.CreateUIOverlayRendererList(m_Camera, UISubset.All),
+                () => m_RenderGraph.CreateWireOverlayRendererList(m_Camera),
+                () => m_RenderGraph.CreateSkyboxRendererList(m_Camera),
+                () => m_RenderGraph.CreateSkyboxRendererList(m_Camera, Matrix4x4.identity, Matrix4x4.identity),
+                () => m_RenderGraph.CreateSkyboxRendererList(m_Camera, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity),
+
+                // Other APIs
+                () => m_RenderGraph.ImportRayTracingAccelerationStructure(null)
+            };
+
+            m_GraphStateActions.Add(flagActions, executingActions);
+        }
+
+        // It's forbidden to use these APIs in RecordingPass and Executing mode.
+        void PopulateRecordingPassAndExecutingGraphAPIActions()
+        {
+            var flagActions = RenderGraphState.RecordingPass | RenderGraphState.Executing;
+            var recordingPassAndExecutingActions = new List<Action>
+            {
+                () => m_RenderGraph.EndRecordingAndExecute()
+            };
+
+            m_GraphStateActions.Add(flagActions, recordingPassAndExecutingActions);
+        }
+
+        // It's forbidden to use these APIs in RecordingGraph, RecordingPass and Executing mode.
+        void PopulateActiveGraphAPIActions()
+        {
+            var flagActions = RenderGraphState.Active;
+            var textureHandle = new TextureHandle();
+            var activeGraphActions = new List<Action>
+            {
+                () => m_RenderGraph.Cleanup(),
+                () => m_RenderGraph.RegisterDebug(),
+                () => m_RenderGraph.UnRegisterDebug(),
+                () => m_RenderGraph.EndFrame(),
+                () => m_RenderGraph.BeginRecording(new RenderGraphParameters()),
+                () => m_RenderGraph.CreateSharedTexture(new TextureDesc()),
+                () => m_RenderGraph.ReleaseSharedTexture(textureHandle)
+            };
+
+            m_GraphStateActions.Add(flagActions, activeGraphActions);
+        }
+
+        void ExecuteRenderGraphAPIActions(RenderGraphState state)
+        {
+            if (!m_GraphStateActions.ContainsKey(state))
+                return;
+
+            var listAPIs = m_GraphStateActions[state];
+            var graphStateException = RenderGraph.RenderGraphExceptionMessages.GetExceptionMessage(state);
+
+            foreach (var action in listAPIs)
+            {
+                // Clear the graph to avoid any previous state (invalid pass because we threw an exception during the setup of the pass).
+                m_RenderGraph.ClearCurrentCompiledGraph();
+
+                // Manually check the flag to avoid testing Idle and Active states.
+                if ((state & RenderGraphState.Executing) == RenderGraphState.Executing)
+                {
+                    RecordGraphAPIError(RenderGraphState.Executing, graphStateException, action);
+                }
+
+                if ((state & RenderGraphState.RecordingGraph) == RenderGraphState.RecordingGraph)
+                {
+                    RecordGraphAPIError(RenderGraphState.RecordingGraph, graphStateException, action);
+                }
+
+                if ((state & RenderGraphState.RecordingPass) == RenderGraphState.RecordingPass)
+                {
+                    RecordGraphAPIError(RenderGraphState.RecordingPass, graphStateException, action);
+                }
+            }
+        }
+
+        void RecordGraphAPIError(RenderGraphState graphState, string exceptionExpected, Action action)
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                if (graphState == RenderGraphState.RecordingGraph)
+                    action.Invoke();
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass_APIRecordingError", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    if (graphState == RenderGraphState.RecordingPass)
+                        action.Invoke();
+
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) =>
+                    {
+                        if (graphState == RenderGraphState.Executing)
+                            action.Invoke();
+                    });
+                }
+            };
+
+            LogAssert.Expect(LogType.Error, RenderGraph.RenderGraphExceptionMessages.k_RenderGraphExecutionError);
+            LogAssert.Expect(LogType.Exception, k_InvalidOperationMessage + exceptionExpected);
 
             m_Camera.Render();
         }
