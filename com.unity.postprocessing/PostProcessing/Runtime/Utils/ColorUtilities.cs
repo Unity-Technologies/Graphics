@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.PostProcessing
         const float logC_c = 0.244161f;
         const float logC_d = 0.386036f;
         const float logC_e = 5.301883f;
-        const float logC_f = 0.092819f;
+        const float logC_f = 0.092814f;
 
         /// <summary>
         /// Converts a LogC (Alexa El 1000) value to linear.
