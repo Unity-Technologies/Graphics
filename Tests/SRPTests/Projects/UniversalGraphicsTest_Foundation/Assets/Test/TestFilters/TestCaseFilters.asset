@@ -1314,3 +1314,29 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: No support GLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5e57a94eeee3964488362ad6cab7cfb2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    Architecture: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'No support. Bug: https://jira.unity3d.com/browse/UUM-97448'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9225c2f5b8cf84f6bbe7cd83a8c22426, type: 3}
+    - {fileID: 102900000, guid: 0c3534665968e874794d07c8309833d3, type: 3}
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
+    - {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
+    - {fileID: 102900000, guid: 70198edfee594a34986cdc8ee0c077ff, type: 3}
+    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: 'XR Bug: https://jira.unity3d.com/browse/UUM-97884'
