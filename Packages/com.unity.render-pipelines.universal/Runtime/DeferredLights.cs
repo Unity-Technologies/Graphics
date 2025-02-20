@@ -143,18 +143,26 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly ProfilingSampler m_ProfilingDeferredPass = new ProfilingSampler(k_DeferredPass);
         private static readonly ProfilingSampler m_ProfilingSetupLightConstants = new ProfilingSampler(k_SetupLightConstants);
 
+        // Mandatory g-buffers
         internal int GBufferAlbedoIndex { get { return 0; } }
         internal int GBufferSpecularMetallicIndex { get { return 1; } }
         internal int GBufferNormalSmoothnessIndex { get { return 2; } }
-        internal int GBufferLightingIndex { get { return 3; } }
+
+        // User-defined g-buffers should go here, after the mandatory and before the lighting buffer & optional g-buffers
+
+        // Lighting g-buffer (should be the last mandatory g-buffer because it is not passed along as an attachment, so subsequent attachment indices shift)
+        internal int GBufferLightingIndex { get { return UniversalRenderer.k_GbufferCountMandatory - 1; } }
+
+        // Optional g-buffers
         internal int GbufferDepthIndex { get { return UseFramebufferFetch ? GBufferLightingIndex + 1 : -1; } }
         internal int GBufferRenderingLayers { get { return UseRenderingLayers ? GBufferLightingIndex + (UseFramebufferFetch ? 1 : 0) + 1 : -1; } }
         // Shadow Mask can change at runtime. Because of this it needs to come after the non-changing buffers.
         internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseFramebufferFetch ? 1 : 0) + (UseRenderingLayers ? 1 : 0) + 1 : -1; } }
-        // Color buffer count (not including dephStencil).
-        internal int GBufferSliceCount { get { return 4 + (UseFramebufferFetch ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
 
-        internal int GBufferInputAttachmentCount { get { return 4 + (UseShadowMask ? 1 : 0); } }
+        // Color buffer count (not including dephStencil).
+        internal int GBufferSliceCount { get { return UniversalRenderer.k_GbufferCountMandatory + (UseFramebufferFetch ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
+
+        internal int GBufferInputAttachmentCount { get { return UniversalRenderer.k_GbufferCountMandatory + (UseShadowMask ? 1 : 0); } }
 
         internal GraphicsFormat GetGBufferFormat(int index)
         {
@@ -499,20 +507,24 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DeferredInputAttachments[0] = this.GbufferAttachments[0];
             this.DeferredInputAttachments[1] = this.GbufferAttachments[1];
             this.DeferredInputAttachments[2] = this.GbufferAttachments[2];
-            this.DeferredInputAttachments[3] = this.GbufferAttachments[4];
+
+            // NOTE: Lighting buffer (GbufferAttachments[3]) is skipped. Subsequent attachment indices will be off by 1 compared to their g-buffer indices
+
+            // TODO: Can this be this.GbufferAttachments[GbufferDepthIndex] instead of this.GbufferAttachments[4] ?
+            this.DeferredInputAttachments[UniversalRenderer.k_GbufferCountMandatory - 1] = this.GbufferAttachments[4];
 
             if (UseShadowMask && UseRenderingLayers)
             {
-                this.DeferredInputAttachments[4] = this.GbufferAttachments[GBufferShadowMask];
-                this.DeferredInputAttachments[5] = this.GbufferAttachments[GBufferRenderingLayers];
+                this.DeferredInputAttachments[UniversalRenderer.k_GbufferCountMandatory] = this.GbufferAttachments[GBufferShadowMask];
+                this.DeferredInputAttachments[UniversalRenderer.k_GbufferCountMandatory + 1] = this.GbufferAttachments[GBufferRenderingLayers];
             }
             else if (UseShadowMask)
             {
-                this.DeferredInputAttachments[4] = this.GbufferAttachments[GBufferShadowMask];
+                this.DeferredInputAttachments[UniversalRenderer.k_GbufferCountMandatory] = this.GbufferAttachments[GBufferShadowMask];
             }
             else if (UseRenderingLayers)
             {
-                this.DeferredInputAttachments[4] = this.GbufferAttachments[GBufferRenderingLayers];
+                this.DeferredInputAttachments[UniversalRenderer.k_GbufferCountMandatory] = this.GbufferAttachments[GBufferRenderingLayers];
             }
         }
 
@@ -543,8 +555,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-            var inputCount = 4 + (UseShadowMask ?  1 : 0) + (UseRenderingLayers ?  1 : 0);
-            if (this.DeferredInputAttachments == null && this.UseFramebufferFetch && this.GbufferAttachments.Length >= 3 ||
+            var inputCount = UniversalRenderer.k_GbufferCountMandatory + (UseShadowMask ?  1 : 0) + (UseRenderingLayers ?  1 : 0);
+            if (this.DeferredInputAttachments == null && this.UseFramebufferFetch && this.GbufferAttachments.Length >= 3 + UniversalRenderer.k_GbufferCountUserDefined ||
                 (this.DeferredInputAttachments != null && inputCount != this.DeferredInputAttachments.Length))
             {
                 this.DeferredInputAttachments = new RTHandle[inputCount];
@@ -552,6 +564,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int i, j = 0;
                 for (i = 0; i < inputCount; i++, j++)
                 {
+                    // Do not include the lighting g-buffer as an attachment. Note that this means that all of the
+                    // optional attachment indices are shifted by 1 compared to their g-buffer indices
                     if (j == GBufferLightingIndex)
                         j++;
                     DeferredInputAttachments[i] = GbufferAttachments[j];
