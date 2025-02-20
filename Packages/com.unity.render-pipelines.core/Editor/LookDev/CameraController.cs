@@ -313,7 +313,7 @@ namespace UnityEditor.Rendering.LookDev
                 m_FlySpeedAccelerated = 9;
             else
                 m_FlySpeedAccelerated *= Mathf.Pow(k_FlyAcceleration, deltaTime);
-            result = m_MotionDirection.normalized * m_FlySpeedAccelerated * speed * deltaTime;
+            result = m_FlySpeedAccelerated * speed * deltaTime * m_MotionDirection.normalized;
             return result;
         }
 
