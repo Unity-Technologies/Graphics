@@ -83,6 +83,8 @@ The Water samples contain the following scenes you can use to learn about HDRP's
 - Island: Demonstrates waves, foam, and the water excluder.
 - Rain: Demonstrates how to add pertubations to the normals using shader graph.
 - Waterline: Demonstrates how to override rendering of the waterline using a [Custom Pass](Custom-Pass.md).
+- Cave: Demonstrates how to use the caustics texture in a sphere projection shader using a [Custom Pass](Custom-Pass.md).
+- CurrentWithSplines: Demonstrates how to use the Spline package to control current and deformation in realtime.
 
 ## Environment samples
 
