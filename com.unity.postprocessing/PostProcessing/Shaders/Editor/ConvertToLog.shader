@@ -23,7 +23,7 @@ Shader "Hidden/PostProcessing/Editor/ConvertToLog"
             0.244161, // c
             0.386036, // d
             5.301883, // e
-            0.092819  // f
+            0.092814  // f
         };
 
         float LinearToLogC_Precise(half x)
