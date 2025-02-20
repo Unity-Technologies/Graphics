@@ -1150,13 +1150,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 ref var attachments = ref nativePass.attachments;
                 var attachmentCount = attachments.size;
 
-                ref readonly var firstGraphPass = ref contextData.passData.ElementAt(nativePass.firstGraphPass);
-                var w = firstGraphPass.fragmentInfoWidth;
-                var h = firstGraphPass.fragmentInfoHeight;
-                var d = firstGraphPass.fragmentInfoVolumeDepth;
-                var s = firstGraphPass.fragmentInfoSamples;
+                var width = nativePass.width;
+                var height = nativePass.height;
+                var volumeDepth = nativePass.volumeDepth;
+                var samples = nativePass.samples;
 
-                ValidateNativePass(nativePass, w, h, d, s, attachmentCount);
+                ValidateNativePass(nativePass, width, height, volumeDepth, samples, attachmentCount);
 
                 ref var nativeSubPasses = ref contextData.nativeSubPassData;
                 NativeArray<SubPassDescriptor> nativeSubPassArray = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<SubPassDescriptor>(nativeSubPasses.GetUnsafeReadOnlyPtr<SubPassDescriptor>() + nativePass.firstNativeSubPass, nativePass.numNativeSubPasses, Allocator.None);
@@ -1188,7 +1187,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     resources.GetRenderTargetInfo(currAttachmentHandle, out var renderTargetInfo);
 
                     bool isVrs = (i == nativePass.shadingRateImageIndex);
-                    ValidateAttachment(renderTargetInfo, resources, w, h, s, isVrs);
+                    ValidateAttachment(renderTargetInfo, resources, width, height, samples, isVrs);
 
                     ref var currBeginAttachment = ref m_BeginRenderPassAttachments.ElementAt(i);
                     currBeginAttachment = new AttachmentDescriptor(renderTargetInfo.format);
@@ -1277,7 +1276,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
 #endif
 
-                rgContext.cmd.BeginRenderPass(w, h, d, s, attachmentDescArray, depthAttachmentIndex, nativePass.shadingRateImageIndex, nativeSubPassArray, graphPassNamesForDebugSpan);
+                rgContext.cmd.BeginRenderPass(width, height, volumeDepth, samples, attachmentDescArray, depthAttachmentIndex, nativePass.shadingRateImageIndex, nativeSubPassArray, graphPassNamesForDebugSpan);
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.Release(safetyHandle);
