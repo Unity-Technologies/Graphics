@@ -126,7 +126,6 @@ public class OutputTextureFeature : ScriptableRendererFeature
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Output Texture Pass", out var passData, m_ProfilingSampler))
             {
                 builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.ReadWrite);
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 passData.profilingSampler = m_ProfilingSampler;

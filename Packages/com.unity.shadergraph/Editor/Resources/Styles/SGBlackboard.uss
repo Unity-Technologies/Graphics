@@ -66,7 +66,7 @@
     border-right-width: 1px;
     border-bottom-width: 1px;
     border-radius: 5px;
-    background-color: #2b2b2b;
+    background-color: #2e2e2e;
     border-color: #191919;
     margin: 6px;
     flex-direction: column;

@@ -104,7 +104,6 @@ namespace UnityEngine.Rendering.Universal
 
                     SetGlobalLightTextures(graph, builder, passData.lightTextures, cameraData, ref layerBatch, rendererData);
 
-                    builder.AllowPassCulling(false);
                     builder.AllowGlobalStateModification(true);
 
                     builder.SetRenderFunc((SetGlobalPassData data, RasterGraphContext context) =>
@@ -152,7 +151,6 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
                 builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture);
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
                 builder.UseAllGlobalTextures(true);
 
@@ -194,7 +192,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else if (rendererData.lightCullResult.IsSceneLit())
                 {
-                    builder.SetGlobalTextureAfterPass(graph.defaultResources.blackTexture, Shader.PropertyToID(RendererLighting.k_ShapeLightTextureIDs[0]));
+                    for (var i = 0; i < RendererLighting.k_ShapeLightTextureIDs.Length; i++)
+                        builder.SetGlobalTextureAfterPass(graph.defaultResources.blackTexture, Shader.PropertyToID(RendererLighting.k_ShapeLightTextureIDs[i]));
                 }
             }
         }

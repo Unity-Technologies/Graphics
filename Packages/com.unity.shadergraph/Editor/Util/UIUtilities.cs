@@ -39,6 +39,7 @@ namespace UnityEditor.Graphing.Util
             {
                 hashCode = hashCode * 31 + (@object == null ? 79 : @object.GetHashCode());
             }
+
             return hashCode;
         }
 
@@ -75,7 +76,18 @@ namespace UnityEditor.Graphing.Util
                 centroid = centroid + (position - centroid) / count;
                 ++count;
             }
+
             return centroid;
+        }
+
+        // A new element added to a ScrollView can't be scrolled to until its layout is calculated.
+        // This function will scroll to the target element after the scroll view's layout is updated.
+        public static void ScrollToElementAfterGeometryChange(this ScrollView scrollView, VisualElement target)
+        {
+            scrollView.contentContainer.RegisterCallbackOnce<GeometryChangedEvent>(e =>
+            {
+                scrollView.ScrollTo(target);
+            });
         }
     }
 }

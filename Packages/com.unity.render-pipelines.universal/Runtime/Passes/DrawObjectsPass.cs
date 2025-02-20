@@ -301,7 +301,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
                 }
 
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 if (cameraData.xr.enabled)
@@ -452,7 +451,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseRendererList(passData.basePassData.objectsWithErrorRendererListHdl);
                 }
 
-                builder.AllowPassCulling(false);
                 // Required here because of RenderingLayerUtils.SetupProperties
                 builder.AllowGlobalStateModification(true);
 

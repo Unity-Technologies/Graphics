@@ -15,13 +15,24 @@ namespace UnityEditor.Rendering.Universal
     {
         delegate void ProcessChild(SerializedProperty child);
 
+        bool IsChildVisible(Type parentType, SerializedProperty child)
+        {
+            // Check to see if the child is public and not hidden in the inspector
+            FieldInfo fieldInfo = parentType.GetField(child.name, BindingFlags.Public | BindingFlags.Instance);
+            HideInInspector hideInInspector = parentType.GetCustomAttribute<HideInInspector>();
+            return fieldInfo != null && hideInInspector == null;
+        }
+
         void ProcessChildren(SerializedProperty parentProperty, ProcessChild onProcessChild)
         {
             var enumerator = parentProperty.GetEnumerator();
+            object parentObj = parentProperty.managedReferenceValue;
+            Type parentType = parentObj.GetType();
+
             while (enumerator.MoveNext())
             {
-                SerializedProperty child = enumerator.Current as SerializedProperty;
-                if (child != null)
+                SerializedProperty child =  enumerator.Current as SerializedProperty;
+                if (child != null && IsChildVisible(parentType, child))
                 {
                     onProcessChild(child);
                 }

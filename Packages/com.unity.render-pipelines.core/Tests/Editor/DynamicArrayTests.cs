@@ -214,6 +214,8 @@ namespace UnityEngine.Rendering.Tests
             m_DynamicArray.Add(2);
 
             Assert.AreEqual(-1, m_DynamicArray.FindIndex(0, m_DynamicArray.size, (x) => x == 4));
+
+            Assert.AreEqual(-1, m_DynamicArray.FindIndex((x) => x == 4));
         }
 
         [Test]
@@ -225,6 +227,23 @@ namespace UnityEngine.Rendering.Tests
             m_DynamicArray.Add(2);
 
             Assert.AreEqual(1, m_DynamicArray.FindIndex(0, m_DynamicArray.size, (x) => x == 2));
+            Assert.AreEqual(3, m_DynamicArray.FindIndex(2, 2, (x) => x == 2));
+
+            Assert.AreEqual(1, m_DynamicArray.FindIndex((x) => x == 2));
+        }
+
+        [Test]
+        public void TestFindIndexDoesNotFindOutsideCount()
+        {
+            m_DynamicArray.Add(1);
+            m_DynamicArray.Add(2);
+            m_DynamicArray.Add(3);
+            m_DynamicArray.Add(4);
+
+            Assert.AreEqual(-1, m_DynamicArray.FindIndex(1, 2, (x) => x == 1));
+            Assert.AreEqual(1, m_DynamicArray.FindIndex(1, 2, (x) => x == 2));
+            Assert.AreEqual(2, m_DynamicArray.FindIndex(1, 2, (x) => x == 3));
+            Assert.AreEqual(-1, m_DynamicArray.FindIndex(1, 2, (x) => x == 4));
         }
 
         [Test]

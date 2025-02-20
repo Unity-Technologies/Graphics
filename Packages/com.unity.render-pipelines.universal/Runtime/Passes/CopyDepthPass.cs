@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RTHandle destination { get; set; }
 
         // TODO RENDERGRAPH: The Render method overwrites this property with -1 before doing anything else. It should only be used in Compatibility Mode!
-        internal int MssaSamples { get; set; }
+        internal int MsaaSamples { get; set; }
         // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
         // So this variable needs to be set to true to enable the correct copy shader semantic
         internal bool CopyToDepth { get; set; }
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.source = source;
             this.destination = destination;
-            this.MssaSamples = -1;
+            this.MsaaSamples = -1;
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             var cameraData = renderingData.frameData.Get<UniversalCameraData>();
 
             m_PassData.copyDepthMaterial = m_CopyDepthMaterial;
-            m_PassData.msaaSamples = MssaSamples;
+            m_PassData.msaaSamples = MsaaSamples;
             m_PassData.copyResolvedDepth = m_CopyResolvedDepth;
             m_PassData.copyToDepth = CopyToDepth || CopyToDepthXR;
             m_PassData.isDstBackbuffer = CopyToBackbuffer || CopyToDepthXR;
@@ -158,17 +158,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
                 int cameraSamples = 0;
-                if (msaaSamples == -1)
+
+                // When depth resolve is supported and requested, or multisampled texture is not supported, force camera samples to 1
+                if (copyResolvedDepth || SystemInfo.supportsMultisampledTextures == 0)
                 {
-                    RTHandle sourceTex = source;
-                    cameraSamples = sourceTex.rt.antiAliasing;
+                    cameraSamples = 1;
+                }
+                else if (msaaSamples == -1) // RG path
+                {
+                    cameraSamples = source.rt.antiAliasing;
                 }
                 else
+                {
                     cameraSamples = msaaSamples;
-
-                // When depth resolve is supported or multisampled texture is not supported, set camera samples to 1
-                if (SystemInfo.supportsMultisampledTextures == 0 || copyResolvedDepth)
-                    cameraSamples = 1;
+                }
 
                 switch (cameraSamples)
                 {
@@ -190,7 +193,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa8, false);
                         break;
 
-                    // MSAA disabled, auto resolve supported or ms textures not supported
+                    // MSAA disabled, auto resolve supported, resolve texture requested, or ms textures not supported
                     default:
                         cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa2, false);
                         cmd.SetKeyword(ShaderGlobalKeywords.DepthMsaa4, false);
@@ -201,7 +204,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords._OUTPUT_DEPTH, copyToDepth);
 
                 // We must perform a yflip if we're rendering into the backbuffer and we have a flipped source texture.
-                bool yflip = passData.cameraData.IsHandleYFlipped(source) && passData.isDstBackbuffer;
+                bool yflip = passData.isDstBackbuffer && passData.cameraData.IsHandleYFlipped(source);
 
                 Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
                 Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
@@ -257,13 +260,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Render(RenderGraph renderGraph, TextureHandle destination, TextureHandle source, UniversalResourceData resourceData, UniversalCameraData cameraData, bool bindAsCameraDepth = false, string passName = "Copy Depth")
         {
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
-            MssaSamples = -1;
+            MsaaSamples = -1;
 
-            //Having a different pass name than profilingSampler.name is bad practice but this method was public before we cleaned up this naming 
+            // Having a different pass name than profilingSampler.name is bad practice but this method was public before we cleaned up this naming 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.copyDepthMaterial = m_CopyDepthMaterial;
-                passData.msaaSamples = MssaSamples;
+                passData.msaaSamples = MsaaSamples;
                 passData.cameraData = cameraData;
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
                 passData.copyToDepth = CopyToDepth || CopyToDepthXR;
@@ -304,8 +307,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (bindAsCameraDepth && destination.IsValid())
                     builder.SetGlobalTextureAfterPass(destination, ShaderConstants._CameraDepthTexture);
 
-                // TODO RENDERGRAPH: culling? force culling off for testing
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>

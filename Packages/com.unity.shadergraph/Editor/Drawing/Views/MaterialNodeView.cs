@@ -26,6 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         VisualElement m_PreviewContainer;
         VisualElement m_PreviewFiller;
+        VisualElement m_PreviewExpand;
         VisualElement m_ControlItems;
         VisualElement m_ControlsDivider;
         VisualElement m_DropdownItems;
@@ -130,13 +131,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     previewDivider.AddToClassList("horizontal");
                     m_PreviewFiller.Add(previewDivider);
 
-                    var expandPreviewButton = new VisualElement { name = "expand" };
-                    expandPreviewButton.Add(new VisualElement { name = "icon" });
-                    expandPreviewButton.AddManipulator(new Clickable(() =>
+                    m_PreviewExpand = new VisualElement { name = "expand" };
+                    m_PreviewExpand.Add(new VisualElement { name = "icon" });
+                    m_PreviewExpand.AddManipulator(new Clickable(() =>
                     {
                         SetPreviewExpandedStateOnSelection(true);
                     }));
-                    m_PreviewFiller.Add(expandPreviewButton);
+                    m_PreviewFiller.Add(m_PreviewExpand);
                 }
                 contents.Add(m_PreviewFiller);
 
@@ -481,9 +482,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             return !(node is BlockNode) && m_CollapseButton.enabledInHierarchy;
         }
 
+        static bool IsPreviewable(AbstractMaterialNode node)
+        {
+            // only the first output slot is considered.
+            foreach (var slot in node.GetOutputSlots<MaterialSlot>())
+            {
+                switch (slot.concreteValueType)
+                {
+                    case ConcreteSlotValueType.Vector4:
+                    case ConcreteSlotValueType.Vector3:
+                    case ConcreteSlotValueType.Vector2:
+                    case ConcreteSlotValueType.Vector1:
+                        return true;
+                }
+                return false;
+            }
+            return false;
+        }
+
         void UpdatePreviewExpandedState(bool expanded)
         {
-            node.previewExpanded = expanded;
+            var previewable = IsPreviewable(node);
+
+            if (m_PreviewExpand != null)
+                m_PreviewExpand.visible = previewable;
+
+            node.previewExpanded = expanded && previewable;
             if (m_PreviewFiller == null)
                 return;
             if (expanded)

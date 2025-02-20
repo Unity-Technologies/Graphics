@@ -29,7 +29,7 @@ To override the default Virtual Offset data baker:
 	
 The default sky occlusion data baker computes the amount of lighting that comes from the sky in every direction as a spherical harmonic. It also optionally computes the direction from which APV should sample the sky lighting at runtime for every probe.
 
-To override the default Virtual Offset data baker:
+To override the default sky occlusion data:
 
 1. Create a class that inherits from [SkyOcclusionBaker](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.AdaptiveProbeVolumes.SkyOcclusionBaker.html) class. In the HDRP Graphics repo, refer to [ProbeGIBaking.SkyOcclusion.cs](https://github.com/Unity-Technologies/Graphics/blob/master/Packages/com.unity.render-pipelines.core/Editor/Lighting/ProbeVolume/ProbeGIBaking.SkyOcclusion.cs#L116) for reference implementation.
 2. Use [SetSkyOcclusionBakerOverride](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/api/UnityEngine.Rendering.AdaptiveProbeVolumes.html#UnityEngine_Rendering_AdaptiveProbeVolumes_SetSkyOcclusionBakerOverride_UnityEngine_Rendering_AdaptiveProbeVolumes_SkyOcclusionBaker_) and set your new `SkyOcclusionBaker` class as the parameter.

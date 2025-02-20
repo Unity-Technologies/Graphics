@@ -265,7 +265,6 @@ namespace UnityEngine.Rendering.Universal
                     passData.isVolumetric = isVolumetric;
                     passData.normalMap = layerBatch.lightStats.useNormalMap ? universal2DResourceData.normalsTexture[batchIndex] : TextureHandle.nullHandle;
 
-                    builder.AllowPassCulling(false);
                     builder.AllowGlobalStateModification(true);
 
                     builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>
@@ -309,7 +308,6 @@ namespace UnityEngine.Rendering.Universal
                     passData.isVolumetric = isVolumetric;
                     passData.normalMap = layerBatch.lightStats.useNormalMap ? universal2DResourceData.normalsTexture[batchIndex] : TextureHandle.nullHandle;
 
-                    builder.AllowPassCulling(false);
                     builder.AllowGlobalStateModification(true);
 
                     builder.SetRenderFunc((PassData data, RasterGraphContext context) =>

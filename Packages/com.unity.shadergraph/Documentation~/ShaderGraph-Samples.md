@@ -38,3 +38,9 @@ The following samples are currently available for Shader Graph.
 |:--------------------|
 |![](images/ProductionReadySample.png) |
 | The Shader Graph Production Ready Shaders sample is a collection of Shader Graph shader assets that are ready to be used out of the box or modified to suit your needs.  You can take them apart and learn from them, or just drop them directly into your project and use them as they are. The sample includes the Shader Graph versions of the HDRP and URP Lit shaders. It also includes a step-by-step tutorial for how to combine several of the shaders to create a forest stream environment.
+
+| [UGUI Shaders](Shader-Graph-Sample-UGUI-Shaders.md) |
+|:--------------------|
+|![](images/UIToolsSample.png) |
+| The Shader Graph UGUI Shaders sample is a collection of Shader Graph subgraphs that you can use to build user interface elements. They speed up the process of building widgets, buttons, and backgrounds for the user interface of your project.  With these tools, you can build dynamic, procedural UI elements that don’t require any texture memory and scale correctly for any resolution screen. In addition to the subgraphs, the sample also includes example buttons, indicators, and backgrounds built with the subgraphs.  The examples show how the subgraphs function in context and help you learn how to use them.
+

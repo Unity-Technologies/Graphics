@@ -51,6 +51,8 @@ public class HDRP_TestSettings : GraphicsTestSettings
     [Tooltip("When enabled, the tests handle frame consistency for VFXs.")]
     public bool containsVFX = false;
 
+    RenderPipelineAsset m_OldAsset;
+
     void Awake()
     {
         if (renderPipelineAsset == null)
@@ -59,13 +61,13 @@ public class HDRP_TestSettings : GraphicsTestSettings
             return;
         }
 
-        var currentRP = GraphicsSettings.defaultRenderPipeline;
+        var currentRP = QualitySettings.renderPipeline;
 
         if (currentRP != renderPipelineAsset)
         {
             quitDebug.AppendLine($"{SceneManager.GetActiveScene().name} RP asset change: {((currentRP == null) ? "null" : currentRP.name)} => {renderPipelineAsset.name}");
 
-            GraphicsSettings.defaultRenderPipeline = renderPipelineAsset;
+            QualitySettings.renderPipeline = renderPipelineAsset;
 
             // Render pipeline is only reconstructed when a frame is renderer
             // If scene requires lightmap baking, we have to force it
@@ -74,6 +76,11 @@ public class HDRP_TestSettings : GraphicsTestSettings
             if (forceCameraRenderDuringSetup && !Application.isPlaying && Application.platform != RuntimePlatform.OSXEditor)
                 Camera.main.Render();
         }
+    }
+
+    void OnDestroy()
+    {
+        if (QualitySettings.renderPipeline != m_OldAsset) QualitySettings.renderPipeline = m_OldAsset;
     }
 
     static StringBuilder quitDebug = new StringBuilder();

@@ -22,6 +22,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_PongTexture;
         RTHandle[] m_BloomMipDown;
         RTHandle[] m_BloomMipUp;
+        string[] m_BloomMipDownName;
+        string[] m_BloomMipUpName;
         TextureHandle[] _BloomMipUp;
         TextureHandle[] _BloomMipDown;
         RTHandle m_BlendTexture;
@@ -139,23 +141,19 @@ namespace UnityEngine.Rendering.Universal
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
 
-            // Bloom pyramid shader ids - can't use a simple stackalloc in the bloom function as we
-            // unfortunately need to allocate strings
-            ShaderConstants._BloomMipUp = new int[k_MaxPyramidSize];
-            ShaderConstants._BloomMipDown = new int[k_MaxPyramidSize];
             m_BloomMipUp = new RTHandle[k_MaxPyramidSize];
             m_BloomMipDown = new RTHandle[k_MaxPyramidSize];
+            m_BloomMipDownName = new string[k_MaxPyramidSize];
+            m_BloomMipUpName = new string[k_MaxPyramidSize];
+
             // Bloom pyramid TextureHandles
             _BloomMipUp = new TextureHandle[k_MaxPyramidSize];
             _BloomMipDown = new TextureHandle[k_MaxPyramidSize];
 
             for (int i = 0; i < k_MaxPyramidSize; i++)
             {
-                ShaderConstants._BloomMipUp[i] = Shader.PropertyToID("_BloomMipUp" + i);
-                ShaderConstants._BloomMipDown[i] = Shader.PropertyToID("_BloomMipDown" + i);
-                // Get name, will get Allocated with descriptor later
-                m_BloomMipUp[i] = RTHandles.Alloc(ShaderConstants._BloomMipUp[i], name: "_BloomMipUp" + i);
-                m_BloomMipDown[i] = RTHandles.Alloc(ShaderConstants._BloomMipDown[i], name: "_BloomMipDown" + i);
+                m_BloomMipUpName[i] = "_BloomMipUp" + i;
+                m_BloomMipDownName[i] = "_BloomMipDown" + i;
             }
 
             m_MRT2 = new RenderTargetIdentifier[2];
@@ -635,7 +633,7 @@ namespace UnityEngine.Rendering.Universal
                 // Setup other effects constants
                 SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
-                SetupVignette(m_Materials.uber, cameraData.xr);
+                SetupVignette(m_Materials.uber, cameraData.xr, m_Descriptor.width, m_Descriptor.height);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
@@ -1257,8 +1255,8 @@ namespace UnityEngine.Rendering.Universal
         void DoPaniniProjection(Camera camera, CommandBuffer cmd, RTHandle source, RTHandle destination)
         {
             float distance = m_PaniniProjection.distance.value;
-            var viewExtents = CalcViewExtents(camera);
-            var cropExtents = CalcCropExtents(camera, distance);
+            var viewExtents = CalcViewExtents(camera, m_Descriptor.width, m_Descriptor.height);
+            var cropExtents = CalcCropExtents(camera, distance, m_Descriptor.width, m_Descriptor.height);
 
             float scaleX = cropExtents.x / viewExtents.x;
             float scaleY = cropExtents.y / viewExtents.y;
@@ -1276,10 +1274,10 @@ namespace UnityEngine.Rendering.Universal
             Blitter.BlitCameraTexture(cmd, source, destination, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, material, 0);
         }
 
-        Vector2 CalcViewExtents(Camera camera)
+        Vector2 CalcViewExtents(Camera camera, int width, int height)
         {
             float fovY = camera.fieldOfView * Mathf.Deg2Rad;
-            float aspect = m_Descriptor.width / (float)m_Descriptor.height;
+            float aspect = width / (float)height;
 
             float viewExtY = Mathf.Tan(0.5f * fovY);
             float viewExtX = aspect * viewExtY;
@@ -1287,7 +1285,7 @@ namespace UnityEngine.Rendering.Universal
             return new Vector2(viewExtX, viewExtY);
         }
 
-        Vector2 CalcCropExtents(Camera camera, float d)
+        Vector2 CalcCropExtents(Camera camera, float d, int width, int height)
         {
             // given
             //    S----------- E--X-------
@@ -1313,7 +1311,7 @@ namespace UnityEngine.Rendering.Universal
 
             float viewDist = 1f + d;
 
-            var projPos = CalcViewExtents(camera);
+            var projPos = CalcViewExtents(camera, width, height);
             var projHyp = Mathf.Sqrt(projPos.x * projPos.x + 1f);
 
             float cylDistMinusD = 1f / projHyp;
@@ -1366,8 +1364,8 @@ namespace UnityEngine.Rendering.Universal
             var desc = GetCompatibleDescriptor(tw, th, m_DefaultColorFormat);
             for (int i = 0; i < mipCount; i++)
             {
-                RenderingUtils.ReAllocateHandleIfNeeded(ref m_BloomMipUp[i], desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipUp[i].name);
-                RenderingUtils.ReAllocateHandleIfNeeded(ref m_BloomMipDown[i], desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipDown[i].name);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_BloomMipUp[i], desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipUpName[i]);
+                RenderingUtils.ReAllocateHandleIfNeeded(ref m_BloomMipDown[i], desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipDownName[i]);
                 desc.width = Mathf.Max(1, desc.width >> 1);
                 desc.height = Mathf.Max(1, desc.height >> 1);
             }
@@ -1485,11 +1483,11 @@ namespace UnityEngine.Rendering.Universal
 
 #region Vignette
 
-        void SetupVignette(Material material, XRPass xrPass)
+        void SetupVignette(Material material, XRPass xrPass, int width, int height)
         {
             var color = m_Vignette.color.value;
             var center = m_Vignette.center.value;
-            var aspectRatio = m_Descriptor.width / (float)m_Descriptor.height;
+            var aspectRatio = width / (float)height;
 
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -1983,9 +1981,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
 
             public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
-
-            public static int[] _BloomMipUp;
-            public static int[] _BloomMipDown;
         }
 
 #endregion

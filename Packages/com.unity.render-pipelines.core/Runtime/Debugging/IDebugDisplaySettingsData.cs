@@ -10,5 +10,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns>The debug UI panel created.</returns>
         IDebugDisplaySettingsPanelDisposable CreatePanel();
+
+        /// <summary>
+        /// Resets the values of the settings data
+        /// </summary>
+        void Reset() { }
     }
 }

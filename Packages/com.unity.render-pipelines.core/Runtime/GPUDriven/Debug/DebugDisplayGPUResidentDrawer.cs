@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Unity.Collections;
 using static UnityEngine.Rendering.DebugUI;
 using static UnityEngine.Rendering.DebugUI.Widget;
@@ -9,6 +10,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// GPU Resident Drawer Rendering Debugger settings.
     /// </summary>
+    [CurrentPipelineHelpURL("gpu-resident-drawer")]
     public class DebugDisplayGPUResidentDrawer : IDebugDisplaySettingsData
     {
         const string k_FormatString = "{0}";
@@ -224,14 +226,17 @@ namespace UnityEngine.Rendering
         }
 
         [DisplayInfo(name = "Rendering", order = 5)]
-        [CurrentPipelineHelpURL("gpu-resident-drawer")]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override DebugUI.Flags Flags => DebugUI.Flags.EditorForceUpdate;
 
             public SettingsPanel(DebugDisplayGPUResidentDrawer data)
             {
-                var foldout = new DebugUI.Foldout() { displayName = Strings.drawerSettingsContainerName, };
+                var foldout = new DebugUI.Foldout()
+                {
+                    displayName = Strings.drawerSettingsContainerName,
+                    documentationUrl = typeof(DebugDisplayGPUResidentDrawer).GetCustomAttribute<HelpURLAttribute>()?.URL
+                };
                 AddWidget(foldout);
 
                 var helpBox = new DebugUI.MessageBox()

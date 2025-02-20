@@ -222,8 +222,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 builder.UseAllGlobalTextures(true);
 
-                //  TODO RENDERGRAPH: culling? force culling off for testing
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
                 if (cameraData.xr.enabled)
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
@@ -280,7 +278,6 @@ namespace UnityEngine.Rendering.Universal
                     passData.motionData = additionalCameraData.motionVectorsPersistentData;
                     passData.xr = cameraData.xr;
 
-                    builder.AllowPassCulling(false);
                     builder.AllowGlobalStateModification(true);
                     builder.SetRenderFunc(static (MotionMatrixPassData data, RasterGraphContext context) =>
                     {

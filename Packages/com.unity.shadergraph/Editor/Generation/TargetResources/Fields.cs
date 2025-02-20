@@ -19,6 +19,7 @@ namespace UnityEditor.ShaderGraph
         public static FieldDescriptor BlendAlpha = new FieldDescriptor(kBlendMode, "Alpha", "_BLENDMODE_ALPHA 1");           // URP: only sprite targets, vfx: HDRP?
         public static FieldDescriptor DoubleSided = new FieldDescriptor(string.Empty, "DoubleSided", "_DOUBLE_SIDED 1");      // URP: only sprite targets, duplicated in HD
         public static FieldDescriptor IsPreview = new FieldDescriptor(string.Empty, "isPreview", "SHADERGRAPH_PREVIEW");
+        public static FieldDescriptor IsMainPreview = new FieldDescriptor(string.Empty, "isMainPreview", "SHADERGRAPH_PREVIEW_MAIN");
         public static FieldDescriptor LodCrossFade = new FieldDescriptor(string.Empty, "LodCrossFade", "_LODCROSSFADE 1");     // HD only
         public static FieldDescriptor AlphaToMask = new FieldDescriptor(string.Empty, "AlphaToMask", "_ALPHATOMASK_ON 1");    // HD only
 

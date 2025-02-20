@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Opened state of the foldout.
             /// </summary>
-            public bool opened;
+            public bool opened { get; set; }
 
             /// <summary>
             /// Draw the foldout in full width using a header style.
@@ -177,6 +177,11 @@ namespace UnityEngine.Rendering
             /// Optional list of context menu items. If the list is not provided, no context menu button will be displayed.
             /// </summary>
             public List<ContextMenuItem> contextMenuItems = null;
+
+            /// <summary>
+            /// Optional help URL for the editor UI
+            /// </summary>
+            public string documentationUrl { get; set; }
 
             private bool m_Dirty;
             private string[] m_ColumnLabels;

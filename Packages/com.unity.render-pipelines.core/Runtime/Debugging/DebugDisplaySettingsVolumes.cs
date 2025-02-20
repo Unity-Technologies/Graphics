@@ -36,7 +36,6 @@ namespace UnityEngine.Rendering
         static class Strings
         {
             public static readonly string none = "None";
-            public static readonly string camera = "Camera";
             public static readonly string parameter = "Parameter";
             public static readonly string component = "Component";
             public static readonly string debugViewNotSupported = "N/A";
@@ -96,16 +95,14 @@ namespace UnityEngine.Rendering
 
             public static DebugUI.ObjectPopupField CreateCameraSelector(SettingsPanel panel, Action<DebugUI.Field<Object>, Object> refresh)
             {
-                return new DebugUI.ObjectPopupField
+                return new DebugUI.CameraSelector()
                 {
-                    displayName = Strings.camera,
                     getter = () => panel.data.volumeDebugSettings.selectedCamera,
                     setter = value =>
                     {
                         var c = panel.data.volumeDebugSettings.cameras.ToArray();
                         panel.data.volumeDebugSettings.selectedCameraIndex = Array.IndexOf(c, value as Camera);
                     },
-                    getObjects = () => panel.data.volumeDebugSettings.cameras,
                     onValueChanged = refresh
                 };
             }

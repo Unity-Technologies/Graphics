@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering
         /// <returns>The zero-based index of the first occurrence of an element that matches the conditions defined by match, if found; otherwise, -1.</returns>
         public int FindIndex(int startIndex, int count, Predicate<T> match)
         {
-            for (int i = startIndex; i < size; ++i)
+            for (int i = startIndex; i < size && count > 0; ++i, --count)
             {
                 if (match(m_Array[i]))
                 {
@@ -236,6 +236,16 @@ namespace UnityEngine.Rendering
                 }
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Searches for an element that matches the conditions defined by the specified predicate, and returns the zero-based index of the first occurrence within the range of elements in the DynamicArray.
+        /// </summary>
+        /// <param name="match">The Predicate delegate that defines the conditions of the element to search for.</param>
+        /// <returns>The zero-based index of the first occurrence of an element that matches the conditions defined by match, if found; otherwise, -1.</returns>
+        public int FindIndex(Predicate<T> match)
+        {
+            return FindIndex(0, size, match);
         }
 
         /// <summary>

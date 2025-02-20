@@ -15,6 +15,7 @@ public class HDRP_Graphics_Tests
     [UnityTest]
     [SceneGraphicsTest(@"Assets/Scenes/^[0-9]+")]
     [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
+    [IgnoreGraphicsTest("5012_PathTracing_Transmission", "Fails on Yamato")]
     [IgnoreGraphicsTest(
         "1000_RaytracingQualityKeyword_PathTracer_Default|2009_Debug_RTAS_ScreenSpaceReflections_InstanceID|2009_Debug_RTAS_ScreenSpaceReflections_PrimitiveID|2009_Debug_RTAS_Shadows_PrimitiveID|2010_Debug_ClusterDebug|308_ScreenSpaceGlobalIllumination",
         "Fails on Yamato"
@@ -41,6 +42,16 @@ public class HDRP_Graphics_Tests
         "2007_Debug_LightCluster",
         "issue on Yamato/HDRP-3081",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5 }
+    )]
+    [IgnoreGraphicsTest(
+        "5001_PathTracing|5010_PathTracingAlpha",
+        "jira: https://jira.unity3d.com/browse/GFXFEAT-1332",
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
+    )]
+    [IgnoreGraphicsTest(
+        "5005_PathTracing_Fog",
+        "jira: https://jira.unity3d.com/browse/GFXFEAT-1334",
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
     )]
     [IgnoreGraphicsTest(
         "5007_PathTracing_Materials_SG_Lit",

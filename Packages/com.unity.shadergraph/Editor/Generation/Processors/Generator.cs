@@ -395,6 +395,9 @@ namespace UnityEditor.ShaderGraph
                     if (m_Mode == GenerationMode.Preview)
                         activeFields.baseInstance.Add(Fields.IsPreview);
 
+                    if (m_OutputNode == null && m_Mode == GenerationMode.Preview)
+                        activeFields.baseInstance.Add(Fields.IsMainPreview);
+
                     // Check masternode fields for valid passes
                     if (pass.TestActive(activeFields))
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields, activeBlockDescriptors.Select(x => x.descriptor).ToList(), subShaderProperties);

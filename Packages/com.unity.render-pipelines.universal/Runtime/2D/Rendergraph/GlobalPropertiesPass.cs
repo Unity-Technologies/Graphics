@@ -41,7 +41,6 @@ namespace UnityEngine.Rendering.Universal
                 if (rendererData.useCameraSortingLayerTexture)
                     builder.SetGlobalTextureAfterPass(universal2DResourceData.cameraSortingLayerTexture, CopyCameraSortingLayerPass.k_CameraSortingLayerTextureId);
 
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>

@@ -128,7 +128,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     {
                         foreach (var texture in m_RenderGraph.AllGlobals())
                         {
-                            this.UseTexture(texture, AccessFlags.Read);
+                            if (texture.IsValid())
+                                this.UseTexture(texture, AccessFlags.Read);
                         }
                     }
 

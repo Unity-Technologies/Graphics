@@ -275,6 +275,7 @@ namespace UnityEditor.ShaderGraph
             {
                 asset.isValid = false;
                 registry.ProvideFunction(asset.functionName, sb => { });
+                outputSlots.Dispose();
                 return;
             }
 

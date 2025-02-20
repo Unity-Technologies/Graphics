@@ -1514,14 +1514,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
                                 }
 
+                                rgContext.cmd.EndRenderPass();
+                                CommandBuffer.ThrowOnSetRenderTarget = false;
+                                inRenderPass = false;
+
+                                // VRS ShadingRate(Image) cannot be set inside a render pass (cmdBuf).
+                                // ShadingRate is set before BeginRenderPass and here we ResetShadingRate after EndRenderPass.
                                 if (nativePass.hasShadingRateStates || nativePass.hasShadingRateImage)
                                 {
                                     rgContext.cmd.ResetShadingRate();
                                 }
-
-                                rgContext.cmd.EndRenderPass();
-                                CommandBuffer.ThrowOnSetRenderTarget = false;
-                                inRenderPass = false;
                             }
                         }
                     }

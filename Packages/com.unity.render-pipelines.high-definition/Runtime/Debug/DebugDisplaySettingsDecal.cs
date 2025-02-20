@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using UnityEditor;
 using NameAndTooltip = UnityEngine.Rendering.DebugUI.Widget.NameAndTooltip;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -6,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Decal-related Rendering Debugger settings.
     /// </summary>
+    [HDRPHelpURL("understand-decals")]
     class DebugDisplaySettingsDecal : IDebugDisplaySettingsData
     {
         internal DecalsDebugSettings m_Data = new DecalsDebugSettings();
@@ -33,12 +36,16 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [DisplayInfo(name = "Rendering", order = 5)]
-        [HDRPHelpURL("understand-decals")]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public SettingsPanel(DebugDisplaySettingsDecal data)
             {
-                var foldout = new DebugUI.Foldout() { displayName = Strings.decals, opened = true };
+                var foldout = new DebugUI.Foldout()
+                {
+                    displayName = Strings.decals,
+                    opened = true,
+                    documentationUrl = typeof(DebugDisplaySettingsDecal).GetCustomAttribute<HelpURLAttribute>()?.URL
+                };
                 AddWidget(foldout);
 
                 foldout.children.Add(new DebugUI.RuntimeDebugShadersMessageBox());

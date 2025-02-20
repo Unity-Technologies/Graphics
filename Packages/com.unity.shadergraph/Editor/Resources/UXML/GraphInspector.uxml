@@ -8,14 +8,16 @@
         </ui:VisualElement>
         <ui:ScrollView class="unity-scroll-view unity-scroll-view--scroll unity-scroll-view--vertical" name="scrollView" mode="VerticalAndHorizontal"/>
         <ui:VisualElement name="contentContainer" picking-mode="Ignore" />
-            <TabbedView name="GraphInspectorView" >
-                <TabButton name="NodeSettingsButton" text="Node Settings" target="NodeSettingsContainer" />
-                <TabButton name="GraphSettingsButton" text="Graph Settings" target="GraphSettingsContainer" />
-                <ui:VisualElement name="GraphSettingsContainer" picking-mode="Ignore" />
-                <ui:VisualElement name="NodeSettingsContainer" picking-mode="Ignore">
-                    <ui:Label name="maxItemsMessageLabel" picking-mode="Ignore" text ="Max of 20 visible items reached" />
-                </ui:VisualElement>
-            </TabbedView>
+            <ui:TabView name="GraphInspectorView">
+                <ui:Tab name="NodeSettingsTab" label="Node Settings">
+                    <ui:VisualElement name="NodeSettingsContainer" picking-mode="Ignore" />
+                </ui:Tab>
+                <ui:Tab name="GraphSettingsTab" label="Graph Settings">
+                    <ui:VisualElement name="GraphSettingsContainer" picking-mode="Ignore">
+                        <ui:Label name="maxItemsMessageLabel" picking-mode="Ignore" text ="Max of 20 visible items reached" />
+                    </ui:VisualElement>
+                </ui:Tab>
+            </ui:TabView>
     </ui:VisualElement>
     <sg:ResizableElement pickingMode="Ignore" resizeRestriction="FlexDirection"/>
 </ui:UXML>

@@ -439,34 +439,37 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if ((currentWater.simulationMask || currentWater.supportSimulationFoamMask) && m_ActiveMask)
+            if (m_EnableDecalWorkflow)
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterDecalMask)))
+                if ((currentWater.simulationMask || currentWater.supportSimulationFoamMask) && m_ActiveMask)
                 {
-                    CoreUtils.SetRenderTarget(cmd, currentWater.maskBuffer, clearFlag: ClearFlag.Color, Color.white);
-
-                    cmd.DrawProcedural(Matrix4x4.identity, m_DecalMaterial, m_MaskDecalPass, MeshTopology.Quads, 4, m_NumActiveWaterDecals, currentWater.mpb);
-                    currentWater.maskBuffer.rt.IncrementUpdateCount(); // For the CPU Simulation
-                }
-            }
-
-            if (m_ActiveLargeCurrent || m_ActiveRipplesCurrent)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterDecalCurrent)))
-                {
-                    if (currentWater.supportLargeCurrent && m_ActiveLargeCurrent)
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterDecalMask)))
                     {
-                        CoreUtils.SetRenderTarget(cmd, currentWater.largeCurrentBuffer, clearFlag: ClearFlag.Color, Color.black);
+                        CoreUtils.SetRenderTarget(cmd, currentWater.maskBuffer, clearFlag: ClearFlag.Color, Color.white);
 
-                        cmd.DrawProcedural(Matrix4x4.identity, m_DecalMaterial, m_LargeCurrentDecalPass, MeshTopology.Quads, 4, m_NumActiveWaterDecals, currentWater.mpb);
-                        currentWater.largeCurrentBuffer.rt.IncrementUpdateCount(); // For the CPU Simulation
+                        cmd.DrawProcedural(Matrix4x4.identity, m_DecalMaterial, m_MaskDecalPass, MeshTopology.Quads, 4, m_NumActiveWaterDecals, currentWater.mpb);
+                        currentWater.maskBuffer.rt.IncrementUpdateCount(); // For the CPU Simulation
                     }
-                    if (currentWater.supportRipplesCurrent && m_ActiveRipplesCurrent)
-                    {
-                        CoreUtils.SetRenderTarget(cmd, currentWater.ripplesCurrentBuffer, clearFlag: ClearFlag.Color, Color.black);
+                }
 
-                        cmd.DrawProcedural(Matrix4x4.identity, m_DecalMaterial, m_RipplesCurrentDecalPass, MeshTopology.Quads, 4, m_NumActiveWaterDecals, currentWater.mpb);
-                        currentWater.ripplesCurrentBuffer.rt.IncrementUpdateCount(); // For the CPU Simulation
+                if (m_ActiveLargeCurrent || m_ActiveRipplesCurrent)
+                {
+                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterDecalCurrent)))
+                    {
+                        if (currentWater.supportLargeCurrent && m_ActiveLargeCurrent)
+                        {
+                            CoreUtils.SetRenderTarget(cmd, currentWater.largeCurrentBuffer, clearFlag: ClearFlag.Color, Color.black);
+
+                            cmd.DrawProcedural(Matrix4x4.identity, m_DecalMaterial, m_LargeCurrentDecalPass, MeshTopology.Quads, 4, m_NumActiveWaterDecals, currentWater.mpb);
+                            currentWater.largeCurrentBuffer.rt.IncrementUpdateCount(); // For the CPU Simulation
+                        }
+                        if (currentWater.supportRipplesCurrent && m_ActiveRipplesCurrent)
+                        {
+                            CoreUtils.SetRenderTarget(cmd, currentWater.ripplesCurrentBuffer, clearFlag: ClearFlag.Color, Color.black);
+
+                            cmd.DrawProcedural(Matrix4x4.identity, m_DecalMaterial, m_RipplesCurrentDecalPass, MeshTopology.Quads, 4, m_NumActiveWaterDecals, currentWater.mpb);
+                            currentWater.ripplesCurrentBuffer.rt.IncrementUpdateCount(); // For the CPU Simulation
+                        }
                     }
                 }
             }

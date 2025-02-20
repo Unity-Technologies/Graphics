@@ -68,8 +68,6 @@ namespace UnityEngine.Rendering.Universal
 
                 passData.isActiveTargetBackBuffer = resourceData.isActiveTargetBackBuffer;
 
-                //  TODO RENDERGRAPH: culling? force culling off for testing
-                builder.AllowPassCulling(false);
                 builder.AllowGlobalStateModification(true);
                 if (cameraData.xr.enabled)
                 {

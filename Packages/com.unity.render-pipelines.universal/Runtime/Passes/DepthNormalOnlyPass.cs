@@ -226,8 +226,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (setGlobalDepth)
                     builder.SetGlobalTextureAfterPass(cameraDepthTexture, s_CameraDepthTextureID);
 
-                //  TODO RENDERGRAPH: culling? force culling off for testing
-                builder.AllowPassCulling(false);
                 // Required here because of RenderingLayerUtils.SetupProperties
                 builder.AllowGlobalStateModification(true);
 

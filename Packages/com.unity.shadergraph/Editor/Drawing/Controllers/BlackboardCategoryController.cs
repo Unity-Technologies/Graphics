@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -157,15 +158,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch (changeAction)
             {
                 case AddShaderInputAction addBlackboardItemAction:
+                    var addedInteractively = addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu;
                     if (addBlackboardItemAction.shaderInputReference != null && IsInputInCategory(addBlackboardItemAction.shaderInputReference))
                     {
                         var blackboardRow = FindBlackboardRow(addBlackboardItemAction.shaderInputReference);
                         if (blackboardRow == null)
-                            blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference);
+                            blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference, ensureVisible: addedInteractively);
+
                         // Rows should auto-expand when an input is first added
                         // blackboardRow.expanded = true;
                         var propertyView = blackboardRow.Q<SGBlackboardField>();
-                        if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
+                        if (addedInteractively)
                             propertyView.OpenTextEditor();
                     }
                     break;
@@ -174,7 +177,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // In the specific case of only-one keywords like Material Quality and Raytracing, they can get copied, but because only one can exist, the output copied value is null
                     if (copyShaderInputAction.copiedShaderInput != null && IsInputInCategory(copyShaderInputAction.copiedShaderInput))
                     {
-                        var blackboardRow = InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                        var blackboardRow = InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex, ensureVisible: true);
                         if (blackboardRow != null)
                         {
                             var graphView = ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
@@ -188,7 +191,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // If item was added to category that this controller manages, then add blackboard row to represent that item
                     if (addItemToCategoryAction.itemToAdd != null && addItemToCategoryAction.categoryGuid == ViewModel.associatedCategoryGuid)
                     {
-                        InsertBlackboardRow(addItemToCategoryAction.itemToAdd, addItemToCategoryAction.indexToAddItemAt);
+                        var dragged = addItemToCategoryAction.addActionSource == AddItemToCategoryAction.AddActionSource.DragDrop;
+                        InsertBlackboardRow(addItemToCategoryAction.itemToAdd, addItemToCategoryAction.indexToAddItemAt, ensureVisible: !dragged);
                     }
                     else
                     {
@@ -246,7 +250,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // Creates controller, view and view model for a blackboard item and adds the view to the specified index in the category
         // By default adds it to the end of the list if no insertionIndex specified
-        internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
+        internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1, bool ensureVisible = false)
         {
             var shaderInputViewModel = new ShaderInputViewModel()
             {
@@ -258,16 +262,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardItemControllers.TryGetValue(shaderInput.objectId, out var existingItemController);
             if (existingItemController == null)
             {
+                var itemView = blackboardItemController.BlackboardItemView;
                 m_BlackboardItemControllers.Add(shaderInput.objectId, blackboardItemController);
+
                 // If no index specified, or if trying to insert at last index, add to end of category
-                if (insertionIndex == -1 || insertionIndex == m_BlackboardItemControllers.Count() - 1)
+                if (insertionIndex == -1 || insertionIndex == m_BlackboardItemControllers.Count - 1)
                     blackboardCategoryView.Add(blackboardItemController.BlackboardItemView);
                 else
                     blackboardCategoryView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);
 
                 blackboardCategoryView.MarkDirtyRepaint();
 
-                return blackboardItemController.BlackboardItemView;
+                if (ensureVisible)
+                {
+                    blackboard.scrollView.ScrollToElementAfterGeometryChange(itemView);
+                }
+
+                return itemView;
             }
             else
             {

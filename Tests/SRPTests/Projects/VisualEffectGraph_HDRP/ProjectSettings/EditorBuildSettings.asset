@@ -338,5 +338,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/026_InstancingGPUevents.unity
     guid: 7afe3cb0155a3af4aaa2a2f009d5a9f2
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/45_CustomPassCulling/45_CustomPassCulling.unity
+    guid: e04b44761b7423d4ab0e2e30ff1bf682
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
