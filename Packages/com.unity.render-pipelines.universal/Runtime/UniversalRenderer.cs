@@ -215,6 +215,7 @@ namespace UnityEngine.Rendering.Universal
         internal DeferredLights deferredLights { get => m_DeferredLights; }
         internal LayerMask opaqueLayerMask { get; set; }
         internal LayerMask transparentLayerMask { get; set; }
+        internal bool shadowTransparentReceive { get; set; }
 
         internal GraphicsFormat cameraDepthTextureFormat { get => (m_CameraDepthTextureFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthTextureFormat : CoreUtils.GetDefaultDepthStencilFormat(); }
         internal GraphicsFormat cameraDepthAttachmentFormat { get => (m_CameraDepthAttachmentFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthAttachmentFormat : CoreUtils.GetDefaultDepthStencilFormat(); }
@@ -266,6 +267,7 @@ namespace UnityEngine.Rendering.Universal
             m_IntermediateTextureMode = data.intermediateTextureMode;
             opaqueLayerMask = data.opaqueLayerMask;
             transparentLayerMask = data.transparentLayerMask;
+            shadowTransparentReceive = data.shadowTransparentReceive;
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false)
             {
