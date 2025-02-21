@@ -859,7 +859,7 @@ namespace UnityEditor.Rendering
 
                     bool isAlternate = r % 2 == 0;
 
-                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName),isAlternate ? DebugWindow.Styles.centeredLeft : DebugWindow.Styles.centeredLeftAlternate);
+                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName), isAlternate ? DebugWindow.Styles.centeredLeft : DebugWindow.Styles.centeredLeftAlternate);
                     rowRect.xMin -= 2;
                     rowRect.xMax += 2;
 

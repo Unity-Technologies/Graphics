@@ -16,8 +16,10 @@ namespace UnityEngine.Rendering.UI
         {
             base.SetWidget(widget);
             var field = CastWidget<DebugUI.ObjectField>();
+
             nameLabel.text = field.displayName;
-            valueLabel.text = field.GetValue().name;
+            var obj = field.GetValue();
+            valueLabel.text = obj != null ? obj.name : "None";
         }
 
         /// <summary>

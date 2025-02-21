@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering
     /// Volume debug settings.
     /// This variant is obsolete and kept only for not breaking user code. Use <see cref="IVolumeDebugSettings2"/> for all new usage.
     /// </summary>
+    [Obsolete("This is not longer supported Please use DebugDisplaySettingsVolume. #from(6000.2)", false)]
     public interface IVolumeDebugSettings
     {
         /// <summary>Selected component.</summary>
@@ -65,7 +66,7 @@ namespace UnityEngine.Rendering
     /// Volume debug settings.
     /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
-    [Obsolete("This variant is obsolete and kept only for not breaking user code. Use IVolumeDebugSettings instead. #from(23.2) (UnityUpgradable) -> IVolumeDebugSettings", false)]
+    [Obsolete("This is not longer supported Please use DebugDisplaySettingsVolume. #from(6000.2)", false)]
 
     public interface IVolumeDebugSettings2 : IVolumeDebugSettings
 #pragma warning restore CS0618 // Type or member is obsolete

@@ -312,15 +312,20 @@ namespace UnityEditor.Rendering
 
         public void ApplyStates(bool forceApplyAll = false)
         {
+            // If we are in playmode, and the runtime UI is shown, avoid that the editor UI
+            // applies the data of the internal debug states, as they are not kept in sync
+            if (Application.isPlaying && DebugManager.instance.displayRuntimeUI)
+                return;
+
             if (!forceApplyAll && DebugState.m_CurrentDirtyState != null)
             {
                 ApplyState(DebugState.m_CurrentDirtyState.queryPath, DebugState.m_CurrentDirtyState);
-                DebugState.m_CurrentDirtyState = null;
-                return;
             }
-
-            foreach (var state in m_WidgetStates)
-                ApplyState(state.Key, state.Value);
+            else
+            {
+                foreach (var state in m_WidgetStates)
+                    ApplyState(state.Key, state.Value);
+            }
 
             DebugState.m_CurrentDirtyState = null;
         }
@@ -382,6 +387,8 @@ namespace UnityEditor.Rendering
                 UpdateWidgetStates();
                 ApplyStates();
                 m_IsDirty = false;
+
+                Repaint();
             }
         }
 

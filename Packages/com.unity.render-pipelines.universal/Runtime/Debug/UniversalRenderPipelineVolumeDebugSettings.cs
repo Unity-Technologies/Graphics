@@ -1,8 +1,11 @@
+using System;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Volume debug settings.
     /// </summary>
+    [Obsolete("This is not longer supported Please use DebugDisplaySettingsVolume. #from(6000.2)", false)]
     public partial class UniversalRenderPipelineVolumeDebugSettings : VolumeDebugSettings<UniversalAdditionalCameraData>
     {
         /// <summary>Selected camera volume stack.</summary>

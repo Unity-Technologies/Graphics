@@ -552,9 +552,17 @@ namespace UnityEngine.Rendering
             m_VolumeCollection.ChangeLayer(volume, prevLayer, newLayer);
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        internal bool renderingDebuggerAttached { get; set; }
+        internal event Action<VolumeStack, Camera> beginVolumeStackUpdate;
+        internal event Action<VolumeStack, Camera> endVolumeStackUpdate;
+        internal event Action<VolumeStack, Volume, float> overrideVolumeStackData;
+#endif
+
         // Go through all listed components and lerp overridden values in the global state
-        void OverrideData(VolumeStack stack, List<VolumeComponent> components, float interpFactor)
+        void OverrideData(VolumeStack stack, Volume volume, float interpFactor)
         {
+            var components = volume.profileRef.components;
             var numComponents = components.Count;
             for (int i = 0; i < numComponents; i++)
             {
@@ -568,6 +576,12 @@ namespace UnityEngine.Rendering
                     component.Override(state, interpFactor);
                 }
             }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (renderingDebuggerAttached)
+                overrideVolumeStackData?.Invoke(stack, volume, interpFactor);
+#endif
+
         }
 
         // Faster version of OverrideData to force replace values in the global state.
@@ -704,6 +718,11 @@ namespace UnityEngine.Rendering
             if (!onlyGlobal)
                 trigger.TryGetComponent<Camera>(out camera);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (renderingDebuggerAttached)
+                beginVolumeStackUpdate?.Invoke(stack, camera);
+#endif
+
             // Traverse all volumes
             int numVolumes = volumes.Count;
             for (int i = 0; i < numVolumes; i++)
@@ -725,7 +744,7 @@ namespace UnityEngine.Rendering
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
-                    OverrideData(stack, volume.profileRef.components, Mathf.Clamp01(volume.weight));
+                    OverrideData(stack, volume, Mathf.Clamp01(volume.weight));
                     continue;
                 }
 
@@ -772,8 +791,13 @@ namespace UnityEngine.Rendering
                     interpFactor = 1f - (closestDistanceSqr / blendDistSqr);
 
                 // No need to clamp01 the interpolation factor as it'll always be in [0;1[ range
-                OverrideData(stack, volume.profileRef.components, interpFactor * Mathf.Clamp01(volume.weight));
+                OverrideData(stack, volume, interpFactor * Mathf.Clamp01(volume.weight));
             }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (renderingDebuggerAttached)
+                endVolumeStackUpdate?.Invoke(stack, camera);
+#endif
         }
 
         /// <summary>

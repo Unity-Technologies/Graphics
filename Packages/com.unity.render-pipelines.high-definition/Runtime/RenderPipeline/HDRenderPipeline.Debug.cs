@@ -48,12 +48,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Debug display settings.
         /// </summary>
-        public DebugDisplaySettings debugDisplaySettings { get { return m_DebugDisplaySettings; } }
-        static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
+        public DebugDisplaySettings debugDisplaySettings => m_DebugDisplaySettings;
+        private static DebugDisplaySettings s_NeutralDebugDisplaySettings;
         internal DebugDisplaySettings m_CurrentDebugDisplaySettings;
 
         void InitializeDebug()
         {
+            s_NeutralDebugDisplaySettings ??= new DebugDisplaySettings();
             m_ComputePositionNormal = runtimeShaders.probeVolumeSamplingDebugComputeShader;
             m_DebugViewMaterialGBuffer           = CoreUtils.CreateEngineMaterial(runtimeShaders.debugViewMaterialGBufferPS);
             m_DebugViewMaterialGBufferShadowMask = CoreUtils.CreateEngineMaterial(runtimeShaders.debugViewMaterialGBufferPS);

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Unity.Mathematics;
 using UnityEditor;
 
 namespace UnityEngine.Rendering
@@ -11,6 +10,7 @@ namespace UnityEngine.Rendering
     /// The volume settings
     /// </summary>
     /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
+    [Obsolete("This is not longer supported Please use DebugDisplaySettingsVolume. #from(6000.2)", false)]
     public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings
         where T : MonoBehaviour, IAdditionalData
     {
@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering
         VolumeParameter[,] GetStates()
         {
             var fields = selectedComponentType
-                .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
                 .ToArray();
 

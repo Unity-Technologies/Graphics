@@ -85,7 +85,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public UniversalRenderPipelineDebugDisplaySettings()
         {
-            Reset();
         }
 
         /// <inheritdoc/>
@@ -97,7 +96,7 @@ namespace UnityEngine.Rendering.Universal
             materialSettings = Add(new DebugDisplaySettingsMaterial());
             lightingSettings = Add(new DebugDisplaySettingsLighting());
             renderingSettings = Add(new DebugDisplaySettingsRendering());
-            volumeSettings = Add(new DebugDisplaySettingsVolume(new UniversalRenderPipelineVolumeDebugSettings()));
+            volumeSettings = Add(new DebugDisplaySettingsVolume());
             commonSettings = Add(new DebugDisplaySettingsCommon());
             gpuResidentDrawerSettings = Add(new DebugDisplayGPUResidentDrawer());
 
