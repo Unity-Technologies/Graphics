@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     public static class VolumeProfileFactory
     {
-        [MenuItem("Assets/Create/Rendering/Volume Profile", priority = 201)]
+        [MenuItem("Assets/Create/Rendering/Volume Profile", priority = 10)]
         static void CreateVolumeProfile()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
