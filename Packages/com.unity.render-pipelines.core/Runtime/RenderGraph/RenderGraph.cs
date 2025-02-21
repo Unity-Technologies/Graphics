@@ -2519,7 +2519,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 newPass.syncFromPassIndex = passInfo.syncFromPassIndex;
                 newPass.syncToPassIndex = passInfo.syncToPassIndex;
 
-                DebugData.s_PassScriptMetadata.TryGetValue(pass.name, out newPass.scriptInfo);
+                DebugData.s_PassScriptMetadata.TryGetValue(pass, out newPass.scriptInfo);
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {
