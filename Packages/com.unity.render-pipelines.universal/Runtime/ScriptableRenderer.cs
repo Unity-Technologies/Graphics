@@ -1254,29 +1254,6 @@ namespace UnityEngine.Rendering.Universal
             RecordCustomRenderGraphPasses(renderGraph, injectionPoint, injectionPoint);
         }
 
-        // ScriptableRenderPass if executed in a critical point (such as in between Deferred and GBuffer) has to have
-        // interruptFramebufferFetchEvent set to actually interrupt it so we could fall back to non framebuffer fetch path
-        internal bool InterruptFramebufferFetch(FramebufferFetchEvent fetchEvent, RenderPassEvent startInjectionPoint, RenderPassEvent endInjectionPoint)
-        {
-            int range = ScriptableRenderPass.GetRenderPassEventRange(endInjectionPoint);
-            int nextValue = (int) endInjectionPoint + range;
-
-            foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
-            {
-                if (pass.renderPassEvent >= startInjectionPoint && (int) pass.renderPassEvent < nextValue)
-                    switch (fetchEvent)
-                    {
-                        case FramebufferFetchEvent.FetchGbufferInDeferred:
-                            if (pass.breakGBufferAndDeferredRenderPass)
-                                return true;
-                            break;
-                        default:
-                            continue;
-                    }
-            }
-            return false;
-        }
-
         internal void SetPerCameraProperties(ScriptableRenderContext context, UniversalCameraData cameraData, Camera camera,
             CommandBuffer cmd)
         {

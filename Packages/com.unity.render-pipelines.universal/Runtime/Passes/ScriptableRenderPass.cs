@@ -318,8 +318,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useNativeRenderPass { get; set; }
 
-        internal bool breakGBufferAndDeferredRenderPass { get; set; }
-
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
@@ -367,7 +365,6 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = false;
             isBlitRenderPass = false;
             useNativeRenderPass = true;
-            breakGBufferAndDeferredRenderPass = true;
             renderPassQueueIndex = -1;
             renderTargetFormat = new GraphicsFormat[]
             {
