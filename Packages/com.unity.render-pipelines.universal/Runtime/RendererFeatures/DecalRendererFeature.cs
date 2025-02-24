@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.Universal.Internal;
+using System;
+
 #if UNITY_EDITOR
 using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
@@ -536,6 +538,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
         {
             // Disable obsolete warning for internal usage

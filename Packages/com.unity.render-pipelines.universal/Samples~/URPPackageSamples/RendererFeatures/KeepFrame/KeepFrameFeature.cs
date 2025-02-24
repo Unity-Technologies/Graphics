@@ -200,12 +200,6 @@ public class KeepFrameFeature : ScriptableRendererFeature
         renderer.EnqueuePass(m_DrawOldFrame);
     }
 
-    public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
-    {
-        // This path is not taken when using render graph.
-        // The code to reallocate m_OldFrameHandle has been moved to AddRenderPasses in order to avoid duplication.
-    }
-
     protected override void Dispose(bool disposing)
     {
         m_OldFrameHandle?.Release();

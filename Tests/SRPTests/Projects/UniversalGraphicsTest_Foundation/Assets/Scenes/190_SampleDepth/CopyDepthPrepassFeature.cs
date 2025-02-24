@@ -34,6 +34,7 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
             copyDepthPasses.EnqueuePasses(renderer);
     }
 
+    [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {
         copyDepthPasses.SetupForNonRGPath(renderer, renderingData.cameraData.cameraTargetDescriptor);
