@@ -232,6 +232,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static IncludeCollection Unlit = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kSpriteCore2D, IncludeLocation.Pregraph },
