@@ -21,14 +21,14 @@ float3 GetEmissiveColor(SurfaceData surfaceData)
     return _EmissiveColor * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
 }
 
-#ifdef _EMISSIVE_COLOR_MAP
 float3 GetEmissiveColor(SurfaceData surfaceData, UVMapping emissiveMapMapping)
 {
     float3 emissiveColor = GetEmissiveColor(surfaceData);
+    #ifdef _EMISSIVE_COLOR_MAP
     emissiveColor *= SAMPLE_UVMAPPING_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, emissiveMapMapping).rgb;
+    #endif // _EMISSIVE_COLOR_MAP
     return emissiveColor;
 }
-#endif // _EMISSIVE_COLOR_MAP
 
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {
