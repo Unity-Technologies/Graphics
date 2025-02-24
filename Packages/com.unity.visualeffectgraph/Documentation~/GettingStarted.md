@@ -48,7 +48,7 @@ To do so, you can:
 When you’ve added the Visual Effect Graph Asset to you Hierarchy, Unity attaches the Asset to a [Visual Effect Component](VisualEffectComponent.md), which references the Asset.
 
 ## Editing a Visual Effect Graph
-To edit Visual Effect Graph Assets in the  [Visual Effect Graph window](VisualEffectGraphWindow.md) :
+To edit Visual Effect Graph Assets in the  [Visual Effect Graph window](VisualEffectGraphWindow.md):
 
 * Open the Visual Effect Graph window (menu: __Window___ &gt; __Visual Effects__) with an empty graph. This prompts you to open a Visual Effect Graph Asset.
 * Select an existing Visual Effect Graph Asset, and click the __Edit__ button in the Inspector. This opens the Visual Effect Graph window with the graph contained in this Asset.
