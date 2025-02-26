@@ -1,79 +1,82 @@
-using UnityEngine;
 using UnityEditor;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
 
-public partial class FullScreenPassRendererFeature : ISerializationCallbackReceiver
+namespace UnityEngine.Rendering.Universal
 {
-    private enum Version
+    [MovedFrom("")]
+    public partial class FullScreenPassRendererFeature : ISerializationCallbackReceiver
     {
-        // * Uninitialised is a special last entry that will only ever be set on newly created objects or objects
-        //   which were previously serialised with no Version member at all.
-        // * We distinguish between new objects and the unversioned objects based on if we first see this value during
-        //   serialization or during deserialization respectively.
-        Uninitialised = -1,
-
-        Initial,
-        AddFetchColorBufferCheckbox,
-
-        // These two entries should remain at the end of the enum and new version should be added before Count
-        Count,
-        Latest = Count - 1,
-    }
-
-    [SerializeField]
-    [HideInInspector]
-    private Version m_Version = Version.Uninitialised;
-
-    private void UpgradeIfNeeded()
-    {
-        // As we rely on serialization/deserialization order to initialize the version as player might have restricions
-        // on when and if serialization is done skipping any upgrading at runtime to avoid accidentally doing the
-        // upgrade on the latest version. Upgrading at runtime does not really have much utility as it would mean
-        // that the asset would need to have been produced in an editor which is an earlier build version than the player
-#if UNITY_EDITOR
-        if (m_Version == Version.Latest)
-            return;
-
-        if(m_Version == Version.Initial)
+        private enum Version
         {
-            // * Previously the ScriptableRenderPassInput.Color requirement was repurposed to mean "copy the active
-            //   color target" even though it is typically used to request '_CameraOpaqueTexture' and the copy color pass.
-            // * From now on, the "Fetch Color Buffer" choice will be a separate checkbox to remove the inconsistent
-            //   meaning and to allow using the '_CameraOpaqueTexture' if one wants to as well.
-            fetchColorBuffer = requirements.HasFlag(ScriptableRenderPassInput.Color);
+            // * Uninitialised is a special last entry that will only ever be set on newly created objects or objects
+            //   which were previously serialised with no Version member at all.
+            // * We distinguish between new objects and the unversioned objects based on if we first see this value during
+            //   serialization or during deserialization respectively.
+            Uninitialised = -1,
 
-            // As the Color flag was being masked out during actual rendering we can safely disable it.
-            requirements &= ~ScriptableRenderPassInput.Color;
+            Initial,
+            AddFetchColorBufferCheckbox,
 
-            m_Version++;
+            // These two entries should remain at the end of the enum and new version should be added before Count
+            Count,
+            Latest = Count - 1,
         }
-        // Put the next upgrader in an "if" here (not "else if" as they migh all need to run)
 
-        // Making sure SetDirty is called once after deserialization
-        EditorApplication.delayCall += () =>
+        [SerializeField]
+        [HideInInspector]
+        private Version m_Version = Version.Uninitialised;
+
+        private void UpgradeIfNeeded()
         {
-            if (this)
-                EditorUtility.SetDirty(this);
-        };
-#endif
-    }
+            // As we rely on serialization/deserialization order to initialize the version as player might have restricions
+            // on when and if serialization is done skipping any upgrading at runtime to avoid accidentally doing the
+            // upgrade on the latest version. Upgrading at runtime does not really have much utility as it would mean
+            // that the asset would need to have been produced in an editor which is an earlier build version than the player
+    #if UNITY_EDITOR
+            if (m_Version == Version.Latest)
+                return;
 
-    /// <inheritdoc/>
-    void ISerializationCallbackReceiver.OnBeforeSerialize()
-    {
-        // This should only ever be true the first time we're serializing a newly created object
-        if (m_Version == Version.Uninitialised)
-            m_Version = Version.Latest;
-    }
+            if(m_Version == Version.Initial)
+            {
+                // * Previously the ScriptableRenderPassInput.Color requirement was repurposed to mean "copy the active
+                //   color target" even though it is typically used to request '_CameraOpaqueTexture' and the copy color pass.
+                // * From now on, the "Fetch Color Buffer" choice will be a separate checkbox to remove the inconsistent
+                //   meaning and to allow using the '_CameraOpaqueTexture' if one wants to as well.
+                fetchColorBuffer = requirements.HasFlag(ScriptableRenderPassInput.Color);
 
-    /// <inheritdoc/>
-    void ISerializationCallbackReceiver.OnAfterDeserialize()
-    {
-        // The 'Uninitialised' version is expected to only occur during deserialization for objects that were previously
-        // serialized before we added the m_Version field
-        if (m_Version == Version.Uninitialised)
-            m_Version = Version.Initial;
+                // As the Color flag was being masked out during actual rendering we can safely disable it.
+                requirements &= ~ScriptableRenderPassInput.Color;
 
-        UpgradeIfNeeded();
+                m_Version++;
+            }
+            // Put the next upgrader in an "if" here (not "else if" as they migh all need to run)
+
+            // Making sure SetDirty is called once after deserialization
+            EditorApplication.delayCall += () =>
+            {
+                if (this)
+                    EditorUtility.SetDirty(this);
+            };
+    #endif
+        }
+
+        /// <inheritdoc/>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            // This should only ever be true the first time we're serializing a newly created object
+            if (m_Version == Version.Uninitialised)
+                m_Version = Version.Latest;
+        }
+
+        /// <inheritdoc/>
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            // The 'Uninitialised' version is expected to only occur during deserialization for objects that were previously
+            // serialized before we added the m_Version field
+            if (m_Version == Version.Uninitialised)
+                m_Version = Version.Initial;
+
+            UpgradeIfNeeded();
+        }
     }
 }
