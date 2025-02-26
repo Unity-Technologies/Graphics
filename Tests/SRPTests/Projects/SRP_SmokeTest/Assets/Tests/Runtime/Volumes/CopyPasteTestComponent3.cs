@@ -1,10 +1,8 @@
 using System;
-using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Tests
 {
-    internal class CopyPasteTestComponent3 : CopyPasteTestComponent1
+    public class CopyPasteTestComponent3 : CopyPasteTestComponent1
     {
         public ColorParameter p31 = new ColorParameter(Color.black);
 

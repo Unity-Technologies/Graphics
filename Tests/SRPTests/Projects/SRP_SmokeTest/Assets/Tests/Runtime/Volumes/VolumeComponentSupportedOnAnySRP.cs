@@ -4,7 +4,7 @@ namespace UnityEngine.Rendering.Tests
 {
     [VolumeComponentMenu("SupportedOnTests/SupportedOnAnySRP")]
     [SupportedOnRenderPipeline]
-    class VolumeComponentSupportedOnAnySRP : VolumeComponent
+    public class VolumeComponentSupportedOnAnySRP : VolumeComponent
     {
     }
 }
