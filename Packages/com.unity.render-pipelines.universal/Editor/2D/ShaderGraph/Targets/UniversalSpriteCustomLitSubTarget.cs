@@ -19,6 +19,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+
+            var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
+            var gui = typeof(ShaderGraphSpriteGUI);
+            context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
             context.AddSubShader(SubShaders.SpriteLit(target));
         }
 
@@ -234,6 +238,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static FieldCollection Normal = new FieldCollection()
             {
+                StructFields.Varyings.color,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,
             };

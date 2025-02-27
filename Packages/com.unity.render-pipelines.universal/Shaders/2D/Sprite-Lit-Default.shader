@@ -28,10 +28,13 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
 
             #pragma vertex CombinedShapeLightVertex
             #pragma fragment CombinedShapeLightFragment
 
+			// GPU Instancing
+            #pragma multi_compile_instancing
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_0 __
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_1 __
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_2 __
@@ -90,6 +93,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+#ifdef UNITY_INSTANCING_ENABLED
+                v.positionOS = UnityFlipSprite(v.positionOS, unity_SpriteFlip);
+#endif
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(v.positionOS);
@@ -98,6 +104,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
 
                 o.color = v.color * _Color * _RendererColor;
+#ifdef UNITY_INSTANCING_ENABLED
+                o.color *= unity_SpriteColor;
+#endif
                 return o;
             }
 
@@ -124,9 +133,13 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
 
             #pragma vertex NormalsRenderingVertex
             #pragma fragment NormalsRenderingFragment
+
+            // GPU Instancing
+            #pragma multi_compile_instancing
 
             struct Attributes
             {
@@ -160,12 +173,18 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 UNITY_SETUP_INSTANCE_ID(attributes);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+#ifdef UNITY_INSTANCING_ENABLED
+                attributes.positionOS = UnityFlipSprite(attributes.positionOS, unity_SpriteFlip);
+#endif
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
                 o.color = attributes.color;
                 o.normalWS = -GetViewForwardDir();
                 o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
                 o.bitangentWS = cross(o.normalWS, o.tangentWS) * attributes.tangent.w;
+#ifdef UNITY_INSTANCING_ENABLED
+                o.color *= unity_SpriteColor;
+#endif
                 return o;
             }
 
@@ -187,9 +206,13 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
 
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
+
+            // GPU Instancing
+            #pragma multi_compile_instancing
 
             struct Attributes
             {
@@ -222,12 +245,18 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 UNITY_SETUP_INSTANCE_ID(attributes);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+#ifdef UNITY_INSTANCING_ENABLED
+                attributes.positionOS = UnityFlipSprite(attributes.positionOS, unity_SpriteFlip);
+#endif
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(v.positionOS);
                 #endif
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
                 o.color = attributes.color * _Color * _RendererColor;
+#ifdef UNITY_INSTANCING_ENABLED
+                o.color *= unity_SpriteColor;
+#endif
                 return o;
             }
 
