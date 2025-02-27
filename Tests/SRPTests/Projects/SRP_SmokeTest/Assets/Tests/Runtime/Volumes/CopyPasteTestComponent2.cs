@@ -1,9 +1,8 @@
 using System;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Tests
 {
-    internal class CopyPasteTestComponent2 : CopyPasteTestComponent1
+    public class CopyPasteTestComponent2 : CopyPasteTestComponent1
     {
         public BoolParameter p21 = new BoolParameter(false);
 

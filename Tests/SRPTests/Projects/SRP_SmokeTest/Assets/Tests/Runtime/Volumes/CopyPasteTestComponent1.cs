@@ -1,10 +1,9 @@
 using System;
 using NUnit.Framework;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.Tests
 {
-    internal class CopyPasteTestComponent1 : VolumeComponent
+    public class CopyPasteTestComponent1 : VolumeComponent
     {
         public FloatParameter p1 = new FloatParameter(0f);
         public IntParameter p2 = new IntParameter(0);

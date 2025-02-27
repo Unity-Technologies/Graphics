@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Tests
         {
             GraphicsSettings.defaultRenderPipeline = LoadAsset(renderPipelineAsset);
 
-            var volumeProfileAsset = AssetDatabase.LoadMainAssetAtPath("Assets/DefaultVolumeProfile.asset");
+            var volumeProfileAsset = AssetDatabase.LoadMainAssetAtPath("Assets/DefaultResources/DefaultVolumeProfile.asset");
             Assert.IsNotNull(volumeProfileAsset);
             
             Assert.IsTrue(DocumentationUtils.TryGetPackageInfoForType(renderPipelineType, out var name, out var version));
