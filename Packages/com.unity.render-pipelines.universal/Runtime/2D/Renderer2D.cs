@@ -73,11 +73,14 @@ namespace UnityEngine.Rendering.Universal
 
             m_LightCullResult = new Light2DCullResult();
             m_Renderer2DData.lightCullResult = m_LightCullResult;
+
+			Light2DManager.Initialize();
         }
 
         protected override void Dispose(bool disposing)
         {
             m_PostProcessPasses.Dispose();
+			Light2DManager.Dispose();
         }
 
         public Renderer2DData GetRenderer2DData()
