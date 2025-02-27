@@ -213,7 +213,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     if (passDescriptor.defines == null)
                         passDescriptor.defines = new();
-                    passDescriptor.defines.Add(CoreDefines.SupportGlobalMipBias);
+
+                    if (!passDescriptor.defines.Any(d => d.descriptor.referenceName == CoreDefines.SupportGlobalMipBias.First().descriptor.referenceName))
+                        passDescriptor.defines.Add(CoreDefines.SupportGlobalMipBias);
                 }
 
                 CollectPassKeywords(ref passDescriptor);
@@ -287,7 +289,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 if (passDescriptor.defines == null)
                     passDescriptor.defines = new();
-                passDescriptor.defines.Add(CoreDefines.SupportGlobalMipBias);
+
+                if (!passDescriptor.defines.Any(d => d.descriptor.referenceName == CoreDefines.SupportGlobalMipBias.First().descriptor.referenceName))
+                    passDescriptor.defines.Add(CoreDefines.SupportGlobalMipBias);
             }
 
             CollectPassKeywords(ref passDescriptor);
