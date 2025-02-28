@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Used by render pipelines to initialize RenderGraph tests.
         /// </summary>
-        public static bool enabled { get; } = activatedFromCommandLine;
+        public static bool enabled { get; set; } = activatedFromCommandLine;
 
     }
 }
