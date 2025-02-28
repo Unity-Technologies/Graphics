@@ -243,6 +243,134 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Field that displays <see cref="RenderingLayerMask"/>
+        /// </summary>
+        public class RenderingLayerField : Field<RenderingLayerMask>, IContainer
+        {
+            static readonly NameAndTooltip s_RenderingLayerColors = new()
+            {
+                name = "Layers Color",
+                tooltip = "Select the display color for each Rendering Layer"
+            };
+
+            private string[] m_RenderingLayersNames = Array.Empty<string>();
+
+            private int m_DefinedRenderingLayersCount = -1;
+
+            private int maxRenderingLayerCount
+            {
+                get
+                {
+#if UNITY_EDITOR
+                    if (UnityEditor.Rendering.EditorGraphicsSettings.
+                        TryGetFirstRenderPipelineSettingsFromInterface<UnityEditor.Rendering.RenderingLayersLimitSettings>(out var settings))
+                        return Mathf.Min(settings.maxSupportedRenderingLayers, RenderingLayerMask.GetRenderingLayerCount());
+#endif
+
+                    return RenderingLayerMask.GetRenderingLayerCount();
+                }
+            }
+
+            private void Resize()
+            {
+                m_DefinedRenderingLayersCount = RenderingLayerMask.GetDefinedRenderingLayerCount();
+
+                // Fill layer names
+                m_RenderingLayersNames = new string[maxRenderingLayerCount];
+                for (int i = 0; i < maxRenderingLayerCount; i++)
+                {
+                    var definedLayerName = RenderingLayerMask.RenderingLayerToName(i);
+                    if (string.IsNullOrEmpty(definedLayerName))
+                        definedLayerName = $"Unused Rendering Layer {i}";
+                    m_RenderingLayersNames[i] = definedLayerName;
+                }
+
+                // Foldout + Color for each layer
+                m_RenderingLayersColors.Clear();
+                var layersColor = new DebugUI.Foldout()
+                {
+                    nameAndTooltip = s_RenderingLayerColors,
+                    flags = Flags.EditorOnly,
+                    parent = this,
+                };
+                m_RenderingLayersColors.Add(layersColor);
+
+                for (int i = 0; i < m_RenderingLayersNames.Length; i++)
+                {
+                    var index = i; // capture the variable for the color field index
+                    layersColor.children.Add(new DebugUI.ColorField
+                    {
+                        displayName = m_RenderingLayersNames[index],
+                        getter = () =>
+                        {
+                            Assert.IsNotNull(getRenderingLayerColor, "Please specify a method for getting the rendering layer color");
+                            return getRenderingLayerColor(index);
+                        },
+                        setter = value =>
+                        {
+                            Assert.IsNotNull(setRenderingLayerColor, "Please specify a method for setting the rendering layer color");
+                            setRenderingLayerColor(value, index);
+                        }
+                    });
+                }
+
+                GenerateQueryPath();
+            }
+
+            /// <summary>
+            /// Obtains the list of the available rendering layer names
+            /// </summary>
+            public string[] renderingLayersNames
+            {
+                get
+                {
+                    if (m_DefinedRenderingLayersCount != RenderingLayerMask.GetDefinedRenderingLayerCount())
+                    {
+                        Resize();
+                    }
+
+                    return m_RenderingLayersNames;
+                }
+            }
+
+            private ObservableList<Widget> m_RenderingLayersColors = new ObservableList<Widget>();
+
+            /// <summary>
+            /// Gets the list of widgets representing the rendering layer colors.
+            /// </summary>
+            public ObservableList<Widget> children
+            {
+                get
+                {
+                    if (m_DefinedRenderingLayersCount != RenderingLayerMask.GetDefinedRenderingLayerCount())
+                    {
+                        Resize();
+                    }
+
+                    return m_RenderingLayersColors;
+                }
+            }
+
+            /// <summary>
+            /// Obtains the color in a given index
+            /// </summary>
+            public Func<int, Vector4> getRenderingLayerColor { get; set; }
+            /// <summary>
+            /// Sets the color for a given index
+            /// </summary>
+            public Action<Vector4, int> setRenderingLayerColor { get; set; }
+
+            internal override void GenerateQueryPath()
+            {
+                base.GenerateQueryPath();
+
+                int numChildren = children.Count;
+                for (int i = 0; i < numChildren; i++)
+                    children[i].GenerateQueryPath();
+            }
+        }
+
+        /// <summary>
         /// Generic <see cref="EnumField"/> that stores enumNames and enumValues
         /// </summary>
         /// <typeparam name="T">The inner type of the field</typeparam>
@@ -500,47 +628,6 @@ namespace UnityEngine.Rendering
                 {
                     m_EnumType = value;
                     AutoFillFromType(value);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Maskfield enumeration field.
-        /// </summary>
-        public class MaskField : EnumField<uint>
-        {
-            /// <summary>
-            /// Fills the enum using the provided names
-            /// </summary>
-            /// <param name="names">names to fill the enum</param>
-            public void Fill(string[] names)
-            {
-                using (ListPool<GUIContent>.Get(out var tmpNames))
-                using (ListPool<int>.Get(out var tmpValues))
-                {
-                    for (int i=0; i<(names.Length); ++i)
-                    {
-                        tmpNames.Add(new GUIContent(names[i]));
-                        tmpValues.Add(i);
-                    }
-                    enumNames = tmpNames.ToArray();
-                    enumValues = tmpValues.ToArray();
-                }
-            }
-
-            /// <summary>
-            /// Assigns a value to the maskfield.
-            /// </summary>
-            /// <param name="value">value for the maskfield</param>
-            public override void SetValue(uint value)
-            {
-                Assert.IsNotNull(setter);
-                var validValue = ValidateValue(value);
-
-                if (!validValue.Equals(getter()))
-                {
-                    setter(validValue);
-                    onValueChanged?.Invoke(this, validValue);
                 }
             }
         }

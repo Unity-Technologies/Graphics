@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering
             hideFlags = HideFlags.HideAndDontSave;
         }
     }
-    
+
     [CoreRPHelpURL("Rendering-Debugger")]
     sealed class DebugWindow : EditorWindowWithHelpButton, IHasCustomMenu
     {
@@ -271,17 +271,17 @@ namespace UnityEditor.Rendering
             if (widget is not DebugUI.IValueField valueField)
                 return null;
 
-            string guid = widget.queryPath;
-            if (!m_WidgetStates.TryGetValue(guid, out var state) || state == null)
+            string queryPath = widget.queryPath;
+            if (!m_WidgetStates.TryGetValue(queryPath, out var state) || state == null)
             {
                 var widgetType = widget.GetType();
                 if (s_WidgetStateMap.TryGetValue(widgetType, out Type stateType))
                 {
                     Assert.IsNotNull(stateType);
                     state = (DebugState)CreateInstance(stateType);
-                    state.queryPath = guid;
+                    state.queryPath = queryPath;
                     state.SetValue(valueField.GetValue(), valueField);
-                    m_WidgetStates[guid] = state;
+                    m_WidgetStates[queryPath] = state;
                 }
             }
 
@@ -495,22 +495,22 @@ namespace UnityEditor.Rendering
                     using (new EditorGUILayout.VerticalScope())
                     {
                         var selectedPanel = panels[m_Settings.selectedPanel];
-                        
+
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             var style = new GUIStyle(CoreEditorStyles.sectionHeaderStyle) { fontStyle = FontStyle.Bold };
                             EditorGUILayout.LabelField(new GUIContent(selectedPanel.displayName), style);
-                            
+
                             // Context menu
                             var rect = GUILayoutUtility.GetLastRect();
                             var contextMenuRect = new Rect(rect.xMax, rect.y + 4f, 16f, 16f);
-                            
+
                             CoreEditorUtils.ShowHelpButton(contextMenuRect, selectedPanel.documentationUrl, new GUIContent($"{selectedPanel.displayName} panel."));
                         }
 
                         const float leftMargin = 4f;
                         GUILayout.Space(leftMargin);
-                        
+
                         using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_ContentScroll))
                         {
                             TraverseContainerGUI(selectedPanel);
@@ -560,6 +560,12 @@ namespace UnityEditor.Rendering
         {
             if (widget.isInactiveInEditor || widget.isHidden)
                 return;
+
+            if (widget.queryPath == null)
+            {
+                Debug.LogError($"Widget {widget.GetType()} query path is null");
+                return;
+            }
 
             GUILayout.Space(4);
 

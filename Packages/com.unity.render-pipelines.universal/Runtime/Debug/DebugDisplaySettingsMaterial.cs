@@ -353,7 +353,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly NameAndTooltip MaterialValidationMode = new() { name = "Material Validation Mode", tooltip = "Debug and validate material properties." };
             public static readonly NameAndTooltip RenderingLayersSelectedLight = new() { name = "Filter Rendering Layers by Light", tooltip = "Highlight Renderers affected by Selected Light" };
             public static readonly NameAndTooltip SelectedLightShadowLayerMask = new() { name = "Use Light's Shadow Layer Mask", tooltip = "Highlight Renderers that cast shadows for the Selected Light" };
-            public static readonly NameAndTooltip RenderingLayerColors = new() { name = "Layers Color", tooltip = "Select the display color for each Rendering Layer" };
             public static readonly NameAndTooltip FilterRenderingLayerMask = new() { name = "Filter Layers", tooltip = "Use the dropdown to filter Rendering Layers that you want to visualize" };
             public static readonly NameAndTooltip ValidationPreset = new() { name = "Validation Preset", tooltip = "Validate using a list of preset surfaces and inputs based on real-world surfaces." };
             public static readonly NameAndTooltip AlbedoCustomColor = new() { name = "Target Color", tooltip = "Custom target color for albedo validation." };
@@ -415,13 +414,20 @@ namespace UnityEngine.Rendering.Universal
                 isHiddenCallback = () => !panel.data.renderingLayersSelectedLight
             };
 
-            internal static DebugUI.Widget CreateFilterRenderingLayerMasks (SettingsPanel panel) => new DebugUI.MaskField
+            internal static DebugUI.RenderingLayerField CreateFilterRenderingLayerMasks(SettingsPanel panel)
             {
-                nameAndTooltip = Strings.FilterRenderingLayerMask,
-                getter = () => panel.data.renderingLayerMask,
-                setter = value => panel.data.renderingLayerMask = value,
-                isHiddenCallback = () => panel.data.renderingLayersSelectedLight
-            };
+                var renderingLayersField = new DebugUI.RenderingLayerField()
+                {
+                    nameAndTooltip = Strings.FilterRenderingLayerMask,
+                    getter = () => panel.data.renderingLayerMask,
+                    setter = value => panel.data.renderingLayerMask = value,
+                    getRenderingLayerColor = index => panel.data.debugRenderingLayersColors[index],
+                    setRenderingLayerColor = (value, index) => panel.data.debugRenderingLayersColors[index] = value,
+                    isHiddenCallback = () => panel.data.renderingLayersSelectedLight
+                };
+
+                return renderingLayersField;
+            }
 
             internal static DebugUI.Widget CreateAlbedoPreset(SettingsPanel panel) => new DebugUI.EnumField
             {
@@ -501,32 +507,6 @@ namespace UnityEngine.Rendering.Universal
                 : base(data)
             {
                 AddWidget(new DebugUI.RuntimeDebugShadersMessageBox());
-
-                DebugUI.MaskField filterRenderingLayerWidget = (DebugUI.MaskField)WidgetFactory.CreateFilterRenderingLayerMasks(this);
-                var renderingLayers = new List<string>();
-                for (int i = 0; i < 32; i++)
-                    renderingLayers.Add($"Unused Rendering Layer {i}");
-                var names = UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
-                for (int i = 0; i < names.Length; i++)
-                {
-                    var index = UnityEngine.RenderingLayerMask.NameToRenderingLayer(names[i]);
-                    renderingLayers[index] = names[i];
-                }
-                filterRenderingLayerWidget.Fill(renderingLayers.ToArray());
-
-                var layersColor = new DebugUI.Foldout() { nameAndTooltip = Strings.RenderingLayerColors, flags = DebugUI.Flags.EditorOnly };
-                for (int i = 0; i < renderingLayers.Count; i++)
-                {
-                    int index = i;
-                    layersColor.children.Add(new DebugUI.ColorField
-                    {
-                        displayName = renderingLayers[i],
-                        flags = DebugUI.Flags.EditorOnly,
-                        getter = () => this.data.debugRenderingLayersColors[index],
-                        setter = value => this.data.debugRenderingLayersColors[index] = value
-                    });
-                }
-
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Filters",
@@ -544,8 +524,7 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 WidgetFactory.CreateRenderingLayersSelectedLight(this),
                                 WidgetFactory.CreateSelectedLightShadowLayerMask(this),
-                                filterRenderingLayerWidget,
-                                layersColor,
+                                WidgetFactory.CreateFilterRenderingLayerMasks(this),
                             }
                         },
                         WidgetFactory.CreateVertexAttribute(this)

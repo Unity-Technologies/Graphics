@@ -1078,6 +1078,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var container = new DebugUI.Container()
                 {
+                    displayName = "#MaterialRenderingLayers",
                     isHiddenCallback = () => !IsDebuggingRenderingLayers(),
                     children =
                     {
@@ -1099,45 +1100,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 };
 
-                var field = new DebugUI.BitField
+                var renderingLayersField = new DebugUI.RenderingLayerField()
                 {
                     nameAndTooltip = LightingStrings.LightLayersFilterLayers,
-                    getter = () => data.lightingDebugSettings.debugLightLayersFilterMask,
-                    setter = value => data.lightingDebugSettings.debugLightLayersFilterMask = (RenderingLayerMask)value,
-                    enumType = typeof(RenderingLayerMask),
-                    isHiddenCallback = () => data.lightingDebugSettings.debugSelectionLightLayers
+                    getter = () => (uint)data.lightingDebugSettings.debugLightLayersFilterMask,
+                    setter = value => data.lightingDebugSettings.debugLightLayersFilterMask = (RenderingLayerMask)(uint)value,
+                    getRenderingLayerColor = index => data.lightingDebugSettings.debugRenderingLayersColors[index],
+                    setRenderingLayerColor = (value, index) => data.lightingDebugSettings.debugRenderingLayersColors[index] = value,
+                    isHiddenCallback = () => data.lightingDebugSettings.debugSelectionLightLayers,
                 };
 
-                var renderingLayers = new List<string>();
-                for (int i = 0; i < 32; i++)
-                    renderingLayers.Add($"Unused Rendering Layer {i}");
-
-                var names = UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
-                for (int i = 0; i < names.Length; i++)
-                {
-                    var index = UnityEngine.RenderingLayerMask.NameToRenderingLayer(names[i]);
-                    renderingLayers[index] = names[i];
-                }
-
-                for (int i = 0; i < field.enumNames.Length - 1; i++)
-                    field.enumNames[i + 1].text = renderingLayers[i];
-
-                container.children.Add(field);
-
-                var layersColor = new DebugUI.Foldout() { nameAndTooltip = LightingStrings.LightLayersColor, flags = DebugUI.Flags.EditorOnly };
-                for (int i = 0; i < renderingLayers.Count; i++)
-                {
-                    int index = i;
-                    layersColor.children.Add(new DebugUI.ColorField
-                    {
-                        displayName = renderingLayers[i],
-                        flags = DebugUI.Flags.EditorOnly,
-                        getter = () => data.lightingDebugSettings.debugRenderingLayersColors[index],
-                        setter = value => data.lightingDebugSettings.debugRenderingLayersColors[index] = value
-                    });
-                }
-
-                container.children.Add(layersColor);
+                container.children.Add(renderingLayersField);
                 list.Add(container);
             }
 
@@ -1247,7 +1220,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip LightLayersUseSelectedLight = new() { name = "Filter Light Layers by Light", tooltip = "Highlight Renderers affected by the selected light." };
             public static readonly NameAndTooltip LightLayersSwitchToLightShadowLayers = new() { name = "Use Light's Shadow Layer Mask", tooltip = "Highlight Renderers that cast shadows for the selected light." };
             public static readonly NameAndTooltip LightLayersFilterLayers = new() { name = "Filter Layers", tooltip = "Use the drop-down to filter light layers that you want to visialize." };
-            public static readonly NameAndTooltip LightLayersColor = new() { name = "Layers Color", tooltip = "Select the display color of each light layer." };
 
             // Material Overrides
             public static readonly NameAndTooltip OverrideSmoothness = new() { name = "Override Smoothness", tooltip = "Enable the checkbox to override the smoothness for the entire Scene." };

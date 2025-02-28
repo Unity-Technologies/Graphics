@@ -181,4 +181,34 @@ namespace UnityEditor.Rendering
             m_TargetSerializedObject = baseEditor.serializedObject;
         }
     }
+
+
+
+    /// <summary>
+    /// Builtin Drawer for Maskfield Debug Items.
+    /// </summary>
+    [DebugUIDrawer(typeof(DebugUI.MaskField))]
+    [Obsolete("DebugUI.MaskField has been deprecated and is not longer supported, please use BitField instead. #from(6000.2)", false)]
+    public sealed class DebugUIDrawerMaskField : DebugUIFieldDrawer<uint, DebugUI.MaskField, DebugStateUInt>
+    {
+        /// <summary>
+        /// Does the field of the given type
+        /// </summary>
+        /// <param name="rect">The rect to draw the field</param>
+        /// <param name="label">The label for the field</param>
+        /// <param name="field">The field</param>
+        /// <param name="state">The state</param>
+        /// <returns>The current value from the UI</returns>
+        protected override uint DoGUI(Rect rect, GUIContent label, DebugUI.MaskField field, DebugStateUInt state)
+        {
+            uint value = field.GetValue();
+
+            var enumNames = new string[field.enumNames.Length];
+            for (int i = 0; i < enumNames.Length; i++)
+                enumNames[i] = field.enumNames[i].text;
+            var mask = EditorGUI.MaskField(rect, label, (int)value, enumNames);
+
+            return (uint)mask;
+        }
+    }
 }
