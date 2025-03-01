@@ -1612,8 +1612,8 @@ namespace UnityEngine.Rendering.Universal
             importBackbufferDepthParams.discardOnLastUse = !isCameraTargetOffscreenDepth;
 
 #if UNITY_EDITOR
-            // on TBDR GPUs like Apple M1/M2, we need to preserve the backbuffer depth for overlay cameras in Editor for Gizmos
-            if (cameraData.isSceneViewCamera)
+            // UUM-47698, UUM-97414: on TBDR GPUs like Apple M1/M2, we need to preserve the backbuffer depth for overlay cameras in Editor for Gizmos & preview grid
+            if (cameraData.isSceneViewCamera || cameraData.isPreviewCamera)
                 importBackbufferDepthParams.discardOnLastUse = false;
 #endif
 #if ENABLE_VR && ENABLE_XR_MODULE
