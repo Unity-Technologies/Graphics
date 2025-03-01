@@ -20,6 +20,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Plane plane)
         {
+            if (!VFXTypeUtility.IsFinite(plane))
+                return;
+
             Vector3 normal = plane.normal.normalized;
             if (normal == Vector3.zero)
             {

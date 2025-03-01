@@ -33,6 +33,9 @@ namespace UnityEditor.VFX
 
         public static void DrawCircle(VFXGizmo gizmo, TCircle circle, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> radiusProperty, int countVisible = int.MaxValue)
         {
+            if (!VFXTypeUtility.IsFinite(circle))
+                return;
+
             var radius = circle.radius;
 
             gizmo.TransformGizmo(
@@ -68,6 +71,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TCircle circle)
         {
+            if (!VFXTypeUtility.IsFinite(circle))
+                return;
+
             using (new Handles.DrawingScope(Handles.matrix * circle.transform))
             {
                 // Draw circle around the arc
@@ -107,6 +113,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TArcCircle arcCircle)
         {
+            if (!VFXTypeUtility.IsFinite(arcCircle))
+                return;
+
             float radius = arcCircle.circle.radius;
             float arc = arcCircle.arc * Mathf.Rad2Deg;
 

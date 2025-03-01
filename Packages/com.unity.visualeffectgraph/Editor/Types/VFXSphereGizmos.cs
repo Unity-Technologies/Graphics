@@ -27,6 +27,9 @@ namespace UnityEditor.VFX
 
         public static void DrawSphere(VFXGizmo gizmo, TSphere sphere, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> radiusProperty)
         {
+            if (!VFXTypeUtility.IsFinite(sphere))
+                return;
+
             gizmo.TransformGizmo(
                 sphere.transform.position,
                 sphere.transform.angles,
@@ -72,6 +75,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TSphere sphere)
         {
+            if (!VFXTypeUtility.IsFinite(sphere))
+                return;
+
             DrawSpaceSphere(this, sphere, m_CenterProperty, m_AnglesProperty, m_ScaleProperty, m_RadiusProperty);
         }
 
@@ -105,6 +111,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TArcSphere arcSphere)
         {
+            if (!VFXTypeUtility.IsFinite(arcSphere))
+                return;
+
             float radius = arcSphere.sphere.radius;
             float arc = arcSphere.arc * Mathf.Rad2Deg;
 
@@ -152,6 +161,10 @@ namespace UnityEditor.VFX
         public override void OnDrawSpacedGizmo(Sphere sphere)
         {
             var tSphere = (TSphere)sphere;
+
+            if (!VFXTypeUtility.IsFinite(tSphere))
+                return;
+
             VFXTSphereGizmo.DrawSpaceSphere(this, tSphere, m_CenterProperty, null, null, m_RadiusProperty);
         }
 

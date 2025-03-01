@@ -123,6 +123,9 @@ namespace UnityEditor.VFX
 
         public static void DrawCone(VFXGizmo gizmo, TCone cone, ref Extremities extremities, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> baseRadiusProperty, IProperty<float> topRadiusProperty, IProperty<float> heightProperty, float baseRadiusScreen, float topRadiusScreen)
         {
+            if (!VFXTypeUtility.IsFinite(cone))
+                return;
+
             var center = cone.transform.position;
             var scale = cone.transform.scale;
             var angles = cone.transform.angles;
@@ -184,6 +187,9 @@ namespace UnityEditor.VFX
         Extremities extremities;
         public override void OnDrawSpacedGizmo(TCone cone)
         {
+            if (!VFXTypeUtility.IsFinite(cone))
+                return;
+
             extremities.Build(cone.baseRadius, cone.topRadius, cone.height);
 
             if (Event.current != null && Event.current.type == EventType.MouseDown)
@@ -260,6 +266,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TArcCone arcCone)
         {
+            if (!VFXTypeUtility.IsFinite(arcCone))
+                return;
+
             var arc = arcCone.arc * Mathf.Rad2Deg;
             extremities.Build(arcCone.cone.baseRadius, arcCone.cone.topRadius, arcCone.cone.height, arc);
             var arcDirection = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward;
