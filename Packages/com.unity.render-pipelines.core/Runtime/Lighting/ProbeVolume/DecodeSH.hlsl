@@ -74,7 +74,11 @@ float3 EncodeSH(float l0, float3 l1)
 #if !HALF_IS_FLOAT
 half3 EncodeSH(half l0, half3 l1)
 {
-    return l0 == 0.0 ? 0.5 : l1 * rcp(l0) / (2.0 * APV_L1_ENCODING_SCALE) + 0.5;
+    //  UUM-92338: To prevent rcp(l0) from going to infinity, 1.0/l0 must be smaller than 65504 (HALF_MAX)
+    // => l0 must be greater than than 1.0/65504 = 0.00001526624(0x0100) which is a subnormal number
+    // To ensure robustness and avoid issues, we need a bigger threshold value.
+    // 0.00006103515625 (HALF_MIN) would be a decent choice but we select 0.0001 instead, which was already used in ProbeVolume.hlsl
+    return (l0 < 0.0001 ? 0.5 : l1 * rcp(l0) / (2.0 * APV_L1_ENCODING_SCALE) + 0.5);
 }
 #endif
 
