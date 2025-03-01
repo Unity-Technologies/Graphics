@@ -507,6 +507,7 @@ namespace UnityEngine.Experimental.Rendering
             // XRTODO : fix root problem
             RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(xrDesc.width, xrDesc.height, xrDesc.graphicsFormat, xrDesc.depthStencilFormat, xrDesc.mipCount);
             rtDesc.dimension    = xrDesc.dimension;
+            rtDesc.msaaSamples  = xrDesc.msaaSamples;
             rtDesc.volumeDepth  = xrDesc.volumeDepth;
             rtDesc.vrUsage      = xrDesc.vrUsage;
             rtDesc.sRGB         = xrDesc.sRGB;
