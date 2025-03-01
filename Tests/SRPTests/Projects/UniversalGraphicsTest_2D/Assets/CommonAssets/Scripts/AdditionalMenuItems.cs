@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 public class AdditionalMenuItems : MonoBehaviour
 {
@@ -43,10 +44,10 @@ public class AdditionalMenuItems : MonoBehaviour
 
     static string GetSrcReferencePath(bool isRelative)
     {
-        var colorSpace = UseGraphicsTestCasesAttribute.ColorSpace;
-        var platform = UseGraphicsTestCasesAttribute.Platform;
-        var graphicsDevice = UseGraphicsTestCasesAttribute.GraphicsDevice;
-        var xrsdk = UseGraphicsTestCasesAttribute.LoadedXRDevice;
+        var colorSpace = GraphicsTestPlatform.Current.ColorSpace;
+        var platform = GraphicsTestPlatform.Current.Platform;
+        var graphicsDevice = GraphicsTestPlatform.Current.GraphicsDevice;
+        var xrsdk = GraphicsTestPlatform.Current.XrDevice;
 
         var combinedPath = Path.Combine("ReferenceImages/", string.Format("{0}/{1}/{2}/{3}", colorSpace, platform, graphicsDevice, xrsdk));
 

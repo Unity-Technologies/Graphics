@@ -28,11 +28,7 @@ public class HDRP_Runtime_Graphics_Tests
         "",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
     )]
-    [IgnoreGraphicsTest(
-        "003-VirtualTexturing",
-        "",
-        graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
-    )]
+    [IgnoreGraphicsTest("003-VirtualTexturing", "")]
     [IgnoreGraphicsTest(
         "003-VirtualTexturing",
         "VT not supported on Switch",
