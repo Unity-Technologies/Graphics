@@ -132,6 +132,11 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_OutputStructName = value; }
         }
 
+        internal void SetGUID(string guid)
+        {
+            m_Data.OverrideObjectId(guid, "SerializedVfxAssetData");
+        }
+
         public List<AbstractShaderProperty> properties
         {
             get
