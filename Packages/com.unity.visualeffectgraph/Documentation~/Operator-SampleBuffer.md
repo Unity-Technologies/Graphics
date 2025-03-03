@@ -1,10 +1,10 @@
 
 
-# Sample Buffer
+# Sample Graphics Buffer
 
-**Menu Path : Operator > Sampling > Sample Buffer**
+**Menu Path : Operator > Sampling > Sample Graphics Buffer**
 
-The Sample Buffer Operator enables you to fetch and sample a structured buffer. A structured buffer is a [GraphicsBuffer](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.html) created using the [Structured](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.Target.Structured.html) target.
+The Sample Graphics Buffer Operator enables you to fetch and sample a structured buffer. A structured buffer is a [GraphicsBuffer](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.html) created using the [Structured](https://docs.unity3d.com/ScriptReference/GraphicsBuffer.Target.Structured.html) target.
 
 ## Operator settings
 
@@ -17,7 +17,7 @@ The Sample Buffer Operator enables you to fetch and sample a structured buffer. 
 | **Input**  | **Type**                                | **Description**                                              |
 | ---------- | --------------------------------------- | ------------------------------------------------------------ |
 | **Input**  | [Configurable](#operator-configuration) | The structure type.                                          |
-| **Buffer** | GraphicsBuffer                          | The structured buffer to fetch. You can only connect an exposed property to this input port. |
+| **Buffer** | Graphics Buffer [property](Properties.md)| The structured buffer to fetch. You can only connect an exposed property to this input port. |
 | **Index**  | uint                                    | The index of the element to fetch.                            |
 
 | **Output** | **Type**  | **Description**                                              |
@@ -26,32 +26,34 @@ The Sample Buffer Operator enables you to fetch and sample a structured buffer. 
 
 ## Operator configuration
 
-To view the Operator's configuration, click the **cog** icon in the Operator's header.
+To set the struct type, select the cog icon. The available types are:
 
-### Available types
-This Operator supports sampling structured buffers that use blittable types. The list of built-in blittable types is:
-  - bool
-  - float*
-  - int
-  - uint
-  - Vector2
-  - Vector3
-  - Vector4
-  - Matrix4x4
+- bool
+- float
+- int
+- uint
+- Vector2
+- Vector3
+- Vector4
+- Matrix4x4
 
-You can also declare custom types. To do this, add the  `[VFXType]` attribute to a struct, and use the `VFXTypeAttribute.Usage.GraphicsBuffer` type. For example:
+### Add a custom type
+
+To add a custom type to the list, add the `[VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]` attribute to a struct. For example, the following script adds a **MyCustomData** type:
 
 ```c#
 using UnityEngine;
 using UnityEngine.VFX;
 
 [VFXType(VFXTypeAttribute.Usage.GraphicsBuffer)]
-struct CustomData
+struct MyCustomData
 {
-    public Vector3 color;
-    public Vector3 position;
+    public Vector3 myColor;
+    public Vector3 myPosition;
 }
 ```
+
+After you set a custom type, open the **s** dropdown to display the properties of the struct and connect them to other Operators and [Contexts](Contexts.md).
 
 ## Limitations
 The Operator has the following limitations:
