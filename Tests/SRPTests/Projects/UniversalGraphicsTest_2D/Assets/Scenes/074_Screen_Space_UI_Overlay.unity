@@ -42,7 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -490,8 +491,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 1280
-    TargetHeight: 720
+    TargetWidth: 1920
+    TargetHeight: 1080
     TargetMSAASamples: 1
     PerPixelCorrectnessThreshold: 0.001
     PerPixelGammaThreshold: 0.003921569
@@ -500,7 +501,7 @@ MonoBehaviour:
     AverageCorrectnessThreshold: 0.005
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
-    UseBackBuffer: 1
+    UseBackBuffer: 0
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: -1
@@ -509,7 +510,7 @@ MonoBehaviour:
   gpuDrivenCompatible: 1
   CheckMemoryAllocation: 0
   renderBackendCompatibility: 2
-  SetBackBufferResolution: 1
+  SetBackBufferResolution: 0
 --- !u!1 &661388560
 GameObject:
   m_ObjectHideFlags: 0
@@ -1075,6 +1076,7 @@ MonoBehaviour:
   m_WorldSpaceSizeMode: 1
   m_WorldSpaceWidth: 1920
   m_WorldSpaceHeight: 1080
+  m_WorldSpaceCollider: {fileID: 0}
 --- !u!4 &1471116130
 Transform:
   m_ObjectHideFlags: 0
