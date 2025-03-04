@@ -302,7 +302,7 @@ TextField#user-title-textfield
     white-space: normal;
     overflow: visible;
     height: auto;
-    flex-direction: column;
+    flex-direction: row;
 }
 
 TextField#user-title-textfield #unity-text-input
