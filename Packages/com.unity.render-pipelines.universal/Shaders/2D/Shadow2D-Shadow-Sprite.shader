@@ -11,7 +11,7 @@ Shader "Hidden/Shadow2DShadowSprite"
         Tags { "RenderType"="Opaque" }
 
         Cull Off
-        BlendOp Add
+        BlendOp Max
         Blend One One
         ZWrite Off
         ZTest Always

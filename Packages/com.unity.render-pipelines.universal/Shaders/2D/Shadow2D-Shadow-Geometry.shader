@@ -9,7 +9,7 @@ Shader "Hidden/Shadow2DShadowGeometry"
         Tags { "RenderType"="Opaque" }
 
         Cull Off
-        BlendOp Add
+        BlendOp Max
         Blend One One
         ZWrite Off
         ZTest Always

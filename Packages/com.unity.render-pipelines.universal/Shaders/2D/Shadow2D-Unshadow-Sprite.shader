@@ -25,9 +25,9 @@ Shader "Hidden/Shadow2DUnshadowSprite"
             ZWrite  Off
             ZTest   Always
 
-            ColorMask GB  // Clear the unshadow color (G), and set the sprite alpha (B)
+            ColorMask B 
 
-            Name "Sprite Unshadow (GB) - Stencil: Ref 1, Comp Always, Pass Replace"
+            Name "Sprite Unshadow (B) - Stencil: Ref 1, Comp Always, Pass Replace"
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -70,7 +70,7 @@ Shader "Hidden/Shadow2DUnshadowSprite"
                 if (main.a <= _ShadowAlphaCutoff)
                     discard;
 
-                return half4(0, 0, 0, 0);
+                return half4(0, 0, main.a, 0);
             }
             ENDHLSL
         }
@@ -90,7 +90,7 @@ Shader "Hidden/Shadow2DUnshadowSprite"
             ZWrite Off
             ZTest Always
 
-            ColorMask B
+            ColorMask 0
 
             Name "Sprite Unshadow (B) - Stencil: Ref 0, Comp Always, Pass Replace"
 
@@ -135,7 +135,7 @@ Shader "Hidden/Shadow2DUnshadowSprite"
                 if (main.a <= _ShadowAlphaCutoff)
                     discard;
 
-                return half4(1,1,main.a,1);
+                return half4(1, 1, 1, 1);
             }
             ENDHLSL
         }
