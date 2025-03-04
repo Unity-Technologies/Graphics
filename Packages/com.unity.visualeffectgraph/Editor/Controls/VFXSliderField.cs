@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    abstract class VFXBaseSliderField<T> : VisualElement, INotifyValueChanged<T>
+    abstract class VFXBaseSliderField<T> : VisualElement, IVFXNotifyValueChanged<T>
     {
         protected readonly Slider m_Slider;
         protected readonly TextValueField<T> m_Field;
@@ -158,6 +158,11 @@ namespace UnityEditor.VFX.UI
         public void SetValueWithoutNotify(T newValue)
         {
             SetValueWithoutNotify(ValueToFloat(newValue), newValue);
+        }
+
+        public void SetValueWithoutNotify(T newValue, bool force)
+        {
+            SetValueWithoutNotify(ValueToFloat(newValue), newValue, force);
         }
 
         public T value
