@@ -1152,6 +1152,7 @@ namespace UnityEditor.VFX.Test
             
             var expected = @"
 VFXRenderer:m_Enabled
+VFXRenderer:m_MeshLodSelectionBias
 VFXRenderer:m_ReceiveShadows
 VFXRenderer:m_RendererPriority
 VFXRenderer:m_SortingOrder

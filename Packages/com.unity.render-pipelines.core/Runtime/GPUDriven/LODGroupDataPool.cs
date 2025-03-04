@@ -64,14 +64,14 @@ namespace UnityEngine.Rendering
                 {
                     float lodHeight = lodGroup->screenRelativeTransitionHeights[i];
 
-                    var lodDist = LODGroupRenderingUtils.CalculateLODDistance(lodHeight, worldSpaceSize);
+                    var lodDist = LODRenderingUtils.CalculateLODDistance(lodHeight, worldSpaceSize);
                     lodGroupTransformResult->sqrDistances[i] = lodDist * lodDist;
 
                     if (supportDitheringCrossFade && !lodGroupTransformResult->percentageFlags[i])
                     {
                         float prevLODHeight = i != 0 ? lodGroup->screenRelativeTransitionHeights[i - 1] : 1.0f;
                         float transitionHeight = lodHeight + lodGroup->fadeTransitionWidth[i] * (prevLODHeight - lodHeight);
-                        var transitionDistance = lodDist - LODGroupRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize);
+                        var transitionDistance = lodDist - LODRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize);
                         transitionDistance = Mathf.Max(0.0f, transitionDistance);
                         lodGroupTransformResult->transitionDistances[i] = transitionDistance;
                     }
@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering
             {
                 var lodIndex = lodOffset + i;
                 var lodHeight = inputData.lodScreenRelativeTransitionHeight[lodIndex];
-                var lodDist = LODGroupRenderingUtils.CalculateLODDistance(lodHeight, worldSpaceSize);
+                var lodDist = LODRenderingUtils.CalculateLODDistance(lodHeight, worldSpaceSize);
 
                 lodGroupData->screenRelativeTransitionHeights[i] = lodHeight;
                 lodGroupData->fadeTransitionWidth[i] = 0.0f;
@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering
                     var fadeTransitionWidth = inputData.lodFadeTransitionWidth[lodIndex];
                     var prevLODHeight = i != 0 ? inputData.lodScreenRelativeTransitionHeight[lodIndex - 1] : 1.0f;
                     var transitionHeight = lodHeight + fadeTransitionWidth * (prevLODHeight - lodHeight);
-                    var transitionDistance = lodDist - LODGroupRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize);
+                    var transitionDistance = lodDist - LODRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize);
                     transitionDistance = Mathf.Max(0.0f, transitionDistance);
 
                     lodGroupData->fadeTransitionWidth[i] = fadeTransitionWidth;

@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering
         public ParallelBitArray movedInPreviousFrameBits;
         public ParallelBitArray visibleInPreviousFrameBits;
         public EditorInstanceDataArrays editorData;
+        public NativeArray<GPUDrivenRendererMeshLodData> meshLodData;
 
         public int instancesLength { get => m_StructData[0]; set => m_StructData[0] = value; }
         public int instancesCapacity { get => m_StructData[1]; set => m_StructData[1] = value; }
@@ -48,6 +49,7 @@ namespace UnityEngine.Rendering
             movedInPreviousFrameBits = new ParallelBitArray(instancesCapacity, Allocator.Persistent);
             visibleInPreviousFrameBits = new ParallelBitArray(instancesCapacity, Allocator.Persistent);
             editorData.Initialize(initCapacity);
+            meshLodData = new NativeArray<GPUDrivenRendererMeshLodData>(instancesCapacity, Allocator.Persistent);
         }
 
         public void Dispose()
@@ -63,6 +65,7 @@ namespace UnityEngine.Rendering
             movedInPreviousFrameBits.Dispose();
             visibleInPreviousFrameBits.Dispose();
             editorData.Dispose();
+            meshLodData.Dispose();
         }
 
         private void Grow(int newCapacity)
@@ -81,6 +84,7 @@ namespace UnityEngine.Rendering
             movedInPreviousFrameBits.Resize(newCapacity);
             visibleInPreviousFrameBits.Resize(newCapacity);
             editorData.Grow(newCapacity);
+            meshLodData.ResizeArray(newCapacity);
 
             instancesCapacity = newCapacity;
         }
@@ -185,6 +189,7 @@ namespace UnityEngine.Rendering
             movedInPreviousFrameBits.Set(index, movedInPreviousFrameBits.Get(lastIndex));
             visibleInPreviousFrameBits.Set(index, visibleInPreviousFrameBits.Get(lastIndex));
             editorData.Remove(index, lastIndex);
+            meshLodData[index] = meshLodData[lastIndex];
 
             m_InstanceIndices[instances[lastIndex].index] = index;
             m_InstanceIndices[instance.index] = k_InvalidIndex;
@@ -192,7 +197,7 @@ namespace UnityEngine.Rendering
         }
 
         public void Set(InstanceHandle instance, SharedInstanceHandle sharedInstance, bool localToWorldIsFlipped, in AABB worldAABB, int tetrahedronCacheIndex,
-            bool movedInCurrentFrame, bool movedInPreviousFrame, bool visibleInPreviousFrame)
+            bool movedInCurrentFrame, bool movedInPreviousFrame, bool visibleInPreviousFrame, in GPUDrivenRendererMeshLodData meshLod)
         {
             int index = InstanceToIndex(instance);
             sharedInstances[index] = sharedInstance;
@@ -203,11 +208,12 @@ namespace UnityEngine.Rendering
             movedInPreviousFrameBits.Set(index, movedInPreviousFrame);
             visibleInPreviousFrameBits.Set(index, visibleInPreviousFrame);
             editorData.SetDefault(index);
+            meshLodData[index] = meshLod;
         }
 
         public void SetDefault(InstanceHandle instance)
         {
-            Set(instance, SharedInstanceHandle.Invalid, false, new AABB(), k_InvalidIndex, false, false, false);
+            Set(instance, SharedInstanceHandle.Invalid, false, new AABB(), k_InvalidIndex, false, false, false, new GPUDrivenRendererMeshLodData());
         }
 
         // These accessors just for convenience and additional safety.
@@ -220,6 +226,7 @@ namespace UnityEngine.Rendering
         public bool Get_MovedInCurrentFrame(InstanceHandle instance) { return movedInCurrentFrameBits.Get(InstanceToIndex(instance)); }
         public bool Get_MovedInPreviousFrame(InstanceHandle instance) { return movedInPreviousFrameBits.Get(InstanceToIndex(instance)); }
         public bool Get_VisibleInPreviousFrame(InstanceHandle instance) { return visibleInPreviousFrameBits.Get(InstanceToIndex(instance)); }
+        public GPUDrivenRendererMeshLodData Get_MeshLodData(InstanceHandle instance) { return meshLodData[InstanceToIndex(instance)]; }
 
         public void Set_SharedInstance(InstanceHandle instance, SharedInstanceHandle sharedInstance) { sharedInstances[InstanceToIndex(instance)] = sharedInstance; }
         public void Set_LocalToWorldIsFlipped(InstanceHandle instance, bool isFlipped) { localToWorldIsFlippedBits.Set(InstanceToIndex(instance), isFlipped); }
@@ -228,6 +235,7 @@ namespace UnityEngine.Rendering
         public void Set_MovedInCurrentFrame(InstanceHandle instance, bool movedInCurrentFrame) { movedInCurrentFrameBits.Set(InstanceToIndex(instance), movedInCurrentFrame); }
         public void Set_MovedInPreviousFrame(InstanceHandle instance, bool movedInPreviousFrame) { movedInPreviousFrameBits.Set(InstanceToIndex(instance), movedInPreviousFrame); }
         public void Set_VisibleInPreviousFrame(InstanceHandle instance, bool visibleInPreviousFrame) { visibleInPreviousFrameBits.Set(InstanceToIndex(instance), visibleInPreviousFrame); }
+        public void Set_MeshLodData(InstanceHandle instance, GPUDrivenRendererMeshLodData meshLod) { meshLodData[InstanceToIndex(instance)] = meshLod; }
 
         public ReadOnly AsReadOnly()
         {
@@ -246,6 +254,7 @@ namespace UnityEngine.Rendering
             public readonly ParallelBitArray movedInPreviousFrameBits;
             public readonly ParallelBitArray visibleInPreviousFrameBits;
             public readonly EditorInstanceDataArrays.ReadOnly editorData;
+            public readonly NativeArray<GPUDrivenRendererMeshLodData>.ReadOnly meshLodData;
             public readonly int handlesLength => instanceIndices.Length;
             public readonly int instancesLength => instances.Length;
 
@@ -261,6 +270,7 @@ namespace UnityEngine.Rendering
                 movedInPreviousFrameBits = instanceData.movedInPreviousFrameBits.GetSubArray(instanceData.instancesLength);//.AsReadOnly(); // Implement later.
                 visibleInPreviousFrameBits = instanceData.visibleInPreviousFrameBits.GetSubArray(instanceData.instancesLength);//.AsReadOnly(); // Implement later.
                 editorData = new EditorInstanceDataArrays.ReadOnly(instanceData);
+                meshLodData = instanceData.meshLodData.GetSubArray(0, instanceData.instancesLength).AsReadOnly();
             }
 
             public int InstanceToIndex(InstanceHandle instance)
@@ -297,6 +307,142 @@ namespace UnityEngine.Rendering
         }
     }
 
+    internal struct CPUPerCameraInstanceData : IDisposable
+    {
+        public const byte k_InvalidByteData = 0xff;
+
+        public NativeParallelHashMap<int, PerCameraInstanceDataArrays> perCameraData;
+
+        private NativeArray<int> m_StructData;
+        public int instancesLength { get => m_StructData[0]; set => m_StructData[0] = value; }
+        public int instancesCapacity { get => m_StructData[1]; set => m_StructData[1] = value; }
+
+        public int cameraCount { get { return perCameraData.Count();}}
+
+        internal struct PerCameraInstanceDataArrays : IDisposable
+        {
+            internal UnsafeList<byte> meshLods;
+            internal UnsafeList<byte> crossFades;
+
+            public bool IsCreated => meshLods.IsCreated && crossFades.IsCreated;
+
+            public PerCameraInstanceDataArrays(int initCapacity)
+            {
+                meshLods = new UnsafeList<byte>(initCapacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                meshLods.Length = initCapacity;
+                crossFades = new UnsafeList<byte>(initCapacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                crossFades.Length = initCapacity;
+            }
+
+            public void Dispose()
+            {
+                meshLods.Dispose();
+                crossFades.Dispose();
+            }
+
+            internal void Remove(int index, int lastIndex)
+            {
+                meshLods[index] =  meshLods[lastIndex];
+                crossFades[index] =  crossFades[lastIndex];
+            }
+
+            internal void Grow(int previousCapacity, int newCapacity)
+            {
+                meshLods.Length = newCapacity;
+                crossFades.Length = newCapacity;
+            }
+
+            internal void SetDefault(int index)
+            {
+                meshLods[index] = k_InvalidByteData;
+                crossFades[index] = k_InvalidByteData;
+            }
+        }
+
+        public void Initialize(int initCapacity)
+        {
+            perCameraData = new NativeParallelHashMap<int, PerCameraInstanceDataArrays>(1,Allocator.Persistent);
+            m_StructData = new NativeArray<int>(2, Allocator.Persistent);
+            instancesCapacity = initCapacity;
+            instancesLength = 0;
+        }
+
+        public void DeallocateCameras(NativeArray<int> cameraIDs)
+        {
+            foreach (var cameraID in cameraIDs)
+            {
+                if (!perCameraData.TryGetValue(cameraID, out var perCameraInstanceData))
+                    continue;
+
+                perCameraInstanceData.Dispose();
+                perCameraData.Remove(cameraID);
+            }
+        }
+
+        public void AllocateCameras(NativeArray<int> cameraIDs)
+        {
+            foreach (var cameraID in cameraIDs)
+            {
+                if (perCameraData.TryGetValue(cameraID, out var cameraInstanceData))
+                    continue;
+
+                cameraInstanceData = new PerCameraInstanceDataArrays(instancesCapacity);
+                perCameraData.Add(cameraID, cameraInstanceData);
+            }
+        }
+
+        public void Remove(int index)
+        {
+            int lastIndex = instancesLength - 1;
+
+            foreach (var pair in perCameraData)
+            {
+                pair.Value.Remove(index, lastIndex);
+            }
+
+            instancesLength -= 1;
+        }
+
+        public void IncreaseInstanceCount()
+        {
+            instancesLength++;
+        }
+
+        public void Dispose()
+        {
+            foreach (var pair in perCameraData)
+            {
+                pair.Value.Dispose();
+            }
+
+            m_StructData.Dispose();
+            perCameraData.Dispose();
+        }
+
+        internal void Grow(int newCapacity)
+        {
+            if(newCapacity < instancesCapacity)
+                return;
+
+            var previousCapacity = instancesCapacity;
+            instancesCapacity = newCapacity;
+
+            foreach (var pair in perCameraData)
+            {
+                pair.Value.Grow(previousCapacity, instancesCapacity);
+            }
+        }
+
+        public void SetDefault(int index)
+        {
+            foreach (var pair in perCameraData)
+            {
+                pair.Value.SetDefault(index);
+            }
+        }
+
+    }
+
     internal struct CPUSharedInstanceData : IDisposable
     {
         private const int k_InvalidIndex = -1;
@@ -316,6 +462,7 @@ namespace UnityEngine.Rendering
         public NativeArray<AABB> localAABBs;
         public NativeArray<CPUSharedInstanceFlags> flags;
         public NativeArray<uint> lodGroupAndMasks;
+        public NativeArray<GPUDrivenMeshLodInfo> meshLodInfos;
         public NativeArray<int> gameObjectLayers;
         public NativeArray<int> refCounts;
 
@@ -337,6 +484,7 @@ namespace UnityEngine.Rendering
             flags = new NativeArray<CPUSharedInstanceFlags>(instancesCapacity, Allocator.Persistent);
             lodGroupAndMasks = new NativeArray<uint>(instancesCapacity, Allocator.Persistent);
             lodGroupAndMasks.FillArray(k_InvalidLODGroupAndMask);
+            meshLodInfos = new NativeArray<GPUDrivenMeshLodInfo>(instancesCapacity, Allocator.Persistent);
             gameObjectLayers = new NativeArray<int>(instancesCapacity, Allocator.Persistent);
             refCounts = new NativeArray<int>(instancesCapacity, Allocator.Persistent);
         }
@@ -358,6 +506,7 @@ namespace UnityEngine.Rendering
             localAABBs.Dispose();
             flags.Dispose();
             lodGroupAndMasks.Dispose();
+            meshLodInfos.Dispose();
             gameObjectLayers.Dispose();
             refCounts.Dispose();
         }
@@ -376,6 +525,7 @@ namespace UnityEngine.Rendering
             flags.ResizeArray(newCapacity);
             lodGroupAndMasks.ResizeArray(newCapacity);
             lodGroupAndMasks.FillArray(k_InvalidLODGroupAndMask, instancesCapacity);
+            meshLodInfos.ResizeArray(newCapacity);
             gameObjectLayers.ResizeArray(newCapacity);
             refCounts.ResizeArray(newCapacity);
 
@@ -492,6 +642,7 @@ namespace UnityEngine.Rendering
             localAABBs[index] = localAABBs[lastIndex];
             flags[index] = flags[lastIndex];
             lodGroupAndMasks[index] = lodGroupAndMasks[lastIndex];
+            meshLodInfos[index] = meshLodInfos[lastIndex];
             gameObjectLayers[index] = gameObjectLayers[lastIndex];
             refCounts[index] = refCounts[lastIndex];
 
@@ -526,7 +677,7 @@ namespace UnityEngine.Rendering
         }
 
         public void Set(SharedInstanceHandle instance, int rendererGroupID, in SmallIntegerArray materialIDs, int meshID, in AABB localAABB, TransformUpdateFlags transformUpdateFlags,
-            InstanceFlags instanceFlags, uint lodGroupAndMask, int gameObjectLayer, int refCount)
+            InstanceFlags instanceFlags, uint lodGroupAndMask, GPUDrivenMeshLodInfo meshLodInfo, int gameObjectLayer, int refCount)
         {
             int index = SharedInstanceToIndex(instance);
 
@@ -537,13 +688,14 @@ namespace UnityEngine.Rendering
             localAABBs[index] = localAABB;
             flags[index] = new CPUSharedInstanceFlags { transformUpdateFlags = transformUpdateFlags, instanceFlags = instanceFlags };
             lodGroupAndMasks[index] = lodGroupAndMask;
+            meshLodInfos[index] = meshLodInfo;
             gameObjectLayers[index] = gameObjectLayer;
             refCounts[index] = refCount;
         }
 
         public void SetDefault(SharedInstanceHandle instance)
         {
-            Set(instance, 0, default, 0, new AABB(), TransformUpdateFlags.None, InstanceFlags.None, k_InvalidLODGroupAndMask, 0, 0);
+            Set(instance, 0, default, 0, new AABB(), TransformUpdateFlags.None, InstanceFlags.None, k_InvalidLODGroupAndMask, new GPUDrivenMeshLodInfo(), 0, 0);
         }
 
         public ReadOnly AsReadOnly()
@@ -561,6 +713,7 @@ namespace UnityEngine.Rendering
             public readonly NativeArray<AABB>.ReadOnly localAABBs;
             public readonly NativeArray<CPUSharedInstanceFlags>.ReadOnly flags;
             public readonly NativeArray<uint>.ReadOnly lodGroupAndMasks;
+            public readonly NativeArray<GPUDrivenMeshLodInfo>.ReadOnly meshLodInfos;
             public readonly NativeArray<int>.ReadOnly gameObjectLayers;
             public readonly NativeArray<int>.ReadOnly refCounts;
             public readonly int handlesLength => instanceIndices.Length;
@@ -576,6 +729,7 @@ namespace UnityEngine.Rendering
                 localAABBs = instanceData.localAABBs.GetSubArray(0, instanceData.instancesLength).AsReadOnly();
                 flags = instanceData.flags.GetSubArray(0, instanceData.instancesLength).AsReadOnly();
                 lodGroupAndMasks = instanceData.lodGroupAndMasks.GetSubArray(0, instanceData.instancesLength).AsReadOnly();
+                meshLodInfos = instanceData.meshLodInfos.GetSubArray(0, instanceData.instancesLength).AsReadOnly();
                 gameObjectLayers = instanceData.gameObjectLayers.GetSubArray(0, instanceData.instancesLength).AsReadOnly();
                 refCounts = instanceData.refCounts.GetSubArray(0, instanceData.instancesLength).AsReadOnly();
             }
@@ -765,7 +919,7 @@ namespace UnityEngine.Rendering
         AffectsLightmaps = 1 << 0, // either lightmapped or influence-only
         IsShadowsOff = 1 << 1, // shadow casting mode is ShadowCastingMode.Off
         IsShadowsOnly = 1 << 2, // shadow casting mode is ShadowCastingMode.ShadowsOnly
-        HasProgressiveLod = 1 << 3,
+        HasMeshLod = 1 << 3,
         SmallMeshCulling = 1 << 4
     }
 

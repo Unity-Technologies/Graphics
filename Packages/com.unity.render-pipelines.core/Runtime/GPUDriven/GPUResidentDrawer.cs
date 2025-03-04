@@ -392,9 +392,11 @@ namespace UnityEngine.Rendering
             m_Dispatcher.EnableTypeTracking<LODGroup>(TypeTrackingFlags.SceneObjects);
             m_Dispatcher.EnableTypeTracking<Mesh>();
             m_Dispatcher.EnableTypeTracking<Material>();
-            m_Dispatcher.EnableTransformTracking<LODGroup>(TransformTrackingType.GlobalTRS);
             m_Dispatcher.EnableTypeTracking<MeshRenderer>(TypeTrackingFlags.SceneObjects);
+            m_Dispatcher.EnableTypeTracking<Camera>(TypeTrackingFlags.SceneObjects | TypeTrackingFlags.EditorOnlyObjects);
+
             m_Dispatcher.EnableTransformTracking<MeshRenderer>(TransformTrackingType.GlobalTRS);
+            m_Dispatcher.EnableTransformTracking<LODGroup>(TransformTrackingType.GlobalTRS);
 
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += OnAssemblyReload;
@@ -567,6 +569,7 @@ namespace UnityEngine.Rendering
             var lodGroupTransformData = m_Dispatcher.GetTransformChangesAndClear<LODGroup>(TransformTrackingType.GlobalTRS, Allocator.TempJob);
             var lodGroupData = m_Dispatcher.GetTypeChangesAndClear<LODGroup>(Allocator.TempJob, noScriptingArray: true);
             var meshDataSorted = m_Dispatcher.GetTypeChangesAndClear<Mesh>(Allocator.TempJob, sortByInstanceID: true, noScriptingArray: true);
+            var cameraChanges = m_Dispatcher.GetTypeChangesAndClear<Camera>(Allocator.TempJob, noScriptingArray: true);
             var materialData = m_Dispatcher.GetTypeChangesAndClear<Material>(Allocator.TempJob);
             var rendererData = m_Dispatcher.GetTypeChangesAndClear<MeshRenderer>(Allocator.TempJob, noScriptingArray: true);
             Profiler.EndSample();
@@ -593,6 +596,10 @@ namespace UnityEngine.Rendering
             ProcessLODGroups(lodGroupData.changedID, lodGroupData.destroyedID, lodGroupTransformData.transformedID);
             Profiler.EndSample();
 
+            Profiler.BeginSample("GPUResidentDrawer.ProcessCameras");
+            ProcessCameras(cameraChanges.changedID, cameraChanges.destroyedID);
+            Profiler.EndSample();
+
             Profiler.BeginSample("GPUResidentDrawer.ProcessRenderers");
             ProcessRenderers(rendererData, unsupportedRenderers.AsArray());
             Profiler.EndSample();
@@ -605,6 +612,7 @@ namespace UnityEngine.Rendering
             lodGroupData.Dispose();
             meshDataSorted.Dispose();
             materialData.Dispose();
+            cameraChanges.Dispose();
             rendererData.Dispose();
             unsupportedChangedMaterials.Dispose();
             unsupportedRenderers.Dispose();
@@ -632,6 +640,12 @@ namespace UnityEngine.Rendering
 
             if (unsupportedMaterials.Length > 0)
                 m_Batcher.DestroyMaterials(unsupportedMaterials);
+        }
+
+        private void ProcessCameras(NativeArray<int> changedIDs, NativeArray<int> destroyedIDs)
+        {
+            m_BatchersContext.UpdateCameras(changedIDs);
+            m_BatchersContext.FreePerCameraInstanceData(destroyedIDs);
         }
 
         private void ProcessMeshes(NativeArray<int> destroyedID)

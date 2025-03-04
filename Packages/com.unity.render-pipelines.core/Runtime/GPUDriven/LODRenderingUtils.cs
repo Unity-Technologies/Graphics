@@ -5,30 +5,30 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering
 {
-    // All this is just a copy of C++ LODGroupManager code.
-    internal static class LODGroupRenderingUtils
+    // Based on C++ LODGroupManager code.
+    internal static class LODRenderingUtils
     {
         public static float CalculateFOVHalfAngle(float fieldOfView)
         {
             return Mathf.Tan(Mathf.Deg2Rad * fieldOfView * 0.5f);
         }
 
-       public static float CalculateScreenRelativeMetric(LODParameters lodParams, float lodBias)
-       {
-           float screenRelativeMetric;
-           if (lodParams.isOrthographic)
-           {
-               screenRelativeMetric = 2.0F * lodParams.orthoSize;
-           }
-           else
-           {
-               // Half angle at 90 degrees is 1.0 (So we skip halfAngle / 1.0 calculation)
-               float halfAngle = CalculateFOVHalfAngle(lodParams.fieldOfView);
-               screenRelativeMetric = 2.0f * halfAngle;
-           }
+        public static float CalculateScreenRelativeMetricNoBias(LODParameters lodParams)
+        {
+            if (lodParams.isOrthographic)
+            {
+                return 2.0F * lodParams.orthoSize;
+            }
 
-           return screenRelativeMetric / lodBias;
-       }
+            // Half angle at 90 degrees is 1.0 (So we skip halfAngle / 1.0 calculation)
+            float halfAngle = CalculateFOVHalfAngle(lodParams.fieldOfView);
+            return 2.0f * halfAngle;
+        }
+
+        public static float CalculateMeshLodConstant(LODParameters lodParams, float screenRelativeMetric, float meshLodThreshold)
+        {
+            return meshLodThreshold * screenRelativeMetric / lodParams.cameraPixelHeight;
+        }
 
         public static float CalculatePerspectiveDistance(Vector3 objPosition, Vector3 camPosition, float sqrScreenRelativeMetric)
         {

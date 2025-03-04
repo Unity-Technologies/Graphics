@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering
         private InstanceAllocators m_InstanceAllocators;
         private CPUSharedInstanceData m_SharedInstanceData;
         private CPUInstanceData m_InstanceData;
+        private CPUPerCameraInstanceData m_PerCameraInstanceData;
 
         //@ We may want something a bit faster instead of multi hash map. Remove and search performance for multiple instances per renderer group is not great.
         private NativeParallelMultiHashMap<int, InstanceHandle> m_RendererGroupInstanceMultiHash;
@@ -39,6 +40,8 @@ namespace UnityEngine.Rendering
         public bool hasBoundingSpheres { get { return m_EnableBoundingSpheres; } }
 
         public CPUInstanceData.ReadOnly instanceData { get { return m_InstanceData.AsReadOnly(); } }
+        public CPUPerCameraInstanceData perCameraInstanceData { get { return m_PerCameraInstanceData; } }
+        public int cameraCount { get { return m_PerCameraInstanceData.cameraCount; }}
         public CPUSharedInstanceData.ReadOnly sharedInstanceData { get { return m_SharedInstanceData.AsReadOnly(); } }
         public NativeArray<InstanceHandle> aliveInstances { get { return m_InstanceData.instances.GetSubArray(0, m_InstanceData.instancesLength); } }
 
@@ -49,10 +52,13 @@ namespace UnityEngine.Rendering
             m_InstanceAllocators = new InstanceAllocators();
             m_SharedInstanceData = new CPUSharedInstanceData();
             m_InstanceData = new CPUInstanceData();
+            m_PerCameraInstanceData = new CPUPerCameraInstanceData();
 
             m_InstanceAllocators.Initialize();
             m_SharedInstanceData.Initialize(maxInstances);
             m_InstanceData.Initialize(maxInstances);
+            m_PerCameraInstanceData.Initialize(maxInstances);
+            Assert.IsTrue(m_PerCameraInstanceData.instancesCapacity == m_InstanceData.instancesCapacity);
 
             m_RendererGroupInstanceMultiHash = new NativeParallelMultiHashMap<int, InstanceHandle>(maxInstances, Allocator.Persistent);
 
@@ -78,6 +84,7 @@ namespace UnityEngine.Rendering
             m_InstanceAllocators.Dispose();
             m_SharedInstanceData.Dispose();
             m_InstanceData.Dispose();
+            m_PerCameraInstanceData.Dispose();
 
             m_RendererGroupInstanceMultiHash.Dispose();
 
@@ -473,10 +480,12 @@ namespace UnityEngine.Rendering
             }
 
             m_InstanceData.EnsureFreeInstances(newInstancesCount);
+            m_PerCameraInstanceData.Grow(m_InstanceData.instancesCapacity);
+            Assert.IsTrue(m_InstanceData.instancesCapacity == m_PerCameraInstanceData.instancesCapacity);
             m_SharedInstanceData.EnsureFreeInstances(newSharedInstancesCount);
 
             new ReallocateInstancesJob { implicitInstanceIndices = implicitInstanceIndices, rendererGroupInstanceMultiHash = m_RendererGroupInstanceMultiHash,
-                instanceAllocators = m_InstanceAllocators, sharedInstanceData = m_SharedInstanceData, instanceData = m_InstanceData,
+                instanceAllocators = m_InstanceAllocators, sharedInstanceData = m_SharedInstanceData, instanceData = m_InstanceData, perCameraInstanceData = m_PerCameraInstanceData,
                 rendererGroupIDs = rendererData.rendererGroupID, packedRendererData = rendererData.packedRendererData, instanceOffsets = rendererData.instancesOffset,
                 instanceCounts = rendererData.instancesCount, instances = instances }.Run();
         }
@@ -484,14 +493,14 @@ namespace UnityEngine.Rendering
         public void FreeRendererGroupInstances(NativeArray<int> rendererGroupsID)
         {
             new FreeRendererGroupInstancesJob { rendererGroupInstanceMultiHash = m_RendererGroupInstanceMultiHash,
-                instanceAllocators = m_InstanceAllocators, sharedInstanceData = m_SharedInstanceData, instanceData = m_InstanceData,
+                instanceAllocators = m_InstanceAllocators, sharedInstanceData = m_SharedInstanceData, instanceData = m_InstanceData, perCameraInstanceData =  m_PerCameraInstanceData,
                 rendererGroupsID = rendererGroupsID }.Run();
         }
 
         public void FreeInstances(NativeArray<InstanceHandle> instances)
         {
             new FreeInstancesJob { rendererGroupInstanceMultiHash = m_RendererGroupInstanceMultiHash,
-                instanceAllocators = m_InstanceAllocators, sharedInstanceData = m_SharedInstanceData, instanceData = m_InstanceData,
+                instanceAllocators = m_InstanceAllocators, sharedInstanceData = m_SharedInstanceData, instanceData = m_InstanceData, perCameraInstanceData = m_PerCameraInstanceData,
                 instances = instances }.Run();
         }
 
@@ -518,7 +527,8 @@ namespace UnityEngine.Rendering
                 rendererData = rendererData,
                 lodGroupDataMap = lodGroupDataMap,
                 instanceData = m_InstanceData,
-                sharedInstanceData = m_SharedInstanceData
+                sharedInstanceData = m_SharedInstanceData,
+                perCameraInstanceData = m_PerCameraInstanceData
             }.Schedule(rendererData.rendererGroupID.Length, UpdateRendererInstancesJob.k_BatchSize);
         }
 
@@ -815,6 +825,16 @@ namespace UnityEngine.Rendering
             public static readonly int _WindDataBuffer = Shader.PropertyToID("_WindDataBuffer");
             public static readonly int _WindParamAddressArray = Shader.PropertyToID("_WindParamAddressArray");
             public static readonly int _WindHistoryParamAddressArray = Shader.PropertyToID("_WindHistoryParamAddressArray");
+        }
+
+        public void DeallocatePerCameraInstanceData(NativeArray<int> cameraIDs)
+        {
+            m_PerCameraInstanceData.DeallocateCameras(cameraIDs);
+        }
+
+        public void AllocatePerCameraInstanceData(NativeArray<int> cameraIDs)
+        {
+            m_PerCameraInstanceData.AllocateCameras(cameraIDs);
         }
     }
 }
