@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.UI
         private void UpdateHover(VFXView view, bool isHovered)
         {
             var blackboard = view.blackboard;
-            if (blackboard == null)
+            if (blackboard == null || controller.model == null)
                 return;
 
             var attributes = controller.model is IVFXAttributeUsage attributeUsage
