@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
     /// <code>
     /// using UnityEngine.Rendering;
     /// using UnityEngine.Rendering.Universal;
-    /// 
+    ///
     /// public static class URPUniversalRendererRuntimeShadersHelper
     /// {
     ///     public static Shader blit
@@ -106,5 +106,47 @@ namespace UnityEngine.Rendering.Universal
             get => m_SamplingPS;
             set => this.SetValueAndNotify(ref m_SamplingPS, value, nameof(m_SamplingPS));
         }
+
+        #region Terrain
+        [Header("Terrain")]
+        [SerializeField]
+        [ResourcePath("Shaders/Terrain/TerrainDetailLit.shader")]
+        private Shader m_TerrainDetailLit;
+
+        /// <summary>
+        /// Returns the terrain detail lit shader that this asset uses.
+        /// </summary>
+        public Shader terrainDetailLitShader
+        {
+            get => m_TerrainDetailLit;
+            set => this.SetValueAndNotify(ref m_TerrainDetailLit, value);
+        }
+
+        [SerializeField]
+        [ResourcePath("Shaders/Terrain/WavingGrassBillboard.shader")]
+        private Shader m_TerrainDetailGrassBillboard;
+
+        /// <summary>
+        /// Returns the terrain detail grass billboard shader that this asset uses.
+        /// </summary>
+        public Shader terrainDetailGrassBillboardShader
+        {
+            get => m_TerrainDetailGrassBillboard;
+            set => this.SetValueAndNotify(ref m_TerrainDetailGrassBillboard, value);
+        }
+
+        [SerializeField]
+        [ResourcePath("Shaders/Terrain/WavingGrass.shader")]
+        private Shader m_TerrainDetailGrass;
+
+        /// <summary>
+        /// Returns the terrain detail grass shader that this asset uses.
+        /// </summary>
+        public Shader terrainDetailGrassShader
+        {
+            get => m_TerrainDetailGrass;
+            set => this.SetValueAndNotify(ref m_TerrainDetailGrass, value);
+        }
+        #endregion
     }
 }

@@ -135,6 +135,61 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        #region Terrain
+
+        /// <summary>
+        /// Returns the terrain detail lit shader that this asset uses.
+        /// </summary>
+        public override Shader terrainDetailLitShader
+        {
+            get
+            {
+                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                        out var shadersResources))
+                {
+                    return shadersResources.terrainDetailLitShader;
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Returns the terrain detail grass shader that this asset uses.
+        /// </summary>
+        public override Shader terrainDetailGrassShader
+        {
+            get
+            {
+                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                        out var shadersResources))
+                {
+                    return shadersResources.terrainDetailGrassShader;
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Returns the terrain detail grass billboard shader that this asset uses.
+        /// </summary>
+        public override Shader terrainDetailGrassBillboardShader
+        {
+            get
+            {
+                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                        out var shadersResources))
+                {
+                    return shadersResources.terrainDetailGrassBillboardShader;
+                }
+
+                return null;
+            }
+        }
+
+        #endregion
+
 #if UNITY_EDITOR
 
         #region Autodesk
@@ -156,28 +211,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <returns>Returns the Autodesk Interactive mask shader that this asset uses</returns>
         public override Shader autodeskInteractiveMaskedShader => defaultShaders?.autodeskInteractiveMaskedShader;
-
-        #endregion
-
-        #region Terrain
-
-        /// <summary>
-        /// Returns the terrain detail lit shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the terrain detail lit shader that this asset uses.</returns>
-        public override Shader terrainDetailLitShader => defaultShaders?.terrainDetailLitShader;
-
-        /// <summary>
-        /// Returns the terrain detail grass shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the terrain detail grass shader that this asset uses.</returns>
-        public override Shader terrainDetailGrassShader => defaultShaders?.terrainDetailGrassShader;
-
-        /// <summary>
-        /// Returns the terrain detail grass billboard shader that this asset uses.
-        /// </summary>
-        /// <returns>Returns the terrain detail grass billboard shader that this asset uses.</returns>
-        public override Shader terrainDetailGrassBillboardShader => defaultShaders?.terrainDetailGrassBillboardShader;
 
         #endregion
 
