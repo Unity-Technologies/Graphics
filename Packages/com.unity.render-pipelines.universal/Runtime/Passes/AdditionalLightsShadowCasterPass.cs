@@ -438,14 +438,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             short additionalLightCount = 0;
             short validShadowCastingLightsCount = 0;
             bool supportsSoftShadows = shadowData.supportsSoftShadows;
-            bool isDeferred = ((UniversalRenderer)cameraData.renderer).renderingModeActual == RenderingMode.Deferred;
+            UniversalRenderer universalRenderer = (UniversalRenderer)cameraData.renderer;
+            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
+            bool shadowTransparentReceive = universalRenderer.shadowTransparentReceive;
+            bool hasForwardShadowPass = !isDeferred || shadowTransparentReceive;
             for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length; ++visibleLightIndex)
             {
                 // Skip main directional light as it is not packed into the shadow atlas
                 if (visibleLightIndex == lightData.mainLightIndex)
                     continue;
 
-                short lightIndexToUse = isDeferred ? validShadowCastingLightsCount : additionalLightCount++;
+                short lightIndexToUse = !hasForwardShadowPass ? validShadowCastingLightsCount : additionalLightCount++;
 
                 // We need to always set these indices, even if the light is not shadow casting or doesn't fit in the shadow slices (UUM-46577)
                 m_VisibleLightIndexToAdditionalLightIndex[visibleLightIndex] = lightIndexToUse;

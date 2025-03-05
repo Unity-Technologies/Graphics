@@ -159,7 +159,8 @@ Varyings TerrainLitVertex(Attributes input)
         diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, NormalWS);
     }
 
-    #if defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)
+    // Adding !defined(USE_CLUSTER_LIGHT_LOOP): in Forward+ we can't possibly get the light list in a vertex shader.
+    #if (defined(_ADDITIONAL_LIGHTS) || defined(_ADDITIONAL_LIGHTS_VERTEX)) && !USE_FORWARD_PLUS
     if (IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_ADDITIONAL_LIGHTS))
     {
         int pixelLightCount = GetAdditionalLightsCount();

@@ -36,6 +36,10 @@ namespace UnityEditor.VFX.UI
         void EndLiveModification();
     }
 
+    interface IVFXNotifyValueChanged<T> : INotifyValueChanged<T>
+    {
+        void SetValueWithoutNotify(T typedNewValue, bool force = false);
+    }
 
     class SimplePropertyRMProvider<T> : IPropertyRMProvider
     {
@@ -149,7 +153,7 @@ namespace UnityEditor.VFX.UI
 
         public float GetPreferredLabelWidth()
         {
-            if (hasLabel && this.Q<Label>() is { } label && label.resolvedStyle.unityFontDefinition.fontAsset != null)
+            if (hasLabel && this.Q<Label>() is { } label && (label.resolvedStyle.unityFontDefinition.fontAsset != null || label.resolvedStyle.unityFontDefinition.font != null))
             {
                 return label.MeasureTextSize(label.text, -1, MeasureMode.Undefined, 11, MeasureMode.Exactly).x
                        + m_Provider.depth * depthOffset
@@ -253,7 +257,7 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
             Profiler.EndSample();
         }
-        
+
         void UpdateExpandable()
         {
             if (IsExpandable())
@@ -617,7 +621,10 @@ namespace UnityEditor.VFX.UI
                 try
                 {
                     var value = (U)System.Convert.ChangeType(m_Value, typeof(U));
-                    m_Field.SetValueWithoutNotify(value);
+                    if (m_Field is IVFXNotifyValueChanged<U> vfxNotifyValueChanged)
+                        vfxNotifyValueChanged.SetValueWithoutNotify(value, force);
+                    else
+                        m_Field.SetValueWithoutNotify(value);
                 }
                 catch (System.Exception ex)
                 {

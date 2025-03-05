@@ -43,6 +43,9 @@ namespace UnityEngine.Rendering
             m_StreamableCellDescs = cellDescs;
             m_ElementSize = elementSize;
             m_StreamableAssetPath = Path.Combine(Path.Combine(apvStreamingAssetsPath, bakingSetGUID), m_AssetGUID + ".bytes");
+#if UNITY_EDITOR
+            EnsureAssetLoaded();
+#endif
         }
 
         internal void RefreshAssetPath()
@@ -89,9 +92,16 @@ namespace UnityEngine.Rendering
             m_FinalAssetPath = "";
         }
 
-        public void UpdateAssetReference(bool useStreamingAsset)
+        // Ensures that the asset is referenced via Unity's serialization layer.
+        public void EnsureAssetLoaded()
         {
-            m_Asset = useStreamingAsset ? null : AssetDatabase.LoadAssetAtPath<TextAsset>(GetAssetPath());
+            m_Asset = AssetDatabase.LoadAssetAtPath<TextAsset>(GetAssetPath());
+        }
+
+        // Temporarily clear the asset reference. Used to prevent serialization of the asset when we are using the StreamingAssets codepath.
+        public void ClearAssetReferenceForBuild()
+        {
+            m_Asset = null;
         }
 #endif
 

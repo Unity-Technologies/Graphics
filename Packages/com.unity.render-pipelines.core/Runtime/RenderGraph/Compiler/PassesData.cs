@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
@@ -594,7 +595,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 return ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
             }
 
-            var actualPasses = new PassData[numGraphPasses];
+            var actualPasses =
+                new NativeArray<PassData>(numGraphPasses, Allocator.Temp,
+                    NativeArrayOptions.UninitializedMemory);
 
             for (int i = firstGraphPass, index = 0; i < lastGraphPass + 1; ++i)
             {

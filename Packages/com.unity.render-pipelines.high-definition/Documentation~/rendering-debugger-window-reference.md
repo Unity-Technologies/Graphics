@@ -648,12 +648,15 @@ The **Color monitors** are a set of industry-standard monitors to help artists c
 | **Size** | The size ratio of the color monitors.   |
 
 | **Property** | **Description** |
-| ----------------- | ------------------------------------------------------------ |
-| **Clear Render Targets at creation** | Enable the checkbox to make the Render Graph system clear render targets the first time it uses them |
-| **Disable Pass Culling** | Enable the checkbox to render passes which have no impact on the final render. |
-| **Immediate Mode** | Enable the checkbox to make the Render Graph system evaluate passes immediately after it creates them. |
-| **Log Frame Information** | Press the button to log in the Console informations about the passes rendered during a frame. |
-| **Log Resources** | Press the button to log in the Console the list of resources used when rendering a frame. |
+| --- | --- |
+| **Clear Render Targets At Creation**  | Clears render textures the first time the render graph system uses them. |
+| **Clear Render Targets When Freed**  | Clears render textures when they're no longer used by render graph. |
+| **Disable Pass Culling** | Disables HDRP culling render passes that have no impact on the final render. |
+| **Disable Pass Merging** | Disables HDRP merging render passes. |
+| **Immediate Mode** | Enables the render graph system evaluating passes immediately after it creates them. |
+| **Enable Logging** | Enables logging to the **Console** window. |
+| **Log Frame Information** | Logs how HDRP uses the resources during the frame, in the **Console** window. |
+| **Log Resources** | Logs the resources HDRP uses during the frame, in the **Console** window. |
 
 The **NVIDIA device debug view** is a panel that displays a list of the current feature states of NVIDIA Deep Learning Super Sampling (DLSS). Each row represents an active screen in which DLSS is running.
 

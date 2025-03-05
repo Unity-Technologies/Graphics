@@ -2,6 +2,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 
@@ -9,6 +10,8 @@ namespace UnityEngine.Rendering.Tests
 {
     class NativePassCompilerRenderGraphTests
     {
+        static Recorder gcAllocRecorder = Recorder.Get("GC.Alloc");
+
         class RenderGraphTestPassData
         {
             public TextureHandle[] textures = new TextureHandle[8];
@@ -1144,6 +1147,65 @@ namespace UnityEngine.Rendering.Tests
             var firstNativePass = passes[0];
 
             Assert.IsTrue(firstNativePass.numGraphPasses == 2);
+        }
+        
+        [Test]
+        public void GraphPassesDoesNotAlloc()
+        {
+            var g = AllocateRenderGraph();
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1_Culled", out var passData))
+            {
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // First pass is preserved as requested but second pass is culled
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // Second pass has been culled
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 2);
+            // Goes into possible alloc path
+            Assert.IsFalse(passes[0].lastGraphPass - passes[0].firstGraphPass + 1 == passes[0].numGraphPasses);
+
+
+            ValidateNoGCAllocs(() =>
+            {
+                passes[0].GraphPasses(result.contextData);
+            });
+
+            // From RenderPassCullingTests.cs
+            void ValidateNoGCAllocs(Action action)
+            {
+                // Warmup - this will catch static c'tors etc.
+                CountGCAllocs(action);
+
+                // Actual test.
+                var count = CountGCAllocs(action);
+                if (count != 0)
+                    throw new AssertionException($"Expected 0 GC allocations but there were {count}");
+            }
+
+            int CountGCAllocs(Action action)
+            {
+                gcAllocRecorder.FilterToCurrentThread();
+                gcAllocRecorder.enabled = true;
+
+                action();
+
+                gcAllocRecorder.enabled = false;
+                return gcAllocRecorder.sampleBlockCount;
+            }
         }
     }
 }
