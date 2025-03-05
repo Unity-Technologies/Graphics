@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                cb._GridSize.Set(extent.x, extent.y);
+                cb._GridSize.Set(extent.x + 1, extent.y + 1);
                 cb._WaterRotation.Set(Mathf.Cos(rotation), Mathf.Sin(rotation));
                 cb._PatchOffset = currentWater.transform.position;
             }
