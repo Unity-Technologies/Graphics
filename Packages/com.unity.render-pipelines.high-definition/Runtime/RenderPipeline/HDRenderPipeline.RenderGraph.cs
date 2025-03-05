@@ -947,9 +947,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Rect viewport;
         }
 
-        TextureHandle CreateOffscreenUIBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
+        TextureHandle CreateOffscreenUIBuffer(RenderGraph renderGraph, MSAASamples msaaSamples, Rect viewport)
         {
-            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, false, true)
+            return renderGraph.CreateTexture(new TextureDesc((int)viewport.width, (int)viewport.height, false, true)
                 { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = false, msaaSamples = msaaSamples, name = "UI Buffer" });
         }
 
@@ -960,7 +960,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<RenderOffscreenUIData>("UI Rendering", out var passData, ProfilingSampler.Get(HDProfileId.OffscreenUIRendering)))
                 {
-                    output = builder.UseColorBuffer(CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples), 0);
+                    // We cannot use rendererlist here because of the path tracing denoiser which will make it invalid due to multiple rendering per frame
+                    output = builder.UseColorBuffer(CreateOffscreenUIBuffer(renderGraph, hdCamera.msaaSamples, hdCamera.finalViewport), 0);
 
                     passData.camera = hdCamera.camera;
                     passData.frameSettings = hdCamera.frameSettings;
