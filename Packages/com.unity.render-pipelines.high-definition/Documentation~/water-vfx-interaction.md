@@ -1,4 +1,4 @@
-# Interaction between the Water System and the VFX Graph
+# Interaction between the water system and the VFX Graph
 
 The water system supports being evaluated from the VFX Graph, to access data such as the water height at a given point, the surface normal, or the current value.
 

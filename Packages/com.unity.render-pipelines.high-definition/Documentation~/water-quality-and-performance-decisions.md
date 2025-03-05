@@ -23,4 +23,4 @@ For masks and decals, custom mesh and custom foam textures, adjust the resolutio
 Don't select CPU Simulation in Simulation Mode setting in the HDRP Asset unless you absolutely need accurate results. When enabled, it increases the number of calculations Unity performs because the GPU simulation has to be duplicated on the CPU.
 
 # Additional resources
-[Settings and properties related to the Water System](settings-and-properties-related-to-the-water-system.md)
+[Settings and properties related to the water system](settings-and-properties-related-to-the-water-system.md)

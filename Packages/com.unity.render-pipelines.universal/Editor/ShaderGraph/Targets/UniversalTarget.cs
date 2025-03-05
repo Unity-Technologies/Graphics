@@ -1650,6 +1650,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.ExcludeRenderers(new[] { Platform.D3D9 }) },
+            { Pragma.MultiCompileInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };

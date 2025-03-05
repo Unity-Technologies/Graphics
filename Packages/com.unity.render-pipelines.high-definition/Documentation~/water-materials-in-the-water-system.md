@@ -24,5 +24,5 @@ To create a custom water Material, copy the default water Material and adjust th
 
 ## Additional resources
 * [Foam in the water system](water-foam-in-the-water-system.md)
-* [Caustics in the Water System](water-caustics-in-the-water-system.md)
-* [Settings and properties related to the Water System](settings-and-properties-related-to-the-water-system.md)
+* [Caustics in the water system](water-caustics-in-the-water-system.md)
+* [Settings and properties related to the water system](settings-and-properties-related-to-the-water-system.md)

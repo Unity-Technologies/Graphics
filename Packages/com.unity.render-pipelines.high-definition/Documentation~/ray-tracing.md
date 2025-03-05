@@ -4,6 +4,7 @@ Use ray tracing to create realistic lighting and access other data in a scene th
 
 | Page | Description |
 |-|-|
+| [Introduction to ray tracing](ray-tracing-introduction.md) | Use ray tracing to simulate realistic lighting in your project. |
 | [Set up ray tracing](Ray-Tracing-Getting-Started.md) | Enable properties and features to make ray-tracing work in a scene. |
 | [Implement ray tracing with shader graph](SGNode-Raytracing-Quality.md) | Use ray-traced effects with shader graph materials. |
 |[Ray Tracing and animations](Ray-Tracing-Animations.md)|Set up alembic animated meshes and Skinned Mesh Renderers to work with raytraced effects.|

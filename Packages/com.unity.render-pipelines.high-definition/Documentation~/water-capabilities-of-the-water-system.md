@@ -1,6 +1,6 @@
 
-# Capabilities of the Water System
-The Water System simulates the behavior of water surfaces. It is adjustable and customizable.
+# Capabilities of the water system
+The water system simulates the behavior of water surfaces. It is adjustable and customizable.
 A scene can support multiple water surfaces simultaneously.
 
 ## Water body types
@@ -11,7 +11,7 @@ It is possible to view water surfaces from below if you enable the **Underwater*
 
 ## Wind and current
 Wind and swell or ripple properties combine with **Current** values to determine the motion of the [water simulation](water-water-system-simulation.md).
-For more information about customizing current, see [Create a current in the Water System](water-create-a-current-in-the-water-system) section.
+For more information about customizing current, see [Create a current in the water system](water-create-a-current-in-the-water-system) section.
 
 ## Simulation foam
 **River** and **Ocean, Sea, or Lake** surfaces support surface simulation foam. You can adjust the amount of foam, its smoothness, mask it and dim it depending on the **Distant Wind Speed** using the **Wind Speed Dimmer**.
@@ -28,17 +28,18 @@ For more in-depth water Material customizations, you can use [the water ShaderGr
 ## Masking
 You can assign custom masks to attenuate or supress ripples, swells, and foam on specific portions of a water surface. You can also use them to adjust decal and light layers.
 ## Scripting
-It is possible to create [scripts that interact with the Water System](water-scripting-in-the-water-system.md), to imitate buoyancy, for example.
+It is possible to create [scripts that interact with the water system](water-scripting-in-the-water-system.md), to imitate buoyancy, for example.
 
 ## Limitations and caveats
-The Water System does not currently support:
+The water system does not currently support:
 * Breaking waves on shorelines
 * Views from the side (as in an aquarium)
-* Spherical or vertical body of Water (like planets or water flowing in a ring planet)
+* Spherical or vertical body of water (like planets or water flowing in a ring planet)
+* Selection on the scene view (selection of the water surface must be done through the hierarchy tab) 
 
 Foam and caustics are monochrome.
 ### Feature compatibility
-The Water System is compatible with most HDRP and Unity features, with some specific exceptions.
+The water system is compatible with most HDRP and Unity features, with some specific exceptions.
 #### Lighting
 You cannot bake lighting for a water surface.
 #### Dynamic resolution and antialiasing
@@ -64,5 +65,5 @@ Also, **Affect Base Color** only produces monochromatic output.
 
 
 # Additional resources
-* [Settings and properties related to the Water System](settings-and-properties-related-to-the-water-system.md)
-* [Scripting in the Water System](water-scripting-in-the-water-system.md)
+* [Settings and properties related to the water system](settings-and-properties-related-to-the-water-system.md)
+* [Scripting in the water system](water-scripting-in-the-water-system.md)

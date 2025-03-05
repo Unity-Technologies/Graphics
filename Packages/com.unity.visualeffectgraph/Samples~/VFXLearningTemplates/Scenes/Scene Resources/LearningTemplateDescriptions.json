@@ -53,7 +53,7 @@
 			"""<ignore><link="MultipleOutputs.vfx">Open VFX</link>
 			<link="VFXG Multiple Outputs">Show VFX</link>
 			</ignore>
-			The <b>output context</b> is where everything related to the rendering part of particles is done. You can render particles as <b>billboard quads</b>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputMesh.html">meshes</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputPoint.html">points</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputForwardDecal.html">decals</a>, etc...
+			The <b>output context</b> is where everything related to the rendering part of particles is done. You can render particles as <b>billboard quads</b>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputMesh.html">meshes</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputPoint.html">points</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputParticleURPLitDecal.html">decals</a>, etc...
 			This VFX Graph shows how you can add several outputs to render each particle multiple times.
 
 			<b>Covered Aspects:</b>
@@ -327,10 +327,9 @@
 			"""<ignore><link="TriggerEventCollide.vfx">Open VFX</link>
 			<link="VFXG Trigger Event on Collide">Show VFX</link>
 			</ignore>
-			This VFX is displaying an advanced usage of the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-TriggerEventOnDie.html">Trigger Event on Collide</a> block that allows us to spawn new particles when a particle collides. Dart particles are thrown at the dartboard. When they collide, they instantaneously die and trigger different <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>. Those <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a> are used to spawn new particles, like the Springy darts or the UI Score particles, that all <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html#source">inherit attributes</a> from their parent.
+			This VFX is displaying an advanced usage of the Trigger Event on Collide block that allows us to spawn new particles when a particle collides. Dart particles are thrown at the dartboard. When they collide, they instantaneously die and trigger different <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>. Those <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a> are used to spawn new particles, like the Springy darts or the UI Score particles, that all <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html#source">inherit attributes</a> from their parent.
 
 			<b>Covered Aspects</b>:
-			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-TriggerEventOnDie.html">Trigger Event on Collide</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html#source">Source Attribute</a>"""
 		},
@@ -348,7 +347,7 @@
 			<b>Covered Aspects</b>:
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetPosition(SkinnedMesh).html">Skinned Mesh Position</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputParticleHDRPLitDecal.html">Output Decals HDRP</a>
-			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputParticleHDRPLitDecal.html">Output Decals URP</a>"""
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputParticleURPLitDecal.html">Output Decals URP</a>"""
 		},
 		{
 			"title": "Strip Properties",

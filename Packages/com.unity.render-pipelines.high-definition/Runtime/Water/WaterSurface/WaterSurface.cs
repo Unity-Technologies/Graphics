@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Water surface component.
     /// </summary>
-    [HDRPHelpURL("WaterSystem")]
+    [HDRPHelpURL("water")]
     [DisallowMultipleComponent]
     [ExecuteInEditMode]
     public partial class WaterSurface : MonoBehaviour

@@ -1053,6 +1053,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!RenderSettings.fog || isOrthographic)
                 return;
 
+            if (m_StencilDeferredPasses[(int)StencilDeferredPasses.Fog] < 0)
+            {
+                Debug.LogError("Missing Deferred Fog Pass. The fog render pass will not execute. Project Settings > Graphics > Shader Stripping > Fog Modes.");
+                return;
+            }
+
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 

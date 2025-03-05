@@ -167,6 +167,9 @@
         },
         {
             "m_Id": "d2e026fb974640d88354b9db37f16adc"
+        },
+        {
+            "m_Id": "004724a13a3649f99ab4d18d7034014e"
         }
     ],
     "m_GroupDatas": [
@@ -194,6 +197,20 @@
     ],
     "m_StickyNoteDatas": [],
     "m_Edges": [
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "004724a13a3649f99ab4d18d7034014e"
+                },
+                "m_SlotId": 1
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "12829ffa0fc947c3b4d15ecf2f30eb7f"
+                },
+                "m_SlotId": 0
+            }
+        },
         {
             "m_OutputSlot": {
                 "m_Node": {
@@ -525,7 +542,7 @@
             },
             "m_InputSlot": {
                 "m_Node": {
-                    "m_Id": "12829ffa0fc947c3b4d15ecf2f30eb7f"
+                    "m_Id": "004724a13a3649f99ab4d18d7034014e"
                 },
                 "m_SlotId": 0
             }
@@ -845,6 +862,7 @@
     "m_OutputNode": {
         "m_Id": ""
     },
+    "m_SubDatas": [],
     "m_ActiveTargets": [
         {
             "m_Id": "dfbc9173353b40818e47983691dfb62a"
@@ -853,6 +871,44 @@
             "m_Id": "7f5598a8776d4b5e9575de794524e883"
         }
     ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.AbsoluteNode",
+    "m_ObjectId": "004724a13a3649f99ab4d18d7034014e",
+    "m_Group": {
+        "m_Id": "0bebe54c55f040569c9a52c8ff7bf0bd"
+    },
+    "m_Name": "Absolute",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -136.66665649414063,
+            "y": -2002.6666259765625,
+            "width": 129.3333282470703,
+            "height": 96.0001220703125
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "4895b1221a844ebdbb4c6aff276cb91f"
+        },
+        {
+            "m_Id": "8dcee0895ecb4ed2b3d2f4f35219b2d6"
+        }
+    ],
+    "synonyms": [
+        "positive"
+    ],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    }
 }
 
 {
@@ -1130,8 +1186,8 @@
     "m_ObjectId": "0bebe54c55f040569c9a52c8ff7bf0bd",
     "m_Title": "Animate Burning Wick Color",
     "m_Position": {
-        "x": 10.0,
-        "y": 10.0
+        "x": -858.6666870117188,
+        "y": -2061.33349609375
     }
 }
 
@@ -1243,10 +1299,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -82.66650390625,
-            "y": -1837.3331298828125,
-            "width": 127.33317565917969,
-            "height": 120.0
+            "x": 55.33333206176758,
+            "y": -1963.3333740234375,
+            "width": 209.3332977294922,
+            "height": 304.0
         }
     },
     "m_Slots": [
@@ -1262,7 +1318,7 @@
     ],
     "synonyms": [],
     "m_Precision": 0,
-    "m_PreviewExpanded": false,
+    "m_PreviewExpanded": true,
     "m_DismissedVersion": 0,
     "m_PreviewMode": 0,
     "m_CustomColors": {
@@ -2286,10 +2342,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -463.3332214355469,
-            "y": -1976.0,
-            "width": 147.33328247070313,
-            "height": 132.0
+            "x": -480.00006103515627,
+            "y": -2002.6668701171875,
+            "width": 147.33331298828126,
+            "height": 132.0001220703125
         }
     },
     "m_Slots": [
@@ -2507,10 +2563,10 @@
         "w": 1.0
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0,
+        "w": 1.0
     },
     "m_Labels": []
 }
@@ -2646,6 +2702,30 @@
     "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
+    "m_ObjectId": "4895b1221a844ebdbb4c6aff276cb91f",
+    "m_Id": 0,
+    "m_DisplayName": "In",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "In",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
     }
 }
 
@@ -3055,8 +3135,8 @@
         "y": 1.0
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0
+        "x": 1.0,
+        "y": 1.0
     },
     "m_Labels": []
 }
@@ -3488,8 +3568,8 @@
     "m_ObjectId": "755c526010d54d8eabccf204aa308bad",
     "m_Title": "Radial Gradient",
     "m_Position": {
-        "x": -2509.88525390625,
-        "y": -1597.250244140625
+        "x": -2509.999755859375,
+        "y": -1597.33349609375
     }
 }
 
@@ -3597,8 +3677,8 @@
         "y": 1.0
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0
+        "x": -1.0,
+        "y": 1.0
     },
     "m_Labels": []
 }
@@ -3663,6 +3743,7 @@
     "m_AlphaClip": false,
     "m_CastShadows": true,
     "m_ReceiveShadows": true,
+    "m_DisableTint": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
@@ -3878,8 +3959,8 @@
     "m_ObjectId": "885f65af6f6945f89e24ff6bc42e7967",
     "m_Title": "Switch between the wick and the candle colors.",
     "m_Position": {
-        "x": 10.0,
-        "y": 10.0
+        "x": 201.33331298828126,
+        "y": -1158.0
     }
 }
 
@@ -3967,9 +4048,9 @@
         "m_Expanded": false,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -279.9998474121094,
-            "y": -1976.0,
-            "width": 120.66654968261719,
+            "x": -294.6667175292969,
+            "y": -2002.6668701171875,
+            "width": 120.66664123535156,
             "height": 78.666748046875
         }
     },
@@ -4061,6 +4142,30 @@
     "m_Value": 1.0,
     "m_DefaultValue": 1.0,
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
+    "m_ObjectId": "8dcee0895ecb4ed2b3d2f4f35219b2d6",
+    "m_Id": 1,
+    "m_DisplayName": "Out",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    }
 }
 
 {
@@ -4215,7 +4320,7 @@
     },
     "m_DefaultValue": {
         "x": 0.0,
-        "y": 0.0
+        "y": 1.0
     },
     "m_Labels": []
 }
@@ -4481,7 +4586,7 @@
     "m_ObjectId": "a4dfcbc6be1741a08cac12a29d8253ee",
     "m_Title": "Smoothness and metallic based on VertexColor.G",
     "m_Position": {
-        "x": 420.0,
+        "x": 419.99993896484377,
         "y": -716.6666259765625
     }
 }
@@ -4614,10 +4719,10 @@
         "w": 1.0
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0,
+        "w": 1.0
     },
     "m_Labels": []
 }
@@ -4998,7 +5103,7 @@
     "m_ObjectId": "ba381c64c0cd4d09ae5202a50817a952",
     "m_Title": "Switch between the wax color and the metal one.",
     "m_Position": {
-        "x": -1109.33349609375,
+        "x": -1109.3333740234375,
         "y": -1120.6666259765625
     }
 }
@@ -5204,10 +5309,10 @@
         "w": 1.0
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0,
+        "w": 1.0
     },
     "m_Labels": []
 }
@@ -5305,7 +5410,7 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.SystemData",
     "m_ObjectId": "d0a62b9685c9437ea166546ba78d82b2",
-    "m_MaterialNeedsUpdateHash": 531,
+    "m_MaterialNeedsUpdateHash": 0,
     "m_SurfaceType": 0,
     "m_RenderingPass": 1,
     "m_BlendMode": 0,
@@ -5315,6 +5420,7 @@
     "m_OpaqueCullMode": 2,
     "m_SortPriority": 0,
     "m_AlphaTest": false,
+    "m_ExcludeFromTUAndAA": false,
     "m_TransparentDepthPrepass": false,
     "m_TransparentDepthPostpass": false,
     "m_SupportLodCrossFade": false,
@@ -5511,10 +5617,10 @@
         "w": 1.0
     },
     "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 0.0
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0,
+        "w": 1.0
     },
     "m_Labels": []
 }
@@ -6465,8 +6571,8 @@
     "m_ObjectId": "fd7b6565ce8f4c2fbc721702d762ee63",
     "m_Title": "Wax Fake illumination",
     "m_Position": {
-        "x": 10.0,
-        "y": 10.0
+        "x": -1489.3333740234375,
+        "y": -1786.6666259765625
     }
 }
 

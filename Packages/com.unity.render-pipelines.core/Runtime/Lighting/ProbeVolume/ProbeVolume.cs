@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
-    [CoreRPHelpURL("probevolumes-settings#probe-volume-properties", "com.unity.render-pipelines.high-definition")]
+    [CoreRPHelpURL("probevolumes-options-override-reference", "com.unity.render-pipelines.high-definition")]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Adaptive Probe Volume")]
     public partial class ProbeVolume : MonoBehaviour

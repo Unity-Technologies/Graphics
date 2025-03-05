@@ -1,4 +1,4 @@
-# Create a current in the Water System
+# Create a current in the water system
 To create and control a current in the water system, apply a current map to a water surface.
 A current map is a texture that modifies the local swell, agitation or ripples of a water surface current.
 Current maps are different from flow maps because the water flow can’t stop and it always has a direction. In addition, the speed of the flow remains constant all along the surface.

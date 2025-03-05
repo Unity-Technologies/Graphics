@@ -100,7 +100,7 @@ Local Clouds option is also removed, as far plane clipping does not happen anymo
 
 ![](Images/visualenvironment-renderingspace.png)
 
-#### Water System
+#### Water system
 
 Support of GameObject transform on Water Surfaces have been improved. Infinite Oceans and surfaces with Instanced Quad geometry can now be translated and rotated, and support setting a negative scale to flip the surface.
 Added a Water Decal target for ShaderGraph in order to output water deformation and foam directly to the atlas, and avoid going through a CustomRenderTexture. Using the same graph also simplifies authoring when deformation and foam generation are linked.

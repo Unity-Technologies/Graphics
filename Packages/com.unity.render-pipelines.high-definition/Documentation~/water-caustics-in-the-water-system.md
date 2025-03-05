@@ -1,4 +1,4 @@
-# Caustics in the Water System
+# Caustics in the water system
 Caustics are a consequence of light rays refracted or reflected by a curved surface and projected onto another object.
 
 ## Opacity
@@ -17,7 +17,7 @@ this.GetComponent<DecalProjector>().material.SetTexture("_Base_Color", waterSurf
 Caustics have the following limitations with transparents GameObjects:
 * When the camera is above a water surface, HDRP computes caustics using the position of any opaque object behind a transparent.
 * HDRP doesn't apply caustics to transparent GameObjects when the camera is underwater.
-* Caustics do not react to current maps and water mask.
+* Caustics do not react to current maps and Water Mask.
 
 ## Additional resources
-* <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the Water System</a>
+* <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the water system</a>

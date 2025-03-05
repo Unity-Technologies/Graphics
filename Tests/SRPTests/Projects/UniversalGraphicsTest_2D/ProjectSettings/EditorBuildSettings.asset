@@ -251,5 +251,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/080_TilemapRenderer_GPUSkinning.unity
     guid: f2882940e2db8f344878e353fac92b48
+  - enabled: 1
+    path: Assets/Scenes/081_TilemapRenderer_SRPBatch_Color.unity
+    guid: cc7b6c00f76631b43b37c30813e45fd7
+  - enabled: 1
+    path: Assets/Scenes/083_GPU_Instancing.unity
+    guid: 67d46509b9dfceb43bf64d2d1ae052f5
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

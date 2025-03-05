@@ -1,6 +1,6 @@
 using System;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
         public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex)
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
+            CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
 
             if (!layerBatch.useNormals)
                 return;
@@ -40,11 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
             using (var builder = graph.AddRasterRenderPass<PassData>(k_NormalPass, out var passData, m_ProfilingSampler))
             {
-                var filterSettings = FilteringSettings.defaultValue;
-                filterSettings.renderQueueRange = RenderQueueRange.all;
-                filterSettings.layerMask = -1;
-                filterSettings.renderingLayerMask = 0xFFFFFFFF;
-                filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
+                LayerUtility.GetFilterSettings(rendererData, ref layerBatch, out var filterSettings);
 
                 var drawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, renderingData, cameraData, lightData, SortingCriteria.CommonTransparent);
                 var sortSettings = drawSettings.sortingSettings;
@@ -54,7 +51,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderAttachment(universal2DResourceData.normalsTexture[batchIndex], 0);
-                builder.SetRenderAttachmentDepth(universal2DResourceData.intermediateDepth, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture, AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);

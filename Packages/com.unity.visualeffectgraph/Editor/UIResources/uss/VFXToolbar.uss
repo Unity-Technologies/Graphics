@@ -58,24 +58,6 @@
     margin-top: 0px;
 }
 
-.link
-{
-    align-self: Flex-Start;
-    color: var(--unity-colors-link-text);
-    border-width: 0;
-    background-color: rgba(0, 0, 0, 0);
-    cursor: Link;
-    padding-right: 0;
-}
-
-.link:focus
-{
-    -unity-font-style: bold;
-    border-bottom-width: 1px;
-    border-radius: 0;
-    border-color: var(--unity-colors-link-text);
-}
-
 Box.section
 {
     padding: 8px 0px 8px 0px;
@@ -96,7 +78,7 @@ Button
 
 Button:hover, Toggle:hover
 {
-    background-color: var(--unity-colors-highlight-background);
+    background-color: var(--unity-colors-toolbar_button-background-hover);
 }
 
 Button:disabled

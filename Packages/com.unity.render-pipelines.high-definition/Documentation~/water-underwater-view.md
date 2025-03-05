@@ -36,4 +36,4 @@ See the Waterline scene in the [HDRP Water samples](HDRP-Sample-Content.md#water
 * The **Receive Fog** option on transparent materials will also disable underwater. This can be useful to disable absorption on objects when using excluder underwater (like a porthole in the hold of a boat), or simply as an optimization when it is known that fog will not affect the object color.
 
 # Additional resources
-* [Settings and properties related to the Water System](settings-and-properties-related-to-the-water-system.md)
+* [Settings and properties related to the water system](settings-and-properties-related-to-the-water-system.md)
