@@ -380,6 +380,8 @@ namespace UnityEditor.Rendering.Universal.Path2D
         {
             if (m_GUIState.eventType == EventType.Layout)
                 m_Controller.ClearClosestPath();
+            else if (m_GUIState.eventType == EventType.ValidateCommand)
+                return;
 
             m_RectSelector.OnGUI();
 
