@@ -1768,7 +1768,6 @@ namespace UnityEngine.Rendering.Universal
             internal bool requiresDepthPrepass;
             internal bool requiresNormalsTexture;
             internal bool requiresColorTexture;
-            internal bool requiresColorTextureCreated;
             internal bool requiresMotionVectors;
             internal RenderPassEvent requiresDepthNormalAtEvent;
             internal RenderPassEvent requiresDepthTextureEarliestEvent;
@@ -1787,13 +1786,6 @@ namespace UnityEngine.Rendering.Universal
                 bool needsColor = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
                 bool needsMotion = (pass.input & ScriptableRenderPassInput.Motion) != ScriptableRenderPassInput.None;
                 bool eventBeforeRenderingOpaques = pass.renderPassEvent < RenderPassEvent.AfterRenderingOpaques;
-
-                // TODO: Need a better way to handle this, probably worth to recheck after render graph
-                // DBuffer requires color texture created as it does not handle y flip correctly
-                if (pass is DBufferRenderPass dBufferRenderPass)
-                {
-                    inputSummary.requiresColorTextureCreated = true;
-                }
 
                 inputSummary.requiresDepthTexture |= needsDepth;
 
@@ -1963,7 +1955,7 @@ namespace UnityEngine.Rendering.Universal
 
             return requiresBlitForOffscreenCamera || isScaledRender || isScalableBufferManagerUsed || cameraData.isHdrEnabled ||
                 !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion ||
-                renderPassInputs.requiresColorTexture || renderPassInputs.requiresColorTextureCreated ;
+                renderPassInputs.requiresColorTexture;
         }
 
         // There is two ways to control the dynamic resolution in URP:
