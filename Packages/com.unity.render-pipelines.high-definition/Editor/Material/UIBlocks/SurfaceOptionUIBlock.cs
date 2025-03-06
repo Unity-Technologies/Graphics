@@ -325,7 +325,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             transmissionEnable = FindProperty(kTransmissionEnable);
             clearCoatEnabled = FindProperty(kClearCoatEnabled);
-            
+
             excludeFromTUAndAA = FindProperty(kExcludeFromTUAndAA);
 
             if ((m_Features & Features.DoubleSidedNormalMode) != 0)
@@ -872,6 +872,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
 
                     materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
+                    EditorGUI.indentLevel--;
+                }
+
+                if (displaceMode != DisplacementMode.None && materials[0].GetTexture(kHeightMap) == null)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUI.indentLevel++;
+
+                    EditorGUILayout.HelpBox("Please set a valid HeightMap (in the 'Surface Inputs' category) to apply any displacement.", MessageType.Warning);
                     EditorGUI.indentLevel--;
                 }
             }
