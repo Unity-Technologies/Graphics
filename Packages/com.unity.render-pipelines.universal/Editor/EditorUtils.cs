@@ -68,16 +68,5 @@ namespace UnityEditor.Rendering.Universal
                         CoreEditorUtils.Highlight(currentPipeline.name, propertyPath, HighlightSearchMode.Identifier);
             });
         }
-
-        internal static void DrawRenderingLayerMask(SerializedProperty property, GUIContent style)
-        {
-            var renderingLayer = property.uintValue;
-
-            EditorGUI.BeginChangeCheck();
-            renderingLayer = EditorGUILayout.RenderingLayerMaskField(style, renderingLayer);
-
-            if (EditorGUI.EndChangeCheck())
-                property.uintValue = renderingLayer;
-        }
     }
 }

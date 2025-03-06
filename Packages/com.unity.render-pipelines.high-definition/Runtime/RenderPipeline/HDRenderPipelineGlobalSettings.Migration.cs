@@ -174,8 +174,9 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.RenderingLayerMask, (HDRenderPipelineGlobalSettings data) =>
             {
 #pragma warning disable 618 // Type or member is obsolete
-                if (data.renderingLayerNames == null)
+                if (data.renderingLayerNames == null || data.renderingLayerNames.Length == 0)
                     return;
+                
                 for (int i = 1; i < data.renderingLayerNames.Length; i++)
                 {
                     if (i >= UnityEngine.RenderingLayerMask.GetRenderingLayerCount())

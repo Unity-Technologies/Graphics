@@ -33,24 +33,6 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Options to control the renderer override.
-    /// This enum is no longer in use.
-    /// </summary>
-    [Obsolete("Renderer override is no longer used, renderers are referenced by index on the pipeline asset.")]
-    public enum RendererOverrideOption
-    {
-        /// <summary>
-        /// Use this to choose a custom override.
-        /// </summary>
-        Custom,
-
-        /// <summary>
-        /// Use this to choose the setting set on the pipeline asset.
-        /// </summary>
-        UsePipelineSettings,
-    }
-
-    /// <summary>
     /// Holds information about the post-processing anti-aliasing mode.
     /// When set to <c>None</c> no post-processing anti-aliasing pass will be performed.
     /// When set to <c>Fast</c> a fast approximated anti-aliasing pass will render when resolving the camera to screen.
@@ -457,7 +439,7 @@ namespace UnityEngine.Rendering.Universal
     [RequireComponent(typeof(Camera))]
     [ExecuteAlways] // NOTE: This is required to get calls to OnDestroy() always. Graphics resources are released in OnDestroy().
     [URPHelpURL("universal-additional-camera-data")]
-    public class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
+    public partial class UniversalAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
         const string k_GizmoPath = "Packages/com.unity.render-pipelines.universal/Editor/Gizmos/";
         const string k_BaseCameraGizmoPath = k_GizmoPath + "Camera_Base.png";
@@ -502,8 +484,6 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("requiresColorTexture"), SerializeField]
         bool m_RequiresColorTexture = false;
 
-        [HideInInspector] [SerializeField] float m_Version = 2;
-
         // These persist over multiple frames
         [NonSerialized] MotionVectorsPersistentData m_MotionVectorsPersistentData = new MotionVectorsPersistentData();
 
@@ -511,12 +491,7 @@ namespace UnityEngine.Rendering.Universal
         [NonSerialized] internal UniversalCameraHistory m_History = new UniversalCameraHistory();
 
         [SerializeField] internal TemporalAA.Settings m_TaaSettings = TemporalAA.Settings.Create();
-
-        /// <summary>
-        /// The serialized version of the class. Used for upgrading.
-        /// </summary>
-        public float version => m_Version;
-
+        
         static UniversalAdditionalCameraData s_DefaultAdditionalCameraData = null;
         internal static UniversalAdditionalCameraData defaultAdditionalCameraData
         {
@@ -943,22 +918,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
-        public void OnBeforeSerialize()
-        {
-        }
-
-        /// <inheritdoc/>
-        public void OnAfterDeserialize()
-        {
-            if (version <= 1)
-            {
-                m_RequiresDepthTextureOption = (m_RequiresDepthTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
-                m_RequiresOpaqueTextureOption = (m_RequiresColorTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
-                m_Version = 2;
-            }
-        }
-
-        /// <inheritdoc/>
         public void OnValidate()
         {
             if (m_CameraType == CameraRenderType.Overlay && m_Camera != null)
@@ -1036,6 +995,38 @@ namespace UnityEngine.Rendering.Universal
                 return null;
 
             return renderers[m_RendererIndex];
+        }
+        
+        enum Version
+        {
+            Initial = 0,
+            DepthAndOpaqueTextureOptions = 2,
+            
+            Count
+        }
+        
+        [SerializeField] Version m_Version = Version.Count;
+
+        // This piece of code is needed because some objects could have been created before existence of Version enum
+        /// <summary>OnBeforeSerialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            if (m_Version == Version.Count) // serializing a newly created object
+                m_Version = Version.Count - 1; // mark as up to date
+        }
+
+        /// <summary>OnAfterDeserialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (m_Version == Version.Count) // deserializing and object without version
+                m_Version = Version.Initial; // reset to run the migration
+            
+            if (m_Version < Version.DepthAndOpaqueTextureOptions)
+            {
+                m_RequiresDepthTextureOption = (m_RequiresDepthTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
+                m_RequiresOpaqueTextureOption = (m_RequiresColorTexture) ? CameraOverrideOption.On : CameraOverrideOption.Off;
+                m_Version = Version.DepthAndOpaqueTextureOptions;
+            }
         }
     }
 }

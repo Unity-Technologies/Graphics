@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
             if (asset.m_AssetVersion < 7)
             {
 #pragma warning disable 618 // Type or member is obsolete
-                if (asset.m_RenderingLayerNames != null)
+                if (asset.m_RenderingLayerNames is { Length: > 0 })
                 {
                     for (int i = 1; i < asset.m_RenderingLayerNames.Length; i++)
                     {
@@ -130,7 +130,6 @@ namespace UnityEngine.Rendering.Universal
                         RenderPipelineEditorUtility.TrySetRenderingLayerName(i, currentLayerName);
                     }
                 }
-
 #pragma warning restore 618 // Type or member is obsolete
                 asset.m_AssetVersion = 7;
             }

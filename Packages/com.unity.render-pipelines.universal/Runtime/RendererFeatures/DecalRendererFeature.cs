@@ -4,6 +4,7 @@ using UnityEngine.Rendering.Universal.Internal;
 using System;
 
 #if UNITY_EDITOR
+using UnityEditor.Rendering;
 using ShaderKeywordFilter = UnityEditor.ShaderKeywordFilter;
 #endif
 
@@ -100,6 +101,9 @@ namespace UnityEngine.Rendering.Universal
                 DecalProjector.onDecalPropertyChange += OnDecalPropertyChange;
                 DecalProjector.onDecalMaterialChange += OnDecalMaterialChange;
                 DecalProjector.onAllDecalPropertyChange += OnAllDecalPropertyChange;
+#if UNITY_EDITOR
+                RenderPipelineEditorUtility.onRenderingLayerCountChanged += OnAllDecalPropertyChange;
+#endif
             }
 
             m_ReferenceCounter++;
@@ -131,6 +135,9 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.onDecalPropertyChange -= OnDecalPropertyChange;
             DecalProjector.onDecalMaterialChange -= OnDecalMaterialChange;
             DecalProjector.onAllDecalPropertyChange -= OnAllDecalPropertyChange;
+#if UNITY_EDITOR
+            RenderPipelineEditorUtility.onRenderingLayerCountChanged -= OnAllDecalPropertyChange;
+#endif
         }
 
         private void OnDecalAdd(DecalProjector decalProjector)

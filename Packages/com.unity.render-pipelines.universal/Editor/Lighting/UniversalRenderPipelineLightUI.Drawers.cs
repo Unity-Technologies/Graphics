@@ -272,10 +272,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.BeginChangeCheck();
                 GUI.enabled = UniversalRenderPipeline.asset.useRenderingLayers;
-                EditorUtils.DrawRenderingLayerMask(
-                    serializedLight.renderingLayers,
-                    UniversalRenderPipeline.asset.useRenderingLayers ? Styles.RenderingLayers : Styles.RenderingLayersDisabled
-                );
+                EditorGUILayout.PropertyField(serializedLight.renderingLayers, UniversalRenderPipeline.asset.useRenderingLayers ? Styles.RenderingLayers : Styles.RenderingLayersDisabled);
                 GUI.enabled = true;
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -376,6 +373,11 @@ namespace UnityEditor.Rendering.Universal
                     {
                         EditorGUI.BeginChangeCheck();
                         EditorGUILayout.PropertyField(serializedLight.customShadowLayers, Styles.customShadowLayers);
+                        if (serializedLight.customShadowLayers.boolValue)
+                        {
+                            using (new EditorGUI.IndentLevelScope()) 
+                                EditorGUILayout.PropertyField(serializedLight.shadowRenderingLayers, Styles.ShadowLayer);
+                        }
                         // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -387,20 +389,6 @@ namespace UnityEditor.Rendering.Universal
                             {
                                 serializedLight.serializedAdditionalDataObject.ApplyModifiedProperties(); // we need to push above modification the modification on object as it is used to sync
                                 SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
-                            }
-                        }
-
-                        if (serializedLight.customShadowLayers.boolValue)
-                        {
-                            using (new EditorGUI.IndentLevelScope())
-                            {
-                                EditorGUI.BeginChangeCheck();
-                                EditorUtils.DrawRenderingLayerMask(serializedLight.shadowRenderingLayers, Styles.ShadowLayer);
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    serializedLight.settings.light.renderingLayerMask = serializedLight.shadowRenderingLayers.intValue;
-                                    serializedLight.Apply();
-                                }
                             }
                         }
                     }

@@ -1,5 +1,6 @@
 using System;
 using UnityEditor;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -22,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
     [CanEditMultipleObjects]
 #endif
     [AddComponentMenu("Rendering/URP Decal Projector")]
-    public class DecalProjector : MonoBehaviour
+    public partial class DecalProjector : MonoBehaviour, ISerializationCallbackReceiver
     {
         internal delegate void DecalProjectorAction(DecalProjector decalProjector);
         internal static event DecalProjectorAction onDecalAdd;
@@ -164,15 +165,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [SerializeField]
-        uint m_DecalLayerMask = 1;
+        [SerializeField] RenderingLayerMask m_RenderingLayerMask = RenderingLayerMask.defaultRenderingLayerMask;
+
         /// <summary>
         /// The layer of the decal.
         /// </summary>
-        public uint renderingLayerMask
+        public RenderingLayerMask renderingLayerMask
         {
-            get => m_DecalLayerMask;
-            set => m_DecalLayerMask = value;
+            get => m_RenderingLayerMask;
+            set => m_RenderingLayerMask = value;
         }
 
         [SerializeField]
@@ -388,6 +389,39 @@ namespace UnityEngine.Rendering.Universal
         internal static void UpdateAllDecalProperties()
         {
             onAllDecalPropertyChange?.Invoke();
+        }
+        
+        enum Version
+        {
+            Initial,
+            RenderingLayerMask,
+
+            Count
+        }
+        
+        [SerializeField] Version version = Version.Count;
+        
+        // This piece of code is needed because some objects could have been created before existence of Version enum
+        /// <summary>OnBeforeSerialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            if (version == Version.Count) // serializing a newly created object
+                version = Version.Count - 1; // mark as up to date
+        }
+
+        /// <summary>OnAfterDeserialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (version == Version.Count) // deserializing and object without version
+                version = Version.Initial; // reset to run the migration
+            
+            if (version < Version.RenderingLayerMask)
+            {
+#pragma warning disable 618 // Obsolete warning
+                m_RenderingLayerMask = m_DecalLayerMask;
+#pragma warning restore 618 // Obsolete warning
+                version = Version.RenderingLayerMask;
+            }
         }
     }
 }
