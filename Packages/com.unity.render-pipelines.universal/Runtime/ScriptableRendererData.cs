@@ -19,6 +19,18 @@ namespace UnityEngine.Rendering.Universal
     {
         internal bool isInvalidated { get; set; }
 
+        internal virtual bool stripShadowsOffVariants
+        {
+            get => m_StripShadowsOffVariants;
+            set => m_StripShadowsOffVariants = value;
+        }
+
+        internal virtual bool stripAdditionalLightOffVariants
+        {
+            get => m_StripAdditionalLightOffVariants;
+            set => m_StripAdditionalLightOffVariants = value;
+        }
+
         /// <summary>
         /// Creates the instance of the ScriptableRenderer.
         /// </summary>
@@ -28,6 +40,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
         [SerializeField] bool m_UseNativeRenderPass = false;
+        [NonSerialized]
+        bool m_StripShadowsOffVariants = false;
+        [NonSerialized]
+        bool m_StripAdditionalLightOffVariants = false;
 
         /// <summary>
         /// List of additional render pass features for this renderer.

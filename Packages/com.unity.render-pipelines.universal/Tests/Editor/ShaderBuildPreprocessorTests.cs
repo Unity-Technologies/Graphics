@@ -19,8 +19,7 @@ namespace ShaderStrippingAndPrefiltering
             internal UniversalRendererData rendererData;
             internal ScriptableRendererData scriptableRendererData;
             internal UniversalRenderPipelineAsset urpAsset;
-            internal ScriptableRenderer ScriptableRenderer;
-            internal UniversalRenderer universalRenderer;
+            internal ScriptableRenderer scriptableRenderer;
             internal List<ShaderFeatures> rendererShaderFeatures;
             internal List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures;
             internal List<ScriptableRendererFeature> rendererFeatures;
@@ -70,10 +69,9 @@ namespace ShaderStrippingAndPrefiltering
                     urpAsset.name = "TestHelper_URPAsset";
                     GraphicsSettings.defaultRenderPipeline = urpAsset;
 
-                    ScriptableRenderer = urpAsset.GetRenderer(0);
-                    universalRenderer = ScriptableRenderer as UniversalRenderer;
+                    scriptableRenderer = urpAsset.GetRenderer(0);
                     stripUnusedVariants = true;
-                    Assert.AreNotEqual(null, universalRenderer);
+                    Assert.AreNotEqual(null, scriptableRenderer);
 
                     ssaoRendererFeatures = new List<ScreenSpaceAmbientOcclusionSettings>();
                     rendererFeatures = new List<ScriptableRendererFeature>();
@@ -89,7 +87,7 @@ namespace ShaderStrippingAndPrefiltering
 
             internal RendererRequirements GetRendererRequirements()
             {
-                return ShaderBuildPreprocessor.GetRendererRequirements(ref urpAsset, ref ScriptableRenderer, ref scriptableRendererData);
+                return ShaderBuildPreprocessor.GetRendererRequirements(ref urpAsset, ref scriptableRendererData);
             }
 
             internal void GetEveryVolumeFeatures(ref VolumeFeatures volumeFeatures)
@@ -210,9 +208,9 @@ namespace ShaderStrippingAndPrefiltering
 
                 rendererData.renderingMode = RenderingMode.Forward;
 
-                ScriptableRenderer.useRenderPassEnabled = false;
-                ScriptableRenderer.stripAdditionalLightOffVariants = true;
-                ScriptableRenderer.stripShadowsOffVariants = true;
+                scriptableRenderer.useRenderPassEnabled = false;
+                scriptableRendererData.stripAdditionalLightOffVariants = true;
+                scriptableRendererData.stripShadowsOffVariants = true;
 
                 for (int i = 0; i < rendererFeatures.Count; i++)
                 {
@@ -434,7 +432,7 @@ namespace ShaderStrippingAndPrefiltering
 
             // Native Render Pass
             m_TestHelper.rendererData.renderingMode = RenderingMode.Forward;
-            m_TestHelper.ScriptableRenderer.useRenderPassEnabled = true;
+            m_TestHelper.scriptableRenderer.useRenderPassEnabled = true;
             expected = m_TestHelper.defaultRendererRequirements;
             expected.renderingMode = m_TestHelper.rendererData.renderingMode;
             expected.needsRenderPass = false;
@@ -442,7 +440,7 @@ namespace ShaderStrippingAndPrefiltering
             m_TestHelper.AssertRendererRequirementsAndReset(expected, actual);
 
             m_TestHelper.rendererData.renderingMode = RenderingMode.ForwardPlus;
-            m_TestHelper.ScriptableRenderer.useRenderPassEnabled = true;
+            m_TestHelper.scriptableRenderer.useRenderPassEnabled = true;
             expected = m_TestHelper.defaultRendererRequirements;
             expected.renderingMode = m_TestHelper.rendererData.renderingMode;
             expected.needsRenderPass = false;
@@ -450,7 +448,7 @@ namespace ShaderStrippingAndPrefiltering
             m_TestHelper.AssertRendererRequirementsAndReset(expected, actual);
 
             m_TestHelper.rendererData.renderingMode = RenderingMode.Deferred;
-            m_TestHelper.ScriptableRenderer.useRenderPassEnabled = true;
+            m_TestHelper.scriptableRenderer.useRenderPassEnabled = true;
             expected = m_TestHelper.defaultRendererRequirements;
             expected.renderingMode = m_TestHelper.rendererData.renderingMode;
             expected.needsRenderPass = true;
@@ -539,26 +537,26 @@ namespace ShaderStrippingAndPrefiltering
             m_TestHelper.AssertRendererRequirementsAndReset(expected, actual);
 
             // Shadows Off
-            m_TestHelper.ScriptableRenderer.stripShadowsOffVariants = false;
+            m_TestHelper.scriptableRendererData.stripShadowsOffVariants = false;
             expected = m_TestHelper.defaultRendererRequirements;
             expected.needsShadowsOff = true;
             actual = m_TestHelper.GetRendererRequirements();
             m_TestHelper.AssertRendererRequirementsAndReset(expected, actual);
 
-            m_TestHelper.ScriptableRenderer.stripShadowsOffVariants = true;
+            m_TestHelper.scriptableRendererData.stripShadowsOffVariants = true;
             expected = m_TestHelper.defaultRendererRequirements;
             expected.needsShadowsOff = false;
             actual = m_TestHelper.GetRendererRequirements();
             m_TestHelper.AssertRendererRequirementsAndReset(expected, actual);
 
             // Additional Lights Off
-            m_TestHelper.ScriptableRenderer.stripAdditionalLightOffVariants = false;
+            m_TestHelper.scriptableRendererData.stripAdditionalLightOffVariants = false;
             expected = m_TestHelper.defaultRendererRequirements;
             expected.needsAdditionalLightsOff = true;
             actual = m_TestHelper.GetRendererRequirements();
             m_TestHelper.AssertRendererRequirementsAndReset(expected, actual);
 
-            m_TestHelper.ScriptableRenderer.stripAdditionalLightOffVariants = true;
+            m_TestHelper.scriptableRendererData.stripAdditionalLightOffVariants = true;
             expected = m_TestHelper.defaultRendererRequirements;
             expected.needsAdditionalLightsOff = false;
             actual = m_TestHelper.GetRendererRequirements();
