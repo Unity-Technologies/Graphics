@@ -263,7 +263,7 @@ namespace UnityEditor.Rendering
 
                 var foldoutCheckmark = resourceItem.Q("unity-checkmark");
                 // Add resource type icon before the label
-                foldoutCheckmark.parent.Insert(1, CreateResourceTypeIcon(visibleResourceElement.type));
+                foldoutCheckmark.parent.Insert(1, CreateResourceTypeIcon(visibleResourceElement.type, resourceData.memoryless));
                 foldoutCheckmark.parent.Add(iconContainer);
                 foldoutCheckmark.BringToFront(); // Move foldout checkmark to the right
 

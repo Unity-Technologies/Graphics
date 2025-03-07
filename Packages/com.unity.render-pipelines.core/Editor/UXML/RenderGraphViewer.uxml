@@ -6,6 +6,7 @@
         <ui:DropdownField name="current-execution-dropdown" label="Camera" />
         <uie:EnumFlagsField label="Pass Filter" name="pass-filter-field"/>
         <uie:EnumFlagsField label="Resource Filter" name="resource-filter-field"/>
+        <uie:EnumFlagsField label="View Options" name="view-options-field"/>
     </ui:VisualElement>
 
     <ui:TwoPaneSplitView name="content-container" orientation="Horizontal">
