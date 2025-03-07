@@ -611,7 +611,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>Returns true if the camera renders to depth without any color buffer. It will return false otherwise.</returns>
         public static bool IsOffscreenDepthTexture(UniversalCameraData cameraData) => cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
 
-        bool IsDepthPrimingEnabled(UniversalCameraData cameraData)
+        bool IsDepthPrimingEnabledCompatibilityMode(UniversalCameraData cameraData)
         {
 #if UNITY_EDITOR
             // We need to disable depth-priming for DrawCameraMode.Wireframe, since depth-priming forces ZTest to Equal
@@ -645,7 +645,7 @@ namespace UnityEngine.Rendering.Universal
             return depthPrimingRequested && isForwardRenderingMode && isFirstCameraToWriteDepth && isNotReflectionCamera && isNotOffscreenDepthTexture && isNotWebGL && isNotMSAA;
         }
 
-        bool IsWebGL()
+        static bool IsWebGL()
         {
             // Both WebGL and WebGPU have issues with depth priming on Apple Arm64
 #if PLATFORM_WEBGL
@@ -655,7 +655,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        bool IsGLESDevice()
+        static bool IsGLESDevice()
         {
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
         }
@@ -743,7 +743,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             // Because of the shortcutting done by depth only offscreen cameras, useDepthPriming must be computed early
-            useDepthPriming = IsDepthPrimingEnabled(cameraData);
+            useDepthPriming = IsDepthPrimingEnabledCompatibilityMode(cameraData);
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             if (IsOffscreenDepthTexture(cameraData))
@@ -768,10 +768,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Gather render pass history requests and update history textures.
             UpdateCameraHistory(cameraData);
-
-            // Gather render pass input requirements
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera);
-
+             
             // Gather render pass require rendering layers event and mask size
             bool requiresRenderingLayer = RenderingLayerUtils.RequireRenderingLayers(this, rendererFeatures,
                 cameraTargetDescriptor.msaaSamples,
@@ -800,9 +797,8 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            // Enable depth normal prepass
-            if (renderingLayerProvidesByDepthNormalPass)
-                renderPassInputs.requiresNormalsTexture = true;
+            // Gather render pass input requirements
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera, renderingLayerProvidesByDepthNormalPass);
 
             // TODO: investigate the order of call, had to change because of requiresRenderingLayer
             if (m_DeferredLights != null)
@@ -911,7 +907,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
-            createColorTexture |= RequiresIntermediateColorTexture(cameraData, ref renderPassInputs);
+            createColorTexture |= RequiresIntermediateColorTexture(cameraData, in renderPassInputs);
             createColorTexture &= !isPreviewCamera;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
@@ -1773,7 +1769,7 @@ namespace UnityEngine.Rendering.Universal
             internal RenderPassEvent requiresDepthTextureEarliestEvent;
         }
 
-        private RenderPassInputSummary GetRenderPassInputs(bool isTemporalAAEnabled, bool postProcessingEnabled, bool isSceneViewCamera)
+        private RenderPassInputSummary GetRenderPassInputs(bool isTemporalAAEnabled, bool postProcessingEnabled, bool isSceneViewCamera, bool renderingLayerProvidesByDepthNormalPass)
         {
             RenderPassInputSummary inputSummary = new RenderPassInputSummary();
             inputSummary.requiresDepthNormalAtEvent = RenderPassEvent.BeforeRenderingOpaques;
@@ -1825,6 +1821,10 @@ namespace UnityEngine.Rendering.Universal
             if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled() && isSceneViewCamera)
                 inputSummary.requiresNormalsTexture = true;
 #endif
+
+            if (renderingLayerProvidesByDepthNormalPass)
+                inputSummary.requiresNormalsTexture = true;
+
             return inputSummary;
         }
 
@@ -1861,7 +1861,7 @@ namespace UnityEngine.Rendering.Universal
                     if (hasMSAA)
                     {
                         // if depth priming is enabled the copy depth primed pass is meant to do the MSAA resolve, so we want to bind the MS surface
-                        if (IsDepthPrimingEnabled(cameraData))
+                        if (IsDepthPrimingEnabledCompatibilityMode(cameraData))
                             depthDescriptor.bindMS = true;
                         else
                             depthDescriptor.bindMS = !(RenderingUtils.MultisampleDepthResolveSupported() && m_CopyDepthMode == CopyDepthMode.AfterTransparents);
@@ -1914,7 +1914,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData contains all relevant render target information for the camera.</param>
         /// <seealso cref="CameraData"/>
         /// <returns>Return true if pipeline needs to render to a intermediate render texture.</returns>
-        bool RequiresIntermediateColorTexture(UniversalCameraData cameraData, ref RenderPassInputSummary renderPassInputs)
+        bool RequiresIntermediateColorTexture(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs)
         {
             // When rendering a camera stack we always create an intermediate render texture to composite camera results.
             // We create it upon rendering the Base camera.
@@ -1976,7 +1976,7 @@ namespace UnityEngine.Rendering.Universal
             return dynamicResEnabled && (scaledWidthActive || scaledHeightActive);
         }
 
-        bool CanCopyDepth(UniversalCameraData cameraData)
+        static bool CanCopyDepth(UniversalCameraData cameraData)
         {
             bool msaaEnabledForCamera = cameraData.cameraTargetDescriptor.msaaSamples > 1;
             bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;

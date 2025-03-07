@@ -675,6 +675,11 @@ namespace UnityEngine.Rendering.Universal
         private static Plane[] s_Planes = new Plane[6];
         private static Vector4[] s_VectorPlanes = new Vector4[6];
 
+        /// <summary>
+        /// In URP RenderGraph (likely not in Compatibility Mode), this returns if the pipeline will actually perform depth priming.
+        /// Depth priming is done with a prepass to the activeCameraDepth.
+        /// Even when the settings on the URP asset requests depth priming the pipeline can decide not to do it (or vice versa).
+        /// </summary>
         internal bool useDepthPriming { get; set; } = false;
 
         internal bool stripShadowsOffVariants { get; set; } = false;
