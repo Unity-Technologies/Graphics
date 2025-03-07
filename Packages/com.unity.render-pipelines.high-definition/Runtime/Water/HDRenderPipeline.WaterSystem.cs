@@ -177,9 +177,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Cleanup()
         {
-            // Grab all the water surfaces in the scene
-            var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = WaterSurface.instanceCount;
+            // Grab all the water surfaces in the scene. Including disabled ones (i.e. not in WaterSurface.instances).
+            var waterSurfaces = Object.FindObjectsByType<WaterSurface>(FindObjectsSortMode.None);
+            int numWaterSurfaces = waterSurfaces.Length;
 
             // Loop through them and display them
             for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
