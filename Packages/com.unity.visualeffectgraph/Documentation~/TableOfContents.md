@@ -9,6 +9,7 @@
   * [15 / Unity 2023.1](whats-new-15.md)
   * [16 / Unity 2023.2](whats-new-16.md)
   * [17 / Unity 2023.3](whats-new-17.md)
+  * [17.1 / Unity 6.1](whats-new-17-1.md)
 * [Getting Started](GettingStarted.md)
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md)
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md)
