@@ -51,10 +51,6 @@ VFX Graph exposes the following macros that you can use to generate random numbe
 | VFXRAND2       | float2   | Generate a random 2D vector value for each particle.         |
 | VFXRAND3       | float3   | Generate a random 3D vector value for each particle.         |
 | VFXRAND4       | float4   | Generate a random 4D vector value for each particle.         |
-| VFXFIXED_RAND  | float    | Generate a random scalar value for each VFX Graph system.    |
-| VFXFIXED_RAND2 | float2   | Generate a random 2D vector value for each VFX Graph system. |
-| VFXFIXED_RAND3 | float3   | Generate a random 3D vector value for each VFX Graph system. |
-| VFXFIXED_RAND4 | float4   | Generate a random 4D vector value for each VFX Graph system. |
 
 
 To generate a random scalar value (range from 0 to 1) for each particle, use the following syntax:
