@@ -63,6 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Vector3 lkgScale;
         void OnTransformChanged(GraphView graphView)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             if (!graphView.viewTransform.position.Equals(Vector3.zero))
             {
                 lkgPosition = graphView.viewTransform.position;
@@ -72,6 +73,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 graphView.UpdateViewTransform(lkgPosition, lkgScale);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         protected internal override bool canCutSelection
