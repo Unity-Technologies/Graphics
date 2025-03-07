@@ -13,6 +13,25 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class CoreUtils
     {
+#if UNITY_EDITOR
+        static CoreUtils()
+        {
+            void OnBeforeAssemblyReload()
+            {
+                UnityObject.DestroyImmediate(m_BlackCubeTexture);
+                UnityObject.DestroyImmediate(m_BlackVolumeTexture);
+                UnityObject.DestroyImmediate(m_WhiteCubeTexture);
+                UnityObject.DestroyImmediate(m_WhiteVolumeTexture);
+                UnityObject.DestroyImmediate(m_MagentaCubeTexture);
+                UnityObject.DestroyImmediate(m_MagentaCubeTextureArray);
+                UnityObject.DestroyImmediate(m_EmptyUAV);
+                m_EmptyBuffer?.Release();
+                UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+            }
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+        }
+#endif
+
         /// <summary>
         /// List of look at matrices for cubemap faces.
         /// Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
