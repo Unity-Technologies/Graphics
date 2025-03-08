@@ -27,6 +27,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(OrientedBox box)
         {
+            if (!VFXTypeUtility.IsFinite(box))
+                return;
+
             Matrix4x4 rotate = Matrix4x4.Rotate(Quaternion.Euler(box.angles));
             Matrix4x4 fullTranform = Matrix4x4.Translate(box.center) * rotate * Matrix4x4.Translate(-box.center);
 
@@ -58,6 +61,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(AABox box)
         {
+            if (!VFXTypeUtility.IsFinite(box))
+                return;
+
             DrawBoxSizeDataAnchorGizmo(box, component, this, m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, Matrix4x4.identity);
         }
 

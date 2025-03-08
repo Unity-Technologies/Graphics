@@ -21,6 +21,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Line line)
         {
+            if (!VFXTypeUtility.IsFinite(line))
+                return;
+
             Handles.DrawLine(line.start, line.end);
 
             PositionOnlyGizmo(line.start, m_StartProperty);

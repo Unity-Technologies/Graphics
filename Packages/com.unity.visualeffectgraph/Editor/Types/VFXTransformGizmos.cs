@@ -23,6 +23,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Transform transform)
         {
+            if (!VFXTypeUtility.IsFinite(transform))
+                return;
+
             TransformGizmo(
                 transform.position,
                 transform.angles,
