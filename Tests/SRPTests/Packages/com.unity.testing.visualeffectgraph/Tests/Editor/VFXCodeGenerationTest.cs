@@ -379,5 +379,30 @@ namespace UnityEditor.VFX.Test
                 Assert.IsFalse(ShaderUtil.ShaderHasWarnings(shader));
             }
         }
+
+        [UnityTest, Description("UUM-97805")]
+        public IEnumerator Check_Validate_Graph_With_Sample_Gradient()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_97805.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets();
+            yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "SharedVFX/VFXgraphs/StatusFX_VFXg.vfx";
+            var objets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+
+            var shaders = objets.OfType<Shader>().ToArray();
+            Assert.AreEqual(2u, shaders.Length); //N.B: There is one output which is actually an unplugged GPUEvent
+
+            var computeShaders = objets.OfType<ComputeShader>().ToArray();
+#if VFX_TESTS_HAS_URP
+            //The SG from the repo is only targeting URP and uses alpha blend
+            Assert.AreEqual(6u, computeShaders.Length);
+#else
+            Assert.AreEqual(5u, computeShaders.Length);
+#endif
+            yield return null;
+
+        }
     }
 }

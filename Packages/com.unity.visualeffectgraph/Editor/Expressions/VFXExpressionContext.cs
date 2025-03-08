@@ -209,14 +209,14 @@ namespace UnityEditor.VFX
 
                 using (s_CompileExpressionContext.Auto())
                 {
-                    bool needToPatch = HasAny(VFXExpressionContextOption.GPUDataTransformation | VFXExpressionContextOption.PatchReadToEventAttribute);
-                    var gpuTransformation = needToPatch && Has(VFXExpressionContextOption.GPUDataTransformation);
-                    var spawnEventPath = needToPatch && Has(VFXExpressionContextOption.PatchReadToEventAttribute);
-                    
                     foreach (var exp in m_EndExpressions)
-                    {
                         Compile(exp.Key);
-                        if (needToPatch)
+
+                    if (HasAny(VFXExpressionContextOption.GPUDataTransformation | VFXExpressionContextOption.PatchReadToEventAttribute))
+                    {
+                        var gpuTransformation = Has(VFXExpressionContextOption.GPUDataTransformation);
+                        var spawnEventPath = Has(VFXExpressionContextOption.PatchReadToEventAttribute);
+                        foreach (var exp in m_EndExpressions)
                             m_ReducedCache[exp.Key] = PatchVFXExpression(GetReduced(exp.Key), null /* no source in end expression */, gpuTransformation, spawnEventPath, m_GlobalEventAttribute);
                     }
                 }
