@@ -16,25 +16,34 @@ using UnityEngine.XR;
 
 namespace Unity.Rendering.Universal.Tests
 {
+    [TestFixture(RenderGraphContext.CompatibilityMode)]
+    [TestFixture(RenderGraphContext.RenderGraphMode)]
     public class UniversalGraphicsTestBase
     {
         protected readonly RenderGraphGlobalContext renderGraphContext;
         protected readonly RenderGraphContext requestedRGContext;
+        protected readonly RenderGraphContext previousRGContext;
 
-        public UniversalGraphicsTestBase()
+        public UniversalGraphicsTestBase(RenderGraphContext rgContext)
         {
+            requestedRGContext = rgContext;
+
             // Register context
             renderGraphContext =
                 GlobalContextManager.RegisterGlobalContext(typeof(RenderGraphGlobalContext))
                 as RenderGraphGlobalContext;
 
-            requestedRGContext = RenderGraphGraphicsAutomatedTests.enabled
-                ? RenderGraphContext.RenderGraphEnabled
-                : RenderGraphContext.RenderGraphCompatibility;
+            // Cache previous state to avoid state leak
+            previousRGContext = (RenderGraphContext)renderGraphContext.Context;
 
-            GraphicsTestLogger.Log(
-                $"RenderGraphGlobalContext registered with context {requestedRGContext}"
-            );
+            // Activate new context
+            renderGraphContext.ActivateContext(requestedRGContext);
+        }
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
         }
 
         [UnitySetUp]
@@ -73,7 +82,9 @@ namespace Unity.Rendering.Universal.Tests
         [OneTimeTearDown]
         public void OneTimeTearDown()
         {
+            renderGraphContext.ActivateContext(previousRGContext);
             GlobalContextManager.UnregisterGlobalContext(typeof(RenderGraphGlobalContext));
+            SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
         }
     }
 }

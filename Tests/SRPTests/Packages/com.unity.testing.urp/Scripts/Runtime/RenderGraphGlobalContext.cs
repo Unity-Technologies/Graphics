@@ -9,16 +9,16 @@ namespace Unity.Rendering.Universal.Tests
     public enum RenderGraphContext
     {
         None = 0,
-        RenderGraphEnabled = 1,
-        RenderGraphCompatibility = 2
+        RenderGraphMode = 1,
+        CompatibilityMode = 2
     }
 
     public class RenderGraphGlobalContext : IGlobalContextProvider
     {
         public int Context =>
             IsRenderGraphActive()
-                ? (int)RenderGraphContext.RenderGraphEnabled
-                : (int)RenderGraphContext.RenderGraphCompatibility;
+                ? (int)RenderGraphContext.RenderGraphMode
+                : (int)RenderGraphContext.CompatibilityMode;
 
         static bool IsRenderGraphActive()
         {
@@ -36,7 +36,7 @@ namespace Unity.Rendering.Universal.Tests
                 return;
 
             RenderGraphGraphicsAutomatedTests.enabled =
-                context == RenderGraphContext.RenderGraphEnabled;
+                context == RenderGraphContext.RenderGraphMode;
         }
     }
 }
