@@ -73,3 +73,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: No GPU Skinning
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 320bc6f8378f61647959c52de7e45603, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: None
+    StereoModes: 0
+    Reason: VFX not supported on certain GPUs on Android GLES3
