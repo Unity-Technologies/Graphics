@@ -76,13 +76,14 @@ void REPROJECT_CLOUDS(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     // 2. Check history validity
     float2 motionVector = EvaluateCloudMotionVectors(fullResCoord, currentCloudDepth, 1.0);
-    float2 historyUV = (intermediateCoord.xy + 0.5) / _IntermediateScreenSize.xy - motionVector;
+    float2 historyUV = (intermediateCoord.xy + 0.5) * _IntermediateScreenSize.zw - motionVector;
 
     float4 history = SAMPLE_TEXTURE2D_X_LOD(_HistoryVolumetricClouds1Texture, s_linear_clamp_sampler, historyUV * _HistoryViewportScale, 0);
     float previousSampleCount = history.x;
 
     // History is invalid if sample is out of screen or scene depth was too different
-    if (all(historyUV == saturate(historyUV)) && previousSampleCount >= 0.5f && EvaluateDepthDifference(history.y, currentSceneDepth))
+    float2 historyUVMax = 1.0 - 0.5 * _IntermediateScreenSize.zw - 0.000001; // To avoid lerp with garbage pixels
+    if (all(0.0 <= float4(historyUV, historyUVMax - historyUV)) && previousSampleCount >= 0.5f && EvaluateDepthDifference(history.y, currentSceneDepth))
     {
         float4 previousColor = SAMPLE_TEXTURE2D_X_LOD(_HistoryVolumetricClouds0Texture, s_linear_clamp_sampler, historyUV * _HistoryViewportScale, 0);
         previousColor.xyz *= GetInversePreviousExposureMultiplier() * GetCurrentExposureMultiplier();
