@@ -12,6 +12,5 @@ Configure a build, and publish and debug a project in the High Definition Render
 - [Configure build settings for different platforms](configure-build-settings-for-different-platforms.md)
 - [Platform configuration](platform-configuration.md)
 - [Test and debug materials](test-and-debug-materials.md)
-- [View a Custom Pass in the Frame Debugger](Custom-Pass-Frame-Debugger.md)
 - [Debug ray tracing effects](Ray-Tracing-Debug.md)
 - [Reduce shader variants](reduce-shader-variants.md)

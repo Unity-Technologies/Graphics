@@ -15,8 +15,6 @@ This effect tints different areas of the image based on luminance values, to hel
 
 When you adjust the color in the color picker for each property, you should only adjust the **Hue** and **Saturation**. **Value** also changes the overall image brightness.
 
-![](Images/Post-processingSplitToning1.png)
-
 | **Property**   | **Description**                                              |
 | -------------- | ------------------------------------------------------------ |
 | **Shadows**    | Use the color picker to select the color that HDRP uses for tinting shadows. |

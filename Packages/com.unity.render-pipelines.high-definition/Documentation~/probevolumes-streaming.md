@@ -32,7 +32,7 @@ The smallest section HDRP loads and uses is a cell, which is the same size as th
 
 To view the cells in an Adaptive Probe Volume, or debug streaming, use the [Rendering Debugger](rendering-debugger-window-reference.md#probe-volume-panel).
 
-![](Images/probevolumes-debug-displayprobecells.PNG)<br/>
+![The Rendering Debugger with **Display Cells** enabled. Each green rectangle is a cell.](Images/probevolumes-debug-displayprobecells.PNG)<br/>
 The Rendering Debugger with **Display Cells** enabled.
 
 ## Load APV data from AssetBundles or Addressables

@@ -113,8 +113,6 @@ An anti-aliasing technique that uses frames from a history buffer to smooth edge
 
 A measure of the amount of light ([luminous flux](#LuminousFlux)) falling onto a given area. Differs from luminance because illuminance is a specific measurement of light whereas luminance describes visual perceptions of light.
 
-![](Images/GlossaryLighting3.png)
-
 
 <a name="LuminousFlux"></a>
 #### luminous flux:
