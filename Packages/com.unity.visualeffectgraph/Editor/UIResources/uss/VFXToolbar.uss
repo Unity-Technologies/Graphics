@@ -96,7 +96,7 @@ Button
 
 Button:hover, Toggle:hover
 {
-    background-color: var(--unity-colors-highlight-background);
+    background-color: var(--unity-colors-toolbar_button-background-hover);
 }
 
 Button:disabled

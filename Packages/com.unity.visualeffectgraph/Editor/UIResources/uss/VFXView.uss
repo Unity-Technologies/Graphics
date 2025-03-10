@@ -42,6 +42,14 @@ VFXView .unity-toolbar
 ToolbarToggle
 {
     border-right-width: 0px;
+    justify-content:space-around;
+    align-items: center;
+}
+
+ToolbarToggle .unity-image
+{
+    width: 16px;
+    height: 16px;
 }
 
 EditorToolbarDropdown
@@ -70,19 +78,26 @@ EditorToolbarDropdown:disabled, ToolbarToggle:disabled
 
 #lock-auto-attach
 {
-    width: 20px;
-    height: 17px; /* Don't know why the real height is one pixel less than specified here */
-    padding:1px 0 4px 0;
+    padding: 1px 4px 0px 4px;
     align-self: center;
+    align-items: center;
     border-left-width: 0;
     border-right-width: 1px;
+}
+
+#lock-auto-attach .unity-toggle__checkmark {
     background-image: var(--unity-icons-lock);
-    -unity-background-scale-mode: scale-to-fit;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
 }
 
 #lock-auto-attach:checked
 {
     background-color: var(--unity-colors-toolbar_button-background-checked);
+}
+
+#lock-auto-attach:checked .unity-toggle__checkmark {
     background-image: var(--unity-icons-lock-checked);
 }
 
