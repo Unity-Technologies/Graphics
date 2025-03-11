@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using UnityEngine.Pool;
+using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using Assert = UnityEngine.Assertions.Assert;
 
@@ -67,11 +68,38 @@ namespace UnityEditor.Rendering.Universal
                 },
                 s_Datas[2]);
         }
+        
+        RenderPipelineAsset asset;
+        bool wasCreated = false;
+
+        [SetUp]
+        public void SetUp()
+        {
+            if (GraphicsSettings.currentRenderPipelineAssetType == typeof(UniversalRenderPipelineAsset))
+                return;
+            
+            asset = QualitySettings.renderPipeline;
+            QualitySettings.renderPipeline = UniversalRenderPipelineAsset.Create();
+            wasCreated = true;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (!wasCreated)
+                return;
+            
+            var current = (UniversalRenderPipelineAsset)QualitySettings.renderPipeline;
+            QualitySettings.renderPipeline = asset;
+            foreach (var rendererData in current.rendererDataList) 
+                Object.DestroyImmediate(rendererData);
+            Object.DestroyImmediate(current);
+        }
 
         [Test][TestCaseSource(nameof(TestDataExtractData))]
         public void DataIsExtractedCorrectly((string[] input, PostProcessDataAnalytics.Analytic.PropertyToGUIDs expected) testCase)
         {
-            using (ListPool<PostProcessData>.Get(out var tmp))
+            using (UnityEngine.Pool.ListPool<PostProcessData>.Get(out var tmp))
             {
                 foreach (var i in testCase.input)
                 {

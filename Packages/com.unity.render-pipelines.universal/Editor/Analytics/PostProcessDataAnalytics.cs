@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using UnityEngine;
 using UnityEngine.Analytics;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -15,6 +14,7 @@ namespace UnityEditor.Rendering.Universal
         const int k_MaxEventsPerHour = 1000;
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.universal";
+
         const string k_EventName = "uURPPostProcessAsset";
         // SCHEMA: com.unity3d.data.schemas.editor.analytics.uURPPostProcessAsset_v1
         // TAXONOMY : editor.analytics.uURPPostProcessAsset.v1
@@ -81,6 +81,7 @@ namespace UnityEditor.Rendering.Universal
                     var guid = AssetDatabase.GUIDFromAssetPath(assetPath).ToString();
                     output.Add((field.Name, guid));
                 }
+
                 return output;
             }
 
@@ -93,20 +94,19 @@ namespace UnityEditor.Rendering.Universal
 
             private static Dictionary<string, PropertyToGUIDs> CreateDictionaryWithDefaults()
             {
-                var defaultPostProcessData = ScriptableObject.CreateInstance<PostProcessData>();
-                ResourceReloader.ReloadAllNullIn(defaultPostProcessData, UniversalRenderPipelineAsset.packagePath);
+                var defaultShaderResources = GraphicsSettings.GetRenderPipelineSettings<PostProcessData.ShaderResources>();
+                var defaultTextureResources = GraphicsSettings.GetRenderPipelineSettings<PostProcessData.TextureResources>();
                 Dictionary<string, PropertyToGUIDs> output = new();
+
                 void AddDefaultsToDictionary(Dictionary<string, PropertyToGUIDs> dictionary,
                     List<(string property, string guid)> list)
                 {
                     foreach (var item in list)
-                        dictionary.Add(item.property,
-                            new PropertyToGUIDs() { propertyName = item.property, defaultGUID = item.guid });
+                        dictionary.Add(item.property, new PropertyToGUIDs { propertyName = item.property, defaultGUID = item.guid });
                 }
 
-                AddDefaultsToDictionary(output, GetPropertyGUIDs(defaultPostProcessData.shaders));
-                AddDefaultsToDictionary(output, GetPropertyGUIDs(defaultPostProcessData.textures));
-                ScriptableObject.DestroyImmediate(defaultPostProcessData);
+                AddDefaultsToDictionary(output, GetPropertyGUIDs(defaultShaderResources));
+                AddDefaultsToDictionary(output, GetPropertyGUIDs(defaultTextureResources));
                 return output;
             }
 
@@ -163,6 +163,7 @@ namespace UnityEditor.Rendering.Universal
                                         usage = Usage.ModifiedForTheProject.ToString()
                                     });
                                 }
+
                                 break;
                             default:
                                 tmp.Add(new AnalyticsData()
@@ -172,6 +173,7 @@ namespace UnityEditor.Rendering.Universal
                                 });
                                 break;
                         }
+
                         uniques.Clear();
                     }
 
@@ -198,6 +200,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         public int callbackOrder { get; }
+
         public void OnPostprocessBuild(BuildReport report)
         {
             SendUniversalEvent();

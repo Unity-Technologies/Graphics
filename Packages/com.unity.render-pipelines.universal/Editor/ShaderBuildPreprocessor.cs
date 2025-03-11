@@ -603,11 +603,9 @@ namespace UnityEditor.Rendering.Universal
                 if (rendererDataArray[rendererIndex] == null)
                     continue;
 
-                // Get feature requirements from the renderer
-                // Always create a separate Renderer as we can be in a situation where there's no RP and they will not be disposed later on
-                ScriptableRenderer renderer = rendererDataArray[rendererIndex].InternalCreateRenderer();
+                // Get feature requirements from the renderer data
                 ScriptableRendererData rendererData = rendererDataArray[rendererIndex];
-                RendererRequirements rendererRequirements = GetRendererRequirements(ref urpAsset, ref renderer, ref rendererData);
+                RendererRequirements rendererRequirements = GetRendererRequirements(ref urpAsset, ref rendererData);
 
                 // Get & add Supported features from renderers used for Scriptable Stripping and prefiltering.
                 ShaderFeatures rendererShaderFeatures = GetSupportedShaderFeaturesFromRenderer(ref rendererRequirements, ref rendererData, ref ssaoRendererFeatures, ref containsForwardRenderer, urpAssetShaderFeatures);
@@ -617,13 +615,10 @@ namespace UnityEditor.Rendering.Universal
                 everyRendererHasSSAO &= IsFeatureEnabled(rendererShaderFeatures, ShaderFeatures.ScreenSpaceOcclusion);
 
                 // Check for completely removing 2D passes
-                s_Strip2DPasses &= renderer is not Renderer2D;
+                s_Strip2DPasses &= rendererData is not Renderer2DData;
 
                 // Add the features from the renderer to the combined feature set for this URP Asset
                 combinedURPAssetShaderFeatures |= rendererShaderFeatures;
-
-                //Dispose a created Scriptable Renderer
-                renderer.Dispose();
             }
 
             return combinedURPAssetShaderFeatures;
@@ -640,23 +635,22 @@ namespace UnityEditor.Rendering.Universal
         }
 
 
-        internal static RendererRequirements GetRendererRequirements(ref UniversalRenderPipelineAsset urpAsset, ref ScriptableRenderer renderer, ref ScriptableRendererData rendererData)
+        internal static RendererRequirements GetRendererRequirements(ref UniversalRenderPipelineAsset urpAsset, ref ScriptableRendererData rendererData)
         {
-            UniversalRenderer universalRenderer = renderer as UniversalRenderer;
             UniversalRendererData universalRendererData = rendererData as UniversalRendererData;
 
             RendererRequirements rsd = new();
-            rsd.isUniversalRenderer               = universalRendererData != null && universalRenderer != null;
+            rsd.isUniversalRenderer               = universalRendererData != null;
             rsd.msaaSampleCount                   = urpAsset.msaaSampleCount;
             rsd.renderingMode                     = rsd.isUniversalRenderer ? universalRendererData.renderingMode : RenderingMode.Forward;
             rsd.needsMainLightShadows             = urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel;
             rsd.needsAdditionalLightShadows       = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || rsd.renderingMode == RenderingMode.ForwardPlus);
             rsd.needsSoftShadows                  = urpAsset.supportsSoftShadows && (rsd.needsMainLightShadows || rsd.needsAdditionalLightShadows);
             rsd.needsSoftShadowsQualityLevels     = rsd.needsSoftShadows && s_UseSoftShadowQualityLevelKeywords;
-            rsd.needsShadowsOff                   = !renderer.stripShadowsOffVariants;
-            rsd.needsAdditionalLightsOff          = s_KeepOffVariantForAdditionalLights || !renderer.stripAdditionalLightOffVariants;
+            rsd.needsShadowsOff                   = !rendererData.stripShadowsOffVariants;
+            rsd.needsAdditionalLightsOff          = s_KeepOffVariantForAdditionalLights || !rendererData.stripAdditionalLightOffVariants;
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && urpAsset.useRenderingLayers);
-            rsd.needsGBufferAccurateNormals       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && universalRenderer.accurateGbufferNormals);
+            rsd.needsGBufferAccurateNormals       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && (universalRendererData.renderingMode == RenderingMode.Deferred || universalRendererData.renderingMode == RenderingMode.DeferredPlus) && universalRendererData.accurateGbufferNormals);
             rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.needsDeferredLighting);
             rsd.needsReflectionProbeBlending      = urpAsset.reflectionProbeBlending;
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
@@ -808,10 +802,8 @@ namespace UnityEditor.Rendering.Universal
                 ScreenSpaceShadows sssFeature = rendererFeature as ScreenSpaceShadows;
                 if (sssFeature != null)
                 {
-                    // Add it if it's enabled or if unused variants should not be stripped...
-                    if (sssFeature.isActive)
-                        shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
-
+                    // The feature is active (Tested a few lines above)
+                    shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
                     continue;
                 }
 
