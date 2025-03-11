@@ -24,19 +24,10 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615093}
       id: 0
       isStickyNote: 0
-    - model: {fileID: 8926484042661615173}
-      id: 0
-      isStickyNote: 0
     - model: {fileID: 8926484042661615097}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661615127}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615197}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615211}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661615140}
@@ -49,9 +40,6 @@ MonoBehaviour:
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661615176}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615188}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661615179}
@@ -93,12 +81,6 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615499}
       id: 0
       isStickyNote: 0
-    - model: {fileID: 8926484042661615508}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615512}
-      id: 0
-      isStickyNote: 0
     - model: {fileID: 8926484042661615506}
       id: 0
       isStickyNote: 0
@@ -111,21 +93,6 @@ MonoBehaviour:
       height: 2038
     contents:
     - model: {fileID: 8926484042661615016}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615043}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615045}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615073}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615037}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615364}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661615027}
@@ -179,16 +146,7 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615015}
       id: 0
       isStickyNote: 0
-    - model: {fileID: 8926484042661615033}
-      id: 0
-      isStickyNote: 0
     - model: {fileID: 8926484042661615518}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615522}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615527}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661615533}
@@ -205,37 +163,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661614612}
       id: 0
       isStickyNote: 0
-    - model: {fileID: 8926484042661614613}
-      id: 0
-      isStickyNote: 0
     - model: {fileID: 8926484042661614615}
       id: 0
       isStickyNote: 0
-    - model: {fileID: 8926484042661614626}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661614639}
-      id: 0
-      isStickyNote: 0
     - model: {fileID: 8926484042661614642}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661614959}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615429}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661614667}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661614669}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661614680}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661614682}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661614684}
@@ -250,12 +187,6 @@ MonoBehaviour:
     - model: {fileID: 8926484042661614971}
       id: 0
       isStickyNote: 0
-    - model: {fileID: 8926484042661615009}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661614974}
-      id: 0
-      isStickyNote: 0
     - model: {fileID: 8926484042661614829}
       id: 0
       isStickyNote: 0
@@ -263,12 +194,6 @@ MonoBehaviour:
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661614956}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615003}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661614965}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661614994}
@@ -286,25 +211,7 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615535}
       id: 0
       isStickyNote: 0
-    - model: {fileID: 8926484042661615539}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615544}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615550}
-      id: 0
-      isStickyNote: 0
     - model: {fileID: 8926484042661615560}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615565}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615570}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615576}
       id: 0
       isStickyNote: 0
   stickyNoteInfos: []
@@ -9114,6 +9021,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
 --- !u!114 &8926484042661615397
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9126,6 +9041,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
 --- !u!114 &8926484042661615398
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9180,6 +9103,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
 --- !u!114 &8926484042661615401
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9192,6 +9123,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
 --- !u!114 &8926484042661615402
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9941,12 +9880,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
 --- !u!114 &8926484042661615426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9959,12 +9892,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
 --- !u!114 &8926484042661615427
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9977,12 +9904,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
 --- !u!114 &8926484042661615428
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9995,12 +9916,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
 --- !u!114 &8926484042661615429
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12436,6 +12351,7 @@ MonoBehaviour:
   sortingPriority: -1
   m_SubOutputs:
   - {fileID: 8926484042661615502}
+  - {fileID: 8926484042661615583}
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -12509,12 +12425,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
 --- !u!114 &8926484042661615506
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12945,6 +12855,7 @@ MonoBehaviour:
   sortingPriority: -1
   m_SubOutputs:
   - {fileID: 8926484042661615526}
+  - {fileID: 8926484042661615584}
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -13152,12 +13063,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
 --- !u!114 &8926484042661615527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13455,6 +13360,7 @@ MonoBehaviour:
   sortingPriority: -1
   m_SubOutputs:
   - {fileID: 8926484042661615543}
+  - {fileID: 8926484042661615585}
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -13662,12 +13568,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
 --- !u!114 &8926484042661615544
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14233,6 +14133,7 @@ MonoBehaviour:
   sortingPriority: -1
   m_SubOutputs:
   - {fileID: 8926484042661615569}
+  - {fileID: 8926484042661615586}
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -14474,12 +14375,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 388ad3b1dc9c6ae45b630f914fab638f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
 --- !u!114 &8926484042661615570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14911,3 +14806,83 @@ MonoBehaviour:
         PublicKeyToken=b77a5c561934e089
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &8926484042661615583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Editor::UnityEditor.VFX.HDRP.VFXHDRPSubOutput
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661615584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Editor::UnityEditor.VFX.HDRP.VFXHDRPSubOutput
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661615585
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Editor::UnityEditor.VFX.HDRP.VFXHDRPSubOutput
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
+--- !u!114 &8926484042661615586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081ffb0090424ba4cb05370a42ead6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Editor::UnityEditor.VFX.HDRP.VFXHDRPSubOutput
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  opaqueRenderQueue: 0
+  transparentRenderQueue: 1
