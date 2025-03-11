@@ -86,6 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         #region Instance Management
         // Management to avoid memory allocations at fetch time
+        // NOTE: instances tracks active instances, disabled instances can exist and are not included.
         internal static HashSet<WaterSurface> instances = new HashSet<WaterSurface>();
         internal static WaterSurface[] instancesAsArray = null;
         internal static int instanceCount = 0;
