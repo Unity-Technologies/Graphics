@@ -1,5 +1,5 @@
 rule1:
-  area: SRP Architecture & API
+  area: SRP Foundation
 
 rule2:
   when:

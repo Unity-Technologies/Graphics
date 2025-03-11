@@ -1,7 +1,7 @@
 old:
-  area: Universal RP
+  area: SRP Foundation
 
-Workflow:
+settings:
   when:
     path:
       - ^.*Volume?.*$
@@ -10,7 +10,7 @@ Workflow:
       - ^.*ContextualMenuDispatcher?.*$
   area: SRP Settings
 
-Camera:
+camera:
   when:
     path:
       - ^.*Camera?.*$

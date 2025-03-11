@@ -1,1 +1,7 @@
-area: SRP Workflow
+area: SRP Settings
+
+graphic-tools:
+  when:
+    path:
+      - ^.*RenderGraphViewer.*$
+  area: Graphics Debugging Tools
