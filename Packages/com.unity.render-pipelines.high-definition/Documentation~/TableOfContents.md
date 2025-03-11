@@ -308,7 +308,6 @@
   * [Customize the High Definition Render Pipeline (HDRP)](render-graph.md)
   * [Test and debug rendering and post-processing](rendering-troubleshoot.md)
         * [Troubleshoot a custom pass](Custom-Pass-Troubleshooting.md)
-        * [View a custom pass in the Frame Debugger](Custom-Pass-Frame-Debugger.md)
         * [Troubleshoot a custom post-processing effect](rendering-troubleshoot-custom-post-processes.md)
         * [Understand and fix Not a Number (NAN) and Infinite (Inf) values](Post-Processing-Propagating-NaNs.md)
         * [Known issues](Known-Issues.md)

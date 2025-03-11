@@ -11,7 +11,7 @@ The **Material Type** property allows you to give your Material a type, which al
 | **Specular Color**        | Applies the Specular Color workflow to the Material. Use this **Material Type** to create Materials with a coloured specular highlight. This is similar to the [built-in Specular Shader](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterSpecular.html). |
 | **Translucent**           | Applies the Translucent workflow to the Material. Use this **Material Type**, and a thickness map, to simulate a translucent object, such as a plant leaf. In contrast to **Subsurface Scattering** Materials, **Translucent** Materials do not blur light that transmits through the Material. |
 
-![](Images/MaterialType1.png)
+![A detailed dragon statuette, rendered three times. The first dragon is iridescent, the second is a translucent green material, and the third has subsurface scattering.](Images/MaterialType1.png)
 
 ## Properties
 
