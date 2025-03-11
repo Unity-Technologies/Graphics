@@ -1,6 +1,6 @@
 # Compute Thickness
 
-![](Images/ComputeThickness.png)
+![A detailed dragon statuette made of a translucent green material.](Images/ComputeThickness.png)
 
 HDRP can use the optical path to make transparent or opaque materials appear more dense in larger internal areas of a mesh. This is called compute thickness.
 
@@ -90,9 +90,7 @@ HDRP creates a texture that contains the thickness of all the GameObjects in eac
 
 HDRP calculates compute thickness for opaque materials before transparent materials. This means opaque materials affect the thickness of transparent materials, but opaque materials do not affect each other’s thickness. 
 
-For example, the image below displays two spheres that use a compute thickness material and intersect an opaque checkerboard plane. The transparent sphere (A) has a dark edge where the plane intersects it, but the opaque plane does not affect the opaque sphere (B).
-
-![](Images/computethickness_transparency.png)
+![Two spheres that use a compute thickness material and intersect an opaque checkerboard plane. The transparent sphere (A) has a dark edge where the plane intersects it, but the opaque plane doesn't affect the opaque sphere (B).](Images/computethickness_transparency.png)<br/>
 A: A sphere with a transparent compute thickness material intersecting an opaque plane.
 B: A sphere with an opaque compute thickness material intersecting an opaque plane.
 
@@ -140,17 +138,17 @@ To visualize the compute thickness debug mode, perform the following actions:
 
 This view displays the thickness or overlap count of the objects in the layer you select in the **Layer Mask** property.
 
-![](Images/ComputeThickness_Debug.png)
+![A model shown in the default compute thickness debug view, and the debug view when you enable **Show Overlap Count**. In the second view, yellow areas indicate a high number of overlapping triangles.](Images/ComputeThickness_Debug.png)
 A: The default appearance of the compute thickness debug view.
-B: The compute thickness debug view when you enable **Show Overlap Count** .
+B: The compute thickness debug view when you enable **Show Overlap Count**.
 
 | **Debug view color**                                         | **Description**                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![img](Images/computethickness_debug_vidris.png)Vidris color scale | A gradient scale that represents thickness. Purple represents the minimum thickness and yellow represents the maximum thickness.<br/>When you enable **Show Overlap Count,** yellow areas indicate a high number of overlapping triangles. |
-| ![img](Images/computethickness_debug_red.png)Red             | Negative thickness caused by an open mesh, flipped triangles, or an odd number of triangles in the optical path. |
-| ![img](Images/computethickness_debug_gray.png)Gray           | The default background color. <br/>Gray areas inside a mesh indicate pixels that are in a similar position (z-fight) or have no thickness. |
-| ![img](Images/computethickness_debug_orange.png)Orange       | Compute Thickness is not active in HDRP graphics settings. To fix this, [enable compute thickness](#computethickness-enable). |
-| ![img](Images/computethickness_debug_pink.png)Pink           | This layer is not assigned to the HDRP Asset’s Layer Mask property. To fix this, [enable compute thickness](#computethickness-enable). |
+| ![Vidris color scale](Images/computethickness_debug_vidris.png)Vidris color scale | A gradient scale that represents thickness. Purple represents the minimum thickness and yellow represents the maximum thickness.<br/>When you enable **Show Overlap Count,** yellow areas indicate a high number of overlapping triangles. |
+| ![Red](Images/computethickness_debug_red.png)Red             | Negative thickness caused by an open mesh, flipped triangles, or an odd number of triangles in the optical path. |
+| ![Gray](Images/computethickness_debug_gray.png)Gray           | The default background color. <br/>Gray areas inside a mesh indicate pixels that are in a similar position (z-fight) or have no thickness. |
+| ![Orange](Images/computethickness_debug_orange.png)Orange       | Compute Thickness is not active in HDRP graphics settings. To fix this, [enable compute thickness](#computethickness-enable). |
+| ![Pink](Images/computethickness_debug_pink.png)Pink           | This layer is not assigned to the HDRP Asset’s Layer Mask property. To fix this, [enable compute thickness](#computethickness-enable). |
 
 ## Limitations
 

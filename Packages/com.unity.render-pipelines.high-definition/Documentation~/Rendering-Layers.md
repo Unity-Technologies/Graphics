@@ -5,7 +5,7 @@ The High Definition Render Pipeline (HDRP) allows you to use Rendering Layers, w
 A Renderer can support up to 32 rendering layers, but all HDRP effects using Rendering Layers only support the first 16 layers.
 On the image below, you can see usage of Rendering Layers with Lights to only affect some of the meshes.
 
-![](Images/HDRPFeatures-LightLayers.png)
+![Three spheres, labelled to show that each receives light from different lights.](Images/HDRPFeatures-LightLayers.png)
 
 Rendering Layers are also supported on decal projectors, and can be sampled from the ShaderGraph to implement custom effects.
 
@@ -63,17 +63,15 @@ By default, in the UI for Lights, Decals, Mesh Renderers or Terrain, Rendering L
 
 Using [cookies](https://docs.unity3d.com/Manual/Cookies.html) for light fixtures can sometimes have a negative visual effect on a bulb, such as self-shadowing or transmission contribution. You can use Light Layers to make a bulb Mesh not receive any light from the Light’s cookie, and instead receive light from a separate small Point Light.
 
+![The Light cookie incorrectly affects the transmission of this bulb’s geometry.](Images/LightLayers1.png)<br/>
 The Light cookie incorrectly affects the transmission of this bulb’s geometry.
 
-![](Images/LightLayers1.png)
-
+![Assigning the bulb’s Mesh Renderer to a specific Rendering Layer means that the Light cookie no longer affects the bulb’s Mesh Renderer.](Images/LightLayers2.png)<br/>
 Assigning the bulb’s Mesh Renderer to a specific Rendering Layer means that the Light cookie no longer affects the bulb’s Mesh Renderer.
 
-![](Images/LightLayers2.png)
-
+![To restore the transmission effect, create a Point Light and assign it to the same Rendering Layer as the bulb’s Mesh Renderer. Now this Point Light only affects the bulb’s Mesh Renderer and does not contribute to the rest of the Scene Lighting.](Images/LightLayers3.png)<br/>
 To restore the transmission effect, create a Point Light and assign it to the same Rendering Layer as the bulb’s Mesh Renderer. Now this Point Light only affects the bulb’s Mesh Renderer and does not contribute to the rest of the Scene Lighting.
 
-![](Images/LightLayers3.png)
 
 For more information on this process, see Pierre Donzallaz’s [expert guide](https://pydonzallaz.files.wordpress.com/2019/02/create-high-quality-light-fixtures-in-unity.pdf) on creating high quality light fixtures in Unity.
 

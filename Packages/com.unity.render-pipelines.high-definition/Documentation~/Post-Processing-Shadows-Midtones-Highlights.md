@@ -13,8 +13,6 @@ The **Shadows Midtones Highlights** effect separately controls the shadows, midt
 
 ## Properties
 
-![](Images/Post-processingShadowsMidtonesHighlights1.png)
-
 | **Property**   | **Description**                                              |
 | -------------- | ------------------------------------------------------------ |
 | **Shadows**    | Use this to control the shadows. Use the trackball to select the color HDRP should shift the hue of the shadows to. Use the slider to offset the color lightness of the trackball color. |

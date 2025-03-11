@@ -2,7 +2,7 @@
 
 This setting controls whether The High Definition Render Pipeline (HDRP) renders both faces of the geometry of GameObjects using this Material, or just the front face.
 
- ![](Images/DoubleSided1.png)
+ ![Half a cube. Two arrows represent the normals of the front faces, which point along the x-axis and y-axis. The opposite side of those faces are labelled as the back faces.](Images/DoubleSided1.png)
 
 This setting is disabled by default.  Enable it if you want HDRP to render both faces of your geometry. When disabled, HDRP [culls](https://docs.unity3d.com/Manual/SL-CullAndDepth.html) the back-facing polygons of your geometry and only renders front-facing polygons.
 

@@ -6,7 +6,7 @@ HDRP uses the details from the normal map, the ambient occlusion map, and specul
 
 In this image, the different layers of details in the Material shadow each other.
 
-![](Images/OverrideMicroShadows1.png)
+![A ground texture with micro shadows enabled and disabled. With micro shadows enabled, the twigs and moss cast more realistic-looking shadows.](Images/OverrideMicroShadows1.png)
 
 Micro shadows at 0.85 opacity on a mossy ground material viewed from the top.
 

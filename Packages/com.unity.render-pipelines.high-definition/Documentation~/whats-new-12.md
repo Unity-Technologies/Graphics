@@ -25,7 +25,7 @@ You can use this Vertex Block to create an additional velocity for procedural ge
 
 ### Cloud Layer System
 
-![](Images/HDRPFeatures-CloudLayer.png)
+![A scene of a town square with a cloudy sky.](Images/HDRPFeatures-CloudLayer.png)
 
 HDRP 12.0 introduces a cloud system that you can control through the volume framework.
 
@@ -37,27 +37,23 @@ For detailed steps on how to create custom clouds in your scene, see [creating c
 
 HDRP now includes a Volumetric Clouds volume override which allows you to precisely control the cloud coverage in your scene. These clouds receive realistic lighting from the sun and sky. For more information, see the [Volumetric Clouds](create-realistic-clouds-volumetric-clouds.md) documentation.
 
-![](Images/volumetric-clouds-2.png)
+![A snowy mountain range and lake with a cloudy sky at sunset.](Images/volumetric-clouds-2.png)
 
-![](Images/volumetric-clouds-1.png)
+![A snowy mountain range on a clear day with clouds in the sky.](Images/volumetric-clouds-1.png)
 
 ### Lens Flares
 
-![](Images/LensFlareSamples2.png)
+![Lens flare effects from a bright sun viewed from space.](Images/LensFlareSamples2.png)
 
 HDRP 12.0 includes a new Lens Flare system. You can attach a Lens Flare (SRP) component to any GameObject.
 
 Some Lens Flare properties only appear when you attach a Lens Flare (SRP) component to a light. Each Lens Flare has optional multiple elements that you can control individually. HDRP also provides a [new lens flare asset](shared/lens-flare/lens-flare-asset.md) and a [new lens flare component](shared/lens-flare/lens-flare-component.md) that you can attach to any GameObject.
 
-HDRP includes a new Lens Flare sample that uses presets and Textures. You can see an example of the Textures included in this sample in the image below:
-
-![](Images/LensFlareTextures.png)
+HDRP includes a new Lens Flare sample that uses presets and Textures.
 
 ### Light Anchor
 
 From HDRP 12.0, HDRP includes a new [Light Anchor](light-anchor.md) component. You can attach this component to any light to control the light in Main Camera view.
-
-![](Images/LightAnchor0.png)
 
 ### Light List
 
@@ -83,7 +79,7 @@ The image below displays the **Temporal Anti-Aliasing (TAA) Upscale** (A) next t
 
 For more information, see [Dynamic Resolution](Dynamic-Resolution.md)
 
-![A:TAA Upscale. B: Catmull-Rom.](Images/DynamicRes_SidebySide_AB.png)
+![An industrial environment rendered twice, using TAA (A) and Catmull-Rom (B).](Images/DynamicRes_SidebySide_AB.png)
 
 #### NVIDIA’s Deep Learning Super Sampling
 
@@ -113,10 +109,6 @@ To enable **AMD’s FidelityFX Super Resolution**.:
 - Open the **Default Fallback Upscale Filter** drop down .
 - Select **FidelityFX Super Resolution**.
 
-![](Images/FidelityFX-Menu.png)
-
-
-
 ### Mip Bias Support
 
 This HDRP version introduces a new setting called **Use Mip Bias.** This setting improves the detail of any upscaling filters you use in your scene.
@@ -128,8 +120,6 @@ To enable **Use Mip Bias**:
 - Expand the **Dynamic resolution** section.
 - Enable the **Use Mip Bias** checkbox.
 
-![](Images/UseMipBias.png)
-
 ### ClearFlag
 
 HDRP 2021.2 includes the new `ClearFlag.Stencil` function. Use this to clear all flags from a stencil.
@@ -138,7 +128,7 @@ From HDRP 2021.2, `ClearFlag.Depth` does not clear stencils.
 
 ### Probe Volumes Global Illumination (Experimental)
 
-![](Images/ProbeVolumesGI.png)
+![A classroom scene, with a 3D grid of Probe Volume probes represented as white spheres throughout the scene.](Images/ProbeVolumesGI.png)
 
 HDRP 12.0 introduces an experimental version of the Probe Volume system that creates pre-computed probe-based global illumination. You can use this system to place light probes automatically and create per-pixel lighting.
 
@@ -206,7 +196,7 @@ You can also choose whether to hide or display
 
 ### Path tracing improvements
 
-![](Images/HDRPFeatures-FabricPT.png)
+![A high-definition living room scene, with highly realistic textures on the sofa, chair, and cushions.](Images/HDRPFeatures-FabricPT.png)
 
 HDRP’s path tracing now supports more materials:
 
@@ -244,7 +234,7 @@ When you create a custom decal shader in HDRP 12.x, the accumulated normal value
 
 ### Decal normal blending
 
-![](Images/HDRPFeatures-SurfGrad.png)
+![A rock with a Unity logo, rendered twice. The image on the right uses the new additive normal blending method, so the logo blends into the surface detail.](Images/HDRPFeatures-SurfGrad.png)
 
 From HDRP 12.0 you can use a new option in the [HDRP Asset](HDRP-Asset.md) (**Rendering > Decals > Additive Normal Blending**) to additively blend decal normals with the GameObject's normal map.
 
@@ -272,10 +262,10 @@ Improved the quality of the physically-based Depth Of Field in the following way
 
 - Improved support for MSAA to remove artifacts around the edges of visible GameObjects.
 
-![](Images/HDRPFeatures-BetterDoF.png)
+![A highly detailed render of a cassette player on a desk, with a depth of field effect that makes surfaces blurry towards and away from the camera.](Images/HDRPFeatures-BetterDoF.png)
 
 ### Physically Based Hair Shader
-![](Images/PBHairShader.png)
+![A head of curly hair.](Images/PBHairShader.png)
 
 HDRP 12.0 includes a new physically-based Marschner hair shader. You can use this as an alternative to the Kajiya-Kay hair shader. This new shading model allows you to quickly create a hair material that fits any lighting scenario. For more information about this new hair shader model and its parameters, see [Hair Master Stack](hair-master-stack-reference.md).
 
@@ -306,8 +296,6 @@ HDRP 12.0 includes a built-in custom pass that you can use to generate Object ID
 
 HDRP 12.0 includes a more precise method to calculate specular occlusion based on Ambient Occlusion (AO) and Bent normals. This replaces the old method for all materials and shader graphs.
 
-![](Images/SpecularOcclusion.png)
-
 ### Ambient Occlusion and Specular Occlusion
 
 In HDRP 12.x, the  algorithm that calculates how ambient occlusion and specular occlusion contributes to direct lighting doesn’t use the multi-bounce contribution (GTAOMultiBounce). This gives a more accurate direct lighting result.
@@ -323,11 +311,11 @@ HDRP 12.0 improves the quality of the [Screen Space Global Illumination (SSGI)](
 
 SSGI off:
 
-![](Images/SSGIoff.png)
+![A room with SSGI off.](Images/SSGIoff.png)
 
 SSGI on:
 
-![](Images/SSGIon.png)
+![A room with SSGI on, with improved lighting.](Images/SSGIon.png)
 
 ### Ray Traced Global Illumination
 

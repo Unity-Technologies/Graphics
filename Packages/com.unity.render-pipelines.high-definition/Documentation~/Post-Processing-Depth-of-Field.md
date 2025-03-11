@@ -17,9 +17,9 @@ Depth Of Field includes [advanced properties](https://docs.unity3d.com/Packages/
 ## Properties
 
 | **Property**       | **Description**                                              |
-| ------------------ | ------------------------------------------------------------ |
-| **Focus Mode**     | Use the drop-down to select the mode that HDRP uses to set the focus for the depth of field effect.<br />&#8226; **Off**: Select this option to disable depth of field.<br />&#8226; **Physical Camera**: Select this option to use the physical [Camera](hdrp-camera-component-reference.md) to set focusing properties for the depth of field effect. For information on what Camera properties affect depth of field, see [Physical Camera settings](#PhysicalCameraSettings).<br />&#8226; **Manual Ranges**: Select this option to use custom values to set the near and far range of the depth of field effect. |
-| **Focus Distance Mode** | Use the drop-down to select where the focus distance is specified.<br /> &#8226; **Volume**: Reads the focus distance from the Volume. <br /> &#8226; **Camera**: Reads the focus distance from the physical camera. <br /> This property only appears when you select **Physical Camera** from the **Focus Mode** drop-down. |
+|-|-|
+| **Focus Mode**     | Use the drop-down to select the mode that HDRP uses to set the focus for the depth of field effect. The options are: <ul><li>**Off**: Select this option to disable depth of field.</li><li>**Physical Camera**: Select this option to use the physical [Camera](hdrp-camera-component-reference.md) to set focusing properties for the depth of field effect. For more information about what Camera properties affect depth of field, refer to [Physical Camera settings](#PhysicalCameraSettings).</li><li>**Manual Ranges**: Select this option to use custom values to set the near and far range of the depth of field effect.</li></ul> |
+| **Focus Distance Mode** | Use the drop-down to select where the focus distance is specified. The options are: <ul><li>**Volume**: Reads the focus distance from the Volume.</li><li>**Camera**: Reads the focus distance from the physical camera.</li></ul> This property only appears when you select **Physical Camera** from the **Focus Mode** drop-down. |
 | **Focus Distance** | Set the distance to the focus plane from the Camera.<br />This property only appears when you select **Volume** from the **Distance Mode** drop-down. |
 
 ### Near Blur
@@ -52,12 +52,12 @@ Here is a list of the physical [Camera](hdrp-camera-component-reference.md) prop
 | **Blades Count** | This determines the shape of the bokeh. For more information on the effect this property has, see the example below. |
 | **Curvature**    | Determines how much of the blades are visible. Use this to change the roundness of bokeh in the blur. For more information on the effect this property has, see the example below. |
 
+![This example shows how the **Blade Count** and **Curvature** properties affect the shape of the bokeh. On the left side, there's a five blade iris that's slightly open, producing a pentagonal bokeh. On the right side, there's a five blade iris that's wide open, producing a circular bokeh.](Images/Post-ProcessingDepthofField2.png)
+
 This example shows how the **Blade Count** and **Curvature** properties affect the shape of the bokeh:
 
-* On the left side, there is a five blade iris that's slightly open; producing a pentagonal bokeh.
-* On the right side, there is a five blade iris that's wide open; producing a circular bokeh.
-
-![](Images/Post-ProcessingDepthofField2.png)
+* On the left side, there is a five blade iris that's slightly open, producing a pentagonal bokeh.
+* On the right side, there is a five blade iris that's wide open, producing a circular bokeh.
 
 ## Path-traced depth of field
 
@@ -67,4 +67,4 @@ Path-traced depth of field produces images without any artifacts, apart from noi
 
 HDRP computes path-traced depth of field at full resolution and ignores any quality settings from the Volume.
 
-![](Images/Path-traced-DoF.png)
+![Two paint pots with a depth of field effect that makes surfaces increasingly blurry towards and away from the camera.](Images/Path-traced-DoF.png)

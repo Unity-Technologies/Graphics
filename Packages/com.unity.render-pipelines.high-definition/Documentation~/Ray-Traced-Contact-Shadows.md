@@ -2,17 +2,14 @@
 
 Ray-Traced Contact Shadows is a ray tracing feature in the High Definition Render Pipeline (HDRP). It's an alternative to HDRP's [Contact Shadow](Override-Contact-Shadows.md) technique that uses a more accurate ray-traced solution that can use off-screen data.
 
-![](Images/RayTracedContactShadow1.png)
+![A stone temple scene without contact shadows. Foliage and dark corners have few shadows.](Images/RayTracedContactShadow1.png)<br/>
+A stone temple scene without contact shadows. Foliage and dark corners have few shadows.
 
-**Without Contact shadows**
+![A stone temple scene with contact shadows. Foliage and dark corners have more shadows.](Images/RayTracedContactShadow2.png)<br/>
+A stone temple scene with contact shadows. Foliage and dark corners have more shadows.
 
-![](Images/RayTracedContactShadow2.png)
-
-**Contact shadows**
-
-![](Images/RayTracedContactShadow3.png)
-
-**Ray-traced contact shadows**
+![A stone temple scene with ray-traced contact shadows. Foliage and dark corners have even more shadows.](Images/RayTracedContactShadow3.png)<br/>
+A stone temple scene with ray-traced contact shadows. Foliage and dark corners have even more shadows.
 
 For information about ray tracing in HDRP, and how to set up your HDRP Project to support ray tracing, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
@@ -27,5 +24,3 @@ This feature is an alternative to the [Contact Shadows](Override-Contact-Shadows
 3. HDRP calculates ray-traced contact shadows on a per-light basis. This means you need to enable it for each light.
 4. Select a [Light](Light-Component.md) and, in the Inspector, go to **Shadows > Contact Shadows** and tick the **Enable** checkbox. This exposes the **Ray Tracing** property.
 5. Enable the **Ray Tracing** checkbox.
-
-![](Images/ContactShadowLightComponent.png)
