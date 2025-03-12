@@ -683,7 +683,6 @@ namespace UnityEngine.Rendering
         {
             if (!m_UseStreamingAsset)
             {
-                // Only when not using Streaming Asset is this reference valid.
                 Debug.Assert(asset.asset != null);
                 return asset.asset.GetData<byte>().Reinterpret<T>(1);
             }
@@ -694,9 +693,17 @@ namespace UnityEngine.Rendering
                     asset.RefreshAssetPath();
                     if (!FileExists(asset.GetAssetPath()))
                     {
-                        Debug.LogAssertion($"File {asset.GetAssetPath()} does not exist on disk. If you are trying to load Adaptive Probe Volumes from AssetBundles or Addressables, " +
-                            "tick the \"Probe Volume Disable Streaming Assets\" project setting in the Graphics tab when building the Player.");
-                        return default;
+                        // If we can't load from StreamingAssets, but we have a valid asset reference, try to use the asset reference instead.
+                        if (asset.HasValidAssetReference())
+                        {
+                            return asset.asset.GetData<byte>().Reinterpret<T>(1);
+                        }
+                        else
+                        {
+                            Debug.LogAssertion($"File {asset.GetAssetPath()} does not exist on disk. If you are trying to load Adaptive Probe Volumes from AssetBundles or Addressables, " +
+                                               "tick the \"Probe Volume Disable Streaming Assets\" project setting in the Graphics tab when building the Player.");
+                            return default;
+                        }
                     }
                 }
 
