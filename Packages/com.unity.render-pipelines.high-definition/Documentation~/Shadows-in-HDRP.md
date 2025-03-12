@@ -72,9 +72,7 @@ In HDRP, each individual Light component controls its own shadow biasing using t
 - **Slope-Scale Depth Bias**
 - **Normal Bias**
 
-Find these settings under the **Shadows** section. If some property fields are missing, enable [additional properties](expose-all-additional-properties.md) to display them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.md).
-
-![](Images/Shadows1.png)
+Find these settings under the **Shadows** section in the **Light** Inspector. If some property fields are missing, enable [additional properties](expose-all-additional-properties.md) to display them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.md).
 
 Using high shadow bias values may result in light "leaking" through Meshes. This is where there is a visible gap between the shadow and its caster and leads to shadow shapes that don't accurately represent their casters.
 

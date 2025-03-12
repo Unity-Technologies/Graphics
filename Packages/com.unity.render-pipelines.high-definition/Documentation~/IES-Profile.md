@@ -2,7 +2,7 @@
 
 IES profiles describe how light spreads for a given direction. They are similar to [light cookies](https://docs.unity3d.com/Manual/Cookies.html) in that they use a multiplier mask to achieve this goal. The Unity IES profile supports Point, Spot (Cone, Pyramid, Box), and Area (Rectangular) [Lights](Light-Component.md).
 
-![](Images/HDRPFeatures-IESProfile.png)
+![Different types of lights in Unity.](Images/HDRPFeatures-IESProfile.png)
 
 The main benefit of using IES profiles over cookies is that light manufacturers provide the profiles. This means that they are physically accurate to the real-world light they represent and also artists do not need to dedicate time authoring them.
 

@@ -14,11 +14,11 @@ HDRP uses the following techniques to minimise incorrect lighting data from Ligh
 
 You can check which Light Probes are invalid using the [Rendering Debugger](rendering-debugger-window-reference.md#ProbeVolume).
 
-![](Images/probevolumes-virtualoffsetvsnot.png)<br/>
-In the Scene on the left, Virtual Offset isn't active and dark bands are visible. In the Scene on the right, Virtual Offset is active.</br>
+![In the scene on the left, Virtual Offset isn't active so dark bands are visible. In the scene on the right, Virtual Offset is active so there are no dark bands.](Images/probevolumes-virtualoffsetvsnot.png)<br/>
+In the scene on the left, Virtual Offset isn't active so dark bands are visible. In the scene on the right, Virtual Offset is active so there are no dark bands.
 
-![](Images/probevolumes-dilationvsnot.png)<br/>
-In the Scene on the left, Dilation isn't active and some areas are too dark. In the Scene on the right, Dilation is active.</br>
+![In the scene on the left, Dilation isn't active so some areas are too dark. In the scene on the right, Dilation is active so the areas are no longer dark.](Images/probevolumes-dilationvsnot.png)<br/>
+In the scene on the left, Dilation isn't active so some areas are too dark. In the scene on the right, Dilation is active so the areas are no longer dark.
 
 ## Fix dark blotches or streaks
 
@@ -39,7 +39,7 @@ You can also disable Virtual Offset for a Baking Set. Virtual Offset only affect
 <a name="dilation"></a>
 ### Adjust Dilation
 
-You can configure **Probe Dilation Settings** in the [Adaptive Probe Volumes panel](probevolumes-lighting-panel-reference.md) in the Lighting window). This changes how HDRP calculates the validity of Light Probes, and how invalid Light Probes use lighting data from nearby valid Light Probes.
+You can configure **Probe Dilation Settings** in the [Adaptive Probe Volumes panel](probevolumes-lighting-panel-reference.md) in the Lighting window. This changes how HDRP calculates the validity of Light Probes, and how invalid Light Probes use lighting data from nearby valid Light Probes.
 
 You can adjust the following:
 
@@ -56,9 +56,8 @@ You can also disable Dilation for a Baking Set. Dilation only affects baking tim
 
 Light leaks are areas that are too light or dark, often in the corners of a wall or ceiling.
 
-![](Images/probevolumes-lightleak.JPG)<br/>
-A light leak.
-<br/>
+![A wall with light leaks, where one side of the wall is too light and one side of the wall is too dark.](Images/probevolumes-lightleak.JPG)<br/>
+A wall with light leaks, where one side of the wall is too light and one side of the wall is too dark.
 
 Light leaks often occur when geometry receives light from a Light Probe that isn't visible to the geometry, for example because the Light Probe is on the other side of a wall. Adaptive Probe Volumes use regular grids of Light Probes, so Light Probes might not follow walls or be at the boundary between different lighting areas.
 
@@ -151,9 +150,8 @@ Refer to [Probe Adjustment Volume component reference](probevolumes-adjustment-v
 
 Seams are artefacts that appear when one lighting condition transitions immediately into another. Seams are caused when two adjacent bricks have different Light Probe densities. Refer to [bricks](probevolumes-concept.md#how-probe-volumes-work) for more information.
 
-![](Images/probevolumes-seams.JPG)<br/>
-Two seams.
-<br/>
+![Two seams on a wall which show the sharp changes in lighting conditions between light and dark.](Images/probevolumes-seams.JPG)<br/>
+Two seams on a wall which show the sharp changes in lighting conditions between light and dark.
 
 URP fixes seams automatically.
 

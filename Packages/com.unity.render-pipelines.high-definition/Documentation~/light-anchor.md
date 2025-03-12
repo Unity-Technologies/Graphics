@@ -19,7 +19,7 @@ Use **Orbit** and **Elevation** to control the orientation of the light, in degr
 
 You can use the **Anchor Position Override** to provide a GameObject’s [Transform](https://docs.unity3d.com/ScriptReference/Transform.html) as an anchor point for the Light. This is useful if you want the Light to follow a specific GameObject in the Scene.
 
-![](Images/LightAnchorAnimation.gif)
+![The Light follows the sphere GameObject in the scene as it rotates.](Images/LightAnchorAnimation.gif)
 
 **Note**: The above example uses the Main Camera as the reference Camera that adjusts the light rotation. The Common presets might create a different result in the Scene View if your view isn't aligned with the Main Camera.
 

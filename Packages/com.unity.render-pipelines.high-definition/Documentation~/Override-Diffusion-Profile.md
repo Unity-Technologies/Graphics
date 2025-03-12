@@ -13,8 +13,6 @@ To add a **Diffusion Profile List** to a Volume:
 
 ## Properties
 
-![](Images\Override-DiffusionProfile1.png)
-
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**                               | **Description**                                              |

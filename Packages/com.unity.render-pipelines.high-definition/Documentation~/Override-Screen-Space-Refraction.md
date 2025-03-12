@@ -15,7 +15,7 @@ To use this setting, you must enable it on a [Volume](understand-volumes.md), as
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component.
 2. In the Inspector for this object, select **Add Override** > **Lighting** > **Screen Space Refraction**.
 
-![](Images/screen-weight-distance.png)<br/>
+![Comparison image of two outdoor scenes. In the first image, a refraction effect is visible. In the second image, the colours appear normal.](Images/screen-weight-distance.png)<br/>
 In the refractive cube on the left of the screen, **Screen Weight Distance** affects the edges of the screen where HDRP fades from using the color buffer to using Reflection Probes.
 
 ## Properties

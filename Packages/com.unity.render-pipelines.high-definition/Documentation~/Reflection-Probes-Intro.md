@@ -7,7 +7,7 @@ The High Definition Render Pipeline (HDRP) allows you to use two different Refle
 - [Reflection Probes](Reflection-Probe.md) captures a view of its surroundings in all directions and stores the result as a cubemap, similar to the Reflection Probe in built-in render pipeline.
 - [Planar Reflection Probes](Planar-Reflection-Probe.md) captures a view in a direction calculated from a reflection of the Camera’s position and rotation, then stores the result in a 2D RenderTexture. By default, the reflected Camera calculates its field of view by setting the center of its projection to the Probe’s **Mirror Position**, and then expands it until it includes the Probe’s **Influence Volume**, as shown here:
 
-![](Images/ReflectionProbeIntro1.png)
+![A diagram that represents the Camera, the Planar Reflection Probe, the capture area, and the reflected Camera. The reflected Camera has the same field of view angle as the Camera.](Images/ReflectionProbeIntro1.png)
 
 For more information about how to use the reflection probe, see [Use reflection probes](Reflection-Probe-Usage.md).
 
