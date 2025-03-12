@@ -49,6 +49,7 @@ namespace Unity.Rendering.Universal.Tests
 
         public static IEnumerator RunGraphicsTest(SceneGraphicsTestCase testCase)
         {
+            Watermark.showDeveloperWatermark = false;
             GraphicsTestLogger.Log(
                 $"Running test case '{testCase}' with scene '{testCase.ScenePath}'.");
             GlobalResolutionSetter.SetResolution(RuntimePlatform.Android, width: 1920, height: 1080);
