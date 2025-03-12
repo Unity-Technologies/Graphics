@@ -713,6 +713,42 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Adds in a <see cref="UnsafeCommandBuffer"/> a command to copy a texture identified by its <see cref="RTHandle"/> into
+        /// the currently bound render target's color buffer, using a user material and specific shader pass.
+        /// </summary>
+        /// <remarks>
+        /// The <c>source</c> texture will be bound to the "_BlitTexture" shader property.
+        /// The <c>scaleBias</c> parameter controls the rectangle of pixels in the source texture to copy by manipulating
+        /// the source texture coordinates. The X and Y coordinates store the scaling factor to apply to these texture
+        /// coordinates, while the Z and W coordinates store the texture coordinate offsets. The operation will always
+        /// write to the full destination render target rectangle.
+        /// </remarks>
+        /// <param name="cmd">Command Buffer used for recording the action.</param>
+        /// <param name="source">RTHandle of the source texture to copy from.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the source texture.</param>
+        /// <param name="material">The material to use for writing to the destination target.</param>
+        /// <param name="pass">The index of the pass to use in the material's shader.</param>
+        /// <example>
+        /// <code lang="cs"><![CDATA[
+        /// // Copy the bottom left quadrant of the source texture to the render target using the first
+        /// // pass of a custom material, scaling to the destination render target's full rectangle.
+        /// // Configure the scale value to 0.5 because a quadrant has half the width and half the
+        /// // height of the texture, and the bias to 0 because the texture coordinate origin is at
+        /// // the bottom left.
+        /// Blitter.BlitTexture(cmd, source, new Vector4(0.5, 0.5, 0, 0), blitMaterial, 0);
+        ///
+        /// // Copy the top half of the source texture mip level 4 to the render target using the
+        /// // second pass of a custom material, scaling to the destination render target's full
+        /// // rectangle.
+        /// Blitter.BlitTexture(cmd, source, new Vector4(1, 0.5, 0, 0.5), blitMaterial, 1);
+        /// ]]></code>
+        /// </example>
+        public static void BlitTexture(UnsafeCommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
+        {
+            BlitTexture(cmd.m_WrappedCommandBuffer, source, scaleBias, material, pass);
+        }
+
+        /// <summary>
         /// Adds in a <see cref="CommandBuffer"/> a command to copy a texture identified by its <see cref="RTHandle"/> into
         /// the currently bound render target's color buffer, using a user material and specific shader pass.
         /// </summary>

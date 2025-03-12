@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
 
             LoadMaterial();
 
-            m_SSShadowsPass.renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
+            m_SSShadowsPass.renderPassEvent = RenderPassEvent.BeforeRenderingGbuffer;
             m_SSShadowsPostPass.renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
         }
 
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.Universal
                 bool usesDeferredLighting = renderer is UniversalRenderer { usesDeferredLighting: true };
 
                 m_SSShadowsPass.renderPassEvent = usesDeferredLighting
-                    ? RenderPassEvent.AfterRenderingGbuffer
+                    ? RenderPassEvent.BeforeRenderingGbuffer
                     : RenderPassEvent.AfterRenderingPrePasses + 1; // We add 1 to ensure this happens after depth priming depth copy pass that might be scheduled
 
                 renderer.EnqueuePass(m_SSShadowsPass);
@@ -194,10 +194,16 @@ namespace UnityEngine.Rendering.Universal
                     : GraphicsFormat.B8G8R8A8_UNorm;
                 TextureHandle color = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_ScreenSpaceShadowmapTexture", true);
 
-                using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
+                // UUM-85291: Using UnsafePass to not allow this pass to merge with other passes as it can cause issues
+                // when using Deferred Lighting by breaking up the Draw GBuffer and Deferred Lighting passes because
+                // of 1) the Deferred Lighting pass reads this resource so it breaks the pass 2) a maximum input attachment
+                // limit is met when this is moved before Draw GBuffer.
+                // For now, using an UnsafePass ensures that this pass won't be merged as a fix is found for the other
+                // underlying issues.
+                using (var builder = renderGraph.AddUnsafePass<PassData>(passName, out var passData, profilingSampler))
                 {
                     passData.target = color;
-                    builder.SetRenderAttachment(color, 0, AccessFlags.Write);
+                    builder.UseTexture(color, AccessFlags.WriteAll);
 
                     InitPassData(ref passData);
                     builder.AllowGlobalStateModification(true);
@@ -205,7 +211,7 @@ namespace UnityEngine.Rendering.Universal
                     if (color.IsValid())
                         builder.SetGlobalTextureAfterPass(color, m_ScreenSpaceShadowmapTextureID);
 
-                    builder.SetRenderFunc((PassData data, RasterGraphContext rgContext) =>
+                    builder.SetRenderFunc((PassData data, UnsafeGraphContext rgContext) =>
                     {
                         ExecutePass(rgContext.cmd, data, data.target);
                     });
@@ -213,6 +219,14 @@ namespace UnityEngine.Rendering.Universal
             }
 
             private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target)
+            {
+                Blitter.BlitTexture(cmd, target, Vector2.one, data.material, 0);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
+                cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowScreen, true);
+            }
+
+            private static void ExecutePass(UnsafeCommandBuffer cmd, PassData data, RTHandle target)
             {
                 Blitter.BlitTexture(cmd, target, Vector2.one, data.material, 0);
                 cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, false);
