@@ -83,7 +83,7 @@
     },
     {
       "displayName": "Water Samples",
-      "description": "Add a set of examples using the Water System, showcasing various environements using all the features of the system.",
+      "description": "Add a set of examples using the Water System, showcasing various environments using all the features of the system.",
       "path": "Samples~/WaterSamples",
       "dependencies": [
         "com.unity.render-pipelines.high-definition/Samples~/Common",
