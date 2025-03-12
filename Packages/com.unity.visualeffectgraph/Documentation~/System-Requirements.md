@@ -8,6 +8,7 @@ The following table shows the compatibility of the Visual Effect Graph versions 
 
 | **Package version** | **Minimum Unity version** | **Maximum Unity version** |
 | ------------------- | ------------------------- | ------------------------- |
+| 17.x                | Unity 6                   | Unity 6                   |
 | 16.x                | 2023.2                    | 2023.2                    |
 | 15.x                | 2023.1                    | 2023.1                    |
 | 14.x                | 2022.2                    | 2022.2                    |
