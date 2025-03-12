@@ -20,7 +20,7 @@ To use ray tracing in an HDRP scene, refer to [Getting started with ray tracing]
 
 ### Volumetric Fog Output
 
-![](Images/VolumetricFogParticles.gif)
+![A scene of a woman statue covered in fog.](Images/VolumetricFogParticles.gif)
 
 VFX Graph verision 15.0 adds the [Output Particle HDRP Volumetric Fog](Context-OutputParticleHDRPVolumetricFog.md
 ) output node which samples [Local Volumetric Fog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/Local-Volumetric-Fog.html) in the High Definition Render Pipeline (HDRP).

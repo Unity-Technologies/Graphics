@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Wave > Square Wave**
 
 The Square Wave Operator allows you to generate a value which alternates between a minimum and a maximum value at steady intervals based on a provided input and a set frequency.
 
-![](Images/Operator-SquareWaveAnimation.gif)
+![A lower line representing the minimum and a higher line representing the maximum, with a square wave at regular intervals. A blue dot travels across the minimum line of the square wave for a few seconds, then moves to the maximum lines for the same amount of time, before repeating the cycle.](Images/Operator-SquareWaveAnimation.gif)
 
 If **Frequency** is set to 1, the blue dot remains at **Min** with an **Input** value from 0 to almost 0.5. Then, with an **Input** value from 0.5 to almost 1, the dot remains at **Max**. After that, the wave repeats.
 

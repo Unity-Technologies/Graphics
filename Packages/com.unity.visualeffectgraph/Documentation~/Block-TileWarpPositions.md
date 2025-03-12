@@ -8,7 +8,7 @@ If you move the AABox, this Block warps particles around as the box moves, creat
 
 This Block can be useful to create infinitely tiling effects that need to stay close to the camera or the player in an application, such as rain or snow.
 
-![](Images/Block-TileWarpPositionsMain.gif)
+![Three different states of an AABox that contains particles. When Tile/Warp is disabled, the particles are not contained to the box. When Tile/Warp is enabled, the particles are contained in the box as they warp to the other side. When moving the AABox around with the Tile/Warp volume, the particles warp as the box moves.](Images/Block-TileWarpPositionsMain.gif)
 
 ## Block compatibility
 
