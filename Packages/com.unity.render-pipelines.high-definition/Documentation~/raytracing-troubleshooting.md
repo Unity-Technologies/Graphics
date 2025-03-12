@@ -44,8 +44,8 @@ You might notice the following symptoms when shadows from directional lights are
 - The lighting feels flat or unrealistic, especially in large outdoor scenes with sunlight.
 
 <canvas class="image-comparison" role="img" aria-label="Fix missing shadows from directional lights">
-    <img src="Images/ray_tracing_troubleshoot__directional_shadow_fallback_1.jpg" title="Directional shadow fallback off">
-    <img src="Images/ray_tracing_troubleshoot__directional_shadow_fallback_0.jpg" title="Directional shadow fallback on">
+    <img src="Images/ray_tracing_troubleshoot__directional_shadow_fallback_1.jpg" title="Directional shadow fallback off" alt="Directional shadow fallback off">
+    <img src="Images/ray_tracing_troubleshoot__directional_shadow_fallback_0.jpg" title="Directional shadow fallback on" alt="Directional shadow fallback on">
 </canvas>
 
 ### Cause
@@ -69,8 +69,8 @@ The following symptoms indicate missing shadows from punctual lights:
 - Light leaks occur in areas where shadows are meant to be cast by nearby objects.
 
 <canvas class="image-comparison" role="img" aria-label="Fix missing shadows from punctual lights">
-    <img src="Images/ray_tracing_troubleshoot_apartment_shadow_culling_off.jpg" title="Shadow culling off">
-    <img src="Images/ray_tracing_troubleshoot_apartment_shadow_culling_on.jpg" title="Shadow culling on">
+    <img src="Images/ray_tracing_troubleshoot_apartment_shadow_culling_off.jpg" title="Shadow culling off" alt="Shadow culling off">
+    <img src="Images/ray_tracing_troubleshoot_apartment_shadow_culling_on.jpg" title="Shadow culling on" alt="Shadow culling on">
 </canvas>
 
 ### Cause
@@ -126,8 +126,8 @@ The following symptoms might occur when an indirect specular light leaks:
 - Reflections seem disconnected from nearby objects or appear out of place.
 
 <canvas class="image-comparison" role="img" aria-label="Fix indirect specular light leaks">
-    <img src="Images/ray_tracing_troubleshoot_apartment_indirect_specular_reflection_probe_off.jpg" title="Specular reflection probe off">
-    <img src="Images/ray_tracing_troubleshoot_apartment_indirect_specular_reflection_probe_on.jpg" title="Specular reflection probe on">
+    <img src="Images/ray_tracing_troubleshoot_apartment_indirect_specular_reflection_probe_off.jpg" title="Specular reflection probe off" alt="Specular reflection probe off">
+    <img src="Images/ray_tracing_troubleshoot_apartment_indirect_specular_reflection_probe_on.jpg" title="Specular reflection probe on" alt="Specular reflection probe on">
 </canvas>
 
 ### Cause
@@ -176,9 +176,9 @@ The following symptoms can indicate indirect diffuse light leaks:
 
 <canvas class="image-comparison" role="img" aria-label="Fix indirect diffuse light leaks">
     <img src="Images/ray_tracing_troubleshoot_ambient-probe-dimmer-1.jpg"
-    title="Ambient probe dimmer 1">
+    title="Ambient probe dimmer 1" alt="Ambient probe dimmer 1">
     <img src="Images/ray_tracing_troubleshoot_ambient-probe-dimmer-0.jpg"
-    title="Ambient probe dimmer 0">
+    title="Ambient probe dimmer 0" alt="Ambient probe dimmer 0">
 </canvas>
 
 ### Cause
@@ -207,9 +207,9 @@ Fog light leaks have the following symptoms:
 
 <canvas class="image-comparison" role="img" aria-label="Fix fog light leaks">
     <img src="Images/fog-color-sky-color.jpg"
-    title="Fog color: sky color">
+    title="Fog color: sky color" alt="Fog color: sky color">
     <img src="Images/fog-color-black.jpg"
-    title="Fog color: Black">
+    title="Fog color: Black" alt="Fog color: Black">
 </canvas>
 
 ### Cause
