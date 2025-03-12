@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.Universal
     // Note: Spaced built-in events so we can add events in between them
     // We need to leave room as we sort render passes based on event.
     // Users can also inject render pass events in a specific point by doing RenderPassEvent + offset
+
     /// <summary>
     /// Controls when the render pass executes.
     /// </summary>
@@ -193,6 +194,14 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
+    /// <remarks>
+    /// To implement your own rendering pass you need to take the following steps:
+    /// 1. Create a new Subclass from ScriptableRenderPass that implements the rendering logic.
+    /// 2. Create an instance of your subclass and set up the relevant parameters such as <c>ScriptableRenderPass.renderPassEvent</c> in the constructor or initialization code.
+    /// 3. Ensure your pass instance gets picked up by URP, this can be done through a <c>ScriptableRendererFeature</c> or by calling <c>ScriptableRenderer.EnqueuePass</c> from an event callback like <c>RenderPipelineManager.beginCameraRendering</c>
+    ///
+    /// See [link] for more info on working with a <c>ScriptableRendererFeature</c> or [link] for more info on working with <c>ScriptableRenderer.EnqueuePass</c>.
+    /// </remarks>
     public abstract partial class ScriptableRenderPass: IRenderGraphRecorder
     {
         /// <summary>
