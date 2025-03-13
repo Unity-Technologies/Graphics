@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent lockWithTilingRateText = new GUIContent("Lock With Height Map Tiling Rate", "When enabled, displacement mapping takes the absolute value of the tiling rate of the height map into account.");
 
             // Material ID
-            public static GUIContent materialIDText = new GUIContent("Material Type", "Specifies additional feature for this Material. Customize you Material with different settings depending on which Material Type you select.");
+            public static GUIContent materialIDText = new GUIContent("Material Type", "Specifies additional features for this Material. Customize your Material with different settings depending on which Material Type you select.");
             public static GUIContent transmissionEnableText = new GUIContent("Transmission", "When enabled HDRP processes the transmission effect for subsurface scattering. Simulates the translucency of the object.");
             public static string transparentSSSErrorMessage = "Transparent Materials With SubSurface Scattering is not supported.";
             public static GUIContent clearCoatEnabledText = new GUIContent("Clear Coat", "Controls whether the clear coat effect is enabled or not.");
