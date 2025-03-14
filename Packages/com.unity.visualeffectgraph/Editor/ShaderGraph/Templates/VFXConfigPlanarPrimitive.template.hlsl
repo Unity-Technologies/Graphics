@@ -42,7 +42,8 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
         StripData stripData;
         uint relativeIndexInStrip = 0;
         #if HAS_STRIPS
-            if (!FindIndexInStrip(index, id, instanceIndex, relativeIndexInStrip, stripData))
+            uint primitiveId = id;
+            if (!FindIndexInStrip(index, primitiveId, instanceIndex, relativeIndexInStrip, stripData))
                 return false;
         #else
             stripData = GetStripDataFromParticleIndex(index, instanceIndex);
