@@ -16,7 +16,6 @@
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
-    "local.code.coverage.references": "file:../../../Packages/local.code.coverage.references",
     "local.utf.references": "file:../../../Packages/local.utf.references",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
