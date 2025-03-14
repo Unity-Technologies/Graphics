@@ -410,6 +410,12 @@ namespace UnityEditor.VFX
             m_Shading?.GetImportDependentAssets(dependencies);
         }
 
+        public sealed override void OnUnknownChange()
+        {
+            MarkCacheAsDirty();
+            base.OnUnknownChange();
+        }
+
         public sealed override void CheckGraphBeforeImport()
         {
             if (m_Topology != null && m_Shading != null)
