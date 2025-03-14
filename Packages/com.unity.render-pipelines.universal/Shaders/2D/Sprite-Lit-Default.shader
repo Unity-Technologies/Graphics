@@ -21,7 +21,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
         Cull Off
         ZWrite [_ZWrite]
-        ZTest Off
 
         Pass
         {
