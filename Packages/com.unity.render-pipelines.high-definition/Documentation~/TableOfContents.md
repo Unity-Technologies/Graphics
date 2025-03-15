@@ -197,7 +197,6 @@
     * [Create a global fog effect](create-a-global-fog-effect.md)
     * [Create a local fog effect](create-a-local-fog-effect.md)
     * [Create a Fog Volume shader](create-a-fog-volume-shader.md)
-    * [Volumetric fog samples](VolumetricSamplesDescriptions.md)
     * [Troubleshoot fog](troubleshoot-fog.md)
   * [Water](water.md)
     * [Use the water system in your Project](water-use-the-water-system-in-your-project.md)
