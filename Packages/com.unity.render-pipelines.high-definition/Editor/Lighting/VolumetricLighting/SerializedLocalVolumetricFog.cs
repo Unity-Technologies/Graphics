@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty textureScroll;
         public SerializedProperty textureTile;
 
+        public SerializedProperty scaleMode;
         public SerializedProperty size;
 
         SerializedProperty positiveFade;
@@ -54,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             textureScroll = densityParams.FindPropertyRelative("textureScrollingSpeed");
             textureTile = densityParams.FindPropertyRelative("textureTiling");
 
+            scaleMode = densityParams.FindPropertyRelative("scaleMode");
             size = densityParams.FindPropertyRelative("size");
 
             positiveFade = densityParams.FindPropertyRelative("positiveFade");

@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)")
             };
 
+            public static readonly GUIContent s_ScaleMode = new GUIContent("Scale Mode", "Specifies the scaling mode to apply to the Local Volumetric Fog Volume.");
             public static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Local Volumetric Fog. This is independent of the Transform's Scale.");
             public static readonly GUIContent s_AlbedoLabel = new GUIContent("Single Scattering Albedo", "The color this fog scatters light to.");
             public static readonly GUIContent s_MeanFreePathLabel = new GUIContent("Fog Distance", "Density at the base of the fog. Determines how far you can see through the fog in meters.");
