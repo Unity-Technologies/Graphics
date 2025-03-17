@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) includes the Light Placement Tool whi
 
 This tool does not affect any Cameras in your Scene. The Scene View Camera returns to its original position when you disable the Light Placement Tool. 
 
-![](Images/light-placement-tool.jpg)
+![A garden scene. On the left, the default Scene view. On the right, the view from the light.](Images/light-placement-tool.jpg)
 
 ## Use the Light Placement Tool
 
