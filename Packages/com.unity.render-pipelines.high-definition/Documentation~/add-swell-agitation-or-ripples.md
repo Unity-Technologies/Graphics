@@ -23,18 +23,8 @@ To add a Water Mask:
 
 1. In the Water Volume Inspector window, drag the texture to the **Water Mask** property.
 
-<table>
-<tr>
-<td>
-<img src="Images/WaterMask_Example-22.2.png">
-</td>
-<td>
-<img src="Images/WaterMask_ExempleRender.PNG">
-</td>
-</tr>
-<tr>
-<td colspan="2">
-In this example, the red channel has a gradient that reduces the first and second simulation bands. The noise on the green channel reduces ripples. For more information, refer to the <a href="settings-and-properties-related-to-the-water-system.md#watermask">Water Mask property description</a>.
-</td>
-</tr>
-</table>
+![A water mask that's more red towards the left and more blue towards the right.](Images/WaterMask_Example-22.2.png)
+
+![An ocean rendered using the water mask.](Images/WaterMask_ExempleRender.PNG)
+
+In this example, the red channel has a gradient that reduces the first and second simulation bands. The noise on the green channel reduces ripples. For more information, refer to the <a href="settings-and-properties-related-to-the-water-system.md#simulationmask">Simulation Mask property description.
