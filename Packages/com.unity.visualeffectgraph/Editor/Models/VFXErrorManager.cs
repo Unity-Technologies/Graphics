@@ -155,12 +155,11 @@ namespace UnityEditor.VFX
                         model.GenerateErrors(this);
                     }
 
-                    m_DirtyModels = m_ScheduledModels;
-                    m_ScheduledModels = new HashSet<VFXModel>();
-
                 }
                 finally
                 {
+                    m_DirtyModels = m_ScheduledModels;
+                    m_ScheduledModels.Clear();
                     m_IsGeneratingErrors = false;
                 }
             }
