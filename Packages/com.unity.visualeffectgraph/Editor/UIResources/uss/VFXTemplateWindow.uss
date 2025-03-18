@@ -10,10 +10,6 @@ TreeView.remove-toggle Toggle {
     background-color: rgba(0, 0, 0, 0);
 }
 
-#SplitPanel .unity-two-pane-split-view__dragline-anchor {
-    background-color: var(--unity-colors-default-border);
-}
-
 #ListOfTemplatesPanel {
     flex-grow: 1;
     flex-shrink: 0;
