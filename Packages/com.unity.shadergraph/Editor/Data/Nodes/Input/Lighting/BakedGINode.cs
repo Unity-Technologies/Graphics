@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            if (generationMode == GenerationMode.ForReals)
+            if (generationMode == GenerationMode.ForReals || generationMode == GenerationMode.VFX)
             {
                 sb.AppendLine("$precision3 {6} = SHADERGRAPH_BAKED_GI({0}, {1}, IN.{2}.xy, {3}, {4}, {5});",
                     GetSlotValue(kPositionWSInputSlotId, generationMode),
