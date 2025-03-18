@@ -137,7 +137,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
                 size3.y += size3.y < 0.0f ? -VFX_EPSILON : VFX_EPSILON;
                 size3.z += size3.z < 0.0f ? -VFX_EPSILON : VFX_EPSILON;
 
-                if (relativeIndexInStrip < stripData.nextIndex - 1)
+                if (relativeIndexInStrip + 1 < stripData.nextIndex)
                 {
                     uint nextIndex = GetParticleIndex(relativeIndexInStrip + 1,stripData);
                     center = (center + GetParticlePosition(nextIndex, instanceIndex)) * 0.5f;
