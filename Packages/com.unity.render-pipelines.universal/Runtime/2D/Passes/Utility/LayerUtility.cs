@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.Universal
         {
             filterSettings = FilteringSettings.defaultValue;
             filterSettings.renderQueueRange = RenderQueueRange.all;
-            filterSettings.layerMask = -1;
+            filterSettings.layerMask = rendererData.layerMask;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
             filterSettings.sortingLayerRange = layerBatch.layerRange;
         }  
