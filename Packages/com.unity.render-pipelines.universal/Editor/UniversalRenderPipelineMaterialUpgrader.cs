@@ -598,7 +598,7 @@ namespace UnityEditor.Rendering.Universal
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
             // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
             MaterialEditor.FixupEmissiveFlag(material);
-            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive) != 0;
             CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
             UniversalRenderPipelineMaterialUpgrader.DisableKeywords(material);
         }
