@@ -1,14 +1,10 @@
-#if (ENABLE_INPUT_SYSTEM && INPUT_SYSTEM_INSTALLED)
-#define USE_INPUT_SYSTEM
-#endif
-
-#if USE_INPUT_SYSTEM
-using UnityEngine.InputSystem;
-#endif
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -31,7 +27,7 @@ public class PlayerMovement : MonoBehaviour
     Vector3 velocity;
     bool isGrounded;
 
-#if USE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM
     InputAction movement;
     InputAction jump;
 
@@ -64,7 +60,7 @@ public class PlayerMovement : MonoBehaviour
         float z;
         bool jumpPressed = false;
 
-#if USE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM
         var delta = movement.ReadValue<Vector2>();
         x = -delta.x;
         z = -delta.y;
