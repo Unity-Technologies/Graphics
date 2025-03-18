@@ -534,16 +534,6 @@ namespace UnityEngine.Rendering.Universal
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
         }
 
-        internal static bool IsGLDevice()
-        {
-            return IsGLESDevice() || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
-        }
-
-        internal static bool supportsMRT
-        {
-            get => !IsGLDevice();
-        }
-
         internal override bool supportsNativeRenderPassRendergraphCompiler => true;
     }
 
