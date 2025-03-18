@@ -4,60 +4,6 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes:
-  - enabled: 1
-    path: Assets/Scenes/ArtisticNodes.unity
-    guid: ef89632b434b9c644a88f827ec7b029d
-  - enabled: 1
-    path: Assets/Scenes/ChannelNodes.unity
-    guid: cc3d7893409e1a34fa72839a8a0655b8
-  - enabled: 1
-    path: Assets/Scenes/InputNodes.unity
-    guid: 1c45ab02ee5353c44b809073fe83edf7
-  - enabled: 1
-    path: Assets/Scenes/InputNodes_Perspective.unity
-    guid: f55bfa4fdbae0ea488ee4db176bbc1f4
-  - enabled: 1
-    path: Assets/Scenes/LogicNodes.unity
-    guid: c9e604cd31ff2454d9cab4e919cae3c1
-  - enabled: 1
-    path: Assets/Scenes/MathNodes.unity
-    guid: a57ba07320e44f145ab52a48fadc4dca
-  - enabled: 1
-    path: Assets/Scenes/RefractNode.unity
-    guid: f35230431daa27846ba8a4a727b6d6e5
-  - enabled: 1
-    path: Assets/Scenes/ProceduralNodes.unity
-    guid: 64ece7a4be4f6294bbdc8cad1cf7f71d
-  - enabled: 1
-    path: Assets/Scenes/UtilityNodes.unity
-    guid: e04b9c7fb71c03448b350d2b652e7301
-  - enabled: 1
-    path: Assets/Scenes/UVNodes.unity
-    guid: 6efc74ac9f48a3243a990cf89991972c
-  - enabled: 1
-    path: Assets/Scenes/FlipbookNode.unity
-    guid: 0e9118933c86cf04c800347e43cd7e31
-  - enabled: 1
-    path: Assets/Scenes/TransformNode.unity
-    guid: 1dc3dc627ca4fff4ba184eb8f939406b
-  - enabled: 1
-    path: Assets/Scenes/NormalMapStressTests.unity
-    guid: 8d4f811a4f241464fb438ad434fbaba4
-  - enabled: 1
-    path: Assets/Scenes/InstancedRendering.unity
-    guid: e2be1657f285b724c8e4fc40a9ab77fd
-  - enabled: 1
-    path: Assets/Scenes/InstanceIDWithKeywords.unity
-    guid: 9ea201c786bfd4e04bb62addbef3440d
-  - enabled: 1
-    path: Assets/Scenes/SamplerStateTests.unity
-    guid: ed2fd0ccb16dc6645a13091bfa602856
-  - enabled: 1
-    path: Assets/Scenes/URP_InstancingTest.unity
-    guid: 4229d44b837011e48b0f123903ea0ea5
-  - enabled: 1
-    path: Assets/Scenes/Fullscreen.unity
-    guid: 8b2856898c3f1cb43a36c7329bdbcc97
+  m_Scenes: []
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
