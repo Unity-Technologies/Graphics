@@ -56,22 +56,14 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    //rotation matrix
     UV -= Center;
-    $precision s = sin(Rotation);
-    $precision c = cos(Rotation);
-
-    //center rotation matrix
-    $precision2x2 rMatrix = $precision2x2(c, -s, s, c);
-    rMatrix *= 0.5;
-    rMatrix += 0.5;
-    rMatrix = rMatrix*2 - 1;
-
-    //multiply the UVs by the rotation matrix
-    UV.xy = mul(UV.xy, rMatrix);
-    UV += Center;
-
-    Out = UV;
+    $precision s, c;
+    sincos(Rotation, s, c);
+    $precision3 r3 = $precision3(-s, c, s);
+    $precision2 r1;
+    r1.y = dot(UV, r3.xy);
+    r1.x = dot(UV, r3.yz);
+    Out = r1 + Center;
 }";
         }
 
@@ -85,23 +77,15 @@ namespace UnityEditor.ShaderGraph
 
             return @"
 {
-    //rotation matrix
     Rotation = Rotation * (3.1415926f/180.0f);
     UV -= Center;
-    $precision s = sin(Rotation);
-    $precision c = cos(Rotation);
-
-    //center rotation matrix
-    $precision2x2 rMatrix = $precision2x2(c, -s, s, c);
-    rMatrix *= 0.5;
-    rMatrix += 0.5;
-    rMatrix = rMatrix*2 - 1;
-
-    //multiply the UVs by the rotation matrix
-    UV.xy = mul(UV.xy, rMatrix);
-    UV += Center;
-
-    Out = UV;
+    $precision s, c;
+    sincos(Rotation, s, c);
+    $precision3 r3 = $precision3(-s, c, s);
+    $precision2 r1;
+    r1.y = dot(UV, r3.xy);
+    r1.x = dot(UV, r3.yz);
+    Out = r1 + Center;
 }";
         }
     }

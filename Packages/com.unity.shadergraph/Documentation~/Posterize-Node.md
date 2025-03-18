@@ -23,6 +23,6 @@ The following example code represents one possible outcome of this node.
 ```
 void Unity_Posterize_float4(float4 In, float4 Steps, out float4 Out)
 {
-    Out = floor(In / (1 / Steps)) * (1 / Steps);
+    Out = floor(In * Steps) / Steps;
 }
 ```

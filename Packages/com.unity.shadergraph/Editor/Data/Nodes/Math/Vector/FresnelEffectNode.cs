@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    Out = pow((1.0 - saturate(dot(normalize(Normal), normalize(ViewDir)))), Power);
+    Out = pow((1.0 - saturate(dot(normalize(Normal), ViewDir))), Power);
 }
 ";
         }
