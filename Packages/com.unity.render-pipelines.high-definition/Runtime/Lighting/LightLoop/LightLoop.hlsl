@@ -192,6 +192,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // With XR single-pass and camera-relative: offset position to do lighting computations from the combined center view (original camera matrix).
     // This is required because there is only one list of lights generated on the CPU. Shadows are also generated once and shared between the instanced views.
+    // We keep the unmodified per-eye position around since we use it to sample APV. Passing the modified world space position to GetAbsolutePositionWS after
+    // this point would give incorrect results.
+    float3 unmodifiedPositionWS = posInput.positionWS;
     ApplyCameraRelativeXR(posInput.positionWS);
 
     LightLoopContext context;
@@ -497,7 +500,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     // Reflect normal to get lighting for reflection probe tinting
                     float3 R = reflect(-V, bsdfData.normalWS);
 
-                    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
+                    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(unmodifiedPositionWS),
                         bsdfData.normalWS,
                         -bsdfData.normalWS,
                         R,
