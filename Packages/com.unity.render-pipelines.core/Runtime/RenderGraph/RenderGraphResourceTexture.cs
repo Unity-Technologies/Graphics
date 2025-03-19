@@ -7,12 +7,12 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
-    internal struct TextureAccess
+    internal readonly struct TextureAccess
     {
-        public TextureHandle textureHandle;
-        public int mipLevel;
-        public int depthSlice;
-        public AccessFlags flags;
+        public readonly TextureHandle textureHandle;
+        public readonly int mipLevel;
+        public readonly int depthSlice;
+        public readonly AccessFlags flags;
 
         public TextureAccess(TextureHandle handle, AccessFlags flags, int mipLevel, int depthSlice)
         {
@@ -20,6 +20,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
             this.flags = flags;
             this.mipLevel = mipLevel;
             this.depthSlice = depthSlice;
+        }
+        
+        public TextureAccess(TextureAccess access, TextureHandle handle)
+        {
+            this.textureHandle = handle;
+            this.flags = access.flags;
+            this.mipLevel = access.mipLevel;
+            this.depthSlice = access.depthSlice;
         }
     }
 

@@ -874,7 +874,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="texture">Texture resource from which the descriptor is requested.</param>
         /// <returns>The input texture descriptor.</returns>
-        public TextureDesc GetTextureDesc(TextureHandle texture)
+        public TextureDesc GetTextureDesc(in TextureHandle texture)
         {
             return m_Resources.GetTextureResourceDesc(texture.handle);
         }

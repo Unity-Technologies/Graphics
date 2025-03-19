@@ -8,7 +8,7 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
     // Wrapper struct to allow storing strings in a DynamicArray which requires a type with a parameterless constructor
-    internal struct Name
+    internal readonly struct Name
     {
         public readonly string name;
         public readonly int utf8ByteCount;
@@ -161,13 +161,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // not int the middle of lists
             Debug.Assert(listFirstIndex + numItems == fragmentData.Length);
 
-            fragmentData.Add(new PassFragmentData()
-            {
-                resource = access.textureHandle.handle,
-                accessFlags = access.flags,
-                mipLevel = access.mipLevel,
-                depthSlice = access.depthSlice,
-            });
+            fragmentData.Add(new PassFragmentData(
+                access.textureHandle.handle,
+                access.flags,
+                access.mipLevel,
+                access.depthSlice
+            ));
             return true;
         }
 
@@ -204,12 +203,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // not int the middle of lists
             Debug.Assert(listFirstIndex + numItems == randomAccessResourceData.Length);
 
-            randomAccessResourceData.Add(new PassRandomWriteData()
-            {
-                resource = h,
-                index = randomWriteSlotIndex,
-                preserveCounterValue = preserveCounterValue
-            });
+            randomAccessResourceData.Add(new PassRandomWriteData(h, randomWriteSlotIndex, preserveCounterValue));
             return true;
         }
 
@@ -230,7 +224,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         }
 
         // Helper to loop over native passes
-        public struct NativePassIterator
+        public ref struct NativePassIterator
         {
             readonly CompilerContextData m_Ctx;
             int m_Index;

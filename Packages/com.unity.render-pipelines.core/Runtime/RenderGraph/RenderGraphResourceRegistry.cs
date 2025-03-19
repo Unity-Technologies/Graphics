@@ -760,7 +760,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     // screen resolution,.... we can't even hope to know or replicate the size calculation here
                     // so we just say we don't know what this rt is and rely on the user passing in the info to us.
                     var desc = GetTextureResourceDesc(res, true);
-                    outInfo = new RenderTargetInfo();
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                     if (desc.width == 0 || desc.height == 0 || desc.slices == 0 || desc.msaaSamples == 0 || desc.format == GraphicsFormat.None) 
                     {
