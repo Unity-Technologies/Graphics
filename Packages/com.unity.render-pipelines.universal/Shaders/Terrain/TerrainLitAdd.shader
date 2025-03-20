@@ -105,7 +105,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             Blend One One
-
             HLSLPROGRAM
             #pragma target 4.5
 
@@ -116,11 +115,11 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma vertex SplatmapVert
             #pragma fragment SplatmapFragment
 
+            //Note that the GBuffer pass in TerrainLitAdd disables all of the lighting related features
+            //as any deferred lighting is calculated in the base pass or later in the lighting shaders
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-            //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
