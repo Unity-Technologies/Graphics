@@ -160,6 +160,99 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        public struct ShaderIndexCase
+        {
+            public string Name;
+            internal Func<VFXAbstractRenderedOutput> fnGenerateOutput;
+
+            public override string ToString()
+            {
+                return Name;
+            }
+        }
+
+        public static ShaderIndexCase[] kShaderIndexCase = new[]
+        {
+            new ShaderIndexCase()
+            {
+                Name = "VFXComposedParticleOutput_Planar", fnGenerateOutput = () =>
+                {
+                    var output = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+                    output.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
+                    return output;
+                },
+            },
+            new ShaderIndexCase()
+            {
+                Name = "VFXComposedParticleOutput_Mesh", fnGenerateOutput = () =>
+                {
+                    var output = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+                    output.SetSettingValue("m_Topology", new ParticleTopologyMesh());
+                    return output;
+                },
+            },
+            new ShaderIndexCase()
+            {
+                Name = "VFXMeshOutput", fnGenerateOutput = () =>
+                {
+                    var output = ScriptableObject.CreateInstance<VFXMeshOutput>();
+                    return output;
+                },
+            },
+            new ShaderIndexCase()
+            {
+                Name = "VFXPlanarPrimitiveOutput", fnGenerateOutput = () =>
+                {
+                    var output = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+                    return output;
+                },
+            },
+        };
+
+        [Test]
+        public void CheckShaderIndexBehavior([ValueSource("kShaderIndexCase")] ShaderIndexCase shaderIndexCase)
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            graph.AddChild(spawner);
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            graph.AddChild(contextInitialize);
+            spawner.LinkTo(contextInitialize);
+
+            var contextUpdate = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            graph.AddChild(contextUpdate);
+            contextInitialize.LinkTo(contextUpdate);
+
+            var output = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+            output.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
+            graph.AddChild(output);
+            contextUpdate.LinkTo(output);
+
+            var vfxPath = AssetDatabase.GetAssetPath(graph);
+            AssetDatabase.ImportAsset(vfxPath);
+            var allAssets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+            Assert.AreEqual(5, allAssets.Length);
+
+            var resource = allAssets.OfType<VisualEffectAsset>().Single().GetOrCreateResource();
+            var invalidPathChars = System.IO.Path.GetInvalidPathChars();
+            Assert.AreNotEqual(0, invalidPathChars.Length);
+
+            foreach (var subAsset in allAssets)
+            {
+                if (subAsset is VisualEffectAsset)
+                    continue;
+                var shaderIndex = resource.GetShaderIndex(subAsset);
+                Assert.IsTrue(shaderIndex >= 0);
+
+                var shaderPath = resource.GetShaderSourceName(shaderIndex);
+                Assert.IsFalse(string.IsNullOrEmpty(shaderPath));
+                foreach (var invalidChar in invalidPathChars)
+                    Assert.IsFalse(shaderPath.Contains(invalidChar), "Found an occurence of '{0}' in '{1}", invalidChar, shaderPath);
+            }
+        }
+
         [Test]
         public void Constant_Folding_With_ShaderKeyword([ValueSource("allCompilationMode")] string compilationModeName)
         {
