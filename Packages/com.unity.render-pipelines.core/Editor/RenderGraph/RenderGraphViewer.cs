@@ -1032,7 +1032,6 @@ namespace UnityEditor.Rendering
         {
             RebuildRenderGraphPopup();
             RebuildExecutionPopup();
-            RebuildViewOptionsUI();
         }
 
         RenderGraph m_SelectedRenderGraph;
@@ -1849,6 +1848,9 @@ namespace UnityEditor.Rendering
             var resourceFilter = rootVisualElement.Q<EnumFlagsField>(Names.kResourceFilterField);
             resourceFilter.style.display = DisplayStyle.None; // Hidden until the compiler is known
 
+            var viewOptions = rootVisualElement.Q<EnumFlagsField>(Names.kViewOptionsField);
+            viewOptions.style.display = DisplayStyle.None;
+
             // Hover overlay
             var hoverOverlay = rootVisualElement.Q(Names.kHoverOverlay);
             hoverOverlay.RegisterCallback<MouseOverEvent>(_ => HoverResourceGrid(-1, -1));
@@ -1938,20 +1940,15 @@ namespace UnityEditor.Rendering
 
                         RebuildPassFilterUI();
                         RebuildResourceFilterUI();
+                        RebuildViewOptionsUI();
                         RebuildGraphViewerUI();
                     }
                 }
             };
         }
 
-        void OnEnable()
+        void CreateGUI()
         {
-            var registeredGraph = RenderGraph.GetRegisteredRenderGraphs();
-            foreach (var graph in registeredGraph)
-                m_RegisteredGraphs.Add(graph, new HashSet<string>());
-
-            SubscribeToRenderGraphEvents();
-
             if (EditorPrefs.HasKey(kPassFilterLegacyEditorPrefsKey))
                 m_PassFilterLegacy = (PassFilterLegacy)EditorPrefs.GetInt(kPassFilterLegacyEditorPrefsKey);
             if (EditorPrefs.HasKey(kPassFilterEditorPrefsKey))
@@ -1962,10 +1959,13 @@ namespace UnityEditor.Rendering
                 m_ViewOptions = (ViewOptions)EditorPrefs.GetInt(kViewOptionsEditorPrefsKey);
 
             GraphicsToolLifetimeAnalytic.WindowOpened<RenderGraphViewer>();
-        }
 
-        void CreateGUI()
-        {
+            var registeredGraph = RenderGraph.GetRegisteredRenderGraphs();
+            foreach (var graph in registeredGraph)
+                m_RegisteredGraphs.Add(graph, new HashSet<string>());
+
+            SubscribeToRenderGraphEvents();
+
             m_ResourceListIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(string.Format(k_ResourceListIconPath, EditorGUIUtility.isProSkin ? "d_" : ""));
             m_PassListIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(string.Format(k_PassListIconPath, EditorGUIUtility.isProSkin ? "d_" : ""));
 
