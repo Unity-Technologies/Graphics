@@ -341,20 +341,20 @@ namespace UnityEngine.Rendering.Universal
             m_OldFadeFactor = m_FadeFactor;
         }
 
-        void Update()
+        void OnDidApplyAnimationProperties()
         {
             // Needed to be able to update state properly for animated serialized-properties.
             if (m_OldMaterial != m_Material ||
-                Math.Abs(m_OldDrawDistance - m_DrawDistance) > float.Epsilon ||
-                Math.Abs(m_OldFadeScale - m_FadeScale) > float.Epsilon ||
-                Math.Abs(m_OldStartAngleFade - m_StartAngleFade) > float.Epsilon ||
-                Math.Abs(m_OldEndAngleFade - m_EndAngleFade) > float.Epsilon ||
+                Mathf.Abs(m_OldDrawDistance - m_DrawDistance) > Mathf.Epsilon ||
+                Mathf.Abs(m_OldFadeScale - m_FadeScale) > Mathf.Epsilon ||
+                Mathf.Abs(m_OldStartAngleFade - m_StartAngleFade) > Mathf.Epsilon ||
+                Mathf.Abs(m_OldEndAngleFade - m_EndAngleFade) > Mathf.Epsilon ||
                 m_OldUVScale != m_UVScale ||
                 m_OldUVBias != m_UVBias ||
                 m_OldScaleMode != m_ScaleMode ||
                 m_OldOffset != m_Offset ||
                 m_OldSize != m_Size ||
-                Math.Abs(m_OldFadeFactor - m_FadeFactor) > float.Epsilon)
+                Mathf.Abs(m_OldFadeFactor - m_FadeFactor) > Mathf.Epsilon)
             {
                 OnValidate();
             }
