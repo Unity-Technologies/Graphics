@@ -66,9 +66,16 @@ namespace UnityEngine.Rendering
             return m_FinalAssetPath;
         }
 
+        internal bool HasValidAssetReference()
+        {
+            return m_Asset != null && m_Asset.bytes != null;
+        }
+
         unsafe public bool FileExists()
         {
 #if UNITY_EDITOR
+            if (HasValidAssetReference())
+                return true;
             if (File.Exists(GetAssetPath()))
                 return true;
             // File may not exist if it was moved, refresh path in this case

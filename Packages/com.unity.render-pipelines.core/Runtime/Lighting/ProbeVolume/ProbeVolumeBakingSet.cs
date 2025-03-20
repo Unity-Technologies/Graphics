@@ -668,18 +668,45 @@ namespace UnityEngine.Rendering
             }
         }
 
+        private unsafe bool FileExists(string path)
+        {
+            // Can't use System.IO.File.Exists as it doesn't work with compressed streaming assets folder (iOS, Android)
+            FileInfoResult infoResult;
+            ReadHandle h = AsyncReadManager.GetFileInfo(path, &infoResult);
+            h.JobHandle.Complete();
+            return infoResult.FileState == FileState.Exists;
+        }
+
         // Load from disk all data related to the required cells only.
         // This allows us to avoid loading the whole file in memory which could be a huge spike for multi scene setups.
         unsafe NativeArray<T> LoadStreambleAssetData<T>(ProbeVolumeStreamableAsset asset, List<int> cellIndices) where T : struct
         {
             if (!m_UseStreamingAsset)
             {
-                // Only when not using Streaming Asset is this reference valid.
                 Debug.Assert(asset.asset != null);
                 return asset.asset.GetData<byte>().Reinterpret<T>(1);
             }
             else
             {
+                if (!FileExists(asset.GetAssetPath()))
+                {
+                    asset.RefreshAssetPath();
+                    if (!FileExists(asset.GetAssetPath()))
+                    {
+                        // If we can't load from StreamingAssets, but we have a valid asset reference, try to use the asset reference instead.
+                        if (asset.HasValidAssetReference())
+                        {
+                            return asset.asset.GetData<byte>().Reinterpret<T>(1);
+                        }
+                        else
+                        {
+                            Debug.LogAssertion($"File {asset.GetAssetPath()} does not exist on disk. If you are trying to load Adaptive Probe Volumes from AssetBundles or Addressables, " +
+                                               "tick the \"Probe Volume Disable Streaming Assets\" project setting in the Graphics tab when building the Player.");
+                            return default;
+                        }
+                    }
+                }
+
                 // Prepare read commands.
                 // Reallocate read commands buffer if needed.
                 if (!m_ReadCommandBuffer.IsCreated || m_ReadCommandBuffer.Length < cellIndices.Count)
