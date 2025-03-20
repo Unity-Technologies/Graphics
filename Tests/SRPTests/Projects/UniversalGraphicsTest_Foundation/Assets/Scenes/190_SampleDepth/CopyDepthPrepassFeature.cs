@@ -60,8 +60,11 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
 
     protected override void Dispose(bool disposing)
     {
-        copyDepthPasses.Dispose();
-        copyDepthPasses = null;
+        if (copyDepthPasses != null)
+        {
+            copyDepthPasses.Dispose();
+            copyDepthPasses = null;
+        }
     }
 }
 
