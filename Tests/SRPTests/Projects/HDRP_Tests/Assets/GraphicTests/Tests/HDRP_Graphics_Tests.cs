@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 
 // NOTE: Important! IgnoreGraphicsTest uses a pattern to ignore all Unity-scenes found which name matches that pattern.
 // That means that, you can filter-out more than one test without realizing if not careful (i.e. the pattern '5011_VolumetricClouds'
@@ -249,6 +250,12 @@ public class HDRP_Graphics_Tests
     }
 
 #if UNITY_EDITOR
+
+    [OneTimeSetUp]
+    public void OneTimeSetUp()
+    {
+        GlobalContextManager.RegisterGlobalContext(typeof(GpuResidentDrawerGlobalContext));
+    }
 
     public void Setup()
     {

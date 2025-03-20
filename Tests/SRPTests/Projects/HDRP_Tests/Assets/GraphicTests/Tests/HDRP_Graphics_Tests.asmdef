@@ -9,7 +9,8 @@
         "Unity.RenderPipelines.Core.Runtime",
         "UnityEditor.TestTools.Graphics",
         "Unity.Testing.XR.Runtime",
-        "Unity.Testing.XR.Editor"
+        "Unity.Testing.XR.Editor",
+        "UnityEngine.TestTools.Graphics.Contexts"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
