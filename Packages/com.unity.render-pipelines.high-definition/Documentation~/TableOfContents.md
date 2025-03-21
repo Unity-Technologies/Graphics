@@ -45,6 +45,7 @@
     * [Set up a Volume](set-up-a-volume.md)
     * [Create a Volume Profile](create-a-volume-profile.md)
     * [Configure Volume Overrides](configure-volume-overrides.md)
+    * [Troubleshooting volumes](volumes-troubleshooting.md)
 * [Convert a project from the Built-in Render Pipeline](convert-project-from-built-in-render-pipeline.md)
   * [Convert post-processing scripts](convert-from-built-in-convert-post-processing-scripts.md)
   * [Convert lighting and shadows](convert-from-built-in-convert-lighting-and-shadows.md)
