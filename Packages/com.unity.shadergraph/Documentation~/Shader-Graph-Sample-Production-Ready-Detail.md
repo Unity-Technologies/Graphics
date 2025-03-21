@@ -54,7 +54,7 @@ This custom GUI script enables the small texture thumbnails and other features i
 ## Decals
 Decals allow you to apply local material modifications to specific places in the world. You might think of things like applying graffiti tags to a wall or scattering fallen leaves below a tree. But decals can be used for a lot more. In these examples, we see decals making things look wet, making surfaces appear to have flowing water across them, projecting water caustics, and blending specific materials onto other objects.
 
-Decals are available to use in both HDRP and URP, but they need to be enabled in both render pipelines. To use decals, see the documentation in both [HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.0/manual/decals.html) and [URP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.0/manual/renderer-feature-decal.html).
+Decals are available to use in both HDRP and URP, but they need to be enabled in both render pipelines. To use decals, see the documentation in both [HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.0/manual/decals.html) and [URP](https://docs.unity3d.com/Manual/urp/renderer-feature-decal.html).
 
 #### Material Projection
 This decal uses triplanar projection to project a material in 3D space. It projects materials correctly onto any mesh that intersects the decal volume.  It can be used to apply terrain materials on to other objects like rocks so that they blend in better with the terrain.

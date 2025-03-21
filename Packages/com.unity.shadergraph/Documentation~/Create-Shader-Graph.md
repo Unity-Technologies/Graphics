@@ -13,7 +13,7 @@ The following options are always available:
 
 A sub menu for each installed render pipeline may be present containing template stacks for standard shading models ( Lit, Unlit, etc ).
 
-For a full list of provided options, refer to the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) and [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) documentation.
+For a full list of provided options, refer to the [Universal Render Pipeline](https://docs.unity3d.com/Manual/urp/urp-introduction.html) and [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) documentation.
 
 For this example, Universal is installed so a Unversal Lit Shader Graph has been created.
 
