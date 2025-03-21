@@ -616,7 +616,7 @@ namespace UnityEditor.VFX.UI
                     newGroupInfo.position = new Rect(center + offset, groupInfos.infos.position.size);
                     newGroupInfo.title = groupInfos.infos.title;
                     newGroupInfos.Add(newGroupInfo);
-                    newGroupInfo.contents = groupInfos.contents.Take(groupInfos.contents.Length - groupInfos.stickNodeCount).Select(t => { VFXNodeController node = null; newControllers.TryGetValue(t, out node); return node; }).Where(t => t != null).Select(node => new VFXNodeID(node.model, node.id))
+                    newGroupInfo.contents = groupInfos.contents?.Take(groupInfos.contents.Length - groupInfos.stickNodeCount).Select(t => { VFXNodeController node = null; newControllers.TryGetValue(t, out node); return node; }).Where(t => t != null).Select(node => new VFXNodeID(node.model, node.id))
                         .Concat(groupInfos.contents.Skip(groupInfos.contents.Length - groupInfos.stickNodeCount).Select(t => new VFXNodeID((int)t + firstCopiedStickyNote)))
                         .ToArray();
                 }
