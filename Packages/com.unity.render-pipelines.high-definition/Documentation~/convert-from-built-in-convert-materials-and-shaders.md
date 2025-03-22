@@ -18,7 +18,7 @@ The automatic upgrade options described above can't upgrade all Materials to HDR
 * Height mapped Materials might look incorrect. This is because HDRP supports more height map displacement techniques and decompression options than the Built-in Render Pipeline. To upgrade a Material that uses a heightmap, modify the Material's **Amplitude** and **Base** properties until the result more closely matches the Built-in Render Pipeline version.
 * You can't upgrade particle shaders. HDRP doesn't support particle shaders, but it does provide Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
 
-    1. Open the Package Manager window (menu: **Window** > **Package Manager**).
+    1. Open the Package Manager window (menu: **Window** > **Package Management** > **Package Manager**).
     2. Find and click the **High Definition RP** entry.
     3. In the package information for **High Definition RP**, go to the **Samples** section and click the **Import into Project** button next to **Particle System Shader Samples**.
 

@@ -13,7 +13,7 @@ This sample content is compatible with both URP and HDRP projects, for VFX Graph
 To install this sample, first [install the Visual Effect Graph](https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@17.0/manual/GettingStarted.html#installing-visual-effect-graph), then:
 
 
- 1. Go to **Window > Package Manager.**
+ 1. Go to **Window** > **Package Management** > **Package Manager**.
  1. From the [Package list view](https://docs.unity3d.com/2023.3/Documentation/Manual/upm-ui.html), select **Visual Effect Graph**.
 
 1. If it is not there: 

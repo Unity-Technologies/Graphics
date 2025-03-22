@@ -48,7 +48,7 @@ Bloom includes [advanced properties](https://docs.unity3d.com/Packages/com.unity
 
 From 2019.3, HDRP provides [lookup textures](Authoring-LUTs.md) that you can use to customize this effect. These lookup textures are for the **Texture** property in the **Lens Dirt** section. To add these Textures to your Unity Project, you must use the Package Manager:
 
-1. Go to **Window** > **Package Manager**.
+1. Go to **Window** > **Package Management** > **Package Manager**.
 2. In the **Packages** window, select **High Definition RP**.
 3. In the **High Definition RP** section, go to **Additional Post-processing Data** and select **Import into Project**.
 4. The Textures that are relevant to Bloom are in the **Lens Dirt** folder, so if you only want the lookup Textures for Bloom, only import the contents of the **Lens Dirt** folder.

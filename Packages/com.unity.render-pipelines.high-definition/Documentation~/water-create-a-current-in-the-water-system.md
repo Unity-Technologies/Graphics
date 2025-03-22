@@ -13,7 +13,7 @@ HDRP includes the River sample scene which shows how a current map behaves.
 
 To open the River sample scene:
 
-1. Go to **Window** > **Package Manager**.
+1. Go to **Window** > **Package Management** > **Package Manager**.
 2. Select **High Definition RP**.
 3. In the Samples tab, import the **Environment Samples**.
 4. Open the scene named **River**.

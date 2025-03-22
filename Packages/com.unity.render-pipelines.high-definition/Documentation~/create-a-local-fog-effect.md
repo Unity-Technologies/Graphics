@@ -101,7 +101,7 @@ To create a 3D texture for a local volumetric fog component:
 
 HDRP includes built-in 3D mask textures that set the density of a fog volume to different shapes and noise patterns. To use these textures:
 
-1. Open the **Package Manager** window (menu: **Window** > **Package Manager**).
+1. Open the **Package Manager** window (menu: **Window** > **Package Management** > **Package Manager**).
 2. Find the **High Definition RP** package.
 3. Open the **Samples** dropdown.
 4. Find **Volumetric Samples** and select **Import**.

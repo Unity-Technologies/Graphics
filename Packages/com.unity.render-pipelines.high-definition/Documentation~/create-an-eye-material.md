@@ -44,7 +44,7 @@ You can also create your own custom Textures for the Eye Shader Graph. For more 
 
 HDRP includes four sample eyes of different sizes in the Eye sample scene. This scene exists in HDRP’s Material Samples. To install the Material Samples:
 
-1. Open the Package Manager window (**Window** > **Package Manager**).
+1. Open the Package Manager window (**Window** > **Package Management** > **Package Manager**).
 2. Open the **Packages** menu and select the **In Project** context.
 3. Select the **High Definition RP** package.
 4. Expand the **Samples** dropdown.
