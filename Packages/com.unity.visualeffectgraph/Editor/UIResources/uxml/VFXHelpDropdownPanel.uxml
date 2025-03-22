@@ -7,12 +7,12 @@
     </ui:Box>
     <ui:Box class="section alternate">
         <ui:Label text="Documentation" class="category" />
-        <ui:Button name="gotoHome" text="VFX Graph Home" tooltip="Open Visual Effect Graph home page" class="indented link" />
-        <ui:Button name="gotoForum" text="Forum" tooltip="Open Visual Effect Graph sub-forum" class="indented link" />
+        <ui:Label text="&lt;a href=&quot;https://unity.com/visual-effect-graph&quot;&gt;VFX Graph Home&lt;/a&gt;" tooltip="Open Visual Effect Graph home page" class="indented" />
+        <ui:Label text="&lt;a href=&quot;https://discussions.unity.com/tags/c/unity-engine/52/visual-effects-graph&quot;&gt;VFX Graph Discussions&lt;/a&gt;" tooltip="Open Visual Effect Graph Discussions" class="indented" />
     </ui:Box>
     <ui:Box class="section">
         <ui:Label text="Examples and Resources" class="category" />
-        <ui:Button name="gotoSpaceShip" text="[Github] Spaceship Demo" tooltip="Open Spaceship Demo repository" class="indented link" />
-        <ui:Button name="gotoSamples" text="[Github] VFX Graph Samples" tooltip="Open VFX Graph Samples repository" class="indented link" />
+        <ui:Label text="&lt;a href=&quot;https://github.com/Unity-Technologies/SpaceshipDemo&quot;&gt;[Github] Spaceship Demo&lt;/a&gt;" tooltip="Open Spaceship Demo repository" class="indented" />
+        <ui:Label text="&lt;a href=&quot;https://github.com/Unity-Technologies/VisualEffectGraph-Samples&quot;&gt;[Github] VFX Graph Samples&lt;/a&gt;" tooltip="Open VFX Graph Samples repository" class="indented" />
     </ui:Box>
 </UXML>
