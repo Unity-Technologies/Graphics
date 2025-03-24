@@ -23,3 +23,9 @@ Tools:
       - ^.*LightExplorer?.*$
       - ^.*MaterialUpgrader?.*$
   area: Graphics Tools
+
+post-processing-and-ui-features:
+  when:
+    path:
+      - ^.*PostProcessPass?.*$
+  area: Post-processing and UI Features
