@@ -91,7 +91,7 @@ The options are:
 <b>Script Interactions <a name="scriptinteractions"></a></b>
 </td>
 <td>
-Enable to have the ability to query the water surface position and current direction from the simulation. See <a href="water-scripting-in-the-water-system.md">Scripting in the water system</a> for more information.
+Enable to have the ability to query the water surface position and current direction from the simulation. Refer to <a href="water-scripting-in-the-water-system.md">Scripting in the water system</a> for more information.
 </td>
 </tr>
 
@@ -234,7 +234,6 @@ Enable to activate the option for creating a deformation decal.
 </td>
 <td>
 Enable to activate the option for creating a foam decal.
-A texture HDRP uses to attenuate or supress <b>Ripple</b> (green channel) and <b>Swell</b> or <b>Agitation</b> (red channel) water frequencies. For more information, see <a href="water-decals-and-masking-in-the-water-system.md">Decals and masking in the water system</a>.
 </td>
 </tr>
 
