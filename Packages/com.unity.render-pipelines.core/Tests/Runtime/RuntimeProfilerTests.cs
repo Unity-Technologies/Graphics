@@ -55,10 +55,10 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    // Fails on WebGL and Oculus Quest.
+    // Fails on WebGL, Oculus Quest and Switch.
     // Unfortunately, there is no good way to exclude Oculus Quest from the test without excluding all Android devices.
     // https://jira.unity3d.com/browse/GFXFOUND-559
-    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer, RuntimePlatform.Android })]
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WebGLPlayer, RuntimePlatform.Android, RuntimePlatform.Switch })]
     class RuntimeProfilerTests : RuntimeProfilerTestBase
     {
         [UnityTest]

@@ -29,6 +29,12 @@ public class HDRP_Runtime_Graphics_Tests
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
     )]
     [IgnoreGraphicsTest(
+        "001-HDTemplate$",
+        "Linux/VK: The test is a bit flaky, failing around 1/6 runs. Needs further investigation.",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.LinuxPlayer },
+        graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Vulkan }
+    )]
+    [IgnoreGraphicsTest(
         "002-HDMaterials$",
         "",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
