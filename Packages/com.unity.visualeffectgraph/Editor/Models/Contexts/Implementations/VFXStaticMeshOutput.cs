@@ -129,43 +129,44 @@ namespace UnityEditor.VFX
                     {
                         var mat = ((VFXDataMesh)GetData()).GetOrCreateMaterial();
                         var propertyAttribs = new List<object>(1);
-                        for (int i = 0; i < ShaderUtil.GetPropertyCount(copyShader); ++i)
+                        for (int i = 0; i < copyShader.GetPropertyCount(); ++i)
                         {
-                            if (ShaderUtil.IsShaderPropertyHidden(copyShader, i) || ShaderUtil.IsShaderPropertyNonModifiableTexureProperty(copyShader, i))
+                            var flags = copyShader.GetPropertyFlags(i);
+                            if ((flags & (ShaderPropertyFlags.HideInInspector | ShaderPropertyFlags.NonModifiableTextureData)) != 0)
                                 continue;
 
                             Type propertyType = null;
                             object propertyValue = null;
 
-                            var propertyName = ShaderUtil.GetPropertyName(copyShader, i);
+                            var propertyName = copyShader.GetPropertyName(i);
                             var propertyNameId = Shader.PropertyToID(propertyName);
 
                             propertyAttribs.Clear();
 
-                            switch (ShaderUtil.GetPropertyType(copyShader, i))
+                            switch (copyShader.GetPropertyType(i))
                             {
-                                case ShaderUtil.ShaderPropertyType.Color:
+                                case ShaderPropertyType.Color:
                                     propertyType = typeof(Color);
                                     propertyValue = mat.GetColor(propertyNameId);
                                     break;
-                                case ShaderUtil.ShaderPropertyType.Vector:
+                                case ShaderPropertyType.Vector:
                                     propertyType = typeof(Vector4);
                                     propertyValue = mat.GetVector(propertyNameId);
                                     break;
-                                case ShaderUtil.ShaderPropertyType.Float:
+                                case ShaderPropertyType.Float:
                                     propertyType = typeof(float);
                                     propertyValue = mat.GetFloat(propertyNameId);
                                     break;
-                                case ShaderUtil.ShaderPropertyType.Range:
+                                case ShaderPropertyType.Range:
                                     propertyType = typeof(float);
-                                    float minRange = ShaderUtil.GetRangeLimits(copyShader, i, 1);
-                                    float maxRange = ShaderUtil.GetRangeLimits(copyShader, i, 2);
+                                    float minRange = copyShader.GetPropertyRangeLimits(i)[0];
+                                    float maxRange = copyShader.GetPropertyRangeLimits(i)[1];
                                     propertyAttribs.Add(new RangeAttribute(minRange, maxRange));
                                     propertyValue = mat.GetFloat(propertyNameId);
                                     break;
-                                case ShaderUtil.ShaderPropertyType.TexEnv:
+                                case ShaderPropertyType.Texture:
                                 {
-                                    switch (ShaderUtil.GetTexDim(copyShader, i))
+                                    switch (copyShader.GetPropertyTextureDimension(i))
                                     {
                                         case TextureDimension.Tex2D:
                                             propertyType = typeof(Texture2D);
@@ -194,7 +195,7 @@ namespace UnityEditor.VFX
 
                             if (propertyType != null)
                             {
-                                propertyAttribs.Add(new TooltipAttribute(ShaderUtil.GetPropertyDescription(copyShader, i)));
+                                propertyAttribs.Add(new TooltipAttribute(copyShader.GetPropertyDescription(i)));
                                 yield return new VFXPropertyWithValue(new VFXProperty(propertyType, propertyName, propertyAttribs.ToArray()), propertyValue);
                             }
                         }

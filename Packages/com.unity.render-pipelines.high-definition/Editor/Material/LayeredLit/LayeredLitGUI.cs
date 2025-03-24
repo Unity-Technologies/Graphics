@@ -76,36 +76,36 @@ namespace UnityEditor.Rendering.HighDefinition
             if (layerMaterial != null)
             {
                 Shader layerShader = layerMaterial.shader;
-                int propertyCount = ShaderUtil.GetPropertyCount(layerShader);
+                int propertyCount = layerShader.GetPropertyCount();
                 for (int i = 0; i < propertyCount; ++i)
                 {
-                    string propertyName = ShaderUtil.GetPropertyName(layerShader, i);
+                    string propertyName = layerShader.GetPropertyName(i);
                     string layerPropertyName = propertyName + layerIndex;
 
                     if (includeUVMappingProperties || !exclusionList.Contains(propertyName))
                     {
                         if (material.HasProperty(layerPropertyName))
                         {
-                            ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
+                            ShaderPropertyType type = layerShader.GetPropertyType(i);
                             switch (type)
                             {
-                                case ShaderUtil.ShaderPropertyType.Color:
+                                case ShaderPropertyType.Color:
                                 {
                                     material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
                                     break;
                                 }
-                                case ShaderUtil.ShaderPropertyType.Float:
-                                case ShaderUtil.ShaderPropertyType.Range:
+                                case ShaderPropertyType.Float:
+                                case ShaderPropertyType.Range:
                                 {
                                     material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
                                     break;
                                 }
-                                case ShaderUtil.ShaderPropertyType.Vector:
+                                case ShaderPropertyType.Vector:
                                 {
                                     material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
                                     break;
                                 }
-                                case ShaderUtil.ShaderPropertyType.TexEnv:
+                                case ShaderPropertyType.Texture:
                                 {
                                     material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
                                     if (includeUVMappingProperties)
