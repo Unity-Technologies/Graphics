@@ -46,7 +46,7 @@ Use the toolbar in the top-left of the window to change which viewing mode Look 
 
 ### Single viewport
 
-![](Images/LookDev1.png)
+![Buttons for switching between viewports 1 and 2.](Images/LookDev1.png)
 
 By default, Look Dev displays a single viewport which contains the Prefab or GameObject you are working with. If you are in another viewing mode, you can click either the number **1** or number **2** button to go back to single view. Each button corresponds to a viewport in Look Dev. Select button **1** to use viewport 1, and button 2 to use viewport **2**.
 
@@ -54,7 +54,7 @@ By default, Look Dev displays a single viewport which contains the Prefab or Gam
 
 ### Multi-viewport
 
-![](Images/LookDev2.png)
+![Buttons for changing the multi-viewport mode.](Images/LookDev2.png)
 
 Use multiple viewports to compare different environments and settings for the same Asset. You can arrange viewports:
 
@@ -73,23 +73,21 @@ When using multiple viewports, it only makes sense to compare different Prefabs 
 
 Vertical and horizontal side-by-side viewports show an identical view of your Asset.
 
-![](Images/LookDev3.png)
+![Vertical side-by-side viewport view.](Images/LookDev3.png)
 
 ##### Split-screen
 
 In a split-screen view, there is a red/blue manipulation Gizmo that separates the two viewports. For information on how to use this Gizmo, see [Using the manipulation Gizmo](#ManipulationGizmo).
 
-![](Images/LookDev4.png)
+![Split-screen viewport view.](Images/LookDev4.png)
 
 #### Multi-viewport Camera
 
 By default, Look Dev synchronizes the camera movement for both views. To decouple the Cameras from one another, and manipulate them independently, click the **Synchronized Cameras** button in-between the two numbered Camera buttons.
 
-![](Images/LookDev5.png)
-
 To align the cameras with each other, or reset them, click on the drop-down arrow next to the viewport **2** icon:
 
-![](Images/LookDev6.png)
+![Drop-down options of multi-viewport cameras.](Images/LookDev6.png)
 
 <a name="ManipulationGizmo"></a>
 
@@ -101,13 +99,11 @@ The manipulation Gizmo represents the separation plane between the two viewports
 
 To move the separator, click and drag the straight line of the Gizmo to the location you want.
 
-![](Images/LookDev7.png)
-
 #### Changing the orientation and length
 
 To change the orientation and length of the manipulator Gizmo, click and drag the circle at either end of the manipulator. Changing the length of the Gizmo lets you  set the orientation and [blending](#Blending) values more precisely.
 
-![](Images/LookDev8.png))
+![Click and drag the circle at either end of the gizmo to change its orientation and length.](Images/LookDev8.png)
 
 #### Changing the split in increments
 
@@ -121,7 +117,7 @@ The central white circle on the separator allows you to blend between the two vi
 
 The white circle automatically snaps back into the center when you drag it back. This helps you get back to the default blending value quickly.
 
-![](Images/LookDev9.png)
+![The white circle on the separator lets you change the blending behavior.](Images/LookDev9.png)
 
 ### HDRI environments in Look Dev
 
