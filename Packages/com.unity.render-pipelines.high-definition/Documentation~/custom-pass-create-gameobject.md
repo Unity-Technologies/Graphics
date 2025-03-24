@@ -168,13 +168,14 @@ To fix this, navigate to your HDRP Asset in your **Assets** folder (if you are u
 However, HDRP does not support all materials in every injection point in a draw renderers Custom Pass. The following table lists the materials that each injection point supports for a draw renderers Custom Pass:
 
 | **Injection Point**           | **Material Type(s) supported**                        |
-| ----------------------------- | ----------------------------------------------------- |
+|-------------------------------|-------------------------------------------------------|
 | Before Rendering              | Unlit forward but without writing to the Camera color |
-| After Opaque Depth And Normal | Unlit                                        |
-| Before PreRefraction          | Unlit and Lit, `ForwardOnly`                            |
-| Before Transparent            | Unlit and Lit, `ForwardOnly`            |
-| Before Post Process           | Unlit and Lit, `ForwardOnly`           |
-| After Post Process            | Unlit and Lit, `ForwardOnly`           |
+| After Opaque Depth And Normal | Unlit                                                 |
+| After Opaque Color            | Unlit and Lit, `ForwardOnly`                          |
+| Before PreRefraction          | Unlit and Lit, `ForwardOnly`                          |
+| Before Transparent            | Unlit and Lit, `ForwardOnly`                          |
+| Before Post Process           | Unlit and Lit, `ForwardOnly`                          |
+| After Post Process            | Unlit and Lit, `ForwardOnly`                          |
 
 **Note**: You can only render Materials that use refraction at the Before Transparent, Before Post Process, and After Post Process injection points because this is when the refraction color pyramid is available.
 

@@ -123,6 +123,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1230_Lit_Translucent.unity
     guid: e0af6434ca972984780123bff226e95d
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1231_SubSurfaceScattering_CustomPass.unity
+    guid: 3309ed83a4909804993cf04e3fd3d8ce
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_StackLitSG.unity
     guid: eefb6e7ceaa685442bbf61fd2b82f9ae
   - enabled: 1
