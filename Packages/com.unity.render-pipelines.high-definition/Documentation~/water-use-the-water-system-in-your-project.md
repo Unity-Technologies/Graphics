@@ -15,7 +15,7 @@ This page provides an overview of the basic workflow to include a water surface 
 2. Go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings**, then enable water in three places:
 * **Camera** > **Rendering**.
 * **Realtime Reflection** > **Rendering**.
-* **Baked or Custom Reflection** > **Rendering**.
+* **Custom or Baked Reflection** > **Rendering**.
 
 This is especially important when you upgrade your project from an earlier version of Unity, because water is inactive by default. If your project originates in HDRP 14 (Unity 2022.2)  or later, the water implementation may work even if you only enable it in the **Quality** settings.
 

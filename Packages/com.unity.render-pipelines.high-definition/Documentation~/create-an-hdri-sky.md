@@ -1,6 +1,6 @@
 # Create an HDRI sky
 
-A High-dynamic-range imaging (HDRI) Sky is a simple sky representation that uses a cubemap texture. You can define how HDRP updates the indirect lighting the sky generates in the Scene.
+A High-dynamic-range imaging (HDRI) Sky is a simple sky representation that uses a cubemap texture. You can define how HDRP updates the indirect lighting the sky generates in the Scene. For information on supported cubemap layouts, refer to [Create a cubemap](xref:um-class-cubemap-create).
 
 Tip: [Unity HDRI Pack](https://assetstore.unity.com/packages/essentials/beta-projects/unity-hdri-pack-72511) is available on the Unity Asset Store and provides 7 pre-converted HDR Cubemaps ready for use within your Project.
 
