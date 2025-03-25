@@ -40,10 +40,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             Assembly graphViewAssembly = null;
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                var assemblyName = assembly.GetName().ToString();
-                if (assemblyName.Contains("GraphView"))
+                try
                 {
-                    graphViewAssembly = assembly;
+                    if (assembly.GetName().ToString().Contains("GraphView"))
+                        graphViewAssembly = assembly;
+                }
+                catch (Exception)
+                {
+                    // ignored, some user assemblies may fail here
+                    // https://youtrack.jetbrains.com/issue/RIDER-112939
                 }
             }
 
