@@ -31,15 +31,15 @@ namespace UnityEditor.ShaderGraph
     {
         private static int kMaxChannelThreshold = 32;
         private static int kMinChannelThreshold = 8;
-        private static string kCustomInterpolatorHelpBox = "Unity uses these options to help ShaderGraph users maintain known compatibilities with target platform(s) when using Custom Interpolators.";
+        private static string kCustomInterpolatorHelpBox = "Unity uses these options to help Shader Graph users maintain known compatibilities with target platform(s) when using Custom Interpolators.";
         private static string kCustomInterpolatorDocumentationURL = UnityEngine.Rendering.ShaderGraph.Documentation.GetPageLink("Custom-Interpolators");
 
         private class Styles
         {
             public static readonly GUIContent shaderVariantLimitLabel = L10n.TextContent("Shader Variant Limit", "");
             public static readonly GUIContent CustomInterpLabel = L10n.TextContent("Custom Interpolator Channel Settings", "");
-            public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", $"ShaderGraph displays a warning when the user creates more custom interpolators than permitted by this setting. The number of interpolators that trigger this warning must be between {kMinChannelThreshold} and the Error Threshold.");
-            public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", $"ShaderGraph displays an error message when the user tries to create more custom interpolators than permitted by this setting. The number of interpolators that trigger this error must be between {kMinChannelThreshold} and {kMaxChannelThreshold}.");
+            public static readonly GUIContent CustomInterpWarnThresholdLabel = L10n.TextContent("Warning Threshold", $"Shader Graph displays a warning when the user creates more custom interpolators than permitted by this setting. The number of interpolators that trigger this warning must be between {kMinChannelThreshold} and the Error Threshold.");
+            public static readonly GUIContent CustomInterpErrorThresholdLabel = L10n.TextContent("Error Threshold", $"Shader Graph displays an error message when the user tries to create more custom interpolators than permitted by this setting. The number of interpolators that trigger this error must be between {kMinChannelThreshold} and {kMaxChannelThreshold}.");
             public static readonly GUIContent ReadMore = L10n.TextContent("Read more");
 
             public static readonly GUIContent HeatmapSectionLabel = L10n.TextContent("Heatmap Color Mode Settings", "");
@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph
         [SettingsProvider]
         public static SettingsProvider CreateShaderGraphProjectSettingsProvider()
         {
-            var provider = new ShaderGraphProjectSettingsProvider("Project/ShaderGraph", SettingsScope.Project);
+            var provider = new ShaderGraphProjectSettingsProvider("Project/Shader Graph", SettingsScope.Project);
             return provider;
         }
     }

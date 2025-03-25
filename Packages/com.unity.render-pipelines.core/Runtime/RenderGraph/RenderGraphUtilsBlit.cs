@@ -20,6 +20,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             return Blitter.CanCopyMSAA();
         }
 
+        /// <summary>
+        /// Checks if the shader features required by the MSAA version of the copy pass is supported on current platform.
+        /// </summary>
+        /// <param name="sourceDesc">The texture description of the that will be copied from.</param>
+        /// <returns>Returns true if the shader features required by the copy pass is supported for MSAA, otherwise will it return false.</returns>
+        public static bool CanAddCopyPassMSAA(in TextureDesc sourceDesc)
+        {
+            return Blitter.CanCopyMSAA(sourceDesc);
+        }
+
         class CopyPassData
         {
             public bool isMSAA;
@@ -80,7 +90,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             //       It would have 1 if the MSAA pass is not able to be used for target and 2 otherwise.
             //       https://docs.unity3d.com/2017.4/Documentation/Manual/SL-ShaderCompileTargets.html
             //       https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-get-sample-position
-            if (isMSAA && !Blitter.CanCopyMSAA())
+            if (isMSAA && !Blitter.CanCopyMSAA(sourceDesc))
                 throw new ArgumentException("Target does not support MSAA for AddCopyPass. Please use the blit alternative or use non MSAA textures.");
 
             using (var builder = graph.AddRasterRenderPass<CopyPassData>(passName, out var passData, file, line))

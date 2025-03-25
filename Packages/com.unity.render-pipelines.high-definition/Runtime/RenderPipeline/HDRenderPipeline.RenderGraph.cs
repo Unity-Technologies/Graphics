@@ -537,6 +537,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.hdrOutputParmeters.x >= 0)
                         {
                             data.blitMaterial.SetInt(HDShaderIDs._NeedsFlip, data.flip ? 1 : 0);
+                            propertyBlock.SetVector(HDShaderIDs._SrcOffset, new Vector4(data.viewport.x, data.viewport.y, Screen.width, Screen.height));
                             propertyBlock.SetTexture(HDShaderIDs._UITexture, data.uiTexture);
                             propertyBlock.SetTexture(HDShaderIDs._InputTexture, sourceTexture);
 

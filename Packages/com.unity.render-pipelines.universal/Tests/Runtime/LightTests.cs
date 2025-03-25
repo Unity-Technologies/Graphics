@@ -16,20 +16,20 @@ namespace UnityEngine.Rendering.Universal.Tests
             lightData.shadowRenderingLayers = (1 << 2);
 
             lightData.customShadowLayers = false;
-            Assert.AreEqual(light.renderingLayerMask, lightData.renderingLayers);
+            Assert.AreEqual(light.renderingLayerMask, (int)lightData.renderingLayers);
 
             lightData.customShadowLayers = true;
-            Assert.AreEqual(light.renderingLayerMask, lightData.shadowRenderingLayers);
+            Assert.AreEqual(light.renderingLayerMask, (int)lightData.shadowRenderingLayers);
 
             lightData.customShadowLayers = false;
             lightData.renderingLayers = (1 << 3);
             lightData.shadowRenderingLayers = (1 << 4);
-            Assert.AreEqual(light.renderingLayerMask, lightData.renderingLayers);
+            Assert.AreEqual(light.renderingLayerMask, (int)lightData.renderingLayers);
 
             lightData.customShadowLayers = true;
             lightData.renderingLayers = (1 << 5);
             lightData.shadowRenderingLayers = (1 << 6);
-            Assert.AreEqual(light.renderingLayerMask, lightData.shadowRenderingLayers);
+            Assert.AreEqual(light.renderingLayerMask, (int)lightData.shadowRenderingLayers);
 
             Object.DestroyImmediate(lightObject);
         }

@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using Object = UnityEngine.Object;
-#if OCULUS_SDK
+#if OCULUS_SDK || OPENXR_SDK
 using UnityEngine.XR;
 #endif
 
@@ -64,8 +64,11 @@ namespace Unity.Rendering.Universal.Tests
             Assert.True(cameras != null && cameras.Any(),
                 "Invalid test scene, couldn't find a camera with MainCamera tag.");
 
-            // Disable camera track for OCULUS_SDK so we ensure we get a consistent screen capture for image comparison
-#if OCULUS_SDK
+        // Disable camera track for OCULUS_SDK and OPENXR_SDK so we ensure we get a consistent screen capture for image comparison
+#if OCULUS_SDK || OPENXR_SDK
+       // This code is added to hande a case where some test(001_SimpleCube_deferred_RenderPass) would throw error on Quest Vulkan, which would pollute the console for the tests running after. 
+        UnityEngine.Debug.ClearDeveloperConsole();
+        
         XRDevice.DisableAutoXRCameraTracking(Camera.main, true);
 #endif
             var settings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
@@ -88,8 +91,8 @@ namespace Unity.Rendering.Universal.Tests
 
             int waitFrames = 1;
 
-            // for OCULUS_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
-#if OCULUS_SDK
+        // for OCULUS_SDK or OPENXR_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
+#if OCULUS_SDK || OPENXR_SDK
         if(!settings.XRCompatible)
         {
             Assert.Ignore("Quest XR Automation: Test scene is not compatible with XR and will be skipped.");
@@ -141,15 +144,15 @@ namespace Unity.Rendering.Universal.Tests
         }
 #endif
 
-            // If we're running using OCULUS_SDK, we need to use the ScreenCapture API to get stereo images for comparison
-#if OCULUS_SDK
+        // If we're running using OCULUS_SDK or OPENXR_SDK, we need to use the ScreenCapture API to get stereo images for comparison
+#if OCULUS_SDK || OPENXR_SDK
         yield return new WaitForSeconds(1);
         yield return new WaitForEndOfFrame();
         var screenShot = new Texture2D(1, 1, TextureFormat.RGBA32, false);
         screenShot = ScreenCapture.CaptureScreenshotAsTexture(ScreenCapture.StereoScreenCaptureMode.BothEyes);
 
         // Log the frame we are comparing to catch/debug waitFrame differences.
-        Debug.Log($"OCULUS_SDK == true: ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(ScreenCapture.CaptureScreenshotAsTexture)}");
+        Debug.Log($"OCULUS_SDK || OPENXR_SDK == true: ImageAssert.AreEqual called on Frame #{Time.frameCount} using capture from {nameof(ScreenCapture.CaptureScreenshotAsTexture)}");
         ImageAssert.AreEqual(testCase.ReferenceImage.Image, screenShot, settings.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
 
         // Else continue to use the camera for image comparison

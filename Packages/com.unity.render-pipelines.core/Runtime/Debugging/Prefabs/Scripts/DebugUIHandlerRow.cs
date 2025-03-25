@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.UI
 
         bool IsActive(DebugUI.Table table, int index, GameObject child)
         {
-            if (!table.GetColumnVisibility(index))
+            if (table == null || !table.GetColumnVisibility(index))
                 return false;
 
             var valueChild = child.transform.Find("Value");

@@ -49,6 +49,9 @@ namespace UnityEditor.VFX
 
         public static void DrawTorus(VFXGizmo gizmo, TTorus torus, IProperty<Vector3> centerProperty, IProperty<Vector3> anglesProperty, IProperty<Vector3> scaleProperty, IProperty<float> thicknessProperty, IProperty<float> radiusProperty, IEnumerable<float> angles, float maxAngle = Mathf.PI * 2)
         {
+            if (!VFXTypeUtility.IsFinite(torus))
+                return;
+
             gizmo.TransformGizmo(
                 torus.transform.position,
                 torus.transform.angles,
@@ -117,6 +120,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(TTorus torus)
         {
+            if (!VFXTypeUtility.IsFinite(torus))
+                return;
+
             using (new Handles.DrawingScope(Handles.matrix * torus.transform))
             {
                 Handles.DrawWireDisc(Vector3.forward * torus.minorRadius, Vector3.forward, torus.majorRadius);
@@ -165,6 +171,9 @@ namespace UnityEditor.VFX
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
         public override void OnDrawSpacedGizmo(TArcTorus arcTorus)
         {
+            if (!VFXTypeUtility.IsFinite(arcTorus))
+                return;
+
             var arc = arcTorus.arc * Mathf.Rad2Deg;
             using (new Handles.DrawingScope(Handles.matrix * arcTorus.torus.transform))
             {

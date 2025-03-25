@@ -2,32 +2,6 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    /// <summary>Light Layers.</summary>
-    [Flags]
-    public enum LightLayerEnum
-    {
-        /// <summary>The light will no affect any object.</summary>
-        Nothing = 0,   // Custom name for "Nothing" option
-        /// <summary>Light Layer 0.</summary>
-        LightLayerDefault = 1 << 0,
-        /// <summary>Light Layer 1.</summary>
-        LightLayer1 = 1 << 1,
-        /// <summary>Light Layer 2.</summary>
-        LightLayer2 = 1 << 2,
-        /// <summary>Light Layer 3.</summary>
-        LightLayer3 = 1 << 3,
-        /// <summary>Light Layer 4.</summary>
-        LightLayer4 = 1 << 4,
-        /// <summary>Light Layer 5.</summary>
-        LightLayer5 = 1 << 5,
-        /// <summary>Light Layer 6.</summary>
-        LightLayer6 = 1 << 6,
-        /// <summary>Light Layer 7.</summary>
-        LightLayer7 = 1 << 7,
-        /// <summary>Everything.</summary>
-        Everything = 0xFF, // Custom name for "Everything" option
-    }
-
     /// <summary>
     /// Contains extension methods for Light class.
     /// </summary>
@@ -57,15 +31,8 @@ namespace UnityEngine.Rendering.Universal
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Light))]
     [URPHelpURL("universal-additional-light-data")]
-    public class UniversalAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
+    public partial class UniversalAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver, IAdditionalData
     {
-        // Version 0 means serialized data before the version field.
-        [SerializeField] int m_Version = 3;
-        internal int version
-        {
-            get => m_Version;
-        }
-
         [Tooltip("Controls if light Shadow Bias parameters use pipeline settings.")]
         [SerializeField] bool m_UsePipelineSettings = true;
 
@@ -143,42 +110,6 @@ namespace UnityEngine.Rendering.Universal
             get { return m_AdditionalLightsShadowResolutionTier; }
         }
 
-        // The layer(s) this light belongs too.
-        [Obsolete("This is obsolete, please use m_RenderingLayerMask instead.", false)]
-        [SerializeField] LightLayerEnum m_LightLayerMask = LightLayerEnum.LightLayerDefault;
-
-
-        /// <summary>
-        /// The layer(s) this light belongs to.
-        /// </summary>
-        [Obsolete("This is obsolete, please use renderingLayerMask instead.", true)]
-        public LightLayerEnum lightLayerMask
-        {
-            get { return m_LightLayerMask; }
-            set { m_LightLayerMask = value; }
-        }
-
-        [SerializeField] uint m_RenderingLayers = 1;
-
-        /// <summary>
-        /// Specifies which rendering layers this light will affect.
-        /// </summary>
-        public uint renderingLayers
-        {
-            get
-            {
-                return m_RenderingLayers;
-            }
-            set
-            {
-                if (m_RenderingLayers != value)
-                {
-                    m_RenderingLayers = value;
-                    SyncLightAndShadowLayers();
-                }
-            }
-        }
-
         [SerializeField] bool m_CustomShadowLayers = false;
 
         /// <summary>
@@ -196,39 +127,6 @@ namespace UnityEngine.Rendering.Universal
                 if (m_CustomShadowLayers != value)
                 {
                     m_CustomShadowLayers = value;
-                    SyncLightAndShadowLayers();
-                }
-            }
-        }
-
-        // The layer(s) used for shadow casting.
-        [SerializeField] LightLayerEnum m_ShadowLayerMask = LightLayerEnum.LightLayerDefault;
-
-        /// <summary>
-        /// The layer(s) for shadow.
-        /// </summary>
-        [Obsolete("This is obsolete, please use shadowRenderingLayerMask instead.", true)]
-        public LightLayerEnum shadowLayerMask
-        {
-            get { return m_ShadowLayerMask; }
-            set { m_ShadowLayerMask = value; }
-        }
-
-        [SerializeField] uint m_ShadowRenderingLayers = 1;
-        /// <summary>
-        /// Specifies which rendering layers this light shadows will affect.
-        /// </summary>
-        public uint shadowRenderingLayers
-        {
-            get
-            {
-                return m_ShadowRenderingLayers;
-            }
-            set
-            {
-                if (value != m_ShadowRenderingLayers)
-                {
-                    m_ShadowRenderingLayers = value;
                     SyncLightAndShadowLayers();
                 }
             }
@@ -265,37 +163,98 @@ namespace UnityEngine.Rendering.Universal
             get => m_SoftShadowQuality;
             set => m_SoftShadowQuality = value;
         }
-        [SerializeField] private SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.UsePipelineSettings;
+        [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.UsePipelineSettings;
+        
+        [SerializeField] RenderingLayerMask m_RenderingLayersMask = RenderingLayerMask.defaultRenderingLayerMask;
 
-        /// <inheritdoc/>
-        public void OnBeforeSerialize()
+        /// <summary>
+        /// Specifies which rendering layers this light will affect.
+        /// </summary>
+        public RenderingLayerMask renderingLayers
         {
+            get => m_RenderingLayersMask;
+            set
+            {
+                if (m_RenderingLayersMask == value) return;
+                m_RenderingLayersMask = value;
+                SyncLightAndShadowLayers();
+            }
+        }
+        
+        [SerializeField] RenderingLayerMask m_ShadowRenderingLayersMask = RenderingLayerMask.defaultRenderingLayerMask;
+        
+        /// <summary>
+        /// Specifies which rendering layers this light shadows will affect.
+        /// </summary>
+        public RenderingLayerMask shadowRenderingLayers
+        {
+            get => m_ShadowRenderingLayersMask;
+            set
+            {
+                if (value == m_ShadowRenderingLayersMask) return;
+                m_ShadowRenderingLayersMask = value;
+                SyncLightAndShadowLayers();
+            }
         }
 
-        /// <inheritdoc/>
-        public void OnAfterDeserialize()
+        void SyncLightAndShadowLayers()
         {
-            if (m_Version < 2)
+            if (light)
+                light.renderingLayerMask = m_CustomShadowLayers ? m_ShadowRenderingLayersMask : m_RenderingLayersMask;
+        }
+        
+        enum Version
+        {
+            Initial = 0,
+            RenderingLayers = 2,
+            SoftShadowQuality = 3,
+            RenderingLayersMask = 4,
+            
+            Count
+        }
+        
+        [SerializeField] Version m_Version = Version.Count;
+
+        // This piece of code is needed because some objects could have been created before existence of Version enum
+        /// <summary>OnBeforeSerialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            if (m_Version == Version.Count) // serializing a newly created object
+                m_Version = Version.Count - 1; // mark as up to date
+        }
+
+        /// <summary>OnAfterDeserialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (m_Version == Version.Count) // deserializing and object without version
+                m_Version = Version.Initial; // reset to run the migration
+            
+            if (m_Version < Version.RenderingLayers)
             {
 #pragma warning disable 618 // Obsolete warning
                 m_RenderingLayers = (uint)m_LightLayerMask;
                 m_ShadowRenderingLayers = (uint)m_ShadowLayerMask;
 #pragma warning restore 618 // Obsolete warning
-                m_Version = 2;
+                m_Version = Version.RenderingLayers;
             }
 
-            if (m_Version < 3)
+            if (m_Version < Version.SoftShadowQuality)
             {
                 // SoftShadowQuality.UsePipelineSettings added at index 0. Bump existing serialized values by 1. e.g. Low(0) -> Low(1).
                 m_SoftShadowQuality = (SoftShadowQuality)(Math.Clamp((int)m_SoftShadowQuality + 1, 0, (int)SoftShadowQuality.High));
-                m_Version = 3;
+                m_Version = Version.SoftShadowQuality;
+            }
+            
+            if (m_Version <  Version.RenderingLayersMask)
+            {
+#pragma warning disable 618 // Obsolete warning
+                m_RenderingLayersMask = m_RenderingLayers;
+                m_ShadowRenderingLayersMask = m_ShadowRenderingLayers;
+#pragma warning restore 618 // Obsolete warning
+                m_Version = Version.RenderingLayersMask;
             }
         }
-
-        private void SyncLightAndShadowLayers()
-        {
-            if (light)
-                light.renderingLayerMask = m_CustomShadowLayers ? (int)m_ShadowRenderingLayers : (int)m_RenderingLayers;
-        }
     }
+    
+    
 }

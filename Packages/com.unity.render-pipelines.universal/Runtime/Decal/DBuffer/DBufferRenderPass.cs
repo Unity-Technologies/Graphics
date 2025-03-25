@@ -46,6 +46,9 @@ namespace UnityEngine.Rendering.Universal
             var scriptableRenderPassInput = ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Normal;
             ConfigureInput(scriptableRenderPassInput);
 
+            // DBuffer requires color texture created as it does not handle y flip correctly
+            requiresIntermediateTexture = true;
+
             m_DrawSystem = drawSystem;
             m_Settings = settings;
             m_DBufferClear = dBufferClear;
@@ -141,7 +144,15 @@ namespace UnityEngine.Rendering.Universal
 
                 SetGlobalTextures(renderingData.commandBuffer, m_PassData);
                 SetKeywords(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData);
-                Clear(renderingData.commandBuffer, m_PassData);
+
+                // TODO: This should be replace with mrt clear once we support it
+                // Clear render targets
+                using (new ProfilingScope(cmd, m_DBufferClearSampler))
+                {
+                    // for alpha compositing, color is cleared to 0, alpha to 1
+                    // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+                    Blitter.BlitTexture(cmd, passData.dBufferColorHandles[0], new Vector4(1, 1, 0, 0), m_DBufferClear, 0);
+                }
 
                 UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();
                 UniversalCameraData cameraData = renderingData.frameData.Get<UniversalCameraData>();
@@ -178,26 +189,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.DecalLayers, passData.decalLayers);
         }
 
-        private static void Clear(CommandBuffer cmd, PassData passData)
-        {
-            // TODO: This should be replace with mrt clear once we support it
-            // Clear render targets
-            using (new ProfilingScope(cmd, passData.dBufferClearSampler))
-            {
-                // for alpha compositing, color is cleared to 0, alpha to 1
-                // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-                Blitter.BlitTexture(cmd, passData.dBufferColorHandles[0], new Vector4(1, 1, 0, 0), passData.dBufferClear, 0);
-            }
-        }
-
         private class PassData
         {
             internal DecalDrawDBufferSystem drawSystem;
             internal DBufferSettings settings;
-            internal Material dBufferClear;
-
-            internal ProfilingSampler dBufferClearSampler;
-
             internal bool decalLayers;
             internal RTHandle dBufferDepth;
             internal RTHandle[] dBufferColorHandles;
@@ -209,8 +204,6 @@ namespace UnityEngine.Rendering.Universal
         {
             passData.drawSystem = m_DrawSystem;
             passData.settings = m_Settings;
-            passData.dBufferClear = m_DBufferClear;
-            passData.dBufferClearSampler = m_DBufferClearSampler;
             passData.decalLayers = m_DecalLayers;
             passData.dBufferDepth = m_DBufferDepth;
             passData.dBufferColorHandles = dBufferColorHandles;

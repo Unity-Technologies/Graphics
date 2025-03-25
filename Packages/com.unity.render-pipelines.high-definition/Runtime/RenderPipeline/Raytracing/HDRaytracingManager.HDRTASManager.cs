@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // We want the LODs to match the rasterization and we want to exclude reflection probes
-            cullingConfig.flags |= RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes;
+            cullingConfig.flags |= RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes | RayTracingInstanceCullingFlags.EnableMeshLOD;
 
             // Dirtiness need to be kept track of for the path tracing (when enabled)
             if (pathTracingEnabled)

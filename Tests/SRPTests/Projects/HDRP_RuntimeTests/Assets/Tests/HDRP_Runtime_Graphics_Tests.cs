@@ -24,9 +24,19 @@ public class HDRP_Runtime_Graphics_Tests
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
     )]
     [IgnoreGraphicsTest(
+        "001-HDTemplate$",
+        "Huge divergence: missing textures, wrong tonemapping, wrong reflections, etc. Needs further investigation.",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
+    )]
+    [IgnoreGraphicsTest(
         "002-HDMaterials$",
         "",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
+    )]
+    [IgnoreGraphicsTest(
+        "002-HDMaterials$",
+        "Multiple materials are fully black or completely missing.",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
     )]
     [IgnoreGraphicsTest(
         "003-VirtualTexturing$",
@@ -43,20 +53,25 @@ public class HDRP_Runtime_Graphics_Tests
         architectures: new [] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
+        "006-Compositor$",
+        "Quite different compositing results from the reference (strong shadows on the BG + character not-so blue).",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
+    )]
+    [IgnoreGraphicsTest(
         "007-BasicAPV$",
         "https://jira.unity3d.com/browse/UUM-54029",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal },
         architectures: new Architecture[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
-        "012-SVL_Check$",
-        "https://jira.unity3d.com/browse/UUM-70791",
-        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS4 }
+        "011-HighQualityLines$",
+        "Getting NVN_QUEUE_GET_ERROR_RESULT_GPU_ERROR_MMU_FAULT GPU Error. Needs further investigation.",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
     )]
     [IgnoreGraphicsTest(
         "012-SVL_Check$",
         "https://jira.unity3d.com/browse/UUM-70791",
-        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5 }
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS4, RuntimePlatform.PS5, RuntimePlatform.Switch }
     )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {

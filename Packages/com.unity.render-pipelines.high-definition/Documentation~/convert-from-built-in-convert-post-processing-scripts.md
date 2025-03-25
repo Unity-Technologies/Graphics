@@ -2,7 +2,7 @@
 
 HDRP no longer supports the **Post Processing** package and instead includes its own [implementation for post-processing](Post-Processing-Main.md). If your Project uses the Post Processing package, remove the Post Processing package from the Project. To do this:
 
-1. In the Unity Editor, open the Package Manager window (menu: **Window** > **Package Manager**).
+1. In the Unity Editor, open the Package Manager window (menu: **Window** > **Package Management** > **Package Manager**).
 2. Find and select the **Post Processing** package, and click **Remove**.
 
 If your Project uses the Post Processing package's Scripting API to edit post-processing effects, you need to update your scripts to work with the new post-processing effects. To convert the Scene to HDRP post-processing:

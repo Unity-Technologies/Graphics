@@ -147,7 +147,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		{
 			const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
 			uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
-			if (relativeIndexInStrip > 0 && relativeIndexInStrip < stripData.nextIndex - 1)
+			if (relativeIndexInStrip > 0 && relativeIndexInStrip + 1 < stripData.nextIndex)
 			{
 				AppendOutputBuffer(indirectBuffer, index, instanceActiveIndex);
 			}

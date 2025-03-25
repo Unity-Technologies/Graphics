@@ -1,0 +1,31 @@
+{
+    "introduction":
+	"""Welcome to the Water System Samples.
+	The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/water.html ">WaterSystem</a> allows you to add water to your scenes. 
+
+	This scene is similar to the Glacier scene but focuses on the live edition of a current map and a deformation map using Unity's Spline package.
+
+	<i>To make sure the project is set up properly, use the HDRP Asset Settings Helper buttons at the top of this component, otherwise some features might not be visible.</i>
+
+	<i>In addition, for this scene to work, you need to install the spline package by selecting the <link="SplineContainer">SplineContainer</link> gameobject and clicking "Check and install spline package" button (or by using the package manager).</i>
+
+	The project uses the Mask and Current Water Decal workflow. Make sure it is enabled in the Graphics settings first. 
+
+<h1>Water Surface Debug mode</h1>
+
+• For debugging purposes, this scene loads directly with the water surface current debug mode. This allows you to directly see the effect when modifying any of the splines in the <link="SplineContainer">SplineContainer</link> gameobject. 
+• To go back to water rendering, select the <link="River">River</link> gameobject and in the <b>Miscelaneous</b> foldout at the bottom of the component, select "None" for the <b>Debug mode</b> parameter. 
+
+<h1>Spline To Texture</h1>
+
+• The <link="SplineContainer">SplineContainer</link> gameobject has a <link="SplineToTexture.cs">SplineToTexture</link> component where the spline is converted into usable maps.
+• To be able to do live editing of the current and deformation maps, we need to pass each curve of the splines to the <link="SplineToFlowMap.compute">SplineToFlowMap</link> <a href="https://docs.unity3d.com/Manual/class-ComputeShader.html">Compute Shader</a> using a <a href="https://docs.unity3d.com/ScriptReference/ComputeBuffer.html">Compute Buffer</a>. 
+• Simply put, for each texture to generate, we iterate through each pixel to find the closest matching point on any of the splines. 
+• By evaluating the position and tangent of the closest point, we can calculate a color for the current pixel.
+• The <b>Spline Width</b> and <b>Spline Blend Width</b> parameters help to calculate up to which distance the spline has an effect and controls the falloff of the effect. 
+• Lastly, to avoid blocky artifacts, a blur pass is done in the direction of the current to smooth out the result. In this example, the deformation map is not blurred because it specifically needs a steep dropoff at the waterfall. 
+• The resulting maps are directly set on a <link="Water Current/Deformer Decal">Water Decal</link> <link="Shader Graphs_Sample Water Decal.mat">material</link> to ensure that any spline modification is reflected live.
+• When satisfied, you should use the "Save on Disk" buttons on the <link="SplineContainer">SplineContainer</link> gameobject and assign them manually in the material to avoid paying the cost of the live modification at runtime.
+• As always, those maps should be imported in linear mode (<b>sRGB</b> unchecked) and <b>Non-Power of 2</b> unchecked as well.""",
+    "samples": []	
+}

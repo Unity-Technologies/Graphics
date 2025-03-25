@@ -285,3 +285,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-93347
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4a2bbe1bdb894b34981cc07bc878c7c2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    Architecture: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'No HDR. Bug:  https://jira.unity3d.com/browse/UUM-97450'

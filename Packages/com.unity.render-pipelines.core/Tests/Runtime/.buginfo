@@ -1,17 +1,17 @@
 default:
-  area: SRP Architecture & API
+  area: SRP Foundation
 
-workflow:
+settings:
   when:
     path:
       - ^.*Volume.*$
-  area: SRP Workflow
+  area: SRP Settings
 
-tools:
+debugging-tools:
   when:
     path:
       - ^.*DebugManager.*$
-  area: Graphics Tools
+  area: Graphics Debugging Tools
 
 xr:
   when:

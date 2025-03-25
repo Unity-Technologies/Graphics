@@ -583,7 +583,7 @@ namespace UnityEngine.Rendering
         /// }
         /// </code>
         /// </example>
-        static public float ShapeAttenuationAreaTubeLight(Vector3 lightPositionWS, Vector3 lightSide, float lightWidth, Camera cam)
+        public static float ShapeAttenuationAreaTubeLight(Vector3 lightPositionWS, Vector3 lightSide, float lightWidth, Camera cam)
         {
             // Ref: https://hal.archives-ouvertes.fr/hal-02155101/document
             // Listing 1.6. Analytic line-diffuse integration.
@@ -597,15 +597,16 @@ namespace UnityEngine.Rendering
                 return l * l / (d * (d * d + l * l));
             }
 
-            Vector3 p1Global = lightPositionWS + lightSide * lightWidth * 0.5f;
-            Vector3 p2Global = lightPositionWS - lightSide * lightWidth * 0.5f;
-            Vector3 p1Front = lightPositionWS + cam.transform.right * lightWidth * 0.5f;
-            Vector3 p2Front = lightPositionWS - cam.transform.right * lightWidth * 0.5f;
+            var cameraTransform = cam.transform;
+            Vector3 p1Global = lightPositionWS + 0.5f * lightWidth * lightSide;
+            Vector3 p2Global = lightPositionWS - 0.5f * lightWidth * lightSide;
+            Vector3 p1Front = lightPositionWS + 0.5f * lightWidth * cameraTransform.right;
+            Vector3 p2Front = lightPositionWS - 0.5f * lightWidth * cameraTransform.right;
 
-            Vector3 p1World = cam.transform.InverseTransformPoint(p1Global);
-            Vector3 p2World = cam.transform.InverseTransformPoint(p2Global);
-            Vector3 p1WorldFront = cam.transform.InverseTransformPoint(p1Front);
-            Vector3 p2WorldFront = cam.transform.InverseTransformPoint(p2Front);
+            Vector3 p1World = cameraTransform.InverseTransformPoint(p1Global);
+            Vector3 p2World = cameraTransform.InverseTransformPoint(p2Global);
+            Vector3 p1WorldFront = cameraTransform.InverseTransformPoint(p1Front);
+            Vector3 p2WorldFront = cameraTransform.InverseTransformPoint(p2Front);
 
             float DiffLineIntegral(Vector3 p1, Vector3 p2)
             {

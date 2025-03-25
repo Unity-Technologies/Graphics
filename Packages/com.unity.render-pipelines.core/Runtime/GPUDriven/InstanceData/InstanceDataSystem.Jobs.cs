@@ -493,6 +493,7 @@ namespace UnityEngine.Rendering
 
             public InstanceAllocators instanceAllocators;
             public CPUInstanceData instanceData;
+            [NativeDisableContainerSafetyRestriction] public CPUPerCameraInstanceData perCameraInstanceData;
             public CPUSharedInstanceData sharedInstanceData;
             public NativeArray<InstanceHandle> instances;
             public NativeParallelMultiHashMap<int, InstanceHandle> rendererGroupInstanceMultiHash;
@@ -539,7 +540,9 @@ namespace UnityEngine.Rendering
 
                             while (success)
                             {
+                                var idx = instanceData.InstanceToIndex(instance);
                                 instanceData.Remove(instance);
+                                perCameraInstanceData.Remove(idx);
                                 instanceAllocators.FreeInstance(instance);
 
                                 rendererGroupInstanceMultiHash.Remove(it);
@@ -575,6 +578,8 @@ namespace UnityEngine.Rendering
                                 newInstance = instanceAllocators.AllocateInstance(InstanceType.SpeedTree);
 
                             instanceData.AddNoGrow(newInstance);
+                            perCameraInstanceData.IncreaseInstanceCount();
+                            Assert.IsTrue(instanceData.instancesLength == perCameraInstanceData.instancesLength);
                             int index = instanceData.InstanceToIndex(newInstance);
                             instanceData.sharedInstances[index] = sharedInstance;
                             instanceData.movedInCurrentFrameBits.Set(index, false);
@@ -601,6 +606,8 @@ namespace UnityEngine.Rendering
 
             public InstanceAllocators instanceAllocators;
             public CPUInstanceData instanceData;
+
+            [NativeDisableContainerSafetyRestriction] public CPUPerCameraInstanceData perCameraInstanceData;
             public CPUSharedInstanceData sharedInstanceData;
             public NativeParallelMultiHashMap<int, InstanceHandle> rendererGroupInstanceMultiHash;
 
@@ -628,8 +635,9 @@ namespace UnityEngine.Rendering
                         sharedInstanceData.Remove(sharedInstance);
                         instanceAllocators.FreeSharedInstance(sharedInstance);
                     }
-
+                    var idx = instanceData.InstanceToIndex(instance);
                     instanceData.Remove(instance);
+                    perCameraInstanceData.Remove(idx);
                     instanceAllocators.FreeInstance(instance);
 
                     //@ This will have quadratic cost. Optimize later.
@@ -653,6 +661,7 @@ namespace UnityEngine.Rendering
 
             public InstanceAllocators instanceAllocators;
             public CPUInstanceData instanceData;
+            [NativeDisableContainerSafetyRestriction] public CPUPerCameraInstanceData perCameraInstanceData;
             public CPUSharedInstanceData sharedInstanceData;
             public NativeParallelMultiHashMap<int, InstanceHandle> rendererGroupInstanceMultiHash;
 
@@ -678,7 +687,9 @@ namespace UnityEngine.Rendering
                             instanceAllocators.FreeSharedInstance(sharedInstance);
                         }
 
+                        var idx = instanceData.InstanceToIndex(instance);
                         instanceData.Remove(instance);
+                        perCameraInstanceData.Remove(idx);
                         instanceAllocators.FreeInstance(instance);
 
                         success = rendererGroupInstanceMultiHash.TryGetNextValue(out instance, ref it);
@@ -701,6 +712,7 @@ namespace UnityEngine.Rendering
 
             [NativeDisableParallelForRestriction][NativeDisableContainerSafetyRestriction, NoAlias] public CPUInstanceData instanceData;
             [NativeDisableParallelForRestriction][NativeDisableContainerSafetyRestriction, NoAlias] public CPUSharedInstanceData sharedInstanceData;
+            [NativeDisableParallelForRestriction][NativeDisableContainerSafetyRestriction, NoAlias] public CPUPerCameraInstanceData perCameraInstanceData;
 
             public void Execute(int index)
             {
@@ -715,6 +727,7 @@ namespace UnityEngine.Rendering
                 int materialCount = rendererData.materialsCount[index];
 
                 int meshID = rendererData.meshID[meshIndex];
+                var meshLodInfo = rendererData.meshLodInfo[meshIndex];
 
                 const int k_LightmapIndexMask = 0xFFFF;
                 const int k_LightmapIndexNotLightmapped = 0xFFFF;
@@ -748,6 +761,9 @@ namespace UnityEngine.Rendering
                     default:
                         break;
                 }
+
+                if (meshLodInfo.lodSelectionActive)
+                    instanceFlags |= InstanceFlags.HasMeshLod;
 
                 // If the object is light mapped, or has the special influence-only value, it affects lightmaps
                 if (lmIndexMasked != k_LightmapIndexNotLightmapped)
@@ -794,7 +810,7 @@ namespace UnityEngine.Rendering
                         materialIDs[i] = materialInstanceID;
                     }
 
-                    sharedInstanceData.Set(sharedInstance, rendererGroupID, materialIDs, meshID, localAABB, transformUpdateFlags, instanceFlags, lodGroupAndMask, gameObjectLayer,
+                    sharedInstanceData.Set(sharedInstance, rendererGroupID, materialIDs, meshID, localAABB, transformUpdateFlags, instanceFlags, lodGroupAndMask, meshLodInfo, gameObjectLayer,
                         sharedInstanceData.Get_RefCount(sharedInstance));
 
                     for (int i = 0; i < instancesCount; ++i)
@@ -811,6 +827,7 @@ namespace UnityEngine.Rendering
                         bool isFlipped = (det < 0.0f);
 
                         int instanceIndex = instanceData.InstanceToIndex(instance);
+                        perCameraInstanceData.SetDefault(instanceIndex);
                         instanceData.localToWorldIsFlippedBits.Set(instanceIndex, isFlipped);
                         instanceData.worldAABBs[instanceIndex] = worldAABB;
                         instanceData.tetrahedronCacheIndices[instanceIndex] = -1;
@@ -818,6 +835,7 @@ namespace UnityEngine.Rendering
                         instanceData.editorData.sceneCullingMasks[instanceIndex] = rendererData.editorData[index].sceneCullingMask;
                         // Store more editor instance data here if needed.
 #endif
+                        instanceData.meshLodData[instanceIndex] = rendererData.meshLodData[index];
                     }
                 }
             }

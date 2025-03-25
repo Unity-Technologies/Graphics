@@ -405,7 +405,7 @@ namespace UnityEngine.Rendering.Universal
             // Don't resolve during post processing if there are passes after or pixel perfect camera is used
             bool pixelPerfectCameraEnabled = ppc != null && ppc.enabled;
             bool hasCaptureActions = cameraData.captureActions != null && lastCameraInStack;
-            bool resolvePostProcessingToCameraTarget = !hasCaptureActions && !hasPassesAfterPostProcessing && !requireFinalPostProcessPass && !pixelPerfectCameraEnabled;
+            bool resolvePostProcessingToCameraTarget = lastCameraInStack && !hasCaptureActions && !hasPassesAfterPostProcessing && !requireFinalPostProcessPass && !pixelPerfectCameraEnabled;
 
             if (hasPostProcess)
             {
@@ -529,14 +529,9 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
-        internal static bool IsGLDevice()
+        internal static bool IsGLESDevice()
         {
-            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
-        }
-
-        internal static bool supportsMRT
-        {
-            get => !IsGLDevice();
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
         }
 
         internal override bool supportsNativeRenderPassRendergraphCompiler => true;

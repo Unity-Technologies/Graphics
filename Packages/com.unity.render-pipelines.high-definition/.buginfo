@@ -1,17 +1,22 @@
 old:
-  area: SRP Architecture & API
+  area: SRP Foundation
 
-Workflow:
+settings:
   when:
     path:
       - ^.*Volume?.*$
       - ^.*GlobalSettings?.*$
-      - ^.*Camera?.*$
       - ^.*AdditionalLight?.*$
       - ^.*AdditionalReflectionProbe?.*$
       - ^.*ContextualMenuDispatcher?.*$
-  area: SRP Workflow
-  
+  area: SRP Settings
+
+camera:
+  when:
+    path:
+      - ^.*Camera?.*$
+  area: Camera
+
 Tools:
   when:
     path:

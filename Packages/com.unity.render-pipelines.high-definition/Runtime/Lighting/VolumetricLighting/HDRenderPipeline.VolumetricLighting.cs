@@ -877,10 +877,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 ulong cameraSceneCullingMask =  HDUtils.GetSceneCullingMaskFromCamera(hdCamera.camera);
                 foreach (var volume in volumes)
                 {
+                    var transform = volume.transform;
+                    Vector3 scaleSize = volume.GetScaledSize(transform);
                     Vector3 center = volume.transform.position;
 
                     // Reject volumes that are completely fade out or outside of the volumetric fog using bounding sphere
-                    float boundingSphereRadius = Vector3.Magnitude(volume.parameters.size);
+                    float boundingSphereRadius = Vector3.Magnitude(scaleSize);
                     float minObbDistance = Vector3.Magnitude(center - camPosition) - hdCamera.camera.nearClipPlane - boundingSphereRadius;
                     if (minObbDistance > volume.parameters.distanceFadeEnd || minObbDistance > fog.depthExtent.value)
                         continue;
@@ -892,8 +894,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Handle camera-relative rendering.
                     center -= camOffset;
 
-                    var transform = volume.transform;
-                    var bounds = GeometryUtils.OBBToAABB(transform.right, transform.up, transform.forward, volume.parameters.size, center);
+                    
+                    var bounds = GeometryUtils.OBBToAABB(transform.right, transform.up, transform.forward, scaleSize, center);
 
                     // Frustum cull on the CPU for now. TODO: do it on the GPU.
                     // TODO: account for custom near and far planes of the V-Buffer's frustum.
@@ -910,7 +912,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         // TODO: cache these?
-                        var obb = new OrientedBBox(Matrix4x4.TRS(transform.position - camOffset, transform.rotation, volume.parameters.size));
+                        var obb = new OrientedBBox(Matrix4x4.TRS(transform.position - camOffset, transform.rotation, scaleSize));
                         m_VisibleVolumeBounds.Add(obb);
                         m_GlobalVolumeIndices.Add(volume.GetGlobalIndex());
                         var visibleData = volume.parameters.ConvertToEngineData();

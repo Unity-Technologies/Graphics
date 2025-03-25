@@ -200,7 +200,6 @@ HDRP ray tracing in Unity isn't compatible with the following features:
 - Vertex animation, for example wind deformation of vegetation.
 - [Decals](decals.md).
 - Ray tracing is not compatible with the detail meshes and trees in the [Terrain system](https://docs.unity3d.com/Manual/script-Terrain.html). It is compatible with terrain geometry. To include detailed meshes and trees in ray traced reflections, use [mixed tracing](Override-Screen-Space-Reflection.md#mixed-tracing).
-- Box-shaped spot lights.
 - Volumetric [fog](create-a-local-fog-effect.md).
 - [Tessellation](Tessellation.md).
 - Per-pixel displacement techniques such as parallax occlusion mapping, depth offset, and non-terrain height maps.

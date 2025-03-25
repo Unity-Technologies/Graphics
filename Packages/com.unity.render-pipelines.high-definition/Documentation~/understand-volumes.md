@@ -28,6 +28,8 @@ Refer to the following for more information:
 - [Create a Volume Profile](create-a-volume-profile.md)
 - [Configure Volume Overrides](configure-volume-overrides.md)
 
+<a name="default-volumes"></a>
+
 ## Default volumes
 
 All HDRP scenes have two default global volumes:
@@ -41,3 +43,7 @@ Refer to the following for more information:
 
 - [Configure the Default Volume](set-up-a-volume.html#configure-the-default-volume)
 - [Configure the global volume for a quality level](set-up-a-volume.html#configure-the-global-volume-for-a-quality-level)
+
+## Caching for volumes
+
+When you first configure your project, Unity computes the values for [default volumes](#default-volumes) once and then caches them for performance and optimization. Caching prevents repeated calculations during gameplay and enables efficient interpolation between settings. This means that changes to these settings in your script will not have any effect. To implement changes that affect your scene despite caching, refer to  [Troubleshooting volumes](volumes-troubleshooting.md).

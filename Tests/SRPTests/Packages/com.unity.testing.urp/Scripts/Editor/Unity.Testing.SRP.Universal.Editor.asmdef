@@ -34,6 +34,11 @@
             "name": "com.unity.xr.mock-hmd",
             "expression": "1.2.0-preview.1",
             "define": "USE_XR_MOCK_HMD"
+        },
+        {
+            "name": "com.unity.xr.openxr",
+            "expression": "1.13.0",
+            "define": "OPENXR_SDK"
         }
     ],
     "noEngineReferences": false

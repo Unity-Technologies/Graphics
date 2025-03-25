@@ -10,7 +10,7 @@ The **Orient** Block makes particles orient themselves to face a certain way. It
 
 Particles orient to face forward towards the camera plane. This mode works for most use cases, however the facing illusion can break sometimes at the edges of the screen.
 
-![](Images/Block-OrientFaceCameraPlane.png)
+![A row of downward-facing arrows above a camera and a camera plane. The direction of the arrows all point downwards towards the camera plane.](Images/Block-OrientFaceCameraPlane.png)
 
 <a name="face-camera-position"></a>
 
@@ -18,7 +18,7 @@ Particles orient to face forward towards the camera plane. This mode works for m
 
 Particles orient to face forward towards the camera position. Similar to the **Face Camera Plane** mode, however, here particles face towards the camera itself, appearing identical even at the edge of the screen.
 
-![](Images/Block-OrientFaceCameraPosition.png)
+![A row of downward-facing arrows above a camera plane and a camera. The direction of the arrows all point to converge towards the camera position.](Images/Block-OrientFaceCameraPosition.png)
 
 <a name="look-at-position"></a>
 
@@ -26,7 +26,7 @@ Particles orient to face forward towards the camera position. Similar to the **F
 
 Particles orient to face towards a specified position.
 
-![](Images/Block-OrientLookAtPosition.gif)
+![A row of downward-facing arrows above a camera plane and a camera. A small circle moves between the arrows and camera. The direction of the arrows point towards the circle, and change direction to follow its movement.](Images/Block-OrientLookAtPosition.gif)
 
 <a name="look-at-line"></a>
 
@@ -34,7 +34,7 @@ Particles orient to face towards a specified position.
 
 Particles orient to face towards the nearest point along the direction of an infinite line.
 
-![](Images/Block-OrientLookAtLine.gif)
+![A row of downward-facing arrows above a camera plane and a camera. A line between the arrows and the camera is initially horizontal but hinges on a point to swing and become diagonal, before swinging back. As the line swings, the direction of the arrows follow the nearest point on the line it's hinged on.](Images/Block-OrientLookAtLine.gif)
 
 <a name="advanced"></a>
 
@@ -42,11 +42,11 @@ Particles orient to face towards the nearest point along the direction of an inf
 
 Particles orient to a custom particle space defined using two specified axes. The first axis is immutable and the Block uses the second axis to derive the third. It then recalculates the second axis to create an orthogonal particle space.
 
-![](Images/Block-OrientAdvancedAxisBuilding.gif)
+![Four different modes of axes. 1 is First Axis, represented by a single arrow. 2 is Second Axis, which adds to 1 with a second arrow originating from the same point. 3 is Derive Third Axis, which adds to 2 with a third arrow originating from the same point. 4 is Orthogonalize, which changes the second axis arrow to create an orthogonal space.](Images/Block-OrientAdvancedAxisBuilding.gif)
 
 This is an advanced mode and you can use it to create custom orientation behaviors.
 
-![](Images/Block-OrientAdvanced.gif)
+![A row of arrows above a camera plane and a camera. For XY, the direction of the arrows point left. For YZ, the direction of the arrows converge towards the center. For ZX, the direction of the arrows converge towards the center.](Images/Block-OrientAdvanced.gif)
 
 <a name="fixed-axis"></a>
 
@@ -54,7 +54,7 @@ This is an advanced mode and you can use it to create custom orientation behavio
 
 Particles orient themselves on the specified ‘up’ axis and rotate on it to face the camera. This is useful for effects like grass where the up axis is generally known and particles should rotate on it to face the camera without falling flat if observed from the top.
 
-![](Images/Block-OrientFixedAxis.png)
+![A row of upward-facing arrows above a camera plane and a camera. The direction of the arrows point outwards.](Images/Block-OrientFixedAxis.png)
 
 <a name="along-velocity"></a>
 
@@ -62,7 +62,7 @@ Particles orient themselves on the specified ‘up’ axis and rotate on it to f
 
 Particles orient to face forward towards the direction they are moving in based on the **Velocity** attribute. The up axis is set to the velocity, and particles rotate on it to orient themselves to the camera as needed.
 
-![](Images/Block-OrientAlongVelocity.gif)
+![A row of arrows above a camera plane and a camera. The arrows point towards the direction they're moving in and rotate to orient themselves to the camera.](Images/Block-OrientAlongVelocity.gif)
 
 ## Block compatibility
 

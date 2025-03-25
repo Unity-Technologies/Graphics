@@ -38,12 +38,14 @@ namespace UnityEngine.Rendering
         public NativeList<LODGroupCullingData> lodGroupCullingData { get { return m_LODGroupDataPool.lodGroupCullingData; } }
         public int instanceDataBufferVersion { get { return m_InstanceDataBuffer.version; } }
         public int instanceDataBufferLayoutVersion { get { return m_InstanceDataBuffer.layoutVersion; } }
-        public int crossfadedRendererCount { get { return m_LODGroupDataPool.crossfadedRendererCount; } }
         public SphericalHarmonicsL2 cachedAmbientProbe { get { return m_CachedAmbientProbe; } }
 
         public bool hasBoundingSpheres { get { return m_InstanceDataSystem.hasBoundingSpheres; } }
+        public int cameraCount { get { return m_InstanceDataSystem.cameraCount; } }
         public CPUInstanceData.ReadOnly instanceData { get { return m_InstanceDataSystem.instanceData; } }
         public CPUSharedInstanceData.ReadOnly sharedInstanceData { get { return m_InstanceDataSystem.sharedInstanceData; } }
+
+        public CPUPerCameraInstanceData perCameraInstanceData { get { return m_InstanceDataSystem.perCameraInstanceData; } }
         public GPUInstanceDataBuffer.ReadOnly instanceDataBuffer { get { return m_InstanceDataBuffer.AsReadOnly(); } }
         public NativeArray<InstanceHandle> aliveInstances { get { return m_InstanceDataSystem.aliveInstances; } }
 
@@ -384,6 +386,16 @@ namespace UnityEngine.Rendering
             m_OcclusionCullingCommon.UpdateFrame();
             if (m_DebugStats != null)
                 m_OcclusionCullingCommon.UpdateOccluderStats(m_DebugStats);
+        }
+
+        public void FreePerCameraInstanceData(NativeArray<int> cameraIDs)
+        {
+            m_InstanceDataSystem.DeallocatePerCameraInstanceData(cameraIDs);
+        }
+
+        public void UpdateCameras(NativeArray<int> cameraIDs)
+        {
+            m_InstanceDataSystem.AllocatePerCameraInstanceData(cameraIDs);
         }
 
 #if UNITY_EDITOR

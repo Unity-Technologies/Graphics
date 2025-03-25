@@ -21,52 +21,74 @@ namespace UnityEditor.VFX
             return 0;
         }
 
-        public static int GetMaxComponentCount(IEnumerable<VFXSlot> slots)
+        public static bool IsFinite(Vector3 v)
         {
-            int maxNbComponents = 0;
-            foreach (var slot in slots)
-            {
-                int slotNbComponents = GetComponentCount(slot);
-                maxNbComponents = Math.Max(slotNbComponents, maxNbComponents);
-            }
-            return maxNbComponents;
+            return float.IsFinite(v.x) && float.IsFinite(v.y) && float.IsFinite(v.z);
         }
 
-        public static int GetComponentCountDirect(VFXSlot slot)
+        public static bool IsFinite(OrientedBox box)
         {
-            var slotType = slot.property.type;
-            if (slotType == typeof(float) || slotType == typeof(uint) || slotType == typeof(int))
-                return 1;
-            else if (slotType == typeof(Vector2))
-                return 2;
-            else if (slotType == typeof(Vector3))
-                return 3;
-            else if (slotType == typeof(Vector4) || slotType == typeof(Color))
-                return 4;
-            return 0;
+            return IsFinite(box.center) && IsFinite(box.angles) && IsFinite(box.size);
         }
 
-        public static int GetMaxComponentCountDirect(IEnumerable<VFXSlot> slots)
+        public static bool IsFinite(Transform transform)
         {
-            int maxNbComponents = 0;
-            foreach (var slot in slots)
-            {
-                int slotNbComponents = GetComponentCountDirect(slot);
-                maxNbComponents = Math.Max(slotNbComponents, maxNbComponents);
-            }
-            return maxNbComponents;
+            return IsFinite(transform.position) && IsFinite(transform.angles) && IsFinite(transform.scale);
         }
 
-        public static Type GetFloatTypeFromComponentCount(int count)
+        public static bool IsFinite(TCircle circle)
         {
-            switch (count)
-            {
-                case 1: return typeof(float);
-                case 2: return typeof(Vector2);
-                case 3: return typeof(Vector3);
-                case 4: return typeof(Vector4);
-                default: return null;
-            }
+            return IsFinite(circle.transform) && float.IsFinite(circle.radius);
+        }
+
+        public static bool IsFinite(TArcCircle arcCircle)
+        {
+            return IsFinite(arcCircle.circle) && float.IsFinite(arcCircle.arc);
+        }
+
+        public static bool IsFinite(TCone cone)
+        {
+            return IsFinite(cone.transform) && float.IsFinite(cone.baseRadius) && float.IsFinite(cone.topRadius) && float.IsFinite(cone.height);
+        }
+
+        public static bool IsFinite(TArcCone arcCone)
+        {
+            return IsFinite(arcCone.cone) && float.IsFinite(arcCone.arc);
+        }
+
+        public static bool IsFinite(TSphere sphere)
+        {
+            return IsFinite(sphere.transform) && float.IsFinite(sphere.radius);
+        }
+
+        public static bool IsFinite(TArcSphere arcSphere)
+        {
+            return IsFinite(arcSphere.sphere) && float.IsFinite(arcSphere.arc);
+        }
+
+        public static bool IsFinite(TTorus torus)
+        {
+            return IsFinite(torus.transform) && float.IsFinite(torus.majorRadius) && float.IsFinite(torus.minorRadius);
+        }
+
+        public static bool IsFinite(TArcTorus arcTorus)
+        {
+            return IsFinite(arcTorus.torus) && float.IsFinite(arcTorus.arc);
+        }
+
+        public static bool IsFinite(Line line)
+        {
+            return IsFinite(line.start) && IsFinite(line.end);
+        }
+
+        public static bool IsFinite(AABox box)
+        {
+            return IsFinite(box.size) && IsFinite(box.center);
+        }
+
+        public static bool IsFinite(Plane plane)
+        {
+            return IsFinite(plane.position) && IsFinite(plane.normal);
         }
     }
 }

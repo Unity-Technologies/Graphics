@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
-    Out = floor(In / (1 / Steps)) * (1 / Steps);
+    Out = floor(In * Steps) / Steps;
 }
 ";
         }

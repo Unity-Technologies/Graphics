@@ -1,1 +1,8 @@
-area: SRP Workflow
+settings:
+  area: SRP Settings
+
+camera:
+  when:
+    path:
+      - ^.*CaptureSettings?.*$
+  area: Camera

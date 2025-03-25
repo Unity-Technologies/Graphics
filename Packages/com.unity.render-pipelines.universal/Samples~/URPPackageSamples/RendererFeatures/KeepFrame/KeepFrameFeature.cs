@@ -7,18 +7,18 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
-// This renderer feature will replicate a "don't clear" behaviour by injecting two passes into the pipeline:
-// One pass that copies color at the end of a frame
-// Another pass that draws the content of the copied texture at the beginning of a new frame
-// In this version of the sample we provide implementations for both RenderGraph and non-RenderGraph pipelines.
-// This way you can easily see what changed and how to manage code bases with backwards compatibility
+// Create a Scriptable Renderer Feature that replicates Don't Clear behavior by injecting two render passes into the pipeline.
+// The first pass copies the camera color target at the end of a frame. The second pass draws the contents of the copied texture at the beginning of a new frame.
+// For more information about creating Scriptable Renderer Features, refer to https://docs.unity3d.com/Manual/urp/customizing-urp.html.
 public class KeepFrameFeature : ScriptableRendererFeature
 {
-    // This pass is responsible for copying color to a specified destination
+    // Create the custom render pass that copies the camera color to a destination texture.
     class CopyFramePass : ScriptableRenderPass
     {
+        // Declare the destination texture.
         RTHandle m_Destination;
 
+        // Declare the resources the render pass uses.
         public void Setup(RTHandle destination)
         {
             m_Destination = destination;
@@ -26,55 +26,61 @@ public class KeepFrameFeature : ScriptableRendererFeature
 
 #pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
 
-        // Unity calls the Execute method in the Compatibility mode
+        // Override the Execute method to implement the rendering logic.
+        // This method is used only in the Compatibility Mode path.
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Skip rendering if the camera isn't a game camera.
             if (renderingData.cameraData.camera.cameraType != CameraType.Game)
                 return;
 
+            // Set the source texture as the camera color target.
             var source = renderingData.cameraData.renderer.cameraColorTargetHandle;
 
+            // Get a command buffer.
             CommandBuffer cmd = CommandBufferPool.Get("CopyFramePass");
 
+            // Blit the camera color target to the destination texture.
             Blit(cmd, source, m_Destination);
 
+            // Execute the command buffer.
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
 #pragma warning restore 618, 672
 
-        // RecordRenderGraph is called for the RenderGraph path.
-        // Because RenderGraph has to calculate internally how resources are used we must be aware of 2
-        // distinct timelines inside this method: one for recording resource usage and one for recording draw commands.
-        // It is important to scope resources correctly as global state may change between the execution times of each.
+        // Override the RecordRenderGraph method to implement the rendering logic.
+        // This method is used only in the render graph system path.
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            // Get the resources the pass uses.
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
+            // Skip rendering if the camera isn't a game camera.
             if (cameraData.camera.cameraType != CameraType.Game)
                 return;
             
+            // Set the source texture as the camera color target.
             TextureHandle source = resourceData.activeColorTexture;
             
-            // When using the RenderGraph API the lifetime and ownership of resources is managed by the render graph system itself.
-            // This allows for optimal resource usage and other optimizations to be done automatically for the user.
-            // In the cases where resources must persist across frames, between different cameras or when users want
-            // to manage their lifetimes themselves, the resources must be imported when recording the render pass.
+            // Import the texture that persists across frames, so the render graph system can use it.
             TextureHandle destination = renderGraph.ImportTexture(m_Destination);
             
             if (!source.IsValid() || !destination.IsValid())
                 return;
             
+            // Blit the content of the copied texture to the camera color target with a material.
             RenderGraphUtils.BlitMaterialParameters para = new(source, destination, Blitter.GetBlitMaterial(TextureDimension.Tex2D), 0);
             renderGraph.AddBlitPass(para, "Copy Frame Pass");
         }
     }
 
-    // This pass is responsible for drawing the old color to a full screen quad
+    // Create the custom render pass that draws the contents of the copied texture at the beginning of a new frame.
     class DrawOldFramePass : ScriptableRenderPass
     {
+        // Declare the resources the render pass uses.
         class PassData
         {
             public TextureHandle source;
@@ -86,6 +92,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
         RTHandle m_Handle;
         string m_TextureName;
 
+        // Set up the resources the render pass uses.
         public void Setup(Material drawOldFrameMaterial, RTHandle handle, string textureName)
         {
             m_DrawOldFrameMaterial = drawOldFrameMaterial;
@@ -93,62 +100,75 @@ public class KeepFrameFeature : ScriptableRendererFeature
             m_Handle = handle;
         }
 
-        // This is an example of how to share code between RenderGraph and older non-RenderGraph setups.
-        // The common draw commands are extracted in a private static method that gets called from both
-        // Execute and render graph builder's SetRenderFunc.
+        // Blit the copied texture to the camera color target.
+        // This method uses common draw commands that both the render graph system and Compatibility Mode paths can use.
         static void ExecutePass(RasterCommandBuffer cmd, RTHandle source, Material material)
         {
             if (material == null)
                 return;
 
+            // Get the viewport scale.
             Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
+
+            // Blit the copied texture to the camera color target.
             Blitter.BlitTexture(cmd, source, viewportScale, material, 0);
         }
 
 #pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
 
-        // Unity calls the Execute method in the Compatibility mode
+        // Override the Execute method to implement the rendering logic.
+        // This method is used only in the Compatibility Mode path.
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Get a command buffer.
             CommandBuffer cmd = CommandBufferPool.Get(nameof(DrawOldFramePass));
             cmd.SetGlobalTexture(m_TextureName, m_Handle);
 
+            // Set the source texture as the camera color target.
             var source = renderingData.cameraData.renderer.cameraColorTargetHandle;
+
+            // Blit the camera color target to the destination texture.
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), source, m_DrawOldFrameMaterial);
 
+            // Execute the command buffer.
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
 #pragma warning restore 618, 672
 
+        // Override the RecordRenderGraph method to implement the rendering logic.
+        // This method is used only in the render graph system path.
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            // Get the resources the pass uses.
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
-            TextureHandle oldFrameTextureHandle = renderGraph.ImportTexture(m_Handle);
+            // Import the texture that persists across frames, so the render graph system can use it.
+            TextureHandle oldFrameTextureHandle = renderGraph.ImportTexture(m_Handle); 
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>("Draw Old Frame Pass", out var passData))
             {
+                // Set the destination texture as the camera color target.
                 TextureHandle destination = resourceData.activeColorTexture;
 
                 if (!oldFrameTextureHandle.IsValid() || !destination.IsValid())
                     return;
 
+                // Set the resources the pass uses.
                 passData.material = m_DrawOldFrameMaterial;
                 passData.source = oldFrameTextureHandle;
                 passData.name = m_TextureName;
 
+                // Set the render graph system to read the copied texture, and write to the camera color target.
                 builder.UseTexture(oldFrameTextureHandle, AccessFlags.Read);
                 builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
 
-                // Normally global state modifications are not allowed when using RenderGraph and will result in errors.
-                // In the exceptional cases where this is intentional we must let the RenderGraph API know by calling
-                // AllowGlobalStateModification(true). Use this only where necessary as it will introduce a sync point
-                // in the frame which may have a negative impact on performance.
+                // Allow global state modifications. Use this only where necessary as it introduces a synchronization point in the frame, which might have an impact on performance.
                 builder.AllowGlobalStateModification(true);
 
+                // Set the render method.
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
                     context.cmd.SetGlobalTexture(data.name, data.source);
@@ -161,9 +181,9 @@ public class KeepFrameFeature : ScriptableRendererFeature
     [Serializable]
     public class Settings
     {
-        [Tooltip("The material that is used when the old frame is redrawn at the start of the new frame (before opaques).")]
+        [Tooltip("Sets the material to use to draw the previous frame.")]
         public Material displayMaterial;
-        [Tooltip("The name of the texture used for referencing the copied frame. (Defaults to _FrameCopyTex if empty)")]
+        [Tooltip("Sets the texture to copy each frame into. The default it _FrameCopyTex.")]
         public string textureName;
     }
 
@@ -198,12 +218,6 @@ public class KeepFrameFeature : ScriptableRendererFeature
 
         renderer.EnqueuePass(m_CopyFrame);
         renderer.EnqueuePass(m_DrawOldFrame);
-    }
-
-    public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
-    {
-        // This path is not taken when using render graph.
-        // The code to reallocate m_OldFrameHandle has been moved to AddRenderPasses in order to avoid duplication.
     }
 
     protected override void Dispose(bool disposing)

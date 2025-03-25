@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using UnityEngine.Assertions;
+using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
@@ -391,6 +392,7 @@ namespace UnityEngine.Rendering
         {
             var meshIndex = rendererData.meshIndex[i];
             var meshID = rendererData.meshID[meshIndex];
+            var meshLodInfo = rendererData.meshLodInfo[meshIndex];
             var submeshCount = rendererData.subMeshCount[meshIndex];
             var subMeshDescOffset = rendererData.subMeshDescOffset[meshIndex];
             var batchMeshID = batchMeshHash[meshID];
@@ -522,15 +524,21 @@ namespace UnityEngine.Rendering
                 if (packedMaterialData.isTransparent)
                     flags |= BatchDrawCommandFlags.HasSortingPosition;
 
+                if (packedMaterialData.supportsCrossFade)
+                    flags |= BatchDrawCommandFlags.LODCrossFadeKeyword;
+
+                int lodLoopCount = math.max(meshLodInfo.levelCount, 1);
+
+                for (int lodLoopIndex = 0; lodLoopIndex < lodLoopCount; ++lodLoopIndex)
                 {
                     var submeshIndex = startSubMesh + matIndex;
-                    var subMeshDesc = rendererData.subMeshDesc[subMeshDescOffset + submeshIndex];
-
+                    var subMeshDesc = rendererData.subMeshDesc[subMeshDescOffset + submeshIndex*lodLoopCount + lodLoopIndex];
                     var drawKey = new DrawKey
                     {
                         materialID = batchMaterialID,
                         meshID = batchMeshID,
                         submeshIndex = submeshIndex,
+                        activeMeshLod = meshLodInfo.lodSelectionActive ? lodLoopIndex : -1,
                         flags = flags,
                         transparentInstanceId = packedMaterialData.isTransparent ? rendererGroupID : 0,
                         range = rangeKey,
@@ -926,11 +934,11 @@ namespace UnityEngine.Rendering
                 cullingOutput,
                 m_BatchersContext.instanceData,
                 m_BatchersContext.sharedInstanceData,
+                m_BatchersContext.perCameraInstanceData,
                 m_BatchersContext.instanceDataBuffer,
                 m_BatchersContext.lodGroupCullingData,
                 m_DrawInstanceData,
                 m_GlobalBatchIDs,
-                m_BatchersContext.crossfadedRendererCount,
                 m_BatchersContext.smallMeshScreenPercentage,
                 allowOcclusionCulling ? m_BatchersContext.occlusionCullingCommon : null);
 
@@ -1115,7 +1123,7 @@ namespace UnityEngine.Rendering
 
         public void UpdateFrame()
         {
-            m_Culler.UpdateFrame();
+            m_Culler.UpdateFrame(m_BatchersContext.cameraCount);
         }
 
         public ParallelBitArray GetCompactedVisibilityMasks(bool syncCullingJobs)

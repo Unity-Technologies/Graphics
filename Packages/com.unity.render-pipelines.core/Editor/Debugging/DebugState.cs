@@ -237,8 +237,14 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Unsigned Integer Debug State.
     /// </summary>
-    [Serializable, DebugState(typeof(DebugUI.UIntField), typeof(DebugUI.MaskField))]
+    [Serializable, DebugState(typeof(DebugUI.UIntField))]
     public sealed class DebugStateUInt : DebugState<uint> { }
+
+    /// <summary>
+    /// Rendering layer mask state.
+    /// </summary>
+    [Serializable, DebugState(typeof(DebugUI.RenderingLayerField))]
+    public sealed class DebugStateRenderingLayer : DebugState<RenderingLayerMask> { }
 
     /// <summary>
     /// Float Debug State.

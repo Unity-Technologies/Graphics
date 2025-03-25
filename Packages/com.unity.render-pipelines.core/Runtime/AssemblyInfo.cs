@@ -9,3 +9,4 @@ using System.Runtime.CompilerServices;
 // Smoke test project visibility
 [assembly: InternalsVisibleTo("SRPSmoke.Runtime.Tests")]
 [assembly: InternalsVisibleTo("SRPSmoke.Editor.Tests")]
+[assembly: InternalsVisibleTo("Assembly-CSharp-Editor-testable")]

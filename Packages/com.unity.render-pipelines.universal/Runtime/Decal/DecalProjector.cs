@@ -1,5 +1,6 @@
 using System;
 using UnityEditor;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -22,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
     [CanEditMultipleObjects]
 #endif
     [AddComponentMenu("Rendering/URP Decal Projector")]
-    public class DecalProjector : MonoBehaviour
+    public partial class DecalProjector : MonoBehaviour, ISerializationCallbackReceiver
     {
         internal delegate void DecalProjectorAction(DecalProjector decalProjector);
         internal static event DecalProjectorAction onDecalAdd;
@@ -164,15 +165,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [SerializeField]
-        uint m_DecalLayerMask = 1;
+        [SerializeField] RenderingLayerMask m_RenderingLayerMask = RenderingLayerMask.defaultRenderingLayerMask;
+
         /// <summary>
         /// The layer of the decal.
         /// </summary>
-        public uint renderingLayerMask
+        public RenderingLayerMask renderingLayerMask
         {
-            get => m_DecalLayerMask;
-            set => m_DecalLayerMask = value;
+            get => m_RenderingLayerMask;
+            set => m_RenderingLayerMask = value;
         }
 
         [SerializeField]
@@ -247,6 +248,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         private Material m_OldMaterial = null;
+        private float m_OldDrawDistance = 1000.0f;
+        private float m_OldFadeScale = 0.9f;
+        private float m_OldStartAngleFade = 180.0f;
+        private float m_OldEndAngleFade = 180.0f;
+        private Vector2 m_OldUVScale = new Vector2(1, 1);
+        private Vector2 m_OldUVBias = new Vector2(0, 0);
+        private DecalScaleMode m_OldScaleMode = DecalScaleMode.ScaleInvariant;
+        private Vector3 m_OldOffset = new Vector3(0, 0, 0.5f);
+        private Vector3 m_OldSize = new Vector3(1, 1, 1);
+        private float m_OldFadeFactor = 1.0f;
 
         /// <summary>A scale that should be used for rendering and handles.</summary>
         internal Vector3 effectiveScale => m_ScaleMode == DecalScaleMode.InheritFromHierarchy ? transform.lossyScale : Vector3.one;
@@ -319,6 +330,36 @@ namespace UnityEngine.Rendering.Universal
             }
             else
                 onDecalPropertyChange?.Invoke(this);
+
+            m_OldDrawDistance = m_DrawDistance;
+            m_OldFadeScale = m_FadeScale;
+            m_OldStartAngleFade = m_StartAngleFade;
+            m_OldEndAngleFade = m_EndAngleFade;
+            m_OldUVScale = m_UVScale;
+            m_OldUVBias = m_UVBias;
+            m_OldScaleMode = m_ScaleMode;
+            m_OldOffset = m_Offset;
+            m_OldSize = m_Size;
+            m_OldFadeFactor = m_FadeFactor;
+        }
+
+        void OnDidApplyAnimationProperties()
+        {
+            // Needed to be able to update state properly for animated serialized-properties.
+            if (m_OldMaterial != m_Material ||
+                Mathf.Abs(m_OldDrawDistance - m_DrawDistance) > Mathf.Epsilon ||
+                Mathf.Abs(m_OldFadeScale - m_FadeScale) > Mathf.Epsilon ||
+                Mathf.Abs(m_OldStartAngleFade - m_StartAngleFade) > Mathf.Epsilon ||
+                Mathf.Abs(m_OldEndAngleFade - m_EndAngleFade) > Mathf.Epsilon ||
+                m_OldUVScale != m_UVScale ||
+                m_OldUVBias != m_UVBias ||
+                m_OldScaleMode != m_ScaleMode ||
+                m_OldOffset != m_Offset ||
+                m_OldSize != m_Size ||
+                Mathf.Abs(m_OldFadeFactor - m_FadeFactor) > Mathf.Epsilon)
+            {
+                OnValidate();
+            }
         }
 
         /// <summary>
@@ -348,6 +389,39 @@ namespace UnityEngine.Rendering.Universal
         internal static void UpdateAllDecalProperties()
         {
             onAllDecalPropertyChange?.Invoke();
+        }
+        
+        enum Version
+        {
+            Initial,
+            RenderingLayerMask,
+
+            Count
+        }
+        
+        [SerializeField] Version version = Version.Count;
+        
+        // This piece of code is needed because some objects could have been created before existence of Version enum
+        /// <summary>OnBeforeSerialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+            if (version == Version.Count) // serializing a newly created object
+                version = Version.Count - 1; // mark as up to date
+        }
+
+        /// <summary>OnAfterDeserialize needed to handle migration before the versioning system was in place.</summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            if (version == Version.Count) // deserializing and object without version
+                version = Version.Initial; // reset to run the migration
+            
+            if (version < Version.RenderingLayerMask)
+            {
+#pragma warning disable 618 // Obsolete warning
+                m_RenderingLayerMask = m_DecalLayerMask;
+#pragma warning restore 618 // Obsolete warning
+                version = Version.RenderingLayerMask;
+            }
         }
     }
 }

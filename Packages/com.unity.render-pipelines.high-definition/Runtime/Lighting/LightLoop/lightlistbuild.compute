@@ -556,9 +556,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         else
             break;
 
+        // Imlicit division by 32, to pick the correct array index.
+        // E.g 37th light devided by 32 = 1.15 (rounded to 1), so we pick uLightsFlags[1] (which represents the lights from 32 to 64).
         uLightsFlags[l >> 5] |= lightValid << (l&31);
     }
 
+    // Merge results from all threads into shared memory.
+    // `InterlockedOr` performs a bitwise OR between `ldsDoesLightIntersect` and `uLightsFlags`.
+    // This allows multiple threads to update `ldsDoesLightIntersect` without collision.
     {
         [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
         for (uint ii = 0; ii < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++ii)
@@ -570,30 +575,58 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 #endif
 
     {
-        uint localCount = 0;
-        [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
-        for (uint ii = 0; ii < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++ii)
-            localCount += countbits(ldsDoesLightIntersect[ii]);
+        // Reset the total number of lights for the tile.
+        if (t == 0)
+            ldsNrLightsFinal = 0;
 
-        if (t == 0) ldsNrLightsFinal = localCount;
-
+        // Split the job into multiple passes to ensure all lights are processed even if NR_THREADS is smaller than SHADEROPTIONS_FPTLMAX_LIGHT_COUNT.
+        // A thread will possibly processes many lights.
         #define MAX_LIGHT_WRITE_LOOP_CNT (((SHADEROPTIONS_FPTLMAX_LIGHT_COUNT+1) + NR_THREADS - 1)/NR_THREADS)
         [unroll(MAX_LIGHT_WRITE_LOOP_CNT)]
         for (uint it = 0; it < MAX_LIGHT_WRITE_LOOP_CNT; ++it)
         {
-            uint i = t + it * NR_THREADS;
-            uint lightsMask = ldsDoesLightIntersect[i >> 5];
-            uint localMask = (1u << (i & 31));
-            if(i<(uint) iNrCoarseLights && (localMask & lightsMask) != 0u)
+            // Retrieve the light index for the current thread and current iteration.
+            uint lightIndex = t + it * NR_THREADS;
+
+            // Check if the mask of the current light is valid (intersection with the tile).
+            uint lightsMask = ldsDoesLightIntersect[lightIndex >> 5];
+
+            // Select only the current light bit i in the block of 32.
+            uint localMask = (1u << (lightIndex & 31));
+
+            // If the thread index is in the light list and the mask is valid.
+            if (lightIndex < (uint)iNrCoarseLights && (localMask & lightsMask) != 0u)
             {
+                // ldsDoesLightIntersect[k] contains the valid lights for each block of 32 lights.
+                // We sum the number of enabled bits (countbits()) in all blocks before the block i.
+                // backOffset represents the number of valid lights before the block where i is located.
                 uint backOffset = 0;
                 [unroll(LIGHT_FPTL_VISIBILITY_DWORD_COUNTS)]
                 for (uint k = 0u; k < LIGHT_FPTL_VISIBILITY_DWORD_COUNTS; ++k)
-                    if (k < (i >> 5))
+                    if (k < (lightIndex >> 5))
                         backOffset += countbits(ldsDoesLightIntersect[k]);
 
-                uint uIndex = backOffset + countbits((localMask - 1u) & lightsMask);
-                if(uIndex<LIGHT_LIST_MAX_COARSE_ENTRIES) prunedList[uIndex] = coarseList[i];
+                // Count the number of valid lights (set bits) in the current 32-bit block before the current lightIndex.
+                uint lightsInActualBlock = countbits((localMask - 1u) & lightsMask);
+
+                // Determine the index of the current light by calculating how many lights were stored before it.
+                // This ensures that lights are packed correctly without gaps.
+                uint uIndex = backOffset + lightsInActualBlock;
+
+                // Ensure the computed index does not exceed the max allowed light entries.
+                if (uIndex < LIGHT_LIST_MAX_COARSE_ENTRIES)
+                {
+                    // InterlockedAdd ensures atomic and ordered writing to prunedList, preventing threads from overwriting each other's values.
+                    // Increment ldsNrLightsFinal (represents the total number of lights for the tile). 
+                    unsigned int uInc = 1;
+                    unsigned int finalPrunedLightIndex;
+                    InterlockedAdd(ldsNrLightsFinal, uInc, finalPrunedLightIndex);
+
+                    // Add the light to the prune list. If the index varies due to desynchronization (e.g without the previous InterlockedAdd),
+                    // it can causes flickering (mostly seen on Metal and Apple GPUs).
+                    if (finalPrunedLightIndex < LIGHT_LIST_MAX_COARSE_ENTRIES)
+                        prunedList[finalPrunedLightIndex] = coarseList[lightIndex];
+                }
             }
         }
     }

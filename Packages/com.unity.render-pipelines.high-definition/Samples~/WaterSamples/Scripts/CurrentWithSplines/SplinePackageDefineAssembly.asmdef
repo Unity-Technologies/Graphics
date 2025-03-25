@@ -1,0 +1,26 @@
+{
+    "name": "NewAssembly",
+    "rootNamespace": "UnityEngine.Rendering",
+    "references": [
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:21d1eb854b91ade49bc69a263d12bee2",
+        "GUID:e43142fc3fec6554980dde6126631f1d",
+        "GUID:457756d89b35d2941b3e7b37b4ece6f1",
+        "GUID:78bd2ddd6e276394a9615c203e574844"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.splines",
+            "expression": "2.7.2",
+            "define": "SPLINE_PACKAGE_INSTALLED"
+        }
+    ],
+    "noEngineReferences": false
+}

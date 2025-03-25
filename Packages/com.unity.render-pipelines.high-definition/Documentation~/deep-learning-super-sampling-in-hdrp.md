@@ -33,7 +33,7 @@ To use DLSS in your scene:
 
     * To install the NVIDIA package manually:
 
-        1. Open the [Package Manager window](https://docs.unity3d.com/Manual/upm-ui.html) (menu: **Window** > **Package Manager**).
+        1. Open the [Package Manager window](https://docs.unity3d.com/Manual/upm-ui.html) (menu: **Window** > **Package Management** > **Package Manager**).
         2. Select **Packages**, then select **Built-in**.
         3. In the packages list view, find and select the NVIDIA package.
         4. In the bottom right of the package-specific detail view, select **Enable**.

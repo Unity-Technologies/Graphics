@@ -6,7 +6,7 @@ A Sample is a set of Assets that you can import into your Project and use as a b
 
 To find these Samples:
 
-1. Go to **Window** > **Package Manager**, and select **High Definition RP** from the package list.
+1. Go to **Window** > **Package Management** > **Package Manager**, and select **High Definition RP** from the package list.
 2. In the main window that shows the package's details, find the **Samples** section.
 3. To import a Sample into your Project, click the **Import into Project** button. This creates a **Samples** folder in your Project and imports the Sample you selected into it. This is also where Unity imports any future Samples into.
 
@@ -28,7 +28,7 @@ This Sample includes various examples of lit and unlit particle effects.
 
 ## Material samples
 
-![Material Samples](Images/MaterialSamples.png)
+![The Materials sample scene. A display of various materials, each with a description panel.](Images/MaterialSamples.png)
 
 This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](lit-material.md), [Fabric Master Stack](fabric-master-stack-reference.md), [Hair Master Stack](hair-master-stack-reference.md), [Eye Shader](eye-master-stack-reference.md) and [Decal Master Stack](decal-master-stack-reference.md). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
 
@@ -38,14 +38,14 @@ In the **Eye** Scene, the eye examples use a carefully designed mesh with a part
 
 ## Transparent samples
 
-![Transparent Samples](Images/TransparentSamples.png)
+![The Transparent samples scene. A display of various transparent materials, each with a description panel.](Images/TransparentSamples.png)
 
 In the Transparency scene, the examples contain information on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
 To take advantage of all the content of this section, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
 
 ## Lens Flare samples
 
-![Lens Flare Samples](Images/LensFlareSamples.png)
+![A lens flare.](Images/LensFlareSamples.png)
 
 The [Lens Flare](shared/lens-flare/lens-flare-component.md) samples include the following examples that you can use in your project:
 - Lens Flare Assets.
@@ -56,7 +56,6 @@ The [Lens Flare](shared/lens-flare/lens-flare-component.md) samples include the 
 
 ## Volumetric samples
 
-![Volumetric Samples](Images/VolumetricSamples.png)
 The volumetric samples include a scene that contains multiple examples of [volumetric fog](create-a-local-fog-effect.md). This scene includes the following:
 
 - 3D textures.
@@ -64,7 +63,7 @@ The volumetric samples include a scene that contains multiple examples of [volum
 - Fog Volume Shader Graph examples.
 
 ## Fullscreen samples
-![Fullscreen Samples](Images/FullscreenSamples.png)
+![A scene with a group of simple geometric shapes, rendered with white edges, a Sobel filter, and using a different color for each object.](Images/FullscreenSamples.png)
 
 This sample includes examples on how to create a [Fullscreen Shader](create-a-fullscreen-material.md) and use it with a Custom Pass, Custom Post Process and Custom Render Target. The sample scene includes prefabs for the following effects:
 
@@ -74,7 +73,7 @@ This sample includes examples on how to create a [Fullscreen Shader](create-a-fu
 
 ## Water samples
 
-![](Images/Water_samples.png)
+![Water sample scenes. A swimming pool, a glacier with a waterfall, and a small island.](Images/Water_samples.png)
 
 The Water samples contain the following scenes you can use to learn about HDRP's [Water](water.md) features: 
 
@@ -83,10 +82,12 @@ The Water samples contain the following scenes you can use to learn about HDRP's
 - Island: Demonstrates waves, foam, and the water excluder.
 - Rain: Demonstrates how to add pertubations to the normals using shader graph.
 - Waterline: Demonstrates how to override rendering of the waterline using a [Custom Pass](Custom-Pass.md).
+- Cave: Demonstrates how to use the caustics texture in a sphere projection shader using a [Custom Pass](Custom-Pass.md).
+- CurrentWithSplines: Demonstrates how to use the Spline package to control current and deformation in realtime.
 
 ## Environment samples
 
-![](Images/environment-samples.png)
+![A mountaintop viewed at night with a starry sky, and during the day with white clouds.](Images/environment-samples.png)
 
 This sample puts multiple environment effects together in the same scene with different lighting conditions.
 The scene includes examples focusing on the following effects:

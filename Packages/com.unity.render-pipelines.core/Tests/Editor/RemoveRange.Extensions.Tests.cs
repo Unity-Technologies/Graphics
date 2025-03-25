@@ -23,9 +23,8 @@ namespace UnityEditor.Rendering.Tests
             where TList : IList<int>
         {
             using (ListPool<int>.Get(out var copy))
-            {
-                foreach (int integer in list)
-                    copy.Add(integer);
+            { 
+                copy.AddRange(list);
 
                 if (list.TryRemoveElementsInRange(startIndex, count, out var exception))
                 {

@@ -12,6 +12,10 @@
     --dependency-block-height: 26px;
     --dependency-block-width: var(--pass-width);
     --hover-overlay-offset-top: 204px;
+    --action-border-width: 13px;
+    --action-border-height: var(--action-border-width);
+    --action-width: 12px;
+    --action-height: var(--action-width);
 
     --side-panel-width: 380px;
     --side-panel-pass-title-width: 330px; /* adjust if changing --side-panel-width */
@@ -607,4 +611,31 @@ ScrollView TextElement {
     margin-bottom: 12px;
 }
 
+.dependency-block-load-action {
+    width: var(--action-width);
+    height: var(--action-height);
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 
+.dependency-block-load-action-border {
+    width: var(--action-border-width);
+    height: var(--action-border-height);
+    color: var(--load-action-border-color);
+}
+
+.dependency-block-store-action {
+    width: var(--action-width);
+    height: var(--action-height);
+    position: absolute;
+    rotate: 180deg;
+    bottom: 0;
+    right: 0;
+}
+
+.dependency-block-store-action-border {
+    width: var(--action-border-width);
+    height: var(--action-border-height);
+    color: var(--store-action-border-color);
+}

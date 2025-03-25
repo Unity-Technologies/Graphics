@@ -41,8 +41,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_PassData = new PassData();
             m_GbufferAttachments = new RTHandle[4];
-
-            breakGBufferAndDeferredRenderPass = false;
         }
 
         internal void Setup(DeferredLights deferredLights)

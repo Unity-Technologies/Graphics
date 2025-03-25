@@ -1,6 +1,6 @@
 # Customize caustics in the water system
 
-![](Images/caustics.jpg)
+![A swimming pool with water caustics below the surface.](Images/caustics.jpg)
 
 Customize the appearance of caustics, which are bright light patterns on GameObjects caused by the curved water surface reflecting and refracting light.
 
@@ -16,7 +16,7 @@ To calculate caustics from larger waves in a river, ocean, sea, or lake, follow 
 
 To prevent aliasing artifacts, set **Caustics Resolution** to a higher value.
 
-![](Images/caustics-simulation-bands.jpg)<br/>
+![On the left, caustics with the simulation band set to **Ripples**. On the right, caustics with the simulation band set to **Swell First Band**.](Images/caustics-simulation-bands.jpg)<br/>
 On the left, caustics with the simulation band set to **Ripples**. On the right, caustics with the simulation band set to **Swell First Band**.
 
 ## Add caustics above water

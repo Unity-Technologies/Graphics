@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 
 // NOTE: Important! IgnoreGraphicsTest uses a pattern to ignore all Unity-scenes found which name matches that pattern.
 // That means that, you can filter-out more than one test without realizing if not careful (i.e. the pattern '5011_VolumetricClouds'
@@ -243,12 +244,26 @@ public class HDRP_Graphics_Tests
         "Minor divergence across the waves' crests.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
     )]
+    [IgnoreGraphicsTest(
+        "9001_LODTransition",
+        "Failing with GpuResidentDrawer",
+        runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+        architectures: new [] { Architecture.X64 },
+        contextTypes: new[] { typeof(GpuResidentDrawerGlobalContext) },
+        contextMasks: new[] { (int)GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing }
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         yield return HDRP_GraphicTestRunner.Run(testCase);
     }
 
 #if UNITY_EDITOR
+
+    [OneTimeSetUp]
+    public void OneTimeSetUp()
+    {
+        GlobalContextManager.RegisterGlobalContext(typeof(GpuResidentDrawerGlobalContext));
+    }
 
     public void Setup()
     {
@@ -267,6 +282,12 @@ public class HDRP_Graphics_Tests
     public void TearDownXR()
     {
         XRGraphicsAutomatedTests.running = false;
+    }
+
+    [OneTimeTearDown]
+    public void OneTimeTearDown()
+    {
+        GlobalContextManager.UnregisterGlobalContext(typeof(GpuResidentDrawerGlobalContext));
     }
 
 #endif

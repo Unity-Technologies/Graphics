@@ -192,6 +192,9 @@ EditorBuildSettings:
     path: Assets/Scenes/105_TransparentReceiveShadows.unity
     guid: 6d72a4ab29e211149914e8a46ba9d1cf
   - enabled: 1
+    path: Assets/Scenes/105_TransparentReceiveShadows_deferred.unity
+    guid: c97f6e640b883964a955a00b7ce5c905
+  - enabled: 1
     path: Assets/Scenes/105_TransparentDoNotReceiveShadows.unity
     guid: 7b65a6cf750e2674185c98d76c9b8d8d
   - enabled: 1
@@ -407,6 +410,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/209_Motion_Vectors_Camera_And_Objects_Deferred.unity
     guid: c56f386d77545894e84cd442f2a0ce08
+  - enabled: 1
+    path: Assets/Scenes/209_Motion_Vectors_Camera_And_Objects_Deferred_Layers.unity
+    guid: e9a615c84d965a244b0217e0c52ab516
+  - enabled: 1
+    path: Assets/Scenes/209_Motion_Vectors_Camera_And_Objects_Layers.unity
+    guid: 98b638d127d328442af0e3e41991b3b9
   - enabled: 1
     path: Assets/Scenes/210_Motion_Vectors_All_Shader_Types.unity
     guid: aca920b1cf9c39c4cb9a4ccfe056b6cb

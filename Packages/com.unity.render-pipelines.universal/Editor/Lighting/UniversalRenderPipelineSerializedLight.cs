@@ -67,9 +67,9 @@ namespace UnityEditor.Rendering.Universal
             lightCookieSizeProp = serializedAdditionalDataObject.FindProperty("m_LightCookieSize");
             lightCookieOffsetProp = serializedAdditionalDataObject.FindProperty("m_LightCookieOffset");
 
-            renderingLayers = serializedAdditionalDataObject.FindProperty("m_RenderingLayers");
+            renderingLayers = serializedAdditionalDataObject.FindProperty("m_RenderingLayersMask");
             customShadowLayers = serializedAdditionalDataObject.FindProperty("m_CustomShadowLayers");
-            shadowRenderingLayers = serializedAdditionalDataObject.FindProperty("m_ShadowRenderingLayers");
+            shadowRenderingLayers = serializedAdditionalDataObject.FindProperty("m_ShadowRenderingLayersMask");
 
             settings.ApplyModifiedProperties();
         }

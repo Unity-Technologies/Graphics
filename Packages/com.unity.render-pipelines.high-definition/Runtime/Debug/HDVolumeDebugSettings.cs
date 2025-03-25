@@ -1,3 +1,4 @@
+using System;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -14,6 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// This class provides access to debug settings for the volume stack and layer mask in the High Definition Render Pipeline (HDRP).
     /// It is useful for visualizing and adjusting volume settings for specific cameras during development.
     /// </remarks>
+    [Obsolete("This is not longer supported Please use DebugDisplaySettingsVolume. #from(6000.2)", false)]
     public partial class HDVolumeDebugSettings : VolumeDebugSettings<HDAdditionalCameraData>
     {
         /// <summary>

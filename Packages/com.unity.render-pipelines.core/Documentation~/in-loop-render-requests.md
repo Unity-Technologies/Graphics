@@ -4,7 +4,7 @@ Render from cameras nested inside the render loop of other cameras.
 
 Attach the provided script to a GameObject with a Camera component to nest multiple cameras, that are rendering with [RenderPipeline.SubmitRenderRequest](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Rendering.RenderPipeline.SubmitRenderRequest.html), inside the render loop of other cameras.
 
-**Note**: If your project uses the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html) (URP), the recommended best practice is to use [UniversalRenderPipeline.SingleCameraRequest](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.0/api/UnityEngine.Rendering.Universal.UniversalRenderPipeline.SingleCameraRequest.html) instead of [StandardRequest](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Rendering.RenderPipeline.StandardRequest.html), to make sure you only render the camera provided to the `RenderRequest` API instead of the full stack of cameras.
+**Note**: If your project uses the [Universal Render Pipeline](https://docs.unity3d.com/Manual/urp/urp-introduction.html) (URP), the recommended best practice is to use [UniversalRenderPipeline.SingleCameraRequest](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.2/api/UnityEngine.Rendering.Universal.UniversalRenderPipeline.SingleCameraRequest.html) instead of [StandardRequest](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Rendering.RenderPipeline.StandardRequest.html), to make sure you only render the camera provided to the `RenderRequest` API instead of the full stack of cameras.
 
 ## Attach the script to nest 
 

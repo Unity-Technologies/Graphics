@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2686e09ec7aef44bad2843e4416f057, type: 3}
   m_Name: DiffusionProfiles_Smoke Fake Scattering
   m_EditorClassIdentifier: 
+  m_Version: 2
   profile:
-    name: Smoke Fake Scattering
-    scatteringDistance: {r: 1, g: 1, b: 1, a: 1}
+    scatteringDistance: {r: 0.7490196, g: 0.7490196, b: 0.7490196, a: 1}
+    scatteringDistanceMultiplier: 1.3350785
     transmissionTint: {r: 1, g: 1, b: 1, a: 1}
     texturingMode: 0
+    smoothnessMultipliers: {x: 1, y: 1}
+    lobeMix: 0.5
+    diffuseShadingPower: 1
+    borderAttenuationColor: {r: 0, g: 0, b: 0, a: 0}
     transmissionMode: 1
     thicknessRemap: {x: 3, y: 30}
     worldScale: 1
     ior: 1
     hash: 1076964538
-  m_Version: 1
-  profiles: []

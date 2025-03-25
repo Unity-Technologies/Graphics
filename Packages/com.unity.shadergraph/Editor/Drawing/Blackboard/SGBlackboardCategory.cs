@@ -366,20 +366,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             RemoveFromClassList("hovered");
         }
 
+        static bool SelectionContainsAny<T>(IList<ISelectable> selection) where T : ISelectable
+        {
+            for (var i = 0; i < selection.Count; i++)
+            {
+                if (selection[i] is T)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
         {
-            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+            if (DragAndDrop.GetGenericData("DragSelection") is not List<ISelectable> dragSelection)
+            {
+                SetDragIndicatorVisible(false);
+                return;
+            }
 
             // Don't show drag indicator if selection has categories,
             // We don't want category drag & drop to be ambiguous with shader input drag & drop
-            if (selection.OfType<SGBlackboardCategory>().Any())
+            if (SelectionContainsAny<SGBlackboardCategory>(dragSelection))
             {
                 SetDragIndicatorVisible(false);
                 return;
             }
 
             // If can't find at least one blackboard field in the selection, don't update drag indicator
-            if (selection.OfType<SGBlackboardField>().Any() == false)
+            if (!SelectionContainsAny<SGBlackboardField>(dragSelection))
             {
                 SetDragIndicatorVisible(false);
                 return;
@@ -455,13 +472,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDragPerformEvent(DragPerformEvent evt)
         {
-            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-
             m_IsDragInProgress = false;
+
+            if (DragAndDrop.GetGenericData("DragSelection") is not List<ISelectable> dragSelection)
+            {
+                SetDragIndicatorVisible(false);
+                return;
+            }
 
             // Don't show drag indicator if selection has categories,
             // We don't want category drag & drop to be ambiguous with shader input drag & drop
-            if (selection.OfType<SGBlackboardCategory>().Any())
+            if (SelectionContainsAny<SGBlackboardCategory>(dragSelection))
             {
                 SetDragIndicatorVisible(false);
                 return;
@@ -476,7 +497,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Map of containing categories to the actual dragged elements within them
             SortedDictionary<SGBlackboardCategory, List<VisualElement>> draggedElements = new SortedDictionary<SGBlackboardCategory, List<VisualElement>>();
 
-            foreach (ISelectable selectedElement in selection)
+            foreach (ISelectable selectedElement in dragSelection)
             {
                 var draggedElement = selectedElement as VisualElement;
                 if (draggedElement == null)
@@ -588,7 +609,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ViewModel.requestModelChangeAction(moveShaderInputAction);
 
                     // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
-                    selection.Remove(blackboardField);
+                    dragSelection.Remove(blackboardField);
 
                     if (insertIndex > indexOfDraggedElement)
                         continue;
@@ -647,7 +668,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ViewModel.requestModelChangeAction(addItemToCategoryAction);
 
                     // Make sure to remove the element from the selection so it doesn't get re-handled by the blackboard as well, leads to duplicates
-                    selection.Remove(blackboardField);
+                    dragSelection.Remove(blackboardField);
 
                     // If adding to the end of the list, we no longer need to increment the index
                     if (insertIndex != -1)

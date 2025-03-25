@@ -21,13 +21,16 @@ Shader "Hidden/HDRP/CompositeUI"
 
         CBUFFER_START(cb)
             float4 _HDROutputParams;
+            float4 _SrcOffset;
             int _NeedsFlip;
             int _BlitTexArraySlice;
         CBUFFER_END
 
-        #define _MinNits    _HDROutputParams.x
-        #define _MaxNits    _HDROutputParams.y
-        #define _PaperWhite _HDROutputParams.z
+        #define _MinNits            _HDROutputParams.x
+        #define _MaxNits            _HDROutputParams.y
+        #define _PaperWhite         _HDROutputParams.z
+        #define _FullScreenHeight   _SrcOffset.w
+        #define _ViewportLoadOffset _SrcOffset.xy
 
         struct Attributes
         {
@@ -58,11 +61,14 @@ Shader "Hidden/HDRP/CompositeUI"
 
             float2 uv = input.texcoord;
             float2 samplePos = input.positionCS.xy;
+            float2 pixelSampleOffset = float2(-_ViewportLoadOffset.x, _ViewportLoadOffset.y);
             if (_NeedsFlip)
             {
                 uv.y = _RTHandleScale.y - uv.y;
                 samplePos.y = _ScreenSize.y - samplePos.y;
+                pixelSampleOffset.y = (_FullScreenHeight - _ScreenSize.y) - pixelSampleOffset.y;
             }
+            samplePos += pixelSampleOffset;
 
             #if defined(USE_TEXTURE2D_X_AS_ARRAY) && defined(BLIT_SINGLE_SLICE)
             float4 outColor =  LOAD_TEXTURE2D_ARRAY(_InputTexture, samplePos.xy, _BlitTexArraySlice);

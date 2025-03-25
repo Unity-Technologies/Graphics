@@ -1084,6 +1084,187 @@ namespace UnityEngine.Rendering
             realtimeSubdivisionInfo.Clear();
         }
 
+        static void DecompressSH(ref SphericalHarmonicsL2 shv)
+        {
+            for (int rgb = 0; rgb < 3; ++rgb)
+            {
+                var l0 = shv[rgb, 0];
+
+                // See CompressSH
+                float l1scale = 2.0f;
+                float l2scale = 3.5777088f;
+
+                // L_1^m
+                shv[rgb, 1] = (shv[rgb, 1] - 0.5f) * (l0 * l1scale * 2.0f);
+                shv[rgb, 2] = (shv[rgb, 2] - 0.5f) * (l0 * l1scale * 2.0f);
+                shv[rgb, 3] = (shv[rgb, 3] - 0.5f) * (l0 * l1scale * 2.0f);
+
+                // L_2^-2
+                shv[rgb, 4] = (shv[rgb, 4] - 0.5f) * (l0 * l2scale * 2.0f);
+                shv[rgb, 5] = (shv[rgb, 5] - 0.5f) * (l0 * l2scale * 2.0f);
+                shv[rgb, 6] = (shv[rgb, 6] - 0.5f) * (l0 * l2scale * 2.0f);
+                shv[rgb, 7] = (shv[rgb, 7] - 0.5f) * (l0 * l2scale * 2.0f);
+                shv[rgb, 8] = (shv[rgb, 8] - 0.5f) * (l0 * l2scale * 2.0f);
+            }
+        }
+
+        internal bool GetFlattenedProbeData(
+            string scenario,
+            out Vector3[] positions,
+            out SphericalHarmonicsL2[] irradiance,
+            out float[] validity)
+        {
+            positions = null;
+            irradiance = null;
+            validity = null;
+
+            var positionsList = new List<Vector3>();
+            var irradianceList = new List<SphericalHarmonicsL2>();
+            var validityList = new List<float>();
+
+            foreach (var cell in cells.Values)
+            {
+                if (HasActiveStreamingRequest(cell))
+                    return false;
+
+                if (!cell.data.bricks.IsCreated || cell.data.bricks.Length == 0 ||
+                    !cell.data.probePositions.IsCreated || !cell.loaded)
+                    return false;
+
+                if (!cell.data.scenarios.TryGetValue(scenario, out var scenarioData))
+                    return false;
+
+                var chunks = cell.poolInfo.chunkList;
+                var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+                var loc = ProbeBrickPool.ProbeCountToDataLocSize(chunkSizeInProbes);
+
+                int brickCount = cell.desc.probeCount / ProbeBrickPool.kBrickProbeCountTotal;
+
+                int bx = 0, by = 0, bz = 0;
+                for (int brickIndex = 0; brickIndex < brickCount; ++brickIndex)
+                {
+                    Debug.Assert(bz < loc.z);
+
+                    int chunkIndex = brickIndex / ProbeBrickPool.GetChunkSizeInBrickCount();
+                    var chunk = chunks[chunkIndex];
+                    Vector3Int brickStart = new Vector3Int(chunk.x + bx, chunk.y + by, chunk.z + bz);
+
+                    for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; ++z)
+                    {
+                        for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; ++y)
+                        {
+                            for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; ++x)
+                            {
+                                Vector3Int texelLoc = new Vector3Int(brickStart.x + x, brickStart.y + y, brickStart.z + z);
+
+                                int probeFlatIndex = chunkIndex * chunkSizeInProbes + (bx + x) + loc.x * ((by + y) + loc.y * (bz + z));
+                                var position = cell.data.probePositions[probeFlatIndex] - ProbeOffset(); // Offset is applied in shader
+
+                                positionsList.Add(position);
+                                validityList.Add(cell.data.validity[probeFlatIndex]);
+
+                                Vector4 L0_L1Rx  = Vector4.zero;
+                                Vector4 L1G_L1Ry = Vector4.zero;
+                                Vector4 L1B_L1Rz = Vector4.zero;
+                                Vector4 L2_R = Vector4.zero;
+                                Vector4 L2_G = Vector4.zero;
+                                Vector4 L2_B = Vector4.zero;
+                                Vector4 L2_C = Vector4.zero;
+                                for (int channel = 0; channel < 4; channel++)
+                                {
+                                    L0_L1Rx[channel] = Mathf.HalfToFloat(scenarioData.shL0L1RxData[probeFlatIndex * 4 + channel]);
+                                    L1G_L1Ry[channel] = scenarioData.shL1GL1RyData[probeFlatIndex * 4 + channel] / 255.0f;
+                                    L1B_L1Rz[channel] = scenarioData.shL1BL1RzData[probeFlatIndex * 4 + channel] / 255.0f;
+
+                                    if (ProbeReferenceVolume.instance.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                    {
+                                        L2_R[channel] = scenarioData.shL2Data_0[probeFlatIndex * 4 + channel] / 255.0f;
+                                        L2_G[channel] = scenarioData.shL2Data_1[probeFlatIndex * 4 + channel] / 255.0f;
+                                        L2_B[channel] = scenarioData.shL2Data_2[probeFlatIndex * 4 + channel] / 255.0f;
+                                        L2_C[channel] = scenarioData.shL2Data_3[probeFlatIndex * 4 + channel] / 255.0f;
+                                    }
+                                }
+
+                                Vector3 L0   = new Vector3(L0_L1Rx.x,  L0_L1Rx.y,  L0_L1Rx.z);
+                                // Note: yzx swizzle happening here
+                                Vector3 L1_R = new Vector3(L1G_L1Ry.w,  L1B_L1Rz.w, L0_L1Rx.w);
+                                Vector3 L1_G = new Vector3(L1G_L1Ry.y, L1G_L1Ry.z, L1G_L1Ry.x);
+                                Vector3 L1_B = new Vector3(L1B_L1Rz.y, L1B_L1Rz.z, L1B_L1Rz.x);
+
+                                SphericalHarmonicsL2 sh = new SphericalHarmonicsL2();
+                                // L0, L1
+                                for (int i = 0; i < 3; i++)
+                                {
+                                    sh[i, 0] = L0[i];
+
+                                    sh[0, i + 1] = L1_R[i];
+                                    sh[1, i + 1] = L1_G[i];
+                                    sh[2, i + 1] = L1_B[i];
+                                }
+                                // L2
+                                {
+                                    sh[0, 4] = L2_R.x;
+                                    sh[0, 5] = L2_R.y;
+                                    sh[0, 6] = L2_R.z;
+                                    sh[0, 7] = L2_R.w;
+                                    sh[0, 8] = L2_C.x;
+
+                                    sh[1, 4] = L2_G.x;
+                                    sh[1, 5] = L2_G.y;
+                                    sh[1, 6] = L2_G.z;
+                                    sh[1, 7] = L2_G.w;
+                                    sh[1, 8] = L2_C.y;
+
+                                    sh[2, 4] = L2_B.x;
+                                    sh[2, 5] = L2_B.y;
+                                    sh[2, 6] = L2_B.z;
+                                    sh[2, 7] = L2_B.w;
+                                    sh[2, 8] = L2_C.z;
+                                }
+                                DecompressSH(ref sh);
+                                // Decompressing zero'd L2 data will create bogus values on the L2 coefficients.
+                                if (ProbeReferenceVolume.instance.shBands != ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                {
+                                    for (int i = 0; i < 5; i++)
+                                    {
+                                        sh[0, i + 4] = 0;
+                                        sh[1, i + 4] = 0;
+                                        sh[2, i + 4] = 0;
+                                    }
+                                }
+
+                                irradianceList.Add(sh);
+                            }
+                        }
+                    }
+
+                    bx += ProbeBrickPool.kBrickProbeCountPerDim;
+                    if (bx >= loc.x)
+                    {
+                        bx = 0;
+                        by += ProbeBrickPool.kBrickProbeCountPerDim;
+                        if (by >= loc.y)
+                        {
+                            by = 0;
+                            bz += ProbeBrickPool.kBrickProbeCountPerDim;
+                            if (bz >= loc.z)
+                            {
+                                bx = 0;
+                                by = 0;
+                                bz = 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+            positions = positionsList.ToArray();
+            irradiance = irradianceList.ToArray();
+            validity = validityList.ToArray();
+
+            return true;
+        }
+
         CellInstancedDebugProbes CreateInstancedProbes(Cell cell)
         {
             if (cell.debugProbes != null)

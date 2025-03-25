@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.Tests
         private RenderPipelineAsset m_OldPipelineAsset;
         private GPUResidentDrawerResources m_Resources;
         private RenderPassGlobalSettings m_GlobalSettings;
+        private bool m_oldEnableLodCrossFade;
 
         class BoxedCounter
         {
@@ -85,6 +86,8 @@ namespace UnityEngine.Rendering.Tests
             m_OldPipelineAsset = GraphicsSettings.defaultRenderPipeline;
             GraphicsSettings.defaultRenderPipeline = m_RenderPipe;
             m_Resources = GraphicsSettings.GetRenderPipelineSettings<GPUResidentDrawerResources>();
+            m_oldEnableLodCrossFade = QualitySettings.enableLODCrossFade;
+            QualitySettings.enableLODCrossFade = true;
         }
 
         [TearDown]
@@ -93,6 +96,7 @@ namespace UnityEngine.Rendering.Tests
             m_RenderPipe = null;
             m_MeshTestData.Dispose();
             GraphicsSettings.defaultRenderPipeline = m_OldPipelineAsset;
+            QualitySettings.enableLODCrossFade = m_oldEnableLodCrossFade;
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
@@ -626,7 +630,7 @@ namespace UnityEngine.Rendering.Tests
                         {
                             BatchDrawCommand cmd = drawCommands.drawCommands[range.drawCommandsBegin + i];
                             Assert.AreEqual(expectedMeshIDs[i], cmd.meshID.value, "Incorrect mesh rendered");
-                            Assert.AreEqual(cmd.flags & BatchDrawCommandFlags.LODCrossFade, expectedFlags[i], "Incorrect flag for the current draw command");
+                            Assert.AreEqual(expectedFlags[i], cmd.flags & BatchDrawCommandFlags.LODCrossFade, "Incorrect flag for the current draw command");
                         }
                     }
                 };
@@ -734,6 +738,9 @@ namespace UnityEngine.Rendering.Tests
             rbcDesc.supportDitheringCrossFade = true;
             rbcDesc.smallMeshScreenPercentage = 10.0f;
 
+            var lastLodBias = QualitySettings.lodBias;
+            QualitySettings.lodBias = 1.0f;
+
             var gpuDrivenProcessor = new GPUDrivenProcessor();
 
             using (var brgContext = new RenderersBatchersContext(rbcDesc, gpuDrivenProcessor, m_Resources))
@@ -759,7 +766,7 @@ namespace UnityEngine.Rendering.Tests
                         {
                             BatchDrawCommand cmd = drawCommands.drawCommands[range.drawCommandsBegin + i];
                             Assert.AreEqual(expectedMeshIDs[i], cmd.meshID.value, "Incorrect mesh rendered");
-                            Assert.AreEqual(cmd.flags & BatchDrawCommandFlags.LODCrossFade, expectedFlags[i], "Incorrect flag for the current draw command");
+                            Assert.AreEqual(expectedFlags[i], cmd.flags & BatchDrawCommandFlags.LODCrossFade, "Incorrect flag for the current draw command");
                         }
                     }
                 };
@@ -788,7 +795,7 @@ namespace UnityEngine.Rendering.Tests
                     expectedFlags.Clear();
                     expectedFlags.Add(BatchDrawCommandFlags.LODCrossFadeValuePacked);
                     expectedFlags.Add(BatchDrawCommandFlags.LODCrossFade);
-                    expectedDrawCommandCount = 1;
+                    expectedDrawCommandCount = 2;
                     cameraObject.transform.position = new Vector3(0.0f, 0.0f, -8.5f);
                     SubmitCameraRenderRequest(mainCamera);
 
@@ -808,6 +815,8 @@ namespace UnityEngine.Rendering.Tests
                     brg.DestroyDrawInstances(instances);
                 }
             }
+
+            QualitySettings.lodBias = lastLodBias;
 
             gpuDrivenProcessor.Dispose();
 

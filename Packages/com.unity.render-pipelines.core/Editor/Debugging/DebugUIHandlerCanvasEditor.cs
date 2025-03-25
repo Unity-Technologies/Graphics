@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.UI
                 {
                     var prefab = list.serializedProperty.GetArrayElementAtIndex(list.index).FindPropertyRelative("prefab").objectReferenceValue as GameObject;
                     if (prefab)
-                        EditorGUIUtility.PingObject(prefab.gameObject);
+                        EditorGUIUtility.PingObject(prefab);
                 }
             };
         }

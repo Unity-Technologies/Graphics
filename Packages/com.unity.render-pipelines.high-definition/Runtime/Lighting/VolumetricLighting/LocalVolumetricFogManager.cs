@@ -105,12 +105,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe void AllocateIndirectBuffers(int count)
         {
-            globalIndirectBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, count, sizeof(GraphicsBuffer.IndirectDrawArgs));
+            globalIndirectBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, count, sizeof(GraphicsBuffer.IndirectDrawIndexedArgs));
             globalIndirectionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, count, sizeof(uint));
 
             // Initialize with zeros to prevent weird behaviours
-            var zeros = new NativeArray<byte>(count * Mathf.Max(sizeof(GraphicsBuffer.IndirectDrawArgs), sizeof(uint)), Allocator.Temp, NativeArrayOptions.ClearMemory);
-            globalIndirectBuffer.SetData(zeros, 0, 0, count * sizeof(GraphicsBuffer.IndirectDrawArgs));
+            var zeros = new NativeArray<byte>(count * Mathf.Max(sizeof(GraphicsBuffer.IndirectDrawIndexedArgs), sizeof(uint)), Allocator.Temp, NativeArrayOptions.ClearMemory);
+            globalIndirectBuffer.SetData(zeros, 0, 0, count * sizeof(GraphicsBuffer.IndirectDrawIndexedArgs));
             globalIndirectionBuffer.SetData(zeros, 0, 0, count * sizeof(uint));
             zeros.Dispose();
         }

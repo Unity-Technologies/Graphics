@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             [Tooltip("Returns the normal of the Water Surface at the sampled position.")]
             public Vector3 normal;
             [Tooltip("Vector that gives the local current orientation.")]
-            public Vector3 currentDirectionWS;
+            public Vector2 currentDirectionWS;
         }
 
         public static(string errorID, string errorDesc) ComputeHDRPConfigurationError()
@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition
             VFXExpression outputPosition = new VFXExpressionHLSL("ProjectPoint", ProjectPoint, typeof(Vector3), inputExpression, Array.Empty<string>());
             VFXExpression outputHeight = new VFXExpressionHLSL("EvaluateHeight", EvaluateHeight, typeof(float), inputExpression, Array.Empty<string>());
             VFXExpression outputNormal = new VFXExpressionHLSL("EvaluateNormal", EvaluateNormal, typeof(Vector3), inputExpression, Array.Empty<string>());
-            VFXExpression outputCurrent = new VFXExpressionHLSL("EvaluateCurrent", EvaluateCurrent, typeof(Vector3), inputExpression, Array.Empty<string>());
+            VFXExpression outputCurrent = new VFXExpressionHLSL("EvaluateCurrent", EvaluateCurrent, typeof(Vector2), inputExpression, Array.Empty<string>());
             return new [] { outputPosition, outputHeight, outputNormal, outputCurrent };
         }
     }

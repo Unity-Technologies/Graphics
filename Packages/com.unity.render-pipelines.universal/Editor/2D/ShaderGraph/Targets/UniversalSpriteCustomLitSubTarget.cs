@@ -294,6 +294,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static IncludeCollection Lit = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kSpriteCore2D, IncludeLocation.Pregraph },
@@ -319,6 +320,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static IncludeCollection Forward = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { kSpriteCore2D, IncludeLocation.Pregraph },

@@ -140,18 +140,22 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             window.Focus();
             return true;
         }
-        else if (obj is Material || obj is ComputeShader)
+        else if (obj is Material || obj is Shader || obj is ComputeShader)
         {
-            string path = AssetDatabase.GetAssetPath(instanceID);
-
+            var path = AssetDatabase.GetAssetPath(instanceID);
             if (path.EndsWith(VisualEffectResource.Extension))
             {
                 var resource = VisualEffectResource.GetResourceAtPath(path);
                 if (resource != null)
                 {
                     int index = resource.GetShaderIndex(obj);
-                    resource.ShowGeneratedShaderFile(index, line);
-                    return true;
+                    //Shader Sources aren't kept in library, index can return -1 in that case
+                    //This behavior might be fixed after retrieving 02d730ef10eb5fc898d37682254c47588c3b8bed changes
+                    if (index >= 0)
+                    {
+                        resource.ShowGeneratedShaderFile(index, line);
+                        return true;
+                    }
                 }
             }
         }
@@ -802,7 +806,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
 
             foreach (var obj in objects)
             {
-                if (obj is Material || obj is ComputeShader)
+                if (obj is ComputeShader || obj is Shader)
                 {
                     GUILayout.BeginHorizontal();
                     Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
@@ -810,12 +814,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
                     int buttonsWidth = VFXExternalShaderProcessor.allowExternalization ? 240 : 160;
 
                     int index = resource.GetShaderIndex(obj);
-
                     var shader = obj;
-                    if (obj is Material) // Retrieve the shader from the material
-                        shader = ((Material)(obj)).shader;
-                    if (shader == null)
-                        continue;
 
                     Rect labelR = r;
                     labelR.width -= buttonsWidth;

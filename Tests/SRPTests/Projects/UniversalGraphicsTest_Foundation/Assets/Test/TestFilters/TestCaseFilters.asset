@@ -1314,3 +1314,181 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: No support GLES3
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 5e57a94eeee3964488362ad6cab7cfb2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    Architecture: 4
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'No support. Bug: https://jira.unity3d.com/browse/UUM-97448'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9225c2f5b8cf84f6bbe7cd83a8c22426, type: 3}
+    - {fileID: 102900000, guid: 0c3534665968e874794d07c8309833d3, type: 3}
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
+    - {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
+    - {fileID: 102900000, guid: 70198edfee594a34986cdc8ee0c077ff, type: 3}
+    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: 'XR Bug: https://jira.unity3d.com/browse/UUM-97884'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: f0bc0b58fd157401e8ce7dfa0eca3084, type: 3}
+    - {fileID: 102900000, guid: bd68475ed4c0e4de3b933af285be496d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Broken for XRQuest Vulkan
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6fbea5cb60d394329b2ac2b4a3788d12, type: 3}
+    - {fileID: 102900000, guid: f42c387ccdc6840159743027165e1b7c, type: 3}
+    - {fileID: 102900000, guid: e90c743b5f0d84d30bc98e6d5be68eca, type: 3}
+    - {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
+    - {fileID: 102900000, guid: 2aba95bbb991e4c538ec9da23dd8e202, type: 3}
+    - {fileID: 102900000, guid: da84320af1f814011a74dc4f21cc94b1, type: 3}
+    - {fileID: 102900000, guid: 000a14f05b2ca480a978d4e207fe505d, type: 3}
+    - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
+    - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
+    - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
+    - {fileID: 102900000, guid: ef6895fb19f2e42639db3e3a801fa76f, type: 3}
+    - {fileID: 102900000, guid: 50a55af44edbd47579041b1556ed9a58, type: 3}
+    - {fileID: 102900000, guid: 2696010bf40d644cc8abc0b1304c59db, type: 3}
+    - {fileID: 102900000, guid: 07434decccca04d53bb951a513c06901, type: 3}
+    - {fileID: 102900000, guid: e8707169c386da547a96bc1a5ece3cc4, type: 3}
+    - {fileID: 102900000, guid: f87f664d3b30c4c4391dd6da4a15a939, type: 3}
+    - {fileID: 102900000, guid: c207f769f3e194ebc8cbd51e788ac65d, type: 3}
+    - {fileID: 102900000, guid: 9033695b731a14fe79156b3c4c827aa0, type: 3}
+    - {fileID: 102900000, guid: 6af2d4855bc732f4e8a31d30c7497443, type: 3}
+    - {fileID: 102900000, guid: 344b79050ac6a794caaa31172951f6f8, type: 3}
+    - {fileID: 102900000, guid: 0f9d67b5613ce4515969b745f7c08c5f, type: 3}
+    - {fileID: 102900000, guid: fb387644a13c2e24fa78a278d02aaad2, type: 3}
+    - {fileID: 102900000, guid: 72491ed40bf654eec9fef43f455e3916, type: 3}
+    - {fileID: 102900000, guid: f1e2273404277234a8497f4bc0f9f229, type: 3}
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    - {fileID: 102900000, guid: 5e57a94eeee3964488362ad6cab7cfb2, type: 3}
+    - {fileID: 102900000, guid: c721071fe72436c4aa76a3f438915b6d, type: 3}
+    - {fileID: 102900000, guid: afbffcf7f306ba14d8324a9c21880d38, type: 3}
+    - {fileID: 102900000, guid: 162856843a0b75c47a760c58d9d38e1b, type: 3}
+    - {fileID: 102900000, guid: 24f9bd7e4ee841d41a5cf4538052774c, type: 3}
+    - {fileID: 102900000, guid: fc0920afa6040434f8002c78a6fe3c5f, type: 3}
+    - {fileID: 102900000, guid: be832583f26c3eb48a8c4985109e55ce, type: 3}
+    - {fileID: 102900000, guid: 578f5bf6a89578b49b9fd589567a6247, type: 3}
+    - {fileID: 102900000, guid: 8c107b50d24369d44a7830358e05422a, type: 3}
+    - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Not compatible with XR Quest Vulkan Oculus
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6fbea5cb60d394329b2ac2b4a3788d12, type: 3}
+    - {fileID: 102900000, guid: f42c387ccdc6840159743027165e1b7c, type: 3}
+    - {fileID: 102900000, guid: e90c743b5f0d84d30bc98e6d5be68eca, type: 3}
+    - {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
+    - {fileID: 102900000, guid: 2aba95bbb991e4c538ec9da23dd8e202, type: 3}
+    - {fileID: 102900000, guid: da84320af1f814011a74dc4f21cc94b1, type: 3}
+    - {fileID: 102900000, guid: 000a14f05b2ca480a978d4e207fe505d, type: 3}
+    - {fileID: 102900000, guid: 3bbe19bef8dcc4e65b7aaa710c4114c6, type: 3}
+    - {fileID: 102900000, guid: 95be3ed4f14c543b389e8e5a2e3d5187, type: 3}
+    - {fileID: 102900000, guid: dafa2658c5a644673a2697d24ad96ffe, type: 3}
+    - {fileID: 102900000, guid: ef6895fb19f2e42639db3e3a801fa76f, type: 3}
+    - {fileID: 102900000, guid: 50a55af44edbd47579041b1556ed9a58, type: 3}
+    - {fileID: 102900000, guid: 2696010bf40d644cc8abc0b1304c59db, type: 3}
+    - {fileID: 102900000, guid: 07434decccca04d53bb951a513c06901, type: 3}
+    - {fileID: 102900000, guid: e8707169c386da547a96bc1a5ece3cc4, type: 3}
+    - {fileID: 102900000, guid: f87f664d3b30c4c4391dd6da4a15a939, type: 3}
+    - {fileID: 102900000, guid: c207f769f3e194ebc8cbd51e788ac65d, type: 3}
+    - {fileID: 102900000, guid: 9033695b731a14fe79156b3c4c827aa0, type: 3}
+    - {fileID: 102900000, guid: 6af2d4855bc732f4e8a31d30c7497443, type: 3}
+    - {fileID: 102900000, guid: 344b79050ac6a794caaa31172951f6f8, type: 3}
+    - {fileID: 102900000, guid: 0f9d67b5613ce4515969b745f7c08c5f, type: 3}
+    - {fileID: 102900000, guid: fb387644a13c2e24fa78a278d02aaad2, type: 3}
+    - {fileID: 102900000, guid: 72491ed40bf654eec9fef43f455e3916, type: 3}
+    - {fileID: 102900000, guid: f1e2273404277234a8497f4bc0f9f229, type: 3}
+    - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
+    - {fileID: 102900000, guid: 5e57a94eeee3964488362ad6cab7cfb2, type: 3}
+    - {fileID: 102900000, guid: c721071fe72436c4aa76a3f438915b6d, type: 3}
+    - {fileID: 102900000, guid: afbffcf7f306ba14d8324a9c21880d38, type: 3}
+    - {fileID: 102900000, guid: 162856843a0b75c47a760c58d9d38e1b, type: 3}
+    - {fileID: 102900000, guid: 24f9bd7e4ee841d41a5cf4538052774c, type: 3}
+    - {fileID: 102900000, guid: fc0920afa6040434f8002c78a6fe3c5f, type: 3}
+    - {fileID: 102900000, guid: be832583f26c3eb48a8c4985109e55ce, type: 3}
+    - {fileID: 102900000, guid: 578f5bf6a89578b49b9fd589567a6247, type: 3}
+    - {fileID: 102900000, guid: 8c107b50d24369d44a7830358e05422a, type: 3}
+    - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
+    - {fileID: 102900000, guid: f0bc0b58fd157401e8ce7dfa0eca3084, type: 3}
+    - {fileID: 102900000, guid: bd68475ed4c0e4de3b933af285be496d, type: 3}
+    - {fileID: 102900000, guid: aa08e99a89c77574e9a00b9888fc75ce, type: 3}
+    - {fileID: 102900000, guid: d84ff56928dab4734b69906d7e13638d, type: 3}
+    - {fileID: 102900000, guid: f7cdec6567a2ca34580a5d222405f0bd, type: 3}
+    - {fileID: 102900000, guid: 9393d7ec15067b544b982320d21a114a, type: 3}
+    - {fileID: 102900000, guid: 3340af13204ec234b9db1f26da2c1cb3, type: 3}
+    - {fileID: 102900000, guid: d6893e7692f584018918254147096235, type: 3}
+    - {fileID: 102900000, guid: 9b853a2e2268046e49558e61eac1350b, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: OpenXRLoader
+    StereoModes: 0
+    Reason: Not Compatible with Quest Vulkan OpenXR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    - {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
+    - {fileID: 102900000, guid: 67452eee845c5ce41a417a871b58cd3d, type: 3}
+    - {fileID: 102900000, guid: 9225c2f5b8cf84f6bbe7cd83a8c22426, type: 3}
+    - {fileID: 102900000, guid: 0c3534665968e874794d07c8309833d3, type: 3}
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 102900000, guid: 9d25fa9f3eb332f4dad8f36653f93a14, type: 3}
+    - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
+    - {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
+    - {fileID: 102900000, guid: 70198edfee594a34986cdc8ee0c077ff, type: 3}
+    - {fileID: 102900000, guid: 9225c2f5b8cf84f6bbe7cd83a8c22426, type: 3}
+    - {fileID: 102900000, guid: 0c3534665968e874794d07c8309833d3, type: 3}
+    - {fileID: 102900000, guid: 2d9ce8a2c71401846872b3602af59188, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: OculusLoader
+    StereoModes: 0
+    Reason: Disabled for XR due to rendergraph or msaa
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    - {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
+    - {fileID: 102900000, guid: 67452eee845c5ce41a417a871b58cd3d, type: 3}
+    - {fileID: 102900000, guid: 9225c2f5b8cf84f6bbe7cd83a8c22426, type: 3}
+    - {fileID: 102900000, guid: 0c3534665968e874794d07c8309833d3, type: 3}
+    - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
+    - {fileID: 102900000, guid: 9d25fa9f3eb332f4dad8f36653f93a14, type: 3}
+    - {fileID: 102900000, guid: 8a4a76dbf4743fc4bb21e40f08c759a0, type: 3}
+    - {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
+    - {fileID: 102900000, guid: 70198edfee594a34986cdc8ee0c077ff, type: 3}
+    - {fileID: 102900000, guid: 9225c2f5b8cf84f6bbe7cd83a8c22426, type: 3}
+    - {fileID: 102900000, guid: 0c3534665968e874794d07c8309833d3, type: 3}
+    - {fileID: 102900000, guid: 2d9ce8a2c71401846872b3602af59188, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: OpenXRLoader
+    StereoModes: 0
+    Reason: Disabled for XR due to rendergraph or msaa

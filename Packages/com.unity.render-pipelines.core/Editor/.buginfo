@@ -1,5 +1,5 @@
 rule1:
-  area: SRP Architecture & API
+  area: SRP Foundation
 
 rule2:
   when:
@@ -10,15 +10,20 @@ rule2:
 rule3:
   when:
     path:
-      - ^.*Camera.*$
       - ^.*ContextualMenuDispatcher.*$
       - ^.*CoreRenderPipelinePreferences.*$
       - ^.*InspectorCurveEditor.*$
       - ^.*RemoveAdditionalDataUtils.*$
-  area: SRP Workflow
-  
+  area: SRP Settings
+
 rule4:
   when:
     path:
       - ^.*Upgrader.*$
   area: Graphics Tools
+
+rule5:
+  when:
+    path:
+      - ^.*CameraEditorUtils.*$
+  area: Camera

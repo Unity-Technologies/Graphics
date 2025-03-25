@@ -1,4 +1,4 @@
-#if OCULUS_SDK
+#if OCULUS_SDK || OPENXR_SDK
 using com.unity.cliprojectsetup;
 
 public class Editor

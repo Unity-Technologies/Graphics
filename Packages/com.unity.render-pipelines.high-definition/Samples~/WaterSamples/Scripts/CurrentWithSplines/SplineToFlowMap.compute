@@ -1,0 +1,283 @@
+#pragma kernel FillWithNeutral
+#pragma kernel GenerateCurrent
+#pragma kernel GenerateHeight
+#pragma kernel MotionBlur
+
+RWTexture2D<float4> result;
+RWTexture2D<float4> currentMap;
+StructuredBuffer<float4> curvesData;
+
+float4 WaterSurfaceLocalScale;
+float4 WaterSurfacePosition;
+float4 resolution;
+float splineWidth;
+int curvesCount;
+float splineBlendWidth;
+float stepsPerCurve;
+float blurSize;
+float4 neutralColor;
+
+float3 centerBounds;
+float3 extentsBounds;
+float3 maxBounds;
+float3 minBounds;
+float3 sizeBounds;
+float2 minMaxHeight;
+
+struct HLSLCurve
+{
+    float3 P0, P1, P2, P3;
+};
+
+struct Bounds
+{
+    float3 center, extents, max, min, size;
+};
+
+float Map(float s, float a1, float a2, float b1, float b2)
+{
+    return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
+}
+
+float InverseLerp(float A, float B, float T)
+{
+    return (T - A) / (B - A);
+}
+
+Bounds GetBounds(float3 center, float3 extents, float3 max, float3 min, float3 size)
+{
+    Bounds b; 
+    b.center = center;
+    b.extents = extents;
+    b.max = max;
+    b.min = min;
+    b.size = size;
+    return b;
+}
+
+HLSLCurve GetCurve(int index)
+{
+    HLSLCurve curve;
+    curve.P0 = curvesData[index * 4 + 0].xyz;
+    curve.P1 = curvesData[index * 4 + 1].xyz;
+    curve.P2 = curvesData[index * 4 + 2].xyz;
+    curve.P3 = curvesData[index * 4 + 3].xyz;
+    return curve;
+}
+
+float3 EvaluatePosition(HLSLCurve curve, float t)
+{
+    t = saturate(t);
+    float t2 = t * t;
+    float t3 = t2 * t;
+    float3 position =
+        curve.P0 * (-1 * t3 + 3 * t2 - 3 * t + 1) +
+        curve.P1 * (3 * t3 - 6 * t2 + 3 * t) +
+        curve.P2 * (-3 * t3 + 3 * t2) +
+        curve.P3 * (t3);
+
+    return position;
+}
+
+float3 EvaluateTangent(HLSLCurve curve, float t)
+{
+    t = saturate(t);
+    float t2 = t * t;
+
+    float3 tangent =
+        curve.P0 * (-3 * t2 + 6 * t - 3) +
+        curve.P1 * (9 * t2 - 12 * t + 3) +
+        curve.P2 * (-9 * t2 + 6 * t) +
+        curve.P3 * (3 * t2);
+
+    return tangent;
+}
+
+float Evaluate(in float3 position, in float stepsPerCurve, out float3 splinePosition, out float3 splineTangent)
+{
+    splinePosition = 0;
+    splineTangent = 0;
+    int curveIndex = 0;
+    float positionAlongCurve = 0;
+    
+    float3 bestSplinePosition = 0;
+    int bestCurveIndex = 0;
+    float bestPositionAlongCurve = 0;
+    
+    float sqrDistance = 1e20;
+    float bestSqrDistance = sqrDistance;
+    
+    float i_incr = 1.0 / stepsPerCurve;
+    
+    HLSLCurve curve;
+    
+    for (int c = 0; c < curvesCount; c++)
+    {
+        curve = GetCurve(c);
+        positionAlongCurve = 0;
+        for (int i = 0; i < stepsPerCurve; i++)
+        {
+            splinePosition = EvaluatePosition(curve, positionAlongCurve);
+            sqrDistance = pow((splinePosition.x - position.x), 2) + pow((splinePosition.z - position.z), 2);
+
+            if (sqrDistance < bestSqrDistance)
+            {               
+                bestSqrDistance = sqrDistance;
+                
+                bestSplinePosition = splinePosition;
+                bestCurveIndex = c;
+                bestPositionAlongCurve = positionAlongCurve;
+            }
+            
+            positionAlongCurve += i_incr;
+        }
+    }
+    
+    splinePosition = bestSplinePosition;
+    curveIndex = bestCurveIndex;
+    positionAlongCurve = bestPositionAlongCurve;
+    splineTangent = EvaluateTangent(GetCurve(curveIndex), positionAlongCurve);
+    
+    return sqrt(bestSqrDistance);
+}
+
+[numthreads(8, 8, 1)]
+void FillWithNeutral(uint3 id : SV_DispatchThreadID)
+{
+    result[id.xy] = neutralColor; 
+}
+
+[numthreads(8, 8, 1)]
+void GenerateHeight(uint3 id : SV_DispatchThreadID)
+{
+    Bounds b = GetBounds(centerBounds, extentsBounds, maxBounds, minBounds, sizeBounds);
+    float amplitude = b.size.y;
+    float ratioMaxMin = saturate(abs(b.max.y) / abs(b.min.y));
+    float ratioMinMax = saturate(abs(b.min.y) / abs(b.max.y));
+
+    float maxAmplitude = max(abs(b.min.y), abs(b.max.y));
+    
+    float2 chunk = float2(1.0 / resolution.x, 1.0 / resolution.y);
+
+    int i = id.x;
+    int j = id.y;
+    float2 uv = float2(i, j);
+
+    // We put ourselves in the middle of the pixel
+    float2 pixel = float2(i + 0.5, j + 0.5); // [0.5, resolution + 0.5]
+    float2 normalizedPixelPosition = pixel * chunk; // [0,1]
+
+    float2 waterSurface2DScale = float2(WaterSurfaceLocalScale.x, WaterSurfaceLocalScale.z);
+    float2 currentPixelOffset = normalizedPixelPosition * waterSurface2DScale; // [0, waterSurfaceScale]
+
+    float2 waterSurfacePosition2DWS = float2(WaterSurfacePosition.x, WaterSurfacePosition.z) - waterSurface2DScale / 2;
+    float2 currentPixelPosition2DWS = waterSurfacePosition2DWS + currentPixelOffset;
+
+    // We assume we are around the vertical 0 position, but we could use the mean height of the spline. 
+    float3 currentPosition = float3(currentPixelPosition2DWS.x, 0, currentPixelPosition2DWS.y);
+   
+    float3 pos = float3(0, 0, 0);
+    float3 tan = float3(0, 0, 0);
+    float distance = Evaluate(currentPosition, stepsPerCurve, pos, tan);
+
+    float yNormalized = Map(pos.y, b.min.y, b.max.y, minMaxHeight.x, minMaxHeight.y);
+    float4 c = yNormalized.xxxx;
+    
+    if (distance < splineWidth)
+    {
+        result[uv.xy] = c;
+    }
+    else if (distance < (splineBlendWidth + splineWidth))
+    {
+        float lerpFactor = saturate(InverseLerp(splineWidth, (splineBlendWidth + splineWidth), distance));
+        float4 baseColor = result[uv.xy];
+        result[uv.xy] = lerp(c, baseColor, lerpFactor);
+    }
+    else
+    {
+        // Do nothing since we are outside the influence of the spline here
+    }
+}
+
+[numthreads(8,8,1)]
+void GenerateCurrent(uint3 id : SV_DispatchThreadID)
+{
+    float2 chunk = float2(1.0 / resolution.x, 1.0 / resolution.y);
+
+    int i = id.x;
+    int j = id.y;
+    float2 uv = float2(i, j);
+
+    // We put ourselves in the middle of the pixel
+    float2 pixel = float2(i + 0.5, j + 0.5);            // [0.5, resolution + 0.5]
+    float2 normalizedPixelPosition = pixel * chunk;     // [0,1]
+
+    float2 waterSurface2DScale = float2(WaterSurfaceLocalScale.x, WaterSurfaceLocalScale.z);
+    float2 currentPixelOffset = normalizedPixelPosition * waterSurface2DScale; // [0, waterSurfaceScale]
+
+    float2 waterSurfacePosition2DWS = float2(WaterSurfacePosition.x, WaterSurfacePosition.z) - waterSurface2DScale / 2;
+    float2 currentPixelPosition2DWS = waterSurfacePosition2DWS + currentPixelOffset;
+
+    // We assume we are around the vertical 0 position, but we could use the mean height of the spline. 
+    float3 currentPosition = float3(currentPixelPosition2DWS.x, 0, currentPixelPosition2DWS.y);
+
+    float3 pos = float3(0, 0, 0);
+    float3 tan = float3(0, 0, 0);
+    float distance = Evaluate(currentPosition, stepsPerCurve, pos, tan);
+
+    float3 tanNormalized = normalize(tan); 
+          
+    float4 c = float4((tanNormalized.x / 2) + 0.5, (tanNormalized.z / 2) + 0.5, 1, 1);
+    if (distance < splineWidth)
+    {
+        result[uv.xy] = float4(c.x, c.y, c.z, 1);
+    }
+    else if (distance < (splineBlendWidth + splineWidth))
+    {
+        float lerpFactor = saturate(InverseLerp(splineWidth, (splineBlendWidth + splineWidth), distance));
+        float4 baseColor = result[uv.xy];
+        result[uv.xy] = lerp(c, baseColor, lerpFactor);
+    }
+    else
+    {
+        // Do nothing since we are outside the influence of the spline here
+    }
+    
+}
+
+[numthreads(8, 8, 1)]
+void MotionBlur(uint3 id : SV_DispatchThreadID)
+{
+    float2 defaultDirection = float2(1, 0);
+    int x = id.x;
+    int y = id.y;
+   
+    float current = x / (resolution.x);
+    float4 direction = currentMap[float2(x, y)];
+    float2 blurDirection = float2(2 * (direction.r - 0.5), 2 * (direction.g - 0.5));
+
+    float4 blurredColor = float4(0, 0, 0, 0);
+    float totalWeight = 0;
+
+    // Apply the blur in the specified direction
+    for (int i = -blurSize; i <= blurSize; i++)
+    {
+        float2 offset = normalize(blurDirection) * i;
+        int sampleX = clamp(x + offset.x, 0, resolution.x - 1);
+        int sampleY = clamp(y + offset.y, 0, resolution.y - 1);
+
+        float weight = exp(-i * i / (2 * blurSize * blurSize)); // Gaussian distribution
+        blurredColor += result[float2(sampleX, sampleY)] * weight;
+        totalWeight += weight;
+    }
+
+    // Normalize the blurred color
+    blurredColor /= totalWeight;
+    blurredColor.a = direction.a;
+
+    // Set the blurred pixel in the result texture
+    // We don't blur if we are outside the curve
+    if (direction.a > 0)
+        result[float2(x, y)] = blurredColor;
+
+}

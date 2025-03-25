@@ -10,7 +10,8 @@
         "GUID:27619889b8ba8c24980f49ee34dbb44a",
         "GUID:0acc523941302664db1f4e527237feb3",
         "GUID:925cf1d7b1444c3448cc9b44ce814a9e",
-        "GUID:4fd6538c1c56b409fb53fdf0183170ec"
+        "GUID:4fd6538c1c56b409fb53fdf0183170ec",
+        "GUID:5d43e37b0ccc5b643bfc49b4bfa316d2"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -33,6 +34,11 @@
             "name": "com.unity.xr.mock-hmd",
             "expression": "1.2.0-preview.1",
             "define": "USE_XR_MOCK_HMD"
+        },
+        {
+            "name": "com.unity.xr.openxr",
+            "expression": "1.13.0",
+            "define": "OPENXR_SDK"
         }
     ],
     "noEngineReferences": false

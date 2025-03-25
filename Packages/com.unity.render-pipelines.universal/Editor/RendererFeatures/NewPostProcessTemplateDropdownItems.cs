@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/URP Post-processing Effect (Renderer Feature with Volume)", priority = CoreUtils.Sections.section4 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
+        [MenuItem("Assets/Create/Scripting/URP Post-process Volume Scripts", priority = UnityEngine.Rendering.CoreUtils.Priorities.scriptingPriority + 1)]
         static void MenuCreateCustomPostProcessVolumeRendererFeature()
         {
             Texture2D icon = EditorGUIUtility.IconContent("cs Script Icon").image as Texture2D;

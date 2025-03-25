@@ -2,37 +2,35 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-// This defines a custom VolumeComponent to be used with the Core VolumeFramework
-// (see core API docs https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.VolumeComponent.html)
-// (see URP docs https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/Volumes.html)
-//
-// After implementing this class you can:
-// * Tweak the default values for this VolumeComponent in the URP GlobalSettings
-// * Add overrides for this VolumeComponent to any local or global scene volume profiles
-//   (see URP docs https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/Volume-Profile.html)
-//   (see URP docs https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/VolumeOverrides.html)
-// * Access the blended values of this VolumeComponent from your ScriptableRenderPasses or scripts using the VolumeManager API
-//   (see core API docs https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.VolumeManager.html)
-// * Override the values for this volume per-camera by placing a VolumeProfile in a dedicated layer and setting the camera's "Volume Mask" to that layer
-//
-// Things to keep in mind:
-// * Be careful when renaming, changing types or removing public fields to not break existing instances of this class (note that this class inherits from ScriptableObject so the same serialization rules apply)
-// * The 'IPostProcessComponent' interface adds the 'IsActive()' method, which is currently not strictly necessary and is for your own convenience
-// * It is recommended to only expose fields that are expected to change. Fields which are constant such as shaders, materials or LUT textures
-//   should likely be in AssetBundles or referenced by serialized fields of your custom ScriptableRendererFeatures on used renderers so they would not get stripped during builds
+// Defines a custom Volume Override component that controls the intensity of the URP Post-processing effect on a Scriptable Renderer Feature.
+// For more information about the VolumeComponent API, refer to https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.2/api/UnityEngine.Rendering.VolumeComponent.html
+
+// Add the Volume Override to the list of available Volume Override components in the Volume Profile.
 [VolumeComponentMenu("Post-processing Custom/#DISPLAY_NAME#")]
+
+// If the related Scriptable Renderer Feature doesn't exist, display a warning about adding it to the renderer.
 [VolumeRequiresRendererFeatures(typeof(#FEATURE_TYPE#))]
+
+// Make the Volume Override active in the Universal Render Pipeline.
 [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+
+// Create the Volume Override by inheriting from VolumeComponent
 public sealed class #VOLUME_TYPE# : VolumeComponent, IPostProcessComponent
 {
+    // Set the name of the volume component in the list in the Volume Profile.
     public #VOLUME_TYPE#()
     {
         displayName = "#DISPLAY_NAME#";
     }
 
+    // Create a property to control the intesity of the effect, with a tooltip description.
+    // You can set the default value in the project-wide Graphics settings window. For more information, refer to https://docs.unity3d.com/Manual/urp/urp-global-settings.html
+    // You can override the value in a local or global volume. For more information, refer to https://docs.unity3d.com/Manual/urp/volumes-landing-page.html
+    // To access the value in a script, refer to the VolumeManager API: https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.VolumeManager.html 
     [Tooltip("Enter the description for the property that is shown when hovered")]
     public ClampedFloatParameter intensity = new ClampedFloatParameter(1f, 0f, 1f);
 
+    // Optional: Implement the IsActive() method of the IPostProcessComponent interface, and get the intensity value.
     public bool IsActive()
     {
         return intensity.GetValue<float>() > 0.0f;

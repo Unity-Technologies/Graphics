@@ -29,15 +29,13 @@ The following example code represents one possible outcome of this node per **Un
 void Unity_Rotate_Radians_float(float2 UV, float2 Center, float Rotation, out float2 Out)
 {
     UV -= Center;
-    float s = sin(Rotation);
-    float c = cos(Rotation);
-    float2x2 rMatrix = float2x2(c, -s, s, c);
-    rMatrix *= 0.5;
-    rMatrix += 0.5;
-    rMatrix = rMatrix * 2 - 1;
-    UV.xy = mul(UV.xy, rMatrix);
-    UV += Center;
-    Out = UV;
+    float s, c;
+    sincos(Rotation, s, c);
+    float3 r3 = float(-s, c, s);
+    float2 r1;
+    r1.y = dot(UV, r3.xy);
+    r1.x = dot(UV, r3.yz);
+    Out = r1 + Center;
 }
 ```
 
@@ -48,14 +46,12 @@ void Unity_Rotate_Degrees_float(float2 UV, float2 Center, float Rotation, out fl
 {
     Rotation = Rotation * (3.1415926f/180.0f);
     UV -= Center;
-    float s = sin(Rotation);
-    float c = cos(Rotation);
-    float2x2 rMatrix = float2x2(c, -s, s, c);
-    rMatrix *= 0.5;
-    rMatrix += 0.5;
-    rMatrix = rMatrix * 2 - 1;
-    UV.xy = mul(UV.xy, rMatrix);
-    UV += Center;
-    Out = UV;
+    float s, c;
+    sincos(Rotation, s, c);
+    float3 r3 = float(-s, c, s);
+    float2 r1;
+    r1.y = dot(UV, r3.xy);
+    r1.x = dot(UV, r3.yz);
+    Out = r1 + Center;
 }
 ```

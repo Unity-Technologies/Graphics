@@ -66,6 +66,7 @@ namespace UnityEngine.Rendering
     {
         public BatchMeshID meshID;
         public int submeshIndex;
+        public int activeMeshLod; // or -1 if this draw is not using mesh LOD
         public BatchMaterialID materialID;
         public BatchDrawCommandFlags flags;
         public int transparentInstanceId; // non-zero for transparent instances, to ensure each instance has its own draw command (for sorting)
@@ -78,6 +79,7 @@ namespace UnityEngine.Rendering
             return
                 meshID == other.meshID &&
                 submeshIndex == other.submeshIndex &&
+                activeMeshLod == other.activeMeshLod &&
                 materialID == other.materialID &&
                 flags == other.flags &&
                 transparentInstanceId == other.transparentInstanceId &&
@@ -91,6 +93,7 @@ namespace UnityEngine.Rendering
             int hash = 13;
             hash = (hash * 23) + (int)meshID.value;
             hash = (hash * 23) + (int)submeshIndex;
+            hash = (hash * 23) + (int)activeMeshLod;
             hash = (hash * 23) + (int)materialID.value;
             hash = (hash * 23) + (int)flags;
             hash = (hash * 23) + transparentInstanceId;
@@ -133,15 +136,53 @@ namespace UnityEngine.Rendering
     }
 
     [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
+    internal struct AnimateCrossFadeJob : IJobParallelFor
+    {
+        public const int k_BatchSize = 512;
+        public const byte k_MeshLODTransitionToLowerLODBit = 0x80;
+
+        private const byte k_LODFadeOff = (byte)CullingJob.k_LODFadeOff;
+        private const float k_CrossfadeAnimationTimeS = 0.333f;
+
+        [ReadOnly] public float deltaTime;
+
+        public UnsafeList<byte> crossFadeArray;
+
+        public unsafe void Execute(int instanceIndex)
+        {
+            ref var crossFadeValue = ref crossFadeArray.ElementAt(instanceIndex);
+
+            if(crossFadeValue == k_LODFadeOff)
+                return;
+
+            var prevTransitionBit = (crossFadeValue & k_MeshLODTransitionToLowerLODBit);
+
+            crossFadeValue += (byte)((deltaTime / k_CrossfadeAnimationTimeS) * 127.0f);
+
+            //If done with crossfade - reset mask
+            if (prevTransitionBit != ((crossFadeValue + 1) & k_MeshLODTransitionToLowerLODBit))
+            {
+                crossFadeValue = k_LODFadeOff;
+            }
+        }
+    }
+
+    [BurstCompile]
     internal struct CullingJob : IJobParallelFor
     {
         public const int k_BatchSize = 32;
 
-        const uint k_LODFadeZeroPacked = 127;
+        public const uint k_MeshLodCrossfadeActive = 0x40;
+        public const uint k_MeshLodCrossfadeSignBit = 0x80;
+        public const uint k_MeshLodCrossfadeBits = k_MeshLodCrossfadeSignBit | k_MeshLodCrossfadeActive;
 
-        const float k_LODPercentInvisible = 0.0f;
-        const float k_LODPercentFullyVisible = 1.0f;
-        const float k_LODPercentSpeedTree = 2.0f;
+        public const uint k_LODFadeOff = 255u;
+        public const uint k_LODFadeZeroPacked = 127u;
+        public const uint k_LODFadeIsSpeedTree = 256u;
+
+        private const uint k_InvalidCrossFadeAndLevel = 0xFFFFFFFF;
+
+        const uint k_VisibilityMaskNotVisible = 0u;
 
         const float k_SmallMeshTransitionWidth = 0.1f;
 
@@ -149,7 +190,7 @@ namespace UnityEngine.Rendering
         {
             kDisabled,
             kCrossFadeOut, // 1 == instance is visible in current lod, and not next - could be fading out
-            kCrossFadeIn, // 2 == instance is visivle in next lod level, but not current - could be fading in
+            kCrossFadeIn, // 2 == instance is visible in next lod level, but not current - could be fading in
             kVisible // 3 == instance is visible in both current and next lod level - could not be impacted by fade
         }
 
@@ -157,6 +198,7 @@ namespace UnityEngine.Rendering
 
         [ReadOnly] public BatchCullingViewType viewType;
         [ReadOnly] public float3 cameraPosition;
+        [ReadOnly] public float sqrMeshLodSelectionConstant;
         [ReadOnly] public float sqrScreenRelativeMetric;
         [ReadOnly] public float minScreenRelativeHeight;
         [ReadOnly] public bool isOrtho;
@@ -164,6 +206,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public int maxLOD;
         [ReadOnly] public uint cullingLayerMask;
         [ReadOnly] public ulong sceneCullingMask;
+        [ReadOnly] public bool animateCrossFades;
 
         [ReadOnly] public NativeArray<FrustumPlaneCuller.PlanePacket4> frustumPlanePackets;
         [ReadOnly] public NativeArray<FrustumPlaneCuller.SplitInfo> frustumSplitInfos;
@@ -176,7 +219,10 @@ namespace UnityEngine.Rendering
         [NativeDisableContainerSafetyRestriction, NoAlias] [ReadOnly] public NativeList<LODGroupCullingData> lodGroupCullingData;
         [NativeDisableUnsafePtrRestriction] [ReadOnly] public IntPtr occlusionBuffer;
 
+        [NativeDisableContainerSafetyRestriction] public CPUPerCameraInstanceData.PerCameraInstanceDataArrays cameraInstanceData;
+
         [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<byte> rendererVisibilityMasks;
+        [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<byte> rendererMeshLodSettings;
         [NativeDisableParallelForRestriction][WriteOnly] public NativeArray<byte> rendererCrossFadeValues;
 
 
@@ -192,121 +238,127 @@ namespace UnityEngine.Rendering
             return packed;
         }
 
-        unsafe float CalculateLODVisibility(int instanceIndex, int sharedInstanceIndex, InstanceFlags instanceFlags)
+        unsafe uint CalculateLODVisibility(int instanceIndex, int sharedInstanceIndex, InstanceFlags instanceFlags)
         {
-            var lodPercent = k_LODPercentFullyVisible;
             var lodDataIndexAndMask = sharedInstanceData.lodGroupAndMasks[sharedInstanceIndex];
 
-            if (lodDataIndexAndMask != 0xFFFFFFFF)
+            if (lodDataIndexAndMask == k_InvalidCrossFadeAndLevel)
             {
-                lodPercent = k_LODPercentInvisible;
+                if(viewType >= BatchCullingViewType.SelectionOutline
+                    || (instanceFlags & InstanceFlags.SmallMeshCulling) == 0
+                    || minScreenRelativeHeight == 0.0f)
+                    return k_LODFadeOff;
 
-                var lodIndex = lodDataIndexAndMask >> 8;
-                var lodMask = lodDataIndexAndMask & 0xFF;
-                Assert.IsTrue(lodMask > 0);
-
-                ref var lodGroup = ref lodGroupCullingData.ElementAt((int)lodIndex);
-                float cameraSqrDistToLODCenter = isOrtho ? sqrScreenRelativeMetric : LODGroupRenderingUtils.CalculateSqrPerspectiveDistance(lodGroup.worldSpaceReferencePoint, cameraPosition, sqrScreenRelativeMetric);
-
-                // Remove lods that are beyond the max lod.
-                uint maxLodMask = 0xffffffff << maxLOD;
-                lodMask &= maxLodMask;
-
-                // Offset to the lod preceding the first for proper cross fade calculation.
-                int m = math.max(math.tzcnt(lodMask) - 1, maxLOD);
-                lodMask >>= m;
-
-                while (lodMask > 0)
-                {
-                    var lodRangeSqrMin = m == maxLOD ? 0.0f : lodGroup.sqrDistances[m - 1];
-                    var lodRangeSqrMax = lodGroup.sqrDistances[m];
-
-                    // Camera is beyond the range of this all further lods. No need to proceed.
-                    if (cameraSqrDistToLODCenter < lodRangeSqrMin)
-                        break;
-
-                    // Instance is in the min/max range of this lod. Proceeding.
-                    if (cameraSqrDistToLODCenter < lodRangeSqrMax)
-                    {
-                        var type = (CrossFadeType)(lodMask & 3);
-
-                        // Instance is in this and/or the next lod.
-                        if (type != CrossFadeType.kDisabled)
-                        {
-                            // Instance is in both this and the next lod. No need to fade.
-                            if (type == CrossFadeType.kVisible)
-                            {
-                                lodPercent = k_LODPercentFullyVisible;
-                            }
-                            else
-                            {
-                                var distanceToLodCenter = math.sqrt(cameraSqrDistToLODCenter);
-                                var maxDist = math.sqrt(lodRangeSqrMax);
-
-                                // SpeedTree cross fade.
-                                if (lodGroup.percentageFlags[m])
-                                {
-                                    // The fading-in instance is not visible but the fading-out is visible and it does the speed tree vertex deformation.
-
-                                    if (type == CrossFadeType.kCrossFadeIn)
-                                    {
-                                        lodPercent = k_LODPercentInvisible;
-                                    }
-                                    else if (type == CrossFadeType.kCrossFadeOut)
-                                    {
-                                        var minDist = m > 0 ? math.sqrt(lodGroup.sqrDistances[m - 1]) : lodGroup.worldSpaceSize;
-                                        lodPercent = k_LODPercentSpeedTree + math.max(distanceToLodCenter - minDist, 0.0f) / (maxDist - minDist);
-                                    }
-                                }
-                                // Dithering cross fade.
-                                else
-                                {
-                                    // If in the transition zone, both fading-in and fading-out instances are visible. Calculate the lod percent.
-                                    // If not then only the fading-out instance is fully visible, and fading-in is invisible.
-
-                                    var transitionDist = lodGroup.transitionDistances[m];
-                                    var dif = maxDist - distanceToLodCenter;
-
-                                    if (dif < transitionDist)
-                                    {
-                                        lodPercent = dif / transitionDist;
-
-                                        if (type == CrossFadeType.kCrossFadeIn)
-                                            lodPercent = -lodPercent;
-                                    }
-                                    else if (type == CrossFadeType.kCrossFadeOut)
-                                    {
-                                        lodPercent = k_LODPercentFullyVisible;
-                                    }
-                                }
-                            }
-                        }
-
-                        // We found the lod and the percentage.
-                        break;
-                    }
-
-                    ++m;
-                    lodMask >>= 1;
-                }
-            }
-            else if(viewType < BatchCullingViewType.SelectionOutline && (instanceFlags & InstanceFlags.SmallMeshCulling) != 0)
-            {
+                // If no LODGroup available - small mesh culling.
                 ref readonly AABB worldAABB = ref instanceData.worldAABBs.UnsafeElementAt(instanceIndex);
-                var cameraSqrDist = isOrtho ? sqrScreenRelativeMetric : LODGroupRenderingUtils.CalculateSqrPerspectiveDistance(worldAABB.center, cameraPosition, sqrScreenRelativeMetric);
+                var cameraSqrDist = isOrtho ? sqrScreenRelativeMetric : LODRenderingUtils.CalculateSqrPerspectiveDistance(worldAABB.center, cameraPosition, sqrScreenRelativeMetric);
                 var cameraDist = math.sqrt(cameraSqrDist);
 
                 var aabbSize = worldAABB.extents * 2.0f;
                 var worldSpaceSize = math.max(math.max(aabbSize.x, aabbSize.y), aabbSize.z);
-                var maxDist = LODGroupRenderingUtils.CalculateLODDistance(minScreenRelativeHeight, worldSpaceSize);
+                var maxDist = LODRenderingUtils.CalculateLODDistance(minScreenRelativeHeight, worldSpaceSize);
+                if (maxDist < cameraDist)
+                    return k_LODFadeZeroPacked;
 
                 var transitionHeight = minScreenRelativeHeight + k_SmallMeshTransitionWidth * minScreenRelativeHeight;
-                var fadeOutRange = Mathf.Max(0.0f,maxDist - LODGroupRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize));
+                var fadeOutRange = Mathf.Max(0.0f,maxDist - LODRenderingUtils.CalculateLODDistance(transitionHeight, worldSpaceSize));
 
-                lodPercent = math.saturate((maxDist - cameraDist) / fadeOutRange);
+                var lodPercent = (maxDist - cameraDist) / fadeOutRange;
+                return lodPercent > 1.0f ? k_LODFadeOff : PackFloatToUint8(lodPercent);
             }
 
-            return lodPercent;
+            var lodIndex = lodDataIndexAndMask >> 8;
+            var lodMask = lodDataIndexAndMask & 0xFF;
+            Assert.IsTrue(lodMask > 0);
+
+            ref var lodGroup = ref lodGroupCullingData.ElementAt((int)lodIndex);
+
+            if (lodGroup.forceLODMask != 0)
+                return (lodGroup.forceLODMask & lodMask) != 0 ? k_LODFadeOff : k_LODFadeZeroPacked;
+
+            float cameraSqrDistToLODCenter = isOrtho ? sqrScreenRelativeMetric : LODRenderingUtils.CalculateSqrPerspectiveDistance(lodGroup.worldSpaceReferencePoint, cameraPosition, sqrScreenRelativeMetric);
+
+            // Remove lods that are beyond the max lod.
+            uint maxLodMask = 0xffffffff << maxLOD;
+            lodMask &= maxLodMask;
+
+            // Offset to the lod preceding the first for proper cross fade calculation.
+            int m = math.max(math.tzcnt(lodMask) - 1, maxLOD);
+            lodMask >>= m;
+
+            while (lodMask > 0)
+            {
+                var lodRangeSqrMin = m == maxLOD ? 0.0f : lodGroup.sqrDistances[m - 1];
+                var lodRangeSqrMax = lodGroup.sqrDistances[m];
+
+                // Camera is beyond the range of this all further lods. No need to proceed.
+                if (cameraSqrDistToLODCenter < lodRangeSqrMin)
+                    break;
+
+                if (cameraSqrDistToLODCenter > lodRangeSqrMax)
+                {
+
+                    ++m;
+                    lodMask >>= 1;
+                    continue;
+                }
+
+                // Instance is in the min/max range of this lod. Proceeding.
+                var type = (CrossFadeType)(lodMask & 3);
+
+                // Instance is in neither this LOD Level nor next - invisible
+                if (type == CrossFadeType.kDisabled)
+                {
+                    return k_LODFadeZeroPacked;
+                }
+                // Instance is in both this and the next lod. No need to fade - fully visible
+                if (type == CrossFadeType.kVisible)
+                {
+                    return k_LODFadeOff;
+                }
+
+                var distanceToLodCenter = math.sqrt(cameraSqrDistToLODCenter);
+                var maxDist = math.sqrt(lodRangeSqrMax);
+
+                // SpeedTree cross fade.
+                if (lodGroup.percentageFlags[m])
+                {
+                    // The fading-in instance is not visible but the fading-out is visible and it does the speed tree vertex deformation.
+                    if (type == CrossFadeType.kCrossFadeIn)
+                    {
+                        return k_LODFadeZeroPacked + 1;
+                    }
+                    else if (type == CrossFadeType.kCrossFadeOut)
+                    {
+                        var minDist = m > 0
+                            ? math.sqrt(lodGroup.sqrDistances[m - 1])
+                            : lodGroup.worldSpaceSize;
+                        var lodPercent = math.max(distanceToLodCenter - minDist, 0.0f) / (maxDist - minDist);
+                        return PackFloatToUint8(lodPercent) | k_LODFadeIsSpeedTree;
+                    }
+                }
+                // Dithering cross fade.
+                else
+                {
+                    var transitionDist = lodGroup.transitionDistances[m];
+                    var dif = maxDist - distanceToLodCenter;
+                    // If in the transition zone, both fading-in and fading-out instances are visible. Calculate the lod percent.
+                    // If not then only the fading-out instance is fully visible, and fading-in is invisible.
+                    if (dif < transitionDist)
+                    {
+                        var lodPercent = dif / transitionDist;
+
+                        if (type == CrossFadeType.kCrossFadeIn)
+                            lodPercent = -lodPercent;
+                        return PackFloatToUint8(lodPercent);
+                    }
+
+                    return type == CrossFadeType.kCrossFadeOut ? k_LODFadeOff : k_LODFadeZeroPacked;
+                }
+
+            }
+
+            return k_LODFadeZeroPacked;
         }
 
         private unsafe uint CalculateVisibilityMask(int instanceIndex, int sharedInstanceIndex, InstanceFlags instanceFlags)
@@ -347,6 +399,87 @@ namespace UnityEngine.Rendering
             return visibilityMask;
         }
 
+        // Algorithm is detailed and must be kept in sync with CalculateMeshLod (C++)
+        private uint ComputeMeshLODLevel(int instanceIndex, int sharedInstanceIndex)
+        {
+            ref readonly GPUDrivenRendererMeshLodData meshLodData = ref instanceData.meshLodData.UnsafeElementAt(instanceIndex);
+
+            if (meshLodData.forceLod >= 0)
+                return (uint)meshLodData.forceLod;
+
+            var levelInfo = sharedInstanceData.meshLodInfos[sharedInstanceIndex];
+            ref readonly AABB worldAABB = ref instanceData.worldAABBs.UnsafeElementAt(instanceIndex);
+
+            var radiusSqr = math.max(math.lengthsq(worldAABB.extents), 1e-5f);
+            var diameterSqr = radiusSqr * 4;
+            var cameraSqrHeightAtDistance = isOrtho ? sqrMeshLodSelectionConstant :
+                LODRenderingUtils.CalculateSqrPerspectiveDistance(worldAABB.center, cameraPosition, sqrMeshLodSelectionConstant);
+
+            var boundsDesiredPercentage = Math.Sqrt(cameraSqrHeightAtDistance / diameterSqr);
+
+            var levelIndexFlt = math.log2(boundsDesiredPercentage) * levelInfo.lodSlope + levelInfo.lodBias;
+
+            // We apply Bias after max to enforce that a positive bias of +N we would select lodN instead of Lod0
+            levelIndexFlt = math.max(levelIndexFlt, 0);
+            levelIndexFlt += meshLodData.lodSelectionBias;
+
+            levelIndexFlt = math.clamp(levelIndexFlt,0, levelInfo.levelCount - 1);
+
+            return (uint)math.floor(levelIndexFlt);
+        }
+
+        // A crossfading instance is assigned a [0.0(invisible) - 1.0(fully visible)] value.
+        // The complementary instance is assigned the negative of this value[-1.0(invisible) - -0.0(fully visible)]
+        // As we pack it to a 8-bit uint, we transition from [0-126] when transitioning from a Lower to a higher LOD level,
+        // and from [127-254] when transitioning from a higher to a lower LOD level.
+        // This means that we can use (k_MeshLODTransitionToLowerLODBit = 0x80) to select the correct instance to blend with during draw command generation.
+        private unsafe uint ComputeMeshLODCrossfade(int instanceIndex, ref uint meshLodLevel)
+        {
+            var previousLodLevel = cameraInstanceData.meshLods[instanceIndex];
+
+            //1st frame - previous LOD level is invalid. Just update it and return.
+            if(previousLodLevel == 0xff)
+            {
+                cameraInstanceData.meshLods[instanceIndex] = (byte)meshLodLevel;
+                return k_LODFadeOff;
+            }
+
+            var currentCrossFade = cameraInstanceData.crossFades[instanceIndex];
+
+            // If not already crossfading, check if we changed Lod level this frame, and starts crossfading.
+            if (currentCrossFade == k_LODFadeOff)
+            {
+                if (previousLodLevel == meshLodLevel)
+                    return k_LODFadeOff;
+
+                cameraInstanceData.meshLods[instanceIndex] = (byte)meshLodLevel;
+                cameraInstanceData.crossFades[instanceIndex] = (byte)(meshLodLevel < previousLodLevel ? AnimateCrossFadeJob.k_MeshLODTransitionToLowerLODBit : 1);
+                meshLodLevel = previousLodLevel;
+                return k_LODFadeOff;
+            }
+
+            //On the first crossfading frame, other cameras could have set the current crossfade values, but we do not want to fade until next frame.
+            if ((currentCrossFade - 1) % k_LODFadeZeroPacked == 0)
+            {
+                meshLodLevel = previousLodLevel;
+                return k_LODFadeOff;
+            }
+
+            meshLodLevel =  previousLodLevel | (currentCrossFade > k_LODFadeZeroPacked ? k_MeshLodCrossfadeBits : k_MeshLodCrossfadeActive);
+
+            return currentCrossFade;
+        }
+
+        private unsafe void EnforcePreviousFrameMeshLOD(int instanceIndex, ref uint meshLodLevel)
+        {
+            ref var previousLodLevel = ref cameraInstanceData.meshLods.ElementAt(instanceIndex);
+
+            if (previousLodLevel != k_LODFadeOff)
+            {
+                meshLodLevel = previousLodLevel;
+            }
+        }
+
         public void Execute(int instanceIndex)
         {
             InstanceHandle instance = instanceData.instances[instanceIndex];
@@ -354,48 +487,55 @@ namespace UnityEngine.Rendering
             var instanceFlags = sharedInstanceData.flags[sharedInstanceIndex].instanceFlags;
 
             var visibilityMask = CalculateVisibilityMask(instanceIndex, sharedInstanceIndex, instanceFlags);
-            var crossFadeValue = k_LODFadeZeroPacked;
-
-            if (visibilityMask != 0)
+            if (visibilityMask == k_VisibilityMaskNotVisible)
             {
-                float lodPercent = CalculateLODVisibility(instanceIndex, sharedInstanceIndex, instanceFlags);
+                rendererVisibilityMasks[instance.index] = (byte)k_VisibilityMaskNotVisible;
+                return;
+            }
 
-                if (lodPercent != k_LODPercentInvisible)
+            var crossFadeValue = CalculateLODVisibility(instanceIndex, sharedInstanceIndex, instanceFlags);
+            if (crossFadeValue == k_LODFadeZeroPacked)
+            {
+                rendererVisibilityMasks[instance.index] = (byte)k_VisibilityMaskNotVisible;
+                return;
+            }
+
+            if (binningConfig.supportsMotionCheck)
+            {
+                bool hasMotion = instanceData.movedInPreviousFrameBits.Get(instanceIndex);
+                visibilityMask = (visibilityMask << 1) | (hasMotion ? 1U : 0);
+            }
+
+            var meshLodLevel = 0u;
+            // select mesh LOD level
+            var hasMeshLod = (instanceFlags & InstanceFlags.HasMeshLod) != 0;
+            if (hasMeshLod)
+            {
+                meshLodLevel = ComputeMeshLODLevel(instanceIndex, sharedInstanceIndex);
+            }
+
+            if (binningConfig.supportsCrossFade)
+            {
+                if(hasMeshLod && animateCrossFades)
                 {
-                    if (binningConfig.supportsMotionCheck)
+                    //Only Crossfade mesh LOD if we aren't already crossfading through LOD groups or SpeedTree
+                    if (crossFadeValue == k_LODFadeOff)
                     {
-                        bool hasMotion = instanceData.movedInPreviousFrameBits.Get(instanceIndex);
-                        visibilityMask = (visibilityMask << 1) | (hasMotion ? 1U : 0);
+                        crossFadeValue = ComputeMeshLODCrossfade(instanceIndex, ref meshLodLevel);
                     }
-
-                    if (binningConfig.supportsCrossFade)
+                    else
                     {
-                        bool hasDitheringCrossFade = false;
-
-                        if (lodPercent != k_LODPercentFullyVisible)
-                        {
-                            bool isSpeedTreeCrossFade = lodPercent >= k_LODPercentSpeedTree;
-
-                            // If this is a speed tree cross fade then we provide cross fade value but we don't enable cross fade keyword.
-                            if (isSpeedTreeCrossFade)
-                                lodPercent -= k_LODPercentSpeedTree;
-                            else
-                                hasDitheringCrossFade = true;
-
-                            crossFadeValue = PackFloatToUint8(lodPercent);
-                        }
-
-                        visibilityMask = (visibilityMask << 1) | (hasDitheringCrossFade ? 1U : 0);
+                        // If we are cross fading through LODGroup, we reuse previous frame's LodLevel to avoid popping
+                        EnforcePreviousFrameMeshLOD(instanceIndex, ref meshLodLevel);
                     }
                 }
-                else
-                {
-                    visibilityMask = 0;
-                }
+                // if crossfade is 255 or more, either crossfade is off or it's speedTreeFade, cases for which we do not need to set the fade bit.
+                visibilityMask = (visibilityMask << 1) | (crossFadeValue < k_LODFadeOff ? 1U : 0);
             }
 
             rendererVisibilityMasks[instance.index] = (byte)visibilityMask;
-            rendererCrossFadeValues[instance.index] = (byte)crossFadeValue;
+            rendererMeshLodSettings[instance.index] = (byte)meshLodLevel;
+            rendererCrossFadeValues[instance.index] = (byte)(crossFadeValue & 0xFF);
         }
     }
 
@@ -408,6 +548,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public NativeArray<int> drawInstanceIndices;
         [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
         [ReadOnly] public NativeArray<byte> rendererVisibilityMasks;
+        [ReadOnly] public NativeArray<byte> rendererMeshLodSettings;
 
         [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<int> batchBinAllocOffsets;
         [NativeDisableContainerSafetyRestriction, NoAlias] [WriteOnly] public NativeArray<int> batchBinCounts;
@@ -426,7 +567,31 @@ namespace UnityEngine.Rendering
             return instanceData.localToWorldIsFlippedBits.Get(instanceIndex);
         }
 
-        unsafe public void Execute(int batchIndex)
+        // Keep in sync with isMeshLodVisible from DrawCommandOutputPerBatch
+        private bool IsMeshLodVisible(int batchLodLevel, int rendererIndex, bool supportsCrossFade)
+        {
+            if (batchLodLevel < 0)
+                return true;
+
+            var meshLodLevel = rendererMeshLodSettings[rendererIndex];
+            var instanceLodLevel = meshLodLevel & ~CullingJob.k_MeshLodCrossfadeBits;
+            if (batchLodLevel == instanceLodLevel)
+                return true;
+
+            if (!supportsCrossFade)
+                return false;
+
+            var crossfadeBits = (meshLodLevel & CullingJob.k_MeshLodCrossfadeBits);
+            if (crossfadeBits == 0)
+                return false;
+
+            // This sets sign to 1 if the 8th bit (e.g. k_MeshCrossfadeSignBit is set), and -1 otherwise.
+            var sign = (int)(crossfadeBits - CullingJob.k_MeshLodCrossfadeSignBit) >> 6;
+
+            return batchLodLevel == instanceLodLevel + sign;
+        }
+
+        public void Execute(int batchIndex)
         {
             // figure out how many combinations of views/features we need to partition by
             int configCount = binningConfig.visibilityConfigCount;
@@ -446,13 +611,19 @@ namespace UnityEngine.Rendering
             var drawBatch = drawBatches[batchIndex];
             var instanceCount = drawBatch.instanceCount;
             var instanceOffset = drawBatch.instanceOffset;
+            var supportsCrossFade = (drawBatch.key.flags & BatchDrawCommandFlags.LODCrossFadeKeyword) != 0;
             for (int i = 0; i < instanceCount; ++i)
             {
                 var rendererIndex = drawInstanceIndices[instanceOffset + i];
 
                 bool isFlipped = IsInstanceFlipped(rendererIndex);
                 int visibilityMask = (int)rendererVisibilityMasks[rendererIndex];
-                if (visibilityMask == 0)
+
+                bool isVisible = (visibilityMask != 0);
+                if (!isVisible)
+                    continue;
+
+                if (!IsMeshLodVisible(drawBatch.key.activeMeshLod, rendererIndex, supportsCrossFade))
                     continue;
 
                 int configIndex = (int)(visibilityMask << 1) | (isFlipped ? 1 : 0);
@@ -716,6 +887,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
 
         [ReadOnly] public NativeArray<byte> rendererVisibilityMasks;
+        [ReadOnly] public NativeArray<byte> rendererMeshLodSettings;
         [ReadOnly] public NativeArray<byte> rendererCrossFadeValues;
 
         [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<int> batchBinAllocOffsets;
@@ -735,11 +907,15 @@ namespace UnityEngine.Rendering
         [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<IndirectDrawInfo> indirectDrawInfoGlobalArray;
         [NativeDisableContainerSafetyRestriction, NoAlias] public NativeArray<IndirectInstanceInfo> indirectInstanceInfoGlobalArray;
 
-        unsafe int EncodeGPUInstanceIndexAndCrossFade(int rendererIndex, bool negateCrossFade)
+        int EncodeGPUInstanceIndexAndCrossFade(int rendererIndex, bool negateCrossFade)
         {
             var gpuInstanceIndex = instanceDataBuffer.CPUInstanceToGPUInstance(InstanceHandle.FromInt(rendererIndex));
-            int crossFadeValue = rendererCrossFadeValues[rendererIndex];
-            crossFadeValue -= 127;
+            var crossFadeValue = (int)rendererCrossFadeValues[rendererIndex];
+
+            if (crossFadeValue == CullingJob.k_LODFadeOff)
+                return gpuInstanceIndex.index;
+
+            crossFadeValue -= (int)CullingJob.k_LODFadeZeroPacked;
             if (negateCrossFade)
                 crossFadeValue = -crossFadeValue;
             gpuInstanceIndex.index |= crossFadeValue << 24;
@@ -751,6 +927,32 @@ namespace UnityEngine.Rendering
             InstanceHandle instance = InstanceHandle.FromInt(rendererIndex);
             int instanceIndex = instanceData.InstanceToIndex(instance);
             return instanceData.localToWorldIsFlippedBits.Get(instanceIndex);
+        }
+
+        // This must be kept in sync with IsMeshLodVisible from binning pass
+        private bool IsMeshLodVisible(int batchLodLevel, int rendererIndex, bool supportsCrossFade, ref bool negateCrossfade)
+        {
+            if (batchLodLevel < 0)
+                return true;
+
+            var meshLodSetting = rendererMeshLodSettings[rendererIndex];
+            var instanceLodLevel = meshLodSetting & ~CullingJob.k_MeshLodCrossfadeBits;
+            if (batchLodLevel == instanceLodLevel)
+                return true;
+
+            if (!supportsCrossFade)
+                return false;
+
+            var crossfadeBits = (meshLodSetting & CullingJob.k_MeshLodCrossfadeBits);
+            if (crossfadeBits == 0)
+                return false;
+
+            // This sets sign to 1 if the 8th bit (e.g. k_MeshLodCrossfadeSignBit is set), and -1 otherwise.
+            var sign = (int)(crossfadeBits - CullingJob.k_MeshLodCrossfadeSignBit) >> 6;
+
+            negateCrossfade = true;
+
+            return batchLodLevel == instanceLodLevel + sign;
         }
 
         unsafe public void Execute(int batchIndex)
@@ -811,9 +1013,16 @@ namespace UnityEngine.Rendering
                 int visibilityMask = configIndex >> 1;
                 if (binningConfig.supportsCrossFade)
                 {
-                    if ((visibilityMask & 1) != 0)
+                    var crossFadeVisibilityBit = (visibilityMask & 1);
+                    if (crossFadeVisibilityBit == 0)
+                        drawFlags &= ~BatchDrawCommandFlags.LODCrossFadeKeyword;
+                    else
                         drawFlags |= BatchDrawCommandFlags.LODCrossFadeKeyword;
                     visibilityMask >>= 1;
+                }
+                else
+                {
+                    drawFlags &= ~BatchDrawCommandFlags.LODCrossFadeKeyword;
                 }
                 if (binningConfig.supportsMotionCheck)
                 {
@@ -887,6 +1096,7 @@ namespace UnityEngine.Rendering
                         sortingPosition = sortingPosition,
                         meshID = drawBatch.key.meshID,
                         submeshIndex = (ushort)drawBatch.key.submeshIndex,
+                        activeMeshLod = (ushort)drawBatch.key.activeMeshLod,
                     };
                 }
             }
@@ -894,6 +1104,7 @@ namespace UnityEngine.Rendering
             // write the visible instances
             var instanceOffset = drawBatch.instanceOffset;
             var instanceCount = drawBatch.instanceCount;
+            var supportsCrossFade = (drawBatch.key.flags & BatchDrawCommandFlags.LODCrossFadeKeyword) != 0;
             var lastRendererIndex = 0;
             if (binCount > 1)
             {
@@ -903,7 +1114,13 @@ namespace UnityEngine.Rendering
 
                     bool isFlipped = IsInstanceFlipped(rendererIndex);
                     int visibilityMask = (int)rendererVisibilityMasks[rendererIndex];
-                    if (visibilityMask == 0)
+
+                    bool isVisible = (visibilityMask != 0);
+                    if (!isVisible)
+                        continue;
+
+                    bool negateCrossFade = false;
+                    if (!IsMeshLodVisible(drawBatch.key.activeMeshLod, rendererIndex, supportsCrossFade, ref negateCrossFade))
                         continue;
 
                     lastRendererIndex = rendererIndex;
@@ -913,6 +1130,8 @@ namespace UnityEngine.Rendering
                     Assert.IsTrue(configIndex < binningConfig.visibilityConfigCount);
                     var visibleInstanceOffset = instanceOffsetPerConfig[configIndex];
                     instanceOffsetPerConfig[configIndex]++;
+
+                    var instanceIndexAndCrossFade = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, negateCrossFade);
 
                     if (isIndirect)
                     {
@@ -930,7 +1149,7 @@ namespace UnityEngine.Rendering
                         indirectInstanceInfoGlobalArray[indirectAllocInfo.instanceAllocIndex + visibleInstanceOffset] = new IndirectInstanceInfo
                         {
                             drawOffsetAndSplitMask = (drawCommandOffsetPerConfig[configIndex] << 8) | visibilityMask,
-                            instanceIndexAndCrossFade = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false),
+                            instanceIndexAndCrossFade = instanceIndexAndCrossFade,
                         };
                     }
                     else
@@ -939,7 +1158,7 @@ namespace UnityEngine.Rendering
                         if (visibleInstanceOffset >= output.visibleInstanceCount)
                             throw new Exception("Exceeding visible instance count");
 #endif
-                        output.visibleInstances[visibleInstanceOffset] = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false);
+                        output.visibleInstances[visibleInstanceOffset] = instanceIndexAndCrossFade;
                     }
                 }
             }
@@ -955,7 +1174,15 @@ namespace UnityEngine.Rendering
                     if (!isVisible)
                         continue;
 
+                    bool negateCrossFade = false;
+                    if (!IsMeshLodVisible(drawBatch.key.activeMeshLod, rendererIndex, supportsCrossFade, ref negateCrossFade))
+                        continue;
+
                     lastRendererIndex = rendererIndex;
+
+                    var instanceIndexAndCrossFade = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, negateCrossFade);
+
+                    // only one bin for this batch
                     if (isIndirect)
                     {
                         // remove extra bits so that the visibility mask is just the view mask
@@ -967,12 +1194,12 @@ namespace UnityEngine.Rendering
                         indirectInstanceInfoGlobalArray[indirectAllocInfo.instanceAllocIndex + visibleInstanceOffset] = new IndirectInstanceInfo
                         {
                             drawOffsetAndSplitMask = (batchDrawCommandOffset << 8) | visibilityMask,
-                            instanceIndexAndCrossFade = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false),
+                            instanceIndexAndCrossFade = instanceIndexAndCrossFade,
                         };
                     }
                     else
                     {
-                        output.visibleInstances[visibleInstanceOffset] = EncodeGPUInstanceIndexAndCrossFade(rendererIndex, false);
+                        output.visibleInstances[visibleInstanceOffset] = instanceIndexAndCrossFade;
                     }
                     visibleInstanceOffset++;
                 }
@@ -1041,6 +1268,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public GPUInstanceDataBuffer.ReadOnly instanceDataBuffer;
 
         [ReadOnly] public NativeArray<byte> rendererVisibilityMasks;
+        [ReadOnly] public NativeArray<byte> rendererMeshLodSettings;
         [ReadOnly] public NativeArray<byte> rendererCrossFadeValues;
 
         [ReadOnly] public CPUInstanceData.ReadOnly instanceData;
@@ -1100,6 +1328,8 @@ namespace UnityEngine.Rendering
                     {
                         var rendererIndex = drawInstanceIndices[instanceOffset + i];
                         var visibilityMask = rendererVisibilityMasks[rendererIndex];
+                        if (drawBatch.key.activeMeshLod >= 0 && drawBatch.key.activeMeshLod != rendererMeshLodSettings[rendererIndex])
+                            visibilityMask = 0;
                         if (visibilityMask == 0)
                             continue;
 
@@ -1464,6 +1694,13 @@ namespace UnityEngine.Rendering
 
     internal struct InstanceCuller : IDisposable
     {
+        private struct AnimatedFadeData
+        {
+            public int cameraID;
+            public JobHandle jobHandle;
+        }
+
+        private NativeParallelHashMap<int, AnimatedFadeData> m_LODParamsToCameraID;
         //@ Move this in CPUInstanceData.
         private ParallelBitArray m_CompactedVisibilityMasks;
         private JobHandle m_CompactedVisibilityMasksJobsHandle;
@@ -1526,24 +1763,75 @@ namespace UnityEngine.Rendering
 
             m_CommandBuffer = new CommandBuffer();
             m_CommandBuffer.name = "EnsureValidOcclusionTestResults";
+
+            m_LODParamsToCameraID = new NativeParallelHashMap<int, AnimatedFadeData>(16, Allocator.Persistent);
+        }
+
+
+        // This relies on the fact that camera culling is scheduled ahead of shadow culling.
+        private JobHandle AnimateCrossFades(CPUPerCameraInstanceData perCameraInstanceData, BatchCullingContext cc, out CPUPerCameraInstanceData.PerCameraInstanceDataArrays cameraInstanceData, out bool hasAnimatedCrossfade)
+        {
+            var lodHash = cc.lodParameters.GetHashCode();
+            hasAnimatedCrossfade = m_LODParamsToCameraID.TryGetValue(lodHash, out var animatedFadeData);
+
+            if (hasAnimatedCrossfade)
+            {
+                cameraInstanceData = perCameraInstanceData.perCameraData[animatedFadeData.cameraID];
+                Assert.IsTrue(cameraInstanceData.IsCreated);
+                return animatedFadeData.jobHandle;
+            }
+
+            if (cc.viewType != BatchCullingViewType.Camera && !hasAnimatedCrossfade)
+            {
+                // For picking / filtering and outlining passes. We do not have animated crossfade data.
+                cameraInstanceData = new CPUPerCameraInstanceData.PerCameraInstanceDataArrays();
+                return new JobHandle();
+            }
+
+            //For main camera, animate crossfades, and store the result in the hashmap to be retrieved by other cameras
+            var viewID = cc.viewID.GetInstanceID();
+
+            hasAnimatedCrossfade = perCameraInstanceData.perCameraData.TryGetValue(viewID, out var tmpCameraInstanceData);
+            if (hasAnimatedCrossfade == false)
+            {
+                // For picking / filtering and outlining passes. We do not have animated crossfade data.
+                cameraInstanceData = new CPUPerCameraInstanceData.PerCameraInstanceDataArrays();
+                return new JobHandle();
+            }
+
+            cameraInstanceData = tmpCameraInstanceData;
+            Assert.IsTrue(cameraInstanceData.IsCreated);
+
+            var handle = new AnimateCrossFadeJob()
+            {
+                deltaTime = Time.deltaTime,
+                crossFadeArray = cameraInstanceData.crossFades
+            }.Schedule(perCameraInstanceData.instancesLength, AnimateCrossFadeJob.k_BatchSize);
+
+            m_LODParamsToCameraID.TryAdd(lodHash, new AnimatedFadeData(){ cameraID = viewID, jobHandle = handle});
+            return handle;
         }
 
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
         private unsafe struct SetupCullingJobInput : IJob
         {
             public float lodBias;
+            public float meshLodThreshold;
             [NativeDisableUnsafePtrRestriction] public BatchCullingContext* context;
             [NativeDisableUnsafePtrRestriction] public ReceiverPlanes* receiverPlanes;
             [NativeDisableUnsafePtrRestriction] public ReceiverSphereCuller* receiverSphereCuller;
             [NativeDisableUnsafePtrRestriction] public FrustumPlaneCuller* frustumPlaneCuller;
             [NativeDisableUnsafePtrRestriction] public float* screenRelativeMetric;
+            [NativeDisableUnsafePtrRestriction] public float* meshLodConstant;
 
             public void Execute()
             {
                 *receiverPlanes = ReceiverPlanes.Create(*context, Allocator.TempJob);
                 *receiverSphereCuller = ReceiverSphereCuller.Create(*context, Allocator.TempJob);
                 *frustumPlaneCuller = FrustumPlaneCuller.Create(*context, receiverPlanes->planes.AsArray(), *receiverSphereCuller, Allocator.TempJob);
-                *screenRelativeMetric = LODGroupRenderingUtils.CalculateScreenRelativeMetric(context->lodParameters, lodBias); 
+                *screenRelativeMetric = LODRenderingUtils.CalculateScreenRelativeMetricNoBias(context->lodParameters);
+                *meshLodConstant = LODRenderingUtils.CalculateMeshLodConstant(context->lodParameters, *screenRelativeMetric, meshLodThreshold);
+                *screenRelativeMetric /= lodBias;
             }
         }
 
@@ -1551,11 +1839,13 @@ namespace UnityEngine.Rendering
             in BatchCullingContext cc,
             in CPUInstanceData.ReadOnly instanceData,
             in CPUSharedInstanceData.ReadOnly sharedInstanceData,
+            in CPUPerCameraInstanceData perCameraInstanceData,
             NativeList<LODGroupCullingData> lodGroupCullingData,
             in BinningConfig binningConfig,
             float smallMeshScreenPercentage,
             OcclusionCullingCommon occlusionCullingCommon,
             NativeArray<byte> rendererVisibilityMasks,
+            NativeArray<byte> rendererMeshLodSettings,
             NativeArray<byte> rendererCrossFadeValues)
         {
             Assert.IsTrue(cc.cullingSplits.Length <= 6, "InstanceCullingBatcher supports up to 6 culling splits.");
@@ -1564,23 +1854,27 @@ namespace UnityEngine.Rendering
             ReceiverSphereCuller receiverSphereCuller;
             FrustumPlaneCuller frustumPlaneCuller;
             float screenRelativeMetric;
+            float meshLodConstant;
 
             fixed (BatchCullingContext* contextPtr = &cc)
             {
                 new SetupCullingJobInput()
                 {
                     lodBias = QualitySettings.lodBias,
+                    meshLodThreshold =  QualitySettings.meshLodThreshold,
                     context = contextPtr,
                     frustumPlaneCuller = &frustumPlaneCuller,
                     receiverPlanes = &receiverPlanes,
                     receiverSphereCuller = &receiverSphereCuller,
                     screenRelativeMetric = &screenRelativeMetric,
-
+                    meshLodConstant = &meshLodConstant,
                 }.Run();
             }
 
             if (occlusionCullingCommon != null)
                 occlusionCullingCommon.UpdateSilhouettePlanes(cc.viewID.GetInstanceID(), receiverPlanes.SilhouettePlaneSubArray());
+
+            var jobHandle = AnimateCrossFades(perCameraInstanceData, cc, out var cameraInstanceData, out var hasAnimatedCrossfade);
 
             var cullingJob = new CullingJob
             {
@@ -1593,20 +1887,23 @@ namespace UnityEngine.Rendering
                 worldToLightSpaceRotation = receiverSphereCuller.worldToLightSpaceRotation,
                 cullLightmappedShadowCasters = (cc.cullingFlags & BatchCullingFlags.CullLightmappedShadowCasters) != 0,
                 cameraPosition = cc.lodParameters.cameraPosition,
+                sqrMeshLodSelectionConstant = meshLodConstant * meshLodConstant,
                 sqrScreenRelativeMetric = screenRelativeMetric * screenRelativeMetric,
                 minScreenRelativeHeight = smallMeshScreenPercentage * 0.01f,
                 isOrtho = cc.lodParameters.isOrthographic,
+                animateCrossFades = hasAnimatedCrossfade,
                 instanceData = instanceData,
                 sharedInstanceData = sharedInstanceData,
+                cameraInstanceData = cameraInstanceData,
                 lodGroupCullingData = lodGroupCullingData,
                 occlusionBuffer = cc.occlusionBuffer,
                 rendererVisibilityMasks = rendererVisibilityMasks,
+                rendererMeshLodSettings = rendererMeshLodSettings,
                 rendererCrossFadeValues = rendererCrossFadeValues,
                 maxLOD = QualitySettings.maximumLODLevel,
                 cullingLayerMask = cc.cullingLayerMask,
                 sceneCullingMask = cc.sceneCullingMask,
-
-            }.Schedule(instanceData.instancesLength, CullingJob.k_BatchSize);
+            }.Schedule(instanceData.instancesLength, CullingJob.k_BatchSize, jobHandle);
 
             receiverPlanes.Dispose(cullingJob);
             frustumPlaneCuller.Dispose(cullingJob);
@@ -1618,14 +1915,14 @@ namespace UnityEngine.Rendering
         private int ComputeWorstCaseDrawCommandCount(
             in BatchCullingContext cc,
             BinningConfig binningConfig,
-            CPUDrawInstanceData drawInstanceData,
-            int crossFadedRendererCount)
+            CPUDrawInstanceData drawInstanceData)
         {
             int visibleInstancesCount = drawInstanceData.drawInstances.Length;
             int drawCommandCount = drawInstanceData.drawBatches.Length;
 
             // add the number of batches split due to actively cross-fading
-            drawCommandCount += math.min(crossFadedRendererCount, drawCommandCount);
+            if (binningConfig.supportsCrossFade)
+                drawCommandCount *= 2;
 
             // batches can be split due to flip winding
             drawCommandCount *= 2;
@@ -1653,11 +1950,11 @@ namespace UnityEngine.Rendering
             BatchCullingOutput cullingOutput,
             in CPUInstanceData.ReadOnly instanceData,
             in CPUSharedInstanceData.ReadOnly sharedInstanceData,
+            in CPUPerCameraInstanceData perCameraInstanceData,
             in GPUInstanceDataBuffer.ReadOnly instanceDataBuffer,
             NativeList<LODGroupCullingData> lodGroupCullingData,
             CPUDrawInstanceData drawInstanceData,
             NativeParallelHashMap<uint, BatchID> batchIDs,
-            int crossFadedRendererCount,
             float smallMeshScreenPercentage,
             OcclusionCullingCommon occlusionCullingCommon)
         {
@@ -1673,16 +1970,17 @@ namespace UnityEngine.Rendering
             var binningConfig = new BinningConfig
             {
                 viewCount = cc.cullingSplits.Length,
-                supportsCrossFade = (crossFadedRendererCount > 0),
+                supportsCrossFade = QualitySettings.enableLODCrossFade,
                 supportsMotionCheck = (cc.viewType == BatchCullingViewType.Camera), // TODO: could disable here if RP never needs object motion vectors, for now always batch on it
             };
 
             var visibilityLength = instanceData.handlesLength;
             var rendererVisibilityMasks = new NativeArray<byte>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             var rendererCrossFadeValues = new NativeArray<byte>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var rendererMeshLodSettings = new NativeArray<byte>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-            var cullingJobHandle = CreateFrustumCullingJob(cc, instanceData, sharedInstanceData, lodGroupCullingData, binningConfig,
-                smallMeshScreenPercentage, occlusionCullingCommon, rendererVisibilityMasks, rendererCrossFadeValues);
+            var cullingJobHandle = CreateFrustumCullingJob(cc, instanceData, sharedInstanceData, perCameraInstanceData, lodGroupCullingData, binningConfig,
+                smallMeshScreenPercentage, occlusionCullingCommon, rendererVisibilityMasks, rendererMeshLodSettings, rendererCrossFadeValues);
 
 #if UNITY_EDITOR
             // Unfortunately BatchCullingContext doesn't provide full visibility and picking context.
@@ -1698,13 +1996,13 @@ namespace UnityEngine.Rendering
             {
                 // This outputs picking draw commands for the objects that can be picked.
                 cullingJobHandle = CreatePickingCullingOutputJob_EditorOnly(cc, cullingOutput, instanceData, sharedInstanceData, instanceDataBuffer,
-                    drawInstanceData, batchIDs, rendererVisibilityMasks, rendererCrossFadeValues, cullingJobHandle);
+                    drawInstanceData, batchIDs, rendererVisibilityMasks, rendererMeshLodSettings, rendererCrossFadeValues, cullingJobHandle);
             }
             else if (cc.viewType == BatchCullingViewType.Filtering)
             {
                 // This outputs draw commands for the objects filtered by search input in the hierarchy on in the scene view.
-                cullingJobHandle = CreateFilteringCullingOutputJob_EditorOnly(cc, cullingOutput, instanceData, sharedInstanceData, instanceDataBuffer, drawInstanceData,
-                    batchIDs, rendererVisibilityMasks, rendererCrossFadeValues, cullingJobHandle);
+                cullingJobHandle = CreateFilteringCullingOutputJob_EditorOnly(cc, cullingOutput, instanceData, sharedInstanceData, instanceDataBuffer,
+                    drawInstanceData, batchIDs, rendererVisibilityMasks, rendererMeshLodSettings, rendererCrossFadeValues, cullingJobHandle);
             }
 #endif
             // This outputs regular draw commands.
@@ -1719,7 +2017,7 @@ namespace UnityEngine.Rendering
                 }
 
                 var batchCount = drawInstanceData.drawBatches.Length;
-                int maxBinCount = ComputeWorstCaseDrawCommandCount(cc, binningConfig, drawInstanceData, crossFadedRendererCount);
+                int maxBinCount = ComputeWorstCaseDrawCommandCount(cc, binningConfig, drawInstanceData);
 
                 var batchBinAllocOffsets = new NativeArray<int>(batchCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var batchBinCounts = new NativeArray<int>(batchCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
@@ -1748,6 +2046,7 @@ namespace UnityEngine.Rendering
                     drawInstanceIndices = drawInstanceData.drawInstanceIndices,
                     instanceData = instanceData,
                     rendererVisibilityMasks = rendererVisibilityMasks,
+                    rendererMeshLodSettings = rendererMeshLodSettings,
                     batchBinAllocOffsets = batchBinAllocOffsets,
                     batchBinCounts = batchBinCounts,
                     binAllocCounter = binAllocCounter,
@@ -1787,6 +2086,7 @@ namespace UnityEngine.Rendering
                     drawInstanceIndices = drawInstanceData.drawInstanceIndices,
                     instanceData = instanceData,
                     rendererVisibilityMasks = rendererVisibilityMasks,
+                    rendererMeshLodSettings = rendererMeshLodSettings,
                     rendererCrossFadeValues = rendererCrossFadeValues,
                     batchBinAllocOffsets = batchBinAllocOffsets,
                     batchBinCounts = batchBinCounts,
@@ -1813,6 +2113,7 @@ namespace UnityEngine.Rendering
 
             cullingJobHandle = rendererVisibilityMasks.Dispose(cullingJobHandle);
             cullingJobHandle = rendererCrossFadeValues.Dispose(cullingJobHandle);
+            cullingJobHandle = rendererMeshLodSettings.Dispose(cullingJobHandle);
 
             return cullingJobHandle;
         }
@@ -1886,7 +2187,7 @@ namespace UnityEngine.Rendering
 
         private JobHandle CreateFilteringCullingOutputJob_EditorOnly(in BatchCullingContext cc, BatchCullingOutput cullingOutput,
             in CPUInstanceData.ReadOnly instanceData, in CPUSharedInstanceData.ReadOnly sharedInstanceData, in GPUInstanceDataBuffer.ReadOnly instanceDataBuffer,
-            in CPUDrawInstanceData drawInstanceData, NativeParallelHashMap<uint, BatchID> batchIDs, NativeArray<byte> rendererVisibilityMasks,
+            in CPUDrawInstanceData drawInstanceData, NativeParallelHashMap<uint, BatchID> batchIDs, NativeArray<byte> rendererVisibilityMasks, NativeArray<byte> rendererMeshLodSettings,
             NativeArray<byte> rendererCrossFadeValues, JobHandle cullingJobHandle)
         {
             NativeArray<bool> filteredRenderers = new NativeArray<bool>(sharedInstanceData.rendererGroupIDs.Length, Allocator.TempJob);
@@ -1899,6 +2200,7 @@ namespace UnityEngine.Rendering
                 batchIDs = batchIDs,
                 instanceDataBuffer = instanceDataBuffer,
                 rendererVisibilityMasks = rendererVisibilityMasks,
+                rendererMeshLodSettings = rendererMeshLodSettings,
                 rendererCrossFadeValues = rendererCrossFadeValues,
                 instanceData = instanceData,
                 sharedInstanceData = sharedInstanceData,
@@ -1923,6 +2225,7 @@ namespace UnityEngine.Rendering
         private JobHandle CreatePickingCullingOutputJob_EditorOnly(in BatchCullingContext cc, BatchCullingOutput cullingOutput,
             in CPUInstanceData.ReadOnly instanceData, in CPUSharedInstanceData.ReadOnly sharedInstanceData, in GPUInstanceDataBuffer.ReadOnly instanceDataBuffer,
             in CPUDrawInstanceData drawInstanceData, NativeParallelHashMap<uint, BatchID> batchIDs, NativeArray<byte> rendererVisibilityMasks,
+            NativeArray<byte> rendererMeshLodSettings,
             NativeArray<byte> rendererCrossFadeValues, JobHandle cullingJobHandle)
         {
             // GPUResindetDrawer doesn't handle rendering of persistent game objects like prefabs. They are rendered by SRP.
@@ -1940,6 +2243,7 @@ namespace UnityEngine.Rendering
                 batchIDs = batchIDs,
                 instanceDataBuffer = instanceDataBuffer,
                 rendererVisibilityMasks = rendererVisibilityMasks,
+                rendererMeshLodSettings = rendererMeshLodSettings,
                 rendererCrossFadeValues = rendererCrossFadeValues,
                 instanceData = instanceData,
                 sharedInstanceData = sharedInstanceData,
@@ -1965,7 +2269,6 @@ namespace UnityEngine.Rendering
         }
 
 #endif
-
         public void InstanceOccludersUpdated(int viewInstanceID, int subviewMask, RenderersBatchersContext batchersContext)
         {
             if (m_DebugStats?.enabled ?? false)
@@ -2310,10 +2613,12 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        public void UpdateFrame()
+        public void UpdateFrame(int cameraCount)
         {
-            DisposeSceneViewHiddenBits();
             DisposeCompactVisibilityMasks();
+            if (cameraCount > m_LODParamsToCameraID.Capacity)
+                m_LODParamsToCameraID.Capacity = cameraCount;
+            m_LODParamsToCameraID.Clear();
             FlushDebugCounters();
             m_IndirectStorage.ClearContextsAndGrowBuffers();
         }
@@ -2341,6 +2646,7 @@ namespace UnityEngine.Rendering
             m_ShaderVariables.Dispose();
             m_ConstantBuffer.Release();
             m_CommandBuffer.Dispose();
+            m_LODParamsToCameraID.Dispose();
         }
     }
 }

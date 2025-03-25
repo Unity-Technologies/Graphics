@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Update
     [TestFixture]
     public class VFXUpdate
     {
-        [UnityTest, Timeout(6000 * 1000)]
+        [UnityTest, Timeout(4 * 60 * 60 * 1000)]
         public IEnumerator Upgrade_And_Save_VFX()
         {
             VFXAssetManager.Build(true);

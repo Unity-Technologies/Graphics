@@ -5,6 +5,7 @@ using UnityEngine.Assertions;
 using System.Text.RegularExpressions;
 using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.RenderGraphModule;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -341,10 +342,9 @@ namespace UnityEngine.Rendering
 
         internal static bool CanCopyMSAA()
         {
-            //Temporary disable most msaa copies as we fix UUM-67324 which is a bit more involved due to the internal work required
-            GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
-            if (deviceType != GraphicsDeviceType.Metal || deviceType != GraphicsDeviceType.Vulkan)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4)
             {
+                // Will be done later, see: UUM-97281
                 return false;
             }
 
@@ -354,10 +354,34 @@ namespace UnityEngine.Rendering
             return s_Copy.passCount == 2;
         }
 
+        internal static bool CanCopyMSAA(in TextureDesc sourceDesc)
+        {
+
+            // Real native renderpass platforms
+            // TODO: Expose this through systeminfo
+            bool hasRenderPass =
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal
+                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan
+                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12;
+
+            if (SystemInfo.supportsMultisampleAutoResolve &&
+                !hasRenderPass && sourceDesc.bindTextureMS == false)
+            {
+                // If we have autoresolve it means msaa rendertextures render as MSAA but  magically resolve in the driver when accessed as a texture, the MSAA surface is fully hidden inside the GFX device
+                // this is contrary to most platforms where the resolve magic on reading happens in the engine layer (and thus allocates proper multi sampled and resolve surfaces the engine can access)
+                // So in the cases of auto resolving, and a renderpass framebuffer fetch emulation layer we can't correctly access the individual unresolved msaa samples and thus don't allow this case here
+                // Note: In practice the above check mostly triggers on GLES.
+                return false;
+            }
+
+            return CanCopyMSAA();
+        }
+
         /// <summary>
         /// Copies a texture to another texture using framebuffer fetch.
         /// </summary>
         /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="isMSAA">Use the MSAA variant of the copy shader (otherwise single sample is used).</param>
         /// <param name="force2DForXR">Disable the special handling when XR is active where the source and destination are considered array
         /// textures with a slice for each eye. Setting this to true will consider source and destination as regular 2D textures. When XR is
         /// disabled, textures are always 2D so forcing them to 2D has no impact.</param>
@@ -684,6 +708,42 @@ namespace UnityEngine.Rendering
         /// ]]></code>
         /// </example>
         public static void BlitTexture(RasterCommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
+        {
+            BlitTexture(cmd.m_WrappedCommandBuffer, source, scaleBias, material, pass);
+        }
+
+        /// <summary>
+        /// Adds in a <see cref="UnsafeCommandBuffer"/> a command to copy a texture identified by its <see cref="RTHandle"/> into
+        /// the currently bound render target's color buffer, using a user material and specific shader pass.
+        /// </summary>
+        /// <remarks>
+        /// The <c>source</c> texture will be bound to the "_BlitTexture" shader property.
+        /// The <c>scaleBias</c> parameter controls the rectangle of pixels in the source texture to copy by manipulating
+        /// the source texture coordinates. The X and Y coordinates store the scaling factor to apply to these texture
+        /// coordinates, while the Z and W coordinates store the texture coordinate offsets. The operation will always
+        /// write to the full destination render target rectangle.
+        /// </remarks>
+        /// <param name="cmd">Command Buffer used for recording the action.</param>
+        /// <param name="source">RTHandle of the source texture to copy from.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the source texture.</param>
+        /// <param name="material">The material to use for writing to the destination target.</param>
+        /// <param name="pass">The index of the pass to use in the material's shader.</param>
+        /// <example>
+        /// <code lang="cs"><![CDATA[
+        /// // Copy the bottom left quadrant of the source texture to the render target using the first
+        /// // pass of a custom material, scaling to the destination render target's full rectangle.
+        /// // Configure the scale value to 0.5 because a quadrant has half the width and half the
+        /// // height of the texture, and the bias to 0 because the texture coordinate origin is at
+        /// // the bottom left.
+        /// Blitter.BlitTexture(cmd, source, new Vector4(0.5, 0.5, 0, 0), blitMaterial, 0);
+        ///
+        /// // Copy the top half of the source texture mip level 4 to the render target using the
+        /// // second pass of a custom material, scaling to the destination render target's full
+        /// // rectangle.
+        /// Blitter.BlitTexture(cmd, source, new Vector4(1, 0.5, 0, 0.5), blitMaterial, 1);
+        /// ]]></code>
+        /// </example>
+        public static void BlitTexture(UnsafeCommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
         {
             BlitTexture(cmd.m_WrappedCommandBuffer, source, scaleBias, material, pass);
         }

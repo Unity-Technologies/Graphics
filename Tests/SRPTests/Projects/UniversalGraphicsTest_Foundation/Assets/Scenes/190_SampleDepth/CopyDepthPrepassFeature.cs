@@ -14,11 +14,9 @@ using UnityEngine.Rendering.Universal.Internal;
 /// </summary>
 internal class ForceDepthPrepassFeature : ScriptableRendererFeature
 {
-    [SerializeField]
-    [Reload("Shaders/Utils/CopyDepth.shader")]
-    private Shader m_CopyDepthPS;
-    private ThreeCopyDepths copyDepthPasses;
-    private const int k_NumOfMaterials = 3;
+    Shader m_CopyDepthPS;
+    ThreeCopyDepths copyDepthPasses;
+    const int k_NumOfMaterials = 3;
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
@@ -34,6 +32,7 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
             copyDepthPasses.EnqueuePasses(renderer);
     }
 
+    [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {
         copyDepthPasses.SetupForNonRGPath(renderer, renderingData.cameraData.cameraTargetDescriptor);
@@ -46,6 +45,7 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
 
     private bool Init()
     {
+        m_CopyDepthPS = GraphicsSettings.GetRenderPipelineSettings<ForceDepthPrepassFeatureResources>()?.CopyDepthPS;
         if (m_CopyDepthPS == null)
             return false;
 
@@ -60,8 +60,11 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
 
     protected override void Dispose(bool disposing)
     {
-        copyDepthPasses.Dispose();
-        copyDepthPasses = null;
+        if (copyDepthPasses != null)
+        {
+            copyDepthPasses.Dispose();
+            copyDepthPasses = null;
+        }
     }
 }
 

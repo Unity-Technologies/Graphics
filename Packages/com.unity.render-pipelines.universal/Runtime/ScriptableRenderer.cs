@@ -9,19 +9,33 @@ using UnityEngine.Rendering.RenderGraphModule;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    ///  Class <c>ScriptableRenderer</c> implements a rendering strategy. It describes how culling and lighting works and
-    /// the effects supported.
-    ///
-    /// TODO RENDERGRAPH: UPDATE THIS DOC FOR THE RENDERGRAPH PATH
-    ///  A renderer can be used for all cameras or be overridden on a per-camera basis. It will implement light culling and setup
-    /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. The renderer can be extended to support more effect with additional
-    ///  <c>ScriptableRendererFeature</c>. Resources for the renderer are serialized in <c>ScriptableRendererData</c>.
-    ///
-    /// The renderer resources are serialized in <c>ScriptableRendererData</c>.
-    /// <seealso cref="ScriptableRendererData"/>
-    /// <seealso cref="ScriptableRendererFeature"/>
-    /// <seealso cref="ScriptableRenderPass"/>
+    /// Class <c>ScriptableRenderer</c> implements a rendering strategy. It describes how culling and lighting work and
+    /// the effects supported. A custom scriptable renderer is the lowest level of extensibility of URP. It allows you
+    /// to implement a fully new rendering strategy at the expense of a lot more complexity and work. However, It's still
+    /// a lot less work and more maintainable than writing a full-fledged custom render pipeline.
+    /// If you want to simply extend the existing URP renderers (2D and 3D), using <c>ScriptableRendererFeature</c> should
+    /// always be considered first.
     /// </summary>
+    /// <remarks>
+    /// A renderer can be used for all cameras or be overridden on a per-camera basis. It will implement light culling and setup
+    /// and describe a list of <c>ScriptableRenderPass</c> to execute in a frame. It will also define the RenderGraph to execute.
+    /// External users can then again extend your scriptable renderer to support more effects with additional <c>ScriptableRendererFeatures</c>.
+    ///
+    /// The <c>ScriptableRenderer</c> is a run-time object. The resources and asset data for the renderer are serialized in
+    /// <c>ScriptableRendererData</c> (more specifically a class derived from <c>ScriptableRendererData</c> which contains additional data for your renderer).
+    /// 
+    /// The high-level steps needed to create and use your own scriptable renderer are:
+    /// 
+    /// 1. Create subclasses of  <c>ScriptableRenderer</c> and <c>ScriptableRendererData</c> and implement the rendering logic. Key functions to implement here are:
+    /// <c>ScriptableRenderer.OnRecordRenderGraph</c> which will define the rendergraph to execute when rendering a camera. And <c>ScriptableRendererData.Create</c> to create
+    /// an instance of your new <c>ScriptableRenderer</c> subclass.
+    /// 2. Create an asset of your new <c>ScriptableRendererData</c> subclass and assign it to the renderer asset field in the URP asset so it gets picked
+    /// up at run time.
+    /// </remarks>
+    /// <example>
+    /// You can find a code sample in the URP tests package in the "Graphics/Tests/SRPTests/Packages/com.unity.testing.urp/Scripts/Runtime/CustomRenderPipeline/" folder
+    /// of the SRP repository.
+    /// </example>
     public abstract partial class ScriptableRenderer : IDisposable
     {
         private static partial class Profiling
@@ -69,10 +83,10 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// This setting controls if the camera editor should display the camera stack category.
-        /// If your renderer is not supporting stacking this one should return 0.
-        /// For the UI to show the Camera Stack widget this must support CameraRenderType.Base.
-        /// <see cref="CameraRenderType"/>
+        /// If your scriptable renderer is not supporting stacking this one should return 0.
+        /// For the UI to show the Camera Stack widget this must at least support CameraRenderType.Base.
         /// </summary>
+        /// <seealso cref="CameraRenderType"/>
         /// <returns>The bitmask of the supported camera render types in the renderer's current state.</returns>
         public virtual int SupportedCameraStackingTypes()
         {
@@ -80,8 +94,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Check if the given camera render type is supported in the renderer's current state.
+        /// Check if the given camera render type is supported in the renderer's current state. The default implementation
+        /// simply checks if the camera type is part of the <see cref="SupportedCameraStackingTypes'"/> bitmask.
         /// </summary>
+        /// <seealso cref="CameraRenderType"/>        
         /// <param name="cameraRenderType">The camera render type that is checked if supported.</param>
         /// <returns>True if the given camera render type is supported in the renderer's current state.</returns>
         public bool SupportsCameraStackingType(CameraRenderType cameraRenderType)
@@ -115,7 +131,7 @@ namespace UnityEngine.Rendering.Universal
         protected ProfilingSampler profilingExecute { get; set; }
 
         /// <summary>
-        /// Used to determine whether to release render targets used by the renderer when the renderer is no more active
+        /// Used to determine whether to release render targets used by the renderer when the renderer is no more active.
         /// </summary>
         internal bool hasReleasedRTs = true;
 
@@ -127,15 +143,15 @@ namespace UnityEngine.Rendering.Universal
         {
             /// <summary>
             /// This setting controls if the camera editor should display the camera stack category.
-            /// Renderers that don't support camera stacking will only render camera of type CameraRenderType.Base
-            /// <see cref="CameraRenderType"/>
-            /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
+            /// Renderers that don't support camera stacking will only render cameras of type CameraRenderType.Base
             /// </summary>
+            /// <seealso cref="CameraRenderType"/>
+            /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
             [Obsolete("cameraStacking has been deprecated use SupportedCameraRenderTypes() in ScriptableRenderer instead.", true)]
             public bool cameraStacking { get; set; } = false;
 
             /// <summary>
-            /// This setting controls if the Universal Render Pipeline asset should expose MSAA option.
+            /// This setting controls if the Universal Render Pipeline asset should expose the MSAA option.
             /// </summary>
             public bool msaa { get; set; } = true;
         }
@@ -153,7 +169,7 @@ namespace UnityEngine.Rendering.Universal
         internal static ScriptableRenderer current = null;
 
         /// <summary>
-        /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to camera matrices.
+        /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to the camera matrices.
         /// Additionally this will also set <c>unity_CameraProjection</c> and <c>unity_CameraProjection</c>.
         /// If <c>setInverseMatrices</c> is set to true this function will also set <c>UNITY_MATRIX_I_V</c> and <c>UNITY_MATRIX_I_VP</c>.
         /// This function has no effect when rendering in stereo. When in stereo rendering you cannot override camera matrices.
@@ -555,8 +571,8 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns a list of renderer features added to this renderer.
-        /// <seealso cref="ScriptableRendererFeature"/>
         /// </summary>
+        /// <seealso cref="ScriptableRendererFeature"/>
         protected List<ScriptableRendererFeature> rendererFeatures
         {
             get => m_RendererFeatures;
@@ -564,23 +580,25 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns a list of render passes scheduled to be executed by this renderer.
-        /// <seealso cref="ScriptableRenderPass"/>
         /// </summary>
+        /// <seealso cref="ScriptableRenderPass"/>
         protected List<ScriptableRenderPass> activeRenderPassQueue
         {
             get => m_ActiveRenderPassQueue;
         }
 
         /// <summary>
-        /// Supported rendering features by this renderer.
-        /// <see cref="SupportedRenderingFeatures"/>
+        /// Supported rendering features by this renderer. The scriptable renderer framework will use the returned information
+        /// to adjust things like inspectors, etc.
         /// </summary>
+        /// <seealso cref="SupportedRenderingFeatures"/>
         public RenderingFeatures supportedRenderingFeatures { get; set; } = new RenderingFeatures();
 
         /// <summary>
-        /// List of unsupported Graphics APIs for this renderer.
-        /// <see cref="unsupportedGraphicsDeviceTypes"/>
+        /// List of unsupported Graphics APIs for this renderer.The scriptable renderer framework will use the returned information
+        /// to adjust things like inspectors, etc.
         /// </summary>
+        /// <seealso cref="GraphicsDeviceType"/>
         public GraphicsDeviceType[] unsupportedGraphicsDeviceTypes { get; set; } = new GraphicsDeviceType[0];
 
         static class RenderPassBlock
@@ -604,7 +622,8 @@ namespace UnityEngine.Rendering.Universal
         const int k_RenderPassBlockCount = 4;
 
         /// <summary>
-        /// The RTHandle for the Camera Target.
+        /// An RTHandle wrapping the <c>BuiltinRenderTextureType.CameraTarget</c> render target. This is a helper
+        /// that avoids having to (re)allocate a new RTHandle every time the camera target is needed.
         /// </summary>
         protected static readonly RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
@@ -675,6 +694,11 @@ namespace UnityEngine.Rendering.Universal
         private static Plane[] s_Planes = new Plane[6];
         private static Vector4[] s_VectorPlanes = new Vector4[6];
 
+        /// <summary>
+        /// In URP RenderGraph (likely not in Compatibility Mode), this returns if the pipeline will actually perform depth priming.
+        /// Depth priming is done with a prepass to the activeCameraDepth.
+        /// Even when the settings on the URP asset requests depth priming the pipeline can decide not to do it (or vice versa).
+        /// </summary>
         internal bool useDepthPriming { get; set; } = false;
 
         internal bool stripShadowsOffVariants { get; set; } = false;
@@ -740,7 +764,7 @@ namespace UnityEngine.Rendering.Universal
         /// Override this function to clean up resources in your renderer.
         /// Be sure to call this base dispose in your overridden function to free resources allocated by the base.
         /// </summary>
-        /// <param name="disposing"></param>
+        /// <param name="disposing">See the definition of IDisposable.</param>
         protected virtual void Dispose(bool disposing)
         {
             DebugHandler?.Dispose();
@@ -824,13 +848,15 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Called upon finishing rendering the camera stack. You can release any resources created by the renderer here.
         /// </summary>
-        /// <param name="cmd"></param>
+        /// <param name="cmd">The command buffer where any work should be recorded on..</param>
         public virtual void FinishRendering(CommandBuffer cmd)
         {
         }
 
         /// <summary>
-        /// Override this method to initialize before recording the render graph, such as resources.
+        /// Override this method to initialize anything before starting the recording of the render graph, such as resources.
+        /// This is the last point where it is ok to call <c>ScriptableRenderer.EnqueuePass</c> as after this function the
+        /// queue will be sorted for the frame.
         /// </summary>
         public virtual void OnBeginRenderGraphFrame()
         {
@@ -839,14 +865,15 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Override this method to record the RenderGraph passes to be used by the RenderGraph render path.
         /// </summary>
-        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
-        /// <param name="renderingData">Current render state information.</param>
+        /// <param name="renderGraph">The rendergraph to schedule passes on.</param>
+        /// <param name="context">The render context to use when creating rendering lists or performing culling operations. Ideally, graphics work should be executed through rendergraph so is is not recommended to use <c>ScriptableRenderContext.ExecuteCommandBuffer</c>. </param>
         internal virtual void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
         }
 
         /// <summary>
         /// Override this method to cleanup things after recording the render graph, such as resources.
+        /// This executes after the render graph is recorded but before it is compiled and executed.
         /// </summary>
         public virtual void OnEndRenderGraphFrame()
         {
@@ -1252,29 +1279,6 @@ namespace UnityEngine.Rendering.Universal
         internal void RecordCustomRenderGraphPasses(RenderGraph renderGraph, RenderPassEvent injectionPoint)
         {
             RecordCustomRenderGraphPasses(renderGraph, injectionPoint, injectionPoint);
-        }
-
-        // ScriptableRenderPass if executed in a critical point (such as in between Deferred and GBuffer) has to have
-        // interruptFramebufferFetchEvent set to actually interrupt it so we could fall back to non framebuffer fetch path
-        internal bool InterruptFramebufferFetch(FramebufferFetchEvent fetchEvent, RenderPassEvent startInjectionPoint, RenderPassEvent endInjectionPoint)
-        {
-            int range = ScriptableRenderPass.GetRenderPassEventRange(endInjectionPoint);
-            int nextValue = (int) endInjectionPoint + range;
-
-            foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
-            {
-                if (pass.renderPassEvent >= startInjectionPoint && (int) pass.renderPassEvent < nextValue)
-                    switch (fetchEvent)
-                    {
-                        case FramebufferFetchEvent.FetchGbufferInDeferred:
-                            if (pass.breakGBufferAndDeferredRenderPass)
-                                return true;
-                            break;
-                        default:
-                            continue;
-                    }
-            }
-            return false;
         }
 
         internal void SetPerCameraProperties(ScriptableRenderContext context, UniversalCameraData cameraData, Camera camera,

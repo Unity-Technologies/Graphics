@@ -8,7 +8,7 @@ This page contains an overview of new features, improvements, and issues resolve
 
 Adaptive Probe Volumes can now be enhance with [Sky Occlusion](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.0/manual/probevolumes-skyocclusion.html) baking.
 
-![](Images/WhatsNew17_SkyOcclusionTOD.png)
+![The exterior of an apartment building lit differently in the morning, afternoon, and evening.](Images/WhatsNew17_SkyOcclusionTOD.png)
 
 This add a way to perform dynamic time of day for exterior with a sun light on top of a static lighting scenario like for interior done with Adaptive Probe Volumes.
 
@@ -16,9 +16,6 @@ This add a way to perform dynamic time of day for exterior with a sun light on t
 
 #### Fallback
 New user interface for upscaler fallbacks. This new user interface will help the user set their preference in case a platform or API does not support such upscaler.
-
-![](Images/stp-upscaler-ux.png)
-
 
 #### AMD FidelityFX 2.1 Super Resolution for Windows
 
@@ -28,13 +25,11 @@ Support for AMD FidelityFX 2.1 Super Resolution for Dx11, Dx12, Vulkan in any GP
 
 Support for the Spatial-Temporal Post-Processing (STP) upscaler has been added for all platforms. This upscaler produces higher quality visuals than the existing TAAU upscaler, but it only supports dynamic resolution when the hardware dynamic resolution mode is active. This means APIs such as DX11 are only capable of using STP when the resolution scale is forced to a fixed percentage.
 
-![](Images/stp-comparison.png)
-
 ### SpeedTree
 
 Support of SpeedTree 9 files (.st9) exported by the SpeedTree Modeler application. Speedtree is now compatible with GPU Resident Drawer introduced in this release for improve CPU performance. In addition re-designs the SpeedTreeWind & SpeedTreeWindManager implementations to support multiple SpeedTree wind technologies as well as scalable CPU performance. Performance improvements depends on number of tree instances with wind, a speed up of x5-x10 CPU can be observe on MainThread and RenderThread depends on scenario.
 
-![](Images/fantasy_kingdom_environment.jpg)
+![The [Fantasy Kingdom](https://unity.com/demos/fantasy-kingdom) scene with trees in bright autumn colors.](Images/fantasy_kingdom_environment.jpg)
 
 ### Path Tracing
 
@@ -42,13 +37,13 @@ Support of SpeedTree 9 files (.st9) exported by the SpeedTree Modeler applicatio
 
 Disc and tube shaped area lights are now supported with path tracing.
 
-![](Images/Path-traced-tube-disc-lights.png)
+![A car with underbody lights.](Images/Path-traced-tube-disc-lights.png)
 
 #### Separate Volumetric Fog denoising
 
 The HDRP path tracer now offers an option to denoise the volumetric fog effect separately from the full color output.
 
-![](Images/Separate-volumetric-denoising.png)
+![A foggy town square scene, with separate volumetric fog denoising on the left that provides smoother fog.](Images/Separate-volumetric-denoising.png)
 
 ### Performance
 
@@ -58,11 +53,9 @@ GPU Resident Drawer Leveraging the power of the [Batch Render Group API](https:/
 
 The extra GPU Culling functionality built on top of GPU Resident drawer allows for GPU-side culling of instances that do not contribute to the final image. This can help to improve GPU performance in scenes with heavy overdraw, and does not require any additional authoring to try out. With Rendering Debugger integration.
 
-![](Images/gpu-occlusion-culling.png)
+![The Rendering Debugger displaying occlusion culling information.](Images/gpu-occlusion-culling.png)
 
 Enable GPU Resident Drawer and occlusion culling via checkbox on the SRP asset.
-
-![](Images/gpu-occlusion-culling-ux.png)
 
 ## Updated
 
@@ -78,8 +71,6 @@ A new toggle was also added to the Probe Volume Graphics settings to disable the
 
 Planet parametrization for effects like fog, physically based sky and volumetric clouds have been moved to a shared place in the [Visual Environement override](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.0/manual/visual-environment-volume-override-reference).
 
-![](Images/environment-plane-settings.jpg)
-
 #### Physically Based Sky
 
 The Physically Based sky has received a set of improvements and optimizations.
@@ -88,17 +79,15 @@ The memory usage for the precomputed tables has also been reduced. Memory and pe
 
 Additionally, the PBR sky now includes an ozone layer as part of the atmosphere model. This is especially noticeable when the sun is close to the horizon.
 
-![](Images/ozone.png)
+![A cloudy sky at sunset, with an ozone layer on the right that darkens the sky.](Images/ozone.png)
 
 Finally, aerial perspective can now be enabled to simulate light absorption by particles in the atmosphere when looking at objects in the distance, such as mountains or clouds.
-![](Images/scattering.png)
+![A cloudy sky, with atmospheric scattering on the right that makes the centre of the clouds brighter.](Images/scattering.png)
 
 #### Volumetric clouds
 
 The volumetric clouds are not clipped by the far plane anymore. Additionally, earth curvature control was removed as Planet settings are now controlled from the Visual Environement.
 Local Clouds option is also removed, as far plane clipping does not happen anymore. To preserve the behavior of camera not being able to go inside the clouds, you should now set the **Rendering Space** option in **Camera Space** from the Visual Environement
-
-![](Images/visualenvironment-renderingspace.png)
 
 #### Water system
 
@@ -106,15 +95,15 @@ Support of GameObject transform on Water Surfaces have been improved. Infinite O
 Added a Water Decal target for ShaderGraph in order to output water deformation and foam directly to the atlas, and avoid going through a CustomRenderTexture. Using the same graph also simplifies authoring when deformation and foam generation are linked.
 Additionally foam is now animated to follow the current direction.
 
-![](Images/water-decal.png)
+![A shader graph with a Water Decal target, and the effect it produces on a lake.](Images/water-decal.png)
 
 Underwater rendering now supports using the volumetric fog to rendering god rays and light shafts.
 
-![](Images/volumetric-underwater.png)
+![An underwater view with light shafts shining through from above.](Images/volumetric-underwater.png)
 
 Finally, a node has been added to the shadergraph to sample the height of the camera relative to the water surface. It can be used to create water drips and droplets on the camera. Refer to the underwater scene from the water samples in the package manager to see it in action.
 
-![](Images/Waterline.png)
+![A camera at the surface level of an ocean, with droplets on the lens.](Images/Waterline.png)
 
 #### Volumetric Fog
 
@@ -131,8 +120,6 @@ They are now more consistent and coherent across the different samples.
 There is more sharing between pipelines and packages and have dependencies in samples themselves.
 More explanations, links, files are included to better understand what is presented.
 
-![](Images/samples-materials.png)
-
 ### Lens Flare
 
 Lens Flares are now have improved XR support.
@@ -142,28 +129,22 @@ Additionally, a new ring procedural shape have been added as well as few other f
 - Support for radial gradient for procedural shapes.
 - Support for light override to be able to have multiple flares affected by one light. 
 
-![](Images/shared/lens-flare/lensflare-ring.png)
-
 ### Hair
 
 Improve the workflow for width of a line with the High Quality Line Rendering Feature. Users are now able to express the width in centimeter units on a per-vertex basis.
 
-![](Images/per-vertex-width-values.png)
+![At the top, eyebrows with no width values. At the bottom, eyebrows with per-vertex width values, which are softer. ](Images/per-vertex-width-values.png)
 
 Character using per-vertex width values for peach fuzz with uniform width of 0.01cm
 
-![](Images/orb-hair.png)
+![Character using per-vertex width values for peach fuzz with uniform width of 0.01cm.](Images/orb-hair.png)
 
 Also, a new rendering LOD mode based on screen coverage of a hair asset have been added to culls strands based on some kind of heuristic.
 The screen coverage LOD mode allows an artist to define an animation curve, where the x-axis is the ratio between the screen space bounding-box of the hair instance to the viewport. The y-axis is the percentage of strands to render based on this ratio.
 
-![](Images/ghost-beast.png)
-
 ### Area Lights
 
 Area light now used a "pillow" windowing function that is used for range attenuation of both rectangular and line lights. Both area (with cookie) and line lights now works correctly with every material type including Water, Hair, Fabric shaders, dual lobe SSS. In addition this version reduce the amount of CPU memory used to store LTC tables.
-
-![](Images/Area_Materials.png)
 
 ### Path Tracing
 

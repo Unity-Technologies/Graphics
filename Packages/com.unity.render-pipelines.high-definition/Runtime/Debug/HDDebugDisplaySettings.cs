@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             base.Reset();
             displayStats = Add(new DebugDisplaySettingsStats<HDProfileId>(new HDDebugDisplayStats()));
-            volumeSettings = Add(new DebugDisplaySettingsVolume(new HDVolumeDebugSettings()));
+            volumeSettings = Add(new DebugDisplaySettingsVolume());
             decalSettings = Add(new DebugDisplaySettingsDecal());
             gpuResidentDrawerSettings = Add(new DebugDisplayGPUResidentDrawer());
             cameraSettings = Add(new DebugDisplaySettingsCamera());

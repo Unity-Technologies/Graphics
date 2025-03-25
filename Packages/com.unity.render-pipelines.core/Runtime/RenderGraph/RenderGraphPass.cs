@@ -255,7 +255,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
-            colorBufferAccess[index].textureHandle = resource;
+            colorBufferAccess[index] = new TextureAccess(colorBufferAccess[index], resource);
             AddResourceWrite(resource.handle);
         }
 
@@ -267,10 +267,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (colorBufferAccess[index].textureHandle.handle.Equals(resource.handle) || !colorBufferAccess[index].textureHandle.IsValid())
             {
                 colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
-                colorBufferAccess[index].textureHandle = resource;
-                colorBufferAccess[index].flags = accessFlags;
-                colorBufferAccess[index].mipLevel = mipLevel;
-                colorBufferAccess[index].depthSlice = depthSlice;
+                colorBufferAccess[index] = new TextureAccess(resource, accessFlags, mipLevel, depthSlice);
             }
             else
             {
@@ -289,10 +286,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (fragmentInputAccess[index].textureHandle.handle.Equals(resource.handle) || !fragmentInputAccess[index].textureHandle.IsValid())
             {
                 fragmentInputMaxIndex = Math.Max(fragmentInputMaxIndex, index);
-                fragmentInputAccess[index].textureHandle = resource;
-                fragmentInputAccess[index].flags = accessFlags;
-                fragmentInputAccess[index].mipLevel = mipLevel;
-                fragmentInputAccess[index].depthSlice = depthSlice;
+                fragmentInputAccess[index] = new TextureAccess(resource, accessFlags, mipLevel, depthSlice);
             }
             else
             {

@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Test
             VFXTestCommon.CloseAllUnecessaryWindows();
         }
 
-        [OneTimeTearDown]
+        [TearDown]
         public void CleanUp()
         {
             VFXTestCommon.DeleteAllTemporaryGraph();
@@ -157,6 +157,99 @@ namespace UnityEditor.VFX.Test
             {
                 foreach (var mode in Enum.GetValues(typeof(VFXCompilationMode)))
                     yield return mode.ToString();
+            }
+        }
+
+        public struct ShaderIndexCase
+        {
+            public string Name;
+            internal Func<VFXAbstractRenderedOutput> fnGenerateOutput;
+
+            public override string ToString()
+            {
+                return Name;
+            }
+        }
+
+        public static ShaderIndexCase[] kShaderIndexCase = new[]
+        {
+            new ShaderIndexCase()
+            {
+                Name = "VFXComposedParticleOutput_Planar", fnGenerateOutput = () =>
+                {
+                    var output = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+                    output.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
+                    return output;
+                },
+            },
+            new ShaderIndexCase()
+            {
+                Name = "VFXComposedParticleOutput_Mesh", fnGenerateOutput = () =>
+                {
+                    var output = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+                    output.SetSettingValue("m_Topology", new ParticleTopologyMesh());
+                    return output;
+                },
+            },
+            new ShaderIndexCase()
+            {
+                Name = "VFXMeshOutput", fnGenerateOutput = () =>
+                {
+                    var output = ScriptableObject.CreateInstance<VFXMeshOutput>();
+                    return output;
+                },
+            },
+            new ShaderIndexCase()
+            {
+                Name = "VFXPlanarPrimitiveOutput", fnGenerateOutput = () =>
+                {
+                    var output = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+                    return output;
+                },
+            },
+        };
+
+        [Test]
+        public void CheckShaderIndexBehavior([ValueSource("kShaderIndexCase")] ShaderIndexCase shaderIndexCase)
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            graph.AddChild(spawner);
+
+            var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            graph.AddChild(contextInitialize);
+            spawner.LinkTo(contextInitialize);
+
+            var contextUpdate = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            graph.AddChild(contextUpdate);
+            contextInitialize.LinkTo(contextUpdate);
+
+            var output = ScriptableObject.CreateInstance<VFXComposedParticleOutput>();
+            output.SetSettingValue("m_Topology", new ParticleTopologyPlanarPrimitive());
+            graph.AddChild(output);
+            contextUpdate.LinkTo(output);
+
+            var vfxPath = AssetDatabase.GetAssetPath(graph);
+            AssetDatabase.ImportAsset(vfxPath);
+            var allAssets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+            Assert.AreEqual(5, allAssets.Length);
+
+            var resource = allAssets.OfType<VisualEffectAsset>().Single().GetOrCreateResource();
+            var invalidPathChars = System.IO.Path.GetInvalidPathChars();
+            Assert.AreNotEqual(0, invalidPathChars.Length);
+
+            foreach (var subAsset in allAssets)
+            {
+                if (subAsset is VisualEffectAsset)
+                    continue;
+                var shaderIndex = resource.GetShaderIndex(subAsset);
+                Assert.IsTrue(shaderIndex >= 0);
+
+                var shaderPath = resource.GetShaderSourceName(shaderIndex);
+                Assert.IsFalse(string.IsNullOrEmpty(shaderPath));
+                foreach (var invalidChar in invalidPathChars)
+                    Assert.IsFalse(shaderPath.Contains(invalidChar), "Found an occurence of '{0}' in '{1}", invalidChar, shaderPath);
             }
         }
 
@@ -378,6 +471,88 @@ namespace UnityEditor.VFX.Test
                 Assert.IsFalse(ShaderUtil.ShaderHasError(shader));
                 Assert.IsFalse(ShaderUtil.ShaderHasWarnings(shader));
             }
+        }
+
+        public static bool[] kChangeMeshLodCount =  { false, true };
+
+		[UnityTest, Description("UUM-97850")]
+        public IEnumerator Output_Mesh_With_Strip_System([ValueSource(nameof(kChangeMeshLodCount))] bool changeMeshLodCount)
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_97850.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets();
+            yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "Repro_97850.vfx";
+
+            if (changeMeshLodCount)
+            {
+                var graph = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath)
+                    .GetOrCreateResource()
+                    .GetOrCreateGraph();
+                Assert.IsNotNull(graph);
+                var meshOutput = graph.children.OfType<VFXMeshOutput>().SingleOrDefault();
+                Assert.IsNotNull(meshOutput);
+                meshOutput.SetSettingValue("MeshCount", 2u);
+                Assert.AreEqual(1, meshOutput.meshCount); //Strip is expected to override this behavior
+                AssetDatabase.ImportAsset(vfxPath);
+            }
+
+            var objets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+
+            var shaders = objets.OfType<Shader>().ToArray();
+            var materials = objets.OfType<Material>().ToArray();
+
+            int relevantMaterialCount = 0;
+            foreach (var material in materials)
+            {
+                var shaderData = ShaderUtil.GetShaderData(material.shader);
+                if (shaders.Contains(material.shader))
+                    relevantMaterialCount++;
+
+                int passCount = shaderData.ActiveSubshader.PassCount;
+                for (int pass = 0; pass < passCount; pass++)
+                {
+                    ShaderUtil.CompilePass(material, pass, true);
+                }
+            }
+            Assert.AreEqual(1u, shaders.Length);
+            Assert.AreEqual(1u, relevantMaterialCount);
+            yield return null;
+
+            foreach (var shader in shaders)
+            {
+                var allMessages = ShaderUtil.GetShaderMessages(shader);
+                Assert.AreEqual(0, allMessages.Length, allMessages.Length > 0 ? allMessages[0].message : string.Empty);
+
+                Assert.IsFalse(ShaderUtil.ShaderHasError(shader));
+                Assert.IsFalse(ShaderUtil.ShaderHasWarnings(shader));
+            }
+        }
+
+        [UnityTest, Description("UUM-97805")]
+        public IEnumerator Check_Validate_Graph_With_Sample_Gradient()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_97805.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets();
+            yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "SharedVFX/VFXgraphs/StatusFX_VFXg.vfx";
+            var objets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+
+            var shaders = objets.OfType<Shader>().ToArray();
+            Assert.AreEqual(2u, shaders.Length); //N.B: There is one output which is actually an unplugged GPUEvent
+
+            var computeShaders = objets.OfType<ComputeShader>().ToArray();
+#if VFX_TESTS_HAS_URP
+            //The SG from the repo is only targeting URP and uses alpha blend
+            Assert.AreEqual(6u, computeShaders.Length);
+#else
+            Assert.AreEqual(5u, computeShaders.Length);
+#endif
+            yield return null;
+
         }
     }
 }

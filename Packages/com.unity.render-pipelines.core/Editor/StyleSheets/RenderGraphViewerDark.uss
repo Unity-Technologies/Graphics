@@ -19,6 +19,8 @@
     --side-panel-background-color: #383838;
     --side-panel-item-border-color: #666666;
     --side-panel-secondary-text-color: #808080;
+    --load-action-border-color: #555555;
+    --store-action-border-color: #555555;
 }
 
 #capture-button {
@@ -49,6 +51,10 @@
     background-image: url("../Icons/RenderGraphViewer/d_Texture@2x.png");
 }
 
+.resource-icon--memoryless-texture {
+    background-image: url("../Icons/RenderGraphViewer/d_MemorylessTexture@2x.png");
+}
+
 .resource-icon--buffer {
     background-image: url("../Icons/RenderGraphViewer/d_Buffer@2x.png");
 }
@@ -77,4 +83,32 @@
 
 .custom-foldout-arrow > Toggle > VisualElement:hover #unity-checkmark {
     -unity-background-image-tint-color: white;
+}
+
+.load-action-load {
+    color: #9deb24;
+}
+
+.load-action-clear {
+    color: cornflowerblue;
+}
+
+.load-action-dont-care {
+    color: lightslategray;
+}
+
+.store-action-store {
+    color: darkred;
+}
+
+.store-action-resolve {
+    color: lightseagreen;
+}
+
+.store-action-store-resolve {
+    color: lightsalmon;
+}
+
+.store-action-dont-care {
+    color: lightslategray;
 }

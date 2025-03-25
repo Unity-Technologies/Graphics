@@ -1,15 +1,10 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline
     {
-        static void RecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer)
-        {
-            renderer.RecordRenderGraph(renderGraph, context);
-        }
-
         static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera, string cameraName)
         {
             RenderGraphParameters rgParams = new RenderGraphParameters
@@ -20,8 +15,17 @@ namespace UnityEngine.Rendering.Universal
                 currentFrameIndex = Time.frameCount,
             };
 
-            renderGraph.BeginRecording(rgParams);
-            RecordRenderGraph(renderGraph, context, renderer);
+            try
+            {
+                renderGraph.BeginRecording(rgParams);
+                renderer.RecordRenderGraph(renderGraph, context);
+            }
+            catch (Exception e)
+            {
+                if (renderGraph.ResetGraphAndLogException(e))
+                    throw;
+                return;
+            }
             renderGraph.EndRecordingAndExecute();
         }
     }

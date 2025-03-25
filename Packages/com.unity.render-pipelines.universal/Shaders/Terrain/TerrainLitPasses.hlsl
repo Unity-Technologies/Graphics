@@ -481,11 +481,27 @@ void SplatmapFragment(
     brdfData.diffuse.rgb *= alpha;
     brdfData.specular.rgb *= alpha;
     brdfData.reflectivity *= alpha;
-    inputData.normalWS = inputData.normalWS * alpha;
+    inputData.normalWS = inputData.normalWS * alpha;    //Note that normal blending is completely incorrect with 'Accurate G-Buffer Normals' enabled (since octahedral mapping is not linear)
     smoothness *= alpha;
 
-    return PackGBuffersBRDFData(brdfData, inputData, smoothness, color.rgb, occlusion);
+    GBufferFragOutput gbuffer = PackGBuffersBRDFData(brdfData, inputData, smoothness, color.rgb, occlusion);
 
+    #ifdef TERRAIN_SPLAT_ADDPASS
+        //These parameters cannot be alpha blended, so we allow them to be set them in the base pass and zero them out in the add-pass:
+        gbuffer.gBuffer0.a = 0.0f;                      //materialFlags
+        //gbuffer.color.rgb = half3(0.0f, 0.0f, 0.0f);    //globalIllumination
+        #if defined(GBUFFER_FEATURE_DEPTH)
+            gbuffer.depth = 0.0f;
+        #endif
+        #if defined(GBUFFER_FEATURE_SHADOWMASK)
+            gbuffer.shadowMask = half4(0.0f, 0.0f, 0.0f, 0.0f);
+        #endif
+        #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
+            gbuffer.meshRenderingLayers = half4(0.0f, 0.0f, 0.0f, 0.0f);
+        #endif
+    #endif
+    
+    return gbuffer;
 #else
 
     half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);

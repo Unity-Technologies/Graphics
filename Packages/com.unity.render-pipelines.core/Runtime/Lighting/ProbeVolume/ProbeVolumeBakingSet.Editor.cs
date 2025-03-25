@@ -560,9 +560,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal SceneBakeData GetSceneBakeData(string sceneGUID)
+        internal SceneBakeData GetSceneBakeData(string sceneGUID, bool addIfMissing = true)
         {
-            if (!m_SceneBakeData.TryGetValue(sceneGUID, out var bakeData))
+            if (!m_SceneBakeData.TryGetValue(sceneGUID, out var bakeData) && addIfMissing)
             {
                 if (m_SceneGUIDs.Contains(sceneGUID))
                     m_SceneBakeData[sceneGUID] = bakeData = new SceneBakeData();

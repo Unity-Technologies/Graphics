@@ -79,6 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition
             Vector3 previousPositiveFade = serialized.editorPositiveFade.vector3Value;
             Vector3 previousNegativeFade = serialized.editorNegativeFade.vector3Value;
 
+            EditorGUILayout.PropertyField(serialized.scaleMode, Styles.s_ScaleMode);
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
             if (EditorGUI.EndChangeCheck())

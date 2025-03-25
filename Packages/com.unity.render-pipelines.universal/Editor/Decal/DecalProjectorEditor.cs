@@ -183,7 +183,7 @@ namespace UnityEditor.Rendering.Universal
                 m_Offset.FindPropertyRelative("z"),
             };
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
-            m_RenderingLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
+            m_RenderingLayerMask = serializedObject.FindProperty("m_RenderingLayerMask");
 
             ReinitSavedRatioSizePivotPosition();
         }
@@ -630,7 +630,7 @@ namespace UnityEditor.Rendering.Universal
                 MaterialFieldWithButton(m_MaterialProperty, k_MaterialContent);
                 materialChanged = EditorGUI.EndChangeCheck();
 
-                EditorUtils.DrawRenderingLayerMask(m_RenderingLayerMask, k_RenderingLayerMaskContent);
+                EditorGUILayout.PropertyField(m_RenderingLayerMask, k_RenderingLayerMaskContent);
 
                 foreach (var target in targets)
                 {

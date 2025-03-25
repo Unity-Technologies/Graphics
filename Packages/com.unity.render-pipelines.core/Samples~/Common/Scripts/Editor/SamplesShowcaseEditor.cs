@@ -17,7 +17,7 @@ using UnityEditor.Inspector.GraphicsSettingsInspectors;
 public class SamplesShowcaseEditor : Editor
 {
     private static readonly string UXMLPath = "SamplesSelectionUXML";
-    public static readonly string[] supportedExtensions = {".shadergraph", ".vfx", ".cs", ".hlsl", ".shader", ".asset",".mat",".fbx",".prefab", ".png"};
+    public static readonly string[] supportedExtensions = {".shadergraph", ".vfx", ".cs", ".hlsl", ".shader", ".asset",".mat",".fbx",".prefab", ".png", ".compute"};
 
     SerializedProperty currentIndex;
     Color headlineColor;

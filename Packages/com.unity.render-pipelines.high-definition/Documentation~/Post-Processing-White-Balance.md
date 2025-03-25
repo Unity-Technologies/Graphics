@@ -13,8 +13,6 @@ The White Balance component applies a white balance effect that removes unrealis
 
 ## Properties
 
-![](Images/Post-processingWhiteBalance1.png)
-
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | **Temperature** | Use the slider to set the white balance to a custom color temperature. Higher values result in a warmer color temperature and lower values result in a colder color temperature. See [Wikipedia: Color balance](https://en.wikipedia.org/wiki/Color_balance) for more information about color temperature. |

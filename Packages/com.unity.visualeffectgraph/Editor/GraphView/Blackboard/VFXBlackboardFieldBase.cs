@@ -39,6 +39,11 @@ namespace UnityEditor.VFX.UI
             m_View.blackboard.UpdateSelection();
         }
 
+        public override void OnUnselected()
+        {
+            m_View.blackboard.UpdateSelection();
+        }
+
         protected virtual void OnMouseDown(MouseDownEvent evt)
         {
             if (evt.clickCount == 2 && evt.button == (int)MouseButton.LeftMouse)

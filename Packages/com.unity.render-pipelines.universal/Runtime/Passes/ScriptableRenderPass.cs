@@ -11,6 +11,10 @@ namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Input requirements for <c>ScriptableRenderPass</c>.
+    /// 
+    /// URP adds render passes to generate the inputs, or reuses inputs that are already available from earlier in the frame.
+    /// 
+    /// URP binds the inputs as global shader texture properties.
     /// </summary>
     /// <seealso cref="ConfigureInput"/>
     [Flags]
@@ -23,21 +27,31 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Used when a <c>ScriptableRenderPass</c> requires a depth texture.
+        /// 
+        /// To sample the depth texture in a shader, include `Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl`, then use the `SampleSceneDepth` method.
         /// </summary>
         Depth = 1 << 0,
 
         /// <summary>
         /// Used when a <c>ScriptableRenderPass</c> requires a normal texture.
+        /// 
+        /// To sample the normals texture in a shader, include `Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl`, then use the `SampleSceneNormals` method.
         /// </summary>
         Normal = 1 << 1,
 
         /// <summary>
         /// Used when a <c>ScriptableRenderPass</c> requires a color texture.
+        /// 
+        /// To sample the color texture in a shader, include `Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl`, then use the `SampleSceneColor` method. 
+        /// 
+        /// **Note:** The opaque texture might be a downscaled copy of the framebuffer from before rendering transparent objects.
         /// </summary>
         Color = 1 << 2,
 
         /// <summary>
         /// Used when a <c>ScriptableRenderPass</c> requires a motion vectors texture.
+        /// 
+        /// To sample the motion vectors texture in a shader, use `TEXTURE2D_X(_MotionVectorTexture)`, then `LOAD_TEXTURE2D_X_LOD(_MotionVectorTexture, pixelCoords, 0).xy`.
         /// </summary>
         Motion = 1 << 3,
     }
@@ -45,6 +59,7 @@ namespace UnityEngine.Rendering.Universal
     // Note: Spaced built-in events so we can add events in between them
     // We need to leave room as we sort render passes based on event.
     // Users can also inject render pass events in a specific point by doing RenderPassEvent + offset
+
     /// <summary>
     /// Controls when the render pass executes.
     /// </summary>
@@ -179,6 +194,14 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// <c>ScriptableRenderPass</c> implements a logical rendering pass that can be used to extend Universal RP renderer.
     /// </summary>
+    /// <remarks>
+    /// To implement your own rendering pass you need to take the following steps:
+    /// 1. Create a new Subclass from ScriptableRenderPass that implements the rendering logic.
+    /// 2. Create an instance of your subclass and set up the relevant parameters such as <c>ScriptableRenderPass.renderPassEvent</c> in the constructor or initialization code.
+    /// 3. Ensure your pass instance gets picked up by URP, this can be done through a <c>ScriptableRendererFeature</c> or by calling <c>ScriptableRenderer.EnqueuePass</c> from an event callback like <c>RenderPipelineManager.beginCameraRendering</c>
+    ///
+    /// See [link] for more info on working with a <c>ScriptableRendererFeature</c> or [link] for more info on working with <c>ScriptableRenderer.EnqueuePass</c>.
+    /// </remarks>
     public abstract partial class ScriptableRenderPass: IRenderGraphRecorder
     {
         /// <summary>
@@ -318,8 +341,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useNativeRenderPass { get; set; }
 
-        internal bool breakGBufferAndDeferredRenderPass { get; set; }
-
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
@@ -367,7 +388,6 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = false;
             isBlitRenderPass = false;
             useNativeRenderPass = true;
-            breakGBufferAndDeferredRenderPass = true;
             renderPassQueueIndex = -1;
             renderTargetFormat = new GraphicsFormat[]
             {

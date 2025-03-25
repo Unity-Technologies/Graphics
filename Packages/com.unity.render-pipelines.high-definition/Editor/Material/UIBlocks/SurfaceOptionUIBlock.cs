@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent lockWithTilingRateText = new GUIContent("Lock With Height Map Tiling Rate", "When enabled, displacement mapping takes the absolute value of the tiling rate of the height map into account.");
 
             // Material ID
-            public static GUIContent materialIDText = new GUIContent("Material Type", "Specifies additional feature for this Material. Customize you Material with different settings depending on which Material Type you select.");
+            public static GUIContent materialIDText = new GUIContent("Material Type", "Specifies additional features for this Material. Customize your Material with different settings depending on which Material Type you select.");
             public static GUIContent transmissionEnableText = new GUIContent("Transmission", "When enabled HDRP processes the transmission effect for subsurface scattering. Simulates the translucency of the object.");
             public static string transparentSSSErrorMessage = "Transparent Materials With SubSurface Scattering is not supported.";
             public static GUIContent clearCoatEnabledText = new GUIContent("Clear Coat", "Controls whether the clear coat effect is enabled or not.");
@@ -325,7 +325,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             transmissionEnable = FindProperty(kTransmissionEnable);
             clearCoatEnabled = FindProperty(kClearCoatEnabled);
-            
+
             excludeFromTUAndAA = FindProperty(kExcludeFromTUAndAA);
 
             if ((m_Features & Features.DoubleSidedNormalMode) != 0)
@@ -872,6 +872,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
 
                     materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
+                    EditorGUI.indentLevel--;
+                }
+
+                if (displaceMode != DisplacementMode.None && materials[0].GetTexture(kHeightMap) == null)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUI.indentLevel++;
+
+                    EditorGUILayout.HelpBox("Please set a valid HeightMap (in the 'Surface Inputs' category) to apply any displacement.", MessageType.Warning);
                     EditorGUI.indentLevel--;
                 }
             }

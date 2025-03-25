@@ -293,8 +293,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool passSupportsFoveation = !XRSystem.foveatedRenderingCaps.HasFlag(FoveatedRenderingCaps.NonUniformRaster);
                 builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
 
-                // Optimization: In XR, we don't have split screen use case. The access flag can be set to WriteAll here, so engine will set loadOperation to DontCare down to the pipe.
-                if (cameraData.xr.enabled)
+                // Optimization: In XR, we don't have split screen use case.
+                // The access flag can be set to WriteAll if there is a full screen blit and no alpha blending,
+                // so engine will set loadOperation to DontCare down to the pipe.
+                if (cameraData.xr.enabled && cameraData.isDefaultViewport && !outputsAlpha)
                     targetAccessFlag =  AccessFlags.WriteAll;
 #endif
                 builder.SetRenderAttachment(dest, 0, targetAccessFlag);
