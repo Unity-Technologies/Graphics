@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.Universal
                         var upscaleDescriptor = cameraTargetDescriptor;
                         upscaleDescriptor.width = ppc.refResolutionX * ppc.pixelRatio;
                         upscaleDescriptor.height = ppc.refResolutionY * ppc.pixelRatio;
-                        upscaleDescriptor.depthStencilFormat = GraphicsFormat.None; 
+                        upscaleDescriptor.depthStencilFormat = GraphicsFormat.None;
 
                         universal2DResourceData.upscaleTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, upscaleDescriptor, "_UpscaleTexture", true, ppc.finalBlitFilterMode);
                     }
@@ -706,7 +706,7 @@ namespace UnityEngine.Rendering.Universal
 
             // We can explicitly render the overlay UI from URP when HDR output is not enabled.
             // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
-            bool shouldRenderUI = cameraData.rendersOverlayUI;
+            bool shouldRenderUI = cameraData.rendersOverlayUI && cameraData.isLastBaseCamera;
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && !outputToHDR)
                 m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, in finalColorHandle, in finalDepthHandle);
