@@ -151,6 +151,22 @@ namespace UnityEditor.ShaderGraph
             m_Edges = distinct.ToList();
         }
 
+        public bool IsEmpty()
+        {
+            return m_MetaDropdownIds.Count == 0
+                && m_MetaDropdowns.Count == 0
+                && m_MetaKeywordIds.Count == 0
+                && m_MetaKeywords.Count == 0
+                && m_MetaProperties.Count == 0
+                && m_MetaPropertyIds.Count == 0
+                && m_Edges.Count == 0
+                && m_Categories.Count == 0
+                && m_Groups.Count == 0
+                && m_Inputs.Count == 0
+                && m_Nodes.Count == 0
+                && m_StickyNotes.Count == 0;
+        }
+
         public bool IsInputCategorized(ShaderInput shaderInput)
         {
             foreach (var category in categories)

@@ -965,7 +965,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool CanPasteSerializedDataImplementation(string serializedData)
         {
-            return CopyPasteGraph.FromJson(serializedData, graph) != null;
+            var json = CopyPasteGraph.FromJson(serializedData, graph);
+            return json != null && !json.IsEmpty();
         }
 
         void UnserializeAndPasteImplementation(string operationName, string serializedData)
