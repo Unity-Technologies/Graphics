@@ -34,5 +34,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Constant,
         FullScreenDebug,
         PBRSky,
+        FogVolumePreview,
+        FogVolumeVoxelization,
+        FogVolumeOverdrawDebug,
     }
 }
