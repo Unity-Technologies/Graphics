@@ -1,0 +1,34 @@
+{
+    "name": "Tests",
+    "rootNamespace": "",
+    "references": [
+        "GUID:0acc523941302664db1f4e527237feb3",
+        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+        "GUID:1d4ad4ead25f33942b7dcf63e8c0820b",
+        "GUID:e18141520846dcc44b725b2f74e91229",
+        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:58fb8540aabd9024f81c6103bf154e26",
+        "GUID:9d43f152659ed664d87e78590181eb3d",
+        "GUID:c0dd0d10738d4ad4a9de57c559d0ca1b",
+        "GUID:295068ed467c2ce4a9cda3833065f650",
+        "GUID:ae1c84db2f64d43cfb40a3272268e1b5"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.mock-hmd",
+            "expression": "1.2.0-preview.1",
+            "define": "USE_XR_MOCK_HMD"
+        }
+    ],
+    "noEngineReferences": false
+}
