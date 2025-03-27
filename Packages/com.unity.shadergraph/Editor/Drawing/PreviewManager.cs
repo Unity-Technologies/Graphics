@@ -638,7 +638,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (drawPreviewCount <= 0)
                     return;
 
-                previewTime += Time.deltaTime;
+                previewTime += Time.fixedDeltaTime;
                 var timeParameters = new Vector4(previewTime, Mathf.Sin(previewTime), Mathf.Cos(previewTime), 0.0f);
                 m_SharedPreviewPropertyBlock.SetVector("_TimeParameters", timeParameters);
 
