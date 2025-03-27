@@ -13,9 +13,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public bool disablePassCulling;
         public bool disablePassMerging;
         public bool immediateMode;
-        public bool enableLogging;
         public bool logFrameInformation;
         public bool logResources;
+
+        public bool enableLogging => logFrameInformation || logResources;
+
+        public void ResetLogging()
+        {
+            logFrameInformation = false;
+            logResources = false;
+        }
 
         internal void Reset()
         {
@@ -24,9 +31,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             disablePassCulling = false;
             disablePassMerging = false;
             immediateMode = false;
-            enableLogging = false;
-            logFrameInformation = false;
-            logResources = false;
+
+            ResetLogging();
         }
 
         private static class Strings
@@ -39,7 +45,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             public static readonly NameAndTooltip EnableLogging = new() { name = "Enable Logging", tooltip = "Enable to allow HDRP to capture information in the log." };
             public static readonly NameAndTooltip LogFrameInformation = new() { name = "Log Frame Information", tooltip = "Enable to log information output from each frame." };
             public static readonly NameAndTooltip LogResources = new() { name = "Log Resources", tooltip = "Enable to log the current render graph's global resource usage." };
-            public static readonly NameAndTooltip EnableNativeCompiler = new() { name = "Enable Native Pass Compiler", tooltip = "Enable the new native pass compiler." };
         }
 
         internal List<DebugUI.Widget> GetWidgetList(string name)
@@ -75,7 +80,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         {
                             nameAndTooltip = Strings.DisablePassMerging,
                             getter = () => disablePassMerging,
-                            setter = value => disablePassMerging = value
+                            setter = value => disablePassMerging = value,
+                            isHiddenCallback = () => !RenderGraph.hasAnyRenderGraphWithNativeRenderPassesEnabled
                         },
                         new DebugUI.BoolField
                         {
@@ -85,19 +91,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
                             // [UUM-64948] Temporarily disable for URP while we implement support for Immediate Mode in the RenderGraph
                             isHiddenCallback = () => !IsImmediateModeSupported()
                         },
-                        new DebugUI.BoolField
-                        {
-                            nameAndTooltip = Strings.EnableLogging,
-                            getter = () => enableLogging,
-                            setter = value => enableLogging = value
-                        },
                         new DebugUI.Button
                         {
                             nameAndTooltip = Strings.LogFrameInformation,
                             action = () =>
                             {
-                                if (!enableLogging)
-                                    Debug.Log("You must first enable logging before logging frame information.");
                                 logFrameInformation = true;
 #if UNITY_EDITOR
                                 UnityEditor.SceneView.RepaintAll();
@@ -109,8 +107,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                             nameAndTooltip = Strings.LogResources,
                             action = () =>
                             {
-                                if (!enableLogging)
-                                    Debug.Log("You must first enable logging before logging resources.");
                                 logResources = true;
 #if UNITY_EDITOR
                                 UnityEditor.SceneView.RepaintAll();

@@ -77,17 +77,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_CurrentBuilder.AppendLine();
         }
 
-        public string GetLog(string logName)
-        {
-            if (m_LogMap.TryGetValue(logName, out var builder))
-            {
-                return builder.ToString();
-            }
-
-            return "";
-        }
-
-        public string GetAllLogs()
+        public void FlushLogs()
         {
             string result = "";
             foreach (var kvp in m_LogMap)
@@ -100,7 +90,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             m_LogMap.Clear();
 
-            return result;
+            Debug.Log(result);
         }
     }
 }

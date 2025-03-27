@@ -401,6 +401,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
             get; set;
         }
 
+        internal static bool hasAnyRenderGraphWithNativeRenderPassesEnabled
+        {
+            get
+            {
+                foreach (var graph in s_RegisteredGraphs)
+                    if (graph.nativeRenderPassesEnabled)
+                        return true;
+                return false;
+            }
+        }
+
         internal/*for tests*/ RenderGraphResourceRegistry m_Resources;
         RenderGraphObjectPool m_RenderGraphPool = new RenderGraphObjectPool();
         RenderGraphBuilders m_builderInstance = new RenderGraphBuilders();
@@ -644,15 +655,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_Resources.PurgeUnusedGraphicsResources();
 
             if (m_DebugParameters.logFrameInformation)
-            {
-                Debug.Log(m_FrameInformationLogger.GetAllLogs());
-                m_DebugParameters.logFrameInformation = false;
-            }
+                m_FrameInformationLogger.FlushLogs();
             if (m_DebugParameters.logResources)
-            {
                 m_Resources.FlushLogs();
-                m_DebugParameters.logResources = false;
-            }
+
+            m_DebugParameters.ResetLogging();
         }
 
         /// <summary>
@@ -2609,7 +2616,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.enableLogging)
             {
-                m_FrameInformationLogger.LogLine($"==== Staring render graph frame for: {m_CurrentExecutionName} ====");
+                m_FrameInformationLogger.LogLine($"==== Render Graph Frame Information Log ({m_CurrentExecutionName}) ====");
 
                 if (!m_DebugParameters.immediateMode)
                     m_FrameInformationLogger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
