@@ -8,7 +8,7 @@ The **Trigger Event Always** Block triggers the continual creation of a specifie
 
 You can also use the Trigger Block with various conditions to create more complex spawning behavior. For example:
 
-![](Images/Block-TriggerEventAlwaysExample.png)
+![A Visual Effect Graph window which shows the Trigger Event Always Block executing under complex conditions. An Age Over Lifetime Operator returns the age of a particle relative to its lifetime, which uses a Compare Operator to compare if the value is less than 0.1. The connected Branch then outputs 5 when the Predicate is true or 0 when the Predicate is false, which connects to the Trigger Event Always Block inside the Update Particle Context.](Images/Block-TriggerEventAlwaysExample.png)
 
 ## Block compatibility
 
