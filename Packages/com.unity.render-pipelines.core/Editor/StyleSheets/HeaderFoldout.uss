@@ -1,70 +1,107 @@
 .header-foldout
 {
-	border-width: 1px 0px 1px 0px;
+	border-width: 0px 0px 1px 0px;
 	border-color: var(--unity-colors-inspector_titlebar-border);
-
-	/* ensure border take all width */
-	margin: 0px -6px 0px -31px;
-	padding: 0px 0px 0px 0;
 }
 
-.header-foldout > Toggle
+.header-foldout.first-in-collection
 {
-	/* ensure background take all width */
+	border-top-width: 1px;
+}
+
+.unity-inspector-element__custom-inspector-container > .header-foldout
+{
+	/* At root of inspector we need to remove the Padding of the InspectorElement */
+	margin: 0px -6px 0px -15px;
+}
+
+.unity-foldout__toggle
+{
 	margin: 0px 0px 0px 0px;
-	padding: 0px 6px 0px 31px;
 }
 
-.header-foldout > Toggle Label
-{
-	-unity-font-style: bold;
-	font-size: 13px;
-	flex-grow: 1;
-}
 
-.header-foldout > Toggle Button
-{
-	background-color: transparent;
-	border-width: 0px;
-	margin: 1px 2px 1px 0px;
-	padding: 0px 0px 0px 0px;
-	border-radius: 0px;
-}
-
-.header-foldout > Toggle Button:hover
-{
-	background-color: var(--unity-colors-button-background-hover);
-}
-
-.header-foldout > Toggle Button:disabled
-{
-	display: none;
-}
-
-.header-foldout > Toggle Image
+.unity-foldout__toggle Image
 {
 	min-width: 16px;
 }
 
-.header-foldout > #unity-content
+.unity-foldout__input
 {
-	margin: 0px 5px 0px 47px;
+	flex-shrink: 1;
 }
 
-.header-foldout #enable-checkbox
+.unity-foldout__toggle #unity-checkmark
 {
-	margin: 2px 6px 3px 1px;
+	margin: 0px 2px 0px 4px;
 }
 
-.header-foldout #enable-checkbox #unity-checkmark
+.header-foldout__icon
 {
+	margin: 1px 2px 0px 1px;
+	height: 16px;
+	width: 16px;
+}
+
+.header-foldout__enable
+{
+	margin: 2px 1px 2px 0px;
+	height: 16px;
+	width: 16px;
+}
+
+.header-foldout__enable #unity-checkmark
+{
+	margin: 0px 2px 0px 2px;
 	background-size: 80% 80%;
 }
 
-.header-foldout #header-foldout__icon
+.header-foldout__label
 {
-	margin-top: 2px;
-	margin-right: 6px;
-	height: 16px;
+	-unity-font-style: bold;
+	font-size: 13px;
+	flex-grow: 1;
+	flex-shrink: 1;
+	margin: 0px 0px 0px 3px;
+	overflow: hidden;
+}
+
+.header-foldout__help-button
+{
+	background-color: transparent;
+	margin: 2px 4px 1px 3px;
+	padding: 0px 2px 0px 0px;
+	border-width: 0px;
+	border-radius: 2px 2px 2px 2px;
 	width: 16px;
+    height: 16px;
+}
+
+.header-foldout__context-button 
+{
+	background-color: transparent;
+	margin: 2px 5px 1px 0px;
+	padding: 0px 2px 0px 0px;
+	border-width: 0px;
+	border-radius: 2px 2px 2px 2px;
+	width: 16px;
+    height: 16px;
+}
+
+.header-foldout__help-button:hover,
+.header-foldout__context-button:hover
+{
+	background-color: var(--unity-colors-button-background-hover);
+}
+
+.header-foldout__help-button:disabled,
+.header-foldout__context-button:disabled
+{
+	display: none;
+}
+
+.project-settings-section__content .header-foldout__context-button
+{
+	/* Specific fix for alignment in project settings to keep alignment with category three dots */
+	margin-right: 0px;
 }
