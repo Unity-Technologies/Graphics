@@ -37,7 +37,7 @@ To add a volume to your scene and edit its Volume Profile, follow these steps:
 2. In the **Scene** or **Hierarchy** view, select the new GameObject to view it in the Inspector.
 3. In the **Volume** component, assign a Volume Profile asset. To create a new Volume Profile, select **New**.
 
-The list of Volume Overrides that the Volume Profile contains appears below the Volume Profile asset. You can add or remove Volume Overrides and edit their properties. Refer to [Volume Overrides](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.0/manual/VolumeOverrides.html) for more information about changing the Volume Overrides and properties.
+The list of Volume Overrides that the Volume Profile contains appears below the Volume Profile asset. You can add or remove Volume Overrides and edit their properties. Refer to [Volume Overrides](https://docs.unity3d.com/Manual/urp/VolumeOverrides.html) for more information about changing the Volume Overrides and properties.
 
 ### Example: Create a local post-processing effect<a id="example-create-a-local-post-processing-effect"></a>
 

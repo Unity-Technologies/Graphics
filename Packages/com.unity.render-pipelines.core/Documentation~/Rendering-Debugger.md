@@ -6,7 +6,7 @@ If your project uses a custom Scriptable Render Pipeline (SRP), you can add cont
 
 If your project uses the Universal Render Pipeline (URP) or the High-Definition Render Pipeline (HDRP), refer to the following pages:
 
-- [Add controls to the Rendering Debugger in URP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@15.0/manual/features/rendering-debugger-add-controls.html)
+- [Add controls to the Rendering Debugger in URP](https://docs.unity3d.com/Manual/urp/features/rendering-debugger-add-controls.html)
 - [Add controls to the Rendering Debugger in HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/manual/Rendering-Debugger-Add-Controls.html)
 
 ## How to access the Rendering Debugger
