@@ -68,6 +68,7 @@
         * Utility
             * [Colorspace Conversion](Colorspace-Conversion-Node)
     * [Channel](Channel-Nodes)
+        * [Append](Append-Node)
         * [Combine](Combine-Node)
         * [Flip](Flip-Node)
         * [Split](Split-Node)

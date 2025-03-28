@@ -38,6 +38,8 @@ MonoBehaviour:
       m_Category: 3
     - m_NodeName: AnyNode
       m_Category: 3
+    - m_NodeName: AppendVectorNode
+      m_Category: 1
     - m_NodeName: ArccosineNode
       m_Category: 6
     - m_NodeName: ArcsineNode
