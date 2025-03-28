@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering
             public const string kGridlineContainer = "grid-line-container";
             public const string kHoverOverlay = "hover-overlay";
             public const string kEmptyStateMessage = "empty-state-message";
+            public const string kPassListCornerOccluder = "pass-list-corner-occluder";
         }
 
         static partial class Classes
@@ -191,6 +192,7 @@ namespace UnityEditor.Rendering
         {
             var window = GetWindow<RenderGraphViewer>();
             window.titleContent = new GUIContent("Render Graph Viewer");
+            window.minSize = new Vector2(880f, 300f);
         }
 
         [Flags]
@@ -1817,6 +1819,27 @@ namespace UnityEditor.Rendering
             RebuildGraphViewerUI();
         }
 
+        void RerouteWheelEvent(VisualElement source, VisualElement target)
+        {
+            source.RegisterCallback<WheelEvent>(evt =>
+            {
+                evt.StopImmediatePropagation();
+
+                // Need to create an intermediate Event to be able to call WheelEvent.GetPooled()
+                var imguiEvt = new Event {
+                    type = EventType.ScrollWheel,
+                    delta = new Vector2(evt.delta.x, evt.delta.y),
+                    mousePosition = evt.mousePosition,
+                    modifiers = evt.modifiers
+                };
+                using (var newEvt = WheelEvent.GetPooled(imguiEvt))
+                {
+                    newEvt.target = target;
+                    target.SendEvent(newEvt);
+                }
+            }, TrickleDown.TrickleDown);
+        }
+
         // Initialize, register callbacks & manipulators etc. once
         void InitializePersistentElements()
         {
@@ -1881,9 +1904,12 @@ namespace UnityEditor.Rendering
             resourceGridScrollView.horizontalScroller.valueChanged += value =>
                 passListScrollView.scrollOffset = new Vector2(value, passListScrollView.scrollOffset.y);
 
-            // Disable mouse wheel on the scroll views that are synced to the resource grid
-            resourceListScrollView.RegisterCallback<WheelEvent>(evt => evt.StopImmediatePropagation(), TrickleDown.TrickleDown);
-            passListScrollView.RegisterCallback<WheelEvent>(evt => evt.StopImmediatePropagation(), TrickleDown.TrickleDown);
+            // Scroll views are synced to the resource grid, so we don't want them to scroll independently. To have
+            // consistent behavior, redirect the wheel events to the resource grid and let it handle them.
+            RerouteWheelEvent(resourceListScrollView, resourceGridScrollView);
+            RerouteWheelEvent(passListScrollView, resourceGridScrollView);
+            var passListCornerOccluder = rootVisualElement.Q<VisualElement>(Names.kPassListCornerOccluder);
+            RerouteWheelEvent(passListCornerOccluder, resourceGridScrollView);
 
             InitializeSidePanel();
         }
