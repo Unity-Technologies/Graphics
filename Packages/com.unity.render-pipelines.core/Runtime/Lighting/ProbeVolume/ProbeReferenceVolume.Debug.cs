@@ -1112,15 +1112,18 @@ namespace UnityEngine.Rendering
             string scenario,
             out Vector3[] positions,
             out SphericalHarmonicsL2[] irradiance,
-            out float[] validity)
+            out float[] validity,
+            out Vector4[] occlusion)
         {
             positions = null;
             irradiance = null;
             validity = null;
+            occlusion = null;
 
             var positionsList = new List<Vector3>();
             var irradianceList = new List<SphericalHarmonicsL2>();
             var validityList = new List<float>();
+            var occlusionList = new List<Vector4>();
 
             foreach (var cell in cells.Values)
             {
@@ -1162,6 +1165,12 @@ namespace UnityEngine.Rendering
 
                                 positionsList.Add(position);
                                 validityList.Add(cell.data.validity[probeFlatIndex]);
+                                var occlusionOffset = probeFlatIndex * 4;
+                                float occlusionValue0 = scenarioData.probeOcclusion[occlusionOffset] / 255.0f;
+                                float occlusionValue1 = scenarioData.probeOcclusion[occlusionOffset+1] / 255.0f;
+                                float occlusionValue2 = scenarioData.probeOcclusion[occlusionOffset+2] / 255.0f;
+                                float occlusionValue3 = scenarioData.probeOcclusion[occlusionOffset+3] / 255.0f;
+                                occlusionList.Add(new Vector4(occlusionValue0, occlusionValue1, occlusionValue2, occlusionValue3));
 
                                 Vector4 L0_L1Rx  = Vector4.zero;
                                 Vector4 L1G_L1Ry = Vector4.zero;
@@ -1261,6 +1270,7 @@ namespace UnityEngine.Rendering
             positions = positionsList.ToArray();
             irradiance = irradianceList.ToArray();
             validity = validityList.ToArray();
+            occlusion = occlusionList.ToArray();
 
             return true;
         }
