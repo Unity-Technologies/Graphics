@@ -160,15 +160,29 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
-        LOD 100
-        ZTest Always ZWrite Off Cull Off
 
         Pass
         {
             Name "FinalPost"
-
+            LOD 100
+            ZTest Always ZWrite Off Cull Off
             HLSLPROGRAM
                 #pragma vertex Vert
+                #pragma fragment FragFinalPost
+                #pragma target 4.5
+            ENDHLSL
+        }
+
+        Pass
+        {            
+            Name "FinalPostXR"
+            LOD 100
+            ZWrite Off ZTest LEqual Blend Off Cull Off
+
+            HLSLPROGRAM
+                #include "Packages/com.unity.render-pipelines.universal/Shaders/XR/XRVisibilityMeshHelper.hlsl"
+
+                #pragma vertex VertVisibilityMeshXR
                 #pragma fragment FragFinalPost
                 #pragma target 4.5
             ENDHLSL
@@ -179,15 +193,29 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
-        LOD 100
-        ZTest Always ZWrite Off Cull Off
 
         Pass
         {
             Name "FinalPost"
+            LOD 100
+            ZTest Always ZWrite Off Cull Off
 
             HLSLPROGRAM
                 #pragma vertex Vert
+                #pragma fragment FragFinalPost
+            ENDHLSL
+        }
+
+        Pass
+        {            
+            Name "FinalPostXR"
+            LOD 100
+            ZWrite Off ZTest LEqual Blend Off Cull Off
+
+            HLSLPROGRAM
+                #include "Packages/com.unity.render-pipelines.universal/Shaders/XR/XRVisibilityMeshHelper.hlsl"
+
+                #pragma vertex VertVisibilityMeshXR
                 #pragma fragment FragFinalPost
             ENDHLSL
         }

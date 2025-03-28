@@ -49,6 +49,9 @@ namespace UnityEngine.Experimental.Rendering
 #if ENABLE_VR && ENABLE_XR_MODULE
         // Occlusion Mesh scaling factor
         static float s_OcclusionMeshScaling = 1.0f;
+
+        // Return true if wants to enable visibility mesh passes
+        static bool s_UseVisibilityMesh = true;
 #endif
 
         // Internal resources used by XR rendering
@@ -180,6 +183,29 @@ namespace UnityEngine.Experimental.Rendering
             return s_OcclusionMeshScaling;
 #else
             return 1.0f;
+#endif
+        }
+
+        /// <summary>
+        /// Used by the render pipeline to enable all visibility meshes passes.
+        /// </summary>
+        /// <param name="useVisibilityMesh">True to enable visibility mesh passes, false to disable them. </param>
+        internal static void SetUseVisibilityMesh(bool useVisibilityMesh)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            s_UseVisibilityMesh = useVisibilityMesh;
+#endif
+        }
+
+        /// <summary>
+        /// Returned value used by the render pipeline to use all visibility mesh passes.
+        /// </summary>
+        internal static bool GetUseVisibilityMesh()
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            return s_UseVisibilityMesh;
+#else
+            return false;
 #endif
         }
 
@@ -497,8 +523,9 @@ namespace UnityEngine.Experimental.Rendering
 
             // XRTODO : remove this line and use XRSettings.useOcclusionMesh instead when it's fixed
             Mesh occlusionMesh = XRGraphicsAutomatedTests.running ? null : renderParameter.occlusionMesh;
+            Mesh visibleMesh = XRGraphicsAutomatedTests.running ? null : renderParameter.visibleMesh;
 
-            return new XRView(renderParameter.projection, renderParameter.view, renderParameter.previousView, renderParameter.isPreviousViewValid, viewport, occlusionMesh, renderParameter.textureArraySlice);
+            return new XRView(renderParameter.projection, renderParameter.view, renderParameter.previousView, renderParameter.isPreviousViewValid, viewport, occlusionMesh, visibleMesh, renderParameter.textureArraySlice);
         }
 
         private static RenderTextureDescriptor XrRenderTextureDescToUnityRenderTextureDesc(RenderTextureDescriptor xrDesc)

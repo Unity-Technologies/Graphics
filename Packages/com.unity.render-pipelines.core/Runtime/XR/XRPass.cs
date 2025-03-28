@@ -40,6 +40,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         readonly List<XRView> m_Views;
         readonly XROcclusionMesh m_OcclusionMesh;
+        readonly XRVisibleMesh m_VisibleMesh;
 
         /// <summary>
         /// Parameterless constructor.
@@ -49,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_Views = new List<XRView>(2);
             m_OcclusionMesh = new XROcclusionMesh(this);
+            m_VisibleMesh = new XRVisibleMesh(this);
         }
 
         /// <summary>
@@ -68,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         virtual public void Release()
         {
+            m_VisibleMesh.Dispose();
             GenericPool<XRPass>.Release(this);
         }
 
@@ -285,6 +288,16 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         /// <summary>
+        /// Returns the visible mesh for a given view.
+        /// </summary>
+        /// <param name="viewIndex">Index of XRView to retrieve the data from. </param>
+        /// <returns> XR visible mesh for the specified XRView. </returns>
+        public Mesh GetVisibleMesh(int viewIndex = 0)
+        {
+            return m_Views[viewIndex].visibleMesh;
+        }
+
+        /// <summary>
         /// Returns the destination slice index (for texture array) for a given view.
         /// </summary>
         /// <param name="viewIndex"> Index of XRView to retrieve the data from. </param>
@@ -373,6 +386,11 @@ namespace UnityEngine.Experimental.Rendering
         public bool hasValidOcclusionMesh { get => m_OcclusionMesh.hasValidOcclusionMesh; }
 
         /// <summary>
+        /// Returns true if the pass was setup with expected mesh and enabled by settings.
+        /// </summary>
+        public bool hasValidVisibleMesh { get => m_VisibleMesh.hasValidVisibleMesh && XRSystem.GetUseVisibilityMesh(); }
+
+        /// <summary>
         /// Generate commands to render the occlusion mesh for this pass.
         /// In single-pass mode : the meshes for all views are combined into one mesh,
         /// where the corresponding view index is encoded into each vertex. The keyword
@@ -398,6 +416,44 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (occlusionMeshScale > 0)
                 m_OcclusionMesh.RenderOcclusionMesh(cmd.m_WrappedCommandBuffer, occlusionMeshScale, renderIntoTexture);
+        }
+
+        /// <summary>
+        /// Generate commands to render the visible mesh for this pass using a custom material and set of material property block.
+        /// In single-pass mode : the meshes for all views are combined into one mesh,
+        /// where the corresponding view index is encoded into each vertex.
+        /// </summary>
+        /// <param name="cmd">RasterCommandBuffer to modify</param>
+        /// <param name="occlusionMeshScale">Occlusion Mesh scale</param>
+        /// <param name="material">Material that the visibility mesh will render.</param>
+        /// <param name="materialBlock">Material block with all the shader parameters that need to be set.</param>
+        /// <param name="shaderPass">Material shader pass to render, set 0 by default.</param>
+        /// <param name="renderIntoTexture">Set to true when rendering into a render texture. Used for handling Unity yflip.</param>
+        public void RenderVisibleMeshCustomMaterial(RasterCommandBuffer cmd, float occlusionMeshScale,
+            Material material, MaterialPropertyBlock materialBlock, int shaderPass, bool renderIntoTexture = false)
+        {
+            if (occlusionMeshScale > 0)
+                m_VisibleMesh.RenderVisibleMeshCustomMaterial(cmd.m_WrappedCommandBuffer, occlusionMeshScale, material, materialBlock, shaderPass, renderIntoTexture);
+
+        }
+
+        /// <summary>
+        /// Generate commands to render the visible mesh for this pass using a custom material and set of material property block.
+        /// In single-pass mode : the meshes for all views are combined into one mesh,
+        /// where the corresponding view index is encoded into each vertex.
+        /// </summary>
+        /// <param name="cmd">RasterCommandBuffer to modify</param>
+        /// <param name="occlusionMeshScale">Occlusion Mesh scale</param>
+        /// <param name="material">Material that the visibility mesh will render.</param>
+        /// <param name="materialBlock">Material block with all the shader parameters that need to be set.</param>
+        /// <param name="shaderPass">Material shader pass to render, set 0 by default.</param>
+        /// <param name="renderIntoTexture">Set to true when rendering into a render texture. Used for handling Unity yflip.</param>
+        public void RenderVisibleMeshCustomMaterial(CommandBuffer cmd, float occlusionMeshScale,
+            Material material, MaterialPropertyBlock materialBlock, int shaderPass = 0, bool renderIntoTexture = false)
+        {
+            if (occlusionMeshScale > 0)
+                m_VisibleMesh.RenderVisibleMeshCustomMaterial(cmd, occlusionMeshScale, material, materialBlock, shaderPass, renderIntoTexture);
+
         }
 
         /// <summary>
@@ -461,6 +517,7 @@ namespace UnityEngine.Experimental.Rendering
         internal void UpdateCombinedOcclusionMesh()
         {
             m_OcclusionMesh.UpdateCombinedMesh();
+            m_VisibleMesh.UpdateCombinedMesh();
         }
 
         /// <summary>
