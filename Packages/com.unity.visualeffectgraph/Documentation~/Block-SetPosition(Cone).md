@@ -9,7 +9,7 @@ The ArcCone shape adds an arc property to the cone to determine its arc angle, i
 This Block can calculate the position either from the ArcCone 's **Surface**, **Volume**, or **Thick Surface** where thickness can be relative to the size of the shape, or an absolute value.
 
 
-This Block also calculates a direction vector based on the calculated position on the shape, and stores it to the [direction attribute](Reference-Attributes.md), based on composition. This direction is equal to the normalized vector from the center of the cone to the calculated position.
+This Block also calculates a direction vector based on the calculated position on the shape, and stores it to the [direction attribute](Reference-Attributes.md), based on composition. This direction is equal to the normalized vector from the calculated position to the top of the cone.
 
 Note: [Velocity from Direction and Speed](Block-VelocityFromDirectionAndSpeed.md) Blocks can then process the direction attribute.
 
