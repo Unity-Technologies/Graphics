@@ -2,8 +2,6 @@
 
 The High Definition Render Pipeline (HDRP) includes an importer to handle the .ies file format. When you add an [IES profile](IES-Profile.md) to your project, the IES importer Inspector provides information and customization options for the internally used textures.
 
-![](Images/IESImporter1.png)
-
 When you apply the import settings, the importer generates a [Light](Light-Component.md) Prefab as a sub-asset of the IED profile. You can drag the Prefab into the Scene view or Hierarchy to create an instance of a Light that uses the IES profile.
 
 ### Properties
