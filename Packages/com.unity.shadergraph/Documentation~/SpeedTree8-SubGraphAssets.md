@@ -18,7 +18,7 @@ Shader Graph has three built-in SpeedTree Sub Graph Assets:
 * [SpeedTree8Wind](#SpeedTree8Wind)
 * [SpeedTree8Billboard](#SpeedTree8Billboard)
 
-These Sub Graph Assets provide SpeedTree 8 functionality for both the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/manual/index.html) and [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/index.html), so that you can work with SpeedTree 8 assets and create your own custom SpeedTree 8 Shader Graphs.
+These Sub Graph Assets provide SpeedTree 8 functionality for both the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/urp-introduction.html) and [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/index), so that you can work with SpeedTree 8 assets and create your own custom SpeedTree 8 Shader Graphs.
 
 **Note:** The URP-specific versions of these SpeedTree 8 Sub Graph Assets use transparent billboard back faces instead of culling billboard back faces. These Sub Graph Assets can only replace their URP equivalents as a default once URP supports per-material culling overrides in Shader Graphs.
 

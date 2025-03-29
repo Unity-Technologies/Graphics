@@ -10,7 +10,7 @@ Unless you intend to modify Shader Graph or want to try out the latest and unsup
 2. Open the **Package Manager** window (**Window** &gt; **Package Manager**).
 3. In the **Package Manager** window, in the **Packages** menu, select **Unity Registry**.
 4. Do one of the following, based on your project needs:
-    - To use Shader Graph and the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) in your project, select **Universal RP**.
+    - To use Shader Graph and the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/urp-introduction.html) in your project, select **Universal RP**.
     - To use Shader Graph and the [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest), select **High Definition RP**.
     - To use Shader Graph with Unity's [Built-In Render Pipeline](https://docs.unity3d.com/2020.3/Documentation/Manual/built-in-render-pipeline.html), select **Shader Graph**.
 

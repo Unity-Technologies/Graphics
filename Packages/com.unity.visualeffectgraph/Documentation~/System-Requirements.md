@@ -39,7 +39,7 @@ The Visual Effect Graph varies in compatibility between the High Definition Rend
 
 The Visual Effect Graph supports the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html) (HDRP) from Unity 2018.3 and is verified for HDRP from Unity 2019.3. The Visual Effect Graph supports every platform that HDRP supports. For information on which platforms this includes, see HDRP's [system requirements](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/System-Requirements.html).
 
-In the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html) (URP) versions 2019.3. to 2021.1, the Visual Effect Graph supports a subset of platforms that URP supports, and only supports unlit particles. 
+In the [Universal Render Pipeline](https://docs.unity3d.com/Manual/urp/urp-introduction.html) (URP) versions 2019.3. to 2021.1, the Visual Effect Graph supports a subset of platforms that URP supports, and only supports unlit particles. 
 
 **Note**: When you download the HDRP package from the Package Manager, Unity automatically installs the Visual Effect Graph package.
 
