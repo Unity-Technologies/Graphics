@@ -9,17 +9,15 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.TestTools.Graphics.Platforms;
 using Object = UnityEngine.Object;
-using UnityEngine.TestTools.Graphics.Contexts;
 #if OCULUS_SDK || OPENXR_SDK
 using UnityEngine.XR;
 #endif
 
 namespace Unity.Rendering.Universal.Tests
 {
-    [TestFixture(RenderGraphContext.CompatibilityMode)]
-    [TestFixture(RenderGraphContext.RenderGraphMode)]
     public class UniversalGraphicsTestBase
     {
         protected readonly RenderGraphGlobalContext renderGraphContext;
@@ -85,7 +83,7 @@ namespace Unity.Rendering.Universal.Tests
             SceneManager.LoadScene("GraphicsTestTransitionScene", LoadSceneMode.Single);
         }
 
-        [UnitySetUp]
+        [UnityOneTimeSetUp]
         public IEnumerator OneTimeSetup()
         {
             yield return TestContentLoader.WaitForContentLoadAsync(TimeSpan.FromSeconds(30));
@@ -126,6 +124,20 @@ namespace Unity.Rendering.Universal.Tests
                 $"Expected {requestedRGContext} but was {(RenderGraphContext)GlobalContextManager.GetGlobalContext<RenderGraphGlobalContext>()?.Context}"
             );
 
+            // Right now we can't guarantee that the GRD context will not fall back to a different value during the test.
+            // So just log a warning if it does.
+            if (
+                requestedGRDContext
+                != (GpuResidentDrawerContext)
+                    GlobalContextManager.GetGlobalContext<GpuResidentDrawerGlobalContext>()?.Context
+            )
+            {
+                GraphicsTestLogger.Log(
+                    LogType.Warning,
+                    $"Expected {requestedGRDContext} but was {(GpuResidentDrawerContext)GlobalContextManager.GetGlobalContext<GpuResidentDrawerGlobalContext>()?.Context}"
+                );
+            }
+
             Assert.That(
                 GlobalContextManager.GetGlobalContext<StereoRenderingGlobalContext>()?.Context,
                 Is.EqualTo((int)requestedXRContext),
@@ -150,6 +162,75 @@ namespace Unity.Rendering.Universal.Tests
             GlobalContextManager.UnregisterGlobalContext(typeof(RenderGraphGlobalContext));
             GlobalContextManager.UnregisterGlobalContext(typeof(GpuResidentDrawerGlobalContext));
             GlobalContextManager.UnregisterGlobalContext(typeof(StereoRenderingGlobalContext));
+        }
+    }
+
+    public class UniversalTestFixtureData
+    {
+        public static IEnumerable FixtureParams
+        {
+            get
+            {
+                yield return new TestFixtureData(
+                    RenderGraphContext.CompatibilityMode,
+                    GpuResidentDrawerContext.GpuResidentDrawerDisabled,
+                    StereoRenderingContext.StereoRenderingDisabled
+                );
+
+                yield return new TestFixtureData(
+                    RenderGraphContext.RenderGraphMode,
+                    GpuResidentDrawerContext.GpuResidentDrawerDisabled,
+                    StereoRenderingContext.StereoRenderingDisabled
+                );
+
+                if (GraphicsTestPlatform.Current.IsEditorPlatform)
+                {
+                    yield return new TestFixtureData(
+                        RenderGraphContext.CompatibilityMode,
+                        GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing,
+                        StereoRenderingContext.StereoRenderingDisabled
+                    );
+
+                    yield return new TestFixtureData(
+                        RenderGraphContext.RenderGraphMode,
+                        GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing,
+                        StereoRenderingContext.StereoRenderingDisabled
+                    );
+                }
+
+                if (GraphicsTestPlatform.Current.Platform == RuntimePlatform.WindowsEditor)
+                {
+                    yield return new TestFixtureData(
+                        RenderGraphContext.CompatibilityMode,
+                        GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing,
+                        StereoRenderingContext.StereoRenderingEnabled
+                    );
+
+                    yield return new TestFixtureData(
+                        RenderGraphContext.RenderGraphMode,
+                        GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing,
+                        StereoRenderingContext.StereoRenderingEnabled
+                    );
+                }
+
+                if (
+                    GraphicsTestPlatform.Current.Platform == RuntimePlatform.WindowsPlayer
+                    || GraphicsTestPlatform.Current.Platform == RuntimePlatform.WindowsEditor
+                )
+                {
+                    yield return new TestFixtureData(
+                        RenderGraphContext.CompatibilityMode,
+                        GpuResidentDrawerContext.GpuResidentDrawerDisabled,
+                        StereoRenderingContext.StereoRenderingEnabled
+                    );
+
+                    yield return new TestFixtureData(
+                        RenderGraphContext.RenderGraphMode,
+                        GpuResidentDrawerContext.GpuResidentDrawerDisabled,
+                        StereoRenderingContext.StereoRenderingEnabled
+                    );
+                }
+            }
         }
     }
 }

@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering
                 return false;
 #endif
             // If we are forcing the system, no need to perform further checks
-            if (IsForcedOnViaCommandLine())
+            if (IsForcedOnViaCommandLine() || MaintainContext)
                 return true;
 
             if (GraphicsSettings.currentRenderPipeline is not IGPUResidentRenderPipeline asset)
