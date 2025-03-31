@@ -143,7 +143,19 @@ namespace UnityEditor.VFX
 
         public virtual void SetupMaterial(Material material) { }
 
-        public bool HasIndirectDraw() { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)); }
+        protected bool HasUpdateInputContext()
+        {
+            foreach (var inputContext in inputContexts)
+            {
+                if (inputContext.contextType.HasFlag(VFXContextType.Update))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool HasIndirectDraw() { return ((indirectDraw && HasUpdateInputContext()) || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)); }
         public virtual bool HasSorting() { return sort == SortActivationMode.On || (sort == SortActivationMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
 
         public bool HasCustomSortingCriterion() { return HasSorting() && sortMode == VFXSortingUtility.SortCriteria.Custom; }
@@ -636,7 +648,7 @@ namespace UnityEditor.VFX
                     yield return "useExposureWeight";
 
                 // indirect draw is implicit or forbidden
-                if (HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw))
+                if (!HasUpdateInputContext() || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw))
                     yield return "indirectDraw";
 
                 // compute culling is implicit or forbidden
