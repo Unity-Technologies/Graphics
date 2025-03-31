@@ -38,7 +38,7 @@ class RenderGraphCompilationCache
         for (int i = 0; i < k_CachedGraphCount; ++i)
         {
             m_CompiledGraphPool.Push(new RenderGraph.CompiledGraph());
-            m_NativeCompiledGraphPool.Push(new CompilerContextData(NativePassCompiler.k_EstimatedPassCount));
+            m_NativeCompiledGraphPool.Push(new CompilerContextData());
         }
     }
 

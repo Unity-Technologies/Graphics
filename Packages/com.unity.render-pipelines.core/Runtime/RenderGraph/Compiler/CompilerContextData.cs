@@ -43,41 +43,59 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
     // Datastructure that contains passes and dependencies and allow you to iterate and reason on them more like a graph
     internal class CompilerContextData : IDisposable, RenderGraph.ICompiledGraph
     {
-        public CompilerContextData(int estimatedNumPasses)
+        public CompilerContextData()
         {
-            passData = new NativeList<PassData>(estimatedNumPasses, AllocatorManager.Persistent);
             fences = new Dictionary<int, GraphicsFence>();
-            passNames = new DynamicArray<Name>(estimatedNumPasses, false); // T in NativeList<T> cannot contain managed types, so the names are stored separately
-            inputData = new NativeList<PassInputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
-            outputData = new NativeList<PassOutputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
-            fragmentData = new NativeList<PassFragmentData>(estimatedNumPasses * 4, AllocatorManager.Persistent);
-            randomAccessResourceData = new NativeList<PassRandomWriteData>(4, AllocatorManager.Persistent); // We assume not a lot of passes use random write
             resources = new ResourcesData();
-            nativePassData = new NativeList<NativePassData>(estimatedNumPasses, AllocatorManager.Persistent);// assume nothing gets merged
-            nativeSubPassData = new NativeList<SubPassDescriptor>(estimatedNumPasses, AllocatorManager.Persistent);// there should "never" be more subpasses than graph passes
-            createData = new NativeList<ResourceHandle>(estimatedNumPasses * 2, AllocatorManager.Persistent);    // assume every pass creates two resources
-            destroyData = new NativeList<ResourceHandle>(estimatedNumPasses * 2, AllocatorManager.Persistent);   // assume every pass destroys two resources
+            passNames = new DynamicArray<Name>(0, false); // T in NativeList<T> cannot contain managed types, so the names are stored separately
         }
 
-        public void Initialize(RenderGraphResourceRegistry resourceRegistry)
+        void AllocateNativeDataStructuresIfNeeded(int estimatedNumPasses)
+        {
+            // Only first init or if Dispose() has been called through RenderGraph.Cleanup()
+            if (!m_AreNativeListsAllocated)
+            {
+                // These are risky heuristics that only work because we purposely estimate a very high number of passes
+                // We need to fix this with a proper size computation
+                passData = new NativeList<PassData>(estimatedNumPasses, AllocatorManager.Persistent);
+                inputData = new NativeList<PassInputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
+                outputData = new NativeList<PassOutputData>(estimatedNumPasses * 2, AllocatorManager.Persistent);
+                fragmentData = new NativeList<PassFragmentData>(estimatedNumPasses * 4, AllocatorManager.Persistent);
+                randomAccessResourceData = new NativeList<PassRandomWriteData>(4, AllocatorManager.Persistent); // We assume not a lot of passes use random write
+                nativePassData = new NativeList<NativePassData>(estimatedNumPasses, AllocatorManager.Persistent);// assume nothing gets merged
+                nativeSubPassData = new NativeList<SubPassDescriptor>(estimatedNumPasses, AllocatorManager.Persistent);// there should "never" be more subpasses than graph passes
+                createData = new NativeList<ResourceHandle>(estimatedNumPasses * 2, AllocatorManager.Persistent);    // assume every pass creates two resources
+                destroyData = new NativeList<ResourceHandle>(estimatedNumPasses * 2, AllocatorManager.Persistent);   // assume every pass destroys two resources
+
+                m_AreNativeListsAllocated = true;
+            }
+        }
+
+        public void Initialize(RenderGraphResourceRegistry resourceRegistry, int estimatedNumPasses)
         {
             resources.Initialize(resourceRegistry);
+            passNames.Reserve(estimatedNumPasses, false);
+            AllocateNativeDataStructuresIfNeeded(estimatedNumPasses);
         }
 
         public void Clear()
         {
-            passData.Clear();
-            fences.Clear();
             passNames.Clear();
-            inputData.Clear();
-            outputData.Clear();
-            fragmentData.Clear();
-            randomAccessResourceData.Clear();
             resources.Clear();
-            nativePassData.Clear();
-            nativeSubPassData.Clear();
-            createData.Clear();
-            destroyData.Clear();
+
+            if (m_AreNativeListsAllocated)
+            {
+                passData.Clear();
+                fences.Clear();
+                inputData.Clear();
+                outputData.Clear();
+                fragmentData.Clear();
+                randomAccessResourceData.Clear();
+                nativePassData.Clear();
+                nativeSubPassData.Clear();
+                createData.Clear();
+                destroyData.Clear();
+            }
         }
 
         public ResourcesData resources;
@@ -272,7 +290,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         // IDisposable implementation
 
-        bool m_Disposed;
+        bool m_AreNativeListsAllocated = false;
 
         ~CompilerContextData() => Cleanup();
 
@@ -284,10 +302,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         void Cleanup()
         {
-            if (!m_Disposed)
-            {
-                resources.Dispose();
+            resources.Dispose();
 
+            if (m_AreNativeListsAllocated)
+            {
                 passData.Dispose();
                 inputData.Dispose();
                 outputData.Dispose();
@@ -297,7 +315,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 randomAccessResourceData.Dispose();
                 nativePassData.Dispose();
                 nativeSubPassData.Dispose();
-                m_Disposed = true;
+
+                m_AreNativeListsAllocated = false;
             }
         }
     }

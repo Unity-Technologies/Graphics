@@ -570,6 +570,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             CheckNotUsedWhenActive();
 
+            ForceCleanup();
+        }
+
+        // Internal, only for testing
+        // Useful when we need to clean when calling
+        // internal functions in tests even if Render Graph is active
+        internal void ForceCleanup()
+        {
+            // Usually done at the end of Execute step
+            // Also doing it here in case RG stopped before it
+            ClearCurrentCompiledGraph();
+
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
             m_RenderGraphPool.Cleanup();
@@ -577,7 +589,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             s_RegisteredGraphs.Remove(this);
             onGraphUnregistered?.Invoke(this);
 
-            nativeCompiler?.contextData?.Dispose();
+            nativeCompiler?.Cleanup();
 
             m_CompilationCache?.Clear();
             
