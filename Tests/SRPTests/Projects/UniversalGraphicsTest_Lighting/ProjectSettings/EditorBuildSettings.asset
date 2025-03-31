@@ -141,8 +141,14 @@ EditorBuildSettings:
     path: Assets/Scenes/222_Forward+_ReflectionProbes_Mip_blending.unity
     guid: 44cd1c9124e14d04494dcd058598b2ab
   - enabled: 1
+    path: Assets/Scenes/222_DeferredPlus_ReflectionProbes_Mip_blending.unity
+    guid: d4d56ea85e9cf5147b386fd2f81bd466
+  - enabled: 1
     path: Assets/Scenes/223_Forward+_Lights_And_ReflectionProbe_Limit.unity
     guid: 99cfa91461770924b8ae476ebdf3b3b5
+  - enabled: 1
+    path: Assets/Scenes/223_DeferredPlus_Lights_And_ReflectionProbe_Limit.unity
+    guid: da7a16b33e98f1946a6ee52f6e9a8486
   - enabled: 1
     path: Assets/Scenes/224_Forward+_ReflectionProbes_PerObjectProbe_blending.unity
     guid: 5fad61d8d8ae2ac41a882111389c354c
