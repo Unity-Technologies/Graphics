@@ -390,10 +390,14 @@ namespace UnityEngine.Rendering
                     var filteredPrototypes = new List<TerrainContributor.TreePrototype>();
                     foreach (var treeProto in terrain.treePrototypes)
                     {
-                        int treeProtoLayerMask = 1 << treeProto.component.gameObject.layer;
+                        // check if the mesh renderer exists
+                        if (treeProto.component != null)
+                        {
+                            int treeProtoLayerMask = 1 << treeProto.component.gameObject.layer;
 
-                        if ((treeProtoLayerMask & layerMask) != 0)
-                            filteredPrototypes.Add(treeProto);
+                            if ((treeProtoLayerMask & layerMask) != 0)
+                                filteredPrototypes.Add(treeProto);
+                        }
                     }
 
                     var terrainContrib = new TerrainContributor()
