@@ -746,7 +746,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ValidRayTracingState)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<RTASDebugPassData>("Debug view of the RTAS", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructureDebug)))
+            RTASDebugPassData passData;
+
+            using (var builder = renderGraph.AddRenderPass<RTASDebugPassData>("Debug view of the RTAS", out passData, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructureDebug)))
             {
                 builder.EnableAsyncCompute(false);
 
@@ -788,10 +790,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Evaluate the debug view
                         ctx.cmd.DispatchRays(data.debugRTASRT, m_RTASDebugRTKernel, (uint)data.actualWidth, (uint)data.actualHeight, (uint)data.viewCount);
                     });
-
-                // Use the debug texture to do the full screen debug
-                PushFullScreenDebugTexture(renderGraph, passData.outputTexture, FullScreenDebugMode.RayTracingAccelerationStructure);
             }
+
+            // Use the debug texture to do the full screen debug
+            PushFullScreenDebugTexture(renderGraph, passData.outputTexture, FullScreenDebugMode.RayTracingAccelerationStructure);
         }
 
         internal static int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
