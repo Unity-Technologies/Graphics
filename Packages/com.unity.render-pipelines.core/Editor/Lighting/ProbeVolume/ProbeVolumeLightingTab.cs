@@ -372,6 +372,8 @@ namespace UnityEngine.Rendering
             {
                 if (newSet != null) { EditorUtility.SetDirty(newSet); newSet.singleSceneMode = false; }
                 activeSet = newSet;
+
+                ProbeReferenceVolume.instance.Clear();
                 ProbeReferenceVolume.instance.SetActiveBakingSet(activeSet);
             }
 
@@ -525,7 +527,7 @@ namespace UnityEngine.Rendering
                 set = ScriptableObject.CreateInstance<ProbeVolumeBakingSet>();
                 set.SetDefaults();
 
-                ProbeReferenceVolume.instance.AddPendingSceneRemoval(sceneGUID);
+                ProbeReferenceVolume.instance.Clear();
             }
 
             EditorUtility.SetDirty(set);
