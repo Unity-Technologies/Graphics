@@ -55,10 +55,6 @@ namespace UnityEditor.VFX.Block
             var slope = new VFXExpressionATan(tanSlope);
             yield return new VFXNamedExpression(CalculateVolumeFactor(positionBase.positionMode, baseRadius, thickness, 2.0f), "volumeFactor");
             yield return new VFXNamedExpression(new VFXExpressionCombine(new VFXExpression[] { new VFXExpressionSin(slope), new VFXExpressionCos(slope) }), "sincosSlope");
-
-
-            var invFinalTransform = VFXOperatorUtility.InverseTransposeTRS(transform);
-            yield return new VFXNamedExpression(invFinalTransform, "arcCone_cone_inverseTranspose");
         }
 
         public override string GetSource(PositionShape positionBase)
@@ -114,8 +110,8 @@ float3 currentAxisZ = float3(sincosTheta * sincosSlope.x, sincosSlope.y);
 float3 currentAxisY = float3(sincosTheta, -sincosSlope.x);
 
 finalPos = mul(arcCone_cone_transform, float4(finalPos.xzy, 1.0f)).xyz;
-currentAxisY = mul(arcCone_cone_inverseTranspose, float4(currentAxisY.xzy, 0.0f)).xyz;
-currentAxisZ = mul(arcCone_cone_inverseTranspose, float4(currentAxisZ.xzy, 0.0f)).xyz;
+currentAxisY = mul(arcCone_cone_transform, float4(currentAxisY.xzy, 0.0f)).xyz;
+currentAxisZ = mul(arcCone_cone_transform, float4(currentAxisZ.xzy, 0.0f)).xyz;
 currentAxisY = normalize(currentAxisY);
 currentAxisZ = normalize(currentAxisZ);
 float3 currentAxisX = cross(currentAxisY, currentAxisZ);
