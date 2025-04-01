@@ -9,7 +9,7 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../../../../Packages/com.unity.render-pipelines.high-definition-config",
     "com.unity.rendering.denoising": "1.0.5",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
-    "local.utf.references": "file:../../../Packages/local.utf.references",
+    "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.testframework.graphics": "file:../../../Packages/com.unity.test-framework.graphics",
     "com.unity.testing.hdrp": "file:../../../Packages/com.unity.testing.hdrp",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",

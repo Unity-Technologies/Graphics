@@ -12,7 +12,7 @@
     "com.unity.testframework.graphics": "8.9.1-exp.1",
     "com.unity.ugui": "2.0.0",
     "com.unity.xr.mock-hmd": "1.1.1-preview.1",
-    "local.utf.references": "file:../../../Packages/local.utf.references",
+    "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

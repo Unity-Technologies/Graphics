@@ -9,7 +9,7 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../../../../Packages/com.unity.render-pipelines.high-definition-config",
     "com.unity.shaderanalysis": "file:../../../../../Packages/com.unity.shaderanalysis",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
-    "local.utf.references": "file:../../../Packages/local.utf.references",
+    "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.testframework.graphics": "8.9.1-exp.1",
     "com.unity.test-framework.graphics.performance": "file:../../../Packages/com.unity.test-framework.graphics.performance",
     "com.unity.ugui": "2.0.0",
