@@ -4,6 +4,7 @@ using UnityEditor.Experimental;
 using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
@@ -42,10 +43,8 @@ namespace UnityEditor.VFX.UI
 
         protected override void OnMainButton()
         {
-            if (string.IsNullOrEmpty(m_ManualUrlWithVersion))
-            {
-                m_ManualUrlWithVersion = string.Format(k_ManualUrl, VFXHelpURLAttribute.version);
-            }
+            if (string.IsNullOrEmpty(m_ManualUrlWithVersion)) 
+                m_ManualUrlWithVersion = DocumentationInfo.GetDefaultPackageLink(Documentation.packageName);
 
             GotoUrl(m_ManualUrlWithVersion);
         }
