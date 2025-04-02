@@ -61,7 +61,12 @@ namespace UnityEngine.Rendering.Universal
 
         private bool IsPixelPerfectCameraEnabled(UniversalCameraData cameraData)
         {
-            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
+            PixelPerfectCamera ppc = null;
+
+            // Pixel Perfect Camera doesn't support camera stacking.
+            if (cameraData.renderType == CameraRenderType.Base && cameraData.resolveFinalTarget)
+                cameraData.camera.TryGetComponent(out ppc);
+
             return ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None;
         }
 

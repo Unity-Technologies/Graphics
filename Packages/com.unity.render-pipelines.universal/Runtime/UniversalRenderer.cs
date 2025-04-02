@@ -1893,7 +1893,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
         }
 
-        bool PlatformRequiresExplicitMsaaResolve()
+        internal static bool PlatformRequiresExplicitMsaaResolve()
         {
 #if UNITY_EDITOR
             // In the editor play-mode we use a Game View Render Texture, with
