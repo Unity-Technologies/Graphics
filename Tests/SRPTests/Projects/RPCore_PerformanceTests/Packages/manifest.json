@@ -7,7 +7,7 @@
     "com.unity.rendering.light-transport": "file:../../../../../Packages/com.unity.rendering.light-transport",
     "com.unity.test-framework.performance": "3.0.2",
     "com.unity.ugui": "2.0.0",
-    "local.utf.references": "file:../../../Packages/local.utf.references",
+    "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

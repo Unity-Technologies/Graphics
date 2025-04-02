@@ -406,8 +406,8 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
         if (isPointLight)
         {
             // This is a point light, we have to find out which shadow slice to sample from
-            float cubemapFaceId = CubeMapFaceID(-lightDirection);
-            shadowSliceIndex += cubemapFaceId;
+            const int cubeFaceOffset = CubeMapFaceID(-lightDirection);
+            shadowSliceIndex += cubeFaceOffset;
         }
 
         #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
@@ -424,7 +424,7 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
 
 half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
 {
-    #if defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
+    #if !defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
         return half(1.0);
     #endif
 

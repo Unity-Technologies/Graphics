@@ -95,6 +95,8 @@ To start exploring the content of this sample:
 
 Each VFX covers a feature or aspect of VFX Graph, and illustrates what you can do with those features. Each VFX is accompanied by documentation and embedded explanations to help you in your learning journey.
 
+<a name="sample-showcase"></a>
+
 ### Sample Showcase window
 
 To open the Sample Showcase window:
@@ -136,17 +138,15 @@ To open a VFX asset, you can do one of the following:
    1. In the [Inspector](https://docs.unity3d.com/Manual/UsingTheInspector.html), find the Visual Effect component.
    1. Select **Edit**.
 
-- From the **Sample Showcase window**:
+- From the [Sample Showcase window](#sample-showcase):
 
-   1. Open the [Sample Showcase window](#Inspector). 
    1. Use the drop-down menu or arrow button to select the desired VFX.
    1. Select **Open VFX**.   
 
-- From the **Template window**:
+- From the [Template window](Templates-window.md):
 
-   1. Open the [Sample Showcase window](#Inspector). 
-   1. Use the drop-down menu or arrow button to select the desired VFX.
-   1. Select **Open VFX**.    
+   1. Select the desired VFX.
+   1. Select **Create**.   
 
 <img width="500" height="auto" src="Images/LearningSample_WindowTemplate.png" />
 

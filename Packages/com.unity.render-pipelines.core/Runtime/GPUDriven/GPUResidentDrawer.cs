@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering
         public static void ReinitializeIfNeeded()
         {
 #if UNITY_EDITOR
-            if (!IsForcedOnViaCommandLine() && (IsProjectSupported() != IsEnabled()))
+            if (!IsForcedOnViaCommandLine() && !MaintainContext && (IsProjectSupported() != IsEnabled()))
             {
                 Reinitialize();
             }
@@ -268,6 +268,8 @@ namespace UnityEngine.Rendering
             return false;
 #endif
         }
+
+        internal static bool MaintainContext { get; set; } = false;
 
         internal static void Reinitialize()
         {

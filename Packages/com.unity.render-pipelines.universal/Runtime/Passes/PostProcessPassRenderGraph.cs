@@ -1346,16 +1346,15 @@ namespace UnityEngine.Rendering.Universal
             return originalBloomTexture;
         }
 
-#endregion
+        #endregion
 
-        static private void ScaleViewportAndBlit(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material, bool hasFinalPass)
+        static private void ScaleViewport(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, bool hasFinalPass)
         {
-            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTextureHdl, dest, cameraData);
             RenderTargetIdentifier cameraTarget = BuiltinRenderTextureType.CameraTarget;
-        #if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
                 cameraTarget = cameraData.xr.renderTarget;
-        #endif
+#endif
             if (dest.nameID == cameraTarget || cameraData.targetTexture != null)
             {
                 if (hasFinalPass || !cameraData.resolveFinalTarget)
@@ -1380,12 +1379,31 @@ namespace UnityEngine.Rendering.Universal
                 else
                     cmd.SetViewport(cameraData.pixelRect);
             }
+        }
 
+        static private void ScaleViewportAndBlit(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material, bool hasFinalPass)
+        {
+            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTextureHdl, dest, cameraData);
+            ScaleViewport(cmd, sourceTextureHdl, dest, cameraData, hasFinalPass);
 
             Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
         }
 
-#region FinalPass
+        static private void ScaleViewportAndDrawVisibilityMesh(RasterCommandBuffer cmd, RTHandle sourceTextureHdl, RTHandle dest, UniversalCameraData cameraData, Material material, bool hasFinalPass)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            Vector4 scaleBias = RenderingUtils.GetFinalBlitScaleBias(sourceTextureHdl, dest, cameraData);
+            ScaleViewport(cmd, sourceTextureHdl, dest, cameraData, hasFinalPass);
+
+            // Set property block for blit shader
+            MaterialPropertyBlock xrPropertyBlock = XRSystemUniversal.GetMaterialPropertyBlock();
+            xrPropertyBlock.SetVector(Shader.PropertyToID("_BlitScaleBias"), scaleBias);
+            xrPropertyBlock.SetTexture(Shader.PropertyToID("_BlitTexture"), sourceTextureHdl);
+            cameraData.xr.RenderVisibleMeshCustomMaterial(cmd, cameraData.xr.occlusionMeshScale, material, xrPropertyBlock, 1, cameraData.IsRenderTargetProjectionMatrixFlipped(dest));
+#endif
+        }
+
+        #region FinalPass
         private class PostProcessingFinalSetupPassData
         {
             internal TextureHandle destinationTexture;
@@ -1614,7 +1632,18 @@ namespace UnityEngine.Rendering.Universal
                     Vector4 scaleBias = yflip ? new Vector4(viewportScale.x, -viewportScale.y, 0, viewportScale.y) : new Vector4(viewportScale.x, viewportScale.y, 0, 0);
 
                     cmd.SetViewport(data.cameraData.pixelRect);
-                    Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    if (data.cameraData.xr.enabled && data.cameraData.xr.hasValidVisibleMesh)
+                    {
+                        MaterialPropertyBlock xrPropertyBlock = XRSystemUniversal.GetMaterialPropertyBlock();
+                        xrPropertyBlock.SetVector(Shader.PropertyToID("_BlitScaleBias"), scaleBias);
+                        xrPropertyBlock.SetTexture(Shader.PropertyToID("_BlitTexture"), sourceTextureHdl);
+
+                        data.cameraData.xr.RenderVisibleMeshCustomMaterial(cmd, data.cameraData.xr.occlusionMeshScale, material, xrPropertyBlock, 1, !yflip);
+                    }
+                    else
+#endif
+                        Blitter.BlitTexture(cmd, sourceTextureHdl, scaleBias, material, 0);
                 });
 
                 return;
@@ -1920,7 +1949,13 @@ namespace UnityEngine.Rendering.Universal
                     CoreUtils.SetKeyword(material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, data.enableAlphaOutput);
 
                     // Done with Uber, blit it
-                    ScaleViewportAndBlit(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material, data.hasFinalPass);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    if (data.cameraData.xr.enabled && data.cameraData.xr.hasValidVisibleMesh)
+                        ScaleViewportAndDrawVisibilityMesh(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material, data.hasFinalPass);
+                    else
+#endif
+                        ScaleViewportAndBlit(cmd, sourceTextureHdl, data.destinationTexture, data.cameraData, material, data.hasFinalPass);
+
                 });
 
                 return;

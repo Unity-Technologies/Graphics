@@ -458,12 +458,14 @@ namespace UnityEngine.Rendering.Universal
                 RTHandles.SetHardwareDynamicResolutionState(true);
 
                 SortCameras(cameras);
-                for (int i = 0; i < cameras.Count; ++i)
+                int lastBaseCameraIndex = GetLastBaseCameraIndex(cameras);
+                for (int i = 0; i < cameraCount; ++i)
                 {
                     var camera = cameras[i];
+                    bool isLastBaseCamera = i == lastBaseCameraIndex;
                     if (IsGameCamera(camera))
                     {
-                        RenderCameraStack(renderContext, camera);
+                        RenderCameraStack(renderContext, camera, isLastBaseCamera);
                     }
                     else
                     {
@@ -476,7 +478,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                             UpdateVolumeFramework(camera, null);
 
-                            RenderSingleCameraInternal(renderContext, camera);
+                            RenderSingleCameraInternal(renderContext, camera, isLastBaseCamera);
                         }
                     }
                 }
@@ -653,16 +655,16 @@ namespace UnityEngine.Rendering.Universal
             RenderSingleCameraInternal(context, camera);
         }
 
-        internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera)
+        internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera, bool isLastBaseCamera = true)
         {
             UniversalAdditionalCameraData additionalCameraData = null;
             if (IsGameCamera(camera))
                 camera.gameObject.TryGetComponent(out additionalCameraData);
 
-            RenderSingleCameraInternal(context, camera, ref additionalCameraData);
+            RenderSingleCameraInternal(context, camera, ref additionalCameraData, isLastBaseCamera);
         }
 
-        internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera, ref UniversalAdditionalCameraData additionalCameraData)
+        internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera, ref UniversalAdditionalCameraData additionalCameraData, bool isLastBaseCamera = true)
         {
             if (additionalCameraData != null && additionalCameraData.renderType != CameraRenderType.Base)
             {
@@ -678,7 +680,7 @@ namespace UnityEngine.Rendering.Universal
 
             var frameData = GetRenderer(camera, additionalCameraData).frameData;
             var cameraData = CreateCameraData(frameData, camera, additionalCameraData, true);
-            InitializeAdditionalCameraData(camera, additionalCameraData, true, cameraData);
+            InitializeAdditionalCameraData(camera, additionalCameraData, true, isLastBaseCamera, cameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(cameraData);
@@ -909,8 +911,9 @@ namespace UnityEngine.Rendering.Universal
         /// The last camera resolves the final target to screen.
         /// </summary>
         /// <param name="context">Render context used to record commands during execution.</param>
-        /// <param name="camera">Camera to render.</param>
-        static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera)
+        /// <param name="baseCamera">Camera to render.</param>
+        /// <param name="isLastBaseCamera">True if this is the last base camera.</param>
+        static void RenderCameraStack(ScriptableRenderContext context, Camera baseCamera, bool isLastBaseCamera)
         {
             using var profScope = new ProfilingScope(ProfilingSampler.Get(URPProfileId.RenderCameraStack));
 
@@ -1049,8 +1052,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                     // InitializeAdditionalCameraData needs to be initialized after the cameraTargetDescriptor is set because it needs to know the
                     // msaa level of cameraTargetDescriptor and XR modifications.
-                    InitializeAdditionalCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering,
-                        baseCameraData);
+                    InitializeAdditionalCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, isLastBaseCamera, baseCameraData);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                     //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
@@ -1115,7 +1117,7 @@ namespace UnityEngine.Rendering.Universal
                             }
 #endif
 
-                            InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, false, overlayCameraData);
+                            InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, false, isLastBaseCamera, overlayCameraData);
                             overlayCameraData.camera = overlayCamera;
                             overlayCameraData.baseCamera = baseCamera;
 
@@ -1129,8 +1131,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
                                 UpdateVolumeFramework(overlayCamera, overlayAdditionalCameraData);
 
-                                bool lastCamera = i == lastActiveOverlayCameraIndex;
-                                InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, lastCamera, overlayCameraData);
+                                bool isLastOverlayCamera = i == lastActiveOverlayCameraIndex;
+                                InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, isLastOverlayCamera, isLastBaseCamera, overlayCameraData);
 
                                 overlayCameraData.stackAnyPostProcessingEnabled = anyPostProcessingEnabled;
                                 overlayCameraData.stackLastCameraOutputToHDR = finalOutputHDR;
@@ -1470,8 +1472,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">Camera to initialize settings from.</param>
         /// <param name="additionalCameraData">Additional camera data component to initialize settings from.</param>
         /// <param name="resolveFinalTarget">True if this is the last camera in the stack and rendering should resolve to camera target.</param>
+        /// <param name="isLastBaseCamera">True if the base camera is the last base camera.</param>
         /// <param name="cameraData">Settings to be initilized.</param>
-        static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, UniversalCameraData cameraData)
+        static void InitializeAdditionalCameraData(Camera camera, UniversalAdditionalCameraData additionalCameraData, bool resolveFinalTarget, bool isLastBaseCamera, UniversalCameraData cameraData)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeAdditionalCameraData);
 
@@ -1521,6 +1524,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderer = renderer;
             cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
+            cameraData.isLastBaseCamera = isLastBaseCamera;
 
             // enable GPU occlusion culling in game and scene views only
             cameraData.useGPUOcclusionCulling = GPUResidentDrawer.IsInstanceOcclusionCullingEnabled()
@@ -2428,8 +2432,8 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         protected override bool IsPreviewSupported(Camera camera, out string reason)
         {
-            if (camera != null 
-                && camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalData) 
+            if (camera != null
+                && camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalData)
                 && additionalData.renderType == CameraRenderType.Overlay)
             {
                 reason = "Overlay camera cannot be previewed directly.\nYou need to use a base camera instead.";

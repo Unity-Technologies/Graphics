@@ -3,7 +3,7 @@
 	border-color: #999999;
 }
 
-.header-foldout > Toggle
+.unity-foldout__toggle
 {
 	background-color: #d3d3d3;
 }

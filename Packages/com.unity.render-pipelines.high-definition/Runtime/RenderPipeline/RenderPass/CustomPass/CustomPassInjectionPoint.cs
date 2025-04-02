@@ -18,6 +18,8 @@ namespace UnityEngine.Rendering.HighDefinition
         BeforeRendering = 0,
         /// <summary>At this point, you can modify the normal, roughness, and depth buffer. If you write to these buffers at this injection point, HDRP takes it into account in the lighting and the depth pyramid.</summary>
         AfterOpaqueDepthAndNormal = 5,
+        /// <summary>At this injection point, The color buffer contains all the opaque objects in your view. The Sky and the Fog is not rendered yet, so if you change the color buffer in this injection point, fog will be applied on top of your effect.</summary>
+        AfterOpaqueColor = 7,
         /// <summary>At this injection point, The color buffer contains all the opaque objects in your view as well as the sky. The Fog is not rendered yet, so if you change the color buffer in this injection point, fog will be applied on top of your effect.</summary>
         AfterOpaqueAndSky = 6,
         /// <summary>At this injection point, you can render any transparent GameObject that you want to see in refraction. If you write to buffers at this injection point, they contents end up in the color pyramid that HDRP uses for refraction when it draws transparent GameObjects.</summary>

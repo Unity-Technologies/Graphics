@@ -7,6 +7,14 @@ namespace UnityEngine.Rendering.Universal
         // Prevent GC by keeping an array pre-allocated
         static Matrix4x4[] s_projMatrix = new Matrix4x4[2];
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        static MaterialPropertyBlock s_XRSharedPropertyBlock = new MaterialPropertyBlock();
+        internal static MaterialPropertyBlock GetMaterialPropertyBlock()
+        {
+            return s_XRSharedPropertyBlock;
+        }
+#endif
+
         internal static void BeginLateLatching(Camera camera, XRPassUniversal xrPass)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE

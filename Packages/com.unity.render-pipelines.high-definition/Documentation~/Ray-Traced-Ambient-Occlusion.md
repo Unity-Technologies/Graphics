@@ -2,11 +2,11 @@
 
 Ray-Traced Ambient Occlusion is a ray tracing feature in the High Definition Render Pipeline (HDRP). It is an alternative to HDRP's s [screen space ambient occlusion](Override-Ambient-Occlusion.md), with a more accurate ray-traced solution that can use off-screen data.
 
-![](Images/RayTracedAmbientOcclusion1.png)
+![An example of a screen space ambient occlusion texture.](Images/RayTracedAmbientOcclusion1.png)
 
 **Screen space ambient occlusion**
 
-![](Images/RayTracedAmbientOcclusion2.png)
+![An example of a ray-traced ambient occlusion texture.](Images/RayTracedAmbientOcclusion2.png)
 
 **Ray-traced ambient occlusion**
 

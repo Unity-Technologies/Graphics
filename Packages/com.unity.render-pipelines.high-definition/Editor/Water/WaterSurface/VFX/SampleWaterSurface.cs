@@ -20,9 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
     }
-
-
-    [VFXHelpURL("Operator-SampleWaterSurface")]
+    
     [VFXInfo(category = "Sampling")]
     class SampleWaterSurface : VFXOperator
     {

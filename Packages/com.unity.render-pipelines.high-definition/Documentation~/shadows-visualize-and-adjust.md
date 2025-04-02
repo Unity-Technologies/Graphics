@@ -9,7 +9,7 @@ In the Inspector, use the **Cascade Splits** bar to see the size of each cascade
 
 In the Scene view and the Game view, the cascade visualization feature allows you to see the boundaries of each cascade in your Scene. Each color represents a separate cascade, and the colors match those in the **Cascade Splits** bar. This allows you to see which colored area matches which cascade.
 
-![](/Images/Override-Shadows3.png)
+![Cascade visualization example.](/Images/Override-Shadows3.png)
 
 To enable the cascade visualization feature, select **Show Cascades** at the top of the list of **Shadows** properties. You can now see the shadow maps in the Scene view and the Game view.
 

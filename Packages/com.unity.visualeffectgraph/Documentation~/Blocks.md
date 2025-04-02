@@ -2,8 +2,6 @@
 
 Blocks are Nodes that define the behavior of a [Context](Contexts.md). You can create and reorder Blocks within a Context and, when Unity plays a visual effect, Blocks execute from top to bottom.
 
-![](Images/Block-Anatomy.png)
-
 You can use Blocks for many purposes, from simple value storage (for example, a random Color) to high-level complex operations such as Noise Turbulence, Forces, or Collisions.
 
 ## Adding Blocks

@@ -4,7 +4,7 @@ An Environment Library is an Asset that contains a list of environments that you
 
 <a name="Creation"></a>
 
-![](Images/LookDevEnvironmentLibrary1.png)
+![Environment Library asset.](Images/LookDevEnvironmentLibrary1.png)
 
 ## Creating an Environment Library
 
@@ -26,13 +26,13 @@ To add, remove, or duplicate environments, use the toolbar at the bottom of the 
 
 | **Button**                                                   | **Function**  | **Description**                                              |
 | ------------------------------------------------------------ | ------------- | ------------------------------------------------------------ |
-| ![](Images/LookDevEnvironmentLibrary2.png) | **Add**       | Click this button to add a new environment to the bottom of the list. |
-| ![](Images/LookDevEnvironmentLibrary3.png) | **Remove**    | Click this button to remove the environment currently selected. Note that the environment that you have selected is the one with the blue frame. |
-| ![](Images/LookDevEnvironmentLibrary4.png)                   | **Duplicate** | Click this button to duplicate the currently selected environment and add it as a new environment to the bottom of the list. |
+| ![This button adds a new environment to the bottom of the list.](Images/LookDevEnvironmentLibrary2.png) | **Add**       | Click this button to add a new environment to the bottom of the list. |
+| ![This button removes the currently selected environment.](Images/LookDevEnvironmentLibrary3.png) | **Remove**    | Click this button to remove the environment currently selected. Note that the environment that you have selected is the one with the blue frame. |
+| ![This button duplicates the currently selected environment.](Images/LookDevEnvironmentLibrary4.png)                   | **Duplicate** | Click this button to duplicate the currently selected environment and add it as a new environment to the bottom of the list. |
 
 ## Properties
 
-![](Images/LookDevEnvironmentLibrary5.png)
+![Environment Library properties](Images/LookDevEnvironmentLibrary5.png)
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |

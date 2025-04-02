@@ -10,7 +10,7 @@
     "com.unity.render-pipelines.high-definition": "file:../../../../../Packages/com.unity.render-pipelines.high-definition",
     "com.unity.render-pipelines.high-definition-config": "file:../../../../../Packages/com.unity.render-pipelines.high-definition-config",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
-    "local.utf.references": "file:../../../Packages/local.utf.references",
+    "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.testframework.graphics": "8.9.1-exp.1",
     "com.unity.testing.brg": "file:../../../Packages/com.unity.testing.brg",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",

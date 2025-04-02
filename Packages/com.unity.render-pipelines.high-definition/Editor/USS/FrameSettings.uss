@@ -58,3 +58,19 @@
 {
 	background-color: var(--unity-colors-helpbox-background);
 }
+
+.header-foldout
+{
+	margin: 0px -6px 0px -31px;
+	padding: 0px 0px 0px 0px;
+}
+
+.unity-foldout__toggle
+{
+	padding: 0px 6px 0px 30px;
+}
+
+.unity-foldout__content
+{
+	margin: 0px 5px 0px 47px;
+}

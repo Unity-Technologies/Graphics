@@ -1108,19 +1108,35 @@ namespace UnityEngine.Rendering
             }
         }
 
+        internal static Vector3 DecodeSkyShadingDirection(uint directionIndex)
+        {
+            var precomputedDirections = ProbeVolumeConstantRuntimeResources.GetSkySamplingDirections();
+            Debug.Assert(directionIndex < precomputedDirections.Length + 1);
+            return directionIndex == precomputedDirections.Length ? new Vector3(0.0f, 0.0f, 0.0f) : precomputedDirections[directionIndex];
+        }
+
         internal bool GetFlattenedProbeData(
             string scenario,
             out Vector3[] positions,
             out SphericalHarmonicsL2[] irradiance,
-            out float[] validity)
+            out float[] validity,
+            out Vector4[] occlusion,
+            out Vector4[] skyOcclusion,
+            out Vector3[] skyOcclusionDirections)
         {
             positions = null;
             irradiance = null;
             validity = null;
+            occlusion = null;
+            skyOcclusion = null;
+            skyOcclusionDirections = null;
 
             var positionsList = new List<Vector3>();
             var irradianceList = new List<SphericalHarmonicsL2>();
             var validityList = new List<float>();
+            var occlusionList = new List<Vector4>();
+            var skyOcclusionList = new List<Vector4>();
+            var skyOcclusionDirectionList = new List<Vector3>();
 
             foreach (var cell in cells.Values)
             {
@@ -1162,6 +1178,30 @@ namespace UnityEngine.Rendering
 
                                 positionsList.Add(position);
                                 validityList.Add(cell.data.validity[probeFlatIndex]);
+                                var occlusionOffset = probeFlatIndex * 4;
+                                float occlusionValue0 = scenarioData.probeOcclusion[occlusionOffset] / 255.0f;
+                                float occlusionValue1 = scenarioData.probeOcclusion[occlusionOffset+1] / 255.0f;
+                                float occlusionValue2 = scenarioData.probeOcclusion[occlusionOffset+2] / 255.0f;
+                                float occlusionValue3 = scenarioData.probeOcclusion[occlusionOffset+3] / 255.0f;
+                                occlusionList.Add(new Vector4(occlusionValue0, occlusionValue1, occlusionValue2, occlusionValue3));
+
+                                if (cell.data.skyOcclusionDataL0L1.Length > 0)
+                                {
+                                    // sky occlusion L0/L1 SH
+                                    var skyOccSH_dc = Mathf.HalfToFloat(cell.data.skyOcclusionDataL0L1[probeFlatIndex * 4]);
+                                    var skyOccSH_x = Mathf.HalfToFloat(cell.data.skyOcclusionDataL0L1[probeFlatIndex * 4 + 1]);
+                                    var skyOccSH_y = Mathf.HalfToFloat(cell.data.skyOcclusionDataL0L1[probeFlatIndex * 4 + 2]);
+                                    var skyOccSH_z = Mathf.HalfToFloat(cell.data.skyOcclusionDataL0L1[probeFlatIndex * 4 + 3]);
+                                    skyOcclusionList.Add(new Vector4(skyOccSH_dc, skyOccSH_x, skyOccSH_y, skyOccSH_z));
+                                }
+
+                                if (cell.data.skyShadingDirectionIndices.Length > 0)
+                                {
+                                    // sky occlusion direction
+                                    var skyOccSDI = cell.data.skyShadingDirectionIndices[probeFlatIndex];
+                                    var skyOcclusionDirection = DecodeSkyShadingDirection(skyOccSDI);
+                                    skyOcclusionDirectionList.Add(skyOcclusionDirection);
+                                }
 
                                 Vector4 L0_L1Rx  = Vector4.zero;
                                 Vector4 L1G_L1Ry = Vector4.zero;
@@ -1261,6 +1301,9 @@ namespace UnityEngine.Rendering
             positions = positionsList.ToArray();
             irradiance = irradianceList.ToArray();
             validity = validityList.ToArray();
+            occlusion = occlusionList.ToArray();
+            skyOcclusion = skyOcclusionList.ToArray();
+            skyOcclusionDirections = skyOcclusionDirectionList.ToArray();
 
             return true;
         }

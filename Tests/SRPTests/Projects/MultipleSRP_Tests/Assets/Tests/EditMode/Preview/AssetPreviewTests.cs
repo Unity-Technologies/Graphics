@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Reflection;
 using Common;
 using NUnit.Framework;
 using UnityEditor;
@@ -28,20 +27,24 @@ namespace Preview
                 .Returns(null),
             new TestCaseData(new MaterialFactory($"TestMaterial-{nameof(HDRenderPipelineAsset)}"), typeof(HDRenderPipelineAsset))
                 .SetName($"Preview generation for Material {nameof(HDRenderPipelineAsset)}")
-                .Returns(null)
-                .Ignore(
-                    "UUM-33619: HD Render Pipeline thumbnails doesn't render properly when rendering requested from C++ worker in case thumbnail was scheduled to be rendered later. Possible cause that burstified Job required for proper feature flags determination is not running."),
+                .Returns(null),
             new TestCaseData(new GameObjectFactory($"Hammer.fbx"), null)
-            .SetName($"Preview generation for Model Built-In")
-            .Returns(null),
+                .SetName($"Preview generation for Model Built-In")
+                .Returns(null),
             new TestCaseData(new GameObjectFactory($"Hammer.fbx"), typeof(UniversalRenderPipelineAsset))
                 .SetName($"Preview generation for Model {nameof(UniversalRenderPipelineAsset)}")
+                .Returns(null),
+            new TestCaseData(new GameObjectFactory($"Hammer.fbx"), typeof(HDRenderPipelineAsset))
+                .SetName($"Preview generation for Model {nameof(HDRenderPipelineAsset)}")
                 .Returns(null),
             new TestCaseData(new GameObjectFactory($"Hammer.prefab"), null)
                 .SetName($"Preview generation for Prefab Built-In")
                 .Returns(null),
             new TestCaseData(new GameObjectFactory($"Hammer.prefab"), typeof(UniversalRenderPipelineAsset))
                 .SetName($"Preview generation for Prefab {nameof(UniversalRenderPipelineAsset)}")
+                .Returns(null),
+            new TestCaseData(new GameObjectFactory($"Hammer.prefab"), typeof(HDRenderPipelineAsset))
+                .SetName($"Preview generation for Prefab {nameof(HDRenderPipelineAsset)}")
                 .Returns(null),
         };
 
@@ -52,7 +55,7 @@ namespace Preview
         [TestCaseSource(nameof(s_TestCaseData))]
         public IEnumerator CreatePreview(AssetFactory objectFactory, Type renderPipelineAssetType)
         {
-            using (new RenderPipelineScope(renderPipelineAssetType, forceInitialization: true))
+            using (new RenderPipelineScope(renderPipelineAssetType))
             {
                 yield return null;
 
@@ -139,7 +142,6 @@ namespace Preview
 
     public class MaterialFactory : AssetFactory
     {
-
         public MaterialFactory(string name) : base(name)
         {
         }

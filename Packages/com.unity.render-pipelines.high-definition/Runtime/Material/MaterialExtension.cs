@@ -616,7 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shader.FindPropertyIndex("_DiffusionProfileAsset3") != -1)
                 yield return Shader.PropertyToID("_DiffusionProfileAsset3");
 
-            int propertyCount = UnityEditor.ShaderUtil.GetPropertyCount(shader);
+            int propertyCount = shader.GetPropertyCount();
             for (int propIdx = 0; propIdx < propertyCount; ++propIdx)
             {
                 var attributes = shader.GetPropertyAttributes(propIdx);
@@ -625,8 +625,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (attribute == "DiffusionProfile")
                     {
                         propIdx++;
-                        var type = UnityEditor.ShaderUtil.GetPropertyType(shader, propIdx);
-                        if (type == UnityEditor.ShaderUtil.ShaderPropertyType.Vector)
+                        var type = shader.GetPropertyType(propIdx);
+                        if (type == ShaderPropertyType.Vector)
                             yield return shader.GetPropertyNameId(propIdx);
                         break;
                     }

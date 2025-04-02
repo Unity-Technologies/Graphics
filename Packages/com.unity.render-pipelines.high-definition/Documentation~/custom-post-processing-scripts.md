@@ -61,7 +61,7 @@ This example code uses a `ClampedFloatParameter` that you can clamp to a range. 
 - The second parameter represents the minimum value to clamp the property to.
 - The third parameter represents the maximum value to clamp the property to.
 
-HDRP calls the `IsActive()` function before the `Render` function to process the effect. If this function returns `false`, HDRP doesn't process the effect. It's good practice to check every property configuration where the effect either breaks or doesn'thing. In this example, `IsActive()` makes sure that HDRP can find the `GrayScale.shader` and that the intensity is greater than 0.
+HDRP calls the `IsActive()` function before the `Render` function to process the effect. If this function returns `false`, HDRP doesn't process the effect. It's good practice to check every property configuration where the effect either breaks or doesn't do anything. In this example, `IsActive()` makes sure that HDRP can find the `GrayScale.shader` and that the intensity is greater than 0.
 
 The **injectionPoint** override allows you to specify where in the pipeline HDRP executes the effect. Choose from the following injection points:
 

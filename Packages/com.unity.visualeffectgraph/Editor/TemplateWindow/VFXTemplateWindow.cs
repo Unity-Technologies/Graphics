@@ -10,6 +10,7 @@ using UnityEditor.PackageManager.UI;
 using UnityEditor.VFX.UI;
 
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEngine.VFX;
 
@@ -158,7 +159,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void OnOpenHelp() => Help.BrowseURL(string.Format(VFXTemplateWindowDocUrl, VFXHelpURLAttribute.version));
+        private void OnOpenHelp() => Help.BrowseURL(string.Format(VFXTemplateWindowDocUrl, Documentation.version));
 
         private void LoadTemplates()
         {

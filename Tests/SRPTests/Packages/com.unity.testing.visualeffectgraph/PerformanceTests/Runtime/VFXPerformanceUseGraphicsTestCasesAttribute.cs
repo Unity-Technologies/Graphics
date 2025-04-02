@@ -8,6 +8,9 @@ using NUnit.Framework;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.Scripting;
 using UnityEngine.Rendering;
+using UnityEngine;
+using UnityEngine.TestTools.Graphics.TestCases;
+
 #if UNITY_EDITOR
 using UnityEditor;
 using System.Linq;
@@ -16,12 +19,13 @@ using UnityEditor.TestTools.Graphics;
 
 namespace UnityEngine.VFX.PerformanceTest
 {
-    using Test = NUnit.Framework.Internal.Test;
-    // If there are several UseGraphicTestCasesAttribute within the project, the AssetBundle.Load leads to an unexpected error.
-    public class VFXPerformanceUseGraphicsTestCasesAttribute : UnityTestAttribute, ITestBuilder
+    public class VfxPerformanceGraphicsTestAttribute : SceneGraphicsTestAttribute
     {
-        NUnitTestCaseBuilder m_Builder = new NUnitTestCaseBuilder();
+        public VfxPerformanceGraphicsTestAttribute(params string[] scenePaths) : base(typeof(VFXPerformanceGraphicsTestCaseSource), scenePaths) { }
+    }
 
+    public class VFXPerformanceGraphicsTestCaseSource : SceneGraphicsTestCaseSource
+    {
         public static string GetPrefix()
         {
             //Can't use SRPBinder here, this code is also runtime
@@ -33,30 +37,15 @@ namespace UnityEngine.VFX.PerformanceTest
             return currentSRP.name;
         }
 
-        IEnumerable<TestMethod> ITestBuilder.BuildFrom(IMethodInfo method, Test suite)
+        public override IEnumerable<GraphicsTestCase> GetTestCases(IMethodInfo method)
         {
-            var results = new List<TestMethod>();
-#if UNITY_EDITOR
-            var scenePaths = EditorGraphicsTestCaseProvider.GetTestScenePaths().ToArray();
-#else
-            var scenePaths = RuntimeGraphicsTestCaseProvider.GetScenePaths();
-#endif
-            foreach (var scenePath in scenePaths)
+            var testCases = base.GetTestCases(method);
+
+            foreach (var testCase in testCases)
             {
-                var data = new TestCaseData(new object[] { new GraphicsTestCase(scenePath, Texture2D.blackTexture) });
+                yield return testCase with { Name = GetPrefix() + "." + testCase.Name };
 
-                data.SetName(Path.GetFileNameWithoutExtension(scenePath));
-                data.ExpectedResult = new Object();
-                data.HasExpectedResult = true;
-
-                var test = m_Builder.BuildTestMethod(method, suite, data);
-                if (test.parms != null)
-                    test.parms.HasExpectedResult = false;
-
-                test.Name = string.Format("{0}.{1}", GetPrefix(), Path.GetFileNameWithoutExtension(scenePath));
-                results.Add(test);
             }
-            return results;
         }
     }
 }

@@ -19,16 +19,16 @@ using UnityEngine.VFX.Utility;
 
 namespace UnityEngine.VFX.Test
 {
-    public class VFXGraphicsTests
+    public static class VisualEffectsGraphGraphicsTests
     {
-        int m_previousCaptureFrameRate;
-        float m_previousFixedTimeStep;
-        float m_previousMaxDeltaTime;
+        static int m_previousCaptureFrameRate;
+        static float m_previousFixedTimeStep;
+        static float m_previousMaxDeltaTime;
 #if UNITY_EDITOR
-        bool m_previousAsyncShaderCompilation;
+        static bool m_previousAsyncShaderCompilation;
 #endif
         [OneTimeSetUp]
-        public void Init()
+        public static void Init()
         {
             m_previousCaptureFrameRate = Time.captureFramerate;
             m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
@@ -39,24 +39,9 @@ namespace UnityEngine.VFX.Test
 #endif
         }
 
-#if UNITY_WEBGL || UNITY_ANDROID
-        [UnitySetUp]
-        public IEnumerator SetUp()
+        public static IEnumerator Run(SceneGraphicsTestCase testCase)
         {
-            yield return RuntimeGraphicsTestCaseProvider.EnsureGetReferenceImageBundlesAsync();
-        }
-#endif
-
-        [UnityTest, Category("VisualEffect")]
-        [PrebuildSetup("SetupGraphicsTestCases")]
-        [UseGraphicsTestCases]
-        [Timeout(450 * 1000)] // Increase timeout to handle complex scenes with many shaders and XR variants
-        public IEnumerator Run(GraphicsTestCase testCase)
-        {
-            Debug.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImagePathLog}.");
-#if UNITY_WEBGL || UNITY_ANDROID
-            RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
-#endif
+            GraphicsTestLogger.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}.");
 
 #if UNITY_EDITOR
             while (SceneView.sceneViews.Count > 0)
@@ -65,7 +50,7 @@ namespace UnityEngine.VFX.Test
                 sceneView.Close();
             }
 #endif
-			Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
+			GraphicsTestLogger.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}'.");
             SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
 
             // Always wait one frame for scene load
@@ -178,7 +163,7 @@ namespace UnityEngine.VFX.Test
                 {
                     camera.targetTexture = null;
 
-                    ImageAssert.AreEqual(testCase.ReferenceImage, camera, imageComparisonSettings, testCase.ReferenceImagePathLog);
+                    ImageAssert.AreEqual(testCase.ReferenceImage.Image, camera, imageComparisonSettings, testCase.ReferenceImage.LoadMessage);
 
                 }
                 finally
@@ -188,18 +173,8 @@ namespace UnityEngine.VFX.Test
             }
         }
 
-        [TearDown]
-        public void TearDown()
-        {
-            XRGraphicsAutomatedTests.running = false;
-
-#if UNITY_EDITOR
-            UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
-#endif
-        }
-
         [OneTimeTearDown]
-        public void OneTimeTearDown()
+        public static void OneTimeTearDown()
         {
             Time.captureFramerate = m_previousCaptureFrameRate;
             UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;

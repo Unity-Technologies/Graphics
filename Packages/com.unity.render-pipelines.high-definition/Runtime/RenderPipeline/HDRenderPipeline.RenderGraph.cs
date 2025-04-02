@@ -213,6 +213,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput, vtFeedbackBuffer, shadowResult, cullingResults);
 
+                    RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterOpaqueColor, aovRequest, aovCustomPassBuffers, lightingBuffers);
+
                     if (IsComputeThicknessNeeded(hdCamera))
                         // Compute the thickness for All Transparent which can be occluded by opaque written on the DepthBuffer (which includes the Forward Opaques).
                         RenderThickness(m_RenderGraph, cullingResults, thicknessTexture, prepassOutput.depthPyramidTexture, hdCamera, HDRenderQueue.k_RenderQueue_AllTransparent, true);
@@ -227,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                     SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
 
-                    RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterOpaqueAndSky, aovRequest, aovCustomPassBuffers);
+                    RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterOpaqueAndSky, aovRequest, aovCustomPassBuffers, lightingBuffers);
 
                     DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
@@ -336,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
                 var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
 
-                RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovCustomPassBuffers);
+                RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovCustomPassBuffers, lightingBuffers);
 
                 if (aovRequest.isValid)
                 {
@@ -434,7 +436,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Stop XR single pass before rendering screenspace UI
                 StopXRSinglePass(m_RenderGraph, hdCamera);
 
-                RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, backBuffer);
+                if (renderRequest.isLast)
+                    RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, backBuffer);
             }
         }
 
@@ -2260,7 +2263,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CullingResults cameraCullingResults,
             CustomPassInjectionPoint injectionPoint,
             AOVRequestData aovRequest,
-            List<RTHandle> aovCustomPassBuffers)
+            List<RTHandle> aovCustomPassBuffers,
+            in LightingBuffers lightingBuffers = default)
         {
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
@@ -2283,6 +2287,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 motionVectorBufferRG = prepassOutput.resolvedMotionVectorsBuffer,
                 renderingLayerMaskRG = renderingLayerMaskBuffer,
                 shadingRateImageRG = prepassOutput.shadingRateImage,
+                sssBuffer = lightingBuffers.sssBuffer,
+                diffuseLightingBuffer = lightingBuffers.diffuseLightingBuffer,
                 waterLineRG = prepassOutput.waterLine,
             };
 

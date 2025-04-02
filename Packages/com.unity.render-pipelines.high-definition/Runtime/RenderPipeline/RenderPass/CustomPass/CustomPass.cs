@@ -152,6 +152,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle motionVectorBufferRG;
             public TextureHandle renderingLayerMaskRG;
             public TextureHandle shadingRateImageRG;
+            public TextureHandle sssBuffer;
+            public TextureHandle diffuseLightingBuffer;
             public BufferHandle waterLineRG;
         }
 
@@ -218,6 +220,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 output.waterLineRG = builder.ReadBuffer(targets.waterLineRG);
             if (targets.shadingRateImageRG.IsValid() && hdCamera.vrsEnabled)
                 output.shadingRateImageRG = builder.ReadTexture(targets.shadingRateImageRG);
+            if (targets.sssBuffer.IsValid())
+                output.sssBuffer = builder.ReadWriteTexture(targets.sssBuffer);
+            if (targets.diffuseLightingBuffer.IsValid())
+                output.diffuseLightingBuffer = builder.ReadWriteTexture(targets.diffuseLightingBuffer);
 
             return output;
         }
@@ -296,6 +302,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,
                             customPass.currentRenderTarget.motionVectorBufferRG,
+                            customPass.currentRenderTarget.sssBuffer,
+                            customPass.currentRenderTarget.diffuseLightingBuffer,
                             customPass.currentRenderTarget.customColorBuffer,
                             customPass.currentRenderTarget.customDepthBuffer,
                             ctx.renderGraphPool.GetTempMaterialPropertyBlock(),

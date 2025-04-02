@@ -11,7 +11,8 @@
         "UnityEditor.TestRunner",
         "Unity.Timeline",
         "Unity.Timeline.Editor",
-        "Unity.ShaderGraph.Editor"
+        "Unity.ShaderGraph.Editor",
+        "UnityEngine.TestTools.Graphics"
     ],
     "includePlatforms": [
         "Editor"
@@ -27,26 +28,26 @@
         "UNITY_INCLUDE_TESTS"
     ],
     "versionDefines": [
-    {
-        "name": "com.unity.timeline",
-        "expression": "[0.0.0-builtin]",
-        "define": "VFX_HAS_TIMELINE"
-    },
-    {
-        "name": "com.unity.timeline",
-        "expression": "1.0.0",
-        "define": "VFX_HAS_TIMELINE"
-    },
-    {
-      "name": "com.unity.render-pipelines.high-definition",
-      "expression": "1.0.0",
-      "define": "VFX_TESTS_HAS_HDRP"
-    },
-    {
-      "name": "com.unity.render-pipelines.universal",
-      "expression": "1.0.0",
-      "define": "VFX_TESTS_HAS_URP"
-    }
+        {
+            "name": "com.unity.timeline",
+            "expression": "[0.0.0-builtin]",
+            "define": "VFX_HAS_TIMELINE"
+        },
+        {
+            "name": "com.unity.timeline",
+            "expression": "1.0.0",
+            "define": "VFX_HAS_TIMELINE"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "1.0.0",
+            "define": "VFX_TESTS_HAS_HDRP"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "1.0.0",
+            "define": "VFX_TESTS_HAS_URP"
+        }
     ],
     "noEngineReferences": false
 }

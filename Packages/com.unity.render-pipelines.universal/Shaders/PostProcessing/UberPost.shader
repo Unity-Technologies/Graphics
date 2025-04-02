@@ -324,18 +324,34 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
-        LOD 100
-        ZTest Always ZWrite Off Cull Off
-        //ColorMask RGB
 
         Pass
         {
             Name "UberPost"
 
+            LOD 100
+            ZTest Always ZWrite Off Cull Off
+            //ColorMask RGB
+
             HLSLPROGRAM
                 #pragma vertex Vert
                 #pragma fragment FragUberPost
             ENDHLSL
+        }
+
+        Pass
+        {
+            Name "UberPostXR"
+            LOD 100
+            ZWrite Off ZTest LEqual Blend Off Cull Off
+
+            HLSLPROGRAM         
+                #include "Packages/com.unity.render-pipelines.universal/Shaders/XR/XRVisibilityMeshHelper.hlsl"
+
+                #pragma vertex VertVisibilityMeshXR
+                #pragma fragment FragUberPost
+            ENDHLSL
+
         }
     }
 }

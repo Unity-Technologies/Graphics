@@ -6,7 +6,7 @@ HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.
 
 SSGI and RTGI replace all [lightmap](https://docs.unity3d.com/Manual/Lightmapping.html) and [Light Probe](https://docs.unity3d.com/Manual/LightProbes.html) data. If you enable this override on a Volume that affects the Camera, Light Probes and the ambient probe stop contributing to lighting for GameObjects.
 
-![](Images/HDRPFeatures-SSGI.png)
+![A sample scene rendered with SSGI.](Images/HDRPFeatures-SSGI.png)
 
 ## Enable Screen Space Global Illumination
 [!include[](Snippets/Volume-Override-Enable-Override.md)]

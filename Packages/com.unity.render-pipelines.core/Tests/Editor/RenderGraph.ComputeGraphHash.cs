@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
@@ -36,6 +36,12 @@ namespace UnityEngine.Rendering.Tests
             public static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context)
             {
             }
+        }
+
+        void ClearCompiledGraphAndHash()
+        {
+            m_RenderGraph.ClearCurrentCompiledGraph();
+            DelegateHashCodeUtils.ClearCache();
         }
 
         [Test]

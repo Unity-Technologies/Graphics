@@ -56,9 +56,7 @@ HDRP enables DirextX12 by default. To enable DirectX 12 manually:
 4. Unity uses Direct3d11 by default. To make Unity use Direct3d12, move **Direct3d12 (Experimental)** to the top of the list.
 5. To apply the changes, you may need to restart the Unity Editor. If a window prompt appears telling you to restart the Editor, click **Restart Editor** in the window.
 
-The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar:
-
-![](Images/RayTracingGettingStarted1.png)
+The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar.
 
 <a name="ManualSetup-DisablingStaticBatching"></a>
 

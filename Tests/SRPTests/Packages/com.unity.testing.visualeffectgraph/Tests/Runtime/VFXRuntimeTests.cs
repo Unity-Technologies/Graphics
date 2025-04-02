@@ -6,7 +6,9 @@ using System.Linq;
 using NUnit.Framework;
 using Unity.Testing.VisualEffectGraph;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics;
 using UnityEngine.Rendering;
+using Unity.Testing.VisualEffectGraph.Tests;
 
 #if VFX_HAS_TIMELINE
 using UnityEngine.Playables;
@@ -15,7 +17,8 @@ using UnityEngine.Playables;
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [PrebuildSetup("SetupGraphicsTestCases")]
+    [MockHmdSetup(99)]
+    [AssetBundleSetup]
     public class VFXRuntimeTests
     {
         AssetBundle m_AssetBundle;

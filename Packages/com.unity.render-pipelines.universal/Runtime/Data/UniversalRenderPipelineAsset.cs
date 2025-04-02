@@ -1688,10 +1688,10 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <inheritdoc/>
-        public bool IsGPUResidentDrawerSupportedBySRP(out string message, out LogType severty)
+        public bool IsGPUResidentDrawerSupportedBySRP(out string message, out LogType severity)
         {
             message = string.Empty;
-            severty = LogType.Warning;
+            severity = LogType.Warning;
 
             // Only the URP rendering paths using the cluster light loop (F+ lights & probes) can be used with GRD,
             // since BiRP-style per-object lights and reflection probes are incompatible with DOTS instancing.

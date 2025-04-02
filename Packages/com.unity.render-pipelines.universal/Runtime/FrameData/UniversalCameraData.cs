@@ -634,9 +634,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Camera at the top of the overlay camera stack
+        /// Camera at the top of the overlay camera stack. If no stack, it equals the camera field present above.
         /// </summary>
         public Camera baseCamera;
+
+        /// <summary>
+        /// Returns true if the baseCamera field is the last base camera being rendered to the frame.
+        /// While the last camera in a camera stack implies a last overlay camera, this indicates the last of all input base cameras.
+        /// </summary>
+        internal bool isLastBaseCamera;
 
         ///<inheritdoc/>
         public override void Reset()
@@ -695,6 +701,7 @@ namespace UnityEngine.Rendering.Universal
             stpHistory = null;
             taaSettings = default;
             baseCamera = null;
+            isLastBaseCamera = false;
             stackAnyPostProcessingEnabled = false;
             stackLastCameraOutputToHDR = false;
         }

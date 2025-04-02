@@ -54,5 +54,5 @@ The options in the **Displacement Mode** drop-down change depending on the Shade
 | **- Min**             | Set the minimum value in the **Height Map**.                 |
 | **- Max**             | Set the maximum value in the **Height Map**.                 |
 | **- Offset**          | Set the offset that HDRP applies to the **Height Map**.      |
-| **- Amplitude**       | Set the amplitude of the **Height Map**.                     |
+| **- Amplitude**       | Set the amplitude of the **Height Map** in centimeters.                     |
 | **- Base**            | Use the slider to set the base for the **Height Map**.       |

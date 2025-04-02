@@ -8,7 +8,7 @@ You can also add detailed visual effects to localized water areas with water dec
 
 | **Page**                                                                              | **Description**                                                             |
 |---------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| [Enable mask and water decals](enable-mask-and-water-decals.md)                   | Mask and current water decals are disabled by default.                      |
+| [Enable mask and current water decals](enable-mask-and-current-water-decals.md)                   | Mask and current water decals are disabled by default.                      |
 | [Configure swell, agitation, or ripples with a water mask](add-swell-agitation-or-ripples.md)             | Configure swell, agitation, or ripples across the water surface.                  |
 | [Simulate currents with a water decal](simulating-currents-with-water-decals.md) | Simulate water currents by projecting textures.                             |
 | [Simulate ripples with masks](simulating-foam-or-ripples-with-masks.md) | Create effects like ripples.                                        |

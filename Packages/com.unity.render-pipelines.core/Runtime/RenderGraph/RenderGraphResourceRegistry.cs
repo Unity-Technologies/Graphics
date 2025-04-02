@@ -1250,16 +1250,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             RTHandles.Release(m_CurrentBackbuffer);
         }
 
-        internal void FlushLogs()
-        {
-            Debug.Log(m_ResourceLogger.GetAllLogs());
-        }
-
         void LogResources()
         {
             if (m_RenderGraphDebug.enableLogging)
             {
-                m_ResourceLogger.LogLine("==== Allocated Resources ====\n");
+                m_ResourceLogger.LogLine("==== Render Graph Resource Log ====\n");
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {
@@ -1270,6 +1265,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     }
                 }
             }
+        }
+
+        internal void FlushLogs()
+        {
+            m_ResourceLogger.FlushLogs();
         }
 
         #endregion

@@ -120,7 +120,10 @@ namespace UnityEditor.Rendering
 
             animation ??= s_AnimFloat;
 
-            GUI.color = Color.Lerp(CoreEditorStyles.backgroundColor * oldColor, CoreEditorStyles.backgroundHighlightColor, animation.value);
+            Color transparent = CoreEditorStyles.backgroundHighlightColor;
+            transparent.a = 0f;
+
+            GUI.color = Color.Lerp(transparent, CoreEditorStyles.backgroundHighlightColor, animation.value);
             EditorGUILayout.BeginVertical(CoreEditorStyles.additionalPropertiesHighlightStyle);
             GUI.color = oldColor;
 

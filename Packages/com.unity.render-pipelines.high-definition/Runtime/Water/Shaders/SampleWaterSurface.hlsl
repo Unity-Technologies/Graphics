@@ -442,7 +442,11 @@ void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, 
         return;
 
     // Evaluate the pre-displaced absolute position
+#if defined(WATER_DISPLACEMENT)
+    float3 positionRWS = positionOS;
+#else
     float3 positionRWS = TransformObjectToWorld_Water(positionOS);
+#endif
     // Evaluate the distance to the camera
     float distanceToCamera = length(positionRWS);
     // Get the world space transformed postion

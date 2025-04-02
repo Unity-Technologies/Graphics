@@ -156,6 +156,28 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Controls the use of the Visibility Mesh passes in SRP. 
+        /// </summary>
+        public static bool useVisibilityMesh
+        {
+            get
+            {
+#if ENABLE_VR && ENABLE_VR_MODULE
+                if (enabled)
+                    return XRSystem.GetUseVisibilityMesh();
+#endif
+                return false;
+            }
+            set
+            {
+#if ENABLE_VR && ENABLE_VR_MODULE
+                if (enabled)
+                    XRSystem.SetUseVisibilityMesh(value);
+#endif
+            }
+        }
+
+        /// <summary>
         /// Controls XR mirror view blit operation
         /// </summary>
         public static int mirrorViewMode

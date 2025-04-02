@@ -9,6 +9,8 @@ using UnityEngine.Profiling;
 using Unity.Profiling;
 using Unity.Testing.VisualEffectGraph;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics;
+using Unity.Testing.VisualEffectGraph.Tests;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -16,7 +18,8 @@ using UnityEditor;
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [PrebuildSetup("SetupGraphicsTestCases")]
+    [MockHmdSetup(99)]
+    [AssetBundleSetup]
     public class VFXStressTests
     {
 

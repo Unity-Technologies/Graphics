@@ -104,7 +104,19 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            Blend One One
+            Blend 0 One One
+            Blend 1 One One
+            Blend 2 One One
+            Blend 3 One One
+            // disable the features that aren't needed for add pass deferred rendering
+            Blend 4 Off
+            Blend 5 Off
+            Blend 6 Off
+            ColorMask RGB 0 // Don't write .a to RT0.
+            ColorMask 0 4 // Don't write to RT4~6 (depth as color, shadow mask, rendering layer)
+            ColorMask 0 5
+            ColorMask 0 6
+
             HLSLPROGRAM
             #pragma target 4.5
 
