@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Wave > Triangle Wave**
 
 The **Triangle Wave** Operator allows you to generate a value which linearly oscillates between a minimum and a maximum value based on a provided input and a set frequency.
 
-![](Images/Operator-TriangleWaveAnimation.gif)
+![The Triangle Wave Operator allows you to generate a value which linearly oscillates between a minimum and a maximum value based on a provided input and a set frequency.](Images/Operator-TriangleWaveAnimation.gif)
 
 If **Frequency** is set to 1, the blue dot gos in a straight line from **Min** to **Max** and back to **Min** in the span on **Input** going from 0 to 1.
 

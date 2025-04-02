@@ -4,7 +4,7 @@ A Cloud Layer is a simple representation of clouds in the High Definition Render
 
 Refer to [Understand clouds](understand-clouds.md) for more information about clouds in the High Definition Render Pipeline (HDRP).
 
-![](Images/HDRPFeatures-CloudLayer.png)
+![Cloud Layer sample: A simple representation of clouds in the High Definition Render Pipeline (HDRP).](Images/HDRPFeatures-CloudLayer.png)
 
 ## Using the Cloud Layer
 

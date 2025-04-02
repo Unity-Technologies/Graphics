@@ -49,10 +49,7 @@ To simulate stormy conditions, you might:
 * Choose darker **Color** values for **Refraction** and **Scattering**.
 * You can also enable **Foam**.
 
-<br/>
-<img src="Images/watersystem-StormySea.png">
-<br/>
-<br/>
+![Water system: Stormy sea](Images/watersystem-StormySea.png)
 
 ### Dirty river
 To simulate a polluted or silty river, you could:
@@ -61,10 +58,7 @@ To simulate a polluted or silty river, you could:
 * Disable **Caustics**.
 * You can also add a [Decal](decals.md) that resembles fragments of debris.
 
-<br/>
-<img src="Images/watersystem-PollutedRiver.png">
-<br/>
-<br/>
+![Water system: Dirty river](Images/watersystem-PollutedRiver.png)
 
 ### Calm, clean swimming pool on a sunny day
 To simulate a clean outdoor swimming pool on a clear day with little wind:
@@ -75,21 +69,14 @@ To simulate a clean outdoor swimming pool on a clear day with little wind:
 * Adjust the **Virtual Plane Distance** to a value appropriate to the depth of your pool.
 * In the **Refraction** properties, reduce **Absorption Distance**, to make the water more transparent. Increase **Maximum Distance** to extend the range of the refraction effect, especially if you have scenery in the water.
 
-<br/>
-<img src="Images/watersystem-shallowpoolsunny.png">
-<br/>
-<br/>
+![Water system: Shallow swimming pool, sunny day](Images/watersystem-shallowpoolsunny.png)
 
 ### A deep swimming pool
 * Somewhat darken the **Color** properties for **Scattering** and **Refraction**.
 * Reduce the **Absorption Distance** slightly.
 * Increase **Maximum Distance** if there are caustics or objects in the water that make the refraction effect visible.
 
-<br/>
-<img src="Images/watersystem-deeppoolsunny.png">
-<br/>
-<br/>
-
+![Water system: Deep swimming pool, sunny day](Images/watersystem-deeppoolsunny.png)
 
 ## Additional resources
 * <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the water system</a>

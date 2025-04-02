@@ -2,11 +2,11 @@
 
 Ray-Traced Reflections is a ray tracing feature in the High Definition Render Pipeline (HDRP). It's an alternative, more accurate, ray-traced solution to [Screen Space Reflection](Override-Screen-Space-Reflection.md) that can make use of off screen data.
 
-![](Images/RayTracedReflections1.png)
+![Screen-space reflections.](Images/RayTracedReflections1.png)
 
 Screen-space reflections
 
-![](Images/RayTracedReflections2.png)
+![Ray-traced reflections.](Images/RayTracedReflections2.png)
 
 Ray-traced reflections
 
@@ -34,13 +34,16 @@ The same principle applies to the [StackLit Shader Graph](stacklit-master-stack-
 
 For an example of a 75% smooth Lit material with different **Coat Mask** values, see the following images:
 
-![](Images/ray-traced-reflection-clear-coat-1.png)
+![A Lit material with a Coat Mask value of 0.](Images/ray-traced-reflection-clear-coat-1.png)
+
 A Lit material with a Coat Mask value of 0.
 
-![](Images/ray-traced-reflection-clear-coat-2.png)
+![A Lit material with a Coat Mask value of 0.1.](Images/ray-traced-reflection-clear-coat-2.png)
+
 A Lit material with a Coat Mask value of 0.1.
 
-![](Images/ray-traced-reflection-clear-coat-3.png)
+![A Lit material with a Coat Mask value of 1.0.](Images/ray-traced-reflection-clear-coat-3.png)
+
 A Lit material with a Coat Mask value of 1.0.
 
 ## Properties

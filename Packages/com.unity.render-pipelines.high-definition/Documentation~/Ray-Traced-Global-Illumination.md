@@ -2,11 +2,11 @@
 
 Ray-Traced Global Illumination is a ray tracing feature in the High Definition Render Pipeline (HDRP). It's a more accurate alternative to [Screen Space Global Illumination](Override-Screen-Space-GI.md), Light Probes and lightmaps.
 
-![](Images/RayTracedGlobalIllumination1.png)
+![Ray-Traced Global Illumination off](Images/RayTracedGlobalIllumination1.png)
 
 **Ray-Traced Global Illumination off**
 
-![](Images/RayTracedGlobalIllumination2.png)
+![Ray-Traced Global Illumination on](Images/RayTracedGlobalIllumination2.png)
 
 **Ray-Traced Global Illumination on**
 

@@ -16,7 +16,7 @@ HDRP 16 adds a [Dynamic Resolution](https://docs.unity3d.com/Packages/com.unity.
 
 ### Colored translucent material Type
 
-![](Images/colored_translucency.png)
+![Colored translucent material Type sample.](Images/colored_translucency.png)
 
 HDRP 16 adds the Colored Translucent material type in Shader Graph. Use this material for thin, double-sided geometry.
 This material supports a colored transmission mask and doesn't require a diffusion profile.
@@ -25,7 +25,7 @@ This material supports a colored transmission mask and doesn't require a diffusi
 
 HDRP 16 adds a cinematic mode for the physically-based hair shader. Enable this mode to trade performance for high-quality environment and area lighting with multiple scattering that closely matches a path-traced reference. 
 
-![](Images/CinematicHairShadingComparison.png)
+![Cinematic Hair Shading comparison sample.](Images/CinematicHairShadingComparison.png)
 
 This image shows hair with a single environment light without cinematic shading (left) and with cinematic shading (right). 
 
@@ -36,7 +36,7 @@ This feature requires the [Unity hair system](https://github.com/Unity-Technolog
 
 HDRP 16 adds the [Canvas Master Node](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@16.0/manual/master-stack-canvas.md) to Shader Graph that you can use to create UI shaders for a Canvas.
 
-![](Images/shader-graph-canvas.png)
+![ShaderGraph Canvas Master Node sample.](Images/shader-graph-canvas.png)
 
 ### Path tracer
 
@@ -49,17 +49,17 @@ To support the decals with path tracing, HDRP regards all decals as clustered de
 
 The HDRP Path Tracer does not support emissive decals.
 
-![](Images/WhatsNew16_pathtraceddecals.PNG)
+![Decals in HDRP Path Tracer sample.](Images/WhatsNew16_pathtraceddecals.PNG)
 This image displays a puddle and checkerboard decal in a path-traced scene.
 
 #### Henyey-Greenstein Anisotropic Fog
 
 HDRP 16 supports path-traced anisotropic fog. The path tracer uses the Henyey-Greenstein phase function evaluation and sampling. This phase function has an anisotropy parameter that controls the behaviour of the scattering. You can set this parameter between -1 and 1. A negative value corresponds to backward scattering and a positive value corresponds to forward scattering. A value of 0 corresponds to the regular isotropic behavior.
 Isotropic scattering (anisotropy=0)
-![](Images/HDRP_PathtracingAnisotropicFogBefore.png)
+![Henyey-Greenstein Anisotropic Fog: Isotropic scattering (anisotropy=0).](Images/HDRP_PathtracingAnisotropicFogBefore.png)
 
 Anisotropic forward scattering (anisotropy=0.75)
-![](Images/HDRP_PathtracingAnisotropicFogAfter.png)
+![Henyey-Greenstein Anisotropic Fog: Anisotropic forward scattering (anisotropy=0.75).](Images/HDRP_PathtracingAnisotropicFogAfter.png)
 
 ### Volumetric fog output
 
@@ -67,13 +67,13 @@ In version 16, the [Volumetric fog shader graph](https://docs.unity3d.com/Packag
 
 ### Color Checker Tool
 
-![](Images/colorchecker.png)
+![Color Checker Tool.](Images/colorchecker.png)
 
 Use the Color Checker tool to check the calibration of lighting and post processing. To open the color checker tool, go to **GameObject** > **Rendering** > **Color Checker Tool**. HDRP doesn't save any changes you make in the color checker.
 
 ### Light Placement Tool
 
-![](Images/LightPlacementTool.png)
+![Light Placement Tool.](Images/LightPlacementTool.png)
 
 Use the Light Placement Tool to look through a light and use the camera movement controls to move the light around the scene.
 To enter this mode select a light GameObject and select the Light Placement Tool button in the Tools Panel. For more information, refer to [Light placement tool](lights-placement-tool.md).
@@ -90,23 +90,23 @@ HDRP 16 updates the Physically Based Sky in the following ways to make it easier
 - Added the PBRSky material type in Shader Graph to allow effects like procedural stars.
 - Added an option to mark celestial bodies as moons which makes them receive lighting from the main directional light.
 
-![](Images/night-sky.png)
+![Night Sky sample.](Images/night-sky.png)
 
 ### SpeedTrees
 
 HDRP 16 adds motion vector support for SpeedTrees. To do this, SpeedTree shader graphs use the Transmission Mask input of the Lit master node. This means that speedtrees with a single draw can also recieve vector transmission in the bark and branches.
 
-![](Images/SpeedTreeMotionVector-1.png)
-![](Images/SpeedTreeMotionVector-2.png)
+![SpeedTree motion vector sample.](Images/SpeedTreeMotionVector-1.png)
+![SpeedTree motion vector sample.](Images/SpeedTreeMotionVector-2.png)
 
 ### Shadows
 
 #### Percentage-Closer Soft Shadow (PCSS)
 HDRP 16 improves Percentage-Closer Soft Shadow (PCSS) quality for directional. To do this, the shadow samples along a cone instead of a disk. This makes PCSS shadows appear softer. 
 
-![](Images/directional_pcss_before.png)
+![PCSS shadows that sample a disc.](Images/directional_pcss_before.png)
 PCSS shadows that sample a disc.
-![](Images/directional_pcss_after.png)
+![PCSS shadows that sample a cone.](Images/directional_pcss_after.png)
 PCSS shadows that sample a cone.
 
 #### Shadow quality 
@@ -120,11 +120,11 @@ Version 16 also splits the **Shadow Filtering Quality** property in the [HDRP As
 
 HDRP 16 updates the algorithm that it uses to render the volumetric clouds shadows. This fixes an issue where clouds cast shadows on objects above the clouds, and softens the shadows that clouds cast.
 
-![](Images/beer-shadow-maps.png)
+![Volumetric Clouds Shadows sample.](Images/beer-shadow-maps.png)
 
 ### Ray-Traced reflections ReBLUR denoiser
 
-![](Images/WhatsNew16_ReBLUR_Denoiser.png)
+![Ray-Traced reflections ReBLUR denoiser sample.](Images/WhatsNew16_ReBLUR_Denoiser.png)
 
 HDRP 16 replaces the Ray-Traced Reflections denoiser with the ReBLUR algorithm. This algorithm includes an anti-flickering setting that improves temporal stability and gives a more even result on rough and smooth objects.
 Ray-Traced Reflections uses this denoiser in **Raytracing** mode and **Mixed** mode.
@@ -140,7 +140,7 @@ From version 16ayou can stream probe volume data directly from a disk. To use di
 For more information, refer to [Probe volume streaming](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@16.0/manual/probevolumes-streaming.html).
 
 ### Water system
-![](Images/WaterSamples.png)
+![Water system samples.](Images/WaterSamples.png)
 
 HDRP 16.0 makes the following improvements to the water system:
 * Improves performance for rendering surfaces with Instanced Quads.
@@ -152,7 +152,7 @@ HDRP 16.0 makes the following improvements to the water system:
 
 ### Data Driven Lens Flare XR support
 
-![](Images/WhatsNew16_LensFlareDataDriven_XR.png)
+![Data Driven Lens Flare XR support sample.](Images/WhatsNew16_LensFlareDataDriven_XR.png)
 
 HDRP 16 adds [XR](https://docs.unity3d.com/Manual/xr-graphics.html) support to the data-driven Lens Flare component. This includes single pass instancing and multipass support.
 
@@ -160,7 +160,7 @@ HDRP 16 adds [XR](https://docs.unity3d.com/Manual/xr-graphics.html) support to t
 
 HDRP 16 adds a Volumetric Fog fullscreen debug mode to the [rendering debugger](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@16.0/manual/Render-Pipeline-Debug-Window.html). This mode displays the fog that affects the opaque geometry. You can control how the fog appears in the debug mode's **Exposure** property. t.
 
-![](Images/WhatsNew16_VolumetricFogDebug.png)
+![Volumetric fog fullscreen debug mode example.](Images/WhatsNew16_VolumetricFogDebug.png)
 
 ### Render Graph Viewer
 

@@ -135,7 +135,7 @@ To create and assign  a full-screen shader graph that reads from the custom colo
 
 This copies the contents of the custom color buffer to the Camera color buffer.
 
-![](Images/FS_CustomColorBuffer.png)
+![Shader graph screenshot: Read from the custom color buffer.](Images/FS_CustomColorBuffer.png)
 
 For more information on how to modify a full-screen Shader Graph, see the [full-screen master stack](fullscreen-master-stack-reference.md).
 
@@ -153,9 +153,7 @@ For information about the Draw renderers Custom Pass properties, refer to [Custo
 
 Unity uses the **Pass Name** to select which pass of the shader it renders on an HDRP material. To render the object color, select **Forward** or **ForwardOnly**. Use the **DepthForwardOnly** Pass Name if you only want to render the depth of the object.
 
-If you see the following warning when you create a new draw renderers CustomPass, this might be due to your [HDRP Asset](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.3/manual/HDRP-Asset.md) settings:
-
-![](Images/Custom_Pass_DrawRenderers_Error.png)
+If you see the "Your HDRP settings do not support ForwardOnly, some objects might not render." warning when you create a new draw renderers CustomPass, this might be due to your [HDRP Asset](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.3/manual/HDRP-Asset.md) settings.
 
 To fix this, navigate to your HDRP Asset in your **Assets** folder (if you are using the HDRP template, this is in **Assets > Settings**) and change the **Lit Shader Mode** to **Both**. For more information, see [Changing the depth of a renderer in your scene](#Changing-Renderer-Depth).
 
@@ -485,8 +483,6 @@ To change the buffer format of the Custom Pass component in your HDRP asset, go 
 | Signed R8G8B8A8 | 32              | This format is similar to R8G8B8A8 but you can store unsigned data. |
 | R11G11B10    | 32                 | This format has a higher precision than R8G8B8A8 but does not support alpha channels. |
 | R16G16B16A16 | 64                 | This format has the highest precision but uses twice as much memory as R8G8B8A8 and R11G11B10. |
-
-![](Images/Custom_Pass_HDRPAsset_CBF.png)
 
 You can sample the custom color and depth buffers in Shader Graph using the following nodes:
 - [Custom Color Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest?subfolder=/manual/HD-Custom-Color-Node.html)

@@ -17,7 +17,7 @@ As you increase the values of the first three properties in this section of the 
 
 **Direct Light Body Term** and **Direct Light Tip Term** (the second of these is only for **Ocean, Sea, or Lake** water surface types) increase the intensity of light visible through waves, as at the wave tips in the screenshot below. **Direct Light Tip Term** is most visible at grazing angles.
 
-![](Images/watersystem-directlighttip.JPG)
+![*Direct Light Body Term and Direct Light Tip Term (the second of these is only for Ocean, Sea, or Lake water surface types) increase the intensity of light visible through waves.](Images/watersystem-directlighttip.JPG)
 
 ## Custom Materials
 To create a custom water Material, copy the default water Material and adjust that copy. The [water ShaderGraph](master-stack-water.md) documentation provides more information about which properties you can adjust.

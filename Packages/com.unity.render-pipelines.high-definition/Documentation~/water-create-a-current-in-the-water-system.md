@@ -22,16 +22,16 @@ To open the River sample scene:
 
 You can create a Current map texture in any  image-editing software. The image can be in any non sRGB format. The resolution of a current map texture has a small impact on the current effect.
 
-![](Images/watersystem-curent.png)
+![Current map texture.](Images/watersystem-curent.png)
 
 The Red and Green channels contain the 2D direction of the current and the Blue channel contains the influence of the current map. 
 The default direction is +X, as a result, the neutral value for a current map is (1, 0.5, 1). 
 When importing a current map in the editor, make sure to that the sRGB checkbox is disabled in the texture importer.
 
 The following images display each channel of the current map included in the River sample scene.
-* The red channel of a current map: ![](Images/watersystem-curent-r.png)
-* The green channel of a current map: ![](Images/watersystem-curent-g.png)
-* The blue channel of a current map: ![](Images/watersystem-curent-b.png)
+* The red channel of a current map: ![The red channel of a current map.](Images/watersystem-curent-r.png)
+* The green channel of a current map: ![The green channel of a current map.](Images/watersystem-curent-g.png)
+* The blue channel of a current map: ![The blue channel of a current map.](Images/watersystem-curent-b.png)
 
 ## Apply a current Map to a water surface
 
@@ -61,4 +61,4 @@ To visualize the effect of a current map on a water surface:
 - Open the **Miscellaneous** section.
 - Locate **Debug Mode** and select **Current.**
 
-![](Images/watersystem-current-debug.png)
+![You can visualize the effect of a current map on a water surface.](Images/watersystem-current-debug.png)

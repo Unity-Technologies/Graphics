@@ -79,10 +79,10 @@ Use the following properties to control the Shore Wave deformer type.
 
 These properties are specific to the Texture deformer type.
 
-| **Property** | **Description**                                              |
-| ------------ | ------------------------------------------------------------ |
-| Range Remap  | Specifies the range of the deformer in the [-1, 1] interval. The input texture values will be remapped from [0,1] to the specified range. |
-| Texture      | The texture used by the deformer. This is a single channel texture that contains the amplitude of the deformation relative to the deformer’s amplitude.<br>This texture can be a regular texture or a Render Texture, which can be updated at runtime by modifying a render target with a compute shader for example. For a Render Texture, use the R16_UNorm format . |
+| **Property**    | **Description**                                                                                                                                                                                                                                                                                                                                                        |
+|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Range Remap** | Specifies the range of the deformer in the [-1, 1] interval. The input texture values will be remapped from [0,1] to the specified range.                                                                                                                                                                                                                              |
+| **Texture**     | The texture used by the deformer. This is a single channel texture that contains the amplitude of the deformation relative to the deformer’s amplitude.<br>This texture can be a regular texture or a Render Texture, which can be updated at runtime by modifying a render target with a compute shader for example. For a Render Texture, use the R16_UNorm format . |
 
 ## Additional resources
 

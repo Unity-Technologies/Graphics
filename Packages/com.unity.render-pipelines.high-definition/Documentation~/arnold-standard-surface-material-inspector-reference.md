@@ -4,11 +4,12 @@ The Arnold Standard Surface shader replicates the Arnold Standard Surface shader
 
 **Note**: There are slight differences between what you see in Autodesk® Maya or Autodesk® 3DsMax and what you see in HDRP and HDRP doesn't support some material features.
 
-![](Images/arnold-standard-surface-example-maya.png)
+![Arnold Standard materials seen in Autodesk® Maya viewport.](Images/arnold-standard-surface-example-maya.png)
 
 Arnold Standard materials seen in **Autodesk® Maya** viewport.
 
-![](Images/arnold-standard-surface-example-unity.png)
+![Arnold Standard materials imported from FBX seen in Unity.](Images/arnold-standard-surface-example-unity.png)
+
 The same materials imported from FBX seen in Unity.
 
 Note that the HDRP implementation of this shader uses a Shader Graph.
@@ -30,8 +31,8 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 <thead>
   <tr>
     <th>Property</th>
-    <th></th>
-    <th></th>
+    <th>Option</th>
+    <th>Suboption</th>
     <th>Description</th>
   </tr>
 </thead>
@@ -98,6 +99,7 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 <table>
 <tr>
 <th>Property</th>
+<th>Option</th>
 <th>Description</th>
 </tr>
 
