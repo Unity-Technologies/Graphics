@@ -67,10 +67,7 @@ namespace UnityEditor.VFX.UI
         private void OnDetachFromPanel(DetachFromPanelEvent evt)
         {
             var view = evt.originPanel.visualTree.Q<VFXView>();
-            if (view != null)
-            {
-                UpdateHover(view, false);
-            }
+            view?.blackboard?.ClearAllAttributesHighlights();
         }
 
         private void OnMouseHover(EventBase evt)
