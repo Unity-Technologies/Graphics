@@ -811,6 +811,10 @@ namespace UnityEngine.Rendering.Universal
 
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
 
+                // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
+                // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
+                m_DeferredLights.CreateGbufferResources();
+
                 if (m_DeferredLights.UseFramebufferFetch)
                 {
                     // At this point we only have injected renderer features in the queue and can do assumptions on whether we'll need Framebuffer Fetch

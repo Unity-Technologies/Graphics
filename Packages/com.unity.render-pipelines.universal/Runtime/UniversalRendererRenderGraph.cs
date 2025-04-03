@@ -392,7 +392,7 @@ namespace UnityEngine.Rendering.Universal
             internal readonly bool mustClearColor;
             internal readonly bool mustClearDepth;
             internal readonly Color clearValue;
-            
+
             internal ClearCameraParams(bool clearColor, bool clearDepth, Color clearVal)
             {
                 mustClearColor = clearColor;
@@ -1084,6 +1084,11 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.HasNormalPrepass = isDepthNormalPrepass;
                 m_DeferredLights.HasDepthPrepass = requiresPrepass;
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
+                // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
+                // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
+                m_DeferredLights.CreateGbufferResourcesRenderGraph(renderGraph, resourceData);
+                resourceData.gBuffer = m_DeferredLights.GbufferTextureHandles;
+
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingGbuffer);
 
