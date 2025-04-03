@@ -1812,29 +1812,6 @@ namespace UnityEngine.Rendering
             return handle;
         }
 
-        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        private unsafe struct SetupCullingJobInput : IJob
-        {
-            public float lodBias;
-            public float meshLodThreshold;
-            [NativeDisableUnsafePtrRestriction] public BatchCullingContext* context;
-            [NativeDisableUnsafePtrRestriction] public ReceiverPlanes* receiverPlanes;
-            [NativeDisableUnsafePtrRestriction] public ReceiverSphereCuller* receiverSphereCuller;
-            [NativeDisableUnsafePtrRestriction] public FrustumPlaneCuller* frustumPlaneCuller;
-            [NativeDisableUnsafePtrRestriction] public float* screenRelativeMetric;
-            [NativeDisableUnsafePtrRestriction] public float* meshLodConstant;
-
-            public void Execute()
-            {
-                *receiverPlanes = ReceiverPlanes.Create(*context, Allocator.TempJob);
-                *receiverSphereCuller = ReceiverSphereCuller.Create(*context, Allocator.TempJob);
-                *frustumPlaneCuller = FrustumPlaneCuller.Create(*context, receiverPlanes->planes.AsArray(), *receiverSphereCuller, Allocator.TempJob);
-                *screenRelativeMetric = LODRenderingUtils.CalculateScreenRelativeMetricNoBias(context->lodParameters);
-                *meshLodConstant = LODRenderingUtils.CalculateMeshLodConstant(context->lodParameters, *screenRelativeMetric, meshLodThreshold);
-                *screenRelativeMetric /= lodBias;
-            }
-        }
-
         private unsafe JobHandle CreateFrustumCullingJob(
             in BatchCullingContext cc,
             in CPUInstanceData.ReadOnly instanceData,
@@ -1848,7 +1825,7 @@ namespace UnityEngine.Rendering
             NativeArray<byte> rendererMeshLodSettings,
             NativeArray<byte> rendererCrossFadeValues)
         {
-            Assert.IsTrue(cc.cullingSplits.Length <= 6, "InstanceCullingBatcher supports up to 6 culling splits.");
+            Assert.IsTrue(cc.cullingSplits.Length <= 6, "InstanceCuller supports up to 6 culling splits.");
 
             ReceiverPlanes receiverPlanes;
             ReceiverSphereCuller receiverSphereCuller;
@@ -1858,17 +1835,8 @@ namespace UnityEngine.Rendering
 
             fixed (BatchCullingContext* contextPtr = &cc)
             {
-                new SetupCullingJobInput()
-                {
-                    lodBias = QualitySettings.lodBias,
-                    meshLodThreshold =  QualitySettings.meshLodThreshold,
-                    context = contextPtr,
-                    frustumPlaneCuller = &frustumPlaneCuller,
-                    receiverPlanes = &receiverPlanes,
-                    receiverSphereCuller = &receiverSphereCuller,
-                    screenRelativeMetric = &screenRelativeMetric,
-                    meshLodConstant = &meshLodConstant,
-                }.Run();
+                InstanceCullerBurst.SetupCullingJobInput(QualitySettings.lodBias, QualitySettings.meshLodThreshold, contextPtr, &receiverPlanes, &receiverSphereCuller,
+                                                         &frustumPlaneCuller, &screenRelativeMetric, &meshLodConstant);
             }
 
             if (occlusionCullingCommon != null)
