@@ -18,19 +18,7 @@ MonoBehaviour:
   m_RendererData: {fileID: 0}
   m_RendererDataList:
   - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
-  - {fileID: 11400000, guid: e46834cadfc4eb241bd46a362765a390, type: 2}
   - {fileID: 11400000, guid: 63cfed70ad0f433498f0c9564aca9906, type: 2}
-  - {fileID: 11400000, guid: ab1d554383c384b579bb06e59141ec9c, type: 2}
-  - {fileID: 11400000, guid: 4655de3dc9e4543669dc1a2ded31ef6a, type: 2}
-  - {fileID: 11400000, guid: 6f676805aede64702bef195ea8e85d30, type: 2}
-  - {fileID: 11400000, guid: 590f3c2dabc9147698f7027e50b2ecd6, type: 2}
-  - {fileID: 11400000, guid: 33768f1904a5640658411475990e6a10, type: 2}
-  - {fileID: 11400000, guid: 840ecf8b1c767914a888bcad292135dc, type: 2}
-  - {fileID: 11400000, guid: a4c0fb55eac69b44bb40fb6c36c637be, type: 2}
-  - {fileID: 11400000, guid: fe4beae404cfe4f4f9b5cb9a547ebc19, type: 2}
-  - {fileID: 11400000, guid: 69745c01135e9bc41824105838584836, type: 2}
-  - {fileID: 11400000, guid: 474a055b64b247e4fbb18d7ca29b69db, type: 2}
-  - {fileID: 11400000, guid: 044ced3f4a7374243ae50e121da23bf8, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
