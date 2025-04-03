@@ -1070,7 +1070,11 @@ namespace UnityEngine.Rendering
 
             AssetDatabase.ImportAsset(cellDataFilename);
             AssetDatabase.ImportAsset(cellOptionalDataFilename);
-            AssetDatabase.ImportAsset(cellProbeOcclusionDataFilename);
+            // If we did not write a probe occlusion file (because it was zero bytes), don't try to load it (UUM-101480)
+            if (probeOcclusion.Length > 0)
+            {
+                AssetDatabase.ImportAsset(cellProbeOcclusionDataFilename);
+            }
             AssetDatabase.ImportAsset(cellBricksDataFilename);
             AssetDatabase.ImportAsset(cellSharedDataFilename);
             AssetDatabase.ImportAsset(cellSupportDataFilename);
