@@ -6,6 +6,7 @@ using UnityEditor.VFX.Operator;
 using UnityEditor.VFX.UI;
 
 using UnityEngine;
+using UnityEngine.Rendering;
 using Random = UnityEditor.VFX.Operator.Random;
 
 namespace UnityEditor.VFX
@@ -158,13 +159,12 @@ namespace UnityEditor.VFX
         {
             if (args.context is VFXViewWindow window)
             {
-                string helpUrl = null;
-                if (window.graphView.selection.Count == 1 && window.graphView.selection[0] is VFXNodeUI nodeUI)
-                {
-                    helpUrl = VFXHelpURLAttribute.GetHelpUrl(nodeUI.controller.model.GetType());
-                }
-                helpUrl ??= $@"https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@{VFXHelpURLAttribute.version}/index.html";
-                Help.BrowseURL(helpUrl);
+                if (window.graphView.selection.Count == 1 &&
+                    window.graphView.selection[0] is VFXNodeUI nodeUI &&
+                    DocumentationUtils.TryGetHelpURL(nodeUI.controller.model.GetType(), out var url))
+                    Help.BrowseURL(url);
+                else
+                    Help.BrowseURL(Documentation.GetDefaultPackageLink());
             }
         }
 

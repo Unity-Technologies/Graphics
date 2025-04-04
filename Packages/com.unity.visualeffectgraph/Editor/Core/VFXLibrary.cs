@@ -35,7 +35,11 @@ namespace UnityEditor.VFX
             this.synonyms = synonyms ?? Array.Empty<string>();
         }
 
-        public virtual string GetDocumentationLink() => VFXHelpURLAttribute.GetHelpUrl(modelType);
+        public virtual string GetDocumentationLink()
+        {
+            DocumentationUtils.TryGetHelpURL(modelType, out var url);
+            return url;
+        }
 
         public virtual VFXModel CreateInstance()
         {
