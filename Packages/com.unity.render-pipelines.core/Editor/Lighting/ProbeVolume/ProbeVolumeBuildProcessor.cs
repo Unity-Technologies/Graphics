@@ -141,7 +141,11 @@ namespace UnityEditor.Rendering
                             IncludeStreamableAsset(scenario.Value.cellOptionalDataAsset, basePath, useStreamingAsset);
                         else
                             StripStreambleAsset(scenario.Value.cellOptionalDataAsset);
-                        IncludeStreamableAsset(scenario.Value.cellProbeOcclusionDataAsset, basePath, useStreamingAsset);
+
+                        if (bakingSet.bakedProbeOcclusion)
+                            IncludeStreamableAsset(scenario.Value.cellProbeOcclusionDataAsset, basePath, useStreamingAsset);
+                        else
+                            StripStreambleAsset(scenario.Value.cellProbeOcclusionDataAsset);
                     }
 
                     s_BakingSetsProcessedLastBuild.Add(bakingSet);
