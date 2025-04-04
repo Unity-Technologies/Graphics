@@ -8,7 +8,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
 {
     public Shader shader;
     public ScriptableRenderPassInput inputRequirement;
-    public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRendering;
+    public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
     public int renderPassEventAdjustment = 0;
     public Vector4 outputAdjustParams = new Vector4(0, 0, 1, 1);
 

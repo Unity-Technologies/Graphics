@@ -56,6 +56,8 @@ MonoBehaviour:
   m_RenderingMode: 1
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 1
+  m_DepthAttachmentFormat: 0
+  m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
 --- !u!114 &7456660863052077093
@@ -73,6 +75,6 @@ MonoBehaviour:
   m_Active: 1
   shader: {fileID: 4800000, guid: 718823c46701e42c89603ff80f90f8b6, type: 3}
   inputRequirement: 2
-  renderPassEvent: 1000
+  renderPassEvent: 600
   renderPassEventAdjustment: 0
   outputAdjustParams: {x: 0, y: 0, z: 1, w: 1}
