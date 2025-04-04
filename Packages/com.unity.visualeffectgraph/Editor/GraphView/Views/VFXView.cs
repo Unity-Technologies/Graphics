@@ -582,7 +582,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnCreateAsset()
         {
-            VFXTemplateWindow.ShowCreateFromTemplate(this, null);
+            GraphViewTemplateWindow.ShowCreateFromTemplate(new VFXTemplateHelperInternal(), CreateNewFromTemplate);
         }
 
         public VFXView()
@@ -1772,6 +1772,14 @@ namespace UnityEditor.VFX.UI
                 else
                     VFXFilterWindow.Show(point, ctx.screenMousePosition, m_NodeProvider);
             }
+        }
+
+        public void CreateNewFromTemplate(string templatePath, string assetPath)
+        {
+            VisualEffectAssetEditorUtility.CreateTemplateAsset(assetPath, templatePath);
+            var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
+            var window = VFXViewWindow.GetWindow(vfxAsset, false);
+            window.LoadAsset(vfxAsset, null);
         }
 
         public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode)

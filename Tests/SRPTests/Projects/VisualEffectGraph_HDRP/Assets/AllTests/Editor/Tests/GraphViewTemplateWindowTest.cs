@@ -7,20 +7,21 @@ using System.Reflection;
 
 using Moq;
 using NUnit.Framework;
-
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+using UnityEngine.UIElements.TestFramework;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
-    public class VFXTemplateWindowTest
+    public class GraphViewTemplateWindowTest
     {
-        private class MockSaveFileDialogHelper : VFXTemplateWindow.ISaveFileDialogHelper
+        private class MockSaveFileDialogHelper : GraphViewTemplateWindow.ISaveFileDialogHelper
         {
             private readonly string m_ReturnPath;
 
@@ -31,12 +32,9 @@ namespace UnityEditor.VFX.Test
 
             public int callCount { get; private set; }
 
-            public string OpenSaveFileDialog(string title, string defaultName, string extension, string message)
+            public string OpenSaveFileDialog()
             {
                 callCount++;
-                Assert.AreEqual(string.Empty, title);
-                Assert.AreEqual("New VFX", defaultName);
-                Assert.AreEqual("vfx", extension);
                 return m_ReturnPath;
             }
         }
@@ -44,12 +42,14 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void Setup()
         {
+            EventHelpers.TestSetUp();
             Cleanup();
         }
 
         [TearDown]
         public void TearDown()
         {
+            EventHelpers.TestTearDown();
             Cleanup();
         }
 
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.Test
             VisualEffectAssetEditorUtility.CreateVisualEffectAsset();
             yield return null;
 
-            var templateWindow = EditorWindow.GetWindowDontShow<VFXTemplateWindow>();
+            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
             Assert.NotNull(templateWindow);
             Assert.AreEqual("Create new VFX Asset", templateWindow.titleContent.text);
 
@@ -82,9 +82,7 @@ namespace UnityEditor.VFX.Test
             VisualEffectAssetEditorUtility.CreateVisualEffectAsset();
             yield return null;
 
-            var enumerator = CheckNewVFXIsCreated();
-            while (enumerator.MoveNext())
-                yield return enumerator.Current;
+            yield return CheckNewVFXIsCreated();
         }
 
         [UnityTest]
@@ -104,10 +102,8 @@ namespace UnityEditor.VFX.Test
             createNewVFXMethod.Invoke(editor, null);
             yield return null;
 
-            Assert.True(EditorWindow.HasOpenInstances<VFXTemplateWindow>());
-            var enumerator = CheckNewVFXIsCreated();
-            while (enumerator.MoveNext())
-                yield return enumerator.Current;
+            Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
+            yield return CheckNewVFXIsCreated();
         }
 
         [UnityTest]
@@ -116,18 +112,10 @@ namespace UnityEditor.VFX.Test
             var controller = VFXTestCommon.StartEditTestAsset();
             yield return null;
 
-            // Get template dropdown from the VFX graph toolbar
-            var vfxViewWindow = VFXViewWindow.GetWindow(controller.graph, false, true);
-            var templateDropDown = vfxViewWindow.rootVisualElement.Q<CreateFromTemplateDropDownButton>();
-            Assert.NotNull(templateDropDown);
+            var window = VFXViewWindow.GetWindow(controller.graph, false, true);
+            yield return OpenTemplateWindowFromDropDown(window, "OnCreateNew");
 
-            var onCreateNewMethod = templateDropDown.GetType().GetMethod("OnCreateNew", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(onCreateNewMethod);
-            onCreateNewMethod.Invoke(templateDropDown, null);
-
-            var enumerator = CheckNewVFXIsCreated();
-            while (enumerator.MoveNext())
-                yield return enumerator.Current;
+            yield return CheckNewVFXIsCreated();
         }
 
         [UnityTest]
@@ -137,16 +125,10 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             Assert.True(EditorWindow.HasOpenInstances<VFXViewWindow>());
-            var vfxViewWindow = EditorWindow.GetWindowDontShow<VFXViewWindow>();
+            var window = EditorWindow.GetWindowDontShow<VFXViewWindow>();
 
-            var onCreateAssetMethod = vfxViewWindow.graphView.GetType().GetMethod("OnCreateAsset", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(onCreateAssetMethod);
-            onCreateAssetMethod.Invoke(vfxViewWindow.graphView, null);
-            yield return null;
-
-            var enumerator = CheckNewVFXIsCreated();
-            while (enumerator.MoveNext())
-                yield return enumerator.Current;
+            yield return OpenTemplateWindowNoAssetWindow(window);
+            yield return CheckNewVFXIsCreated();
         }
 
         [UnityTest]
@@ -156,32 +138,26 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             // Get template dropdown from the VFX graph toolbar
-            var vfxViewWindow = VFXViewWindow.GetWindow(controller.graph, false, true);
-            var templateDropDown = vfxViewWindow.rootVisualElement.Q<CreateFromTemplateDropDownButton>();
-            Assert.NotNull(templateDropDown);
+            var window = VFXViewWindow.GetWindow(controller.graph, false, true);
+            yield return OpenTemplateWindowFromDropDown(window, "OnCreateNew");
 
-            var onCreateMethod = templateDropDown.GetType().GetMethod("OnCreateNew", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(onCreateMethod);
-            onCreateMethod.Invoke(templateDropDown, null);
-            yield return null;
-
-            var templateWindow = EditorWindow.GetWindowDontShow<VFXTemplateWindow>();
+            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
             Assert.NotNull(templateWindow);
+            yield return null;
 
             // This is to avoid the save file dialog user interaction
             var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(string.Empty);
-            SetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
+            TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
 
             // Select Simple Loop item
             var treeView = GetTreeView(templateWindow);
             treeView.selectedIndex = 3;
 
-            // Simulate click on create button
-            CallMethod(templateWindow, "OnCancel");
-            yield return null;
+            // Simulate click on cancel button
+            yield return ClickButton(templateWindow.rootVisualElement, "CancelButton");
 
             Assert.AreEqual(0, mockSaveFileDialogHelper.callCount);
-            Assert.False(EditorWindow.HasOpenInstances<VFXTemplateWindow>());
+            Assert.False(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
         }
 
         [UnityTest]
@@ -193,27 +169,25 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, controller.contexts.Count());
 
             // Get template dropdown from the VFX graph toolbar
-            var vfxViewWindow = VFXViewWindow.GetWindow(controller.graph, false, true);
-            var templateDropDown = vfxViewWindow.rootVisualElement.Q<CreateFromTemplateDropDownButton>();
-            Assert.NotNull(templateDropDown);
+            var window = VFXViewWindow.GetWindow(controller.graph, false, true);
+            yield return OpenTemplateWindowFromDropDown(window, "OnInsert");
 
-            var onInsertMethod = templateDropDown.GetType().GetMethod("OnInsert", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(onInsertMethod);
-            onInsertMethod.Invoke(templateDropDown, null);
-            yield return null;
-
-            var templateWindow = EditorWindow.GetWindowDontShow<VFXTemplateWindow>();
+            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
             Assert.NotNull(templateWindow);
+
+            // This is to avoid the save file dialog user interaction
+            var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(string.Empty);
+            TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
 
             // Select Simple Loop item
             var treeView = GetTreeView(templateWindow);
             treeView.selectedIndex = 3;
 
             // Simulate click on create button
-            CallMethod(templateWindow, "OnCreate");
-            yield return null;
+            yield return ClickButton(templateWindow.rootVisualElement, "CreateButton");
 
-            Assert.False(EditorWindow.HasOpenInstances<VFXTemplateWindow>());
+            Assert.False(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
+            Assert.AreEqual(0, mockSaveFileDialogHelper.callCount);
             Assert.AreEqual(4, controller.contexts.Count());
         }
 
@@ -226,28 +200,26 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(0, controller.contexts.Count());
 
             // Get template dropdown from the VFX graph toolbar
-            var vfxViewWindow = VFXViewWindow.GetWindow(controller.graph, false, true);
-            var templateDropDown = vfxViewWindow.rootVisualElement.Q<CreateFromTemplateDropDownButton>();
-            Assert.NotNull(templateDropDown);
+            var window = VFXViewWindow.GetWindow(controller.graph, false, true);
+            yield return OpenTemplateWindowFromDropDown(window, "OnInsert");
 
-            var onInsertMethod = templateDropDown.GetType().GetMethod("OnInsert", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(onInsertMethod);
-            onInsertMethod.Invoke(templateDropDown, null);
-            yield return null;
-
-            var templateWindow = EditorWindow.GetWindowDontShow<VFXTemplateWindow>();
+            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
             Assert.NotNull(templateWindow);
+
+            // This is to avoid the save file dialog user interaction
+            var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(string.Empty);
+            TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
 
             // Select Simple Loop item
             var treeView = GetTreeView(templateWindow);
             treeView.selectedIndex = 3;
 
             // Simulate click on cancel button
-            CallMethod(templateWindow, "OnCancel");
-            yield return null;
+            yield return ClickButton(templateWindow.rootVisualElement, "CancelButton");
 
-            Assert.False(EditorWindow.HasOpenInstances<VFXTemplateWindow>());
+            Assert.False(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
             Assert.AreEqual(0, controller.contexts.Count());
+            Assert.AreEqual(0, mockSaveFileDialogHelper.callCount);
         }
 
         private static void CreateAndOpenVFX(int i, out string path)
@@ -324,27 +296,34 @@ namespace UnityEditor.VFX.Test
             }
             Assert.Greater(maxFrame, 0);
 
-            var templateWindow = EditorWindow.GetWindow<VFXTemplateWindow>(true, "Create_From_No_Asset_Reuse_Same_View", false);
+            // Find the "Create new Visual Effect Graph" button and click it
+            var window = VFXViewWindow.GetAllWindows().First();
+            yield return OpenTemplateWindowNoAssetWindow(window);
+
+            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
             Assert.NotNull(templateWindow);
             var treeView = GetTreeView(templateWindow);
             treeView.selectedIndex = 2;
 
-            var oldWindow = VFXViewWindow.GetAllWindows().First();
             var newPath = $"{VFXTestCommon.tempBasePath}vfx_from_template_{System.Guid.NewGuid()}.vfx";
             var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(newPath);
-            SetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
-            CallMethod(templateWindow, "Setup", oldWindow.graphView, /*VFXTemplateWindow.CreateMode.CreateNew*/0, (Action<string>)null);
-            CallMethod(templateWindow, "OnCreate");
+
+            var remainingAttempts = 10;
+            while (!TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper) && remainingAttempts > 0)
+            {
+                remainingAttempts--;
+                yield return null;
+            }
+
+            yield return ClickButton(templateWindow.rootVisualElement, "CreateButton");
             Assert.AreEqual(1u, mockSaveFileDialogHelper.callCount);
             yield return null;
 
             Assert.IsTrue(File.Exists(newPath));
             Assert.AreEqual(1, VFXViewWindow.GetAllWindows().Count());
 
-            var newWindow = VFXViewWindow.GetAllWindows().First();
-            Assert.AreEqual(oldWindow, newWindow);
-            Assert.IsTrue(newWindow.displayedResource != null);
-            var openedAsset = AssetDatabase.GetAssetPath(newWindow.displayedResource.asset);
+            Assert.IsTrue(window.displayedResource != null);
+            var openedAsset = AssetDatabase.GetAssetPath(window.displayedResource.asset);
             Assert.AreEqual(newPath, openedAsset);
             yield return null;
         }
@@ -363,6 +342,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreNotEqual(windowA, windowB);
             Assert.IsTrue(windowA.displayedResource != null);
             Assert.IsTrue(windowB.displayedResource != null);
+            yield return null;
 
             //Delete ObjectA
             AssetDatabase.DeleteAsset(pathA);
@@ -382,18 +362,18 @@ namespace UnityEditor.VFX.Test
             Assert.Greater(maxFrame, 0);
 
             //windowsA simulate creation of new asset with same path than windowB
-            var templateWindow = EditorWindow.GetWindow<VFXTemplateWindow>(true, "Open_Two_View_Delete_Replace_Other_Content", false);
+            yield return OpenTemplateWindowNoAssetWindow(windowA);
+            Assert.IsTrue(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
+            var templateWindow = EditorWindow.GetWindowDontShow<GraphViewTemplateWindow>();
             Assert.NotNull(templateWindow);
             var treeView = GetTreeView(templateWindow);
             treeView.selectedIndex = 2;
 
             var mockSaveFileDialogHelper = new MockSaveFileDialogHelper(pathB);
-            SetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
-            CallMethod(templateWindow, "Setup", windowA.graphView, /*VFXTemplateWindow.CreateMode.CreateNew*/0, (Action<string>)null);
+            TrySetSaveFileDialogHelper(templateWindow, mockSaveFileDialogHelper);
             Assert.IsTrue(windowB.displayedResource != null);
-            CallMethod(templateWindow, "OnCreate");
-            Assert.AreNotEqual(0, mockSaveFileDialogHelper.callCount);
-            yield return null;
+            yield return ClickButton(templateWindow.rootVisualElement, "CreateButton");
+            Assert.AreEqual(1, mockSaveFileDialogHelper.callCount);
 
             windowA = GetWindowFromPath(pathA);
             windowB = GetWindowFromPath(pathB);
@@ -442,8 +422,8 @@ namespace UnityEditor.VFX.Test
                 Assert.NotNull(onCreateNewMethod);
                 onCreateNewMethod.Invoke(templateDropDown, null);
 
-                Assert.True(EditorWindow.HasOpenInstances<VFXTemplateWindow>());
-                var templateWindow = EditorWindow.GetWindow<VFXTemplateWindow>();
+                Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
+                var templateWindow = EditorWindow.GetWindow<GraphViewTemplateWindow>();
                 var installButton = templateWindow.rootVisualElement.Q<Button>("InstallButton");
                 Assert.NotNull(installButton);
                 Assert.True(installButton.enabledSelf);
@@ -462,22 +442,21 @@ namespace UnityEditor.VFX.Test
             // Make sure the project browser is opened
             var projectBrowser = EditorWindow.GetWindow<ProjectBrowser>();
 
-            var templateWindow = EditorWindow.GetWindowDontShow<VFXTemplateWindow>();
+            Assert.True(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
+            var templateWindow = EditorWindow.GetWindow<GraphViewTemplateWindow>();
             Assert.NotNull(templateWindow);
 
             // This is to avoid the save file dialog user interaction
             var destinationPath = "Assets/New VFX.vfx";
-            SetSaveFileDialogHelper(templateWindow, new MockSaveFileDialogHelper(destinationPath));
-
-            var treeView = GetTreeView(templateWindow);
+            TrySetSaveFileDialogHelper(templateWindow, new MockSaveFileDialogHelper(destinationPath));
 
             // Select Simple Loop item
+            var treeView = GetTreeView(templateWindow);
             treeView.selectedIndex = templateIndex;
 
             // Simulate click on create button
-            CallMethod(templateWindow, "OnCreate");
-            yield return null;
-            Assert.False(EditorWindow.HasOpenInstances<VFXTemplateWindow>());
+            yield return ClickButton(templateWindow.rootVisualElement, "CreateButton");
+            Assert.False(EditorWindow.HasOpenInstances<GraphViewTemplateWindow>());
 
             // Move focus to end new file name edition
             var sceneHierarchyWindow = EditorWindow.GetWindow<SceneHierarchyWindow>();
@@ -485,27 +464,33 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             Assert.True(projectBrowser.ListArea.GetCurrentVisibleNames().Contains("New VFX"), "Could not find 'New VFX' file in the project browser");
-            yield break;
         }
 
-        private static void SetSaveFileDialogHelper(VFXTemplateWindow window, VFXTemplateWindow.ISaveFileDialogHelper saveFileDialogHelper)
+        private static bool TrySetSaveFileDialogHelper(GraphViewTemplateWindow window, GraphViewTemplateWindow.ISaveFileDialogHelper saveFileDialogHelper)
         {
-            var saveFileDialogHelperField = window.GetType().GetField("m_SaveFileDialogHelper", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(saveFileDialogHelperField);
-            saveFileDialogHelperField.SetValue(window, saveFileDialogHelper);
+            var templateHelperField = window.GetType().GetField("m_TemplateHelper", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(templateHelperField);
+            var templateHelper = (ITemplateHelper)templateHelperField.GetValue(window);
+            if (templateHelper != null)
+            {
+                templateHelper.saveFileDialogHelper = saveFileDialogHelper;
+                return true;
+            }
+
+            return false;
         }
 
-        internal static List<TreeViewItemData<IVFXTemplateDescriptor>> GetTemplateTree(VFXTemplateWindow window)
+        static List<TreeViewItemData<ITemplateDescriptor>> GetTemplateTree(GraphViewTemplateWindow window)
         {
             var templateTreeField = window.GetType().GetField("m_TemplatesTree", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(templateTreeField);
-            List<TreeViewItemData<IVFXTemplateDescriptor>> templateTree = templateTreeField.GetValue(window) as List<TreeViewItemData<IVFXTemplateDescriptor>>;
+            List<TreeViewItemData<ITemplateDescriptor>> templateTree = templateTreeField.GetValue(window) as List<TreeViewItemData<ITemplateDescriptor>>;
             Assert.NotNull(templateTree);
 
             return templateTree;
         }
 
-        private static TreeView GetTreeView(VFXTemplateWindow window)
+        private static TreeView GetTreeView(GraphViewTemplateWindow window)
         {
             var treeViewField = window.GetType().GetField("m_ListOfTemplates", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(treeViewField);
@@ -515,11 +500,35 @@ namespace UnityEditor.VFX.Test
             return treeView;
         }
 
-        private static void CallMethod(VFXTemplateWindow window, string methodName, params object[] paramMethod)
+        private static IEnumerator ClickButton(VisualElement buttonParent, string buttonName)
         {
-            var method = window.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.NotNull(method);
-            method.Invoke(window, paramMethod);
+            foreach (var x in Enumerable.Range(0, 10)) yield return null;
+
+            var button = buttonParent.Q<Button>(buttonName);
+            Assert.NotNull(button);
+            yield return button.SimulateClick();
+        }
+
+        private static IEnumerator OpenTemplateWindowFromDropDown(VFXViewWindow window, string methodName)
+        {
+            foreach (var x in Enumerable.Range(0, 10)) yield return null;
+
+            var templateDropDown = window.rootVisualElement.Q<CreateFromTemplateDropDownButton>();
+            Assert.NotNull(templateDropDown);
+
+            var onCreateNewMethod = templateDropDown.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(onCreateNewMethod);
+            onCreateNewMethod.Invoke(templateDropDown, null);
+        }
+
+        private static IEnumerator OpenTemplateWindowNoAssetWindow(VFXViewWindow window)
+        {
+            foreach (var x in Enumerable.Range(0, 10)) yield return null;
+
+            var createButton = window.rootVisualElement.Q<VisualElement>("no-asset").Q<Button>();
+            Assert.NotNull(createButton);
+
+            yield return createButton.SimulateClick();
         }
 
         private void Cleanup()
@@ -530,9 +539,9 @@ namespace UnityEditor.VFX.Test
                 AssetDatabase.DeleteAsset(defaultFilePath);
             }
             AssetDatabase.Refresh();
-            if (EditorWindow.HasOpenInstances<VFXTemplateWindow>())
+            if (EditorWindow.HasOpenInstances<GraphViewTemplateWindow>())
             {
-                EditorWindow.GetWindow<VFXTemplateWindow>()?.Close();
+                EditorWindow.GetWindow<GraphViewTemplateWindow>()?.Close();
             }
             VFXTestCommon.DeleteAllTemporaryGraph();
             VFXViewWindow.GetAllWindows().ToList().ForEach(x => x.Close());

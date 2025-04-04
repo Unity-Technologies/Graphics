@@ -7,6 +7,7 @@ using UnityEditor.ProjectWindowCallback;
 using UnityObject = UnityEngine.Object;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor
 {
@@ -110,7 +111,7 @@ VisualEffectResource:
         {
             VFXLibrary.LogUnsupportedSRP();
 
-            void OnTemplateCreate(string templateFilePath)
+            void OnTemplateCreate(string templateFilePath, string assetPath)
             {
                 if (templateFilePath != null)
                 {
@@ -121,7 +122,7 @@ VisualEffectResource:
                 }
             }
 
-            VFXTemplateWindow.PickTemplate(OnTemplateCreate);
+            GraphViewTemplateWindow.ShowCreateFromTemplate(new VFXTemplateHelperInternal(), OnTemplateCreate, false);
         }
 
         [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", false, 307)]

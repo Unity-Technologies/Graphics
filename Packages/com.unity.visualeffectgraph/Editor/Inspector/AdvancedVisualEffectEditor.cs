@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX.UI;
@@ -753,11 +755,12 @@ namespace UnityEditor.VFX
 
         private void CreateNewVFX()
         {
-            void OnTemplateCreate(string templateFilePath)
+            void OnTemplateCreate(string templateFilePath, string assetPath)
             {
                 if (!string.IsNullOrEmpty(templateFilePath))
                 {
-                    var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(templateFilePath);
+                    VisualEffectAssetEditorUtility.CreateTemplateAsset(assetPath, templateFilePath);
+                    var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
                     m_VisualEffectAsset.objectReferenceValue = asset;
                     serializedObject.ApplyModifiedProperties();
 
@@ -765,7 +768,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            VFXTemplateWindow.ShowCreateFromTemplate(null, OnTemplateCreate);
+            GraphViewTemplateWindow.ShowCreateFromTemplate(new VFXTemplateHelperInternal(), OnTemplateCreate);
         }
     }
 }
