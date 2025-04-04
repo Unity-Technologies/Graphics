@@ -25,7 +25,13 @@ namespace UnityEditor.Rendering.Universal
 
         void ProcessChildren(SerializedProperty parentProperty, ProcessChild onProcessChild)
         {
+            if (parentProperty == null)
+                return;
+
             var enumerator = parentProperty.GetEnumerator();
+            if (enumerator.Current == null)
+                return;
+
             object parentObj = parentProperty.managedReferenceValue;
             Type parentType = parentObj.GetType();
 
