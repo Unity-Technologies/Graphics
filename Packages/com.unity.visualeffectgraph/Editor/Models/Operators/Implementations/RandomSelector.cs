@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
-    [VFXHelpURL("Operator-ProbabilitySampling")]
+    [VFXHelpURL("Operator-RandomSelectorWeighted")]
     [VFXInfo(category = "Random", synonyms = new [] { "probability", "sampling" }, variantProvider = typeof(RandomSelectorProvider))]
     class RandomSelector : VFXOperatorDynamicBranch
     {
