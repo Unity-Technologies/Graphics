@@ -83,6 +83,8 @@ namespace UnityEditor.ShaderGraph
 
         public string assetGuid;
 
+        public bool isNull => m_SubGraphData == null;
+
         public ShaderGraphRequirements requirements;
 
         public string path;
