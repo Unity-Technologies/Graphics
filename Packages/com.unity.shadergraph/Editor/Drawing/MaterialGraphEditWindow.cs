@@ -486,7 +486,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateTitle();
         }
 
-        public void UpdateTitle()
+        public void UpdateTitle(bool ignoreUnsavedChanges = false)
         {
             string assetPath = AssetDatabase.GUIDToAssetPath(selectedGuid);
             string shaderName = Path.GetFileNameWithoutExtension(assetPath);
@@ -501,7 +501,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 title = title + " (nothing loaded)";
             else
             {
-                if (GraphHasChangedSinceLastSerialization())
+                if (!ignoreUnsavedChanges && GraphHasChangedSinceLastSerialization())
                 {
                     hasUnsavedChanges = true;
                     // This is the message EditorWindow will show when prompting to close while dirty
@@ -1260,6 +1260,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 using (GraphLoadMarker.Auto())
                 {
                     m_LastSerializedFileContents = File.ReadAllText(path, Encoding.UTF8);
+
                     graphObject = CreateInstance<GraphObject>();
                     graphObject.hideFlags = HideFlags.HideAndDontSave;
                     graphObject.graph = new GraphData
@@ -1268,6 +1269,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         isSubGraph = isSubGraph,
                         messageManager = messageManager
                     };
+
                     MultiJson.Deserialize(graphObject.graph, m_LastSerializedFileContents);
                     graphObject.graph.OnEnable();
                     graphObject.graph.ValidateGraph();
@@ -1281,8 +1283,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     };
                 }
 
-                UpdateTitle();
-
+                UpdateTitle(ignoreUnsavedChanges: true);
                 Repaint();
             }
             catch (Exception)
