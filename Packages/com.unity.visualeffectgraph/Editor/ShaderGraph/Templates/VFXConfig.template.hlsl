@@ -187,7 +187,12 @@ void GetElementData(inout AttributesElement element)
     element.currentFrameIndex = currentFrameIndex;
 #endif
 
+#if !VFX_HAS_INDIRECT_DRAW && !HAS_STRIPS
+    if (attributes.alive)
+#endif  
+    {
     $splice(VFXProcessBlocks)
+    }
 
     element.attributes = attributes;
 }

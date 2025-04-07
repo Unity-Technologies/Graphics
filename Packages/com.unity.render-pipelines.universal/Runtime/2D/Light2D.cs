@@ -400,11 +400,13 @@ namespace UnityEngine.Rendering.Universal
 
         private void Awake()
         {
-#if UNITY_EDITOR
             // Default target sorting layers to "All"
             if (m_ApplyToSortingLayers == null)
-                m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToArray();
-#endif
+            {
+                m_ApplyToSortingLayers = new int[SortingLayer.layers.Length];
+                for (int i = 0; i < m_ApplyToSortingLayers.Length; ++i)
+                    m_ApplyToSortingLayers[i] = SortingLayer.layers[i].id;
+            }
         }
 
         void OnEnable()

@@ -59,3 +59,7 @@ Once you've created a compatible Shader Graph and Material, you can use the Mate
 You should now notice the effect in both Scene view and Game view.
 
 ![Example scene with a grayscale custom post-processing effect.](../Images/post-proc/custom-effect/grayscale-custom-effect.png)
+
+## Additional resources
+
+- [Custom rendering and post-processing in URP](../customizing-urp)

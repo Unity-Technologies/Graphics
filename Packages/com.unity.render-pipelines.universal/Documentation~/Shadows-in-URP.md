@@ -20,7 +20,7 @@ Universal RP will try to use the best resolution according to the number of shad
 
 ## Shadow atlases
 
-Universal RP renders all real-time shadows for a frame using one common shadow map atlas for all punctual light shadows (i.e shadows for Spot Lights and Point Lights), and an other shadow map atlas for Directional Light shadows.
+Universal RP renders all real-time shadows for a frame using one common shadow map atlas for all punctual light shadows (i.e shadows for Spot Lights and Point Lights), and another shadow map atlas for Directional Light shadows.
 
 Set the size of these atlases in your Unity Project’s [Universal Render Pipeline Asset](universalrp-asset.md). The atlas size determines the maximum resolution of shadows in your Scene.
 

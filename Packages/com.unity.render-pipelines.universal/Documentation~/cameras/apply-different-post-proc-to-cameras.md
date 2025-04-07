@@ -24,7 +24,7 @@ With the scene set up, the following steps show how to create and apply a post-p
 3. Select the **Layer** dropdown and choose one of the layers created when you set up the scene.
 4. Select the camera you want to apply this effect to.
 5. In the Inspector window, go to **Environment** > **Volume Mask** and select the same layer that you chose for the GameObject.
-6. Repeat stpes 1-5 for each GameObject and Camera pair that your scene requires.
+6. Repeat steps 1-5 for each GameObject and Camera pair that your scene requires.
 
     > [!NOTE]
     > Some effects apply to all cameras in a scene by default. As a result of this, you might need to add the same effect to each volume. This overrides the effects from other volumes on individual cameras with the new values that you set.

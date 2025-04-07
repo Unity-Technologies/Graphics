@@ -14,10 +14,6 @@ namespace UnityEditor.VFX.UI
         const string k_AdditionalSamples = "VisualEffectGraph Additions";
         const string k_AdditionalHelpers = "OutputEvent Helpers";
         const string k_ManualUrl = @"https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@{0}/index.html";
-        const string k_ForumUrl = @"https://forum.unity.com/forums/visual-effect-graph.428/";
-        const string k_SpaceShipUrl = @"https://github.com/Unity-Technologies/SpaceshipDemo";
-        const string k_SamplesUrl = @"https://github.com/Unity-Technologies/VisualEffectGraph-Samples";
-        const string k_VfxGraphUrl = @"https://unity.com/visual-effect-graph";
 
         readonly Button m_installSamplesButton;
         readonly Button m_installHelpersButton;
@@ -39,18 +35,6 @@ namespace UnityEditor.VFX.UI
 
             m_installHelpersButton = m_PopupContent.Q<Button>("graphAddition");
             m_installHelpersButton.clicked += OnInstallGraphAddition;
-
-            var gotoHome = m_PopupContent.Q<Button>("gotoHome");
-            gotoHome.clicked += () => GotoUrl(k_VfxGraphUrl);
-
-            var gotoForum = m_PopupContent.Q<Button>("gotoForum");
-            gotoForum.clicked += () => GotoUrl(k_ForumUrl);
-
-            var gotoSpaceShip = m_PopupContent.Q<Button>("gotoSpaceShip");
-            gotoSpaceShip.clicked += () => GotoUrl(k_SpaceShipUrl);
-
-            var gotoSamples = m_PopupContent.Q<Button>("gotoSamples");
-            gotoSamples.clicked += () => GotoUrl(k_SamplesUrl);
         }
 
         protected override Vector2 GetPopupSize() => new Vector2(200, 224);

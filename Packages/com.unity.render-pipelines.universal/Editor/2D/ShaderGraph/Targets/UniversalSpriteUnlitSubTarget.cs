@@ -25,13 +25,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-#if HAS_VFX_GRAPH
+
             var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
-            if (TargetsVFX() && !context.HasCustomEditorForRenderPipeline(universalRPType))
-            {
-                context.AddCustomEditorForRenderPipeline(typeof(VFXGenericShaderGraphMaterialGUI).FullName, universalRPType);
-            }
+            var gui = typeof(ShaderGraphSpriteGUI);
+#if HAS_VFX_GRAPH
+            if (TargetsVFX())
+                gui = typeof(VFXGenericShaderGraphMaterialGUI);
 #endif
+            context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
             context.AddSubShader(PostProcessSubShader(SubShaders.SpriteUnlit(target)));
         }
 
@@ -128,7 +129,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     // Conditional State
                     renderStates = CoreRenderStates.Default,
                     pragmas = CorePragmas._2DDefault,
-                    defines = new DefineCollection(),
+                    defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = SpriteUnlitKeywords.Unlit,
                     includes = SpriteUnlitIncludes.Unlit,
 
@@ -165,6 +166,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
+                defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                 keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
 

@@ -10,6 +10,57 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.11] - 2025-02-13
+
+This version is compatible with Unity 2022.3.59f1.
+
+### Changed
+- Transparent materials now appear opaque when using Mipmap Streaming debug views for increased clarity.
+- Create the Global Settings asset in to the current opened folder.
+- Create the Global Settings asset in to the current opened folder.
+
+### Fixed
+- Fixed an assert triggered when the decal count goes over the light count.
+- Fixed scene modification when exiting play mode with the graphics compositor enabled.
+- Added Graphics Compositor Limitation section for VR.
+- Fixed underwater applied when water is disabled.
+- Fixed cinematic eye shader lighting from directional lights.
+- Fixed TAA post sharpen in XR.
+- Banding in IES importer.
+- Fixed realloc of history buffer when XR is enabled.
+- Fixed invalid AABB errors in some other cases.
+- Added framesettings to render volumetric clouds in half res to reduce jittering.
+- Regenerate the hlsl include that where out of date.
+- Cached shadow : Fix corruption when using a non square atlas and improve blit performance.
+- Fixed an issue where the default terrain shader for HDRP was outputting incorrect albedo values to the lightmapper.
+- Fixed a NullReferenceException when exiting Play Mode with HDRP + DLSS + XR.
+- Fixed a motion blur blending issue.
+- Fixed an issue where the Mipmap Streaming debug views would show up incorrectly when certain features were enabled (SRP Batcher, Volumetric Fog, Volumetric Clouds, and,...).
+- Fixed an issue where certain Mipmap Streaming debug views (for example: "Mip Count") would not show up correctly on Metal.
+- Fixed an issue where the Rendering Debugger "Terrain Texture" drop-down would appear only when enabling a Fullscreen Debug Mode, instead of appearing when enabling a Mipmap Streaming debug view as intended.
+- Changed ProbeSettings.cubeResolution field from internal to public.
+- Fixed shader warnings from TAA shader on Metal.
+- Reduced some artifacts from High-Quality (PCSS) shadows for point and spot lights.
+- Fixed issue with EndCameraRendering being called before renderContext submission.
+- HDRP: SSGI, Ray traced GI, Path traced GI and No-GI now match when using an IBL.
+- Reimporting ShaderGraph assets no longer triggers a UnityVCS/Perfoce local checkout.
+- Fixed graphic corruption on some mobile platforms.
+- Fixed sun flicker where the sun is close to cloud boundaries.
+- Ignore material variants with log message.
+- Fixed an issue where UI images using render textures would not render properly with HDR enabled.
+- Added clamp to HairAngleWorld to prevent nan from FastASin.
+- Fixed an issue where cascade shadows and distance shadowmask were not blended properly.
+- Fixed invalid global state pushed when using override camera rendering in the CustomPassUtils functions.
+- Fixed wrong SSR when using a shader graph with a clear coat value of 0.
+- Fixed HDRP ambient scene lighting leaking into the material preview window.
+- Fixed black line artifacts on top of the screen with DRS and downsampled SSAO.
+- Fixed HDRP sky rendering when Camera Relative Rendering is disabled.
+- Fixed artifacts when blending cascade shadows and distance shadowmask.
+- Added a condition to the Receiver Motion Rejection function(feature) to check that the pixel has actually moved.
+- Fixed an issue where the padding in the Lighting window was different between tabs.
+- Fixed refraction sampling with DRS.
+- Fixed color pyramid sampling when distortion is enabled after the distortion pass.
+
 ## [14.0.10] - 2024-04-03
 
 This version is compatible with Unity 2022.3.24f1.

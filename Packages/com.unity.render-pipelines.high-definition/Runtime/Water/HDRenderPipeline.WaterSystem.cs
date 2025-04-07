@@ -132,9 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ReleaseWaterSystem()
         {
-            // Grab all the water surfaces in the scene
-            var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = WaterSurface.instanceCount;
+            // Grab all the water surfaces in the scene. Including disabled ones (i.e. not in WaterSurface.instances).
+            var waterSurfaces = Object.FindObjectsByType<WaterSurface>(FindObjectsSortMode.None);
+            int numWaterSurfaces = waterSurfaces.Length;
 
             // Loop through them and display them
             for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
@@ -324,7 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                cb._GridSize.Set(extent.x, extent.y);
+                cb._GridSize.Set(extent.x + 1, extent.y + 1);
                 cb._WaterRotation.Set(Mathf.Cos(rotation), Mathf.Sin(rotation));
                 cb._PatchOffset = currentWater.transform.position;
             }

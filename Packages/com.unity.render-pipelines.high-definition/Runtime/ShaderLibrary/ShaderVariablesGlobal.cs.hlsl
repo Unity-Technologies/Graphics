@@ -154,6 +154,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _DeExposureMultiplier;
     float4 _ScreenSizeOverride;
     float4 _ScreenCoordScaleBias;
+    float4 _ColorPyramidUvScaleAndLimitCurrentFrame;
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
 CBUFFER_END
 

@@ -12,7 +12,6 @@
     "com.unity.testing.visualeffectgraph": "file:../../../Packages/com.unity.testing.visualeffectgraph",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "1.0.0",
-    "local.code.coverage.references": "file:../../../Packages/local.code.coverage.references",
     "local.utf.references": "file:../../../Packages/local.utf.references",
     "local.gtf.references": "file:../../../Packages/local.gtf.references",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",

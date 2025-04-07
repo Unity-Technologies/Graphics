@@ -10,6 +10,41 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.11] - 2025-02-13
+
+This version is compatible with Unity 2022.3.59f1.
+
+### Fixed
+- When trying to connect incompatible types, the error popup was left over if the action was canceled with Escape key.
+- Fixed activation slot was hidden when a block was collapsed.
+- Fixed missing outputs in Transform operator (and many other nodes with sub-properties).
+- Fixed NullReferenceException when enabling Decal Layers in HDRP.
+- Leak while spamming ReInit.
+- Fixed an unexpected asset database error while importing VFX and ShaderGraph dependency.
+- Fixed VFX graph renders the wrong mesh when using different exposed meshes with instancing enabled.
+- Wrong mesh rendered with instancing, when using multi mesh output and exposed submesh mask.
+- Flickering with VFX using instancing and overriding an exposed texture with an empty texture.
+- Improved how the sleep state is updated for particle systems receiving GPU events.
+- Force culling when VFX rendering is disabled.
+- Indeterministic skin mesh sampling when previous and current were fetch within the same VFX.
+- Fixed SpawnIndex attribute when using instancing.
+- Blackboard could be out of the screen when the VFX Graph window was too small.
+- Use unknown particle count when count readback has never been received.
+- Fixed Screen Space Size block in Shader Graph outputs.
+- Fixed potential error message in the console when starting Unity Editor.
+- Read unexposed shader global properties when using a Shader Graph output.
+- Prevent crash during the update of a Visual Effect when deleting a used Texture.
+- Fixed ParticleIndexInStrip, StripIndex and ParticleCountinStrip attributes when used in quad or mesh outputs (previously all returning 0).
+- Fixed rendering unwanted particles when rendering particle strip systems as particles (previously rendering entire capacity).
+- Fixed strips with immortal particles disappearing with instancing on.
+- Particle outputs connected to particle strip systems don't render last particle.
+- Usage of FogNode is always returning 1.0 in URP.
+- Fixed an exception that could prevent opening a VFX in one specific case.
+- Fixed sprites in Texture Sheet Animation module in HDRP.
+- Fix NullReferenceExpection happening with disconnected output contexts.
+- Prevent VFXRenderer direct material modification that could lead to crashes.
+- Fix occasional crashes when modifying exposed properties when in paused play mode
+
 ## [14.0.10] - 2024-04-03
 
 This version is compatible with Unity 2022.3.24f1.

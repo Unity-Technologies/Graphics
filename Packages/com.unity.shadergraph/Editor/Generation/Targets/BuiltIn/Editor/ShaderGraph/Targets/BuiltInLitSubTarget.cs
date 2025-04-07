@@ -572,8 +572,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             public static readonly KeywordCollection Deferred = new KeywordCollection
             {
-                { CoreKeywordDescriptors.Lightmap },
-                { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },

@@ -264,7 +264,7 @@ float3 LoadCameraColor(uint2 pixelCoords, uint lod)
 
 float3 SampleCameraColor(float2 uv, float lod)
 {
-    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _RTHandleScaleHistory.xy, lod).rgb;
+    return SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, uv * _ColorPyramidUvScaleAndLimitCurrentFrame.xy, lod).rgb;
 }
 
 float3 LoadCameraColor(uint2 pixelCoords)

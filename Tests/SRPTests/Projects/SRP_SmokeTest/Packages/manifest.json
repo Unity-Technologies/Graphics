@@ -13,7 +13,6 @@
     "com.unity.render-pipelines.universal": "file:../../../../../Packages/com.unity.render-pipelines.universal",
     "com.unity.render-pipelines.universal-config": "file:../../../../../Packages/com.unity.render-pipelines.universal-config",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
-    "local.code.coverage.references": "file:../../../Packages/local.code.coverage.references",
     "local.utf.references": "file:../../../Packages/local.utf.references",
     "local.gtf.references": "file:../../../Packages/local.gtf.references",
     "com.unity.textmeshpro": "3.0.6",

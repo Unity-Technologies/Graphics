@@ -634,7 +634,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var data = m_Datas[i];
                 if (data.value is null)
                     continue;
-                
+
                 var type = data.value.GetType();
 
                 // Data requirement interfaces need generic type arguments
@@ -654,10 +654,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             T data = null;
             foreach (var x in m_Datas.SelectValue())
             {
-                if (x is T y)
+                if (x.GetType().Equals(typeof(T)))
                 {
-                    data = y;
-                    break;
+                    data = x as T;
+                    continue;
                 }
             }
 
@@ -1507,6 +1507,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.ExcludeRenderers(new[] { Platform.D3D9 }) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.MultiCompileFog },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };

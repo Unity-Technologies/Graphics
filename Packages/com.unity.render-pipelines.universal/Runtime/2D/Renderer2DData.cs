@@ -26,6 +26,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [SerializeField]
+        LayerMask m_LayerMask = -1;
+
+        [SerializeField]
         TransparencySortMode m_TransparencySortMode = TransparencySortMode.Default;
 
         [SerializeField]
@@ -138,6 +141,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool useCameraSortingLayerTexture => m_UseCameraSortingLayersTexture;
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
+        internal LayerMask layerMask => m_LayerMask;
 
         /// <summary>
         /// Creates the instance of the Renderer2D.

@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 property.onAfterVersionChange += () =>
                 {
                     this.typeText = property.GetPropertyTypeString();
-                    this.m_InspectorUpdateDelegate();
+                    this.m_InspectorUpdateDelegate?.Invoke();
                 };
             }
 

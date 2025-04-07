@@ -976,6 +976,7 @@ Shader ""Hidden/GraphErrorShader2""
             asset.inputStructName = inputStructName;
             asset.outputStructName = outputStructName;
             asset.portRequirements = portRequirements;
+            asset.SetGUID(assetGuid);
             asset.m_PropertiesStages = propertiesStages.ToArray();
             asset.concretePrecision = graph.graphDefaultConcretePrecision;
             asset.SetProperties(inputProperties);

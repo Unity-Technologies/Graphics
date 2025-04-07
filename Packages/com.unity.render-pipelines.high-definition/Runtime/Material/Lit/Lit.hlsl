@@ -1948,9 +1948,9 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float mipLevel = preLightData.transparentSSMipLevel;
     
     // Clamp to avoid potential leaks around the edges when the dynamic resolution is set to low and the smoothness too.
-    float2 diffLimit = _ColorPyramidUvScaleAndLimitPrevFrame.xy - _ColorPyramidUvScaleAndLimitPrevFrame.zw;
+    float2 diffLimit = _ColorPyramidUvScaleAndLimitCurrentFrame.xy - _ColorPyramidUvScaleAndLimitCurrentFrame.zw;
     float2 diffLimitMipAdjusted = diffLimit * pow(2.0,2.0 + ceil(abs(mipLevel)));
-    float2 limit = _ColorPyramidUvScaleAndLimitPrevFrame.xy - diffLimitMipAdjusted;
+    float2 limit = _ColorPyramidUvScaleAndLimitCurrentFrame.xy - diffLimitMipAdjusted;
     
     samplingUV.xy = min(samplingUV.xy, limit);
 

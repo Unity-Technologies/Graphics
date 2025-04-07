@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [14.0.11] - 2025-02-13
+
+This version is compatible with Unity 2022.3.59f1.
+
+### Fixed
+- Fixed PackFloat2To8  in packing.hlsl.
+- Rendering Debugger - Keep the correct selected panel when entering and exiting from playmode.
+- Fixed _FOVEATED_RENDERING_NON_UNIFORM_RASTER shader compilation errors.
+- Rendering Debugger - Silent crash when selecting a Volume component with public RTHandles.
+- Fix truncated vector warning in DownSampleDepth shader
+
 ## [14.0.10] - 2024-04-03
 
 This version is compatible with Unity 2022.3.24f1.

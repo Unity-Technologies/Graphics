@@ -34,9 +34,9 @@ The following methods calculate shadows using shadow maps. To use these methods,
 
 ## Example
 
-The following URP shader draws simple shadows onto a surface.
+This code example is a simplified example of drawing shadows onto a surface. It might not work correctly with more than one [shadow cascade](../shadow-cascades).
 
-To generate shadows, make sure there are objects in your scene that have a `ShadowCaster` shader pass, for example objects that use the `Universal Render Pipeline/Lit` shader.  
+To generate shadows, make sure there are objects in your scene that have a `ShadowCaster` shader pass, for example objects that use the `Universal Render Pipeline/Lit` shader.
 
 ```hlsl
 Shader "Custom/SimpleShadows"

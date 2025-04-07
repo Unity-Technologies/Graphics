@@ -283,6 +283,7 @@ HDRP ray tracing in Unity has the following limitations:
 - Ray tracing isn't supported when rendering [Reflection Probes](Reflection-Probe.md).
 - HDRP doesn't support [orthographic projection](HDRP-Camera.md). If you enable orthographic projection mode, you might experience rendering problems for Transparent Materials, volumetrics and planar reflections.
 - Ray Traced and Screen Space effects won't appear recursively in [Ray Traced Reflections](Ray-Traced-Reflections.md), [Ray Traced Global Illumination](Ray-Traced-Global-Illumination.md) or [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md). This means, for example, you won't be able to see [Screen Space Global Illumination](Override-Screen-Space-GI.md) in [ray-traced reflection](Ray-Traced-Reflections.md).
+- Doesn't support water.
 
 ### Unsupported shader graph nodes for ray tracing
 
