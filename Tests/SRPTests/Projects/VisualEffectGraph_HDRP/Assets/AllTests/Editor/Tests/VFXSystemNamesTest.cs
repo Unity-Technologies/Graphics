@@ -9,6 +9,7 @@ using NUnit.Framework;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements.TestFramework;
 using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
@@ -20,6 +21,7 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void Setup()
         {
+            EventHelpers.TestSetUp();
             CloseAllWindows();
         }
 
@@ -28,6 +30,7 @@ namespace UnityEditor.VFX.Test
         {
             CloseAllWindows();
             VFXTestCommon.DeleteAllTemporaryGraph();
+            EventHelpers.TestTearDown();
         }
 
         private void CloseAllWindows()
@@ -160,7 +163,7 @@ namespace UnityEditor.VFX.Test
             Assert.NotNull(onCreateAssetMethod);
             onCreateAssetMethod.Invoke(vfxViewWindow.graphView, null);
             yield return null;
-            var enumerator = VFXTemplateWindowTest.CheckNewVFXIsCreated(5);
+            var enumerator = GraphViewTemplateWindowTest.CheckNewVFXIsCreated(5);
             while (enumerator.MoveNext())
                 yield return enumerator.Current;
             vfxViewWindow.graphView.OnSave();
@@ -169,7 +172,7 @@ namespace UnityEditor.VFX.Test
             onCreateAssetMethod.Invoke(vfxViewWindow.graphView, null);
             yield return null;
 
-            enumerator = VFXTemplateWindowTest.CheckNewVFXIsCreated(2);
+            enumerator = GraphViewTemplateWindowTest.CheckNewVFXIsCreated(2);
             while (enumerator.MoveNext())
                 yield return enumerator.Current;
         }

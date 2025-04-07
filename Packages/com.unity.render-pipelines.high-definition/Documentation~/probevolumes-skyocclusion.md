@@ -15,6 +15,12 @@ At runtime, when a static or dynamic GameObject samples an Adaptive Probe Volume
 - A sky color from the ambient probe, which updates when the sky color changes.
 - The sky occlusion value, which is static.
 
+## Limitations
+
+When Unity calculates sky occlusion values, Unity treats the surfaces of GameObjects as opaque and a gray color. As a result, transparent or translucent GameObjects like windows or leaves bounce light away instead of transmitting it through. Also, dark-colored walls reflect the same amount of light as light-colored walls. To minimize lighting issues, disable **Contribute GI** in the [**Static Editor Flags** property](xref:um-static-objects) for transparent or translucent GameObjects.
+
+To override the gray color Unity uses, go to **Sky Occlusion Settings** in the [Adaptive Probe Volumes panel](probevolumes-lighting-panel-reference.html#sky-occlusion-settings) and adjust **Albedo Override**.
+
 ## Enable sky occlusion
 
 First, enable the GPU lightmapper. Unity doesn't support sky occlusion if you use **Progressive CPU** instead.

@@ -13,7 +13,9 @@
         "UnityEditor.TestRunner",
         "Unity.Timeline",
         "Unity.Timeline.Editor",
-        "Unity.Nuget.Moq.Editor"
+        "Unity.Nuget.Moq.Editor",
+        "UnityEditor.UIElements.TestFramework",
+        "Unity.UI.TestFramework.Runtime"
     ],
     "includePlatforms": [
         "Editor"

@@ -392,7 +392,7 @@ namespace UnityEngine.Rendering.Universal
             internal readonly bool mustClearColor;
             internal readonly bool mustClearDepth;
             internal readonly Color clearValue;
-            
+
             internal ClearCameraParams(bool clearColor, bool clearDepth, Color clearVal)
             {
                 mustClearColor = clearColor;
@@ -1084,6 +1084,11 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.HasNormalPrepass = isDepthNormalPrepass;
                 m_DeferredLights.HasDepthPrepass = requiresPrepass;
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
+                // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
+                // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
+                m_DeferredLights.CreateGbufferResourcesRenderGraph(renderGraph, resourceData);
+                resourceData.gBuffer = m_DeferredLights.GbufferTextureHandles;
+
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingGbuffer);
 
@@ -1385,6 +1390,11 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingPostProcessing);
 
+            if (cameraData.captureActions != null)
+            {
+                m_CapturePass.RecordRenderGraph(renderGraph, frameData);
+            }
+
             if (applyFinalPostProcessing)
             {
                 TextureHandle backbuffer = resourceData.backBufferColor;
@@ -1407,19 +1417,11 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
             }
 
-            if (cameraData.captureActions != null)
-            {
-                m_CapturePass.RecordRenderGraph(renderGraph, frameData);
-            }
-
             cameraTargetResolved =
                 // final PP always blit to camera target
                 applyFinalPostProcessing ||
                 // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                 (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions);
-
-            // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.AfterRendering injected passes should only be called after the last camera in the stack
-            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRendering);
 
             if (!resourceData.isActiveTargetBackBuffer && cameraData.resolveFinalTarget && !cameraTargetResolved)
             {
@@ -1442,6 +1444,9 @@ namespace UnityEngine.Rendering.Universal
                 resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
                 resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
             }
+
+            // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.AfterRendering injected passes should only be called after the last camera in the stack
+            RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRendering);
 
             // We can explicitely render the overlay UI from URP when HDR output is not enabled.
             // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.

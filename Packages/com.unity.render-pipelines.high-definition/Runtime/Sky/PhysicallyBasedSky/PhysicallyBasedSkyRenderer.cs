@@ -68,6 +68,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RTHandle m_AtmosphericScatteringLut;
 
+            // BUG: https://jira.unity3d.com/browse/UUM-86915 RwTex3D outputs red. Disable on some devices as a workaround.
+            bool m_EnableAtmosphericScatteringBlur;
+
             bool IsWorldSpace() => m_InScatteredRadianceTables != null;
 
             RTHandle AllocateGroundIrradianceTable()
@@ -150,6 +153,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         colorFormat: s_ColorFormat,
                         enableRandomWrite: true,
                         name: "AtmosphericScatteringLUT");
+
+                    // BUG: https://jira.unity3d.com/browse/UUM-86915
+                    m_EnableAtmosphericScatteringBlur = !(s_ColorFormat == GraphicsFormat.B10G11R11_UFloatPack32 &&
+                        SystemInfo.graphicsDeviceName.Contains("Graphics") &&
+                        (SystemInfo.graphicsDeviceName.Contains("HD")      ||    // and UHD
+                         SystemInfo.graphicsDeviceName.Contains("Iris")    ||
+                         SystemInfo.graphicsDeviceName.Contains("Xe")));
                 }
             }
 
@@ -269,10 +279,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Perform a blur pass on the buffer to reduce resolution artefacts
                 cmd.SetComputeTextureParam(s_SkyLUTGenerator, s_AtmosphericScatteringBlurKernel, HDShaderIDs._AtmosphericScatteringLUT_RW, m_AtmosphericScatteringLut);
 
-                cmd.DispatchCompute(s_SkyLUTGenerator, s_AtmosphericScatteringBlurKernel,
-                    1,
-                    1,
-                    (int)PbrSkyConfig.AtmosphericScatteringLutDepth);
+                if(m_EnableAtmosphericScatteringBlur)
+                {
+                    cmd.DispatchCompute(s_SkyLUTGenerator, s_AtmosphericScatteringBlurKernel,
+                        1,
+                        1,
+                        (int)PbrSkyConfig.AtmosphericScatteringLutDepth);
+                }
+                
             }
 
             public void BindGlobalBuffers(CommandBuffer cmd)

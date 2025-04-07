@@ -69,6 +69,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             if (UnityEditor.Rendering.EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<HDRenderPipelineEditorAssets, HDRenderPipeline>(out var rpgs))
             {
+                //UUM-100350
+                //For some reason, when the one in the HDRP template is modified, all its components are nullified instead of replaced.
+                //Removing it fully and creating it solve the issue.
+                string path = VolumeUtils.BuildDefaultNameForVolumeProfile(rpgs.lookDevVolumeProfile);
+                if (UnityEditor.AssetDatabase.AssetPathExists(path))
+                    UnityEditor.AssetDatabase.DeleteAsset(path);
+
                 volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(rpgs.lookDevVolumeProfile);
             }
 #endif

@@ -318,8 +318,11 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, ShadowShape2D.OutlineTopology outlineTopology, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTrimming = true,  bool createInteriorGeometry = false)
         {
-            if (AreDegenerateVertices(vertices))
+            if (AreDegenerateVertices(vertices) || indices == null || indices.Length == 0)
+            {
+                m_Mesh.Clear();
                 return;
+            }
 
             if (m_TrimEdge == k_TrimEdgeUninitialized)
                 m_TrimEdge = m_InitialTrim;
@@ -332,12 +335,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
-
-            if (indices.Length == 0)
-            {
-                m_Mesh.Clear();
-                return;
-            }
 
             if (outlineTopology == ShadowShape2D.OutlineTopology.Triangles)
             {

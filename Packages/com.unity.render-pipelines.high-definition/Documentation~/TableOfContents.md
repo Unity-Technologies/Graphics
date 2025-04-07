@@ -360,7 +360,7 @@
     * [Lighting environment reference](reference-lighting-environment.md)
     * [Ambient Occlusion reference](reference-ambient-occlusion.md)
     * [IES Importer reference](IES-Importer.md)
-    * [Lens flares reference](shared/lens-flare/lens-flare-lens-flares-reference.md)
+    * [Lens flares reference](shared/lens-flare/lens-flare-reference.md)
       * [Lens Flare (SRP) reference](shared/lens-flare/lens-flare-reference.md)
       * [Lens Flare (SRP) Data Asset reference](shared/lens-flare/lens-flare-asset.md)
       * [Screen Space Lens Flare override reference](shared/lens-flare/reference-screen-space-lens-flare.md)

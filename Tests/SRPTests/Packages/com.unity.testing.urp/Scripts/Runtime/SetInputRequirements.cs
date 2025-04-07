@@ -14,7 +14,7 @@ using UnityEngine.Rendering.Universal;
 public class SetInputRequirements : ScriptableRendererFeature
 {
     public ScriptableRenderPassInput inputRequirement;
-    public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRendering;
+    public RenderPassEvent renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
     public int renderPassEventAdjustment = 0;
     private DummyPass m_DummyPass;
 
