@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.VFX.Test
 {
@@ -237,6 +238,73 @@ namespace UnityEditor.VFX.Test
                 .Select(o => o.name)
                 .ToArray();
             Assert.Contains("materialSettings", allSettings);
+        }
+
+        [UnityTest]
+        public IEnumerator Switch_ShaderGraph_And_Undo()
+        {
+            var baseDataPath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/";
+            var packagePath = baseDataPath + "/Repro_97849.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            yield return null;
+
+            var shaderGraphPath_A = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(VFXTestCommon.tempBasePath + "/VFX_With_SG_A.shadergraph");
+            var shaderGraphPath_B = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(VFXTestCommon.tempBasePath + "/VFX_With_SG_B.shadergraph");
+            var vfxPath = VFXTestCommon.tempBasePath + "/VFX_With_SG.vfx";
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            Assert.IsNotNull(shaderGraphPath_A);
+            Assert.IsNotNull(shaderGraphPath_B);
+            Assert.IsNotNull(vfx);
+
+            var graph = vfx.GetOrCreateResource().GetOrCreateGraph();
+            var window = VFXViewWindow.GetWindow(vfx, true);
+            window.LoadAsset(vfx, null);
+            window.Show();
+            Assert.IsNotNull(graph);
+
+            var output = graph.children.OfType<VFXComposedParticleOutput>().SingleOrDefault();
+            Assert.IsNotNull(output);
+
+            Undo.IncrementCurrentGroup();
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_A"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_B"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_C"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_1"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_2"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_3"));
+
+            output.SetSettingValue("shaderGraph", shaderGraphPath_B);
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_A"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_B"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_C"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_1"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_2"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_3"));
+
+            Undo.PerformUndo();
+            yield return null;
+
+            Assert.AreEqual(shaderGraphPath_A, output.GetShaderGraph());
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_A"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_B"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_C"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_1"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_2"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_3"));
+
+            Undo.PerformRedo();
+            yield return null;
+
+            Assert.AreEqual(shaderGraphPath_B, output.GetShaderGraph());
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_A"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_B"));
+            Assert.AreEqual(0, output.inputSlots.Count(o => o.name == "_C"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_1"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_2"));
+            Assert.AreEqual(1, output.inputSlots.Count(o => o.name == "_3"));
+
+            Undo.PerformUndo();
+            yield return null;
         }
 
         [Test]
