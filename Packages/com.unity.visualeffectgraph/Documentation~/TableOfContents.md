@@ -89,13 +89,13 @@
       * [Collide with Cone](Block-CollideWithCone.md)
       * [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md)
       * [Collide with Plane](Block-CollideWithPlane.md)
-      * [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)
+      * [Collision Shape Signed Distance Field](Block-CollideWithSignedDistanceField.md)
       * [Collide with Sphere](Block-CollideWithSphere.md)
     * Flipbook
       * [Flipbook Player](Block-FlipbookPlayer.md)
     * Force
-      * [Conform to Signed Distance Field](Block-ConformToSignedDistanceField.md)
-      * [Conform to Sphere](Block-ConformToSphere.md)
+      * [Attractor Shape Signed Distance Field](Block-ConformToSignedDistanceField.md)
+      * [Attractor Shape Sphere](Block-ConformToSphere.md)
       * [Force](Block-Force.md)
       * [Gravity](Block-Gravity.md)
       * [Linear Drag](Block-LinearDrag.md)

@@ -6,10 +6,10 @@ Signed Distance Fields (SDF) are 3D textures where each texel stores the distanc
 
 In the Visual Effect Graph, there are several nodes that use SDFs to create effects:
 
-- [*Position On Signed Distance Field*](Block-SetPosition(SignedDistanceField).md): Positions particles either within the volume of the SDF or on its surface.
-- [*Conform To Signed Distance Field*](Block-ConformToSignedDistanceField.md): Attracts particles towards an SDF. This is useful for pulling particles towards a complex shape that would be difficult to replicate using other force blocks.
-- [*Collide With Signed Distance Field*](Block-CollideWithSignedDistanceField.md): Simulates collision between particles and an SDF. This is useful when you want particles to collide with complex shapes.
-- [*Sample Signed Distance Field*](Operator-SampleSDF.md): Samples an SDF and enables you to create custom behavior with the result.
+- [**Position On Signed Distance Field**](Block-SetPosition(SignedDistanceField).md): Positions particles either within the volume of the SDF or on its surface.
+- [**Attractor Shape Signed Distance Field**](Block-ConformToSignedDistanceField.md): Attracts particles towards an SDF. This is useful for pulling particles towards a complex shape that would be difficult to replicate using other force blocks.
+- [**Collision Shape Signed Distance Field**](Block-CollideWithSignedDistanceField.md): Simulates collision between particles and an SDF. This is useful when you want particles to collide with complex shapes.
+- [**Sample Signed Distance Field**](Operator-SampleSDF.md): Samples an SDF and enables you to create custom behavior with the result.
 
 ## Generating SDFs
 
