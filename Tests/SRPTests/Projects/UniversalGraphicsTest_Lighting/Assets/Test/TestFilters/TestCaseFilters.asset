@@ -164,3 +164,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-73634
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 1f02677e19d67ea478c4e8ee27537933, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 42
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-92597
