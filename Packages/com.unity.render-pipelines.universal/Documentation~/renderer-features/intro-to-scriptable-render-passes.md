@@ -34,5 +34,4 @@ For example, if you have two Cameras and you add the Scriptable Render Pass in t
 ## Additional resources
 
 * [How to create a Custom Renderer Feature](create-custom-renderer-feature.md)
-* [Scriptable Renderer Feature Reference](scriptable-renderer-features/scriptable-renderer-feature-reference.md)
 * [How to inject a Custom Render Pass via scripting](../customize/custom-pass-injection-points.md)

@@ -16,15 +16,6 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Autodesk Interactive/Autodesk Interactive Masked.shadergraph")]
             public Shader autodeskInteractiveMaskedPS;
 
-            [Reload("Shaders/Terrain/TerrainDetailLit.shader")]
-            public Shader terrainDetailLitPS;
-
-            [Reload("Shaders/Terrain/WavingGrass.shader")]
-            public Shader terrainDetailGrassPS;
-
-            [Reload("Shaders/Terrain/WavingGrassBillboard.shader")]
-            public Shader terrainDetailGrassBillboardPS;
-
             [Reload("Shaders/Nature/SpeedTree7.shader")]
             public Shader defaultSpeedTree7PS;
 

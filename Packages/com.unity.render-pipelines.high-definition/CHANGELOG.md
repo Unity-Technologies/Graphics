@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.15] - 2025-02-13
+
+This version is compatible with Unity 2021.3.49f1.
+
+### Changed
+- Transparent materials now appear opaque when using Mipmap Streaming debug views for increased clarity.
+
+### Fixed
+- Fixed graphical issue when resizing Reflection Probe sizes on macOS
+- Fixed an issue where the Mipmap Streaming debug views would show up incorrectly when certain features were enabled (SRP Batcher, Volumetric Fog, Volumetric Clouds, ...).
+- Fixed an issue where certain Mipmap Streaming debug views (for example: "Mip Count") would not show up correctly on Metal.
+- Reimporting ShaderGraph assets no longer triggers a UnityVCS/Perfoce local checkout.
+- Fixed sun flicker where the sun is close to cloud boundaries.
+- Added clamp to HairAngleWorld to prevent nan from FastASin.
+- Fixed an issue where cascade shadows and distance shadowmask were not blended properly.
+- Fixed wrong SSR when using a shader graph with a clear coat value of 0.
+- Fixed HDRP sky rendering when Camera Relative Rendering is disabled.
+- Fixed black line artifacts on top of the screen with DRS and downsampled SSAO.
+- Fixed an issue where the padding in the Lighting window was different between tabs.
+
 ## [12.1.14] - 2024-04-03
 
 This version is compatible with Unity 2021.3.38f1.

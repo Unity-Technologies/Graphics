@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.15] - 2025-02-13
+
+This version is compatible with Unity 2021.3.49f1.
+
+### Fixed
+- Removed shader warnings (GetParticleIndex).
+- Removed shader warnings (CompareKVP).
+- When trying to connect incompatible types, the error popup was left over if the action was canceled with Escape key.
+- Blackboard could be out of the screen when the VFX Graph window was too small.
+- Read unexposed shader global properties when using a Shader Graph output.
+
 ## [12.1.14] - 2024-04-03
 
 This version is compatible with Unity 2021.3.38f1.

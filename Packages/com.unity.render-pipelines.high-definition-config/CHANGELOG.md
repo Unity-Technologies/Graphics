@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.15] - 2025-02-13
+
+This version is compatible with Unity 2021.3.49f1.
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [12.1.14] - 2024-04-03
 
 This version is compatible with Unity 2021.3.38f1.

@@ -1,4 +1,4 @@
-
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging2D.hlsl"
 
@@ -25,8 +25,19 @@ half4 _RendererColor;
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
+    UNITY_SETUP_INSTANCE_ID(input);
+
+#ifdef UNITY_INSTANCING_ENABLED
+    input.positionOS = UnityFlipSprite(input.positionOS, unity_SpriteFlip);
+#endif
+
     output = BuildVaryings(input);
     output.color *= _RendererColor;
+
+#ifdef UNITY_INSTANCING_ENABLED
+    output.color *= unity_SpriteColor;
+#endif
+
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }

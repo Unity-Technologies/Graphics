@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [12.1.15] - 2025-02-13
+
+This version is compatible with Unity 2021.3.49f1.
+
+### Fixed
+- Disallowed shader variant related settings to be set to negative values.
+- Fixed a bug where the Custom Function node's "Body" field would expand off-screen instead of scrolling.
+- Users can no longer select 'Delete' for context blocks.
+- Fixed a bug that Normal From Height node in a shader graph might return an invalid value when using 16-bit half precision.
+- The name displayed in the Graph inspector when a BlockNode is selected has changed.
+- Added issue where precision mismatch could result in an asset failing to import.
+- Fixed so that pasting an empty group positions it based on the cursor's location.
+- Fixed Shader warnings in URP ShaderGraph when using the Normal From Texture node.
+
 ## [12.1.14] - 2024-04-03
 
 This version is compatible with Unity 2021.3.38f1.

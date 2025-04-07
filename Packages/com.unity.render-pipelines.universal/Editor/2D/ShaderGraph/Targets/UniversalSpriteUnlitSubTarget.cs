@@ -21,6 +21,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+
+            var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
+            var gui = typeof(ShaderGraphSpriteGUI);
+            context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
             context.AddSubShader(SubShaders.SpriteUnlit(target));
         }
 
@@ -147,6 +151,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
+                defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                 keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
 
@@ -178,6 +183,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
+                defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                 keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
 
