@@ -2,11 +2,11 @@
 
 To create foam on a water surface near a GameObject, follow these steps:
 
-1. In the **Hierarchy** window, open the context menu (right-click) and select **Water > Surface**, then create a water surface.
+1. In the **Hierarchy** window, open the context menu (right-click) and select **Water** > **Surface**, then create a water surface.
 
-1. In the **Inspector** window of the water surface, in the **Water decals** section, enable **Foam**.
+1. In the **Inspector** window of the water surface, in the **Water Decals** section, enable **Foam**.
 
-1. In the **Hierarchy** window, right-click a GameObject and select **Water > Surface > Water decal**.
+1. In the **Hierarchy** window, right-click a GameObject and select **Water** > **Surface** > **Water Decal**.
 
 	The new water decal is now a child of the GameObject.
 
