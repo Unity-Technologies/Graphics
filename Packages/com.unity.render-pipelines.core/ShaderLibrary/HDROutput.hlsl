@@ -21,9 +21,9 @@ int _HDREncoding;
 // ACES2065-1: A gamut that covers the full XYZ space, part of the ACES specs. Mostly used for storage since it is harder to work with than ACEScg.
 // WCG: Wide color gamut. This is defined as a color gamut that is wider than the Rec709 one.
 // LMS: A color space represented by the response of the three cones of human eye (responsivity peaks Long, Medium, Short)
-// OETF (Optical Eelectro Transfer Function): This is a function to goes from optical (linear light) to electro (signal transmitted to the display).
-// EOTF (Eelectro Optical  Transfer Function): The inverse of the OETF, used by the TV/Monitor.
-// EETF (Eelectro-Electro Transfer Function): This is generally just a remapping function, we use the BT2390 EETF to perform range reduction based on the actual display.
+// OETF (Optical-Electro Transfer Function): This is a function to goes from optical (linear light) to electro (signal transmitted to the display).
+// EOTF (Electro-Optical Transfer Function): The inverse of the OETF, used by the TV/Monitor.
+// EETF (Electro-Electro Transfer Function): This is generally just a remapping function, we use the BT2390 EETF to perform range reduction based on the actual display.
 // PQ (Perceptual Quantizer): the EOTF used for HDR10 TVs. It works in the range [0, 10000] nits. Important to keep in mind that this represents an absolute intensity and not relative as for SDR. Sometimes this can be referenced as ST2084. As OETF we'll use the inverse of the PQ curve.
 // scRGB: a wide color gamut that uses same color space and white point as sRGB, but with much wider coordinates. Used on windows when 16 bit depth is selected. Most of the color space is imaginary colors. Works differently than with PQ (encoding is linear).
 // G22 (Gamma 2.2): the EOTF used for exact gamma 2.2 curve.
