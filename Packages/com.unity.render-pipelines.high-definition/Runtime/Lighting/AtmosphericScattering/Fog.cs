@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [Serializable, VolumeComponentMenu("Fog")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    [HDRPHelpURL("Override-Fog")]
+    [HDRPHelpURL("fog")]
     public class Fog : VolumeComponentWithQuality
     {
         /// <summary>Enable fog.</summary>

@@ -863,7 +863,7 @@ namespace UnityEditor.Rendering
             return state;
         }
 
-        static void ShowHelpButton(Rect contextMenuRect, string documentationURL, GUIContent title)
+        internal static void ShowHelpButton(Rect contextMenuRect, string documentationURL, GUIContent title)
         {
             if (string.IsNullOrEmpty(documentationURL))
                 return;

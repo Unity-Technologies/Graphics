@@ -60,7 +60,13 @@ namespace UnityEditor.VFX.UI
                 {
                     error = "An edge with the same input and output already exists";
                 }
-                else if (!draggedAnchor.controller.model.CanLink(overAnchor.controller.model))
+                else if (draggedAnchor.controller is VFXUpcomingDataAnchorController upComingAnchor && upComingAnchor.sourceNode.model.GetBestAffinityType(overAnchor.controller.portType) == null ||
+                         overAnchor.controller is VFXUpcomingDataAnchorController upComingAnchor2 && upComingAnchor2.sourceNode.model.GetBestAffinityType(draggedAnchor.controller.portType) == null )
+                {
+                    // dragged and over can not both be upcoming because only inputs are allowed to be upcoming and the direction check has already been made.
+                       error = "There is no compatible type between the output and the operator";
+                }
+                else if (draggedAnchor.controller.model != null && overAnchor.controller.model != null && !draggedAnchor.controller.model.CanLink(overAnchor.controller.model))
                 {
                     error = "The input and output have incompatible types";
                 }

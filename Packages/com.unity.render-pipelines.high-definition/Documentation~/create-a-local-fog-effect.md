@@ -99,7 +99,7 @@ A mask texture is a 3D texture that controls the shape and appearance of the loc
 
 HDRP includes 3D Density Mask Textures with different noise values and shapes that you can use in your scene. To use these Textures, import them from the High Definition RP package samples:
 
-1. Open the Package Manager window (menu: **Window** > **Package Manager**).
+1. Open the **Package Manager** window (menu: **Window** > **Package Management** > **Package Manager**).
 2. Find the **High Definition RP** package.
 3. Expand the **Samples** drop-down.
 4. Find the **Local Volumetric Fog 3D Texture Samples** and click on the **Import** button.

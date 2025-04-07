@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.ChromaticAberration, "Chromatic Aberration");
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.ChromaticAberration);
             PropertyField(m_SpectralLUT);
             PropertyField(m_Intensity);
 

@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.Universal
             materialEditor.SetDefaultGUIWidths();
             for (var i = 0; i < properties.Length; i++)
             {
-                if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
+                if ((properties[i].propertyFlags & (ShaderPropertyFlags.HideInInspector | ShaderPropertyFlags.PerRendererData)) != 0)
                     continue;
 
                 float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);

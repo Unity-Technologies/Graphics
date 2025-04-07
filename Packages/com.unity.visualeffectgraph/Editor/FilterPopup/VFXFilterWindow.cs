@@ -7,6 +7,7 @@ using Unity.Profiling;
 using Unity.UI.Builder;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
@@ -492,7 +493,7 @@ namespace UnityEditor.VFX.UI
                 var docLink = descriptor.GetDocumentationLink();
                 if (!string.IsNullOrEmpty(docLink))
                 {
-                    Help.BrowseURL(string.Format(docLink, VFXHelpURLAttribute.version));
+                    Help.BrowseURL(string.Format(docLink, Documentation.version));
                 }
             }
         }

@@ -1,12 +1,12 @@
 {
   "name": "com.unity.shadergraph",
   "description": "The Shader Graph package adds a visual Shader editing tool to Unity. You can use this tool to create Shaders in a visual way instead of writing code. Specific render pipelines can implement specific graph features. Currently, both the High Definition Rendering Pipeline and the Universal Rendering Pipeline support Shader Graph.",
-  "version": "17.0.3",
-  "unity": "6000.0",
+  "version": "17.1.0",
+  "unity": "6000.1",
   "displayName": "Shader Graph",
   "dependencies": {
-    "com.unity.render-pipelines.core": "17.0.3",
-    "com.unity.searcher": "4.9.2"
+    "com.unity.render-pipelines.core": "17.1.0",
+    "com.unity.searcher": "4.9.3"
   },
   "samples": [
     {
@@ -23,13 +23,24 @@
       "displayName": "Feature Examples",
       "description": "This set of assets provides examples for how to achieve specific features and effects in Shader Graph - such as parallax occlusion mapping, interior cube mapping, vertex animation, various types of UV projection, and more. While not intended to be used directly, these examples should help you learn how to achieve these specific effects in your own shaders.",
       "path": "Samples~/FeatureExamples",
-      "dependencies":["com.unity.render-pipelines.core/Samples~/Common","com.unity.shadergraph/Samples~/Common"]
+      "dependencies": [
+        "com.unity.render-pipelines.core/Samples~/Common",
+        "com.unity.shadergraph/Samples~/Common"
+      ]
     },
     {
       "displayName": "Production Ready Shaders",
       "description": "This sample contains a collection of Shader Graph assets that are ready to be used in production.  The collection includes shaders for rocks, decals, water, terrain details, and many more.  It also includes post-process examples, weather effects, and shaders that behave similarly to the URP and HDRP Lit shaders.",
       "path": "Samples~/ProductionReady",
-      "dependencies":["com.unity.render-pipelines.core/Samples~/Common","com.unity.shadergraph/Samples~/Common"]
+      "dependencies": [
+        "com.unity.render-pipelines.core/Samples~/Common",
+        "com.unity.shadergraph/Samples~/Common"
+      ]
+    },
+    {
+      "displayName": "UGUI Shaders",
+      "description": "This sample is all about creating 2D UI elements using the Canvas target in HDRP or URP. It provides a set of subgraphs to speed up and simplify the process of creating buttons, widgets, backgrounds, and other UI elements. It also contains examples of how these subgraphs can be used together to create dynamic UI elements that are fast to render and don't require any texture memory.",
+      "path": "Samples~/UGUIShaders"
     }
   ]
 }

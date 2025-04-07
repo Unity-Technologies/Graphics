@@ -15,9 +15,30 @@ using UnityEditor.Rendering;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// A global manager that tracks all the Volumes in the currently loaded Scenes and does all the
-    /// interpolation work.
+    /// The <see cref="VolumeManager"/> is a global manager responsible for tracking and managing all Volume settings across the currently loaded Scenes.
+    /// It handles interpolation and blending of Volume settings at runtime, ensuring smooth transitions between different states of the volumes.
+    /// This includes managing post-processing effects, lighting settings, and other environmental effects based on volume profiles.
     /// </summary>
+    /// <remarks>
+    ///
+    /// The <see cref="VolumeManager"/> is initialized with two VolumeProfiles:
+    /// 1. The default VolumeProfile defined in the Graphics Settings.
+    /// 2. The default VolumeProfile defined in the Quality Settings.
+    ///
+    /// These profiles represent the baseline state of all volume parameters, and the VolumeManager interpolates values between them to create a final blended VolumeStack for each camera.
+    /// Every frame, the VolumeManager updates the parameters of local and global VolumeComponents attached to game objects and ensures that the correct interpolation is applied across different volumes.
+    /// The VolumeManager acts as the central "point of truth" for all VolumeComponent parameters in a scene.
+    /// It provides default states for volume settings and dynamically interpolates between different VolumeProfiles to manage changes during runtime. This system is used to handle dynamic environmental and post-processing effects in Unity, ensuring smooth transitions across scene changes and camera views.
+    ///
+    /// The VolumeManager integrates seamlessly with Unity's Scriptable Render Pipelines, applying the appropriate settings for rendering effects such as lighting, bloom, exposure, etc., in real time.
+    /// </remarks>
+    /// <seealso cref="Volume"/>
+    /// <seealso cref="VolumeProfile"/>
+    /// <seealso cref="VolumeStack"/>
+    /// <seealso cref="VolumeComponent"/>
+    /// <seealso cref="VolumeParameter"/>
+    /// <seealso cref="QualitySettings"/>
+    /// <seealso cref="GraphicsSettings"/>
     public sealed partial class VolumeManager
     {
         static readonly ProfilerMarker k_ProfilerMarkerUpdate = new ("VolumeManager.Update");

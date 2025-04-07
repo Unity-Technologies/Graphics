@@ -22,7 +22,6 @@
     #define WIND_QUALITY_PALM       5
 
     uniform half _WindQuality;
-    uniform half _WindEnabled;
 
     #define SPEEDTREE_8_WIND 1 // v7 & v8 use the same shader wind code
     #include "SpeedTreeWind.cginc"

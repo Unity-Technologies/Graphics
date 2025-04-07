@@ -426,7 +426,7 @@ namespace UnityEngine.Rendering.Universal
             // Gather render pass history requests and update history textures.
             UpdateCameraHistory(cameraData);
 
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled);
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera);
 
             // Enable depth normal prepass if it's needed by rendering layers
             if (m_RenderingLayerProvidesByDepthNormalPass)
@@ -469,8 +469,8 @@ namespace UnityEngine.Rendering.Universal
             importBackbufferDepthParams.discardOnLastUse = !isCameraTargetOffscreenDepth;
 
 #if UNITY_EDITOR
-            // on TBDR GPUs like Apple M1/M2, we need to preserve the backbuffer depth for overlay cameras in Editor for Gizmos
-            if (cameraData.isSceneViewCamera)
+            // UUM-47698, UUM-97414: on TBDR GPUs like Apple M1/M2, we need to preserve the backbuffer depth for overlay cameras in Editor for Gizmos & preview grid
+            if (cameraData.isSceneViewCamera || cameraData.isPreviewCamera)
                 importBackbufferDepthParams.discardOnLastUse = false;
 #endif
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -636,7 +636,13 @@ namespace UnityEngine.Rendering.Universal
                 // Configure the copy depth pass based on the allocated depth texture
                 m_CopyDepthPass.MssaSamples = depthDescriptor.msaaSamples;
                 m_CopyDepthPass.CopyToDepth = depthTextureIsDepthFormat;
-                m_CopyDepthPass.m_CopyResolvedDepth = !depthDescriptor.bindMS;
+
+                var copyResolvedDepth = !depthDescriptor.bindMS;
+                m_CopyDepthPass.m_CopyResolvedDepth = copyResolvedDepth;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                m_XRCopyDepthPass.m_CopyResolvedDepth = copyResolvedDepth;
+#endif
             }
             else
             {
@@ -1151,15 +1157,10 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingPrePasses);
 
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled);
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera);
 
             if (m_RenderingLayerProvidesByDepthNormalPass)
                 renderPassInputs.requiresNormalsTexture = true;
-
-#if UNITY_EDITOR
-            if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled() && cameraData.isSceneViewCamera)
-                renderPassInputs.requiresNormalsTexture = true;
-#endif
 
             bool requiresDepthPrepass = RequireDepthPrepass(cameraData, ref renderPassInputs);
             bool isDepthOnlyPrepass = requiresDepthPrepass && !renderPassInputs.requiresNormalsTexture;

@@ -6,8 +6,17 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Common code for all Data-Driven Lens Flare used
+    /// Provides methods for implementing lens flares in a render pipeline.
     /// </summary>
+    /// <remarks>
+    /// The High Definition Render Pipeline (HDRP) and Universal Render Pipeline (URP) use this class for their lens flare implementation. The class supports both screen space lens flares and quad-based lens flares.
+    /// You must call the methods of `LensFlareCommonSRP` at several places inside the Scriptable Render Pipeline (SRP). At minimum, you must call the <see cref="Initialize"/> method.
+    /// You can use any of these methods in a <see cref="LensFlareComponentSRP"/> `Monobehaviour` script.
+    /// <see cref="Dispose"/>
+    /// <see cref="DoLensFlareDataDrivenCommon(UnityEngine.Material,UnityEngine.Camera,UnityEngine.Rect,UnityEngine.Experimental.Rendering.XRPass,int,float,float,bool,float,float,bool,UnityEngine.Vector3,UnityEngine.Matrix4x4,UnityEngine.Rendering.UnsafeCommandBuffer,bool,bool,UnityEngine.Texture,UnityEngine.Texture,UnityEngine.Rendering.RenderTargetIdentifier,System.Func{UnityEngine.Light,UnityEngine.Camera,UnityEngine.Vector3,float},bool)"/>.
+    ///
+    /// Note that only one `LensFlareCommonSRP` can be alive at any point. To call members of this class, use the <see cref="Instance"/> property.
+    /// </remarks>
     public sealed class LensFlareCommonSRP
     {
         private static LensFlareCommonSRP m_Instance = null;
@@ -38,7 +47,7 @@ namespace UnityEngine.Rendering
         private static List<int> m_AvailableIndicies = new List<int>();
 
         /// <summary>
-        /// Max lens-flares-with-occlusion supported
+        /// Defines how many lens flare with occlusion are supported in the view at any time.
         /// </summary>
         public static int maxLensFlareWithOcclusion = 128;
 
@@ -103,30 +112,47 @@ namespace UnityEngine.Rendering
         {
         }
 
-        private static readonly bool s_SupportsLensFlare16bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Render);
-        private static readonly bool s_SupportsLensFlare32bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render);
+        static readonly bool s_SupportsLensFlare16bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.Render);
+        static readonly bool s_SupportsLensFlare32bitsFormat = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render);
+        static readonly bool s_SupportsLensFlare16bitsFormatWithLoadStore = SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, GraphicsFormatUsage.LoadStore);
+        static readonly bool s_SupportsLensFlare32bitsFormatWithLoadStore = SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.LoadStore);
 
-        /// <summary>
-        /// Check if we can use an OcclusionRT
-        /// </summary>
-        /// <returns>return true if we can have the OcclusionRT</returns>
-        static public bool IsOcclusionRTCompatible()
+        // UUM-91313: Some Android Vulkan devices (Adreno 540) don't support R16_SFloat with GraphicsFormatUsage.LoadStore,
+        // which is required when creating a render texture with enableRandomWrite flag. Random writes are only needed by
+        // the merge step (compute shader using the texture as UAV), so we enable the flag only if merging is enabled.
+        static bool requireOcclusionRTRandomWrite => mergeNeeded > 0;
+
+        static bool CheckOcclusionBasedOnDeviceType()
         {
 #if UNITY_SERVER
             return false;
 #else
-            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU &&
-                    (s_SupportsLensFlare16bitsFormat || s_SupportsLensFlare32bitsFormat); //Caching this, because SupportsRenderTextureFormat allocates memory. Go figure.
+            return SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null &&
+                   SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 &&
+                   SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                   SystemInfo.graphicsDeviceType != GraphicsDeviceType.WebGPU;
 #endif
+        }
+
+        /// <summary>
+        /// Check if we can create OcclusionRT texture to be used as render target
+        /// </summary>
+        /// <returns>Returns true if a supported format is found</returns>
+        public static bool IsOcclusionRTCompatible()
+        {
+            if (requireOcclusionRTRandomWrite)
+            {
+                return CheckOcclusionBasedOnDeviceType() &&
+                       (s_SupportsLensFlare16bitsFormatWithLoadStore || s_SupportsLensFlare32bitsFormatWithLoadStore);
+            }
+            return CheckOcclusionBasedOnDeviceType() &&
+                    (s_SupportsLensFlare16bitsFormat || s_SupportsLensFlare32bitsFormat);
         }
 
         static GraphicsFormat GetOcclusionRTFormat()
         {
             // SystemInfo.graphicsDeviceType == {GraphicsDeviceType.Direct3D12, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.PlayStation5, ...}
-            if (s_SupportsLensFlare16bitsFormat)
+            if (requireOcclusionRTRandomWrite ? s_SupportsLensFlare16bitsFormatWithLoadStore : s_SupportsLensFlare16bitsFormat)
                 return GraphicsFormat.R16_SFloat;
             else
                 // Needed a R32_SFloat for Metal or/and DirectX < 11.3
@@ -134,8 +160,11 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Initialization function which must be called by the SRP.
+        /// Initializes the lens flares. You must call this method.
         /// </summary>
+        /// <remarks>
+        /// You usually call `Initialize` in the <see cref="RenderPipeline"/> constructor.
+        /// </remarks>
         static public void Initialize()
         {
             frameIdx = 0;
@@ -150,16 +179,19 @@ namespace UnityEngine.Rendering
                         width: maxLensFlareWithOcclusion,
                         height: Mathf.Max(mergeNeeded * (maxLensFlareWithOcclusionTemporalSample + 1), 1),
                         format: GetOcclusionRTFormat(),
-                        slices: TextureXR.slices,                        
-                        enableRandomWrite: true,
+                        slices: TextureXR.slices,
+                        enableRandomWrite: requireOcclusionRTRandomWrite,
                         dimension: TextureDimension.Tex2DArray);
                 }
             }
         }
 
         /// <summary>
-        /// Disposal function, must be called by the SRP to release all internal textures.
+        /// Releases all internal textures.
         /// </summary>
+        /// <remarks>
+        /// Usually, `Dispose` is called in the <see cref="RenderPipeline.Dispose(bool)"/> function.
+        /// </remarks>
         static public void Dispose()
         {
             if (IsOcclusionRTCompatible())
@@ -173,8 +205,11 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Current unique instance
+        /// Current unique instance.
         /// </summary>
+        /// <remarks>
+        /// Use this property to call other members of this class and make sure that only one lens flare system is running at any time.
+        /// </remarks>
         public static LensFlareCommonSRP Instance
         {
             get
@@ -196,9 +231,18 @@ namespace UnityEngine.Rendering
         private System.Collections.Generic.List<LensFlareCompInfo> Data { get { return LensFlareCommonSRP.m_Data; } }
 
         /// <summary>
-        /// Check if we have at least one Lens Flare added on the pool
+        /// Checks if at least one lens flare has been added to the pool.
         /// </summary>
-        /// <returns>true if no Lens Flare were added</returns>
+        /// <remarks>
+        /// You can use this method to check if there are any lens flares to render before rendering the lens flares.
+        /// </remarks>
+        /// <example>
+        /// if (!LensFlareCommonSRP.Instance.IsEmpty())
+        /// {
+        ///     LensFlareCommonSRP.DoLensFlareDataDrivenCommon(...);
+        /// }
+        /// </example>
+        /// <returns>`true` if no lens flare were added</returns>
         public bool IsEmpty()
         {
             return Data.Count == 0;
@@ -217,8 +261,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Add a new lens flare component on the pool.
+        /// Adds a new lens flare component for rendering.
         /// </summary>
+        /// <remarks>
+        /// When <see cref="LensFlareComponentSRP"/> is used, this method is called automatically when the lens flare is enabled.
+        /// You don't need to call this function unless you're manually removing lens flare data using <see cref="RemoveData"/>.
+        /// </remarks>
         /// <param name="newData">The new data added</param>
         public void AddData(LensFlareComponentSRP newData)
         {
@@ -231,8 +279,11 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Remove a lens flare data which exist in the pool.
+        /// Removes a lens flare data from rendering.
         /// </summary>
+        /// <remarks>
+        /// When <see cref="LensFlareComponentSRP"/> is used, this method is called automatically when the lens flare is disabled.
+        /// </remarks>
         /// <param name="data">The data which exist in the pool</param>
         public void RemoveData(LensFlareComponentSRP data)
         {
@@ -251,8 +302,44 @@ namespace UnityEngine.Rendering
 
 
         /// <summary>
-        /// Attenuation by Light Shape for Point Light
+        /// Obtains the attenuation for a point light.
         /// </summary>
+        /// <remarks>
+        /// This method can be used to help compute the light attenuation to pass to <see cref="DoLensFlareDataDrivenCommon(UnityEngine.Material,UnityEngine.Camera,UnityEngine.Rect,UnityEngine.Experimental.Rendering.XRPass,int,float,float,bool,float,float,bool,UnityEngine.Vector3,UnityEngine.Matrix4x4,UnityEngine.Rendering.UnsafeCommandBuffer,bool,bool,UnityEngine.Texture,UnityEngine.Texture,UnityEngine.Rendering.RenderTargetIdentifier,System.Func{UnityEngine.Light,UnityEngine.Camera,UnityEngine.Vector3,float},bool)"/>
+        /// </remarks>
+        /// <example>
+        /// <para>
+        /// To handle more than one light type, write a dedicated function to compute the attenuation using these helpers
+        /// </para>
+        /// <code>
+        /// static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        /// {
+        ///     switch (light.type)
+        ///     {
+        ///         case LightType.Directional:
+        ///             return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
+        ///         case LightType.Point:
+        ///             // Do nothing point are omnidirectional for the lens flare
+        ///             return LensFlareCommonSRP.ShapeAttenuationPointLight();
+        ///         case LightType.Spot:
+        ///             float innerSpotPercent01 = 1;
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+        ///         case LightType.Pyramid:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(light.transform.forward, wo);
+        ///         case LightType.Box:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(light.transform.forward, wo);
+        ///         case LightType.Rectangle:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(light.transform.forward, wo);
+        ///         case LightType.Tube:
+        ///             float shapeWidth = 1; // Get this data from an external source if our render pipeline supports tube lights.
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(light.transform.position, light.transform.right, shapeWidth, cam);
+        ///         case LightType.Disc:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(light.transform.forward, wo);
+        ///         default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {light.type}");
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         /// <returns>Attenuation Factor</returns>
         static public float ShapeAttenuationPointLight()
         {
@@ -260,24 +347,96 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Attenuation by Light Shape for Directional Light
+        /// Obtains the attenuation for a directional light.
         /// </summary>
         /// <param name="forward">Forward Vector of Directional Light</param>
         /// <param name="wo">Vector pointing to the eye</param>
         /// <returns>Attenuation Factor</returns>
+        /// <remarks>
+        /// This method can be used to help compute the light attenuation to pass to <see cref="DoLensFlareDataDrivenCommon(UnityEngine.Material,UnityEngine.Camera,UnityEngine.Rect,UnityEngine.Experimental.Rendering.XRPass,int,float,float,bool,float,float,bool,UnityEngine.Vector3,UnityEngine.Matrix4x4,UnityEngine.Rendering.UnsafeCommandBuffer,bool,bool,UnityEngine.Texture,UnityEngine.Texture,UnityEngine.Rendering.RenderTargetIdentifier,System.Func{UnityEngine.Light,UnityEngine.Camera,UnityEngine.Vector3,float},bool)"/>
+        /// </remarks>
+        /// <example>
+        /// <para>
+        /// To handle more than one light type, write a dedicated function to compute the attenuation using these helpers
+        /// </para>
+        /// <code>
+        /// static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        /// {
+        ///     switch (light.type)
+        ///     {
+        ///         case LightType.Directional:
+        ///             return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
+        ///         case LightType.Point:
+        ///             // Do nothing point are omnidirectional for the lens flare
+        ///             return LensFlareCommonSRP.ShapeAttenuationPointLight();
+        ///         case LightType.Spot:
+        ///             float innerSpotPercent01 = 1;
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+        ///         case LightType.Pyramid:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(light.transform.forward, wo);
+        ///         case LightType.Box:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(light.transform.forward, wo);
+        ///         case LightType.Rectangle:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(light.transform.forward, wo);
+        ///         case LightType.Tube:
+        ///             float shapeWidth = 1; // Get this data from an external source if our render pipeline supports tube lights.
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(light.transform.position, light.transform.right, shapeWidth, cam);
+        ///         case LightType.Disc:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(light.transform.forward, wo);
+        ///         default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {light.type}");
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         static public float ShapeAttenuationDirLight(Vector3 forward, Vector3 wo)
         {
             return Mathf.Max(Vector3.Dot(-forward, wo), 0.0f);
         }
 
         /// <summary>
-        /// Attenuation by Light Shape for Spot Light with Cone Shape
+        /// Obtains the attenuation for a cone spot light.
         /// </summary>
         /// <param name="forward">Forward Vector of Directional Light</param>
         /// <param name="wo">Vector pointing to the eye</param>
         /// <param name="spotAngle">The angle of the light's spotlight cone in degrees.</param>
         /// <param name="innerSpotPercent01">Get the inner spot radius between 0 and 1.</param>
         /// <returns>Attenuation Factor</returns>
+        /// <remarks>
+        /// This method can be used to help compute the light attenuation to pass to <see cref="DoLensFlareDataDrivenCommon(UnityEngine.Material,UnityEngine.Camera,UnityEngine.Rect,UnityEngine.Experimental.Rendering.XRPass,int,float,float,bool,float,float,bool,UnityEngine.Vector3,UnityEngine.Matrix4x4,UnityEngine.Rendering.UnsafeCommandBuffer,bool,bool,UnityEngine.Texture,UnityEngine.Texture,UnityEngine.Rendering.RenderTargetIdentifier,System.Func{UnityEngine.Light,UnityEngine.Camera,UnityEngine.Vector3,float},bool)"/>
+        /// </remarks>
+        /// <example>
+        /// <para>
+        /// To handle more than one light type, write a dedicated function to compute the attenuation using these helpers
+        /// </para>
+        /// <code>
+        /// static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        /// {
+        ///     switch (light.type)
+        ///     {
+        ///         case LightType.Directional:
+        ///             return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
+        ///         case LightType.Point:
+        ///             // Do nothing point are omnidirectional for the lens flare
+        ///             return LensFlareCommonSRP.ShapeAttenuationPointLight();
+        ///         case LightType.Spot:
+        ///             float innerSpotPercent01 = 1;
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+        ///         case LightType.Pyramid:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(light.transform.forward, wo);
+        ///         case LightType.Box:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(light.transform.forward, wo);
+        ///         case LightType.Rectangle:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(light.transform.forward, wo);
+        ///         case LightType.Tube:
+        ///             float shapeWidth = 1; // Get this data from an external source if our render pipeline supports tube lights.
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(light.transform.position, light.transform.right, shapeWidth, cam);
+        ///         case LightType.Disc:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(light.transform.forward, wo);
+        ///         default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {light.type}");
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         static public float ShapeAttenuationSpotConeLight(Vector3 forward, Vector3 wo, float spotAngle, float innerSpotPercent01)
         {
             float outerDot = Mathf.Max(Mathf.Cos(0.5f * spotAngle * Mathf.Deg2Rad), 0.0f);
@@ -287,35 +446,143 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Attenuation by Light Shape for Spot Light with Box Shape
+        /// Obtains the attenuation for a box spot light.
         /// </summary>
         /// <param name="forward">Forward Vector of Directional Light</param>
         /// <param name="wo">Vector pointing to the eye</param>
         /// <returns>Attenuation Factor</returns>
+        /// <remarks>
+        /// This method can be used to help compute the light attenuation to pass to <see cref="DoLensFlareDataDrivenCommon(UnityEngine.Material,UnityEngine.Camera,UnityEngine.Rect,UnityEngine.Experimental.Rendering.XRPass,int,float,float,bool,float,float,bool,UnityEngine.Vector3,UnityEngine.Matrix4x4,UnityEngine.Rendering.UnsafeCommandBuffer,bool,bool,UnityEngine.Texture,UnityEngine.Texture,UnityEngine.Rendering.RenderTargetIdentifier,System.Func{UnityEngine.Light,UnityEngine.Camera,UnityEngine.Vector3,float},bool)"/>
+        /// </remarks>
+        /// <example>
+        /// <para>
+        /// To handle more than one light type, write a dedicated function to compute the attenuation using these helpers
+        /// </para>
+        /// <code>
+        /// static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        /// {
+        ///     switch (light.type)
+        ///     {
+        ///         case LightType.Directional:
+        ///             return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
+        ///         case LightType.Point:
+        ///             // Do nothing point are omnidirectional for the lens flare
+        ///             return LensFlareCommonSRP.ShapeAttenuationPointLight();
+        ///         case LightType.Spot:
+        ///             float innerSpotPercent01 = 1;
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+        ///         case LightType.Pyramid:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(light.transform.forward, wo);
+        ///         case LightType.Box:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(light.transform.forward, wo);
+        ///         case LightType.Rectangle:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(light.transform.forward, wo);
+        ///         case LightType.Tube:
+        ///             float shapeWidth = 1; // Get this data from an external source if our render pipeline supports tube lights.
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(light.transform.position, light.transform.right, shapeWidth, cam);
+        ///         case LightType.Disc:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(light.transform.forward, wo);
+        ///         default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {light.type}");
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         static public float ShapeAttenuationSpotBoxLight(Vector3 forward, Vector3 wo)
         {
             return Mathf.Max(Mathf.Sign(Vector3.Dot(forward, wo)), 0.0f);
         }
 
         /// <summary>
-        /// Attenuation by Light Shape for Spot Light with Pyramid Shape
+        /// Obtains the attenuation for a pyramid spot light.
         /// </summary>
         /// <param name="forward">Forward Vector of Directional Light</param>
         /// <param name="wo">Vector pointing to the eye</param>
         /// <returns>Attenuation Factor</returns>
+        /// <remarks>
+        /// This method can be used to help compute the light attenuation to pass to <see cref="DoLensFlareDataDrivenCommon(UnityEngine.Material,UnityEngine.Camera,UnityEngine.Rect,UnityEngine.Experimental.Rendering.XRPass,int,float,float,bool,float,float,bool,UnityEngine.Vector3,UnityEngine.Matrix4x4,UnityEngine.Rendering.UnsafeCommandBuffer,bool,bool,UnityEngine.Texture,UnityEngine.Texture,UnityEngine.Rendering.RenderTargetIdentifier,System.Func{UnityEngine.Light,UnityEngine.Camera,UnityEngine.Vector3,float},bool)"/>
+        /// </remarks>
+        /// <example>
+        /// <para>
+        /// To handle more than one light type, write a dedicated function to compute the attenuation using these helpers
+        /// </para>
+        /// <code>
+        /// static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        /// {
+        ///     switch (light.type)
+        ///     {
+        ///         case LightType.Directional:
+        ///             return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
+        ///         case LightType.Point:
+        ///             // Do nothing point are omnidirectional for the lens flare
+        ///             return LensFlareCommonSRP.ShapeAttenuationPointLight();
+        ///         case LightType.Spot:
+        ///             float innerSpotPercent01 = 1;
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+        ///         case LightType.Pyramid:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(light.transform.forward, wo);
+        ///         case LightType.Box:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(light.transform.forward, wo);
+        ///         case LightType.Rectangle:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(light.transform.forward, wo);
+        ///         case LightType.Tube:
+        ///             float shapeWidth = 1; // Get this data from an external source if our render pipeline supports tube lights.
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(light.transform.position, light.transform.right, shapeWidth, cam);
+        ///         case LightType.Disc:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(light.transform.forward, wo);
+        ///         default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {light.type}");
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         static public float ShapeAttenuationSpotPyramidLight(Vector3 forward, Vector3 wo)
         {
             return ShapeAttenuationSpotBoxLight(forward, wo);
         }
 
         /// <summary>
-        /// Attenuation by Light Shape for Area Light with Tube Shape
+        /// Obtains the attenuation for a tube light.
         /// </summary>
         /// <param name="lightPositionWS">World Space position of the Light</param>
         /// <param name="lightSide">Vector pointing to the side (right or left) or the light</param>
         /// <param name="lightWidth">Width (half extent) of the tube light</param>
         /// <param name="cam">Camera rendering the Tube Light</param>
         /// <returns>Attenuation Factor</returns>
+        /// <remarks>
+        /// This method can be used to help compute the light attenuation to pass to <see cref="DoLensFlareDataDrivenCommon(UnityEngine.Material,UnityEngine.Camera,UnityEngine.Rect,UnityEngine.Experimental.Rendering.XRPass,int,float,float,bool,float,float,bool,UnityEngine.Vector3,UnityEngine.Matrix4x4,UnityEngine.Rendering.UnsafeCommandBuffer,bool,bool,UnityEngine.Texture,UnityEngine.Texture,UnityEngine.Rendering.RenderTargetIdentifier,System.Func{UnityEngine.Light,UnityEngine.Camera,UnityEngine.Vector3,float},bool)"/>
+        /// </remarks>
+        /// <example>
+        /// <para>
+        /// To handle more than one light type, write a dedicated function to compute the attenuation using these helpers
+        /// </para>
+        /// <code>
+        /// static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        /// {
+        ///     switch (light.type)
+        ///     {
+        ///         case LightType.Directional:
+        ///             return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
+        ///         case LightType.Point:
+        ///             // Do nothing point are omnidirectional for the lens flare
+        ///             return LensFlareCommonSRP.ShapeAttenuationPointLight();
+        ///         case LightType.Spot:
+        ///             float innerSpotPercent01 = 1;
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+        ///         case LightType.Pyramid:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(light.transform.forward, wo);
+        ///         case LightType.Box:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(light.transform.forward, wo);
+        ///         case LightType.Rectangle:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(light.transform.forward, wo);
+        ///         case LightType.Tube:
+        ///             float shapeWidth = 1; // Get this data from an external source if our render pipeline supports tube lights.
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(light.transform.position, light.transform.right, shapeWidth, cam);
+        ///         case LightType.Disc:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(light.transform.forward, wo);
+        ///         default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {light.type}");
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         static public float ShapeAttenuationAreaTubeLight(Vector3 lightPositionWS, Vector3 lightSide, float lightWidth, Camera cam)
         {
             // Ref: https://hal.archives-ouvertes.fr/hal-02155101/document
@@ -383,22 +650,94 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Attenuation by Light Shape for Area Light with Rectangular Shape
+        /// Obtains the attenuation for a rectangle light.
         /// </summary>
         /// <param name="forward">Forward Vector of Directional Light</param>
         /// <param name="wo">Vector pointing to the eye</param>
         /// <returns>Attenuation Factor</returns>
+        /// <remarks>
+        /// This method can be used to help compute the light attenuation to pass to <see cref="DoLensFlareDataDrivenCommon(UnityEngine.Material,UnityEngine.Camera,UnityEngine.Rect,UnityEngine.Experimental.Rendering.XRPass,int,float,float,bool,float,float,bool,UnityEngine.Vector3,UnityEngine.Matrix4x4,UnityEngine.Rendering.UnsafeCommandBuffer,bool,bool,UnityEngine.Texture,UnityEngine.Texture,UnityEngine.Rendering.RenderTargetIdentifier,System.Func{UnityEngine.Light,UnityEngine.Camera,UnityEngine.Vector3,float},bool)"/>
+        /// </remarks>
+        /// <example>
+        /// <para>
+        /// To handle more than one light type, write a dedicated function to compute the attenuation using these helpers
+        /// </para>
+        /// <code>
+        /// static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        /// {
+        ///     switch (light.type)
+        ///     {
+        ///         case LightType.Directional:
+        ///             return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
+        ///         case LightType.Point:
+        ///             // Do nothing point are omnidirectional for the lens flare
+        ///             return LensFlareCommonSRP.ShapeAttenuationPointLight();
+        ///         case LightType.Spot:
+        ///             float innerSpotPercent01 = 1;
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+        ///         case LightType.Pyramid:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(light.transform.forward, wo);
+        ///         case LightType.Box:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(light.transform.forward, wo);
+        ///         case LightType.Rectangle:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(light.transform.forward, wo);
+        ///         case LightType.Tube:
+        ///             float shapeWidth = 1; // Get this data from an external source if our render pipeline supports tube lights.
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(light.transform.position, light.transform.right, shapeWidth, cam);
+        ///         case LightType.Disc:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(light.transform.forward, wo);
+        ///         default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {light.type}");
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         static public float ShapeAttenuationAreaRectangleLight(Vector3 forward, Vector3 wo)
         {
             return ShapeAttenuateForwardLight(forward, wo);
         }
 
         /// <summary>
-        /// Attenuation by Light Shape for Area Light with Disc Shape
+        /// Obtains the attenuation for a disc light.
         /// </summary>
         /// <param name="forward">Forward Vector of Directional Light</param>
         /// <param name="wo">Vector pointing to the eye</param>
         /// <returns>Attenuation Factor</returns>
+        /// <remarks>
+        /// This method can be used to help compute the light attenuation to pass to <see cref="DoLensFlareDataDrivenCommon(UnityEngine.Material,UnityEngine.Camera,UnityEngine.Rect,UnityEngine.Experimental.Rendering.XRPass,int,float,float,bool,float,float,bool,UnityEngine.Vector3,UnityEngine.Matrix4x4,UnityEngine.Rendering.UnsafeCommandBuffer,bool,bool,UnityEngine.Texture,UnityEngine.Texture,UnityEngine.Rendering.RenderTargetIdentifier,System.Func{UnityEngine.Light,UnityEngine.Camera,UnityEngine.Vector3,float},bool)"/>
+        /// </remarks>
+        /// <example>
+        /// <para>
+        /// To handle more than one light type, write a dedicated function to compute the attenuation using these helpers
+        /// </para>
+        /// <code>
+        /// static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        /// {
+        ///     switch (light.type)
+        ///     {
+        ///         case LightType.Directional:
+        ///             return LensFlareCommonSRP.ShapeAttenuationDirLight(light.transform.forward, cam.transform.forward);
+        ///         case LightType.Point:
+        ///             // Do nothing point are omnidirectional for the lens flare
+        ///             return LensFlareCommonSRP.ShapeAttenuationPointLight();
+        ///         case LightType.Spot:
+        ///             float innerSpotPercent01 = 1;
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
+        ///         case LightType.Pyramid:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(light.transform.forward, wo);
+        ///         case LightType.Box:
+        ///             return LensFlareCommonSRP.ShapeAttenuationSpotBoxLight(light.transform.forward, wo);
+        ///         case LightType.Rectangle:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(light.transform.forward, wo);
+        ///         case LightType.Tube:
+        ///             float shapeWidth = 1; // Get this data from an external source if our render pipeline supports tube lights.
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(light.transform.position, light.transform.right, shapeWidth, cam);
+        ///         case LightType.Disc:
+        ///             return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(light.transform.forward, wo);
+        ///         default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {light.type}");
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         static public float ShapeAttenuationAreaDiscLight(Vector3 forward, Vector3 wo)
         {
             return ShapeAttenuateForwardLight(forward, wo);
@@ -420,7 +759,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Compute internal parameters needed to render single flare
+        /// Computes the internal parameters needed to render a single flare.
         /// </summary>
         /// <param name="screenPos">The screen position of the flare.</param>
         /// <param name="translationScale">The scale of translation applied to the flare.</param>
@@ -512,8 +851,11 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Check if at least one LensFlareComponentSRP request occlusion from background clouds
+        /// Checks if at least one `LensFlareComponentSRP` requests occlusion from environment effects.
         /// </summary>
+        /// <remarks>
+        /// Environment occlusion can be enabled by setting <see cref="LensFlareComponentSRP.environmentOcclusion"/> to true.
+        /// </remarks>
         /// <param name="cam">Camera</param>
         /// <returns>true if cloud occlusion is requested</returns>
         static public bool IsCloudLayerOpacityNeeded(Camera cam)
@@ -594,9 +936,9 @@ namespace UnityEngine.Rendering
 #endif
 
         /// <summary>
-        /// Effective Job of drawing the set of Lens Flare registered
+        /// Renders the set of lens flare registered.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="lensFlareShader">lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="xr">XR Infos</param>
         /// <param name="xrIndex">Index of the SinglePass XR</param>
@@ -646,9 +988,9 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing the set of Lens Flare registered
+        /// Renders the set of lens flare registered.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="lensFlareShader">lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="xr">XRPass data.</param>
         /// <param name="xrIndex">XR multipass ID.</param>
@@ -684,9 +1026,9 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing the set of Lens Flare registered
+        /// Renders the set of lens flare registered.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="lensFlareShader">lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="xr">XRPass data.</param>
         /// <param name="xrIndex">XR multipass ID.</param>
@@ -741,9 +1083,9 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing the set of Lens Flare registered
+        /// Computes the occlusion of lens flare using the depth buffer and additional occlusion textures if not null.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="lensFlareShader">Lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="xr">XRPass data.</param>
         /// <param name="xrIndex">XR multipass ID.</param>
@@ -977,8 +1319,11 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Function that process a single element of a LensFlareDataSRP, this function is used on scene/game view and on the inspector for the thumbnail.
+        /// Renders a single element of a LensFlareDataSRP, this function is used on scene/game view and on the inspector for the thumbnail.
         /// </summary>
+        /// <remarks>
+        /// Can be used to draw aa single lens flare for editor or preview purpose.
+        /// </remarks>
         /// <param name="element">Single LensFlare asset we need to process.</param>
         /// <param name="cmd">Command Buffer.</param>
         /// <param name="globalColorModulation">Color Modulation from Component?</param>
@@ -987,7 +1332,7 @@ namespace UnityEngine.Rendering
         /// <param name="scale">Scale from component</param>
         /// <param name="lensFlareShader">Shader used on URP or HDRP.</param>
         /// <param name="screenPos">Screen Position</param>
-        /// <param name="compAllowOffScreen">Allow Lens Flare offscreen</param>
+        /// <param name="compAllowOffScreen">Allow lens flare offscreen</param>
         /// <param name="vScreenRatio">Screen Ratio</param>
         /// <param name="flareData1">_FlareData1 used internally by the shader.</param>
         /// <param name="preview">true if we are on preview on the inspector</param>
@@ -1322,9 +1667,9 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing the set of Lens Flare registered
+        /// Renders the set of lens flare registered.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="lensFlareShader">Lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="viewport">Viewport used for rendering and XR applied.</param>
         /// <param name="xr">XRPass data.</param>
@@ -1356,7 +1701,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
-        /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
+        /// <param name="debugView">Debug View which setup black background to see only lens flare</param>
         [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters.")]
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
@@ -1387,9 +1732,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing the set of Lens Flare registered
+        /// Renders all visible lens flares.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <remarks>
+        /// Call this function during the post processing phase of the Render Pipeline.
+        /// </remarks>
+        /// <param name="lensFlareShader">Lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="viewport">Viewport used for rendering and XR applied.</param>
         /// <param name="xr">XRPass data.</param>
@@ -1409,7 +1757,7 @@ namespace UnityEngine.Rendering
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
-        /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
+        /// <param name="debugView">Debug View which setup black background to see only lens flare</param>
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
@@ -1436,9 +1784,9 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing the set of Lens Flare registered
+        /// Renders the set of lens flare registered.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="lensFlareShader">Lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="viewport">Viewport used for rendering and XR applied.</param>
         /// <param name="xr">XRPass data.</param>
@@ -1470,7 +1818,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
-        /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
+        /// <param name="debugView">Debug View which setup black background to see only lens flare</param>
         [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters.")]
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
@@ -1501,9 +1849,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing the set of Lens Flare registered
+        /// Renders all visible lens flares.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <remarks>
+        /// Call this function during the post processing phase of the Render Pipeline.
+        /// </remarks>
+        /// <param name="lensFlareShader">Lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="viewport">Viewport used for rendering and XR applied.</param>
         /// <param name="xr">XRPass data.</param>
@@ -1523,7 +1874,7 @@ namespace UnityEngine.Rendering
         /// <param name="sunOcclusionTexture">Sun Occlusion Texture from VolumetricCloud on HDRP or null</param>
         /// <param name="colorBuffer">Source Render Target which contains the Color Buffer</param>
         /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
-        /// <param name="debugView">Debug View which setup black background to see only Lens Flare</param>
+        /// <param name="debugView">Debug View which setup black background to see only lens flare</param>
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
@@ -1739,9 +2090,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing Lens Flare Screen Space.
+        /// Renders the screen space lens flare effect.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <remarks>
+        /// Call this function during the post processing of the render pipeline after the bloom.
+        /// </remarks>
+        /// <param name="lensFlareShader">Lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
@@ -1757,7 +2111,7 @@ namespace UnityEngine.Rendering
         /// <param name="parameters4">streaksIntensity, streaksLength, streaksOrientation, streaksThreshold</param>
         /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
         /// <param name="cmd">UnsafeCommandBuffer</param>
-        /// <param name="result">Result RT for the Lens Flare Screen Space</param>
+        /// <param name="result">Result RT for the lens flare Screen Space</param>
         /// <param name="debugView">Information if we are in debug mode or not</param>
         static public void DoLensFlareScreenSpaceCommon(
             Material lensFlareShader,
@@ -1801,9 +2155,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing Lens Flare Screen Space.
+        /// Renders the screen space lens flare effect.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <remarks>
+        /// Call this function during the post processing of the render pipeline after the bloom.
+        /// </remarks>
+        /// <param name="lensFlareShader">Lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
@@ -1819,7 +2176,7 @@ namespace UnityEngine.Rendering
         /// <param name="parameters4">streaksIntensity, streaksLength, streaksOrientation, streaksThreshold</param>
         /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
         /// <param name="cmd">Command Buffer</param>
-        /// <param name="result">Result RT for the Lens Flare Screen Space</param>
+        /// <param name="result">Result RT for the lens flare Screen Space</param>
         /// <param name="_LensFlareScreenSpaceBloomMipTexture">ShaderID for the original bloom texture</param>
         /// <param name="_LensFlareScreenSpaceResultTexture">ShaderID for the LensFlareScreenSpaceResultTexture texture</param>
         /// <param name="_LensFlareScreenSpaceSpectralLut">ShaderID for the LensFlareScreenSpaceSpectralLut texture</param>
@@ -1886,9 +2243,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Effective Job of drawing Lens Flare Screen Space.
+        /// Renders the screen space lens flare effect.
         /// </summary>
-        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <remarks>
+        /// Call this function during the post processing of the render pipeline after the bloom.
+        /// </remarks>
+        /// <param name="lensFlareShader">Lens flare material (HDRP or URP shader)</param>
         /// <param name="cam">Camera</param>
         /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
         /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
@@ -1904,7 +2264,7 @@ namespace UnityEngine.Rendering
         /// <param name="parameters4">streaksIntensity, streaksLength, streaksOrientation, streaksThreshold</param>
         /// <param name="parameters5">downsampleStreak, warpedFlareScaleX, warpedFlareScaleY, freeSlot</param>
         /// <param name="cmd">Command Buffer</param>
-        /// <param name="result">Result RT for the Lens Flare Screen Space</param>
+        /// <param name="result">Result RT for the lens flare Screen Space</param>
         /// <param name="debugView">Information if we are in debug mode or not</param>
         static public void DoLensFlareScreenSpaceCommon(
             Material lensFlareShader,

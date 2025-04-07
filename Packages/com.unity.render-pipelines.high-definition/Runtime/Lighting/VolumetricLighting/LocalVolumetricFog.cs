@@ -8,6 +8,17 @@ using UnityEditor.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>The scaling mode to apply to Local Volumetric Fog.</summary>
+    public enum LocalVolumetricFogScaleMode
+    {
+        /// <summary>Ignores the transformation hierarchy and uses the scale values in the Local Volumetric Fog component directly.</summary>
+        [InspectorName("Scale Invariant")]
+        ScaleInvariant,
+        /// <summary>Multiplies the lossy scale of the Transform with the Local Volumetric Fog's size then applies this to the Local Volumetric Fog component.</summary>
+        [InspectorName("Inherit from Hierarchy")]
+        InheritFromHierarchy,
+    }
+
     /// <summary>Artist-friendly Local Volumetric Fog parametrization.</summary>
     [Serializable]
     public partial struct LocalVolumetricFogArtistParameters
@@ -55,6 +66,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("advancedFade"), FormerlySerializedAs("m_AdvancedFade")]
         internal bool m_EditorAdvancedFade;
 
+        /// <summary>The scaling mode to apply to Local Volumetric Fog.</summary>
+        public LocalVolumetricFogScaleMode scaleMode;
+
         /// <summary>Dimensions of the volume.</summary>
         public Vector3 size;
         /// <summary>Inverts the fade gradient.</summary>
@@ -98,6 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             textureTiling = Vector3.one;
             textureOffset = textureScrollingSpeed;
 
+            scaleMode = LocalVolumetricFogScaleMode.ScaleInvariant;
             size = Vector3.one;
 
             positiveFade = Vector3.one * 0.1f;
@@ -179,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
     } // class LocalVolumetricFogParameters
 
     /// <summary>Local Volumetric Fog class.</summary>
-    [HDRPHelpURLAttribute("Local-Volumetric-Fog")]
+    [HDRPHelpURLAttribute("create-a-local-fog-effect")]
     [ExecuteAlways]
     [AddComponentMenu("Rendering/Local Volumetric Fog")]
     public partial class LocalVolumetricFog : MonoBehaviour
@@ -197,6 +212,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [NonSerialized]
         internal Material textureMaterial;
+
+        /// <summary>stores the current effective scale, Vector3.one if the component is Scale Invariant, or lossy scale if the component Inherit From Hiearchy.</summary>
+        internal Vector3 effectiveScale;
+
+        /// <summary>stores the final scale of the local volumetric fog component.</summary>
+        internal Vector3 scaledSize;
 
         /// <summary>Gather and Update any parameters that may have changed.</summary>
         internal void PrepareParameters(float time)
@@ -274,11 +295,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // We can put this in global
             m_RenderingProperties.SetBuffer(HDShaderIDs._VolumetricMaterialData, LocalVolumetricFogManager.manager.volumetricMaterialDataBuffer);
 
+            effectiveScale = GetEffectiveScale(this.transform);
+            scaledSize = GetScaledSize(this.transform);
+
             // Send local properties inside constants instead of structured buffer to optimize GPU reads
             var engineData = parameters.ConvertToEngineData();
             var tr = transform;
             var position = tr.position;
-            var bounds = new OrientedBBox(Matrix4x4.TRS(position, tr.rotation, parameters.size));
+            var bounds = new OrientedBBox(Matrix4x4.TRS(position, tr.rotation, scaledSize));
             m_RenderingProperties.SetVector(HDShaderIDs._VolumetricMaterialObbRight, bounds.right);
             m_RenderingProperties.SetVector(HDShaderIDs._VolumetricMaterialObbUp, bounds.up);
             m_RenderingProperties.SetVector(HDShaderIDs._VolumetricMaterialObbExtents, new Vector3(bounds.extentX, bounds.extentY, bounds.extentZ));
@@ -319,12 +343,23 @@ namespace UnityEngine.Rendering.HighDefinition
             Graphics.RenderPrimitivesIndexedIndirect(renderParams, MeshTopology.Triangles, LocalVolumetricFogManager.manager.volumetricMaterialIndexBuffer, LocalVolumetricFogManager.manager.globalIndirectBuffer, 1, m_GlobalIndex);
         }
 
+        internal Vector3 GetEffectiveScale(Transform tr)
+        {
+            return (parameters.scaleMode == LocalVolumetricFogScaleMode.InheritFromHierarchy) ? tr.lossyScale : Vector3.one;
+        }
+
+        internal Vector3 GetScaledSize(Transform tr)
+        {
+            return Vector3.Max(Vector3.one * 0.001f, Vector3.Scale(parameters.size, GetEffectiveScale(tr)));
+        }
+
 #if UNITY_EDITOR
         void UpdateLocalVolumetricFogVisibility()
         {
             bool isVisible = !SceneVisibilityManager.instance.IsHidden(gameObject);
             UpdateLocalVolumetricFogVisibility(isVisible);
         }
+
 
         void UpdateLocalVolumetricFogVisibilityPrefabStage(SceneView sv)
         {

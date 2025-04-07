@@ -221,6 +221,7 @@ namespace UnityEngine.Rendering
             Initialize();
 
             var prv = ProbeReferenceVolume.instance;
+
             // In single scene mode, user can't control active set, so we automatically create a new one
             // in case the active scene doesn't have a baking set so that we can display baking settings
             // Clone the current activeSet if possible so that it's seamless when eg. duplicating a scene
@@ -787,10 +788,14 @@ namespace UnityEngine.Rendering
                 // Find the set in which the new active scene belongs
                 var set = ProbeVolumeBakingSet.GetBakingSetForScene(scene);
 
-                if (set != null)
-                {
-                    activeSet = set;
+                activeSet = set;
 
+                if (set == null)
+                {
+                    m_SingleSceneMode = true;
+                }
+                else
+                {
                     // If we load a new scene that doesn't have the current scenario, change it
                     if (!set.m_LightingScenarios.Contains(prv.lightingScenario))
                         prv.SetActiveScenario(set.m_LightingScenarios[0], false);

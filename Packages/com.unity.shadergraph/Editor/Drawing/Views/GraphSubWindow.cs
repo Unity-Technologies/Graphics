@@ -282,6 +282,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             m_Dragger = new Dragger { clampToParentEdges = true };
             RegisterCallback<MouseUpEvent>(OnMoveEnd);
             this.AddManipulator(m_Dragger);
+
+            // Prevent the base graph view options (i.e. Create Node) from appearing.
+            this.AddManipulator(new ContextualMenuManipulator(_ => { }));
         }
 
         #region Layout

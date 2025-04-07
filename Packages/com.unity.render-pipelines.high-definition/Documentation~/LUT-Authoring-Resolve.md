@@ -23,7 +23,7 @@ Export the current [Camera](hdrp-camera-component-reference.md)'s view to a log-
 
 After you export the EXR file, transform the data from the format that Unity uses (Alexa LogC El.1000) to Linear RGB space, so that external software can use it. To do this, HDRP provides a set of ready-to-use transform LUTs. To get them:
 
-1. Open the Package Manager window (menu: **Window > Package Manager**).
+1. Open the Package Manager window (menu: **Window** > **Package Management** > **Package Manager**).
 2. Select **High Definition RP** from the list of packages on the left.
 3. In the **Samples** section, select **Import into Project** next to **Additional Post-processing Data**.
 4. This imports the LUTs into Assets/HDRP Sample Content/Post-processing/Cube LUTs/.

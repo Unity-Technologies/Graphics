@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 {
@@ -621,6 +622,32 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             TryMergeNativeSubPass(ctx, ref this, ref pass);
         }
 
+        // Gets the best SubPassFlag for a pass that originally had no depth attachment, that we want to merge with this pass.
+        public SubPassFlags GetSubPassFlagForMerging()
+        {
+            // We should not be calling this method if native pass doesn't have depth.
+            if (hasDepth == false)
+            {
+                throw new Exception("SubPassFlag for merging can not be determined if native pass doesn't have a depth attachment");
+            }
+
+            // Only do this for mobile using Vulkan.
+#if (PLATFORM_ANDROID)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+            {
+                // Depth attachment is always at index 0.
+                return (fragments[0].accessFlags.HasFlag(AccessFlags.Write)) ? SubPassFlags.None : SubPassFlags.ReadOnlyDepth;
+            }
+            else
+            {
+                return SubPassFlags.ReadOnlyDepth;
+            }
+#else
+            // By default flag this subpass as ReadOnlyDepth.
+            return SubPassFlags.ReadOnlyDepth;
+#endif
+        }
+
         public void Clear()
         {
             firstGraphPass = 0;
@@ -646,7 +673,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 return ctx.passData.MakeReadOnlySpan(firstGraphPass, numGraphPasses);
             }
 
-            var actualPasses = new PassData[numGraphPasses];
+            var actualPasses =
+                new NativeArray<PassData>(numGraphPasses, Allocator.Temp,
+                    NativeArrayOptions.UninitializedMemory);
 
             for (int i = firstGraphPass, index = 0; i < lastGraphPass + 1; ++i)
             {
@@ -870,11 +899,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             //   nextSubpass is expensive on some platforms (even if its' essentially a no-op as it's using the same attachments).
             SubPassFlags flags = SubPassFlags.None;
 
-            // If depth ends up being bound only because of merging we explicitly say that we will not write to it
-            // which could have been implied by leaving the flag to None
+            // If depth ends up being bound only because of merging
             if (!passToMerge.fragmentInfoHasDepth && nativePass.hasDepth)
             {
-                flags = SubPassFlags.ReadOnlyDepth;
+                // Set SubPassFlags to best match the pass we are trying to merge with
+                flags = nativePass.GetSubPassFlagForMerging();
             }
 
             // MRT attachments
@@ -986,11 +1015,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 return;
             }
 
-            // If depth ends up being bound only because of merging we explicitly say that we will not write to it
-            // which could have been implied by leaving the flag to None
+            // If depth ends up being bound only because of merging
             if (!passToMerge.fragmentInfoHasDepth && nativePass.hasDepth)
             {
-                desc.flags = SubPassFlags.ReadOnlyDepth;
+                // Set SubPassFlags to best match the pass we are trying to merge with
+                desc.flags = nativePass.GetSubPassFlagForMerging();
             }
 
             // MRT attachments
@@ -1120,11 +1149,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 ref var nativeSubPassDescriptor =
                     ref contextData.nativeSubPassData.ElementAt(lastVisitedNativeSubpassIdx);
 
-                // If depth ends up being bound only because of merging we explicitly say that we will not write to it
-                // which could have been implied by leaving the flag to None
+                // If depth ends up being bound only because of merging
                 if (!currGraphPass.fragmentInfoHasDepth && nativePass.hasDepth)
                 {
-                    nativeSubPassDescriptor.flags = SubPassFlags.ReadOnlyDepth;
+                    // Set SubPassFlags to best match the pass we are trying to merge with
+                    nativeSubPassDescriptor.flags = nativePass.GetSubPassFlagForMerging();
                 }
 
                 // MRT attachments
@@ -1216,13 +1245,19 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ref var existingAttach = ref nativePass.fragments[i];
                     if (PassFragmentData.SameSubResource(existingAttach, newAttach))
                     {
-                        // Update the attached version access flags and version
-                        existingAttach.accessFlags |= newAttach.accessFlags;
+                        var newAttachAccessFlags = newAttach.accessFlags;
+                        // If the existing attachment accessFlag has Discard flag, remove Read flag from newAttach flags, as the content has not to be Loaded
+                        if (existingAttach.accessFlags.HasFlag(AccessFlags.Discard))
+                            newAttachAccessFlags = newAttachAccessFlags & ~AccessFlags.Read;
+
+                        existingAttach.accessFlags |= newAttachAccessFlags;
+
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                         if (existingAttach.resource.version > newAttach.resource.version)
                             throw new Exception("Adding an older version while a higher version is already registered with the pass.");
 #endif
-                        existingAttach.resource.version = newAttach.resource.version;
+                        var prevAttachRes = existingAttach.resource;
+                        existingAttach.resource = new ResourceHandle(prevAttachRes, newAttach.resource.version);
                         alreadyAttached = true;
                         break;
                     }
@@ -1243,13 +1278,19 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     ref var existingAttach = ref nativePass.fragments[i];
                     if (PassFragmentData.SameSubResource(existingAttach, newAttach))
                     {
-                        // Update the attached version access flags and version
-                        existingAttach.accessFlags |= newAttach.accessFlags;
+                        var newAttachAccessFlags = newAttach.accessFlags;
+                        // If the existing attachment accessFlag has Discard flag, remove Read flag from newAttach flags, as the content has not to be Loaded
+                        if (existingAttach.accessFlags.HasFlag(AccessFlags.Discard))
+                            newAttachAccessFlags = newAttachAccessFlags & ~AccessFlags.Read;
+
+                        existingAttach.accessFlags |= newAttachAccessFlags;
+
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                         if (existingAttach.resource.version > newAttach.resource.version)
                             throw new Exception("Adding an older version while a higher version is already registered with the pass.");
 #endif
-                        existingAttach.resource.version = newAttach.resource.version;
+                        var prevAttachRes = existingAttach.resource;
+                        existingAttach.resource = new ResourceHandle(prevAttachRes, newAttach.resource.version);
                         alreadyAttached = true;
                         break;
                     }

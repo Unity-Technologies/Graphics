@@ -48,7 +48,9 @@ class SampleDependencyImporter : IPackageManagerExtension
         PackageManagerExtensions.RegisterExtension(new SampleDependencyImporter());
     }
     
-    const string k_srpPrefixPackage = "com.unity.";
+    const string k_unityPrefixPackage = "com.unity.";
+    bool importingTextMeshProEssentialResources = false;
+
     PackageInfo m_PackageInfo;
     List<Sample> m_Samples;
     SampleList m_SampleList;
@@ -63,11 +65,15 @@ class SampleDependencyImporter : IPackageManagerExtension
     /// </summary>
     void IPackageManagerExtension.OnPackageSelectionChange(PackageInfo packageInfo)
     {
-        var isSrpPackage = packageInfo != null && packageInfo.name.StartsWith(k_srpPrefixPackage);
+        var isUnityPackage = packageInfo != null && packageInfo.name.StartsWith(k_unityPrefixPackage);
         
-        if (isSrpPackage)
+        if (isUnityPackage)
         {
-            m_PackageInfo = packageInfo;
+
+           
+           
+
+                m_PackageInfo = packageInfo;
             m_Samples = GetSamples(packageInfo);
             if (TryLoadSampleConfiguration(m_PackageInfo, out m_SampleList))
             {
@@ -104,6 +110,9 @@ class SampleDependencyImporter : IPackageManagerExtension
     /// </summary>
     void LoadAssetDependencies(string assetPath)
     {
+
+        ImportTextMeshProEssentialResources();
+
         if (m_SampleList != null)
         {
             var assetsImported = false;
@@ -126,9 +135,30 @@ class SampleDependencyImporter : IPackageManagerExtension
                     }
                 }
             }
+            
+            
 
             if (assetsImported)
                 AssetDatabase.Refresh();
+        }
+    }
+
+    /// <summary>
+    /// Import TMP Essential Resources folder to avoid having a popup on scene open.
+    /// </summary>
+    public void ImportTextMeshProEssentialResources()
+    {
+        string essentialResourcesFolder = Path.GetFullPath("Assets/TextMesh Pro");
+        bool essentialResourcesImported = Directory.Exists(essentialResourcesFolder);
+        // If the folder exists and we were importing, this means the import is done. 
+        if (importingTextMeshProEssentialResources && essentialResourcesImported)
+            importingTextMeshProEssentialResources = false;
+
+        string packageFullPath = Path.GetFullPath("Packages/com.unity.ugui");
+        if (Directory.Exists(packageFullPath) && !importingTextMeshProEssentialResources && !essentialResourcesImported)
+        {
+            importingTextMeshProEssentialResources = true;
+            AssetDatabase.ImportPackage(packageFullPath + "/Package Resources/TMP Essential Resources.unitypackage", interactive: false);
         }
     }
     

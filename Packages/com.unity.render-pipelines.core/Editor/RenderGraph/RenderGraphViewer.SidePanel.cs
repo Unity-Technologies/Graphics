@@ -39,9 +39,8 @@ namespace UnityEditor.Rendering
             public const string kCustomFoldoutArrow = "custom-foldout-arrow";
         }
 
-        static readonly System.Text.RegularExpressions.Regex k_TagRegex = new ("<[^>]*>");
-        const string k_SelectionColorBeginTag = "<mark=#3169ACAB>";
-        const string k_SelectionColorEndTag = "</mark>";
+        internal const string k_SelectionColorBeginTag = "<mark=#3169ACAB>";
+        internal const string k_SelectionColorEndTag = "</mark>";
 
         TwoPaneSplitView m_SidePanelSplitView;
         bool m_ResourceListExpanded = true;
@@ -109,12 +108,37 @@ namespace UnityEditor.Rendering
             passSearchField.RegisterValueChangedCallback(evt => OnSearchFilterChanged(m_PassDescendantCache, evt.newValue));
         }
 
-        bool IsSearchFilterMatch(string str, string searchString, out int startIndex, out int endIndex)
+        static bool IsInsideTag(string input, int index)
+        {
+            int openTagIndex = input.LastIndexOf('<', index);
+            int closeTagIndex = input.LastIndexOf('>', index);
+            return openTagIndex > closeTagIndex;
+        }
+
+        static bool IsSearchFilterMatch(string str, string searchString, out int startIndex, out int endIndex)
         {
             startIndex = -1;
             endIndex = -1;
 
-            startIndex = str.IndexOf(searchString, 0, StringComparison.CurrentCultureIgnoreCase);
+            if (searchString.Length == 0)
+                return true;
+
+            int searchStartIndex = 0;
+            for (;;)
+            {
+                startIndex = str.IndexOf(searchString, searchStartIndex, StringComparison.CurrentCultureIgnoreCase);
+
+                // If we found a match but it is inside another tag, ignore it and continue
+                if (startIndex != -1 && IsInsideTag(str, startIndex))
+                {
+                    searchStartIndex = startIndex + 1;
+                    continue;
+                }
+
+                // Either valid match (not inside another tag) or no match
+                break;
+            }
+
             if (startIndex == -1)
                 return false;
 
@@ -134,6 +158,9 @@ namespace UnityEditor.Rendering
                 Debug.LogWarning("[Render Graph Viewer] Search string limit exceeded: " + k_SearchStringLimit);
             }
 
+            // Sanitize to not match rich text tags
+            searchString = searchString.Replace("<", string.Empty).Replace(">", string.Empty);
+
             // If the search string hasn't changed, avoid repeating the same search
             if (m_PendingSearchString == searchString)
                 return;
@@ -147,12 +174,12 @@ namespace UnityEditor.Rendering
                 .schedule
                 .Execute(() =>
                 {
-                    PerformSearchAsync(elementCache, searchString);
+                    PerformSearch(elementCache, searchString);
                 })
                 .StartingIn(5); // Avoid spamming multiple search if the user types really fast
         }
 
-        private void PerformSearchAsync(Dictionary<VisualElement, List<TextElement>> elementCache, string searchString)
+        internal static void PerformSearch(Dictionary<VisualElement, List<TextElement>> elementCache, string searchString)
         {
             // Display filter
             foreach (var (foldout, descendants) in elementCache)
@@ -160,20 +187,28 @@ namespace UnityEditor.Rendering
                 bool anyDescendantMatchesSearch = false;
                 foreach (var elem in descendants)
                 {
-                    // Remove any existing highlight
                     var text = elem.text;
-                    var hasHighlight = k_TagRegex.IsMatch(text);
-                    text = k_TagRegex.Replace(text, string.Empty);
+
+                    // Remove existing match highlight tags
+                    var hasHighlight = text.IndexOf(k_SelectionColorBeginTag, StringComparison.Ordinal) >= 0;
+                    if (hasHighlight)
+                    {
+                        text = text.Replace(k_SelectionColorBeginTag, string.Empty);
+                        text = text.Replace(k_SelectionColorEndTag, string.Empty);
+                    }
+
                     if (!IsSearchFilterMatch(text, searchString, out int startHighlight, out int endHighlight))
                     {
-                        if (hasHighlight)
-                            elem.text = text;
+                        // Reset original text
+                        elem.text = text;
                         continue;
                     }
 
-
-                    text = text.Insert(startHighlight, k_SelectionColorBeginTag);
-                    text = text.Insert(endHighlight + k_SelectionColorBeginTag.Length + 1, k_SelectionColorEndTag);
+                    if (startHighlight >= 0 && endHighlight >= 0)
+                    {
+                        text = text.Insert(startHighlight, k_SelectionColorBeginTag);
+                        text = text.Insert(endHighlight + k_SelectionColorBeginTag.Length + 1, k_SelectionColorEndTag);
+                    }
                     elem.text = text;
                     anyDescendantMatchesSearch = true;
                 }

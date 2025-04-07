@@ -284,10 +284,15 @@ namespace UnityEditor.Rendering.HighDefinition
         void OnEnable()
         {
             GraphicsToolLifetimeAnalytic.WindowOpened<HDWizard>();
+            
+            CheckPackages(null);
+            PackageManager.Events.registeredPackages += CheckPackages;
         }
 
         private void OnDisable()
         {
+            PackageManager.Events.registeredPackages -= CheckPackages;
+
             GraphicsToolLifetimeAnalytic.WindowClosed<HDWizard>();
         }
 
@@ -390,12 +395,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo)
                 =>
-            {
-                var packageInfoStr =
-                    $"{packageInfo.version}{(packageInfo.source == PackageManager.PackageSource.Local ? Style.local : "")}";
+                {
+                    var packageInfoStr =
+                        $"{packageInfo.version}{(packageInfo.source == PackageManager.PackageSource.Local ? Style.local : "")}";
 
-                titleContent = new GUIContent($"{Style.title} ({packageInfoStr})");
-            });
+                    titleContent = new GUIContent($"{Style.title} ({packageInfoStr})");
+                });
         }
 
         private void CreateGUI()

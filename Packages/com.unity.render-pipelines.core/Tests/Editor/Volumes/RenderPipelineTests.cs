@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Tests
 {
-    class RenderPipelineTests
+    internal class RenderPipelineTests
     {
         RenderPipelineAsset m_PreviousRenderPipelineAssetInGraphicsSettings;
         RenderPipelineAsset m_PreviousRenderPipelineAssetInQualitySettings;

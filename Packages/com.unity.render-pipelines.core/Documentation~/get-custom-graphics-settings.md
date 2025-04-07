@@ -2,9 +2,7 @@
 
 To get a custom setting and read its value, use the `GetRenderPipelineSettings` method.
 
-If you want to get a setting at runtime, you must [include the setting in your build](choose-whether-unity-includes-a-graphics-setting-in-your-build.md).
-
-For example, the following script gets the `MySettings` settings class from the example in the [Add custom graphics settings](add-custom-graphics-settings.md) page, then logs the value of the `MyValue` setting:
+For example, the following script gets the `MySettings` settings class from the example in the [Add a setting](add-custom-graphics-setting.md) page, then logs the value of the `mySetting` setting:
 
 ```c#
 using UnityEngine;
@@ -19,16 +17,16 @@ public class LogMySettingsValue : MonoBehaviour
         var mySettings = GraphicsSettings.GetRenderPipelineSettings<MySettings>();  
 
         // Log the value of the MyValue setting
-        Debug.Log(mySettings.myValue);
+        Debug.Log(mySettings.mySetting);
     }
 }
 ```
 
-## Detect when a setting changes
+## Get a notification when a setting changes
 
-You can configure a property so it notifies other scripts when its value changes. This only works while you're editing your project, not at runtime.
+To configure a property so it notifies other scripts when its value changes, use the `SetValueAndNotify` method. You can use this to debug, update UI elements, or trigger other actions when a setting changes.
 
-You can use this to fetch the value only when it changes, instead of every frame in the `Update()` method.
+This only works while you're editing your project, not at runtime. If you use `SetValueAndModify` in a built application, Unity throws an exception.
 
 Follow these steps:
 
@@ -62,8 +60,6 @@ Follow these steps:
         }
     }
     ```
-
-    If you use `SetValueAndModify' in a standalone application, Unity throws an exception.
 
 3. Use the `GraphicsSettings.Subscribe` method to subscribe to notifications from the setting, and call an `Action` when the setting changes.
 
@@ -101,4 +97,6 @@ To stop calling a method when a setting changes, use the `GraphicsSettings.Unsub
 GraphicsSettings.Unsubscribe<MySettings>(onSettingChanged);
 ```
 
+## Additional resources
 
+- [`IRenderPipelineGraphicsSettings`](https://docs.unity3d.com/6000.1/Documentation/ScriptReference/Rendering.IRenderPipelineGraphicsSettings.html)

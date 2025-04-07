@@ -178,7 +178,7 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
     }
 
     float3 nextTangent = (float3)0.0f;
-    if (relativeIndex < stripData.nextIndex - 1)
+    if (relativeIndex + 1 < stripData.nextIndex)
     {
         uint nextIndex = GetParticleIndex(relativeIndex + 1, stripData);
         float3 tangent = GetParticlePosition(nextIndex, instanceIndex) - currentPos;
@@ -216,7 +216,12 @@ void GetElementData(inout AttributesElement element)
     element.currentFrameIndex = currentFrameIndex;
 #endif
 
+#if !VFX_HAS_INDIRECT_DRAW && !HAS_STRIPS
+    if (attributes.alive)
+#endif  
+    {
     $splice(VFXProcessBlocks)
+    }
 
     element.attributes = attributes;
 }

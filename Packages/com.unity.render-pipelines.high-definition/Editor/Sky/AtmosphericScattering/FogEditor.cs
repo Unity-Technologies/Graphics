@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.AtmosphericScattering, "Fog");
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.AtmosphericScattering);
 
             PropertyField(m_Enabled, s_Enabled);
 
@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_EnableVolumetricFog, s_EnableVolumetricFog);
 
-                HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Volumetrics, "Volumetric Fog");
+                HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Volumetrics);
 
                 using (new IndentLevelScope())
                 {

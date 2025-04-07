@@ -77,8 +77,6 @@ To set a source material for the `Blit()` command to use in shader graph:
 
 **Note**: The type of source material node depends on the platform you use. Windows and some platforms use Texture2DArray and other platforms use Texture2D. To see which texture type to use, refer to the [documentation for the platform you are using](https://docs.unity3d.com/Manual/PlatformSpecific.html).
 
-![](Images/FS_SampleTex2DArray.png)
-
 <a name="fullscreen-set-blit-script"></a>
 
 ### Set the Blit pass in a C# script
@@ -101,7 +99,7 @@ Your scene appears gray if you read from and write to the color buffer in the sa
 
 ## Missing part of full-screen effect 
 
-![](Images/fullscreen_troubleshooting_1.png)
+![A view of a sphere, with a red fog post-processing effect that covers only part of the display.](Images/fullscreen_troubleshooting_1.png)
 
 This error can happen when you use a full-screen shader with a custom pass C# script that uses the `Blit()` function, and you haven’t selected the **Blit** shader pass in the Inspector window or in a script. 
 

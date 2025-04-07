@@ -45,7 +45,7 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
             // In HDR output mode, the colors are expressed in nits, which can go up to 10k nits.
             // We divide by the display max nits to get a max value closer to 1.0 but it could still be > 1.0.
             // Finally, use FastTonemap() to squash everything < 1.0.
-            color = FastTonemap(color * OneOverPaperWhite);
+            color = half4(FastTonemap(color.rgb * OneOverPaperWhite), color.a);
             #endif
             // EASU expects perceptually encoded color data so either encode to gamma 2.0 here if the input
             // data is linear, or let it pass through unchanged if it's already gamma encoded.

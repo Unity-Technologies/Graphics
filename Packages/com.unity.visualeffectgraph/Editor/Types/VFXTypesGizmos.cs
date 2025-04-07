@@ -18,6 +18,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Position position)
         {
+            if (!VFXTypeUtility.IsFinite(position.position))
+                return;
+
             PositionOnlyGizmo(position, m_Property);
         }
 
@@ -37,6 +40,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(DirectionType direction)
         {
+            if (!VFXTypeUtility.IsFinite(direction.direction))
+                return;
+
             direction.direction.Normalize();
             if (direction.direction == Vector3.zero)
             {
@@ -77,6 +83,9 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Vector vector)
         {
+            if (!VFXTypeUtility.IsFinite(vector.vector))
+                return;
+
             if (vector.vector == Vector3.zero)
             {
                 vector.vector = Vector3.up;

@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     static partial class HDCameraUI
     {
         /// <summary>Enum to store know the expanded state of a expandable section on the camera inspector</summary>
-        [HDRPHelpURL("HDRP-Camera")]
+        [HDRPHelpURL("hdrp-camera-component-reference")]
         public enum Expandable
         {
             /// <summary> Projection</summary>

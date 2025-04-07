@@ -53,7 +53,7 @@
 #header > Toggle #unity-checkmark {
     -unity-slice-left: 0;
     -unity-slice-top: 0;
-    background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/debug.png");
+    background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_debug.png");
 }
 
 .VFXAnchoredProfiler.collapsed #header > Toggle #unity-checkmark {

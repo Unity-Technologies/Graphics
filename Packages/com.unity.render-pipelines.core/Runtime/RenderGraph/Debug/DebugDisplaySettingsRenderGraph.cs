@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering
         }
 
         [DisplayInfo(name = "Render Graph", order = 10)]
+        [CurrentPipelineHelpURL(pageName: "features/rendering-debugger-reference", pageHash: "render-graph")]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Render Graph";

@@ -1,0 +1,28 @@
+{
+    "name": "HDRP_Graphics_Tests",
+    "rootNamespace": "",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "UnityEngine.TestTools.Graphics",
+        "HDRP_TestRunner",
+        "Unity.RenderPipelines.Core.Runtime",
+        "UnityEditor.TestTools.Graphics",
+        "Unity.Testing.XR.Runtime",
+        "Unity.Testing.XR.Editor",
+        "UnityEngine.TestTools.Graphics.Contexts"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -15,7 +15,6 @@
     #define SPEEDTREE_Y_UP
     #define SPEEDTREE_8_WIND 1
     #include "SpeedTreeWind.cginc"
-    float _WindEnabled;
     UNITY_INSTANCING_BUFFER_START(STWind)
         UNITY_DEFINE_INSTANCED_PROP(float, _GlobalWindTime)
     UNITY_INSTANCING_BUFFER_END(STWind)

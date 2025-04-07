@@ -6,6 +6,12 @@ The section contains the following settings that let you define project-wide set
 
 You can also add your own settings. Refer to [Add custom settings](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.0/manual/add-custom-graphics-settings.html) in the Scriptable Render Pipeline (SRP) Core manual for more information.
 
+## Lightmap Sampling Settings
+
+| **Property**              | **Description**                                              |
+| --------------------------| ------------------------------------------------------------ |
+| **Use Bicubic Lightmap Sampling** | Improves the visual fidelity of lightmaps by smoothening sharp or jagged edges, especially at the edges of shadows. Enabling this property might reduce performance on lower-end platforms. |
+
 ## Additional Shader Stripping Settings
 
 | **Property**              | **Description**                                              |

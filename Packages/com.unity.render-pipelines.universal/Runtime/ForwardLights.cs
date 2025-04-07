@@ -506,6 +506,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_TileMasksBuffer = null;
                 m_ReflectionProbeManager.Dispose();
             }
+            m_LightCookieManager?.Dispose();
+            m_LightCookieManager = null;
         }
 
         void InitializeLightConstants(NativeArray<VisibleLight> lights, int lightIndex, bool supportsLightLayers, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightAttenuation, out Vector4 lightSpotDir, out Vector4 lightOcclusionProbeChannel, out uint lightLayerMask, out bool isSubtractive)

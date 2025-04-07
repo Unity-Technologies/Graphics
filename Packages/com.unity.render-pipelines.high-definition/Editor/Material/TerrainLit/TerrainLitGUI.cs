@@ -98,7 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     heightTransition = prop;
                 else if (prop.name == kEnableInstancedPerPixelNormal)
                     enableInstancedPerPixelNormal = prop;
-                else if ((prop.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) == 0)
+                else if ((prop.propertyFlags & (ShaderPropertyFlags.HideInInspector | ShaderPropertyFlags.PerRendererData)) == 0)
                     customProperties.Add(prop);
             }
         }

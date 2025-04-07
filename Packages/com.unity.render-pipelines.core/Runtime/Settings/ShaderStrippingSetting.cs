@@ -21,8 +21,33 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
-    /// Class that stores shader stripping settings shared between all pipelines
+    /// This is a Graphics Settings container for settings related to shader stripping for all scriptable render pipelines.
     /// </summary>
+    /// <remarks>
+    /// To change those settings, go to  Editor > Project Settings in the Graphics tab.
+    /// Changing this through the API is only allowed in the Editor. In the Player, this raises an error.
+    /// </remarks>
+    /// <seealso cref="IRenderPipelineGraphicsSettings"/>
+    /// <example>
+    /// <para> Here is an example of how to check if your project strips variant shaders when building a Player using URP. </para>
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// 
+    /// public static class ShaderStrippingHelper
+    /// {
+    ///     public static bool exportLog
+    ///     {
+    ///         get
+    ///         {
+    ///             var gs = GraphicsSettings.GetRenderPipelineSettings&lt;ShaderStrippingSetting&gt;();
+    ///             if (gs == null) //not in any SRP
+    ///                 return false;
+    ///             return gs.exportShaderVariants;
+    ///         }
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     [Serializable]
     [SupportedOnRenderPipeline]
     [Categorization.CategoryInfo(Name = "Additional Shader Stripping Settings", Order = 40)]
@@ -38,7 +63,7 @@ namespace UnityEngine.Rendering
         [SerializeField] [HideInInspector]
         private Version m_Version = Version.Initial;
 
-        /// <summary>Current version.</summary>
+        /// <summary>Current version of the settings container. Used only for project upgrades.</summary>
         public int version => (int)m_Version;
         #endregion
 

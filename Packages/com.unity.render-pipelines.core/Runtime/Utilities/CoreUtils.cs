@@ -1,8 +1,10 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using System.Runtime.CompilerServices;
 
 namespace UnityEngine.Rendering
 {
@@ -13,6 +15,25 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class CoreUtils
     {
+#if UNITY_EDITOR
+        static CoreUtils()
+        {
+            void OnBeforeAssemblyReload()
+            {
+                UnityObject.DestroyImmediate(m_BlackCubeTexture);
+                UnityObject.DestroyImmediate(m_BlackVolumeTexture);
+                UnityObject.DestroyImmediate(m_WhiteCubeTexture);
+                UnityObject.DestroyImmediate(m_WhiteVolumeTexture);
+                UnityObject.DestroyImmediate(m_MagentaCubeTexture);
+                UnityObject.DestroyImmediate(m_MagentaCubeTextureArray);
+                UnityObject.DestroyImmediate(m_EmptyUAV);
+                m_EmptyBuffer?.Release();
+                UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+            }
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+        }
+#endif
+
         /// <summary>
         /// List of look at matrices for cubemap faces.
         /// Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
@@ -1814,5 +1835,115 @@ namespace UnityEngine.Rendering
 
             return outCorners;
         }
+
+        /// <summary>
+        /// Return the GraphicsFormat of DepthStencil RenderTarget preferred for the current platform.
+        /// </summary>
+        /// <returns>The GraphicsFormat of DepthStencil RenderTarget preferred for the current platform.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static GraphicsFormat GetDefaultDepthStencilFormat()
+        {
+#if UNITY_SWITCH || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
+            return GraphicsFormat.D24_UNorm_S8_UInt;
+#else
+            return GraphicsFormat.D32_SFloat_S8_UInt;
+#endif
+        }
+
+        /// <summary>
+        /// Return the number of DepthStencil RenderTarget depth bits preferred for the current platform.
+        /// </summary>
+        /// <returns>The number of DepthStencil RenderTarget depth bits preferred for the current platform.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static DepthBits GetDefaultDepthBufferBits()
+        {
+#if UNITY_SWITCH || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
+            return DepthBits.Depth24;
+#else
+            return DepthBits.Depth32;
+#endif
+        }
+        
+#if UNITY_EDITOR
+        /// <summary>
+        /// Populates null fields or collection elements in a target object from a source object of the same type.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The type of the objects. This must be a reference type (`class`).
+        /// </typeparam>
+        /// <param name="source">
+        /// The source object from which to copy field values or collection elements. This cannot be null.
+        /// </param>
+        /// <param name="target">
+        /// The target object to populate with values from the source object. This cannot be null.
+        /// </param>
+        /// <remarks>
+        /// This method copies non-null field values or collection elements from the source object to the target object. 
+        /// Both objects must be of the same type, and derived or base types are not allowed. Fields are updated only if they 
+        /// are null in the target. If a field is a collection implementing `IList`, the method attempts to copy elements that 
+        /// are null in the target collection.
+        ///
+        /// **Type restrictions**:  
+        /// - `T` must be a reference type.
+        /// - `source` and `target` must be of the exact same type, not derived or base types.
+        /// - Collections must implement `IList` and have the same length in both source and target for element-by-element copying.
+        /// </remarks>
+        public static void PopulateNullFieldsFrom<T>(T source, T target)
+            where T : class
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            if (target == null)
+                throw new ArgumentNullException(nameof(target));
+            
+            if (source.GetType() != typeof(T) || target.GetType() != typeof(T))
+            {
+                throw new ArgumentException("Source and target must be of the exact same type. Derived or base types are not allowed.");
+            }
+
+            var type = typeof(T);
+            var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            foreach (System.Reflection.FieldInfo field in fields)
+            {
+                var sourceValue = field.GetValue(source);
+                var targetValue = field.GetValue(target);
+
+                // Check if the field is a collection (implements ICollection)
+                if (typeof(IList).IsAssignableFrom(field.FieldType))
+                {
+                    // Handle collection population
+                    PopulateIListFields( ref sourceValue, ref targetValue);
+                    field.SetValue(target, targetValue);
+                }
+                else
+                {
+                    // Handle individual field population
+                    if (targetValue == null) 
+                        field.SetValue(target, sourceValue); // Copy if target is null
+                }
+            }
+            // Generic method to populate arrays
+            static void PopulateIListFields(ref object source, ref object target)
+            {
+                if (source is not IList sourceCollection) 
+                    return;
+
+                if (target is not IList targetCollection)
+                {
+                    target = sourceCollection;
+                    return;
+                }
+
+                if (sourceCollection.Count != targetCollection.Count)
+                    return;
+
+                for (int i = 0; i < targetCollection.Count; i++)
+                {
+                    sourceCollection[i] ??= targetCollection[i];
+                }
+            }
+        }
+#endif
     }
 }

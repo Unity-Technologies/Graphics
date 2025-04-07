@@ -78,18 +78,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            // We loop through each camera and displaying a message if there's any bloom intensity = 0 preventing lens flare to render. 
-            foreach (HDCamera hdCamera in HDEditorUtils.GetAllCameras())
-            {
-                var bloomComponent = hdCamera.volumeStack.GetComponent<Bloom>();
-                if (bloomComponent != null && !bloomComponent.IsActive())
-                {
-                    EditorGUILayout.HelpBox("One or more Bloom override has an intensity set to 0. This prevents Screen Space Lens Flare to render.", MessageType.Warning);
-                    break;
-                }
-            }
-
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.LensFlareScreenSpace, "Screen Space Lens Flare");
+            // We loop through each camera and displaying a message if there's any bloom intensity = 0 preventing lens flare to render.
+            HDEditorUtils.EnsureVolume((Bloom bloom) => !bloom.IsActive() ? "One or more Bloom override has an intensity set to 0. This prevents Screen Space Lens Flare to render." : null);
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.LensFlareScreenSpace);
 
             if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportScreenSpaceLensFlare ?? false)
             {

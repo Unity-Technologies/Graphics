@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var property in properties)
             {
-                if ((property.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
+                if ((property.propertyFlags & (ShaderPropertyFlags.HideInInspector | ShaderPropertyFlags.PerRendererData)) != 0)
                     continue;
 
                 float h = materialEditor.GetPropertyHeight(property, property.displayName);

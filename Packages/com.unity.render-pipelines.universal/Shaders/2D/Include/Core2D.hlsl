@@ -39,4 +39,23 @@ float3 UnitySkinSprite( in float3 positionOS, in uint4 blendIndices, in float4 b
     return vertex.xyz;
 }
 
+#ifdef UNITY_INSTANCING_ENABLED
+    UNITY_INSTANCING_BUFFER_START(PerDrawSprite)
+        // SpriteRenderer.Color while Non-Batched/Instanced.
+        UNITY_DEFINE_INSTANCED_PROP(float4, unity_SpriteRendererColorArray)
+        // this could be smaller but that's how bit each entry is regardless of type
+        UNITY_DEFINE_INSTANCED_PROP(float2, unity_SpriteFlipArray)            
+    UNITY_INSTANCING_BUFFER_END(PerDrawSprite)
+
+    #define unity_SpriteColor  UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpriteRendererColorArray)
+    #define unity_SpriteFlip   UNITY_ACCESS_INSTANCED_PROP(PerDrawSprite, unity_SpriteFlipArray)
+#endif // instancing
+
+void SetUpSpriteInstanceProperties()
+{
+#ifdef UNITY_INSTANCING_ENABLED
+    unity_SpriteProps.xy = unity_SpriteFlip;
+#endif
+}
+
 #endif

@@ -165,6 +165,9 @@ EditorBuildSettings:
     path: Assets/Scenes/014_Layer_Batching_GlobalLightWithShadows.unity
     guid: 428ccbee9b0fb7c4ca5f4dd5579b62d3
   - enabled: 1
+    path: Assets/Scenes/015_Shadergraph_VFX.unity
+    guid: 320bc6f8378f61647959c52de7e45603
+  - enabled: 1
     path: Assets/Scenes/016_Shadergraph_Colors.unity
     guid: e41db3beb44cb774db3b1b67d7ccc323
   - enabled: 1
@@ -219,6 +222,12 @@ EditorBuildSettings:
     path: Assets/Scenes/061_PostProcessing_DepthOfField_Shadergraph.unity
     guid: db099ca108d9963499e679d61fcfcf22
   - enabled: 1
+    path: Assets/Scenes/062_MSAA.unity
+    guid: 2927736f597c14a478595009f36fcb00
+  - enabled: 1
+    path: Assets/Scenes/063_LayerMask.unity
+    guid: 589fffe344f1a3847910fd1b61c8404c
+  - enabled: 1
     path: Assets/Scenes/069_2D_Forward_Shader_Compatibility_Forward.unity
     guid: 4387c323b80b3f8479359d07b90f0031
   - enabled: 1
@@ -251,5 +260,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/080_TilemapRenderer_GPUSkinning.unity
     guid: f2882940e2db8f344878e353fac92b48
+  - enabled: 1
+    path: Assets/Scenes/081_TilemapRenderer_SRPBatch_Color.unity
+    guid: cc7b6c00f76631b43b37c30813e45fd7
+  - enabled: 1
+    path: Assets/Scenes/083_GPU_Instancing.unity
+    guid: 67d46509b9dfceb43bf64d2d1ae052f5
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

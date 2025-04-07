@@ -3,16 +3,44 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
-    /// Class containing shader resources used in URP.
+    /// A resource container for resource used for <see cref="UniversalRenderPipeline"/>.
     /// </summary>
+    /// <remarks>
+    /// You cannot edit these resources through the editor's UI; use the API for advanced changes.
+    /// Changing this through the API is only allowed in the Editor. In the Player, this raises an error.
+    /// </remarks>
+    /// <seealso cref="IRenderPipelineResources"/>
+    /// <example>
+    /// <para> Here is an example of how to get the MotionVector shader used by URP's Universal Renderer. </para>
+    /// <code>
+    /// using UnityEngine.Rendering;
+    /// using UnityEngine.Rendering.Universal;
+    /// 
+    /// public static class URPUniversalRendererResourcesHelper
+    /// {
+    ///     public static Shader motionVector
+    ///     {
+    ///         get
+    ///         {
+    ///             var gs = GraphicsSettings.GetRenderPipelineSettings&lt;UniversalRendererResources&gt;();
+    ///             if (gs == null) //not in URP or not with UniversalRenderer
+    ///                 return null;
+    ///             return gs.cameraMotionVector;
+    ///         }
+    ///     }
+    /// }
+    /// </code>
+    /// </example>
     [Serializable]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [Categorization.CategoryInfo(Name = "R: Universal Renderer Shaders", Order = 1000), HideInInspector]
     public class UniversalRendererResources : IRenderPipelineResources
     {
         [SerializeField][HideInInspector] private int m_Version = 0;
-
-        /// <summary>Version of the resource. </summary>
+        
+        /// <summary>
+        /// Current version of the resource container. Used only for upgrading a project.
+        /// </summary>
         public int version => m_Version;
         bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
 
@@ -21,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
         private Shader m_CopyDepthPS;
 
         /// <summary>
-        /// Copy Depth shader.
+        /// Shader used to copy the depth buffer.
         /// </summary>
         public Shader copyDepthPS
         {
@@ -34,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
         private Shader m_CameraMotionVector;
 
         /// <summary>
-        /// Camera Motion Vectors shader.
+        /// Shader used to compute Motion Vectors from the Camera.
         /// </summary>
         public Shader cameraMotionVector
         {
@@ -47,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
         private Shader m_StencilDeferredPS;
 
         /// <summary>
-        /// Stencil Deferred shader.
+        /// Shader used to write stencil operations in deferred mode.
         /// </summary>
         public Shader stencilDeferredPS
         {
@@ -73,7 +101,7 @@ namespace UnityEngine.Rendering.Universal
         private Shader m_StencilDitherMaskSeedPS;
 
         /// <summary>
-        /// Shader to write stencil for dither mask
+        /// Shader used to write stencils for the dither mask.
         /// </summary>
         public Shader stencilDitherMaskSeedPS
         {
@@ -87,7 +115,7 @@ namespace UnityEngine.Rendering.Universal
         private Shader m_DBufferClear;
 
         /// <summary>
-        /// Decal DBuffer Shader
+        /// Shader used to clear the Decal DBuffer.
         /// </summary>
         public Shader decalDBufferClear
         {

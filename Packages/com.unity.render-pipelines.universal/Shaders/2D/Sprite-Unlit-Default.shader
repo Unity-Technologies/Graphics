@@ -16,7 +16,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
     {
         Tags {"Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
 
-        Blend SrcAlpha OneMinusSrcAlpha
+        Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
         Cull Off
         ZWrite Off
 
@@ -37,6 +37,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
 
+            // GPU Instancing
+            #pragma multi_compile_instancing
             #pragma multi_compile _ DEBUG_DISPLAY SKINNED_SPRITE
 
             struct Attributes
@@ -75,6 +77,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 UNITY_SKINNED_VERTEX_COMPUTE(v);
 
+                SetUpSpriteInstanceProperties();
                 v.positionOS = UnityFlipSprite(v.positionOS, unity_SpriteProps.xy);
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 #if defined(DEBUG_DISPLAY)
@@ -126,6 +129,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
 
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ SKINNED_SPRITE
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
             struct Attributes
@@ -164,6 +170,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 UNITY_SKINNED_VERTEX_COMPUTE(attributes);
 
+                SetUpSpriteInstanceProperties();
                 attributes.positionOS = UnityFlipSprite(attributes.positionOS, unity_SpriteProps.xy);
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 #if defined(DEBUG_DISPLAY)
@@ -198,6 +205,4 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             ENDHLSL
         }
     }
-
-    Fallback "Sprites/Default"
 }

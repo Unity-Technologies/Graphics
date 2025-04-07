@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("")]
-    [HDRPHelpURL("WaterSystem-waterexcluder")]
+    [HDRPHelpURL("water-exclude-part-of-the-water-surface")]
     [ExecuteAlways]
     public partial class WaterExcluder : MonoBehaviour
     {

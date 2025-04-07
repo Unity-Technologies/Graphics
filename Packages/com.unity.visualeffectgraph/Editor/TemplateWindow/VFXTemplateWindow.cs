@@ -10,6 +10,7 @@ using UnityEditor.PackageManager.UI;
 using UnityEditor.VFX.UI;
 
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEngine.VFX;
 
@@ -158,7 +159,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void OnOpenHelp() => Help.BrowseURL(string.Format(VFXTemplateWindowDocUrl, VFXHelpURLAttribute.version));
+        private void OnOpenHelp() => Help.BrowseURL(string.Format(VFXTemplateWindowDocUrl, Documentation.version));
 
         private void LoadTemplates()
         {
@@ -215,34 +216,48 @@ namespace UnityEditor.VFX
 
         private bool TryFindSample(string sampleName, out Sample sample)
         {
-            var startTime = Time.time;
-            var searchRequest = Client.Search(VisualEffectGraphPackageInfo.name, true);
-            while (!searchRequest.IsCompleted && Time.time - startTime < PackageManagerTimeout)
+            try
             {
-                Thread.Sleep(20);
-            }
-
-            if (searchRequest is { Result: { Length: 1 }, IsCompleted: true } && searchRequest.Result[0] is { } vfxPackageInfo)
-            {
-                // Workaround for UUM-63664
-                foreach (var extension in PackageManagerExtensions.Extensions)
+                var startTime = Time.time;
+                var searchRequest = Client.Search(VisualEffectGraphPackageInfo.name, true);
+                while (!searchRequest.IsCompleted && Time.time - startTime < PackageManagerTimeout)
                 {
-                    extension.OnPackageSelectionChange(vfxPackageInfo);
+                    Thread.Sleep(20);
                 }
 
-                foreach (var samplePackage in Sample.FindByPackage(VisualEffectGraphPackageInfo.name, null))
+                if (searchRequest is { Result: { Length: 1 }, IsCompleted: true } && searchRequest.Result[0] is { } vfxPackageInfo)
                 {
-                    if (string.Compare(samplePackage.displayName, sampleName, StringComparison.OrdinalIgnoreCase) ==
-                        0)
+                    // Workaround for UUM-63664
+                    foreach (var extension in PackageManagerExtensions.Extensions)
                     {
-                        sample = samplePackage;
-                        return true;
+                        try
+                        {
+                            extension.OnPackageSelectionChange(vfxPackageInfo);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogWarning($"An error occured while trying to select a package extension.\n{e.Message}");
+                        }
+                    }
+
+                    foreach (var samplePackage in Sample.FindByPackage(VisualEffectGraphPackageInfo.name, null))
+                    {
+                        if (string.Compare(samplePackage.displayName, sampleName, StringComparison.OrdinalIgnoreCase) ==
+                            0)
+                        {
+                            sample = samplePackage;
+                            return true;
+                        }
                     }
                 }
+                else
+                {
+                    Debug.LogWarning($"Could not determine if the {sampleName} package is installed");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Debug.LogWarning("Could not determine if the Learning Sample package is installed");
+                Debug.LogWarning($"Something went wrong while trying to retrieve {sampleName} package info\n{ex.Message}");
             }
 
             sample = default;
@@ -295,15 +310,18 @@ namespace UnityEditor.VFX
 
         private void OnSelectionChanged(IEnumerable<object> newSelection)
         {
-            foreach (VFXTemplateDescriptor template in newSelection)
+            foreach (var item in newSelection)
             {
-                m_SelectedTemplate = template;
-                m_DetailsTitle.text = template.name;
-                m_DetailsDescription.text = template.description;
-                m_LastSelectedTemplateGuid = template.assetGuid;
-                m_LastSelectedIndex = m_ListOfTemplates.selectedIndex;
-                // Maybe set a placeholder screenshot when null
-                m_DetailsScreenshot.image = template.thumbnail;
+                if (item is VFXTemplateDescriptor template)
+                {
+                    m_SelectedTemplate = template;
+                    m_DetailsTitle.text = template.name;
+                    m_DetailsDescription.text = template.description;
+                    m_LastSelectedTemplateGuid = template.assetGuid;
+                    m_LastSelectedIndex = m_ListOfTemplates.selectedIndex;
+                    // Maybe set a placeholder screenshot when null
+                    m_DetailsScreenshot.image = template.thumbnail;
+                }
 
                 // We expect only one item to be selected
                 return;

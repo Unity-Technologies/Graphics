@@ -11,7 +11,7 @@ If you use this model, HDRP does the following [during the refraction process](O
 2. HDRP uses a sphere to approximate the object's shape, and the diameter of the sphere to determine how far the light travels inside.
 3. When the light leaves the object, HDRP uses the sphere's surface normal as part of calculating the second refraction. This determines how much the light bends back.
 
-<img src="Images/refraction-sphere-model.svg" style="width: 70%"><br/>
+<img src="Images/refraction-sphere-model.svg" style="width: 70%" alt="The sphere refraction model with an angel statue object. Three rays travel from the camera, and bend as they travel through the object."><br/>
 How HDRP calculates the refracted light for three example pixels, if you use a **Refraction Thickness Map** to set different widths for different pixels on an object. The solid orange lines are vectors that represent the direction of light from the camera to a pixel. The white circles represent spheres that approximate the object's thickness. The solid blue lines are surface normals.
 
 To control the diameter of the spheres:
@@ -21,10 +21,10 @@ To control the diameter of the spheres:
 
 If you use the sphere refraction model with a spherical object, the Scene you see through the object might be upside-down.
 
-![](Images/refraction-inversion-diagram.svg)<br/>
+![Light rays from a tree converging to a point (the inversion point) then continuing, so the tree is upside-down when the rays reach the camera.](Images/refraction-inversion-diagram.svg)<br/>
 The light rays bend a lot when they exit the object, so they cross over and hit the opposite end of the tree.
 
-![](Images/refraction-inversion.png)<br/>
+![A scene with a translucent sphere floating in a forest.](Images/refraction-inversion.png)<br/>
 The view through a refractive sphere is upside-down.
 
 ## Planar refraction model
@@ -42,7 +42,7 @@ If you use this model, HDRP does the following [during the refraction process](O
 2. HDRP uses a parallel plane to approximate the exit surface (this is a 'planar projection'), and the distance between the object's surface and the plane to determine how far the light travels inside.
 3. When the light leaves the object, HDRP bends the light back so it has the same direction as the light that entered the object.
 
-<img src="Images/refraction-planar-model.svg" style="width: 70%"><br/>
+<img src="Images/refraction-planar-model.svg" style="width: 70%" alt="The planar refraction model with an angel statue object. Three rays travel from the camera, and bend as they travel through the object."><br/>
 How HDRP calculates the refracted light for three example pixels, if you use a **Refraction Thickness Map** to set different widths for different pixels on an object. The solid orange lines are vectors that represent the direction of light from the camera to a pixel. The dotted blue lines represent parallel planes approximating the object's thickness. The solid blue lines are surface normals.
 
 To control the distance between the planes:
@@ -52,10 +52,10 @@ To control the distance between the planes:
 
 Set the thickness to the approximate width of the object. The bigger the width, the more visible the refraction effect.
 
-![](Images/refraction-thickness-diagram.svg)<br/>
+![A camera viewing a tree through two refractive objects. The light bends more as it travels through the thicker object.](Images/refraction-thickness-diagram.svg)<br/>
 With a thicker object, the light is offset by a greater amount.
 
-![](Images/refraction-thickness.png)<br/>
+![Three transparent cubes of increasing thickness, in front of a checkerboard pattern.](Images/refraction-thickness.png)<br/>
 Objects with increasing thickness, showing how the light is increasingly deformed.
 
 ## Thin refraction model

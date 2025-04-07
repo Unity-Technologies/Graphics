@@ -24,11 +24,6 @@ struct Light
 #define CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 #endif
 
-// _FORWARD_PLUS keyword deprecated in 6.1
-// FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK is only defined for backwards compatibility.
-// This define will be removed in a future release.
-#define FORWARD_PLUS_SUBTRACTIVE_LIGHT_CHECK CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
-
 #if USE_CLUSTER_LIGHT_LOOP
     #define LIGHT_LOOP_BEGIN(lightCount) { \
     uint lightIndex; \

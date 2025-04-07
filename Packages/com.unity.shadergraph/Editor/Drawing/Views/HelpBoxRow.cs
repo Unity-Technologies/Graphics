@@ -1,111 +1,90 @@
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    // Similar in function to the old  EditorGUILayout.HelpBox
     class HelpBoxRow : VisualElement
     {
-        VisualElement m_ContentContainer;
-        VisualElement m_LabelContainer;
+        // This element was originally reimplementing the entire HelpBox, but now that a UI Toolkit version is
+        // available, we are wrapping that for better consistency.
+        HelpBox m_HelpBox;
 
-        public override VisualElement contentContainer
+        // Space beneath the help box for actions, i.e. Upgrade/Dismiss buttons on out-of-date nodes.
+        VisualElement m_ActionContainer;
+
+        public override VisualElement contentContainer => m_ActionContainer;
+
+        HelpBoxRow(string text, HelpBoxMessageType messageType)
         {
-            get { return m_ContentContainer; }
+            m_HelpBox = new HelpBox(text, messageType);
+            m_ActionContainer = new VisualElement();
+
+            hierarchy.Add(m_HelpBox);
+            hierarchy.Add(m_ActionContainer);
         }
 
-        public HelpBoxRow(MessageType type)
-        {
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/HelpBoxRow"));
-            VisualElement container = new VisualElement { name = "container" };
-            m_ContentContainer = new VisualElement { name = "content" };
-            m_LabelContainer = new VisualElement { name = "label" };
-
-            switch (type)
+        static HelpBoxMessageType ToHelpBoxMessageType(MessageType messageType) =>
+            messageType switch
             {
-                case MessageType.None:
-                    container.AddToClassList("help-box-row-style-info");
-                    break;
-                case MessageType.Info:
-                    container.AddToClassList("help-box-row-style-info");
-                    break;
-                case MessageType.Warning:
-                    container.AddToClassList("help-box-row-style-warning");
-                    break;
-                case MessageType.Error:
-                    container.AddToClassList("help-box-row-style-error");
-                    break;
-                default:
-                    break;
-            }
-
-            container.Add(m_LabelContainer);
-            container.Add(m_ContentContainer);
-
-            hierarchy.Add(container);
-        }
-
-        public static VisualElement CreateVariantLimitHelpBox(int currentVariantCount, int maxVariantCount)
-        {
-            var messageType = MessageType.Error;
-            HelpBoxRow help = new HelpBoxRow(messageType);
-            var label = new Label("Variant limit exceeded: Hover for more info")
-            {
-                tooltip = ShaderKeyword.kVariantLimitWarning,
-                name = "message-" + (messageType == MessageType.Warning ? "warn" : "info")
+                MessageType.Info => HelpBoxMessageType.Info,
+                MessageType.Warning => HelpBoxMessageType.Warning,
+                MessageType.Error => HelpBoxMessageType.Error,
+                MessageType.None => HelpBoxMessageType.None,
+                _ => HelpBoxMessageType.None
             };
-            help.Add(label);
-            return help;
-        }
 
-        public static VisualElement TryGetDeprecatedHelpBoxRow(string deprecatedTypeName, Action upgradeAction, Action dismissAction, string deprecationText = null, string buttonText = null, string labelText = null, MessageType messageType = MessageType.Warning)
+        public HelpBoxRow(string text, MessageType messageType) : this(text, ToHelpBoxMessageType(messageType)) { }
+
+        public static VisualElement CreateVariantLimitHelpBox(int currentVariantCount, int maxVariantCount) =>
+            new HelpBoxRow("Variant limit exceeded. Hover for more info.", HelpBoxMessageType.Error)
+            {
+                tooltip = ShaderKeyword.kVariantLimitWarning
+            };
+
+        // Creates a standard prompt for upgrading a Shader Graph element.
+        // If dismissAction is provided, a help box is created with an upgrade button and a dismiss button.
+        // Otherwise, only an upgrade button is created.
+        public static VisualElement CreateUpgradePrompt(
+            string deprecatedTypeName,
+            Action upgradeAction,
+            Action dismissAction,
+            string tooltip = null,
+            string buttonText = null,
+            string labelText = null,
+            MessageType messageType = MessageType.Warning
+        )
         {
-            if (deprecationText == null)
-            {
-                deprecationText = $"The {deprecatedTypeName} has new updates. This version maintains the old behavior. " +
-                    $"If you update a {deprecatedTypeName}, you can use Undo to change it back. See the {deprecatedTypeName} " +
-                    $"documentation for more information.";
-            }
-            if (buttonText == null)
-            {
-                buttonText = "Update";
-            }
-            if (labelText == null)
-            {
-                labelText = $"The {deprecatedTypeName} has new updates. This version maintains the old behavior. " +
-                    $"If you update a {deprecatedTypeName}, you can use Undo to change it back. See the {deprecatedTypeName} " +
-                    $"documentation for more information.";
-            }
+            tooltip ??= GetDefaultDeprecationMessage(deprecatedTypeName);
+            buttonText ??= "Update";
+            labelText ??= GetDefaultDeprecationMessage(deprecatedTypeName);
 
-            Button upgradeButton = new Button(upgradeAction) { text = buttonText, tooltip = deprecationText };
-            Button dismissButton = null;
-            if (dismissAction != null)
-                dismissButton = new Button(dismissAction) { text = "Dismiss" };
+            // If we are given a dismiss action, the user has not yet dismissed the warning and should be given the
+            // full message. Otherwise, assume the warning has already been dismissed and show just the upgrade button.
+            var displayFullWarning = dismissAction != null;
+            var upgradeButton = new Button(upgradeAction) { text = buttonText, tooltip = tooltip };
 
-            if (dismissAction != null)
+            VisualElement container;
+
+            if (displayFullWarning)
             {
-                HelpBoxRow help = new HelpBoxRow(messageType);
-                var label = new Label(labelText)
-                {
-                    tooltip = labelText,
-                    name = "message-" + (messageType == MessageType.Warning ? "warn" : "info")
-                };
-                help.Add(label);
-                help.contentContainer.Add(upgradeButton);
-                if (dismissButton != null)
-                    help.contentContainer.Add(dismissButton);
-                return help;
+                var dismissButton = new Button(dismissAction) { text = "Dismiss" };
+                container = new HelpBoxRow(labelText, messageType);
+                container.Add(upgradeButton);
+                container.Add(dismissButton);
             }
             else
             {
-                var box = new VisualElement();
-                box.Add(upgradeButton);
-                if (dismissButton != null)
-                    box.Add(dismissButton);
-                return box;
+                container = new VisualElement();
+                container.Add(upgradeButton);
             }
+
+            return container;
+
+            static string GetDefaultDeprecationMessage(string typeName) =>
+                $"The {typeName} has new updates. This version maintains the old behavior. " +
+                $"If you update a {typeName}, you can use Undo to change it back. See the {typeName} " +
+                "documentation for more information.";
         }
     }
 }

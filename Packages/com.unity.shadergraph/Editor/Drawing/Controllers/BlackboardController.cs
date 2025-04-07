@@ -5,6 +5,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using System;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
 using BlackboardItem = UnityEditor.ShaderGraph.Internal.ShaderInput;
@@ -569,7 +570,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal string editorPrefsBaseKey => "unity.shadergraph." + DataStore.State.objectId;
 
-        BlackboardCategoryController AddBlackboardCategory(GraphDataStore graphDataStore, CategoryData categoryInfo)
+        BlackboardCategoryController AddBlackboardCategory(GraphDataStore graphDataStore, CategoryData categoryInfo, bool ensureVisible = false)
         {
             var blackboardCategoryViewModel = new BlackboardCategoryViewModel();
             blackboardCategoryViewModel.parentView = blackboard;
@@ -583,19 +584,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_BlackboardCategoryControllers.Add(categoryInfo.categoryGuid, blackboardCategoryController);
                 m_DefaultCategoryController = m_BlackboardCategoryControllers.Values.FirstOrDefault();
+
+                if (ensureVisible)
+                {
+                    blackboard.scrollView.ScrollToElementAfterGeometryChange(blackboardCategoryController.blackboardCategoryView);
+                }
+
             }
             else
             {
                 AssertHelpers.Fail("Failed to add category controller due to category with same GUID already having been added.");
                 return null;
             }
+
             return blackboardCategoryController;
         }
 
         // Creates controller, view and view model for a blackboard item and adds the view to the specified index in the category
-        SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
+        SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1, bool ensureVisible = false)
         {
-            return m_DefaultCategoryController.InsertBlackboardRow(shaderInput, insertionIndex);
+            return m_DefaultCategoryController.InsertBlackboardRow(shaderInput, insertionIndex, ensureVisible);
         }
 
         public void UpdateBlackboardTitle(string newTitle)
@@ -612,6 +620,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Called by GraphDataStore.Subscribe after the model has been changed
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
+            if (ViewModel == null) return;
             // Reconstruct view-model first
             // TODO: hide this more generically for category types.
             bool useDropdowns = graphData.isSubGraph;
@@ -625,11 +634,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AddShaderInputAction addBlackboardItemAction:
                     if (IsInputUncategorized(addBlackboardItemAction.shaderInputReference))
                     {
-                        var blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference);
+                        var addedInteractively = addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu;
+                        var blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference, ensureVisible: addedInteractively);
                         if (blackboardRow != null)
                         {
                             var propertyView = blackboardRow.Q<SGBlackboardField>();
-                            if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
+                            if (addedInteractively)
                                 propertyView.OpenTextEditor();
                         }
                     }
@@ -654,7 +664,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // In the specific case of only-one keywords like Material Quality and Raytracing, they can get copied, but because only one can exist, the output copied value is null
                     if (copyShaderInputAction.copiedShaderInput != null && IsInputUncategorized(copyShaderInputAction.copiedShaderInput))
                     {
-                        var blackboardRow = InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                        var blackboardRow = InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex, ensureVisible: true);
                         var propertyView = blackboardRow.Q<SGBlackboardField>();
                         graphView?.AddToSelectionNoUndoRecord(propertyView);
                     }
@@ -662,7 +672,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case AddCategoryAction addCategoryAction:
-                    AddBlackboardCategory(DataStore, addCategoryAction.categoryDataReference);
+                    AddBlackboardCategory(DataStore, addCategoryAction.categoryDataReference, ensureVisible: true);
                     // Iterate through anything that is selected currently
                     foreach (var selectedElement in blackboard.selection.ToList())
                     {
@@ -695,7 +705,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case CopyCategoryAction copyCategoryAction:
-                    var blackboardCategory = AddBlackboardCategory(graphData.owner.graphDataStore, copyCategoryAction.newCategoryDataReference);
+                    var blackboardCategory = AddBlackboardCategory(graphData.owner.graphDataStore, copyCategoryAction.newCategoryDataReference, ensureVisible: true);
                     if (blackboardCategory != null)
                         graphView?.AddToSelectionNoUndoRecord(blackboardCategory.blackboardCategoryView);
                     break;

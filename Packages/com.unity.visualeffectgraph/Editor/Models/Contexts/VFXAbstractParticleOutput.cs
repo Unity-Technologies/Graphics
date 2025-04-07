@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
         // IVFXSubRenderer interface
         public virtual bool hasShadowCasting { get { return castShadows; } }
 
-        public virtual bool isRayTraced { get { return !HasStrips(true) && enableRayTracing; } }
+        public virtual bool isRayTraced { get { return !HasStrips(false) && enableRayTracing; } }
         protected virtual bool needsExposureWeight { get { return true; } }
 
         protected virtual bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
@@ -236,7 +236,12 @@ namespace UnityEditor.VFX
         }
         public bool NeedsDeadListCount() { return HasIndirectDraw() && !HasStrips(true) && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
 
-        public bool HasStrips(bool data = false) { return (data ? GetData().type : ownedType) == VFXDataType.ParticleStrip; }
+        public bool HasStrips(bool data = false)
+        {
+            if (GetData() == null)
+                return false;
+            return (data ? GetData().type : ownedType) == VFXDataType.ParticleStrip;
+        }
         public bool HasStripsData() { return GetData().type == VFXDataType.ParticleStrip; }
 
         protected VFXAbstractParticleOutput(bool strip = false) : base(strip ? VFXDataType.ParticleStrip : VFXDataType.Particle) { }
@@ -288,7 +293,8 @@ namespace UnityEditor.VFX
                 if (useAlphaClipping)
                     return true;
                 //For Motion & Shadow, allow use a alpha clipping and it shares the same value as color clipping for transparent particles
-                if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting))
+                // Ray traced transparent particle should also expose an alpha threshold for effects using visibility pass like RTAO.
+                if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting || isRayTraced))
                     return true;
                 return false;
             }
@@ -639,11 +645,6 @@ namespace UnityEditor.VFX
                     || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.FrustumCulling))
                     yield return "computeCulling";
 
-                // Features not supported yet by strips
-                if (HasStrips(true))
-                {
-                    yield return "isRaytraced";
-                }
                 if (!usesFlipbook)
                 {
                     yield return "flipbookLayout";
@@ -660,7 +661,7 @@ namespace UnityEditor.VFX
                     yield return "sortMode";
                     yield return "revertSorting";
                 }
-                if (!VFXViewPreference.displayExperimentalOperator || VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.GetSupportsRayTracing())
+                if (!VFXViewPreference.displayExperimentalOperator || VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.GetSupportsRayTracing() || HasStrips(false))
                     yield return "enableRayTracing";
                 if (!isRayTraced)
                 {

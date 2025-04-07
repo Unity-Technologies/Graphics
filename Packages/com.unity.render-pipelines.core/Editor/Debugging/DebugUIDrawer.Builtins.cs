@@ -398,12 +398,11 @@ namespace UnityEditor.Rendering
         }
     }
 
-
     /// <summary>
     /// Builtin Drawer for Maskfield Debug Items.
     /// </summary>
-    [DebugUIDrawer(typeof(DebugUI.MaskField))]
-    public sealed class DebugUIDrawerMaskField : DebugUIFieldDrawer<uint, DebugUI.MaskField, DebugStateUInt>
+    [DebugUIDrawer(typeof(DebugUI.RenderingLayerField))]
+    public sealed class DebugUIDrawerRenderingLayerField : DebugUIFieldDrawer<RenderingLayerMask, DebugUI.RenderingLayerField, DebugStateRenderingLayer>
     {
         /// <summary>
         /// Does the field of the given type
@@ -413,15 +412,10 @@ namespace UnityEditor.Rendering
         /// <param name="field">The field</param>
         /// <param name="state">The state</param>
         /// <returns>The current value from the UI</returns>
-        protected override uint DoGUI(Rect rect, GUIContent label, DebugUI.MaskField field, DebugStateUInt state)
+        protected override RenderingLayerMask DoGUI(Rect rect, GUIContent label, DebugUI.RenderingLayerField field, DebugStateRenderingLayer state)
         {
             uint value = field.GetValue();
-
-            var enumNames = new string[field.enumNames.Length];
-            for (int i = 0; i < enumNames.Length; i++)
-                enumNames[i] = field.enumNames[i].text;
-            var mask = EditorGUI.MaskField(rect, label, (int)value, enumNames);
-
+            var mask = EditorGUI.MaskField(rect, label, (int)value, field.renderingLayersNames);
             return (uint)mask;
         }
     }
@@ -830,7 +824,10 @@ namespace UnityEditor.Rendering
 
                     rowRect.xMin += 2;
                     rowRect.xMax -= 2;
-                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName), DebugWindow.Styles.centeredLeft);
+
+                    bool isAlternate = r % 2 == 0;
+
+                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(row.displayName),isAlternate ? DebugWindow.Styles.centeredLeft : DebugWindow.Styles.centeredLeftAlternate);
                     rowRect.xMin -= 2;
                     rowRect.xMax += 2;
 
@@ -841,7 +838,7 @@ namespace UnityEditor.Rendering
                             rowRect.x += rowRect.width;
                             rowRect.width = columns[visible[c]].width;
                             if (!row.isHidden)
-                                DisplayChild(rowRect, row.children[visible[c] - 1]);
+                                DisplayChild(rowRect, row.children[visible[c] - 1], isAlternate);
                         }
                         rowRect.y += rowRect.height;
                     }
@@ -884,7 +881,7 @@ namespace UnityEditor.Rendering
             return new Rect(rect.x + size, rect.y + size, rect.width - 2 * size, rect.height - 2 * size);
         }
 
-        internal void DisplayChild(Rect rect, DebugUI.Widget child)
+        internal void DisplayChild(Rect rect, DebugUI.Widget child, bool isAlternate)
         {
             rect.xMin += 2;
             rect.xMax -= 2;
@@ -898,7 +895,7 @@ namespace UnityEditor.Rendering
                 if (child.GetType() == typeof(DebugUI.Value))
                 {
                     var widget = Cast<DebugUI.Value>(child);
-                    EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()));
+                    EditorGUI.LabelField(rect, GUIContent.none, EditorGUIUtility.TrTextContent(widget.GetValue().ToString()), isAlternate ? DebugWindow.Styles.centeredLeft : DebugWindow.Styles.centeredLeftAlternate);
                 }
                 else if (child.GetType() == typeof(DebugUI.ColorField))
                 {

@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [VolumeComponentMenu("Sky/Cloud Layer")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [CloudUniqueID((int)CloudType.CloudLayer)]
-    [HDRPHelpURL("Override-Cloud-Layer")]
+    [HDRPHelpURL("create-simple-clouds-cloud-layer")]
     public partial class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>

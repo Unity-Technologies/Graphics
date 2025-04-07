@@ -14,6 +14,18 @@ namespace UnityEngine.Rendering.Universal.Tests
         GameObject m_TestObject4;
         GameObject m_TestObjectCached;
 
+        // Some residual Game Objects from previous test scenes can be left over,
+        // We destroy everything so they don't interfere with these tests
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            var allGameObjectsInScene = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            foreach (var go in allGameObjectsInScene)
+            {
+                Object.DestroyImmediate(go);
+            }
+        }
+
         [SetUp]
         public void Setup()
         {

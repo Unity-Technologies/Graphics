@@ -182,16 +182,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             // Inform the user that VFXTarget is deprecated, if they are using one.
             if (graphData.m_ActiveTargets.Any(t => t.value is VFXTarget)) //Use Old VFXTarget
             {
-                var vfxWarning = new HelpBoxRow(MessageType.Info);
-
-                var vfxWarningLabel = new Label("The Visual Effect target is deprecated.\n" +
+                var vfxWarning = new HelpBoxRow("The Visual Effect target is deprecated.\n" +
                     "Use the SRP target(s) instead, and enable 'Support VFX Graph' in the Graph Inspector.\n" +
-                    "Then, you can remove the Visual Effect Target.");
+                    "Then, you can remove the Visual Effect Target.", MessageType.Info);
 
-                vfxWarningLabel.style.color = new StyleColor(Color.white);
-                vfxWarningLabel.style.whiteSpace = WhiteSpace.Normal;
-
-                vfxWarning.Add(vfxWarningLabel);
                 element.Add(vfxWarning);
             }
 #endif

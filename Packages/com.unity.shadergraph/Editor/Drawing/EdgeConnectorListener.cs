@@ -20,14 +20,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void OnDropOutsidePort(Edge edge, Vector2 position)
         {
-            var draggedPort = (edge.output != null ? edge.output.edgeConnector.edgeDragHelper.draggedPort : null) ?? (edge.input != null ? edge.input.edgeConnector.edgeDragHelper.draggedPort : null);
+            if (m_SearchWindowProvider is not SearcherProvider searcherProvider)
+            {
+                return;
+            }
+
+            var draggedPort = edge.output?.edgeConnector.edgeDragHelper.draggedPort ?? edge.input?.edgeConnector.edgeDragHelper.draggedPort;
+
             m_SearchWindowProvider.target = null;
             m_SearchWindowProvider.connectedPort = (ShaderPort)draggedPort;
-            m_SearchWindowProvider.regenerateEntries = true;//need to be sure the entires are relevant to the edge we are dragging
-            SearcherWindow.Show(m_editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, position),
+            m_SearchWindowProvider.regenerateEntries = true; //need to be sure the entires are relevant to the edge we are dragging
+
+            SearcherWindow.Show(m_editorWindow,
+                searcherProvider.LoadSearchWindow(),
+                item => item != null && searcherProvider.OnSearcherSelectEntry(item, position),
                 position, null);
-            m_SearchWindowProvider.regenerateEntries = true;//entries no longer necessarily relevant, need to regenerate
+            m_SearchWindowProvider.regenerateEntries = true; //entries no longer necessarily relevant, need to regenerate
         }
 
         public void OnDrop(GraphView graphView, Edge edge)

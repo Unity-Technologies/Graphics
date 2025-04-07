@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 using UnityEngine.Rendering.HighDefinition;
 
 public class SpawnRandomBeachBall : MonoBehaviour
@@ -15,8 +18,15 @@ public class SpawnRandomBeachBall : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
-        if(Input.GetKeyDown(KeyCode.Space))
+        bool spacePressed = false;
+#if ENABLE_INPUT_SYSTEM
+        spacePressed = Keyboard.current[Key.Space].isPressed;
+#else
+        spacePressed = Input.GetKeyDown(KeyCode.Space);
+#endif
+
+
+        if (spacePressed)
         {
             if ((Time.realtimeSinceStartup - lastBeachBallSpawnedTime) >= TimeBtwnEachBall)
             {       

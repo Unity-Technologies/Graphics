@@ -545,7 +545,7 @@ namespace UnityEditor.Rendering.Universal
                     Status status = (Status) property.FindPropertyRelative("status").enumValueIndex;
                     string info = property.FindPropertyRelative("message").stringValue;
 
-                    element.Q<Toggle>("converterItemActive").RegisterCallback<ClickEvent>((evt) =>
+                    element.Q<Toggle>("converterItemActive").TrackPropertyValue(property, _ =>
                     {
                         UpdateSelectedConverterItems(id, child);
                         DeselectAllNoneLabels(item);

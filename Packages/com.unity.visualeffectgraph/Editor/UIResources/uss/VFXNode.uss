@@ -66,6 +66,7 @@ VFXBlockUI.node #node-border > #title > Label.first {
     border-radius: 3px;
     opacity: 0.5;
     background-size: 16px 16px;
+    background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/NodeChevronDown@2x.png");
 }
 
 .node > #node-border > #title #collapse-button:hover {
@@ -84,11 +85,7 @@ VFXBlockUI.node #node-border > #title > Label.first {
 }
 
 .node.collapsed > #node-border > #title #collapse-button {
-    background-image: resource("GraphView/Nodes/NodeChevronLeft@2x.png");
-}
-
-.node.expanded > #node-border > #title #collapse-button {
-    background-image : resource("GraphView/Nodes/NodeChevronDown@2x.png");
+    rotate: 90deg;
 }
 
 .node.superCollapsed > #node-border > #title > #edit,.VFXNodeUI.superCollapsed > #node-border > #title > #collapse-button

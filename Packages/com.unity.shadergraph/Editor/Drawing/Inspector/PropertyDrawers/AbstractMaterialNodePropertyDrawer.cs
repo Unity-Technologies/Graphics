@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     };
                 }
 
-                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{node.name} Node",
+                var help = HelpBoxRow.CreateUpgradePrompt($"{node.name} Node",
                     () =>
                     {   // upgrade
                         m_setNodesAsDirtyCallback?.Invoke();

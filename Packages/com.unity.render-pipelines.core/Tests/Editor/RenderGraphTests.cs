@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Tests
         }
     }
 
-    class RenderGraphTests
+    partial class RenderGraphTests
     {
         // For RG Record/Hash/Compile testing, use m_RenderGraph
         RenderGraph m_RenderGraph;
@@ -40,6 +40,10 @@ namespace UnityEngine.Rendering.Tests
         // For RG Execute/Submit testing with rendering, use m_RenderGraphTestPipeline and m_RenderGraph in its recordRenderGraphBody
         RenderGraphTestPipelineAsset m_RenderGraphTestPipeline;
         RenderGraphTestGlobalSettings m_RenderGraphTestGlobalSettings;
+
+        // We need a camera to execute the render graph and a game object to attach a camera
+        GameObject m_GameObject;
+        Camera m_Camera;
 
         // For the testing of the following RG steps: Execute and Submit (native) with camera rendering, use this custom RenderGraph render pipeline
         // through a camera render call to test the RG with a real ScriptableRenderContext
@@ -128,6 +132,14 @@ namespace UnityEngine.Rendering.Tests
 
             // Getting the RG from the custom asset pipeline
             m_RenderGraph = m_RenderGraphTestPipeline.renderGraph;
+
+            // We need a real ScriptableRenderContext and a camera to execute the Render Graph
+            m_GameObject = new GameObject("testGameObject")
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            m_GameObject.tag = "MainCamera";
+            m_Camera = m_GameObject.AddComponent<Camera>();
         }
 
         [OneTimeTearDown]
@@ -147,12 +159,22 @@ namespace UnityEngine.Rendering.Tests
             EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<RenderGraphTestPipelineInstance>(null);
 #endif
             Object.DestroyImmediate(m_RenderGraphTestGlobalSettings);
+
+            GameObject.DestroyImmediate(m_GameObject);
+            m_GameObject = null;
+            m_Camera = null;
+        }
+
+        void ClearCompiledGraphAndHash()
+        {
+            m_RenderGraph.ClearCurrentCompiledGraph();
+            DelegateHashCodeUtils.ClearCache();
         }
 
         [SetUp]
         public void SetupRenderGraph()
         {
-            m_RenderGraph.ClearCompiledGraph();
+            ClearCompiledGraphAndHash();
         }
 
         class RenderGraphTestPassData
@@ -708,193 +730,6 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void ComputeHashDifferentPerResolution()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(256, 256) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            TextureHandle texture1 = m_RenderGraph.CreateTexture(new TextureDesc(512, 512) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture1, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreNotEqual(hash0, hash1);
-        }
-
-        [Test]
-        public void ComputeHashDifferentForMSAA()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, msaaSamples = MSAASamples.None });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, msaaSamples = MSAASamples.MSAA4x });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreNotEqual(hash0, hash1);
-        }
-
-        [Test]
-        public void ComputeHashDifferentForRenderFunc()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
-            }
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreNotEqual(hash0, hash1);
-        }
-
-        [Test]
-        public void ComputeHashDifferentForMorePasses()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc3(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
-            {
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0));
-                builder.ReadTexture(texture0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
-            }
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm });
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-            }
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
-            {
-                builder.UseColorBuffer(texture0, 0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc3);
-            }
-
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
-            {
-                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0));
-                builder.ReadTexture(texture0);
-                builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
-            }
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreNotEqual(hash0, hash1);
-        }
-
-        [Test]
-        public void ComputeHashSameForOneSetup()
-        {
-            static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context) { }
-            static void RenderFunc3(RenderGraphTestPassData data, RenderGraphContext context) { }
-
-            static void RecordRenderGraph(RenderGraph renderGraph)
-            {
-                TextureHandle texture0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one) { format = GraphicsFormat.R8G8B8A8_UNorm });
-
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-                {
-                    builder.UseColorBuffer(texture0, 0);
-                    builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc);
-                }
-
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
-                {
-                    builder.UseColorBuffer(texture0, 0);
-                    builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc3);
-                }
-
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
-                {
-                    builder.WriteTexture(renderGraph.ImportBackbuffer(0));
-                    builder.ReadTexture(texture0);
-                    builder.SetRenderFunc<RenderGraphTestPassData>(RenderFunc2);
-                }
-            }
-
-            RecordRenderGraph(m_RenderGraph);
-
-            var hash0 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            RecordRenderGraph(m_RenderGraph);
-
-            var hash1 = m_RenderGraph.ComputeGraphHash();
-            m_RenderGraph.ClearCompiledGraph();
-
-            Assert.AreEqual(hash0, hash1);
-        }
-
-        [Test]
         public void GetDescAndInfoForImportedTextureWorks()
         {
             RenderTextureDescriptor desc = new RenderTextureDescriptor(37, 53, GraphicsFormat.R16G16_SNorm, GraphicsFormat.None, 4);
@@ -1030,16 +865,6 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void CreateLegacyRendererLists()
         {
-            // We need a real ScriptableRenderContext and a camera to call correctly the legacy RendererLists API
-
-            // add the default camera
-            var gameObject = new GameObject("testGameObject")
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
-            gameObject.tag = "MainCamera";
-            var camera = gameObject.AddComponent<Camera>();
-
             // record and execute render graph calls
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
@@ -1061,23 +886,12 @@ namespace UnityEngine.Rendering.Tests
                 rendererListHandle = m_RenderGraph.CreateSkyboxRendererList(camera, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity);
                 Assert.IsTrue(rendererListHandle.IsValid());
             };
-            camera.Render();
-
-            GameObject.DestroyImmediate(gameObject);
+            m_Camera.Render();
         }
 
         [Test]
         public void RenderPassWithNoRenderFuncThrows()
         {
-            // We need a real ScriptableRenderContext and a camera to execute the render graph
-            // add the default camera
-            var gameObject = new GameObject("testGameObject")
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
-            gameObject.tag = "MainCamera";
-            var camera = gameObject.AddComponent<Camera>();
-
             // record and execute render graph calls
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
@@ -1090,9 +904,7 @@ namespace UnityEngine.Rendering.Tests
             };
             LogAssert.Expect(LogType.Error, "Render Graph Execution error");
             LogAssert.Expect(LogType.Exception, "InvalidOperationException: RenderPass TestPassWithNoRenderFunc was not provided with an execute function.");
-            camera.Render();
-
-            GameObject.DestroyImmediate(gameObject);
+            m_Camera.Render();
         }
 
         /*
@@ -1167,15 +979,6 @@ namespace UnityEngine.Rendering.Tests
             const int kHeight = 4;
             const GraphicsFormat format = GraphicsFormat.R8G8B8A8_SRGB;
 
-            // We need a real ScriptableRenderContext and a camera to execute the render graph
-            // add the default camera
-            var gameObject = new GameObject("testGameObject")
-            {
-                hideFlags = HideFlags.HideAndDontSave,
-                tag = "MainCamera"
-            };
-            var camera = gameObject.AddComponent<Camera>();
-
             NativeArray<byte> pixels = default;
             bool passExecuted = false;
 
@@ -1208,7 +1011,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             };
 
-            camera.Render();
+            m_Camera.Render();
 
             AsyncGPUReadback.WaitAllRequests();
 
@@ -1223,7 +1026,6 @@ namespace UnityEngine.Rendering.Tests
             }
 
             pixels.Dispose();
-            GameObject.DestroyImmediate(gameObject);
         }
 
         void RenderGraphTest_AsyncReadbackCallback(AsyncGPUReadbackRequest request)
@@ -1286,14 +1088,6 @@ namespace UnityEngine.Rendering.Tests
         [Test, ConditionalIgnore("IgnoreGraphicsAPI", "Compute Shaders are not supported for this Graphics API.")]
         public void ImportingBufferWorks()
         {
-            // We need a real ScriptableRenderContext and a camera to execute the render graph
-            // add the default camera
-            var gameObject = new GameObject("testGameObject")
-            {
-                hideFlags = HideFlags.HideAndDontSave,
-                tag = "MainCamera"
-            };
-            var camera = gameObject.AddComponent<Camera>();
 #if UNITY_EDITOR
             var computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(kPathToComputeShader);
 #else
@@ -1344,7 +1138,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             };
 
-            camera.Render();
+            m_Camera.Render();
 
             // Read back the data from the buffer
             float[] result2 = new float[bufferSize];
@@ -1357,6 +1151,91 @@ namespace UnityEngine.Rendering.Tests
             {
                 Assert.IsTrue(result2[i] == 1.0f);
             }
+        }
+
+        class RenderGraphTransientTestData
+        {
+            public TextureHandle transientTexture;
+            public TextureHandle whiteTexture;
+        }
+
+        private static readonly int k_DefaultWhiteTextureID = Shader.PropertyToID("_DefaultWhiteTex");
+
+        [Test]
+        public void TransientHandleAreValidatedByCommandBufferSafetyLayer()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTransientTestData>("TransientPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    var texDesc = new TextureDesc(Vector2.one, false, false)
+                    {
+                        width = 1920,
+                        height = 1080,
+                        format = GraphicsFormat.B10G11R11_UFloatPack32,
+                        clearBuffer = true,
+                        clearColor = Color.red,
+                        name = "Transient Texture"
+                    };
+                    passData.transientTexture = builder.CreateTransientTexture(texDesc);
+                    passData.whiteTexture = m_RenderGraph.defaultResources.whiteTexture;
+
+                    builder.SetRenderFunc((RenderGraphTransientTestData data, UnsafeGraphContext context) =>
+                    {
+                        // Will ensure the transient texture is valid or throw an exception otherwise
+                        Assert.DoesNotThrow(delegate { context.cmd.SetGlobalTexture(k_DefaultWhiteTextureID, data.transientTexture); });
+                        // Put back white instead
+                        context.cmd.SetGlobalTexture(k_DefaultWhiteTextureID, data.whiteTexture);
+                    });
+                }
+            };
+
+            m_Camera.Render();
+        }
+
+        class TempAllocTestData
+        {
+            public TextureHandle whiteTexture;
+        }
+
+        [Test]
+        public void GetTempMaterialPropertyBlockAreReleasedAfterRenderGraphNodeExecution()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddUnsafePass<TempAllocTestData>("MPBPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    passData.whiteTexture = m_RenderGraph.defaultResources.whiteTexture;
+
+                    builder.SetRenderFunc((TempAllocTestData data, UnsafeGraphContext context) =>
+                    {
+                        // no temp alloc yet
+                        Assert.IsTrue(context.renderGraphPool.IsEmpty());
+
+                        var mpb = context.renderGraphPool.GetTempMaterialPropertyBlock();
+                        mpb.SetTexture(k_DefaultWhiteTextureID, data.whiteTexture);
+
+                        // memory temporarily allocated
+                        Assert.IsFalse(context.renderGraphPool.IsEmpty());
+                    });
+                }
+
+                using (var builder = m_RenderGraph.AddUnsafePass<TempAllocTestData>("PostPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((TempAllocTestData data, UnsafeGraphContext context) =>
+                    {
+                        // memory has been deallocated at the end of the previous RG node, no leak
+                        Assert.IsTrue(context.renderGraphPool.IsEmpty());
+                    });
+                }
+            };
+
+            m_Camera.Render();
         }
     }
 }

@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -72,6 +72,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        [Flags]
         public enum Resizer
         {
             None = 0,

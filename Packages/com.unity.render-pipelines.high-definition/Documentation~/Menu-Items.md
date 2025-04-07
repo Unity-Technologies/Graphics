@@ -21,6 +21,8 @@ This section includes all the menu items under the **Edit > Rendering > Renderin
 
 This section includes all the menu items under the **Edit > Rendering > Materials** menu fold-out.
 
+For more information, refer to [Convert materials and shaders](convert-from-built-in-convert-materials-and-shaders.md).
+
 | **Item**                                        | **Description**                                                                                                                                                                      |
 |-------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Generate Material Resources**                 | Generate look-up table resources for all HDRP Materials. The generated resources will be placed in the directory **Assets/HDRPDefaultResources/Generated**.                             |

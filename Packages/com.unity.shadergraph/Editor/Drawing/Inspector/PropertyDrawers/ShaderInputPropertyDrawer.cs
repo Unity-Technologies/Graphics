@@ -182,9 +182,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
                     evt =>
                     {
+                        if (shaderInput is AbstractShaderProperty property &&
+                            (!property.overrideHLSLDeclaration || property.hlslDeclarationOverride == HLSLDeclaration.DoNotDeclare))
+                        {
+                            property.hlslDeclarationOverride = property.GetDefaultHLSLDeclaration();
+                            property.overrideHLSLDeclaration = true;
+                        }
                         this._preChangeValueCallback("Change Exposed Toggle");
                         this._exposedFieldChangedCallback(evt.isOn);
-                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                        this._postChangeValueCallback(true, ModificationScope.Graph);
                     },
                     new ToggleData(shaderInput.isExposed),
                     shaderInput is ShaderKeyword ? "Generate Material Property" : "Show In Inspector",
@@ -404,7 +410,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         };
                     }
 
-                    var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{typeString} Property",
+                    var help = HelpBoxRow.CreateUpgradePrompt($"{typeString} Property",
                         () => property.ChangeVersion(property.latestVersion),
                         dismissAction);
                     if (help != null)
@@ -424,9 +430,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     case IShaderPropertyDrawer propDrawer:
                         propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);
                         break;
-                    case UnityEditor.ShaderGraph.Serialization.MultiJsonInternal.UnknownShaderPropertyType unknownProperty:
-                        var helpBox = new HelpBoxRow(MessageType.Warning);
-                        helpBox.Add(new Label("Cannot find the code for this Property, a package may be missing."));
+                    case UnityEditor.ShaderGraph.Serialization.MultiJsonInternal.UnknownShaderPropertyType:
+                        var helpBox = new HelpBoxRow("Cannot find the code for this Property, a package may be missing.", MessageType.Warning);
                         propertySheet.Add(helpBox);
                         break;
                     case Vector1ShaderProperty vector1Property:
@@ -529,8 +534,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         property.hlslDeclarationOverride = evt.newValue;
                         property.overrideHLSLDeclaration = true;
                         UpdateEnableState();
-                        this._exposedFieldChangedCallback(evt.newValue != HLSLDeclaration.Global);
-                        property.generatePropertyBlock = evt.newValue != HLSLDeclaration.Global;
+                        if ((evt.newValue == HLSLDeclaration.Global) ^ (evt.previousValue == HLSLDeclaration.Global))
+                        {
+                            this._exposedFieldChangedCallback(evt.newValue != HLSLDeclaration.Global);
+                            property.generatePropertyBlock = evt.newValue != HLSLDeclaration.Global;
+                        }
                         this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
 
@@ -562,7 +570,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
         {
-            var floatType = isCurrentPropertyGlobal ? FloatType.Default : vector1ShaderProperty.floatType;
+            var floatType = (isSubGraph || isCurrentPropertyGlobal) ? FloatType.Default : vector1ShaderProperty.floatType;
             // Handle vector 1 mode parameters
             switch (floatType)
             {
@@ -1241,6 +1249,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 "Wrap",
                 TextureSamplerState.WrapMode.Repeat,
                 out var wrapVisualElement));
+
+            propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                newValue =>
+                {
+                    this._preChangeValueCallback("Change property value");
+                    TextureSamplerState state = samplerStateShaderProperty.value;
+                    state.anisotropic = (TextureSamplerState.Anisotropic)newValue;
+                    samplerStateShaderProperty.value = state;
+                    this._postChangeValueCallback(false, ModificationScope.Graph);
+                    this.inspectorUpdateDelegate();
+                },
+                samplerStateShaderProperty.value.anisotropic,
+                "Aniso",
+                TextureSamplerState.Anisotropic.None,
+                out var anisoVisualElement));
         }
 
         void HandleGradientPropertyField(PropertySheet propertySheet, GradientShaderProperty gradientShaderProperty)
@@ -1290,12 +1313,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (keyword.keywordDefinition == KeywordDefinition.ShaderFeature && isSubGraph)
             {
-                var help = new HelpBoxRow(MessageType.Info);
-                var warning = new TextElement();
-                warning.tabIndex = 1;
-                warning.style.alignSelf = Align.Center;
-                warning.text = "Shader Feature Keywords in SubGraphs do not generate variant permutations.";
-                help.Add(warning);
+                var help = new HelpBoxRow("Shader Feature Keywords in SubGraphs do not generate variant permutations.", MessageType.Info);
                 propertySheet.Add(help);
             }
 
@@ -1452,6 +1470,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                 if (EditorGUI.EndChangeCheck())
                 {
+                    this._preChangeValueCallback("Edit Enum Keyword Entry");
+
                     displayName = GetSanitizedDisplayName(displayName);
                     referenceName = GetSanitizedReferenceName(displayName.ToUpper());
                     var duplicateIndex = FindDuplicateKeywordReferenceNameIndex(entry.id, referenceName);
@@ -1572,6 +1592,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void KeywordReorderEntries(ReorderableList list)
         {
+            this._preChangeValueCallback("Reorder Keyword Entry");
             this._postChangeValueCallback(true);
         }
 
@@ -1631,7 +1652,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 return;
 
             BuildDropdownField(propertySheet, dropdown);
-            BuildExposedField(propertySheet);
         }
 
         void BuildDropdownField(PropertySheet propertySheet, ShaderDropdown dropdown)

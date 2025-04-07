@@ -88,7 +88,7 @@ Material:
     - _StencilWriteMask: 6
     - _StencilWriteMaskDepth: 9
     - _StencilWriteMaskDistortionVec: 4
-    - _StencilWriteMaskMV: 41
+    - _StencilWriteMaskMV: 43
     - _SurfaceType: 0
     - _TransparentCullMode: 2
     - _TransparentSortPriority: 0
@@ -106,6 +106,7 @@ Material:
     - _UnlitColor: {r: 1, g: 1, b: 1, a: 1}
     - _UnlitColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &5929776403927832061
 MonoBehaviour:
   m_ObjectHideFlags: 11

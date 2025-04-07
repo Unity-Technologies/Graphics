@@ -253,9 +253,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         Application.OpenURL("https://unity.com/features/shader-graph");
                     });
-                    menu.AddItem(new GUIContent("Shader Graph Forums"), false, () =>
+                    menu.AddItem(new GUIContent("Shader Graph Discussions"), false, () =>
                     {
-                        Application.OpenURL("https://forum.unity.com/forums/shader-graph.346/");
+                        Application.OpenURL("https://discussions.unity.com/tag/Shader-Graph");
                     });
                     menu.AddItem(new GUIContent("Shader Graph Roadmap"), false, () =>
                     {
@@ -425,16 +425,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void NodeCreationRequest(NodeCreationContext c)
         {
-            if (EditorWindow.focusedWindow == m_EditorWindow) //only display the search window when current graph view is focused
+            if (EditorWindow.focusedWindow != m_EditorWindow || //only display the search window when current graph view is focused
+                m_SearchWindowProvider is not SearcherProvider searcherProvider)
             {
-                m_SearchWindowProvider.connectedPort = null;
-                m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
-                var displayPosition = graphView.cachedMousePosition;
-
-                SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                    item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, displayPosition),
-                    displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
+                return;
             }
+
+            m_SearchWindowProvider.connectedPort = null;
+            m_SearchWindowProvider.target = c.target ?? m_HoveredContextView;
+            var displayPosition = graphView.cachedMousePosition;
+
+            SearcherWindow.Show(m_EditorWindow,
+                searcherProvider.LoadSearchWindow(),
+                item => item != null && searcherProvider.OnSearcherSelectEntry(item, displayPosition),
+                displayPosition, null, new SearcherWindow.Alignment(SearcherWindow.Alignment.Vertical.Center, SearcherWindow.Alignment.Horizontal.Left));
         }
 
         // Master Preview, Inspector and Blackboard all need to keep their layouts when hidden in order to restore user preferences.
@@ -483,7 +487,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.Add(m_MasterPreviewView);
 
             masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
-            m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+            m_MasterPreviewView.onResized += UpdateSerializedWindowLayout;
         }
 
         void CreateInspector()
@@ -1419,13 +1423,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+            var edges = edgesToUpdate.ToArray();
+            edgesToUpdate.Dispose();
             schedule.Execute(() =>
             {
-                foreach (Edge e in edgesToUpdate)
+                foreach (Edge e in edges)
                 {
                     e.UpdateEdgeControl();
                 }
-                edgesToUpdate.Dispose();
             }).StartingIn(0);
         }
 

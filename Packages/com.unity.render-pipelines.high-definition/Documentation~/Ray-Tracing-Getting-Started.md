@@ -123,15 +123,15 @@ To make HDRP calculate ray tracing effects for [Cameras](hdrp-camera-component-r
 
 To enable ray tracing by default:
 
-1. Open the Project Settings window (menu:  **Edit > Project Settings**), then select the HDRP Default Settings tab.
-2. Select Camera from the Default Frame Settings For drop-down.
-3. In the **Rendering** section, enable **Ray Tracing**.
+1. From the main menu, select **Edit** &gt; **Project Settings**.
+2. In the **Project Settings** window, go to the **Pipeline Specific Settings** section, then select the **HDRP** tab.
+3. Under **Frame Settings (Default Values)** &gt; **Camera** &gt; **Rendering**, enable **Ray Tracing**.
 
-To enable ray tracing for a specific Camera:
+To enable ray tracing for a specific camera:
 
-1. Click on the Camera in the Scene or Hierarchy to view it in the Inspector.
-2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
-3. in the **Rendering** section, enable **Ray Tracing**.
+1. Select the camera in the scene or **Hierarchy** window to view it in the **Inspector** window.
+2. In the **Rendering** section, enable **Custom Frame Settings**. This exposes frame settings for this camera only.
+3. Use the foldout (triangle) to expand **Rendering**, then enable **Ray Tracing**.
 
 #### Build settings
 
@@ -200,7 +200,6 @@ HDRP ray tracing in Unity isn't compatible with the following features:
 - Vertex animation, for example wind deformation of vegetation.
 - [Decals](decals.md).
 - Ray tracing is not compatible with the detail meshes and trees in the [Terrain system](https://docs.unity3d.com/Manual/script-Terrain.html). It is compatible with terrain geometry. To include detailed meshes and trees in ray traced reflections, use [mixed tracing](Override-Screen-Space-Reflection.md#mixed-tracing).
-- Box-shaped spot lights.
 - Volumetric [fog](create-a-local-fog-effect.md).
 - [Tessellation](Tessellation.md).
 - Per-pixel displacement techniques such as parallax occlusion mapping, depth offset, and non-terrain height maps.
@@ -209,6 +208,9 @@ HDRP ray tracing in Unity isn't compatible with the following features:
 - [Orthographic projection](hdrp-camera-component-reference.md). If you enable orthographic projection mode, you might experience rendering problems with transparent materials, volumetrics, and planar reflections.
 - Ray Traced and Screen Space effects. These don't appear recursively in [Ray Traced Reflections](Ray-Traced-Reflections.md), [Ray Traced Global Illumination](Ray-Traced-Global-Illumination.md) or [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md). This means, for example, you can't see [Screen Space Global Illumination](Override-Screen-Space-GI.md) in [ray-traced reflections](Ray-Traced-Reflections.md).
 - Fully accurate shadow culling. You might see missing shadows in ray-traced effects. You can use **Extend Shadow Culling** to improve accuracy. See [Ray Tracing Settings](Ray-Tracing-Settings.md) for more information.
+- Data-Oriented Technology Stack (DOTS)
+- Entity Component System (ECS)
+- Water
 
 #### Reflection Probes
 

@@ -10,8 +10,8 @@
             <ui:Button name="addButton" text="+" />
         </ui:VisualElement>
         <ui:VisualElement name="scrollBoundaryTop" pickingMode="Position" />
-            <ui:ScrollView class="unity-scroll-view unity-scroll-view--scroll unity-scroll-view--vertical-horizontal" name ="scrollView"/>
-                <ui:VisualElement name="contentContainer" pickingMode="Ignore" />
+        <ui:ScrollView class="unity-scroll-view unity-scroll-view--scroll unity-scroll-view--vertical-horizontal" name="scrollView" mode="VerticalAndHorizontal"/>
+        <ui:VisualElement name="contentContainer" pickingMode="Ignore" />
         <ui:VisualElement name="scrollBoundaryBottom" pickingMode="Position"/>
     </ui:VisualElement>
     <sg:ResizableElement pickingMode="Ignore" resizeRestriction="FlexDirection"/>

@@ -1279,8 +1279,8 @@ namespace UnityEngine.Rendering.Universal
         {
             var downsample = (int) m_LensFlareScreenSpace.resolution.value;
 
-            int width = m_Descriptor.width / downsample;
-            int height = m_Descriptor.height / downsample;
+            int width = Math.Max(m_Descriptor.width / downsample, 1);
+            int height = Math.Max(m_Descriptor.height / downsample, 1);
 
             var streakTextureDesc = GetCompatibleDescriptor(m_Descriptor, width, height, m_DefaultColorFormat);
             var streakTmpTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, streakTextureDesc, "_StreakTmpTexture", true, FilterMode.Bilinear);
@@ -1373,19 +1373,22 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (hasFinalPass || !cameraData.resolveFinalTarget)
                 {
-                    // Intermediate target can be scaled with render scale.
-                    // camera.pixelRect is the viewport of the final target in pixels.
-                    // Calculate scaled viewport for the intermediate target,
-                    // for example when inside a camera stack (non-final pass).
-                    var camViewportNormalized = cameraData.camera.rect;
+                    // Inside the camera stack the target is the shared intermediate target, which can be scaled with render scale.
+                    // camera.pixelRect is the viewport of the final target in pixels, so it cannot be used for the intermediate target.
+                    // On intermediate target allocation the viewport size is baked into the target size.
+                    // Which means the intermediate target does not have a viewport rect. Its offset is always 0 and its size matches viewport size.
+                    // The overlay cameras inherit the base viewport, so they cannot have a different viewport,
+                    // a necessary limitation since the target covers only the base viewport area.
+                    // The offsetting is finally done by the final output viewport-rect to the final target.
+                    // Note: effectively this is setting a fullscreen viewport for the intermediate target.
                     var targetWidth = cameraData.cameraTargetDescriptor.width;
                     var targetHeight = cameraData.cameraTargetDescriptor.height;
-                    var scaledTargetViewportInPixels = new Rect(
-                        camViewportNormalized.x * targetWidth,
-                        camViewportNormalized.y * targetHeight,
-                        camViewportNormalized.width * targetWidth,
-                        camViewportNormalized.height * targetHeight);
-                    cmd.SetViewport(scaledTargetViewportInPixels);
+                    var targetViewportInPixels = new Rect(
+                        0,
+                        0,
+                        targetWidth,
+                        targetHeight);
+                    cmd.SetViewport(targetViewportInPixels);
                 }
                 else
                     cmd.SetViewport(cameraData.pixelRect);
@@ -1554,7 +1557,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.material = m_Materials.finalPass;
                 passData.settings = settings;
 
-                if (settings.requireHDROutput && m_EnableColorEncodingIfNeeded)
+                if (settings.requireHDROutput && m_EnableColorEncodingIfNeeded && cameraData.rendersOverlayUI)
                     builder.UseTexture(overlayUITexture, AccessFlags.Read);
 
 #if ENABLE_VR && ENABLE_XR_MODULE

@@ -2,6 +2,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler;
 
@@ -9,6 +10,8 @@ namespace UnityEngine.Rendering.Tests
 {
     class NativePassCompilerRenderGraphTests
     {
+        static Recorder gcAllocRecorder = Recorder.Get("GC.Alloc");
+
         class RenderGraphTestPassData
         {
             public TextureHandle[] textures = new TextureHandle[8];
@@ -291,6 +294,183 @@ namespace UnityEngine.Rendering.Tests
 
             Assert.AreEqual(2, passes.Count);
             Assert.AreEqual(Rendering.RenderGraphModule.NativeRenderPassCompiler.PassBreakReason.DifferentDepthTextures, passes[0].breakAudit.reason);
+        }
+
+        [Test]
+        public void MergePassWithWriteAllPass()
+        {
+            var g = AllocateRenderGraph();
+
+            var buffers = ImportAndCreateBuffers(g);
+
+            // Render something to depth
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+            // Merge pass, render with WriteAll in extra 0
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.WriteAll);
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(2, passes[0].numGraphPasses);
+
+            // Validate attachments
+            Assert.AreEqual(buffers.depthBuffer.handle.index, passes[0].attachments[0].handle.index);
+            Assert.AreEqual(buffers.extraBuffers[0].handle.index, passes[0].attachments[1].handle.index);
+
+            ref var depthAttachment = ref passes[0].attachments[0];
+            Assert.AreEqual(RenderBufferLoadAction.Load, depthAttachment.loadAction);
+
+            ref var extraAttachment = ref passes[0].attachments[1];
+            Assert.AreEqual(RenderBufferLoadAction.DontCare, extraAttachment.loadAction);
+        }
+
+        [Test]
+        public void MergeWriteAllPassWithReadPass()
+        {
+            var g = AllocateRenderGraph();
+
+            var buffers = ImportAndCreateBuffers(g);
+
+            // Render something to extra 0
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.WriteAll);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+            // Read from extra 0
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetInputAttachment(buffers.extraBuffers[0], 0, AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(2, passes[0].numGraphPasses);
+
+            // Validate attachments
+            Assert.AreEqual(buffers.depthBuffer.handle.index, passes[0].attachments[0].handle.index);
+            Assert.AreEqual(buffers.extraBuffers[0].handle.index, passes[0].attachments[1].handle.index);
+
+            ref var depthAttachment = ref passes[0].attachments[0];
+            Assert.AreEqual(RenderBufferLoadAction.Load, depthAttachment.loadAction);
+
+            ref var extraAttachment = ref passes[0].attachments[1];
+            Assert.AreEqual(RenderBufferLoadAction.DontCare, extraAttachment.loadAction);
+        }
+
+        [Test]
+        public void MergeReadPassWithWriteAllPass()
+        {
+            var g = AllocateRenderGraph();
+
+            var buffers = ImportAndCreateBuffers(g);
+
+            // Render something to 0,1
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+            // Render to final buffer
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.WriteAll);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(1, passes.Count);
+            Assert.AreEqual(2, passes[0].numGraphPasses);
+
+            // Validate attachments
+            Assert.AreEqual(buffers.depthBuffer.handle.index, passes[0].attachments[0].handle.index);
+            Assert.AreEqual(buffers.extraBuffers[0].handle.index, passes[0].attachments[1].handle.index);
+
+            ref var depthAttachment = ref passes[0].attachments[0];
+            Assert.AreEqual(RenderBufferLoadAction.Load, depthAttachment.loadAction);
+
+            // LoadAction is Clear because it was not used by another pass before, in other case it should be Load
+            ref var extraAttachment = ref passes[0].attachments[1];
+            Assert.AreEqual(RenderBufferLoadAction.Clear, extraAttachment.loadAction);
+        }
+
+        [Test]
+        public void MergeDiscardPassWithWrite()
+        {
+            var g = AllocateRenderGraph();
+
+            var buffers = ImportAndCreateBuffers(g);
+
+            // Discard extra 0
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.Discard);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+            // Read extra 0
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+            // Write to extra 0
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+            // break pass using another depth, Read extra 0
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachmentDepth(buffers.extraDepthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            Assert.AreEqual(2, passes.Count);
+            Assert.AreEqual(3, passes[0].numGraphPasses);
+
+            // Validate attachments
+            Assert.AreEqual(buffers.depthBuffer.handle.index, passes[0].attachments[0].handle.index);
+            Assert.AreEqual(buffers.extraBuffers[0].handle.index, passes[0].attachments[1].handle.index);
+            Assert.AreEqual(buffers.extraBuffers[0].handle.index, passes[1].attachments[1].handle.index);
+
+            ref var depthAttachment = ref passes[0].attachments[0];
+            Assert.AreEqual(RenderBufferLoadAction.Load, depthAttachment.loadAction);
+
+            // As we have a discard flag in the pass the LoadAction is DontCare, but as it has also a Write flag it should Store the result for the next pass
+            ref var extraAttachmentPass0 = ref passes[0].attachments[1];
+            Assert.AreEqual(RenderBufferLoadAction.DontCare, extraAttachmentPass0.loadAction);
+            Assert.AreEqual(RenderBufferStoreAction.Store, extraAttachmentPass0.storeAction);
+
+            ref var extraAttachmentPass1 = ref passes[1].attachments[1];
+            Assert.AreEqual(RenderBufferLoadAction.Load, extraAttachmentPass1.loadAction);
+
         }
 
         [Test]
@@ -1144,6 +1324,97 @@ namespace UnityEngine.Rendering.Tests
             var firstNativePass = passes[0];
 
             Assert.IsTrue(firstNativePass.numGraphPasses == 2);
+        }
+
+        [Test]
+        public void DecreaseResourceVersionIfLastPassIsCulled()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // Bumping version of extraBuffer within RG to 1 as we write to it in first pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Bumping version of extraBuffer within RG to 2 as we write to it in second pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            // First pass is preserved as requested but second pass is culled
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // Second pass has been culled
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 1);
+            // extraBuffer version has decreased to 1 as it is only used by the first pass
+            Assert.AreEqual(passes[0].attachments[0].handle.version, 1);
+        }
+
+        [Test]
+        public void GraphPassesDoesNotAlloc()
+        {
+            var g = AllocateRenderGraph();
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1_Culled", out var passData))
+            {
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // First pass is preserved as requested but second pass is culled
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // Second pass has been culled
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 2);
+            // Goes into possible alloc path
+            Assert.IsFalse(passes[0].lastGraphPass - passes[0].firstGraphPass + 1 == passes[0].numGraphPasses);
+
+
+            ValidateNoGCAllocs(() =>
+            {
+                passes[0].GraphPasses(result.contextData);
+            });
+
+            // From RenderPassCullingTests.cs
+            void ValidateNoGCAllocs(Action action)
+            {
+                // Warmup - this will catch static c'tors etc.
+                CountGCAllocs(action);
+
+                // Actual test.
+                var count = CountGCAllocs(action);
+                if (count != 0)
+                    throw new AssertionException($"Expected 0 GC allocations but there were {count}");
+            }
+
+            int CountGCAllocs(Action action)
+            {
+                gcAllocRecorder.FilterToCurrentThread();
+                gcAllocRecorder.enabled = true;
+
+                action();
+
+                gcAllocRecorder.enabled = false;
+                return gcAllocRecorder.sampleBlockCount;
+            }
         }
     }
 }

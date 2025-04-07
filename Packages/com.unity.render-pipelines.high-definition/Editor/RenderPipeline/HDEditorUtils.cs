@@ -321,7 +321,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
             }
 
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.LensFlareDataDriven, "Lens Flare Data Driven");
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.LensFlareDataDriven);
             return true;
         }
 
@@ -336,76 +336,76 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void HighlightInDebugger(HDCamera hdCamera, FrameSettingsField field, string displayName)
+        static void HighlightInDebugger(Camera camera, FrameSettingsField field, string displayName)
         {
-            OpenRenderingDebugger(hdCamera.camera.name);
+            OpenRenderingDebugger(camera.name);
 
             // Doesn't work for some reason
             //CoreEditorUtils.Highlight("Rendering Debugger", displayName, HighlightSearchMode.Auto);
             //GUIUtility.ExitGUI();
         }
 
-        internal static void FrameSettingsHelpBox(HDCamera hdCamera, FrameSettingsField field, string displayName)
+        static IEnumerable<Camera> GetAllCameras()
         {
-            var data = HDUtils.TryGetAdditionalCameraDataOrDefault(hdCamera.camera);
-            var defaults = GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>().GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
-
-            var type = MessageType.Warning;
-            var attribute = FrameSettingsExtractedDatas.GetFieldAttribute(field);
-
-            bool disabledInGlobal = !defaults.IsEnabled(field);
-            bool disabledByCamera = data.renderingPathCustomFrameSettingsOverrideMask.mask[(uint)field] &&
-                                    !data.renderingPathCustomFrameSettings.IsEnabled(field);
-            bool disabledByDependency = !attribute.dependencies.All(hdCamera.frameSettings.IsEnabled);
-
-            var historyContainer = hdCamera.camera.cameraType == CameraType.SceneView
-                ? FrameSettingsHistory.sceneViewFrameSettingsContainer
-                : HDUtils.TryGetAdditionalCameraDataOrDefault(hdCamera.camera);
-            bool disabledByDebug = FrameSettingsHistory.enabled && !historyContainer.frameSettingsHistory.debug.IsEnabled(field) && historyContainer.frameSettingsHistory.sanitazed.IsEnabled(field);
-
-            var textBase = $"The FrameSetting required to render this effect in the {(hdCamera.camera.cameraType == CameraType.SceneView ? "Scene" : "Game")} view ";
-
-            if (disabledByDebug)
-                CoreEditorUtils.DrawFixMeBox(textBase + "is disabled in the Rendering Debugger.", type, "Open", () => HighlightInDebugger(hdCamera, field, displayName));
-            else if (disabledByCamera)
-                CoreEditorUtils.DrawFixMeBox(textBase + "is disabled on a Camera.", type, "Open", () => EditorUtility.OpenPropertyEditor(hdCamera.camera));
-            else if (disabledInGlobal)
-                GlobalSettingsHelpBox(textBase + "is disabled in the HDRP Global Settings.", type, field, displayName);
-            else if (disabledByDependency)
-                GlobalSettingsHelpBox(textBase + "depends on a disabled FrameSetting.", type, field, displayName);
-        }
-
-        internal static HDCamera[] GetAllCameras()
-        {
-            HashSet<HDCamera> cameras = new();
-
-            // Looping through all the scene views
             foreach (SceneView sceneView in SceneView.sceneViews)
-            {
-                if (!sceneView.hasFocus) continue;
-                cameras.Add(HDCamera.GetOrCreate(sceneView.camera));
-            }
+                yield return sceneView.camera;
+            foreach (Camera camera in Camera.allCameras)
+                if (camera.cameraType == CameraType.Game)
+                    yield return camera;
+        }
+        
+        static IEnumerable<(Camera camera, FrameSettings @default, IFrameSettingsHistoryContainer historyContainer)> SelectFrameSettingsStages(IEnumerable<Camera> cameras)
+        {
+            var supportedFeatures = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings;
+            var defaultSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingPathFrameSettings>().GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
 
-            // Looping through all the game views
-            foreach (var camera in HDCamera.GetHDCameras())
+            foreach (var camera in cameras)
             {
-                if (camera == null || camera.camera == null)
-                    continue;
+                var additionalCameraData = HDUtils.TryGetAdditionalCameraDataOrDefault(camera);
+                var historyContainer = camera.cameraType == CameraType.SceneView ? FrameSettingsHistory.sceneViewFrameSettingsContainer : additionalCameraData;
 
-                if (camera.camera.cameraType == CameraType.Game)
-                    cameras.Add(camera);
+                FrameSettings dummy = default;
+                FrameSettingsHistory.AggregateFrameSettings(ref dummy, camera, historyContainer, ref defaultSettings, supportedFeatures);
+                yield return (camera, defaultSettings, historyContainer);
             }
+        }
+        
+        static void FrameSettingsHelpBox(Camera camera, FrameSettingsField field, FrameSettings @default, IFrameSettingsHistoryContainer historyContainer)
+        {
+            FrameSettingsHistory history = historyContainer.frameSettingsHistory;
+            bool finalValue = history.debug.IsEnabled(field); 
+            if (finalValue) return; //must be false to call this method
+
+            bool defaultValue = @default.IsEnabled(field);
+            bool cameraOverrideState = historyContainer.hasCustomFrameSettings && history.customMask.mask[(uint)field];
+            bool cameraOverridenValue = history.overridden.IsEnabled(field);
+            bool cameraSanitizedValue = history.sanitazed.IsEnabled(field);
+
+            var attribute = FrameSettingsExtractedDatas.GetFieldAttribute(field);
+            bool dependenciesSanitizedValueOk = attribute.dependencies.All(fs => attribute.IsNegativeDependency(fs) ? !history.sanitazed.IsEnabled(fs) : history.sanitazed.IsEnabled(fs));
+
+            bool disabledByDefault = !defaultValue && !cameraOverrideState;
+            bool disabledByCameraOverride = cameraOverrideState && !cameraOverridenValue;
             
-            return cameras.ToArray();
+            var textBase = $"The FrameSetting required to render this effect in the {(camera.cameraType == CameraType.SceneView ? "Scene" : "Game")} view (by {camera.name}) ";
+
+            if (disabledByDefault)
+                GlobalSettingsHelpBox(textBase + "is disabled in the HDRP Global Settings.", MessageType.Warning, field, attribute.displayedName);
+            else if (disabledByCameraOverride)
+                CoreEditorUtils.DrawFixMeBox(textBase + $"is disabled on the Camera.", MessageType.Warning, "Open", () => EditorUtility.OpenPropertyEditor(camera));
+            else if (!dependenciesSanitizedValueOk)
+                GlobalSettingsHelpBox(textBase + "depends on a disabled FrameSetting.", MessageType.Warning, field, attribute.displayedName);
+            else if (!finalValue)
+                CoreEditorUtils.DrawFixMeBox(textBase + "is disabled in the Rendering Debugger.", MessageType.Warning, "Open", () => HighlightInDebugger(camera, field, attribute.displayedName));
         }
 
-        internal static bool EnsureFrameSetting(FrameSettingsField field, string displayName)
+        internal static bool EnsureFrameSetting(FrameSettingsField field)
         {
-            foreach (var camera in GetAllCameras())
+            foreach ((Camera camera, FrameSettings @default, IFrameSettingsHistoryContainer historyContainer) in SelectFrameSettingsStages(GetAllCameras()))
             {
-                if (!camera.frameSettings.IsEnabled(field))
+                if (!historyContainer.frameSettingsHistory.debug.IsEnabled(field))
                 {
-                    FrameSettingsHelpBox(camera, field, displayName);
+                    FrameSettingsHelpBox(camera, field, @default, historyContainer);
                     EditorGUILayout.Space();
                     return false;
                 }
@@ -413,31 +413,34 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return true;
         }
-
-        internal static bool EnsureVolumeAndFrameSetting<T>(Func<T, string> volumeValidator, FrameSettingsField field, string displayName) where T : UnityEngine.Rendering.VolumeComponent
+        
+        static IEnumerable<(Camera camera, T component)> SelectVolumeComponent<T>(IEnumerable<Camera> cameras) where T : VolumeComponent
         {
             // Wait for volume system to be initialized
             if (VolumeManager.instance.baseComponentTypeArray == null)
-                return true;
+                yield break;
 
-            var cameras = GetAllCameras();
-
-            foreach (var camera in cameras)
+            foreach (var camera in GetAllCameras())
             {
-                var errorString = volumeValidator(camera.volumeStack.GetComponent<T>());
+                if (!HDCamera.TryGet(camera, out var hdCamera))
+                    continue;
+
+                T component = hdCamera.volumeStack.GetComponent<T>();
+                if (component == null)
+                    continue;
+
+                yield return (camera, component);
+            }
+        }
+
+        internal static bool EnsureVolume<T>(Func<T, string> volumeValidator) where T : VolumeComponent
+        {
+            foreach ((Camera camera, T component) in SelectVolumeComponent<T>(GetAllCameras()))
+            {
+                var errorString = volumeValidator(component);
                 if (!string.IsNullOrEmpty(errorString))
                 {
                     EditorGUILayout.HelpBox(errorString, MessageType.Warning);
-                    EditorGUILayout.Space();
-                    return false;
-                }
-            }
-
-            foreach (var camera in cameras)
-            {
-                if (!camera.frameSettings.IsEnabled(field))
-                {
-                    FrameSettingsHelpBox(camera, field, displayName);
                     EditorGUILayout.Space();
                     return false;
                 }

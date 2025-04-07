@@ -5,7 +5,7 @@ in Unity to enhance your fog effects with **3D Textures** or **Shader
 Graphs**. It also covers various blending modes and quality settings to optimize
 the visual quality and performance of your fog effects.
 
-![](Images/volumetric-fog-samples.webp)
+![A plane with a volumetric cloud floating above it.](Images/volumetric-fog-samples.webp)
 
 Learn how to configure the Local Volumetric Fog component, use different
 blending modes, and explore a variety of sample effects like 3D texture masks,
@@ -26,6 +26,8 @@ short distance, increase the **Volume Slice Count**. If performance becomes an
 issue, you can keep the **Screen Resolution Percentage** low as a tradeoff.
 
 ## Sample effects
+
+To set up a volumetric sample scene, select **Window** > **Package manager** > **High Definition RP** > **Samples**, then import **Volumetric Samples**. Each sample is a prefab in the `Assets/Samples/High Definition RP/[HDRP version number]/Volumetric samples` folder.
 
 ### 3D texture mask
 

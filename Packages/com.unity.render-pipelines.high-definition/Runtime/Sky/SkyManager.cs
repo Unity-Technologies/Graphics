@@ -663,6 +663,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_BlackAmbientProbeBuffer;
             }
 
+            // If a camera is a material preview camera, don't use the scene's ambient spherical harmonics to render it.
+            if (hdCamera.camera.cameraType == CameraType.Preview)
+            {
+                return m_BlackAmbientProbeBuffer;
+            }
+
             return GetDiffuseAmbientProbeBuffer(GetLightingSky(hdCamera));
         }
 

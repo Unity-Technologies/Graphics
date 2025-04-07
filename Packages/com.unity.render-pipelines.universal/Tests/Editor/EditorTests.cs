@@ -160,7 +160,7 @@ class EditorTests
 
         Object[] posttestTextures = Resources.FindObjectsOfTypeAll(typeof(Texture));
 
-        Assert.AreEqual(pretestTextures.Length, posttestTextures.Length, "A texture leak is detected when using RenderingUtils.ReAllocateIfNeeded.");
+        Assert.That(posttestTextures, Is.EquivalentTo(pretestTextures), "A texture leak is detected when using RenderingUtils.ReAllocateIfNeeded.");
     }
 
     [TestCase(ShaderPathID.Lit)]

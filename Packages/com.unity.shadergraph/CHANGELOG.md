@@ -10,6 +10,80 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.3] - 2025-02-13
+
+This version is compatible with Unity 6000.2.0a1.
+
+### Changed
+- Added support for spacewarp to Shader Graph.
+- Added a new *Shader Graph UGUI Shaders* sample content set to the Shader Graph package. This sample demonstrates how to use the new Canvas target in Shader Graph to create dynamic UI elements. You can import this sample from the *Samples* tab in the Package Manager after selecting the Shader Graph package.
+- Removed duplicate LIGHTMAP_ON and DIRLIGHTMAP_COMBINED variants when generating shaders for builtin-deferred.
+- Added a new set of sample content - Shader Graph UGUI Shaders - to the Shader Graph package that contains examples of how to use the new Canvas target in Shader Graph to create dynamic UI elements. This new sample can be imported from the Sample tab of the Package Manager after selecting the Shader Graph package
+
+### Fixed
+- Fixed a bug that a shader graph is reverted to its last saved state when entering Play Mode without saving changes.
+- Added missing documentation about the Custom Render Texture in Shader Graph.
+- [Metal] Fix shader compilation errors due to Foveated Rendering when building URP 3D template.
+- Fixed an issue where the Main Light Direction node always returned 0 on the built-in render pipeline.
+- Added new manipulator for ShaderGraph MainPreview to fix wrong drag handing on OSX.
+- Fixed an issue where Unity pragmas were not used in files included by the Custom Function Node, and added a "Use Pragmas" toggle to enable/disable them as needed.
+- Mark a shader graph dirty when toggling checkboxes in its Graph Settings.
+- Fixed Shader warnings in URP ShaderGraph when using the Normal From Texture node.
+- Fixed an issue with addding a Vector4 slot in a sub-graph when converting from a node.
+- Fixed an issue where an unnecessary error message was generated for non-conflicting duplicate property declarations when using multiple targets.
+- Fixed an issue where right-clicking on the Blackboard or Graph Inspector displayed an incorrect context menu.
+- Fixed an issue where the Create Node menu remained visible on screen when closing a Shader Graph window.
+- Fixed an issue where the Console logged the error "Element 'UnityEditor.UIElements.VisualSplitter' is missing a UxmlElementAttribute" when creating a new node in Shader Graph.
+- Fixed "Shader error in 'ProBuilder6/Standard Vertex Color': 'PBRDeferredFragment'" error logged in the console when compiling the shader.
+- Allowed latin alphabet for variable names.
+- Correct sticky note context menu shortcut display text.
+- Color properties now default to opaque (alpha = 1).
+- Forum link in info replaced with link to unity discussions.
+- Exposed aniso setting on blackboard sampler state properties.
+- Added SHADERGRAPH_PREVIEW_MAIN define specifically for main previews.
+- Fixed an issue where the Main Preview could be resized beyond its containing Shader Graph window.
+- Fixed an issue where using HDR colors with custom Render Texture targets caused errors.
+- Fixed an issue where some resources were not properly disposed of when entering Play mode in the Editor.
+- Fixed an issue where the property sheet displayed an incorrect type mismatch error for preview properties.
+- Fixed a null reference exception that occurred when the Shader Graph Editor was open while entering Play mode.
+- Updated the Custom Function Node so that previews are hidden unless the first output is a previewable type, such as a vector or float.
+- Fixed an issue where graphs containing groups were unintentionally modified when opening the Shader Graph Editor.
+- Enabled custom interpolators for custom sprite lit targets. The shader's *Sprite Custom Lit* material mode now changes the sprite to the desired color instead of remaining black.
+- Added an issue where convert-to subgraph would sometimes result in an exception.
+- Added an issue where the GI Node would only display correctly after deserialization.
+- Added support for perceptual color mode for gradients in shader graph.
+- Fixed an issue where an HDRP fullscreen shader graph imported into a URP project would fail to import under some circumstances.
+- Fixed shader graph built-in pipeline variants not getting stripped when an SRP is active.
+- Fixed an issue where moving a property node in a Shader Graph with no targets would log an error.
+- Fixed an issue where the Custom Function node's "Body" field would expand off-screen instead of scrolling.
+- Disallowed shader variant related settings to be set to negative values.
+- Fixed a null reference exception when shader variant project settings were changed under certain circumstances.
+- Fixed an issue where the Graph Inspector would not update after changing a node's precision from the context menu.
+- Fixed an issue where using a color picker would cause the main preview to display cyan until the color picker was closed.
+- Fixed an issue where some keyboard shortcuts did not display with the correct alignment in context menus.
+- Fixed an issue so users can no longer select 'Delete' for context blocks.
+- Fixed identifier collision detection on properties.
+- Added sticky note checks to the group shortcuts.
+- Fixed node previews toggle shortcut.
+- Fixed an issue in ShaderGraph where undoing changes to a property after modifying its value in the Graph Inspector would cause the property to become deselected.
+- Fixed an issue in Shader Graph with an undeclared identifier error around foveated rendering area.
+- Fixed a bug that Normal From Height node in a shader graph might return an invalid value when using 16-bit half precision.
+- Fixed 'Objects are trying to be loaded during a domain backup' errors due to invalid serialization of some shader graphs.
+- Changed the name displayed in a Graph inspector when a selected BlockNode has changed.
+- Fixed an issue so that pasting an empty group positions it based on the cursor's location.
+- Fixed an issue with low quality Graph Inspector and Open Shader Graph User Manual icons.
+- Added padding to Shader Graph Preferences settings.
+- Addressed an issue where precision mismatch could result in an asset failing to import.
+- Fixed an issue that caused errors in the Feature Examples sample content for Shader Graph.
+- Fixed the issue with `NullReferenceException` when updating a legacy node for second time through undo.
+- Fixed an issue where a shader graph was reverted to its last saved state when entering Play Mode without saving changes.
+- [Metal] Fix shader compilation errors due to Foveated Rendering when building URP 3D template.
+- Fixed an issue where Unity pragmas were not used in files included by the Custom Function Node, and added a "Use Pragmas" toggle to enable/disable them as needed.
+- Fixed an issue where the Main Light Direction node always returned 0 on the built-in render pipeline.
+- Fixed an issue where the shader graph was not marked dirty when toggling checkboxes in its Graph Settings.
+- Fixed missing documentation about the Custom Render Texture in Shader Graph.
+- Fixed "Shader error in 'ProBuilder6/Standard Vertex Color': 'PBRDeferredFragment'" error logged in the console when compiling the shader.
+
 ## [17.0.2] - 2024-04-02
 
 This version is compatible with Unity 6000.0.0b15.

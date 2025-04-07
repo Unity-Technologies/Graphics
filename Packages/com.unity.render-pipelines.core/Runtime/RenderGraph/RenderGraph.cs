@@ -525,6 +525,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             nativeCompiler?.contextData?.Dispose();
 
             m_CompilationCache?.Clear();
+            
+            DelegateHashCodeUtils.ClearCache();
         }
 
         internal RenderGraphDebugParams debugParams => m_DebugParameters;
@@ -1353,7 +1355,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CurrentCompiledGraph.compiledPassInfos; }
 
         // Internal for testing purpose only
-        internal void ClearCompiledGraph()
+        internal void ClearCurrentCompiledGraph()
         {
             ClearCompiledGraph(m_CurrentCompiledGraph, false);
         }
@@ -2559,7 +2561,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 newPass.syncFromPassIndex = passInfo.syncFromPassIndex;
                 newPass.syncToPassIndex = passInfo.syncToPassIndex;
 
-                DebugData.s_PassScriptMetadata.TryGetValue(pass.name, out newPass.scriptInfo);
+                DebugData.s_PassScriptMetadata.TryGetValue(pass, out newPass.scriptInfo);
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {

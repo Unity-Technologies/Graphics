@@ -323,6 +323,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        Dictionary<string, PropertyType> propertyTypeCache;
         public void HandleGraphChanges()
         {
             foreach (var node in m_Graph.addedNodes)
@@ -379,6 +380,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_NodesShaderChanged.Add(node);
                     m_TopologyDirty = true;
                 }
+            }
+
+            bool mpbNeedsRebuild = false;
+            if (propertyTypeCache == null)
+                propertyTypeCache = new();
+            foreach (var property in m_Graph.properties)
+            {
+                // if the reference name of a property type becomes associated with a different property type,
+                // the property sheet will emit an error. This error is sort of a false positive, but to comply
+                // we need to rebuild the MPB whenever a reference name's corresponding type is different.
+                mpbNeedsRebuild |= propertyTypeCache.TryGetValue(property.referenceName, out var propType) && propType != property.propertyType;
+                propertyTypeCache[property.referenceName] = property.propertyType;
+            }
+            if (mpbNeedsRebuild)
+            {
+                m_NodesPropertyChanged.UnionWith(m_Graph.GetNodes<AbstractMaterialNode>());
+                m_SharedPreviewPropertyBlock = new();
             }
 
             // remove the nodes from the state trackers
@@ -520,6 +538,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         private static int k_spriteProps = Shader.PropertyToID("unity_SpriteProps");
         private static int k_spriteColor = Shader.PropertyToID("unity_SpriteColor");
         private static int k_rendererColor = Shader.PropertyToID("_RendererColor");
+        private float previewTime = 0;
         public void RenderPreviews(EditorWindow editorWindow, bool requestShaders = true)
         {
             using (RenderPreviewsMarker.Auto())
@@ -619,11 +638,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (drawPreviewCount <= 0)
                     return;
 
-                var time = Time.realtimeSinceStartup;
-                var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
+                previewTime += Time.fixedDeltaTime;
+                var timeParameters = new Vector4(previewTime, Mathf.Sin(previewTime), Mathf.Cos(previewTime), 0.0f);
                 m_SharedPreviewPropertyBlock.SetVector("_TimeParameters", timeParameters);
 
-                EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
+                EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, previewTime);
 
                 m_SceneResources.light0.enabled = true;
                 m_SceneResources.light0.intensity = 1.0f;

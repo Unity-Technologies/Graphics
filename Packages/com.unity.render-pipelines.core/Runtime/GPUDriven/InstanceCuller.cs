@@ -206,6 +206,9 @@ namespace UnityEngine.Rendering
                 Assert.IsTrue(lodMask > 0);
 
                 ref var lodGroup = ref lodGroupCullingData.ElementAt((int)lodIndex);
+                if (lodGroup.forceLODMask != 0)
+                    return (lodGroup.forceLODMask & lodMask) != 0 ? k_LODPercentFullyVisible : k_LODPercentInvisible;
+
                 float cameraSqrDistToLODCenter = isOrtho ? sqrScreenRelativeMetric : LODGroupRenderingUtils.CalculateSqrPerspectiveDistance(lodGroup.worldSpaceReferencePoint, cameraPosition, sqrScreenRelativeMetric);
 
                 // Remove lods that are beyond the max lod.

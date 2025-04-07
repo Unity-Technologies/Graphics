@@ -581,7 +581,7 @@ namespace UnityEngine.Rendering.Universal
                 return false;
 
             for (int i = 0; i < left.Length; ++i)
-                if (left[i].nameID != right[i].nameID)
+                if (left[i]?.nameID != right[i]?.nameID)
                     return false;
 
             return true;

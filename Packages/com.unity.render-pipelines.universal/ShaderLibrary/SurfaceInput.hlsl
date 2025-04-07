@@ -9,7 +9,6 @@
 
 TEXTURE2D(_BaseMap);
 SAMPLER(sampler_BaseMap);
-float4 _BaseMap_TexelSize;
 UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_BaseMap);
 TEXTURE2D(_BumpMap);
 SAMPLER(sampler_BumpMap);

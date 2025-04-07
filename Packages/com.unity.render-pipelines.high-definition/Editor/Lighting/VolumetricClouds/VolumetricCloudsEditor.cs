@@ -523,7 +523,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Enable, EditorGUIUtility.TrTextContent("State"));
 
             if (m_Enable.value.boolValue && !notSupported)
-                HDEditorUtils.EnsureFrameSetting(FrameSettingsField.VolumetricClouds, "Volumetric Clouds");
+                HDEditorUtils.EnsureFrameSetting(FrameSettingsField.VolumetricClouds);
 
             EditorGUILayout.Space();
 

@@ -471,7 +471,7 @@ namespace UnityEditor.VFX.UI
             }
 
             // If linking to a new parameter, copy the slot value and space
-            if (direction == Direction.Input && controller.model != null) //model will be null for upcomming which won't have a value
+            if (direction == Direction.Input && controller.model != null) //model will be null for upcoming which won't have a value
             {
                 if (newNodeController is VFXOperatorController)
                 {

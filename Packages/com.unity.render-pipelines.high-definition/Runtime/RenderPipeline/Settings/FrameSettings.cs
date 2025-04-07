@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: Bloom, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds bloom to Cameras affected by a Volume containing the Bloom override.")]
         Bloom = 84,
         /// <summary>When enabled, HDRP adds Screen Space lens flare post process to Cameras affected by a Volume containing the Screen Space Lens Flare override.</summary>
-        [FrameSettingsField(0, autoName: LensFlareScreenSpace, positiveDependencies: new[] { Postprocess, Bloom }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds Screen Space Lens Flare post process to Cameras affected by a Volume containing the Screen Space Lens Flare override.")]
+        [FrameSettingsField(0, displayedName: "Screen Space Lens Flare", positiveDependencies: new[] { Postprocess, Bloom }, customOrderInGroup: 19, tooltip: "When enabled, HDRP adds Screen Space Lens Flare post process to Cameras affected by a Volume containing the Screen Space Lens Flare override.")]
         LensFlareScreenSpace = 104,
         /// <summary>When enabled, HDRP adds lens flare to Cameras.</summary>
         [FrameSettingsField(0, autoName: LensFlareDataDriven, positiveDependencies: new[] { Postprocess }, customOrderInGroup: 20, tooltip: "When enabled, HDRP adds lens flare to Cameras.")]
@@ -356,7 +356,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(1, displayedName: "Fog", tooltip: "When enabled, Cameras using these Frame Settings render fog effects.")]
         AtmosphericScattering = 27,
         /// <summary>When enabled, Cameras using these Frame Settings render volumetric effects such as volumetric fog and lighting.</summary>
-        [FrameSettingsField(1, autoName: Volumetrics, positiveDependencies: new[] { AtmosphericScattering }, tooltip: "When enabled, Cameras using these Frame Settings render volumetric effects such as volumetric fog and lighting (Depends on \"Volumetrics\" in current HDRP Asset).")]
+        [FrameSettingsField(1, displayedName: "Volumetric Fog", positiveDependencies: new[] { AtmosphericScattering }, tooltip: "When enabled, Cameras using these Frame Settings render volumetric effects such as volumetric fog and lighting (Depends on \"Volumetrics\" in current HDRP Asset).")]
         Volumetrics = 28,
         /// <summary>When enabled, Cameras using these Frame Settings use several previous frames to calculate volumetric effects which increases their overall quality at run time.</summary>
         [FrameSettingsField(1, displayedName: "Reprojection", positiveDependencies: new[] { AtmosphericScattering, Volumetrics }, tooltip: "When enabled, Cameras using these Frame Settings use several previous frames to calculate volumetric effects which increases their overall quality at run time.")]

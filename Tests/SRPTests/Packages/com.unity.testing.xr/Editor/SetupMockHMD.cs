@@ -10,7 +10,7 @@ namespace Unity.Testing.XR.Editor
     {
         static readonly string pathToSettings = "Packages/com.unity.testing.xr/XR/XRGeneralSettings.asset";
 
-        static public void SetupLoader()
+        public static void SetupLoader()
         {
             if (XRGraphicsAutomatedTests.enabled)
             {

@@ -864,9 +864,11 @@ namespace UnityEditor.Graphing
             if (originalId == null)
                 originalId = "";
 
-            var result = Regex.Replace(originalId, @"^[^A-Za-z0-9_]+|[^A-Za-z0-9_]+$", ""); // trim leading/trailing bad characters (excl '_').
-            result = Regex.Replace(result, @"[^A-Za-z0-9]+", "_"); // replace sequences of bad characters with underscores (incl '_').
-            
+            // trim bad sequences (excl '_' to allow '_' as suffix) from start/end.
+            var result = Regex.Replace(originalId, @"^[^A-Za-zŽžÀ-ÿ0-9_]+|[^A-Za-zŽžÀ-ÿ0-9_]+$", "");
+            // replaces bad sequences (incl '_' to prevent '__') with an underscore.
+            result = Regex.Replace(result, @"[^A-Za-zŽžÀ-ÿ0-9]+", "_");
+
             for (int i = 0; result.Length == 0 || Char.IsDigit(result[0]) || IsHLSLKeyword(result) || (isDisallowedIdentifier?.Invoke(result) ?? false);)
             {
                 if (result.StartsWith("_"))

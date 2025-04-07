@@ -1,6 +1,5 @@
 using System;
 using UnityEditor.ShaderGraph.Drawing.Interfaces;
-using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -9,6 +8,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     class ElementResizer : Manipulator
     {
         bool m_IsEnabled = true;
+
         public bool isEnabled
         {
             get => m_IsEnabled;
@@ -84,49 +84,158 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        void ApplyLayoutToTargetAsStyle(Rect rect)
+        {
+            var resizedTarget = resizedElement.parent;
+            resizedTarget.style.left = rect.x;
+            resizedTarget.style.top = rect.y;
+            resizedTarget.style.width = rect.width;
+            resizedTarget.style.height = rect.height;
+        }
+
+        static Rect CropToParent(Rect rect, Rect parent)
+        {
+            rect.xMin = Mathf.Max(rect.xMin, parent.xMin);
+            rect.yMin = Mathf.Max(rect.yMin, parent.yMin);
+            rect.xMax = Mathf.Min(rect.xMax, parent.xMax);
+            rect.yMax = Mathf.Min(rect.yMax, parent.yMax);
+            return rect;
+        }
+
+        static float GetSquareSize(Rect rect, ResizableElement.Resizer resizeDirection)
+        {
+            var horizontal = (resizeDirection & (ResizableElement.Resizer.Left | ResizableElement.Resizer.Right)) != 0;
+            var vertical = (resizeDirection & (ResizableElement.Resizer.Top | ResizableElement.Resizer.Bottom)) != 0;
+
+            if (horizontal && vertical)
+            {
+                return Mathf.Min(rect.width, rect.height);
+            }
+
+            return horizontal ? rect.width : rect.height;
+        }
+
+        Rect ApplySquareAspect(Rect element, ResizableElement.Resizer resizeDirection, Rect? keepInParent = null)
+        {
+            var newLayout = element;
+            var size = GetSquareSize(element, resizeDirection);
+
+            size = Mathf.Clamp(size, m_MinSize.x, m_MaxSize.x);
+            size = Mathf.Clamp(size, m_MinSize.y, m_MaxSize.y);
+            ResizeNewLayoutAndFixPosition(resizeDirection, size);
+
+            if (keepInParent is { } parentRect)
+            {
+                newLayout = CropToParent(newLayout, parentRect);
+                size = Mathf.Min(newLayout.width, newLayout.height);
+                ResizeNewLayoutAndFixPosition(resizeDirection, size);
+            }
+
+            return newLayout;
+
+            void ResizeNewLayoutAndFixPosition(ResizableElement.Resizer grabbedSide, float newSize)
+            {
+                newLayout.width = newSize;
+                newLayout.height = newSize;
+
+                var deltaWidth = element.width - newSize;
+                var deltaHeight = element.height - newSize;
+
+                // Anchoring rules were written with the main preview in mind, which is in the bottom-right corner
+                // by default.
+                switch (grabbedSide)
+                {
+                    // Anchor to bottom-right.
+                    case ResizableElement.Resizer.Top:
+                    case ResizableElement.Resizer.Top | ResizableElement.Resizer.Left:
+                    case ResizableElement.Resizer.Left:
+                    {
+                        newLayout.x = element.x + deltaWidth;
+                        newLayout.y = element.y + deltaHeight;
+                        break;
+                    }
+
+                    // Anchor to bottom-left.
+                    case ResizableElement.Resizer.Top | ResizableElement.Resizer.Right:
+                    {
+                        newLayout.y = element.y + deltaHeight;
+                        break;
+                    }
+
+                    // Anchor to top-left.
+                    case ResizableElement.Resizer.Right:
+                    case ResizableElement.Resizer.Bottom | ResizableElement.Resizer.Right:
+                    case ResizableElement.Resizer.Bottom:
+                    {
+                        // Element is positioned by its top-left, so no adjustment is needed.
+                        break;
+                    }
+
+                    // Anchor to top-right.
+                    case ResizableElement.Resizer.Bottom | ResizableElement.Resizer.Left:
+                    {
+                        newLayout.x = element.x + deltaWidth;
+                        break;
+                    }
+
+                    case ResizableElement.Resizer.None:
+                    default:
+                        break;
+                }
+            }
+        }
+
         void OnMouseMove(MouseMoveEvent e)
         {
             if (!isEnabled)
                 return;
 
-            VisualElement resizedTarget = resizedElement.parent;
-            VisualElement resizedBase = resizedTarget.parent;
+            var resizedTarget = resizedElement.parent;
+            var resizedBase = resizedTarget.parent;
 
             // Top left position of the parent visual element
             var parentRootPosition = resizedBase.worldBound;
+
             // Top left of the target visual element for resizing
             var targetRootPosition = resizedTarget.worldBound;
-            var canResizePastParentBounds = ((ISGResizable)resizedTarget).CanResizePastParentBounds();
 
-            Vector2 mousePos = resizedBase.WorldToLocal(e.mousePosition);
+            var sgResizable = resizedTarget as ISGResizable;
+            var canResizePastParentBounds = sgResizable?.CanResizePastParentBounds() ?? false;
+            var keepSquareAspect = sgResizable?.KeepSquareAspect() ?? false;
+
+            var mousePos = resizedBase.WorldToLocal(e.mousePosition);
 
             if (!m_DragStarted)
             {
-                if (resizedTarget is ISGResizable resizable)
-                    resizable.OnStartResize();
+                sgResizable?.OnStartResize();
                 m_DragStarted = true;
             }
 
+            var newLayout = new Rect(m_StartPosition, m_StartSize);
+
             if ((direction & ResizableElement.Resizer.Right) != 0)
             {
-                var newWidth = m_StartSize.x + mousePos.x - m_StartMouse.x;
+                newLayout.width = m_StartSize.x + mousePos.x - m_StartMouse.x;
                 var parentRightBoundary = parentRootPosition.x + resizedBase.layout.width;
+
                 // Also ensure resizing does not happen past edge of parent views boundaries if the target does not allow it
                 if (!canResizePastParentBounds)
                 {
-                    if ((targetRootPosition.x + newWidth) > parentRightBoundary)
+                    if ((targetRootPosition.x + newLayout.width) > parentRightBoundary)
                     {
                         var targetToRightBoundaryDelta = parentRightBoundary - targetRootPosition.x;
-                        newWidth = targetToRightBoundaryDelta;
+                        newLayout.width = targetToRightBoundaryDelta;
                     }
+
                     var newLayoutLeft = targetRootPosition.x - parentRootPosition.x;
+
                     // When resizing to right, make sure to calculate and set the target elements Style.left before resizing to ensure correct resizing behavior
                     // If Style.left is NaNpx it results in scaling towards the left
                     // This is due to how the WindowDockingLayout code affects GraphSubWindows
-                    resizedTarget.style.left = newLayoutLeft;
+                    newLayout.x = newLayoutLeft;
                 }
 
-                resizedTarget.style.width = Mathf.Clamp(newWidth, m_MinSize.x, m_MaxSize.x);
+                newLayout.width = Mathf.Clamp(newLayout.width, m_MinSize.x, m_MaxSize.x);
             }
             else if ((direction & ResizableElement.Resizer.Left) != 0)
             {
@@ -141,7 +250,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     delta = -m_MaxSize.x + m_StartSize.x;
                 }
 
-                var newWidth = -delta + m_StartSize.x;
+                newLayout.width = -delta + m_StartSize.x;
                 var targetToLeftBoundaryDelta = delta + m_StartPosition.x;
 
                 if (!canResizePastParentBounds)
@@ -151,38 +260,36 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     // Clamps width to max out at left edge of parent window
                     if (Mathf.Approximately(targetToLeftBoundaryDelta, 2.5f))
-                        newWidth = (m_StartPosition.x + m_StartSize.x);
+                        newLayout.width = (m_StartPosition.x + m_StartSize.x);
 
-                    newWidth = Mathf.Clamp(newWidth, m_MinSize.x, m_MaxSize.x);
+                    newLayout.width = Mathf.Clamp(newLayout.width, m_MinSize.x, m_MaxSize.x);
                 }
 
-                resizedTarget.style.left = targetToLeftBoundaryDelta;
-                resizedTarget.style.width = newWidth;
+                newLayout.x = targetToLeftBoundaryDelta;
             }
 
             if ((direction & ResizableElement.Resizer.Bottom) != 0)
             {
                 var delta = mousePos.y - m_StartMouse.y;
-                var newHeight = m_StartSize.y + delta;
+                newLayout.height = m_StartSize.y + delta;
 
                 var parentBottomBoundary = parentRootPosition.y + resizedBase.layout.height;
                 if (!canResizePastParentBounds)
                 {
-                    if ((targetRootPosition.y + newHeight) > parentBottomBoundary)
+                    if ((targetRootPosition.y + newLayout.height) > parentBottomBoundary)
                     {
                         var targetToBottomBoundaryDelta = parentBottomBoundary - targetRootPosition.y;
-                        newHeight = targetToBottomBoundaryDelta;
+                        newLayout.height = targetToBottomBoundaryDelta;
                     }
+
                     var targetToTopBoundaryDelta = targetRootPosition.y - parentRootPosition.y;
+
                     // When resizing to bottom, make sure to calculate and set the target elements Style.top before resizing to ensure correct resizing behavior
                     // If Style.top is NaNpx it results in scaling towards the bottom
                     // This is due to how the WindowDockingLayout code affects GraphSubWindows
-                    resizedTarget.style.top = targetToTopBoundaryDelta;
-
-                    newHeight = Mathf.Clamp(newHeight, m_MinSize.y, m_MaxSize.y);
+                    newLayout.y = targetToTopBoundaryDelta;
+                    newLayout.height = Mathf.Clamp(newLayout.height, m_MinSize.y, m_MaxSize.y);
                 }
-
-                resizedTarget.style.height = newHeight;
             }
             else if ((direction & ResizableElement.Resizer.Top) != 0)
             {
@@ -197,7 +304,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     delta = -m_MaxSize.y + m_StartSize.y;
                 }
 
-                var newHeight = -delta + m_StartSize.y;
+                newLayout.height = -delta + m_StartSize.y;
                 var targetToTopBoundaryDelta = m_StartPosition.y + delta;
                 if (!canResizePastParentBounds)
                 {
@@ -206,14 +313,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     // Clamps height to max out at top edge of parent window
                     if (Mathf.Approximately(targetToTopBoundaryDelta, 2.5f))
-                        newHeight = (m_StartPosition.y + m_StartSize.y);
+                        newLayout.height = (m_StartPosition.y + m_StartSize.y);
 
-                    newHeight = Mathf.Clamp(newHeight, m_MinSize.y, m_MaxSize.y);
+                    newLayout.height = Mathf.Clamp(newLayout.height, m_MinSize.y, m_MaxSize.y);
                 }
 
-                resizedTarget.style.top = targetToTopBoundaryDelta;
-                resizedTarget.style.height = newHeight;
+                newLayout.y = targetToTopBoundaryDelta;
             }
+
+            if (keepSquareAspect)
+            {
+                newLayout = ApplySquareAspect(
+                    newLayout,
+                    direction,
+                    canResizePastParentBounds ? null : new Rect(0, 0, parentRootPosition.width, parentRootPosition.height)
+                );
+            }
+
+            ApplyLayoutToTargetAsStyle(newLayout);
             e.StopPropagation();
         }
 
@@ -230,6 +347,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (resizedTarget is ISGResizable resizable)
                         resizable.OnResized();
                 }
+
                 target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
                 target.ReleaseMouse();
                 e.StopPropagation();

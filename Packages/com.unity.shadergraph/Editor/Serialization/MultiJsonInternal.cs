@@ -438,8 +438,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             internal override void OnPropertiesGUI(VisualElement context, Action onChange, Action<string> registerUndo, GraphData owner)
             {
-                var helpBox = new HelpBoxRow(MessageType.Info);
-                helpBox.Add(new Label("Cannot find the code for this data extension, a package may be missing."));
+                var helpBox = new HelpBoxRow("Cannot find the code for this data extension, a package may be missing.", MessageType.Info);
                 context.hierarchy.Add(helpBox);
             }
         }

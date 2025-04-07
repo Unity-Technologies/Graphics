@@ -188,7 +188,7 @@ Varyings BuildVaryings(Attributes input
         output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
         output.positionCS = ApplyShadowClamping(output.positionCS);
     #elif (SHADERPASS == SHADERPASS_META)
-        output.positionCS = UnityMetaVertexPosition(input.positionOS, input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
+        output.positionCS = UnityMetaVertexPosition(input.positionOS, input.uv1.xy, input.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
     #else
         output.positionCS = TransformWorldToHClip(positionWS);
     #endif

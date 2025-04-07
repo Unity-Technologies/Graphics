@@ -496,81 +496,19 @@ namespace UnityEditor.ShaderGraph
             ShaderGraphRequirementsPerKeyword vertexRequirements = new ShaderGraphRequirementsPerKeyword();
             graphRequirements = new ShaderGraphRequirementsPerKeyword();
 
-            // Evaluate all Keyword permutations
-            if (keywordCollector.permutations.Count > 0)
+            // Get requirements
+            vertexRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false, texCoordNeedsDerivs));
+            pixelRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false, texCoordNeedsDerivs));
+
+            // Add active fields
+            var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromPixelRequirements(pixelRequirements.baseInstance.requirements));
+            if (activeFields.baseInstance.Contains(Fields.GraphVertex))
             {
-                for (int i = 0; i < keywordCollector.permutations.Count; i++)
-                {
-                    // Get active nodes for this permutation
-                    var localVertexNodes = Pool.HashSetPool<AbstractMaterialNode>.Get();
-                    var localPixelNodes = Pool.HashSetPool<AbstractMaterialNode>.Get();
-
-                    localVertexNodes.EnsureCapacity(vertexNodes.Count);
-                    localPixelNodes.EnsureCapacity(pixelNodes.Count);
-
-                    foreach (var vertexNode in vertexNodes)
-                    {
-                        NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, vertexNode, NodeUtils.IncludeSelf.Include, keywordCollector.permutations[i]);
-                    }
-
-                    foreach (var pixelNode in pixelNodes)
-                    {
-                        NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, pixelNode, NodeUtils.IncludeSelf.Include, keywordCollector.permutations[i]);
-                    }
-
-                    // Track each vertex node in this permutation
-                    foreach (AbstractMaterialNode vertexNode in localVertexNodes)
-                    {
-                        int nodeIndex = vertexNodes.IndexOf(vertexNode);
-
-                        if (vertexNodePermutations[nodeIndex] == null)
-                            vertexNodePermutations[nodeIndex] = new List<int>();
-                        vertexNodePermutations[nodeIndex].Add(i);
-                    }
-
-                    // Track each pixel node in this permutation
-                    foreach (AbstractMaterialNode pixelNode in localPixelNodes)
-                    {
-                        int nodeIndex = pixelNodes.IndexOf(pixelNode);
-
-                        if (pixelNodePermutations[nodeIndex] == null)
-                            pixelNodePermutations[nodeIndex] = new List<int>();
-                        pixelNodePermutations[nodeIndex].Add(i);
-                    }
-
-                    // Get requirements for this permutation
-                    vertexRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false, texCoordNeedsDerivs));
-                    pixelRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false, texCoordNeedsDerivs));
-
-                    // Add active fields
-                    var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromPixelRequirements(pixelRequirements[i].requirements));
-                    if (activeFields[i].Contains(Fields.GraphVertex))
-                    {
-                        conditionalFields.AddRange(GetActiveFieldsFromConditionals(GetConditionalFieldsFromVertexRequirements(vertexRequirements[i].requirements)));
-                    }
-                    foreach (var field in conditionalFields)
-                    {
-                        activeFields[i].Add(field);
-                    }
-                }
+                conditionalFields.AddRange(GetActiveFieldsFromConditionals(GetConditionalFieldsFromVertexRequirements(vertexRequirements.baseInstance.requirements)));
             }
-            // No Keywords
-            else
+            foreach (var field in conditionalFields)
             {
-                // Get requirements
-                vertexRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false, texCoordNeedsDerivs));
-                pixelRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false, texCoordNeedsDerivs));
-
-                // Add active fields
-                var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromPixelRequirements(pixelRequirements.baseInstance.requirements));
-                if (activeFields.baseInstance.Contains(Fields.GraphVertex))
-                {
-                    conditionalFields.AddRange(GetActiveFieldsFromConditionals(GetConditionalFieldsFromVertexRequirements(vertexRequirements.baseInstance.requirements)));
-                }
-                foreach (var field in conditionalFields)
-                {
-                    activeFields.baseInstance.Add(field);
-                }
+                activeFields.baseInstance.Add(field);
             }
 
             // Build graph requirements

@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
         /// </summary>
-        [Obsolete("useRendererSilhoutte is deprecated. Use rendererSilhoutte instead")]
+        [Obsolete("useRendererSilhoutte is deprecated. Use selfShadows instead")]
         public bool useRendererSilhouette
         {
             set { m_UseRendererSilhouette = value; }
@@ -405,7 +405,7 @@ namespace UnityEngine.Rendering.Universal
         protected void OnEnable()
         {
             if (m_ShadowShape2DProvider != null)
-                m_ShadowShape2DProvider.Enabled(m_ShadowShape2DComponent);
+                m_ShadowShape2DProvider.Enabled(m_ShadowShape2DComponent, m_ShadowMesh);
 
             m_ShadowCasterGroup = null;
 
@@ -423,7 +423,7 @@ namespace UnityEngine.Rendering.Universal
             ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
 
             if (m_ShadowShape2DProvider != null)
-                m_ShadowShape2DProvider.Disabled(m_ShadowShape2DComponent);
+                m_ShadowShape2DProvider.Disabled(m_ShadowShape2DComponent, m_ShadowMesh);
 
 #if UNITY_EDITOR
             SortingLayer.onLayerAdded -= OnSortingLayerAdded;

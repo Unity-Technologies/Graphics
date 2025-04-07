@@ -1,6 +1,6 @@
 using System.IO;
 using NUnit.Framework;
-using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 namespace UnityEditor.LightBaking.Tests
 {
@@ -19,7 +19,7 @@ namespace UnityEditor.LightBaking.Tests
             {
                 string filename = FormatFilename(TestContext.CurrentContext.Test.Name);
                 string path = Path.Combine(PlatformReferenceImageDirectory,
-                    Path.Combine(TestUtils.GetCurrentTestResultsFolderPath(), filename));
+                    Path.Combine(GraphicsTestPlatform.Current.ResultsPath, filename));
                 bool specificFileExists = File.Exists($"{path}.exr");
                 return specificFileExists ? path : Path.Combine(ReferenceImageBaseDirectory, filename);
             }

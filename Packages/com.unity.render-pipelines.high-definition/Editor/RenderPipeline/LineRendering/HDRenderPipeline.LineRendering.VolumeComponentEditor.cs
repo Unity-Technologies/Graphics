@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.HighQualityLineRendering, "High Quality Line Rendering");
+            HDEditorUtils.EnsureFrameSetting(FrameSettingsField.HighQualityLineRendering);
 
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             bool notSupported = currentAsset != null && !currentAsset.currentPlatformRenderPipelineSettings.supportHighQualityLineRendering;

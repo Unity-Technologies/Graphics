@@ -39,7 +39,7 @@ namespace PerformanceTests.Runtime
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            m_RenderGraph.ClearCompiledGraph();
+            m_RenderGraph.ClearCurrentCompiledGraph();
             m_RenderGraph.nativeRenderPassesEnabled = m_Compiler == Compiler.NativeRenderGraph;
         }
 

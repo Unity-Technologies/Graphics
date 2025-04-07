@@ -232,6 +232,12 @@ namespace UnityEngine.Rendering
 
         public void ReleaseScratchBuffer(CellStreamingScratchBuffer scratchBuffer)
         {
+            if (scratchBuffer.chunkSize != chunkSize)
+            {
+                scratchBuffer.Dispose();                
+                return;
+            }
+
             s_ChunkCount = scratchBuffer.chunkCount;
             var pool = m_Pools.Find((o) => o.chunkCount == s_ChunkCount);
             Debug.Assert(pool != null);

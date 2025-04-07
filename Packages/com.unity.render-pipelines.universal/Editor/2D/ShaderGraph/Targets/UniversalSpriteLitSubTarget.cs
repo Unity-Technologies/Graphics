@@ -23,13 +23,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-#if HAS_VFX_GRAPH
+
             var universalRPType = typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset);
-            if (TargetsVFX() && !context.HasCustomEditorForRenderPipeline(universalRPType))
-            {
-                context.AddCustomEditorForRenderPipeline(typeof(VFXGenericShaderGraphMaterialGUI).FullName, universalRPType);
-            }
+            var gui = typeof(ShaderGraphSpriteGUI);
+#if HAS_VFX_GRAPH
+            if (TargetsVFX())
+                gui = typeof(VFXGenericShaderGraphMaterialGUI);
 #endif
+            context.AddCustomEditorForRenderPipeline(gui.FullName, universalRPType);
             context.AddSubShader(PostProcessSubShader(SubShaders.SpriteLit(target)));
         }
 
@@ -266,6 +267,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static FieldCollection Normal = new FieldCollection()
             {
+                StructFields.Varyings.color,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,
             };
@@ -310,6 +312,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static IncludeCollection Lit = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { k2DLightingUtil, IncludeLocation.Pregraph },
@@ -334,6 +337,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static IncludeCollection Forward = new IncludeCollection
             {
                 // Pre-graph
+                { CoreIncludes.FogPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
 

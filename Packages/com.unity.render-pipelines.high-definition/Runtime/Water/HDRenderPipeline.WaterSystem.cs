@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string k_TessellationPass = "Tessellation";
         readonly static string[] k_PassesGBuffer = new string[] { k_WaterGBufferPass, k_LowResGBufferPass };
         readonly static string[] k_PassesGBufferTessellation = new string[] { k_WaterGBufferPass + k_TessellationPass, k_LowResGBufferPass };
-        readonly static string[] k_PassesWaterDebug = new string[] { k_WaterDebugPass + k_TessellationPass, k_WaterDebugPass + k_LowResGBufferPass };
+        readonly static string[] k_PassesWaterDebug = new string[] { k_WaterDebugPass, k_WaterDebugPass + k_LowResGBufferPass };
 
         // Other internal rendering data
         MaterialPropertyBlock m_WaterMaterialPropertyBlock;
@@ -177,9 +177,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Cleanup()
         {
-            // Grab all the water surfaces in the scene
-            var waterSurfaces = WaterSurface.instancesAsArray;
-            int numWaterSurfaces = WaterSurface.instanceCount;
+            // Grab all the water surfaces in the scene. Including disabled ones (i.e. not in WaterSurface.instances).
+            var waterSurfaces = Object.FindObjectsByType<WaterSurface>(FindObjectsSortMode.None);
+            int numWaterSurfaces = waterSurfaces.Length;
 
             // Loop through them and display them
             for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
@@ -440,8 +440,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 float triangleSize = (1 << lod) * cb._GridSize.x / WaterConsts.k_WaterTessellatedMeshResolution;
                 // align grid size on region extent
                 float2 optimalTriangleSize = new float2(
-                    extent.x / Mathf.Max(Mathf.Floor(extent.x / triangleSize), 1),
-                    extent.y / Mathf.Max(Mathf.Floor(extent.y / triangleSize), 1));
+                    extent.x / Mathf.Max(Mathf.Ceil(extent.x / triangleSize), 1),
+                    extent.y / Mathf.Max(Mathf.Ceil(extent.y / triangleSize), 1));
                 cb._GridSize = optimalTriangleSize * cb._GridSize.x / triangleSize;
                 // align grid pos on one region corner
                 float2 corner = -(cb._PatchOffset + 0.5f * cb._GridSize) - cb._RegionExtent;

@@ -1178,28 +1178,31 @@ namespace UnityEditor.Rendering.Universal
             };
 
             // All feature sets need to have this variant unused to be stripped out.
-            bool removeInput = true;
-            for (var index = 0; index < ShaderBuildPreprocessor.supportedFeaturesList.Count; index++)
+            bool removeInput = strippingData.stripUnusedVariants;
+            if (removeInput)
             {
-                strippingData.shaderFeatures = ShaderBuildPreprocessor.supportedFeaturesList[index];
+                for (var index = 0; index < ShaderBuildPreprocessor.supportedFeaturesList.Count; index++)
+                {
+                    strippingData.shaderFeatures = ShaderBuildPreprocessor.supportedFeaturesList[index];
 
-                if (StripUnusedShaders(ref strippingData))
-                    continue;
+                    if (StripUnusedShaders(ref strippingData))
+                        continue;
 
-                if (StripUnusedPass(ref strippingData))
-                    continue;
+                    if (StripUnusedPass(ref strippingData))
+                        continue;
 
-                if (StripInvalidVariants(ref strippingData))
-                    continue;
+                    if (StripInvalidVariants(ref strippingData))
+                        continue;
 
-                if (StripUnsupportedVariants(ref strippingData))
-                    continue;
+                    if (StripUnsupportedVariants(ref strippingData))
+                        continue;
 
-                if (StripUnusedFeatures(ref strippingData))
-                    continue;
+                    if (StripUnusedFeatures(ref strippingData))
+                        continue;
 
-                removeInput = false;
-                break;
+                    removeInput = false;
+                    break;
+                }
             }
 
             // Check PostProcessing variants...

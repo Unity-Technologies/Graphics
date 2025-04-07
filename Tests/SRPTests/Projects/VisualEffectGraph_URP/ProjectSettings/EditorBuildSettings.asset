@@ -132,6 +132,9 @@ EditorBuildSettings:
     path: Assets/GraphicsTests/103_LitForwardPlus.unity
     guid: d1fd54c5e4d60f54da7b2e2c82b49d1c
   - enabled: 1
+    path: Assets/GraphicsTests/103_LitDeferredPlus.unity
+    guid: 14d6eca1d4922104d87ba7d18dd2854b
+  - enabled: 1
     path: Assets/GraphicsTests/104_ShaderGraphGenerationFTP.unity
     guid: febb29da98ad14a4d89b7679f8e53848
   - enabled: 1

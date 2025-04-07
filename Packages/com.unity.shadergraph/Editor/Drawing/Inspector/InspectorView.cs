@@ -106,13 +106,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void GraphSettingsTabClicked(TabButton button)
         {
             m_GraphSettingsTabFocused = true;
-            m_ScrollView.mode = ScrollViewMode.Vertical;
         }
 
         void NodeSettingsTabClicked(TabButton button)
         {
             m_GraphSettingsTabFocused = false;
-            m_ScrollView.mode = ScrollViewMode.VerticalAndHorizontal;
         }
 
         public void InitializeGraphSettings()
@@ -194,15 +192,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public void RefreshInspectables()
         {
-            // Set callbacks to newly created Inspectables
-            VisualElement temp = new VisualElement();
-            var inspectables = new List<IInspectable>();
-            FindChildrenRecursive(ParentView, inspectables);
-            foreach (IInspectable inspectable in inspectables)
-            {
-                DrawInspectable(temp, inspectable, null);
-            }
-
             // And redraw the inspector
             doesInspectorNeedUpdate = true;
             Update();

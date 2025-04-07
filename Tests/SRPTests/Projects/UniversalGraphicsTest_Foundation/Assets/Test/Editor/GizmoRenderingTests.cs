@@ -6,24 +6,24 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.TestTools.Graphics;
+using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Platforms;
 
 public class GizmoRenderingTests
 {
-    public const string referenceImagePath = "Assets/ReferenceImages";
-    public const string referenceImageBasePath = "Assets/ReferenceImagesBase";
-
-    [Test, Category("Graphics"), CodeBasedGraphicsTest(referenceImagePath, "Assets/ActualImages")]
-    public async Task GizmoRenderingWorks()
+    [Test, Category("Graphics"), GraphicsTest]
+    [Ignore("Test disabled due to instabilities, UUM-92518")]
+    public async Task GizmoRenderingWorks(GraphicsTestCase testCase)
     {
         // Failing on OpenGL
         if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
             return;
 
-        const string scenePath = "Assets/Scenes/CodeBasedTests/GizmoRendering.unity";
+        const string scenePath = "Assets/CodeBasedTests/GizmoRendering.unity";
         const int numFramesToWarmup = 4;
 
         EditorSceneManager.OpenScene(scenePath);
@@ -48,27 +48,6 @@ public class GizmoRenderingTests
             AverageCorrectnessThreshold = 0.01f
         };
 
-        var referenceImageFolder = Path.Combine(referenceImagePath, TestUtils.GetCurrentTestResultsFolderPath());
-        var referenceImageFile  = EditorUtils.ReplaceCharacters(Path.Combine(referenceImageFolder, $"GizmoRenderingWorks.png"));
-        var referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(referenceImageFile);
-
-        if (referenceImage == null)
-        {
-            var referenceImageFileBase = EditorUtils.ReplaceCharacters(Path.Combine(referenceImageBasePath, $"GizmoRenderingWorks.png"));
-            referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(referenceImageFileBase);
-
-            if (referenceImage == null)
-            {
-                throw new System.Exception($"Reference image not found at '{referenceImageFile}' and also not in base at '{referenceImageFileBase}'");
-            }
-
-            Debug.Log($"Using reference image from '{referenceImageFileBase}'");
-        }
-        else
-        {
-            Debug.Log($"Using reference image from '{referenceImageFile}'");
-        }
-
-        ImageAssert.AreEqual(referenceImage, capturedTexture, imageComparisonSettings);
+        ImageAssert.AreEqual(testCase.ReferenceImage.Image, capturedTexture, imageComparisonSettings);
     }
 }

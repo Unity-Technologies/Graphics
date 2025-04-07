@@ -123,7 +123,7 @@ namespace UnityEditor.Rendering
                 var k_EnsureFrameSetting = Type.GetType("UnityEditor.Rendering.HighDefinition.HDEditorUtils,Unity.RenderPipelines.HighDefinition.Editor")
                     .GetMethod("EnsureFrameSetting", BindingFlags.Static | BindingFlags.NonPublic);
 
-                k_EnsureFrameSetting.Invoke(null, new object[] { k_APVFrameSetting, "Adaptive Probe Volumes" });
+                k_EnsureFrameSetting.Invoke(null, new object[] { k_APVFrameSetting});
             }
         }
 

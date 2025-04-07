@@ -10,7 +10,7 @@ To do this:
 
 ## Example: Float one object
 
-![](Images/water-22.2-onebuoyancy.png)
+![A cube floating on an ocean.](Images/water-22.2-onebuoyancy.png)
 
 This is an example script to float one object on a water surface.
 
@@ -52,7 +52,7 @@ public class FitToWaterSurface : MonoBehaviour
 <a name="burstversion"></a>
 ## Example: Float several objects
 
-![](Images/water-22.2-multibuoyancy.png)
+![Hundreds of cubes floating on an ocean.](Images/water-22.2-multibuoyancy.png)
 
 This is an example script to float an array of objects on a water surface using the [Burst compiler](https://docs.unity3d.com/Packages/com.unity.burst@1.8/manual/index.html).
 

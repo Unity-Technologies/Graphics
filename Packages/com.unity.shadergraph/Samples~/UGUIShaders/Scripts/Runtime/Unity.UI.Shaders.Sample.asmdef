@@ -1,0 +1,25 @@
+{
+    "name": "Unity.UI.Shaders.Sample",
+    "rootNamespace": "Unity.UI.Shaders.Sample",
+    "references": [
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UGUI"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.ugui",
+            "expression": "",
+            "define": "UGUI"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -8,7 +8,7 @@ The request is processed sequentially in your script, so there's no callback inv
 
 `RenderPipeline.StandardRequest` renders the following:
 
-* A full stack of cameras in the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html) (URP).
+* A full stack of cameras in the [Universal Render Pipeline](https://docs.unity3d.com/Manual/urp/urp-introduction.html) (URP).
 * A single camera in the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html) (HDRP).
 
 The following code sample gets the output of the scriptable render pipeline when you select a GUI button. Attach the script to a camera and select **Enter Play Mode**.
@@ -91,4 +91,4 @@ public class StandardRenderRequest : MonoBehaviour
 
 ## Other useful information
 
-* On [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.0/manual/User-Render-Requests.html).
+* On [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/User-Render-Requests.html).

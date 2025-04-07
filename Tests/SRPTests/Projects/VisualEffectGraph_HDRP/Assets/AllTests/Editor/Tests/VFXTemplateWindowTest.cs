@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+
+using Moq;
 using NUnit.Framework;
 
+using UnityEditor.PackageManager.UI;
 using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -413,6 +416,45 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(pathB, displayedPath);
 
             yield return null;
+        }
+
+        [UnityTest, Description("Covers UUM-95871")]
+        public IEnumerator Check_Install_Learning_Sample_Button()
+        {
+            var controller = VFXTestCommon.StartEditTestAsset();
+            yield return null;
+
+            // Create a mock package extension that throws to simulate a failing package
+            var throwingExtensionMock = new Mock<IPackageManagerExtension>();
+            throwingExtensionMock.Setup(x => x.OnPackageSelectionChange(It.IsAny<PackageManager.PackageInfo>())).Throws<NullReferenceException>();
+
+            try
+            {
+                PackageManagerExtensions.RegisterExtension(throwingExtensionMock.Object);
+
+                // Get template dropdown from the VFX graph toolbar
+                var vfxViewWindow = VFXViewWindow.GetWindow(controller.graph, false, true);
+                var templateDropDown = vfxViewWindow.rootVisualElement.Q<CreateFromTemplateDropDownButton>();
+                Assert.NotNull(templateDropDown);
+
+                // Open the template window
+                var onCreateNewMethod = templateDropDown.GetType().GetMethod("OnCreateNew", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.NotNull(onCreateNewMethod);
+                onCreateNewMethod.Invoke(templateDropDown, null);
+
+                Assert.True(EditorWindow.HasOpenInstances<VFXTemplateWindow>());
+                var templateWindow = EditorWindow.GetWindow<VFXTemplateWindow>();
+                var installButton = templateWindow.rootVisualElement.Q<Button>("InstallButton");
+                Assert.NotNull(installButton);
+                Assert.True(installButton.enabledSelf);
+
+                // Check the failing extension package has been called otherwise the test does nothing useful
+                throwingExtensionMock.Verify(x => x.OnPackageSelectionChange(It.IsAny<PackageManager.PackageInfo>()), Times.Once);
+            }
+            finally
+            {
+                PackageManagerExtensions.Extensions.Remove(throwingExtensionMock.Object);
+            }
         }
 
         internal static IEnumerator CheckNewVFXIsCreated(int templateIndex = 3)

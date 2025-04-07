@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Water decal component.
     /// </summary>
-    [HDRPHelpURL("WaterSystem-waterdecal")]
+    [HDRPHelpURL("water-decals-and-masking-in-the-water-system")]
     [ExecuteInEditMode]
     public partial class WaterDecal : MonoBehaviour
     {

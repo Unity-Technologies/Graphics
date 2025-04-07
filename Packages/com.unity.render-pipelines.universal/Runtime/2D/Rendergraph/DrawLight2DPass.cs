@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.BeginSample(blendOpName);
 
                 if (!Renderer2D.supportsMRT && !passData.isVolumetric)
-                    cmd.SetRenderTarget(passData.lightTextures[i], passData.depthTexture);
+                    cmd.SetRenderTarget(passData.lightTextures[i]);
 
                 var indicesIndex = Renderer2D.supportsMRT ? i : 0;
                 if (!passData.isVolumetric)
@@ -219,7 +219,6 @@ namespace UnityEngine.Rendering.Universal
             // TODO: Optimize and remove low level pass
             // For low level shadow and light pass
             internal TextureHandle[] lightTextures;
-            internal TextureHandle depthTexture;
         }
 
         public void Render(RenderGraph graph, ContextContainer frameData, Renderer2DData rendererData, ref LayerBatch layerBatch, int batchIndex, bool isVolumetric = false)
@@ -238,12 +237,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     intermediateTexture[0] = commonResourceData.activeColorTexture;
                     passData.lightTextures = universal2DResourceData.lightTextures[batchIndex];
-                    passData.depthTexture = universal2DResourceData.intermediateDepth;
 
                     for (var i = 0; i < passData.lightTextures.Length; i++)
                         builder.UseTexture(passData.lightTextures[i], AccessFlags.Write);
-
-                    builder.UseTexture(passData.depthTexture, AccessFlags.Write);
 
                     if (layerBatch.lightStats.useNormalMap)
                         builder.UseTexture(universal2DResourceData.normalsTexture[batchIndex]);
@@ -285,12 +281,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     intermediateTexture[0] = commonResourceData.activeColorTexture;
                     var lightTextures = !isVolumetric ? universal2DResourceData.lightTextures[batchIndex] : intermediateTexture;
-                    var depthTexture = !isVolumetric ? universal2DResourceData.intermediateDepth : commonResourceData.activeDepthTexture;
 
                     for (var i = 0; i < lightTextures.Length; i++)
                         builder.SetRenderAttachment(lightTextures[i], i);
-
-                    builder.SetRenderAttachmentDepth(depthTexture);
 
                     if (layerBatch.lightStats.useNormalMap)
                         builder.UseTexture(universal2DResourceData.normalsTexture[batchIndex]);

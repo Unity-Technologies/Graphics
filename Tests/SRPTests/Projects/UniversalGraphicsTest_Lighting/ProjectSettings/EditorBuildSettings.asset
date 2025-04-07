@@ -69,6 +69,9 @@ EditorBuildSettings:
     path: Assets/Scenes/134_Lighting_Mixed_ShadowMask_Distance.unity
     guid: 7ec898d33586cf84ca02ac537472e20d
   - enabled: 1
+    path: Assets/Scenes/134_Lighting_Mixed_ShadowMask_Distance_ShadowStrength.unity
+    guid: 1f02677e19d67ea478c4e8ee27537933
+  - enabled: 1
     path: Assets/Scenes/135_Lighting_Directional1Cascades.unity
     guid: f1454a5402867f14e8df402c507e29db
   - enabled: 1
@@ -104,9 +107,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/152_Lighting_EnlightenEnvironment.unity
     guid: fb8f8e7cc18a5314f8d66d2ddfbfbaec
-  - enabled: 1
-    path: Assets/Scenes/153_Lighting_EnlightenTerrain.unity
-    guid: 677cb6424a7fe3947974395b6c3d70a4
   - enabled: 1
     path: Assets/Scenes/200_DepthDeferred.unity
     guid: 3bbe19bef8dcc4e65b7aaa710c4114c6

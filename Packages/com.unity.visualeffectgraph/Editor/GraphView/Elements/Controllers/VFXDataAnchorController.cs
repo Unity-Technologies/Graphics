@@ -560,9 +560,9 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXUpcommingDataAnchorController : VFXDataAnchorController
+    class VFXUpcomingDataAnchorController : VFXDataAnchorController
     {
-        public VFXUpcommingDataAnchorController(VFXNodeController sourceNode, bool hidden) : base(null, sourceNode, hidden)
+        public VFXUpcomingDataAnchorController(VFXNodeController sourceNode, bool hidden) : base(null, sourceNode, hidden)
         {
         }
 
@@ -638,7 +638,7 @@ namespace UnityEditor.VFX.UI
             if (op == null)
                 return false;
 
-            if (controller is VFXUpcommingDataAnchorController)
+            if (controller is VFXUpcomingDataAnchorController)
                 return false;
 
             if (!CanLinkToNode(controller.sourceNode, cache))

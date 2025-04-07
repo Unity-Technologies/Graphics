@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering
         public fixed float transitionDistances[LODGroupData.k_MaxLODLevelsCount]; // todo - make this a separate data struct (CPUOnly, as we do not support dithering on GPU..)
         public float worldSpaceSize;// SpeedTree crossfade.
         public fixed bool percentageFlags[LODGroupData.k_MaxLODLevelsCount];// SpeedTree crossfade.
+        public byte forceLODMask;
     }
 
     [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
@@ -155,6 +156,7 @@ namespace UnityEngine.Rendering
             var worldReferencePoint = inputData.worldSpaceReferencePoint[index];
             var worldSpaceSize = inputData.worldSpaceSize[index];
             var lastLODIsBillboard = inputData.lastLODIsBillboard[index];
+            var forceLODMask = inputData.forceLODMask[index];
             var useDitheringCrossFade = fadeMode != LODFadeMode.None && supportDitheringCrossFade;
             var useSpeedTreeCrossFade = fadeMode == LODFadeMode.SpeedTree;
 
@@ -166,6 +168,7 @@ namespace UnityEngine.Rendering
             lodGroupData->rendererCount = useDitheringCrossFade ? renderersCount : 0;
             lodGroupCullingData->worldSpaceSize = worldSpaceSize;
             lodGroupCullingData->worldSpaceReferencePoint = worldReferencePoint;
+            lodGroupCullingData->forceLODMask = forceLODMask;
             lodGroupCullingData->lodCount = lodCount;
 
             rendererCount.Add(lodGroupData->rendererCount);

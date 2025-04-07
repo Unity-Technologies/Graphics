@@ -225,6 +225,7 @@ namespace UnityEngine.Rendering
 
 
         [DisplayInfo(name = "GPU Resident Drawer", order = 5)]
+        [CurrentPipelineHelpURL("gpu-resident-drawer")]
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "GPU Resident Drawer";

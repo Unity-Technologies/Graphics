@@ -15,8 +15,6 @@ For more information about panini projection, see PanoTools’ wiki documentatio
 
 ## Properties
 
-![](Images/Post-processingPaniniProjection1.png)
-
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | **Distance**    | Use the slider to set the strength of the distortion.        |

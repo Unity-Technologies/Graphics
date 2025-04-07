@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
@@ -14,64 +15,32 @@ namespace UnityEditor.VFX
     /// </example>
     [Conditional("UNITY_EDITOR")]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum)]
-    class VFXHelpURLAttribute : HelpURLAttribute
+    internal class VFXHelpURLAttribute : CoreRPHelpURLAttribute
     {
-        const string fallbackVersion = "13.1";
-        const string url = "https://docs.unity3d.com/Packages/{0}@{1}/manual/{2}.html{3}";
+        public VFXHelpURLAttribute(string pageName, string pageHash = "")
+            : base(pageName, pageHash, Documentation.packageName)
+        {
+        }
+    }
+
+    internal class Documentation : DocumentationInfo
+    {
+        /// <summary>
+        /// The name of the package
+        /// </summary>
+        public const string packageName = "com.unity.visualeffectgraph";
 
         /// <summary>
-        /// The constructor of the attribute
+        /// Generates a Visual Effect Graph help url for the given page name
         /// </summary>
-        /// <param name="pageName"></param>
-        /// <param name="packageName"></param>
-        public VFXHelpURLAttribute(string pageName, string packageName = "com.unity.visualeffectgraph")
-            : base(GetPageLink(packageName, pageName))
-        {
-        }
-
-        public static string version
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (TryGetPackageInfoForType(typeof(VFXHelpURLAttribute), out _, out var version))
-                    return version;
-#endif
-                return fallbackVersion;
-            }
-        }
-
-        public static string GetPageLink(string packageName, string pageName) => string.Format(url, packageName, version, pageName, "");
-
-#if UNITY_EDITOR
+        /// <param name="pageName">The page name</param>
+        /// <returns>The full url.</returns>
+        public static string GetPageLink(string pageName) => GetPageLink(packageName, pageName);
+        
         /// <summary>
-        /// Obtain package information from a specific type
+        /// Generates a default Visual Effect Graph help url
         /// </summary>
-        /// <param name="type">The type used to retrieve package information</param>
-        /// <param name="packageName">The name of the package containing the given type</param>
-        /// <param name="version">The version number of the package containing the given type. Only Major.Minor will be returned as fix is not used for documentation</param>
-        /// <returns></returns>
-        public static bool TryGetPackageInfoForType(Type type, out string packageName, out string version)
-        {
-            var packageInfo = PackageManager.PackageInfo.FindForAssembly(type.Assembly);
-            if (packageInfo == null)
-            {
-                packageName = null;
-                version = null;
-                return false;
-            }
-
-            packageName = packageInfo.name;
-            version = packageInfo.version.Substring(0, packageInfo.version.LastIndexOf('.'));
-            return true;
-        }
-
-        public static string GetHelpUrl(Type t)
-        {
-            var attribute = (VFXHelpURLAttribute)t.GetCustomAttribute(typeof(VFXHelpURLAttribute), false);
-            return attribute?.URL;
-
-        }
-#endif
+        /// <returns>The full url to the index page.</returns>
+        public static string GetDefaultPackageLink() => GetDefaultPackageLink(packageName);
     }
 }

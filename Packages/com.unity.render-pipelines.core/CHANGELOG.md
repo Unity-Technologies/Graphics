@@ -10,6 +10,83 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.0.3] - 2025-02-13
+
+This version is compatible with Unity 6000.2.0a1.
+
+### Added
+- Added Variable Rate Shading API support for (Raster)CommandBuffer(s), RenderGraph and RTHandles.
+Various VRS utilities.
+- helper functions to Render Graph.
+
+### Changed
+- Improved Depth usage performance for some platforms.
+- Improved the Native Render Pass CPU performance by implementing a Render Pass pooling system (URP RG).
+- Reworked the additional properties.
+- Improved Render Graph warning message in URP when missing RecordRenderGraph implementation.
+- Displayed subpass and attachment index on Render Graph Viewer.
+- Added a new icon and tooltip if there are multiple usage details for a resource block on Render Graph Viewer.
+- Fixed Render Graph Viewer being called before Render Graph execution and its resource deallocation.
+- Added What's New in Unity 6 to SRP Core Package.
+
+### Fixed
+- Fixed render graph incorrectly handling rendering to array slices and mipmaps other than 0 in some cases.
+- Fixed an issue where Lens Flare was not rendering properly in OpenGLES3.
+- Fixed missing STP shaders & visual artifacts when targeting GLCore renderer.
+- Render Graph Viewer - Improved UI lock when searching on side panels.
+- Render Graph Viewer - Padding corrected on burger menu on the side panels.
+- Fixed the crash happening when APV tried to stream in block data.
+- Fixed VRS initialization errors. Now init may fail explicitly and must be checked by the user code.
+- Fixed Rendering Debugger - Silent crash when selecting a Volume component with public RTHandles.
+- Fixed Transient Resources support in Native RenderPass Render Graph (used in URP).
+- Fixed an issue where the Adaptive Probe Volume (APV) streaming buffer could leak into the current pool when chunk sizes were mismatched, leading to memory contamination and potential crashes.
+- Fixed an issue in the Render Graph Viewer where text overlapped after performing a search in the Pass List.
+- Fixed an issue in pass culling where resources were not deallocated if the last pass using them was culled.
+- Fixed `RenderGraphObjectPool` and `GetTempMaterialPropertyBlock()` usage in URP RenderGraph.
+- Fixed an issue in URP Render Graph where, in an async compute edge case, it was waiting for a resource that was not written by any pass.
+- Added messaging to the Rendering Debugger UI to make it clearer that GPU Resident Drawer settings do not work if GPU Resident Drawer is not enabled. 
+- GPU Resident Drawer: Changed BatchRendererGroup variants was not reinitializing the system.
+- Improved the compiler logic that detects if the current render target is being used outside the current native render pass (e.g., when the pass is broken up by an unsafe pass), and determines the store action for this case. The fix now ensures that the `StoreAndResolve` action is used when the resource is read by an Unsafe Pass. 
+- Rendering Debugger - Keep the correct selected panel when entering and exiting from playmode.
+- Removed "depth only surface" warning message appearing when using Game View Gizmos in URP RG.
+- Render Graph Viewer: Fixed missing min height when resizing side panel vertical splitter.
+- Render Graph Viewer: Fixed possible NullReferenceException when opening the project.
+- Render Graph Viewer: Fixed side panel splitter state after returning from empty pass/resource filter.
+- Render Graph Viewer: Fixed long resource name clipping issues in side panel.
+- Render Graph Viewer: Fixed tooltip size bug and restructure tooltip messages.
+- Fixed memory usage regression causing up to 150MB higher memory usage in URP player builds.
+- Added missing user-facing text when inspecting volume profile when render pipeline has not been properly initialized yet.
+- Game view background turn yellow after enable render graph.
+- Fixed light.useViewFrustumForShadowCasterCull previously being ignored for shadow cascades. light.useViewFrustumForShadowCasterCull now works as expected.
+- Fixed an exception thrown when Render Graph pass was missing its renderFunc but tried to compute its hash value.
+- Fixed Render Graph Compiler logic bug where UnsafePass using MSAA texture could result in missing resolve surface errors.
+- Fixed incorrect default source texture name for Render Graph blit util function.
+- Fixed NullReferenceException when jumping to pass code from Render Graph Viewer.
+- Fixed _FOVEATED_RENDERING_NON_UNIFORM_RASTER shader compilation errors.
+- Fixed a null reference exception on the Graphics Settings stripper.
+- Avoid that the same volume can be registered more than 1 time in the VolumeManager.
+- Fixed crash caused by indirect argument buffer being one item too small.
+- [GLES3] Fixed an issue where Blitter.GetBlitMaterial(TextureDimension.Tex2DArray) returns null.
+- Fixed alignment of the columns on DebugUI.Foldouts.
+- Fixed BlitTexture(RenderTargetIdentifier) to be affected by PostProcessing.
+- Fixed errors that could happen when interacting with the Default Volume Profile context menu in Project Settings > Graphics.
+- Fixed a numerical error of ComputeEdgeFactor(V1, V2) when two vectors are colinear.
+- Fixed potential data corruption due to incorrect native render pass store action in NRP compiler.
+- Added stencil flag to read-only depth logic in NRP compiler to avoid unintentional usage of depth read and stencil write states on some APIs.
+- Added more error checking to `RenderGraph.ImportTexture` to prevent importing RenderTextures that have both color and depth.
+An exception will now be thrown in this case.
+- Fixed  an issue when using multiple AddBlitPass would binds the _BlitTexture wrongly.
+- Modified TextureDesc so it can now use GraphicsFormat to set the depthStencil format (TextureDesc.format). The TextureDesc.depthBufferBits and TextureDesc.colorFormat fields are now properties that call GraphicsFormatUtilities functions for backwards compatibility. The descriptor now unambiguously describes a single resource, either color or depth. Therefore, TextureHandle clearly represents a single resource.
+- Modified RTHandle allocators so they can now use GraphicsFormat to set the depthStencil format (TextureDesc.format). The allocators take a single format for either color or depth stencil to avoid incorrectly creating depth instead of color or vice versa.
+- Fixed a crash on DX12 due to invalid subpass flags passed by native render pass compiler.
+- Fixed an issue where Lens Flare was not rendering properly in OpenGLES3.
+- Fixed render graph incorrectly handling rendering to array slices and mipmaps other than 0 in some cases.
+- Render Graph Viewer - Improved UI lock when searching on side panels.
+- Render Graph Viewer - Padding corrected on burger menu on the side panels.
+- Fixed missing STP shaders & visual artifacts when targeting GLCore renderer
+- Rendering Debugger - Silent crash when selecting a Volume component with public RTHandles.
+- Fixed a crash on leaking streaming scratch buffer differently sized into the current pool.
+
 ## [17.0.2] - 2024-04-02
 
 This version is compatible with Unity 6000.0.0b15.

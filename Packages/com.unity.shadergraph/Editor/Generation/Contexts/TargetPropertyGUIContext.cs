@@ -72,8 +72,7 @@ namespace UnityEditor.ShaderGraph
 
         public void AddHelpBox(MessageType messageType, string messageText)
         {
-            var helpBox = new HelpBoxRow(messageType);
-            helpBox.Add(new Label(messageText));
+            var helpBox = new HelpBoxRow(messageText, messageType);
             this.hierarchy.Add(helpBox);
         }
 

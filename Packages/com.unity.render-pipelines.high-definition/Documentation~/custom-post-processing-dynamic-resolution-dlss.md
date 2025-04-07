@@ -3,7 +3,7 @@
 If you want to use DLSS or dynamic resolution with a custom post-processing pass, and need to interpolate or sample UVs from color, normal, or velocity, use the following functions to calculate the correct UVs:
 
 ```glsl
-#include "Packages/com.unity.render-pipelines.high-dynamic/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
 //...
 

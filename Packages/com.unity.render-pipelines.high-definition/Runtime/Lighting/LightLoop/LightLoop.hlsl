@@ -470,6 +470,26 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
             {
                 tempBuiltinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
+
+                #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
+                if (_EnableProbeVolumes)
+                {
+                    // Sample APV to get data for reflection probe normalization.
+                    float3 R = reflect(-V, bsdfData.normalWS);
+                    float3 unusedBakeDiffuseLighting; // Not used
+                    float3 unusedBackBakeDiffuseLighting; // Not used
+                    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
+                        bsdfData.normalWS,
+                        -bsdfData.normalWS,
+                        R,
+                        V,
+                        posInput.positionSS,
+                        builtinData.renderingLayers,
+                        unusedBakeDiffuseLighting,
+                        unusedBackBakeDiffuseLighting,
+                        lightInReflDir);
+                }
+                #endif
             }
             else
 #endif

@@ -56,12 +56,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public sealed partial class UniversalRenderer : ScriptableRenderer
     {
-#if UNITY_SWITCH || UNITY_ANDROID || UNITY_EMBEDDED_LINUX || UNITY_QNX
-        const GraphicsFormat k_DepthStencilFormatDefault = GraphicsFormat.D24_UNorm_S8_UInt;
-#else
-        const GraphicsFormat k_DepthStencilFormatDefault = GraphicsFormat.D32_SFloat_S8_UInt;
-        #endif
-
         const int k_FinalBlitPassQueueOffset = 1;
         const int k_AfterFinalBlitPassQueueOffset = k_FinalBlitPassQueueOffset + 1;
 
@@ -221,9 +215,10 @@ namespace UnityEngine.Rendering.Universal
         internal DeferredLights deferredLights { get => m_DeferredLights; }
         internal LayerMask opaqueLayerMask { get; set; }
         internal LayerMask transparentLayerMask { get; set; }
+        internal bool shadowTransparentReceive { get; set; }
 
-        internal GraphicsFormat cameraDepthTextureFormat { get => (m_CameraDepthTextureFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthTextureFormat : k_DepthStencilFormatDefault; }
-        internal GraphicsFormat cameraDepthAttachmentFormat { get => (m_CameraDepthAttachmentFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthAttachmentFormat : k_DepthStencilFormatDefault; }
+        internal GraphicsFormat cameraDepthTextureFormat { get => (m_CameraDepthTextureFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthTextureFormat : CoreUtils.GetDefaultDepthStencilFormat(); }
+        internal GraphicsFormat cameraDepthAttachmentFormat { get => (m_CameraDepthAttachmentFormat != DepthFormat.Default) ? (GraphicsFormat)m_CameraDepthAttachmentFormat : CoreUtils.GetDefaultDepthStencilFormat(); }
 
         /// <summary>
         /// Constructor for the Universal Renderer.
@@ -272,6 +267,7 @@ namespace UnityEngine.Rendering.Universal
             m_IntermediateTextureMode = data.intermediateTextureMode;
             opaqueLayerMask = data.opaqueLayerMask;
             transparentLayerMask = data.transparentLayerMask;
+            shadowTransparentReceive = data.shadowTransparentReceive;
 
             if (UniversalRenderPipeline.asset?.supportsLightCookies ?? false)
             {
@@ -286,8 +282,8 @@ namespace UnityEngine.Rendering.Universal
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
 
-            this.stripShadowsOffVariants = true;
-            this.stripAdditionalLightOffVariants = true;
+            this.stripShadowsOffVariants = data.stripShadowsOffVariants;
+            this.stripAdditionalLightOffVariants = data.stripAdditionalLightOffVariants;
 #if ENABLE_VR && ENABLE_VR_MODULE
 #if PLATFORM_WINRT || PLATFORM_ANDROID
             // AdditionalLightOff variant is available on HL&Quest platform due to performance consideration.
@@ -774,7 +770,7 @@ namespace UnityEngine.Rendering.Universal
             UpdateCameraHistory(cameraData);
 
             // Gather render pass input requirements
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled);
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera);
 
             // Gather render pass require rendering layers event and mask size
             bool requiresRenderingLayer = RenderingLayerUtils.RequireRenderingLayers(this, rendererFeatures,
@@ -807,11 +803,6 @@ namespace UnityEngine.Rendering.Universal
             // Enable depth normal prepass
             if (renderingLayerProvidesByDepthNormalPass)
                 renderPassInputs.requiresNormalsTexture = true;
-
-#if UNITY_EDITOR
-            if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled())
-                renderPassInputs.requiresNormalsTexture = true;
-#endif
 
             // TODO: investigate the order of call, had to change because of requiresRenderingLayer
             if (m_DeferredLights != null)
@@ -1783,7 +1774,7 @@ namespace UnityEngine.Rendering.Universal
             internal RenderPassEvent requiresDepthTextureEarliestEvent;
         }
 
-        private RenderPassInputSummary GetRenderPassInputs(bool isTemporalAAEnabled, bool postProcessingEnabled)
+        private RenderPassInputSummary GetRenderPassInputs(bool isTemporalAAEnabled, bool postProcessingEnabled, bool isSceneViewCamera)
         {
             RenderPassInputSummary inputSummary = new RenderPassInputSummary();
             inputSummary.requiresDepthNormalAtEvent = RenderPassEvent.BeforeRenderingOpaques;
@@ -1838,7 +1829,10 @@ namespace UnityEngine.Rendering.Universal
                 inputSummary.requiresDepthTextureEarliestEvent = (RenderPassEvent)Mathf.Min((int)m_MotionVectorPass.renderPassEvent, (int)inputSummary.requiresDepthTextureEarliestEvent);
             }
 
-
+#if UNITY_EDITOR
+            if (ProbeReferenceVolume.instance.IsProbeSamplingDebugEnabled() && isSceneViewCamera)
+                inputSummary.requiresNormalsTexture = true;
+#endif
             return inputSummary;
         }
 

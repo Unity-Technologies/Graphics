@@ -1,4 +1,4 @@
-#StatusOK, #StatusError
+#StatusOK, #StatusError, #StatusPending
 {
     width: 12px;
     height: 12px;

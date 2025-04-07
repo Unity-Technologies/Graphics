@@ -1031,7 +1031,7 @@ namespace UnityEngine.Rendering
             AssetDatabase.SaveAssets();
 
             // Explicitly make sure the binary output files are writable since we write them using the C# file API (i.e. check out Perforce files if applicable)
-            var outputPaths = new List<string>(new[] { cellDataFilename, cellBricksDataFilename, cellSharedDataFilename, cellSupportDataFilename, cellOptionalDataFilename });
+            var outputPaths = new List<string>(new[] { cellDataFilename, cellBricksDataFilename, cellSharedDataFilename, cellSupportDataFilename, cellOptionalDataFilename, cellProbeOcclusionDataFilename });
 
             if (!AssetDatabase.MakeEditable(outputPaths.ToArray()))
                 Debug.LogWarning($"Failed to make one or more probe volume output file(s) writable. This could result in baked data not being properly written to disk. {string.Join(",", outputPaths)}");
@@ -1046,9 +1046,13 @@ namespace UnityEngine.Rendering
                 {
                     WriteNativeArray(fs, probesL2);
                 }
-                using (var fs = new System.IO.FileStream(cellProbeOcclusionDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
+                if (probeOcclusion.Length > 0)
                 {
-                    WriteNativeArray(fs, probeOcclusion);
+                    // Write the probe occlusion data file, only if this data was baked (shadowmask mode) - UUM-85411
+                    using (var fs = new System.IO.FileStream(cellProbeOcclusionDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
+                    {
+                        WriteNativeArray(fs, probeOcclusion);
+                    }
                 }
                 using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.ReadWrite))
                 {
@@ -1066,7 +1070,11 @@ namespace UnityEngine.Rendering
 
             AssetDatabase.ImportAsset(cellDataFilename);
             AssetDatabase.ImportAsset(cellOptionalDataFilename);
-            AssetDatabase.ImportAsset(cellProbeOcclusionDataFilename);
+            // If we did not write a probe occlusion file (because it was zero bytes), don't try to load it (UUM-101480)
+            if (probeOcclusion.Length > 0)
+            {
+                AssetDatabase.ImportAsset(cellProbeOcclusionDataFilename);
+            }
             AssetDatabase.ImportAsset(cellBricksDataFilename);
             AssetDatabase.ImportAsset(cellSharedDataFilename);
             AssetDatabase.ImportAsset(cellSupportDataFilename);

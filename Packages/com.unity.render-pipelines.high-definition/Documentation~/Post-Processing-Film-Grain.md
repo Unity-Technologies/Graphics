@@ -13,8 +13,6 @@ The Film Grain effect simulates the random optical texture of photographic film,
 
 ## Properties
 
-![](Images/Post-processingFilmGrain1.png)
-
 | **Property**  | **Description**                                              |
 | ------------- | ------------------------------------------------------------ |
 | **Type**      | Use the drop-down to select the type of grain to use. You can select from a list of presets that HDRP includes, or select **Custom** to provide your own grain Texture. |

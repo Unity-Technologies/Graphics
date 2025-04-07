@@ -361,7 +361,7 @@ void Frag(PackedVaryings packedInput,
     fragmentOutput.color = half4(surfaceData.emissive + color, surfaceData.baseColor.a);
 
 #if defined(GBUFFER_FEATURE_SHADOWMASK)
-    output.shadowMask = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+    fragmentOutput.shadowMask = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
 #endif
 
     #pragma warning (default : 3578) // Restore output value isn't completely initialized.

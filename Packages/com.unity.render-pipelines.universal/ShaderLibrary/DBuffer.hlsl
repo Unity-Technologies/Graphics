@@ -139,7 +139,7 @@ void ApplyDecal(float4 positionCS,
     // Always test the normal as we can have decompression artifact
     if (decalSurfaceData.normalWS.w < 1.0)
     {
-        normalWS.xyz = normalize(normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        normalWS.xyz = SafeNormalize(normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
 #endif
 

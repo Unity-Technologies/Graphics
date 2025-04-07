@@ -1011,7 +1011,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // Apply XR display's viewport scale to URP's dynamic resolution solution
                     float scaleToApply = XRSystem.GetRenderViewportScale();
-                    if (baseCamera.allowDynamicResolution && XRSystem.GetDynamicResolutionScale() < 1.0f)
+                    if (XRSystem.GetDynamicResolutionScale() < 1.0f)
                     {
                         // If XR dynamic resolution is enabled use the XRSystem dynamic resolution scale
                         // Smaller than 1.0 renderViewport scale are not supported to have the best performance gain
@@ -2424,5 +2424,19 @@ namespace UnityEngine.Rendering.Universal
             // Save ScreenMSAASamples value at beginning of the frame, useful for iOS/macOS
             startFrameScreenMSAASamples = Screen.msaaSamples;
         }
+
+#if UNITY_EDITOR
+        protected override bool IsPreviewSupported(Camera camera, out string reason)
+        {
+            if (camera != null 
+                && camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalData) 
+                && additionalData.renderType == CameraRenderType.Overlay)
+            {
+                reason = "Overlay camera cannot be previewed directly.\nYou need to use a base camera instead.";
+                return false;
+            }
+            return base.IsPreviewSupported(camera, out reason);
+        }
+#endif
     }
 }

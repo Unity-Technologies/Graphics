@@ -75,11 +75,11 @@ MonoBehaviour:
     Reason: No GPU Skinning
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: f2882940e2db8f344878e353fac92b48, type: 3}
+    - {fileID: 102900000, guid: 320bc6f8378f61647959c52de7e45603, type: 3}
     ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 4
+    BuildPlatform: 13
+    GraphicsDevice: 11
     Architecture: 0
-    XrSdk: 
+    XrSdk: None
     StereoModes: 0
-    Reason: Unstable - see https://jira.unity3d.com/browse/UUM-90539
+    Reason: VFX not supported on certain GPUs on Android GLES3

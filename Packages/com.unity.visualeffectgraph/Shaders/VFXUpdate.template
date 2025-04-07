@@ -129,7 +129,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
         else if (attributes.stripAlive)
         {
             uint bufferIndex = ((instanceIndex * ATTACHED_STRIP_COUNT) + index);
-            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, bufferIndex) == ~1) // Attached strip is no longer alive, recycle the particle
+            if (index >= ATTACHED_STRIP_COUNT || STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, bufferIndex) == ~1) // Attached strip is no longer alive, recycle the particle
             {
 	            uint deadIndex;
 		        InterlockedAdd(deadList[instanceIndex], 1, deadIndex);
@@ -147,7 +147,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		{
 			const StripData stripData = GetStripDataFromParticleIndex(index, instanceIndex);
 			uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
-			if (relativeIndexInStrip > 0 && relativeIndexInStrip < stripData.nextIndex - 1)
+			if (relativeIndexInStrip > 0 && relativeIndexInStrip + 1 < stripData.nextIndex)
 			{
 				AppendOutputBuffer(indirectBuffer, index, instanceActiveIndex);
 			}

@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         private RTHandle source { get; set; }
         private RTHandle destination { get; set; }
+
+        // TODO RENDERGRAPH: The Render method overwrites this property with -1 before doing anything else. It should only be used in Compatibility Mode!
         internal int MssaSamples { get; set; }
         // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
         // So this variable needs to be set to true to enable the correct copy shader semantic

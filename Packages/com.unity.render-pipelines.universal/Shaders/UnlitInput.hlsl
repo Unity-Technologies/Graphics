@@ -6,6 +6,7 @@
 
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;
+    float4 _BaseMap_TexelSize;
     half4 _BaseColor;
     half _Cutoff;
     half _Surface;

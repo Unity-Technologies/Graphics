@@ -114,8 +114,21 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// A volume component that holds settings for the Path Tracing effect.
+    /// Manages the settings for the Path Tracing effect.
     /// </summary>
+    /// <remarks>
+    /// Add a Path Tracing Volume Override to a Volume in your scene to enable and configure the path tracing effect.
+    ///
+    /// Enable path tracing in HDRP to interactively visualize highly accurate, physically-based lighting,
+    /// reflections and global illumination during the scene design process. It's especially useful for tasks like pre-visualization,
+    /// look development, or validating lighting setups in projects focused on high-quality visuals, such as architectural
+    /// visualization, automotive design, or cinematic production. This feature is best suited for powerful hardware setups
+    /// with GPUs that are compatible with DirectX Raytracing (DXR). Path tracing can be also used with the Unity Recorder to capture high fidelity animations.
+    /// </remarks>
+    /// <example>
+    /// <para>The following example shows how to add or modify a Path Tracing Volume Override from a script.</para>
+    /// <code source="../../../../../Documentation~/Path-Tracing-Example.cs"/>
+    /// </example>
     [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Ray-Tracing-Path-Tracing")]
@@ -218,6 +231,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Default constructor for the path tracing volume component.
         /// </summary>
+        /// <remarks>
+        /// Use the constructor with no arguments to create a new path tracing volume component with default values.
+        /// </remarks>
         public PathTracing()
         {
             displayName = "Path Tracing";

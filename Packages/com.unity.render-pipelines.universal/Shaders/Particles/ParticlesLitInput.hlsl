@@ -9,6 +9,7 @@ CBUFFER_START(UnityPerMaterial)
 float4 _SoftParticleFadeParams;
 float4 _CameraFadeParams;
 float4 _BaseMap_ST;
+float4 _BaseMap_TexelSize;
 half4 _BaseColor;
 half4 _EmissionColor;
 half4 _BaseColorAddSubDiff;

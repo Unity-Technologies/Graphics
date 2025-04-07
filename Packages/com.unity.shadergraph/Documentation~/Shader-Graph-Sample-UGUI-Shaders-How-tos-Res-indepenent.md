@@ -1,0 +1,12 @@
+# How to create a resolution-independent shape
+When creating a UI element, it’s very useful to be able to make it resolution-independent - meaning that it looks sharp and crisp regardless of if it’s rendered at very high resolution or very low resolution. UI elements that are based on textures are resolution dependent. The texture itself has a specific resolution - so if the UI element is rendered at a higher resolution than the texture, the result will be blurry, and if the texture is a higher resolution than the UI element is rendered, you’ll get filtering artifacts and waste texture memory.
+
+With the nodes in the library included with this sample set, you can generate shapes procedurally instead of with textures. You can render these shapes at any resolution and they will always look perfectly sharp and smoothly anti-aliased.  Here’s how to do it:
+
+1. Add one of the SDF shape nodes (Circle, Hexagon, Pill, Rectangle, Star, or Triangle) to your graph. You can find them in the Add Node menu under UI/SDFs. These nodes generate shapes using signed distance fields. If you grab the output from the Fill output port, you’ll get a shape, but you can also get the raw SDF output from the SDF output port. Each pixel in the SDF is a value that represents the distance to the nearest edge of the shape. Pixels that are inside the shape have a negative value to indicate that.
+1. Add an AntiAliasing node to your graph. You can find it in the Add Node menu under UI/Helpers.  The AntiAliasing node is designed to “resolve” an SDF into an anti-aliased shape in a resolution-independent way.
+1. Connect the SDF output port of your SDF shape node to the Gradient input port of the AntiAliasing node. 
+1. Set the Cutoff port to a default value of zero. The AntiAliasing node will convert the shape’s SDF into a solid shape using a method that correctly adapts to the number of pixels on the screen.
+1. To make your shape white and the background black, connect the **Out** port of the AntiAliasing node to a One Minus node to invert the result.
+
+You now have a resolution-independent shape. You can fill the whole screen with this shape and render it at 8k, or scale it down to a tiny portion of the screen and render it on a low-end smartphone and it will have a sharp, anti-aliased edge in all cases. 

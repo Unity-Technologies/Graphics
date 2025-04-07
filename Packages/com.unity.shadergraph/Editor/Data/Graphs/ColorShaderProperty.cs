@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal ColorShaderProperty()
         {
             displayName = "Color";
+            value = Color.black;
         }
 
         internal ColorShaderProperty(int version) : this()
