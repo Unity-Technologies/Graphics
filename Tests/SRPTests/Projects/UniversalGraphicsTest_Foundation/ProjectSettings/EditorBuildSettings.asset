@@ -543,6 +543,9 @@ EditorBuildSettings:
     path: Assets/Scenes/311_DepthCopyTransparent.unity
     guid: 7bddce5f702841a4792e89284712401a
   - enabled: 1
+    path: Assets/Scenes/315_CoreCopyAndBlit.unity
+    guid: 233f6d76572eee0439080cc4973b42ee
+  - enabled: 1
     path: Assets/Scenes/320_CameraCaptureBridge.unity
     guid: fc0920afa6040434f8002c78a6fe3c5f
   - enabled: 1

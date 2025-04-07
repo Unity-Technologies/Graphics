@@ -4,6 +4,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Assertions;
 using System.Text.RegularExpressions;
 using UnityEngine.Rendering.RenderGraphModule.Util;
+using UnityEngine.Rendering.RenderGraphModule;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -340,6 +341,16 @@ namespace UnityEngine.Rendering
 
         internal static bool CanCopyMSAA()
         {
+            //Temporary disable most msaa copies as we fix UUM-67324 which is a bit more involved due to the internal work required
+            GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
+            if (deviceType != GraphicsDeviceType.Metal || deviceType != GraphicsDeviceType.Vulkan)
+            {
+                return false;
+            }
+
+            // This test works since the second pass has the following pragmas and will not be compiled if they are not supported
+            // #pragma target 4.5
+            // #pragma require msaatex
             return s_Copy.passCount == 2;
         }
 
@@ -347,9 +358,17 @@ namespace UnityEngine.Rendering
         /// Copies a texture to another texture using framebuffer fetch.
         /// </summary>
         /// <param name="cmd">Command Buffer used for rendering.</param>
-        internal static void CopyTexture(RasterCommandBuffer cmd, bool isMSAA)
+        /// <param name="force2DForXR">Disable the special handling when XR is active where the source and destination are considered array
+        /// textures with a slice for each eye. Setting this to true will consider source and destination as regular 2D textures. When XR is
+        /// disabled, textures are always 2D so forcing them to 2D has no impact.</param>
+        internal static void CopyTexture(RasterCommandBuffer cmd, bool isMSAA, bool force2DForXR = false)
         {
+            if (force2DForXR) cmd.EnableShaderKeyword("DISABLE_TEXTURE2D_X_ARRAY");
+
             DrawTriangle(cmd, s_Copy, isMSAA ? 1 : 0);
+
+            // Set back the XR texture for regular XR calls
+            if (force2DForXR) cmd.DisableShaderKeyword("DISABLE_TEXTURE2D_X_ARRAY");
         }
 
         /// <summary>
