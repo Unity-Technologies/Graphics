@@ -398,12 +398,11 @@ namespace UnityEditor.Rendering
         }
     }
 
-
     /// <summary>
     /// Builtin Drawer for Maskfield Debug Items.
     /// </summary>
-    [DebugUIDrawer(typeof(DebugUI.MaskField))]
-    public sealed class DebugUIDrawerMaskField : DebugUIFieldDrawer<uint, DebugUI.MaskField, DebugStateUInt>
+    [DebugUIDrawer(typeof(DebugUI.RenderingLayerField))]
+    public sealed class DebugUIDrawerRenderingLayerField : DebugUIFieldDrawer<RenderingLayerMask, DebugUI.RenderingLayerField, DebugStateRenderingLayer>
     {
         /// <summary>
         /// Does the field of the given type
@@ -413,15 +412,10 @@ namespace UnityEditor.Rendering
         /// <param name="field">The field</param>
         /// <param name="state">The state</param>
         /// <returns>The current value from the UI</returns>
-        protected override uint DoGUI(Rect rect, GUIContent label, DebugUI.MaskField field, DebugStateUInt state)
+        protected override RenderingLayerMask DoGUI(Rect rect, GUIContent label, DebugUI.RenderingLayerField field, DebugStateRenderingLayer state)
         {
             uint value = field.GetValue();
-
-            var enumNames = new string[field.enumNames.Length];
-            for (int i = 0; i < enumNames.Length; i++)
-                enumNames[i] = field.enumNames[i].text;
-            var mask = EditorGUI.MaskField(rect, label, (int)value, enumNames);
-
+            var mask = EditorGUI.MaskField(rect, label, (int)value, field.renderingLayersNames);
             return (uint)mask;
         }
     }

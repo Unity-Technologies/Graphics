@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 using UnityEditor.VFX.Block;
 using UnityEngine;
 using UnityEngine.VFX;
+using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.VFX
 {
@@ -59,9 +61,30 @@ namespace UnityEditor.VFX
             }
         }
     }
+    
+    [Conditional("UNITY_EDITOR")]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum)]
+    internal class VFXParameterHelpURLAttribute : VFXHelpURLAttribute
+    {
+        public VFXParameterHelpURLAttribute(string pageName, string pageHash = "")
+            : base(pageName, pageHash)
+        {
+        }
+        public override string URL
+        {
+            get
+            {
+                if (Selection.activeObject is not VFXAttributeParameter parameter) 
+                    return base.URL;
+                
+                var parameterAttribute = parameter.attribute;
+                var formattedString = char.ToUpper(parameterAttribute[0]) + parameterAttribute.Substring(1);
+                return string.Format(base.URL, formattedString);
+            }
+        }
+    }
 
-
-    [VFXHelpURL("Operator-GetAttribute{0}")]
+    [VFXParameterHelpURL("Operator-GetAttribute{0}")]
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariant))]
     class VFXAttributeParameter : VFXOperator, IVFXAttributeUsage
     {

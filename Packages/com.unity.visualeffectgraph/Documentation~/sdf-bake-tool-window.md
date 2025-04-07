@@ -8,13 +8,12 @@ To open the SDF Bake Tool window, select **Window** > **Visual Effects** > **Uti
 
 In the Unity Editor, in the [Visual Effect Graph window](VisualEffectGraphWindow.md), blocks and operators, such as [Collide With Signed Distance Field](Block-CollideWithSignedDistanceField.md), take an SDF as an input.
 
-![](Images/sdf-update-particle-context.png)
-
-*A screenshot of the Update Particle context.*
+![The Update Particle context.](Images/sdf-update-particle-context.png)
+The **Update Particle** context.
 
 To create an SDF asset to use in the Unity Editor, you can use the SDF Bake Tool window:
 
-1. Open the SDF Bake Tool window (menu: **Window** > **Visual Effects** > **Utilities** > **SDF Bake Tool**)<br/>![](Images/sdf-bake-tool-window.png)<br/>*The SDF Bake Tool window previewing a Mesh asset and its SDF representation.*
+1. Open the SDF Bake Tool window (menu: **Window** > **Visual Effects** > **Utilities** > **SDF Bake Tool**)<br/>![The SDF Bake Tool window previewing a Mesh asset and its SDF representation.](Images/sdf-bake-tool-window.png)<br/>The SDF Bake Tool window previewing a Mesh asset and its SDF representation.
 2. Choose an asset to generate an SDF representation for. If you want to generate an SDF to represent a single Mesh asset, set **Model Source** to **Mesh**. If you want to generate an SDF that represents multiple Meshes, set **Model Source** to **Prefab**. This mode generates an SDF that represents the combination of every Mesh in a Prefab's hierarchy.
 3. By default, the SDF Bake Tool sets the bounds of the [baking box](sdf-bake-tool.md#baking-box) to be equal to the bounding box of the geometry. To scale the baking box, use **Box Size**. To move the baking box, use **Box Center**.
 4. Choose a **Maximal Resolution** for the resulting SDF texture. The **Maximal Resolution** corresponds to the resolution along the longest side of the box.
@@ -38,9 +37,9 @@ The SDF Bake Tool window includes default properties, which should suit most use
 1. To the right of the window's header, select the **More** menu (&#8942;).
 2. Enable **Advanced Properties**.
 
-![](Images/sdf-bake-tool-additional-properties.png)
+![The SDF Bake Tool window and the context menu that includes the advanced properties toggle.](Images/sdf-bake-tool-additional-properties.png)
 
-*The SDF Bake Tool window and the context menu that includes the additional properties toggle.*
+The **SDF Bake Tool** window and the context menu that includes the **Advanced Properties** toggle.
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |

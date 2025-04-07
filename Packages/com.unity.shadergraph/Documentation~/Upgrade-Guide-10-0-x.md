@@ -35,7 +35,7 @@ After the upgrade, you can add any required Block nodes that went missing, and r
 
 ### Upgrade cross-pipeline Master Nodes to the Master Stack
 
-If your graph contains PBR or Unlit Master Nodes that are compatible with both the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) (URP) and the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Shader Graph automatically upgrades them to the Master Stack based on the render pipeline currently available in your project. With Master Stacks, when you switch from one render pipeline to another, you must reimport your Shader Graph assets to update the Material Inspector for any Materials in your project.
+If your graph contains PBR or Unlit Master Nodes that are compatible with both the [Universal Render Pipeline](https://docs.unity3d.com/Manual/urp/urp-introduction.html) (URP) and the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Shader Graph automatically upgrades them to the Master Stack based on the render pipeline currently available in your project. With Master Stacks, when you switch from one render pipeline to another, you must reimport your Shader Graph assets to update the Material Inspector for any Materials in your project.
 
 In URP, you can now find all PBR Master Node settings in the URP Lit Target. The Unlit Master Node settings are in the URP Unlit Target. These settings are the same, and the final shader should appear the same as before the upgrade.
 

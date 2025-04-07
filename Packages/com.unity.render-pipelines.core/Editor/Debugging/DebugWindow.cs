@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering
             hideFlags = HideFlags.HideAndDontSave;
         }
     }
-    
+
     [CoreRPHelpURL("Rendering-Debugger")]
     sealed class DebugWindow : EditorWindowWithHelpButton, IHasCustomMenu
     {
@@ -478,22 +478,22 @@ namespace UnityEditor.Rendering
                     using (new EditorGUILayout.VerticalScope())
                     {
                         var selectedPanel = panels[m_Settings.selectedPanel];
-                        
+
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             var style = new GUIStyle(CoreEditorStyles.sectionHeaderStyle) { fontStyle = FontStyle.Bold };
                             EditorGUILayout.LabelField(new GUIContent(selectedPanel.displayName), style);
-                            
+
                             // Context menu
                             var rect = GUILayoutUtility.GetLastRect();
                             var contextMenuRect = new Rect(rect.xMax, rect.y + 4f, 16f, 16f);
-                            
+
                             CoreEditorUtils.ShowHelpButton(contextMenuRect, selectedPanel.documentationUrl, new GUIContent($"{selectedPanel.displayName} panel."));
                         }
 
                         const float leftMargin = 4f;
                         GUILayout.Space(leftMargin);
-                        
+
                         using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_ContentScroll))
                         {
                             TraverseContainerGUI(selectedPanel);
@@ -544,6 +544,11 @@ namespace UnityEditor.Rendering
             if (widget.isInactiveInEditor || widget.isHidden)
                 return;
 
+            if (widget.queryPath == null)
+            {
+                Debug.LogError($"Widget {widget.GetType()} query path is null");
+                return;
+            }
             // State will be null for stateless widget
             m_WidgetStates.TryGetValue(widget.queryPath, out DebugState state);
 

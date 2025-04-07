@@ -4,26 +4,30 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
 
-// This Renderer Feature enqueues either the DepthBlitCopyDepthPass or the DepthBlitDepthOnlyPass depending on the current platform support.
-// DepthBlitCopyPass is a simplified version of URP CopyDepthPass. The pass copies the depth texture to an RTHandle.
-// DepthBlitDepthOnlyPass is a simplified version of the URP DepthOnlyPass. The pass renders depth values to an RTHandle.
-// The Renderer Feature also enqueues the DepthBlitEdgePass which takes the RTHandle as input to create an effect to visualize depth, and output it to the screen.
+// Create a Scriptable Renderer Feature that either copies the depth texture to a render texture (RTHandle), or renders depth values to a render texture.
+// The Scriptable Renderer Feature then outputs the render texture to the screen, using a material that renders an edge effect.
+// For more information about creating scriptable renderer features, refer to https://docs.unity3d.com/Manual/urp/customizing-urp.html
 public class DepthBlitFeature : ScriptableRendererFeature
 {
+    // Set the injection points for the render passes
     public RenderPassEvent evt_Depth = RenderPassEvent.AfterRenderingOpaques;
     public RenderPassEvent evt_Edge = RenderPassEvent.AfterRenderingOpaques;
-    public UniversalRendererData rendererDataAsset; // The field for accessing opaqueLayerMask on the renderer asset
+    
+    // Create a property for a Universal Renderer asset that sets the opaque layers to draw.
+    public UniversalRendererData rendererDataAsset; 
 
+    // Create a property for the shader that copies the depth texture.
     public Shader copyDepthShader;
 
+    // Create a property for the material that renders the edge effect.
     public Material m_DepthEdgeMaterial;
 
-    // The properties for creating the depth texture
+    // Set the properties of the destination depth texture.
     private const string k_DepthRTName = "_MyDepthTexture";
     private FilterMode m_DepthRTFilterMode = FilterMode.Bilinear;
     private TextureWrapMode m_DepthRTWrapMode = TextureWrapMode.Clamp;
 
-    // This class is for keeping the TextureHandle reference in the frame data so that it can be shared with multiple passes in the render graph system.
+    // Create a class that keeps the reference to the depth texture in the frame data, so multiple passes in the render graph system can share the texture.
     public class TexRefData : ContextItem
     {
         public TextureHandle depthTextureHandle = TextureHandle.nullHandle;
@@ -34,12 +38,13 @@ public class DepthBlitFeature : ScriptableRendererFeature
         }
     }
 
-    // The passes for the effect
+    // Declare the render passes.
+    // The script uses DepthOnlyPass for platforms that run OpenGL ES, which doesn't support copying from a depth texture.
     private DepthBlitCopyDepthPass m_CopyDepthPass;
-    private DepthBlitDepthOnlyPass m_DepthOnlyPass; // DepthOnlyPass is for platforms that run OpenGL ES, which does not support CopyDepth.
+    private DepthBlitDepthOnlyPass m_DepthOnlyPass; 
     private DepthBlitEdgePass m_DepthEdgePass;
 
-    // Check if the platform supports CopyDepthPass
+    // Check if the platform supports copying from a depth texture.
     private bool CanCopyDepth(ref CameraData cameraData)
     {
         bool msaaEnabledForCamera = cameraData.cameraTargetDescriptor.msaaSamples > 1;
@@ -49,7 +54,7 @@ public class DepthBlitFeature : ScriptableRendererFeature
 
         bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
 
-        // Avoid copying MSAA depth on GLES3 platform to avoid invalid results
+        // Avoid copying MSAA depth on GLES3 platforms to avoid invalid results
         if (IsGLESDevice() && msaaDepthResolve)
             return false;
 
@@ -61,13 +66,15 @@ public class DepthBlitFeature : ScriptableRendererFeature
         return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
     }
 
+    // Override the AddRenderPasses method to inject passes into the renderer. Unity calls AddRenderPasses once per camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        // Skip rendering if the camera is not a game camera.
         var cameraData = renderingData.cameraData;
         if (renderingData.cameraData.cameraType != CameraType.Game)
             return;
 
-        // Setup RenderTextureDescriptor for creating the depth RTHandle
+        // Set up a RenderTextureDescriptor with the properties of the depth texture.
         var desc = renderingData.cameraData.cameraTargetDescriptor;
         if (CanCopyDepth(ref cameraData))
         {
@@ -80,11 +87,13 @@ public class DepthBlitFeature : ScriptableRendererFeature
             desc.msaaSamples = 1;
         }
         
-        // Setup passes
+        // Create the DepthBlitCopyDepthPass or DepthBlitDepthOnlyPass render pass, and inject it into the renderer.
         RTHandle depthRTHandle;
         if (CanCopyDepth(ref cameraData))
         {
             if (m_CopyDepthPass == null)
+                // Create a new instance of a render pass that copies the depth texture to the new render texture.
+                // This render pass is a simplified version of CopyDepthPass in URP.
                 m_CopyDepthPass = new DepthBlitCopyDepthPass(evt_Depth, copyDepthShader, 
                     desc, m_DepthRTFilterMode, m_DepthRTWrapMode, name: k_DepthRTName);
 
@@ -94,6 +103,8 @@ public class DepthBlitFeature : ScriptableRendererFeature
         else
         {
             if (m_DepthOnlyPass == null)
+                // Create a new instance of a render pass that renders depth values to the new render texture.
+                // This render pass is a simplified version of DepthOnlyPass in URP.
                 m_DepthOnlyPass = new DepthBlitDepthOnlyPass(evt_Depth, RenderQueueRange.opaque, rendererDataAsset.opaqueLayerMask,  
                     desc, m_DepthRTFilterMode, m_DepthRTWrapMode, name: k_DepthRTName);
 
@@ -101,16 +112,18 @@ public class DepthBlitFeature : ScriptableRendererFeature
             depthRTHandle = m_DepthOnlyPass.depthRT;
         }
 
-        // Pass the RTHandle for the DepthEdge effect
+        // Pass the render texture to the edge effect render pass, and inject the render pass into the renderer.
         m_DepthEdgePass.SetRTHandle(ref depthRTHandle);
         renderer.EnqueuePass(m_DepthEdgePass);
     }
 
     public override void Create()
     {
+        // Create a new instance of the render pass that renders the edge effect.
         m_DepthEdgePass = new DepthBlitEdgePass(m_DepthEdgeMaterial, evt_Edge);
     }
 
+    // Free the resources the render passes use.
     protected override void Dispose(bool disposing)
     {
         m_CopyDepthPass?.Dispose();

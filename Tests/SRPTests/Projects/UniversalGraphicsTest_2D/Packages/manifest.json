@@ -16,7 +16,6 @@
     "com.unity.rendering.light-transport": "file:../../../../../Packages/com.unity.rendering.light-transport",
     "com.unity.testing.urp": "file:../../../Packages/com.unity.testing.urp",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
-    "local.code.coverage.references": "file:../../../Packages/local.code.coverage.references",
     "local.utf.references": "file:../../../Packages/local.utf.references",
     "com.unity.testframework.graphics": "file:../../../Packages/com.unity.testframework.graphics",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",

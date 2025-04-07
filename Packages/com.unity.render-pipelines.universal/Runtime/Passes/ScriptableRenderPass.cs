@@ -11,6 +11,10 @@ namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Input requirements for <c>ScriptableRenderPass</c>.
+    /// 
+    /// URP adds render passes to generate the inputs, or reuses inputs that are already available from earlier in the frame.
+    /// 
+    /// URP binds the inputs as global shader texture properties.
     /// </summary>
     /// <seealso cref="ConfigureInput"/>
     [Flags]
@@ -23,21 +27,31 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Used when a <c>ScriptableRenderPass</c> requires a depth texture.
+        /// 
+        /// To sample the depth texture in a shader, include `Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl`, then use the `SampleSceneDepth` method.
         /// </summary>
         Depth = 1 << 0,
 
         /// <summary>
         /// Used when a <c>ScriptableRenderPass</c> requires a normal texture.
+        /// 
+        /// To sample the normals texture in a shader, include `Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl`, then use the `SampleSceneNormals` method.
         /// </summary>
         Normal = 1 << 1,
 
         /// <summary>
         /// Used when a <c>ScriptableRenderPass</c> requires a color texture.
+        /// 
+        /// To sample the color texture in a shader, include `Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl`, then use the `SampleSceneColor` method. 
+        /// 
+        /// **Note:** The opaque texture might be a downscaled copy of the framebuffer from before rendering transparent objects.
         /// </summary>
         Color = 1 << 2,
 
         /// <summary>
         /// Used when a <c>ScriptableRenderPass</c> requires a motion vectors texture.
+        /// 
+        /// To sample the motion vectors texture in a shader, use `TEXTURE2D_X(_MotionVectorTexture)`, then `LOAD_TEXTURE2D_X_LOD(_MotionVectorTexture, pixelCoords, 0).xy`.
         /// </summary>
         Motion = 1 << 3,
     }

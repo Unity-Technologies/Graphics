@@ -44,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
                 var projection0 = GetProjectionMatrix();
                 var view0 = GetViewMatrix();
                 cmd.SetViewProjectionMatrices(view0, projection0);
+
                 if (xr.singlePassEnabled)
                 {
                     var projection1 = GetProjectionMatrix(1);
@@ -57,6 +58,26 @@ namespace UnityEngine.Rendering.Universal
                     // Update multipass worldSpace camera pos
                     Vector3 worldSpaceCameraPos = Matrix4x4.Inverse(GetViewMatrix(0)).GetColumn(3);
                     cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
+
+                    //Multipass uses the same value as a normal render, and doesn't use the value set for stereo,
+                    //which is why you need to set a value like unity_MatrixInvV.
+                    //The values below should be the same as set in the SetCameraMatrices function in ScriptableRenderer.cs.
+                    Matrix4x4 gpuProjectionMatrix = GetGPUProjectionMatrix(renderIntoTexture); // TODO: invProjection might NOT match the actual projection (invP*P==I) as the target flip logic has diverging paths.
+                    Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(view0);
+                    Matrix4x4 inverseProjectionMatrix = Matrix4x4.Inverse(gpuProjectionMatrix);
+                    Matrix4x4 inverseViewProjection = inverseViewMatrix * inverseProjectionMatrix;
+
+                    // There's an inconsistency in handedness between unity_matrixV and unity_WorldToCamera
+                    // Unity changes the handedness of unity_WorldToCamera (see Camera::CalculateMatrixShaderProps)
+                    // we will also change it here to avoid breaking existing shaders. (case 1257518)
+                    Matrix4x4 worldToCameraMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * view0;
+                    Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix.inverse;
+                    cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, worldToCameraMatrix);
+                    cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, cameraToWorldMatrix);
+
+                    cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseViewMatrix);
+                    cmd.SetGlobalMatrix(ShaderPropertyId.inverseProjectionMatrix, inverseProjectionMatrix);
+                    cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
                 }
                 m_CachedRenderIntoTextureXR = renderIntoTexture;
                 m_InitBuiltinXRConstants = true;

@@ -46,6 +46,24 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void ArtifactHashUnchanged_OnReimporting_ShaderGraph_With_VfxTarget()
+        {
+            var path = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/SG_Lit_VfxTarget.shadergraph";
+
+            AssetDatabase.ImportAsset(path);
+            AssetDatabase.Refresh();
+
+            var initialHash = AssetDatabase.GetAssetDependencyHash(path);
+
+            AssetDatabase.ImportAsset(path);
+            AssetDatabase.Refresh();
+
+            var finalHash = AssetDatabase.GetAssetDependencyHash(path);
+
+            Assert.AreEqual(initialHash, finalHash);
+        }
+
+        [Test]
         public void Migration_ShaderGraph_Output_To_Composed()
         {
             var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/VFXShaderGraphOutput_Migration.unitypackage";
@@ -287,11 +305,104 @@ namespace UnityEditor.VFX.Test
             var objets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
 
             var shaders = objets.OfType<Shader>().ToArray();
+            var materials = objets.OfType<Material>().ToArray();
+
+            int relevantMaterialCount = 0;
+            foreach (var material in materials)
+            {
+                var shaderData = ShaderUtil.GetShaderData(material.shader);
+                if (shaders.Contains(material.shader))
+                    relevantMaterialCount++;
+
+                int passCount = shaderData.ActiveSubshader.PassCount;
+                for (int pass = 0; pass < passCount; pass++)
+                {
+                    ShaderUtil.CompilePass(material, pass, true);
+                }
+            }
+            yield return null;
+
             Assert.AreEqual(2u, shaders.Length);
+            Assert.AreEqual(2u, relevantMaterialCount);
             foreach (var shader in shaders)
             {
+                var allMessages = ShaderUtil.GetShaderMessages(shader);
+                Assert.AreEqual(0, allMessages.Length, allMessages.Length > 0 ? allMessages[0].message : string.Empty);
+
                 Assert.IsFalse(ShaderUtil.ShaderHasError(shader));
+                Assert.IsFalse(ShaderUtil.ShaderHasWarnings(shader));
             }
+        }
+
+        [UnityTest, Description("UUM-92778")]
+        public IEnumerator ShaderGraph_Strip_Without_Any_Warnings()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_92778.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets();
+            yield return null;
+
+            var scenePath = VFXTestCommon.tempBasePath + "UUM-92778.unity";
+            SceneManagement.EditorSceneManager.OpenScene(scenePath);
+            for (int i = 0; i < 4; i++)
+                yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "UUM-92778.vfx";
+            var objets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+
+            var shaders = objets.OfType<Shader>().ToArray();
+            var materials = objets.OfType<Material>().ToArray();
+
+            int relevantMaterialCount = 0;
+            foreach (var material in materials)
+            {
+                var shaderData = ShaderUtil.GetShaderData(material.shader);
+                if (shaders.Contains(material.shader))
+                    relevantMaterialCount++;
+
+                int passCount = shaderData.ActiveSubshader.PassCount;
+                for (int pass = 0; pass < passCount; pass++)
+                {
+                    ShaderUtil.CompilePass(material, pass, true);
+                }
+            }
+            yield return null;
+
+            Assert.AreEqual(3u, shaders.Length);
+            Assert.AreEqual(3u, relevantMaterialCount);
+            foreach (var shader in shaders)
+            {
+                var allMessages = ShaderUtil.GetShaderMessages(shader);
+                Assert.AreEqual(0, allMessages.Length, allMessages.Length > 0 ? allMessages[0].message : string.Empty);
+
+                Assert.IsFalse(ShaderUtil.ShaderHasError(shader));
+                Assert.IsFalse(ShaderUtil.ShaderHasWarnings(shader));
+            }
+        }
+
+        [UnityTest, Description("UUM-97805")]
+        public IEnumerator Check_Validate_Graph_With_Sample_Gradient()
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_97805.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets();
+            yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "SharedVFX/VFXgraphs/StatusFX_VFXg.vfx";
+            var objets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+
+            var shaders = objets.OfType<Shader>().ToArray();
+            Assert.AreEqual(2u, shaders.Length); //N.B: There is one output which is actually an unplugged GPUEvent
+
+            var computeShaders = objets.OfType<ComputeShader>().ToArray();
+#if VFX_TESTS_HAS_URP
+            //The SG from the repo is only targeting URP and uses alpha blend
+            Assert.AreEqual(6u, computeShaders.Length);
+#else
+            Assert.AreEqual(5u, computeShaders.Length);
+#endif
+            yield return null;
+
         }
     }
 }

@@ -3636,7 +3636,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             nonJitteredViewProjMatrix0 = data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix;
                             xrId0 = data.hdCamera.xr.multipassId;
 #endif
-                            Rect viewport = data.hdCamera.finalViewport;
 
                             LensFlareCommonSRP.ComputeOcclusion(
                                 data.parameters.lensFlareShader, data.hdCamera.camera, data.hdCamera.xr, xrId0,
@@ -3724,9 +3723,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
-                            Rect viewport = data.hdCamera.finalViewport;
                             float width = (float)data.viewport.x;
                             float height = (float)data.viewport.y;
+                            Rect viewport = new Rect(0, 0, width, height);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                             // Single pass VR

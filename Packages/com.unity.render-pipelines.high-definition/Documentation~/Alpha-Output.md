@@ -27,22 +27,22 @@ Rendering Buffer Format | Post-processing Buffer Format | Alpha Output
 ## DoF and Alpha Output
 Another case which might require post-processing of the alpha channel is for scenes that use Depth Of Field. In this case, if the alpha isn't processed, compositing results in a sharp cut-off of an object that appears blurred. This is better illustrated in the images below:
 
-![](Images/DoFAlpha.png)
+![An out-of-focus sphere composited over a solid blue background using a R16G16B16A16 buffer format for both rendering and post-processing. In this case, DoF is applied in the alpha channel, resulting in a proper composition.](Images/DoFAlpha.png)
 
 An out-of-focus sphere composited over a solid blue background using a R16G16B16A16 buffer format for both rendering and post-processing. In this case, DoF is applied in the alpha channel, resulting in a proper composition (the output alpha used in the composition is shown in the image inset).
 
-![](Images/DoFAlphaCopy.png)
+![An out-of-focus sphere composited over a solid blue background using AlphaCopy. In this case, DoF isn't applied in the alpha channel, resulting in a sharp outline around the composited sphere.](Images/DoFAlphaCopy.png)
 
 An out-of-focus sphere composited over a solid blue background using AlphaCopy. In this case, DoF isn't applied in the alpha channel, resulting in a sharp outline around the composited sphere (the output alpha used in the composition is shown in the image inset).
 
 ## Temporal Anti-Aliasing and Alpha Output
 When you enable Temporal Anti-Aliasing (TAA), it's highly recommended to enable post-processing for the alpha channel (R16G16B16A16 format for both rendering and post-processing). If the alpha channel isn't post-processed, then the alpha mask is jittered, as shown in the images below:
 
-![](Images/TAA_AlphaCopy.gif)
+![A sphere rendered with TAA using AlphaCopy, composited over a solid blue background using the alpha channel. The alpha channel isn't temporally stabilized by TAA, resulting in jittering on the final image.](Images/TAA_AlphaCopy.gif)
 
 A sphere rendered with TAA using AlphaCopy, composited over a solid blue background using the alpha channel. The alpha channel isn't temporally stabilized by TAA, resulting in jittering on the final image.
 
 
-![](Images/TAA_Alpha.gif)
+![A sphere rendered with TAA, composited over a solid blue background using the alpha channel. TAA is also applied in the alpha channel, resulting in a stable composition.](Images/TAA_Alpha.gif)
 
 A sphere rendered with TAA (R16G16B16A16 for both rendering and post-processing), composited over a solid blue background using the alpha channel. TAA is also applied in the alpha channel, resulting in a stable composition.

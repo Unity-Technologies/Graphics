@@ -70,9 +70,9 @@ Ray tracing in HDRP isn't compatible with the following features.
 
 #### Lighting and shadows
 
-- Box-shaped spot lights.
 - Fully accurate shadow culling. You might see missing shadows in ray-traced effects. To improve the accuracy of shadow culling, use the **Extend Shadow Culling** property in [Ray Tracing Settings](reference-ray-tracing-settings.md).
 - Volumetric [fog](create-a-local-fog-effect.md).
+- Water.
 
 #### Geometry and materials
 

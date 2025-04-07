@@ -14,7 +14,6 @@
     "com.unity.testing.hdr-faking": "file:../../../Packages/com.unity.testing.hdr-faking",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.rendering.light-transport": "file:../../../../../Packages/com.unity.rendering.light-transport",
-    "local.code.coverage.references": "file:../../../Packages/local.code.coverage.references",
     "local.utf.references": "file:../../../Packages/local.utf.references",
     "com.unity.testframework.graphics": "file:../../../Packages/com.unity.testframework.graphics",
     "com.unity.testing.urp": "file:../../../Packages/com.unity.testing.urp",

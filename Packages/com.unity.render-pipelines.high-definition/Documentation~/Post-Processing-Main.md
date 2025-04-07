@@ -8,8 +8,8 @@ Post-processing effects in HDRP use the [Volume](understand-volumes.md) framewor
 
 The images below display a Scene with and without HDRP post-processing.
 
-![](Images/PostProcessingMain1.png)
+![A scene of a human without post-processing effects.](Images/PostProcessingMain1.png)
 Without post-processing.
 
-![](Images/PostProcessingMain2.png)
+![A scene of a human with post-processing effects.](Images/PostProcessingMain2.png)
 With post-processing.

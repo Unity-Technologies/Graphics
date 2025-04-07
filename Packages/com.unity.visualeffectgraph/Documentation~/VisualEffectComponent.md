@@ -69,8 +69,6 @@ To access property values, edit them using the Inspector, use the [C# API](https
 
 The Play Controls window displays UI Elements that give you control over the currently selected instance of a Visual Effect. It is displayed in the bottom-right corner of the Scene View, when a Visual Effect Game Object is selected.
 
-![](Images/PlayControls.png)
-
 The play Controls Window displays the following controls:
 
 * Stop (Button) : Resets the effect and set its state to paused.
@@ -88,4 +86,3 @@ The play Controls Window displays the following controls:
 
 You can edit some properties using Gizmos in the scene. In order to enable gizmo editing, click the **Show Property Gizmos** button in the Inspector. Upon enabling property Gizmos, every property that can be edited using Gizmos will display **Edit Gizmo** buttons next to every property that can be edited using gizmos.
 
-![Property Gizmos Inspector](Images/PropertyGizmosInspector.png)

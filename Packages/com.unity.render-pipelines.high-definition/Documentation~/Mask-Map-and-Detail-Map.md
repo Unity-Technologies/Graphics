@@ -23,7 +23,7 @@ To create a mask map, create a linear composited map in a photo editor, using th
 
 The following example image demonstrates the individual components of a full mask map.
 
-![](Images/MaskMapAndDetailMap2.png)
+![A full mask map, with the metallic texture in the R channel, the ambient occlusion texture in the G channel, the detail mask in the B channel, and the smoothness in the A channel.](Images/MaskMapAndDetailMap2.png)
 
 <a name="DetailMap"></a>
 
@@ -42,7 +42,7 @@ To create a detail map, create a linear composited map in a photo editor, using 
 
 The following example image demonstrates the individual components of a full detail map.
 
-![](Images/MaskMapAndDetailMap3.png)
+![A full detail map, with the desaturated albedo texture in the R channel, the red channel of the normal map in the G channel, the green channel of the normal map in the A channel, and smoothness in the B channel.](Images/MaskMapAndDetailMap3.png)
 
 ### Desaturated albedo (red channel)
 
@@ -50,7 +50,7 @@ The red channel represents the albedo variation. It makes the underlying materia
 
 The image below shows the impact of the detail albedo on the final color. HDRP calculates color interpolation in sRGB space.
 
-![](Images/DetailMap-red.png)
+![A red material with a gradient detail map. When Detail Albedo Scale is 1, the two textures create a smooth red gradient. When Detail Albedo Scale is 2, the gradient is banded.](Images/DetailMap-red.png)
 
 ### Smoothness (blue channel)
 
@@ -58,8 +58,8 @@ The blue channel represents the smoothness variation and HDRP calculates it the 
 
 The image below shows the impact of the detail smoothness on the final color.
 
-![](Images/DetailMap-blue.png)
+![A material of smoothness 0.5 with a gradient detail map. When Detail Smoothness Scale is 1, the two textures create a smoothness gradient. When Detail Smoothness Scale is 2, the gradient transitions faster.](Images/DetailMap-blue.png)
 
 The following example shows the same gradient detail map as above, used by three Lit materials with different smoothness values.
 
-![](Images/DetailMap-smoothness.png)
+![Three squares with smoothness values of 0, 0.5, and 1.0. As the smoothness value increases, more of the right side of the square reflects the scene.](Images/DetailMap-smoothness.png)

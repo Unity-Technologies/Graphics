@@ -2,7 +2,7 @@
 
 Use the Light component to create light sources in your [Scene](https://docs.unity3d.com/Manual/CreatingScenes.html). The Light component controls the shape, color, and intensity of the light. It also controls whether or not the Light casts shadows in your Scene, and more advanced settings.
 
-![](Images/HDRPFeatures-LightTypes.png)
+![Lights in a scene.](Images/HDRPFeatures-LightTypes.png)
 
 ## Create Lights
 

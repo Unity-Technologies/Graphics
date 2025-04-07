@@ -52,7 +52,7 @@ System Attributes provide information about system values. These attributes are 
 
 | Name       | Type    | Description                                                  | Default Value                                     |
 | ---------- | ------- | ------------------------------------------------------------ | ---------- |
-| `particleID` | uint | A unique ID that refers to 1 particle | 0 |
+| `particleId` | uint | A unique ID that refers to 1 particle | 0 |
 | `seed` | uint | A unique seed used for random number computations. | 0 |
 | `spawnCount` | float | A `SpawnEvent` attribute that describes how many particles were spawned this frame.  You can use `spawnCount` as a [Source Attribute](Attributes.md) in a Spawn context. `spawnCount` is a floating point number so that Unity can accumulate a relative `spawnCount` at the spawn context stage in the [Constant Rate](Block-ConstantRate.md) block.| 0.0 |
 | `spawnTime` | float | A SpawnEvent attribute available as Source Attribute in Spawn Contexts, that contains a Spawn Context internal time (when exported using a [Set Spawn Time](Block-SetSpawnTime.md) Spawn Block) | 0.0 |

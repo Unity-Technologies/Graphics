@@ -1,13 +1,16 @@
 {
     "name": "SRPSmoke.Editor.Tests",
-    "rootNamespace": "",
+    "rootNamespace": "UnityEditor.Rendering.Tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
+        "SRPSmoke.Runtime.Tests",
         "Unity.RenderPipelines.Core.Editor",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Editor.Tests",
+        "Unity.RenderPipelines.Core.Runtime.Tests"
     ],
     "includePlatforms": [
         "Editor"

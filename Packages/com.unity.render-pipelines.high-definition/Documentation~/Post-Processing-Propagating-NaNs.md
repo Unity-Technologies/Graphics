@@ -18,13 +18,13 @@ A commonly reported issue in HDRP is that [bloom](Post-Processing-Bloom.md) gene
 
 For example, see a NaN caused by a material issue that spreads to the whole scene when HDRP calculates bloom:
 
-![](Images/Post-processingPropagatingNaNsExample1.png)
+![A small black dot is visible on a sphere.](Images/Post-processingPropagatingNaNsExample1.png)
 
-![](Images/Post-processingPropagatingNaNsExample2.png)
+![A black square is visible on a sphere.](Images/Post-processingPropagatingNaNsExample2.png)
 
-![](Images/Post-processingPropagatingNaNsExample3.png)
+![A large black square is visible on a sphere.](Images/Post-processingPropagatingNaNsExample3.png)
 
-![](Images/Post-processingPropagatingNaNsExample4.png)
+![The entire screen is black and the sphere is no longer visible.](Images/Post-processingPropagatingNaNsExample4.png)
 
 A similar issue occurs when HDRP generates color pyramids for use by features such as [screen-space reflection](Override-Screen-Space-Reflection.md), [screen-space refraction](Override-Screen-Space-Refraction.md), and distortion.
 
@@ -56,9 +56,6 @@ After you capture a frame, RenderDoc can display pixels with a Nan or Inf value 
 
 1. In the Texture Viewer, open the **Overlay** drop-down.
 2. Select **Nan or Inf/-ve Display**.
-
-![](Images/Post-processingPropagatingNaNsRenderDoc.png)
-
 
 If the Nan or Inf values are still difficult to find:
 

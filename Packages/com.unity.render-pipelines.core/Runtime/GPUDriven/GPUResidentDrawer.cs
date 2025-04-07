@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering
         private NativeList<int> m_FrameCameraIDs;
         private bool m_FrameUpdateNeeded = false;
 
-        private bool m_SelectionChanged;
+        private bool m_IsSelectionDirty;
 
         static GPUResidentDrawer()
         {
@@ -399,6 +399,7 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
             AssemblyReloadEvents.beforeAssemblyReload += OnAssemblyReload;
             m_FrameCameraIDs = new NativeList<int>(1, Allocator.Persistent);
+            m_IsSelectionDirty = true; // Force at least one selection update
 #endif
             SceneManager.sceneLoaded += OnSceneLoaded;
 
@@ -429,6 +430,7 @@ namespace UnityEngine.Rendering
 #endif
             SceneManager.sceneLoaded -= OnSceneLoaded;
 
+            // Note: Those RenderPipelineManager callbacks do not run when using built-in editor debug views such as lightmap, shadowmask etc
             RenderPipelineManager.beginContextRendering -= OnBeginContextRendering;
             RenderPipelineManager.endContextRendering -= OnEndContextRendering;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
@@ -487,6 +489,7 @@ namespace UnityEngine.Rendering
         // If running in the editor the player loop might not run
         // In order to still have a single frame update we keep track of the camera ids
         // A frame update happens in case the first camera is rendered again
+        // Note: This doesn't run when using built-in debug views such as lightmaps, shadowmask and etc
         private void EditorFrameUpdate(List<Camera> cameras)
         {
             bool newFrame = false;
@@ -508,21 +511,16 @@ namespace UnityEngine.Rendering
                 else
                     m_FrameUpdateNeeded = true;
             }
-
-            ProcessSelection();
         }
 
         private void OnSelectionChanged()
         {
-            m_SelectionChanged = true;
+            m_IsSelectionDirty = true;
         }
 
-        private void ProcessSelection()
+        private void UpdateSelection()
         {
-            if(!m_SelectionChanged)
-                return;
-
-            m_SelectionChanged = false;
+            Profiler.BeginSample("GPUResidentDrawer.UpdateSelection");
 
             Object[] renderers = Selection.GetFiltered(typeof(MeshRenderer), SelectionMode.Deep);
 
@@ -532,8 +530,10 @@ namespace UnityEngine.Rendering
                 rendererIDs[i] = renderers[i] ? renderers[i].GetInstanceID() : 0;
 
             m_Batcher.UpdateSelectedRenderers(rendererIDs);
-
+            
             rendererIDs.Dispose();
+
+            Profiler.EndSample();
         }
 #endif
 
@@ -612,10 +612,15 @@ namespace UnityEngine.Rendering
             supportedChangedPackedMaterialDatas.Dispose();
 
             m_BatchersContext.UpdateInstanceMotions();
-
             m_Batcher.UpdateFrame();
 
 #if UNITY_EDITOR
+            if (m_IsSelectionDirty)
+            {
+                UpdateSelection();
+                m_IsSelectionDirty = false;
+            }
+            
             m_FrameUpdateNeeded = false;
 #endif
         }

@@ -194,7 +194,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else if (rendererData.lightCullResult.IsSceneLit())
                 {
-                    builder.SetGlobalTextureAfterPass(graph.defaultResources.blackTexture, Shader.PropertyToID(RendererLighting.k_ShapeLightTextureIDs[0]));
+                    for (var i = 0; i < RendererLighting.k_ShapeLightTextureIDs.Length; i++)
+                        builder.SetGlobalTextureAfterPass(graph.defaultResources.blackTexture, Shader.PropertyToID(RendererLighting.k_ShapeLightTextureIDs[i]));
                 }
             }
         }
