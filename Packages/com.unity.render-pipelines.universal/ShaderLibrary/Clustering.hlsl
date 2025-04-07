@@ -6,6 +6,7 @@
 #if USE_CLUSTER_LIGHT_LOOP
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
+#define CLUSTER_HAS_REFLECTION_PROBES !(defined(_ENVIRONMENTREFLECTIONS_OFF) || (defined(_REFLECTION_PROBE_ATLAS_KEYWORD_DECLARED) && !defined(_REFLECTION_PROBE_ATLAS)))
 
 // Debug switches for disabling parts of the algorithm. Not implemented for mobile.
 #define URP_FP_DISABLE_ZBINNING 0
@@ -74,7 +75,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
 #else
     uint header = headerIndex == 0 ? ((URP_FP_PROBES_BEGIN - 1) << 16) : (((URP_FP_WORDS_PER_TILE * 32 - 1) << 16) | URP_FP_PROBES_BEGIN);
 #endif
-#if MAX_LIGHTS_PER_TILE > 32 || (!defined(_ENVIRONMENTREFLECTIONS_OFF) && defined(_REFLECTION_PROBE_ATLAS))
+#if MAX_LIGHTS_PER_TILE > 32 || CLUSTER_HAS_REFLECTION_PROBES
     state.entityIndexNextMax = header;
 #else
     uint tileIndex = state.tileOffset;
@@ -94,7 +95,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
 // internal
 bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
 {
-#if MAX_LIGHTS_PER_TILE > 32 || (!defined(_ENVIRONMENTREFLECTIONS_OFF) && defined(_REFLECTION_PROBE_ATLAS))
+#if MAX_LIGHTS_PER_TILE > 32 || CLUSTER_HAS_REFLECTION_PROBES
     uint maxIndex = it.entityIndexNextMax >> 16;
     [loop] while (it.tileMask == 0 && (it.entityIndexNextMax & 0xFFFF) <= maxIndex)
     {
@@ -119,7 +120,7 @@ bool ClusterNext(inout ClusterIterator it, out uint entityIndex)
     bool hasNext = it.tileMask != 0;
     uint bitIndex = FIRST_BIT_LOW(it.tileMask);
     it.tileMask ^= (1 << bitIndex);
-#if MAX_LIGHTS_PER_TILE > 32 || (!defined(_ENVIRONMENTREFLECTIONS_OFF) && defined(_REFLECTION_PROBE_ATLAS))
+#if MAX_LIGHTS_PER_TILE > 32 || CLUSTER_HAS_REFLECTION_PROBES
     // Subtract 32 because it stores the index of the _next_ word to fetch, but we want the current.
     // The upper 16 bits and bits representing values < 32 are masked out. The latter is due to the fact that it will be
     // included in what FIRST_BIT_LOW returns.
