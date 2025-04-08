@@ -840,7 +840,8 @@ namespace UnityEditor
             if (material.HasProperty(Property.EmissionColor))
                 MaterialEditor.FixupEmissiveFlag(material);
 
-            bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive) != 0;
+            bool shouldEmissionBeEnabled =
+                (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
 
             // Not sure what this is used for, I don't see this property declared by any Unity shader in our repo...
             // I'm guessing it is some kind of legacy material upgrade support thing?  Or maybe just dead code now...
