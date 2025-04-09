@@ -19,7 +19,7 @@ Export the current [Camera](hdrp-camera-component-reference.md)'s view to a log-
 2. Select **Edit** > **Rendering** > **Render Selected HDRP Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.
 3. Save the EXR file.
 
-![](Images/LUTAuthoringResolve1.png)
+![Camera view before applying LUT effect.](Images/LUTAuthoringResolve1.png)
 
 After you export the EXR file, transform the data from the format that Unity uses (Alexa LogC El.1000) to Linear RGB space, so that external software can use it. To do this, HDRP provides a set of ready-to-use transform LUTs. To get them:
 
@@ -47,13 +47,13 @@ Now import the EXR into Resolve and apply the **Unity Log To Linear r1** LUT to 
 2. In the context menu, select **3D Lut**.
 3. Select the **Unity Log To Linear r1** LUT.
 
-![](Images/LUTAuthoringResolve2.png)
+![Color settings in the DaVinci Resolve editor.](Images/LUTAuthoringResolve2.png)
 
 ## Step 4: Apply color grading
 
 You can now start grading your image. Make sure you only do global color operations because LUTs can't store local operators or any filters that affect neighboring pixels (such as blur or sharpen).
 
-![](Images/LUTAuthoringResolve3.png)
+![Fame in the video editor with LUT color grading.](Images/LUTAuthoringResolve3.png)
 
 ## Step 5: Export your work as a CUBE file
 
@@ -73,6 +73,6 @@ Unity automatically interprets the CUBE file as a usable Texture3D Asset. You ca
 4. Assign your CUBE Texture to the **Lookup Texture** property.
 5. Change the **Contribution** to set how much the **Lookup Texture** contributes to the Scene.
 
-![](Images/LUTAuthoringResolve4.png)
+![Using the CUBE file as a color lookup texture in Unity.](Images/LUTAuthoringResolve4.png)
 
 You can continue to color grade in Resolve and override the previously saved CUBE file. Unity automatically updates the grading in the Scene with your changes.

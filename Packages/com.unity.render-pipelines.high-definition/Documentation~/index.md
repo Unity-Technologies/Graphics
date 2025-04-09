@@ -1,6 +1,6 @@
 # High Definition Render Pipeline overview
 
-![](Images/Index1Main.png)
+![A sample scene rendered with the High Definition Render Pipeline.](Images/Index1Main.png)
 
 The High Definition Render Pipeline (HDRP) is a high-fidelity Scriptable Render Pipeline built by Unity to target modern (Compute Shader compatible) platforms.
 

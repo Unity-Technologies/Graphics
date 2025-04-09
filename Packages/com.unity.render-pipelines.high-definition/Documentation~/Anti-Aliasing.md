@@ -4,7 +4,7 @@
 
 This is most obvious if you compare the original and digital signals for an audio source at its highest frequencies, or a visual source in its smallest details. Regular signal processing uses the [Nyquist rate](Glossary.md#NyquistRate) to avoid aliasing, however it's not practical for image rendering because it's resource intensive.
 
-![](Images/MSAA1.png)
+![Example of aliasing happening during the rasterization process.](Images/MSAA1.png)
 
 An example of the rasterization process creating some aliasing.
 
@@ -96,18 +96,18 @@ When you enable MSAA in your Unity Project, you must also enable it for your Cam
 
 Increasing the MSAA Sample Count produces smoother antialiasing, at the cost of performance. Here are some visual examples showing the effect of the different MSAA Sample Counts:
 
-![](Images/MSAA3.png)
+![Rendered image sample with MSAA Sample Count set to None.](Images/MSAA3.png)
 
 MSAA Sample Count set to None.
 
-![](Images/MSAA4.png)
+![Rendered image sample with MSAA Sample Count set to MSAA 2X.](Images/MSAA4.png)
 
 MSAA Sample Count set to MSAA 2X.
 
-![](Images/MSAA5.png)
+![Rendered image sample with MSAA Sample Count set to MSAA 4X.](Images/MSAA5.png)
 
 MSAA Sample Count set to MSAA 4X.
 
-![](Images/MSAA6.png)
+![Rendered image sample with MSAA Sample Count set to MSAA 8X.](Images/MSAA6.png)
 
 MSAA Sample Count set to MSAA 8X.
