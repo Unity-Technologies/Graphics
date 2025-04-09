@@ -2875,6 +2875,8 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
+            // OnEnable may be called multiple times. Ensure the callback only exists once.
+            ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
 
