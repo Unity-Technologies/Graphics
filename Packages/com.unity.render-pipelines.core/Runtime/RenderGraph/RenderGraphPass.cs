@@ -113,7 +113,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsTransient(in ResourceHandle res)
         {
-            return transientResourceList[res.iType].Contains(res);
+            // Versioning doesn't matter much for transient resources as they are only used within a single pass
+            for (int i = 0; i < transientResourceList[res.iType].Count; i++)
+            {
+                if (transientResourceList[res.iType][i].index == res.index)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

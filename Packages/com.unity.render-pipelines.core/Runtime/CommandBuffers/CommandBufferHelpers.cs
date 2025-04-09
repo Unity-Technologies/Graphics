@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine.VFX;
 
 namespace UnityEngine.Rendering
@@ -17,6 +18,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="baseBuffer">The CommandBuffer the RasterCommandBuffer should record it's commands to.</param>
         /// <returns>A RasterCommandBuffer that will record its commands to the given buffer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RasterCommandBuffer GetRasterCommandBuffer(CommandBuffer baseBuffer)
         {
             rasterCmd.m_WrappedCommandBuffer = baseBuffer;
@@ -28,6 +30,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="baseBuffer">The CommandBuffer the RasterCommandBuffer should record it's commands to.</param>
         /// <returns>A ComputeCommandBuffer that will record its commands to the given buffer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ComputeCommandBuffer GetComputeCommandBuffer(CommandBuffer baseBuffer)
         {
             computeCmd.m_WrappedCommandBuffer = baseBuffer;
@@ -39,6 +42,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="baseBuffer">The CommandBuffer the UnsafeCommandBuffer should record its commands to.</param>
         /// <returns>A UnsafeCommandBuffer that will record its commands to the given buffer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeCommandBuffer GetUnsafeCommandBuffer(CommandBuffer baseBuffer)
         {
             unsafeCmd.m_WrappedCommandBuffer = baseBuffer;
@@ -51,6 +55,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="baseBuffer">The UnsafeCommandBuffer you want to get the engine commandbuffer from.</param>
         /// <returns>A CommandBuffer that will record its commands to the given buffer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CommandBuffer GetNativeCommandBuffer(UnsafeCommandBuffer baseBuffer)
         {
             return baseBuffer.m_WrappedCommandBuffer;

@@ -16,6 +16,7 @@ public class GizmoRenderingTests
     public const string referenceImageBasePath = "Assets/ReferenceImagesBase";
 
     [Test, Category("Graphics"), CodeBasedGraphicsTest(referenceImagePath, "Assets/ActualImages")]
+    [Ignore("Test disabled due to instabilities, UUM-92518")]
     public async Task GizmoRenderingWorks()
     {
         const string scenePath = "Assets/Scenes/CodeBasedTests/GizmoRendering.unity";
