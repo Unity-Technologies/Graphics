@@ -19,7 +19,7 @@ Export the current [Camera](hdrp-camera-component-reference.md)'s view to a log-
 2. Select **Edit** > **Rendering** > **Render Selected HDRP Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.
 3. Save the EXR file.
 
-![](Images/LUTAuthoringPhototshop1.png)
+![Camera view before applying LUT effect.](Images/LUTAuthoringPhototshop1.png)
 
 After you export the EXR file, transform the data from the format that Unity uses (Alexa LogC El.1000) to Linear RGB space, so that external software can use it. To do this, HDRP provides a set of ready-to-use transform LUTs. To get them:
 
@@ -32,7 +32,7 @@ After you export the EXR file, transform the data from the format that Unity use
 
 Import the EXR file into Photoshop. Because it's a raw log-encoded file, it appears washed-out.
 
-![](Images/LUTAuthoringPhototshop2.png)
+![EXR file imported in Photoshop.](Images/LUTAuthoringPhototshop2.png)
 
 Add a non-destructive **Color Lookup** adjustment layer to your image (menu: **Layer** > **New Adjustment Layer** > **Color Lookup…**). Then, in the new layer's **Properties**:
 
@@ -40,13 +40,13 @@ Add a non-destructive **Color Lookup** adjustment layer to your image (menu: **L
 - Set **Table Order** to **BGR**.
 - In the **3DLUT File** drop-down, select **Load 3D LUT…** and select the Unity Log To Linear file to transform the LUT to a usable color space. This is in your Unity Project folder at Assets/HDRP Sample Content/Post-processing/Cube LUTs/.
 
-![](Images/LUTAuthoringPhototshop3.png)
+![Example image with the LUT file from Unity applied to it.](Images/LUTAuthoringPhototshop3.png)
 
 ## Step 4: Apply color grading
 
 You can now start grading your image. Make sure you only do global color operations through the use of non-destructive adjustment layers. LUTs can't store local operators or any filters that affect neighboring pixels (such as blur), so these create visual artifacts. Place all the adjustment layers on top of the **Color Lookup** layer, unless you intend to grade directly on the Log input.
 
-![](Images/LUTAuthoringPhototshop4.png)
+![Example image with color grading applied in Photoshop.](Images/LUTAuthoringPhototshop4.png)
 
 ## Step 5: Export your work as a CUBE file
 
@@ -66,6 +66,6 @@ Unity automatically interprets the CUBE file as a usable Texture3D Asset. You ca
 4. Assign your CUBE Texture to the **Lookup Texture** property.
 5. Change the **Contribution** to set how much the **Lookup Texture** contributes to the Scene.
 
-![](Images/LUTAuthoringPhototshop5.png)
+![Unity scene with the Tonemapping effect that uses a lookup texture created in Photoshop.](Images/LUTAuthoringPhototshop5.png)
 
 You can continue to color grade in Photoshop and override the previously saved CUBE file. Unity automatically updates the grading in the Scene with your changes.

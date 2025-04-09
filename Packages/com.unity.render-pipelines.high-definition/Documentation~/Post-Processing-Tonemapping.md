@@ -15,7 +15,7 @@ To use Tonemapping, refer to [High Dynamic Range (HDR) and tonemapping](HDR-Outp
 
 ## Properties
 
-![](Images/Post-processingTonemapping1.png)
+![The tonemapping component properties.](Images/Post-processingTonemapping1.png)
 
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |

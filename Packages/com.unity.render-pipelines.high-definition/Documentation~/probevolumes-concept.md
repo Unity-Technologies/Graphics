@@ -26,7 +26,7 @@ Adaptive Probe Volumes have the following advantages:
 ![Two comparison scenes of a red car model. The left scene uses Light Probe Groups, so each part of the car is a different shade of red. The right scene uses Adaptive Probe Volumes, so each part of the car is the same shade of red. ](Images/probevolumes-per-pixel.png)<br/>
 The car model is made up of separate GameObjects. The left scene uses Light Probe Groups, which use per-object lighting, so each part of the car samples a single blended probe value. The right scene uses Adaptive Probe Volumes, which use per-pixel lighting, so each part of the car samples its nearest probes. This image uses the ArchVizPRO Photostudio HDRP asset from the Unity Asset Store.
 
-![](Images/probevolumes-reflection-probe-normalization.png)<br/>
+![Left: Reflection Probe Normalization is disabled. Right: Reflection Probe Normalization is enabled.](Images/probevolumes-reflection-probe-normalization.png)<br/>
 In the left scene, Reflection Probe Normalization is disabled. In the right scene, Reflection Probe Normalization is enabled, and there's less specular light leaking on the kitchen cabinet. This image uses the ArchVizPRO Interior Vol.5 HDRP asset from the Unity Asset Store.
 
 Adaptive Probe Volumes have the following limitations:
@@ -42,7 +42,7 @@ HDRP uses bricks with different sizes to match the amount of geometry in differe
 
 The default Light Probe spacing is 1, 3, 9, or 27 m.
 
-![](Images/probevolumes-debug-displayprobebricks1.PNG)<br/>
+![Purple volumes contain Light Probes spaced 1 meter apart. Large blue bricks contain Light Probes spaced 3 meters apart.](Images/probevolumes-debug-displayprobebricks1.PNG)<br/>
 In this screenshot from the Rendering Debugger, the small purple bricks contain Light Probes spaced 1 meter apart, to capture data from high-geometry areas. The large blue bricks contain Light Probes spaced 3 meters apart, to capture data from areas with less geometry.
 
 Each pixel of a GameObject samples lighting data from the eight closest Light Probes around it.
