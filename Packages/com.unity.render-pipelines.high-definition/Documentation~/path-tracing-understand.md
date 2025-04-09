@@ -6,11 +6,11 @@ It enables HDRP to compute various effects (such as hard or soft shadows, mirror
 
 A notable downside to path tracing is noise. Noise results from the random nature of the path tracing process; at each surface interaction, a new direction is chosen randomly. Noise vanishes as more paths accumulate and converge toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
 
-![](Images/RayTracingPathTracing1.png)
+![Noisy image with Maximum Samples set to 1.](Images/RayTracingPathTracing1.png)
 
 Noisy image with **Maximum Samples** set to 1
 
-![](Images/RayTracingPathTracing2.png)
+![Clean image with Maximum Samples set to 256.](Images/RayTracingPathTracing2.png)
 
 Clean image with **Maximum Samples** set to 256
 
@@ -30,11 +30,11 @@ This is because path tracing in HDRP implements more precise light transport sim
 
 The images below display the difference between transparent, double-sided materials in a rasterized and a path-traced scene:
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_Raster.png)
+![GameObjects without path tracing (rasterized).](Images/HDRP_PathtracingBoxes_Raster.png)
 
 GameObjects without path tracing (rasterized).
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_PathTraced.png)
+![GameObjects with path tracing enabled.](Images/HDRP_PathtracingBoxes_PathTraced.png)
 
 GameObjects with path tracing enabled.
 
@@ -46,11 +46,11 @@ When you use path tracing, the **Double-Sided** property (menu: **Inspector** > 
 
 The following images display the same GameObjects with a single-sided Material and a double-sided material:
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_SingleSided.png)
+![GameObjects with a single-sided Material and path tracing enabled.](Images/HDRP_PathtracingBoxes_SingleSided.png)
 
 GameObjects with a single-sided Material and path tracing enabled
 
-![Surface_Options](Images/HDRP_PathtracingBoxes_DoubleSided.png)
+![GameObjects with a double-sided Material and path tracing enabled.](Images/HDRP_PathtracingBoxes_DoubleSided.png)
 
 GameObjects with a double-sided Material and path tracing enabled
 
@@ -62,7 +62,7 @@ Path tracing changes the way refraction models on a Lit Material behave.
 
 To change the refraction model a Lit Material uses, in the **Transparency Inputs** section, select a model from the **Refraction model** dropdown, displayed in the following image:
 
-![Refraction_model](Images/refraction_model.png)
+![Refraction_model.](Images/refraction_model.png)
 
 The following table describes how each refraction model behaves when you enable path tracing:
 
@@ -72,11 +72,11 @@ The following table describes how each refraction model behaves when you enable 
 | **Thin**               | A thin surface type with [infinitesimal](<https://en.wikipedia.org/wiki/Infinitesimal>) thickness. Select this for thin, window-like surfaces. When you enable path tracing, the behavior of the **Thin** refraction model behaves the same as in rasterization. | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
 | **None**               | A thin, refractive surface hardcoded to be smooth to simulate alpha blending. When you enable path tracing, the behavior of the **None** refraction model behaves the same as in rasterization. | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
 
-![](Images/HDRP_PathtracingBalls_Raster.png)
+![From left to right, a GameObject with Sphere, Box, and Thin mode without path tracing (rasterized).](Images/HDRP_PathtracingBalls_Raster.png)
 
 From left to right, a GameObject with **Sphere**, **Box,** and **Thin** mode without path tracing (rasterized).
 
-![](Images/HDRP_PathtracingBalls_PathTraced.png)
+![From left to right, a GameObject with Sphere, Box, and Thin mode with path tracing enabled.](Images/HDRP_PathtracingBalls_PathTraced.png)
 
 From left to right, a GameObject with **Sphere**, **Box,** and **Thin** mode with path tracing enabled.
 
@@ -87,15 +87,15 @@ For [subsurface scattering's](skin-and-diffusive-surfaces-subsurface-scattering.
 1. Open the **Surface Options** window.
 2. Enable the **Double-Sided** property (B).
 
-![Surface_Options_B](Images/Surface_Options_B.png)
+![Surface_Options_B.](Images/Surface_Options_B.png)
 
 The following example images display a sheet of fabric lit from below by a point light. The first image shows a single-sided surface, and the second shows a double-sided surface:
 
-![](Images/Path-traced-SSS-Single-sided.png)
+![A single-sided surface with Transmission disabled.](Images/Path-traced-SSS-Single-sided.png)
 
 A single-sided surface with Transmission disabled.
 
-![](Images/Path-traced-SSS-Double-sided.png)
+![A double-sided surface with Transmission enabled.](Images/Path-traced-SSS-Double-sided.png)
 
 A double-sided surface with Transmission enabled.
 

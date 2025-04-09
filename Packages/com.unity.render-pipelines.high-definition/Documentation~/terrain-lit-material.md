@@ -2,7 +2,7 @@
 
 The High Definition Render Pipeline (HDRP) uses the Terrain Lit Shader for Unity Terrain. This Shader is a simpler version of the [Lit Shader](lit-material.md). A Terrain can use a Terrain Lit Material with up to eight [Terrain Layers](https://docs.unity3d.com/Manual/class-TerrainLayer.html).
 
-![](Images/HDRPFeatures-TerrainShader.png)
+![Sample Terrain Lit Material](Images/HDRPFeatures-TerrainShader.png)
 
 ## Creating a Terrain Lit Material
 
@@ -22,7 +22,7 @@ To use a Terrain Lit Material, you must assign it to a Terrain:
 1. View the Terrain in the Inspector window and select **Terrain Settings**.
 2. Either drag and drop or use the radio button to assign your Terrain Lit Material to the **Material** property.
 
-![](Images/TerrainLitShader1.png)
+![Terrain Lit Material Inspector.](Images/TerrainLitShader1.png)
 
 ## Using the Paint Holes Tool
 
@@ -31,4 +31,3 @@ If you use the **Paint Holes** tool on your terrain, enable the **Terrain Hole**
 1. Open your HDRP Asset in the Inspector window.
 2. Go to **Rendering** and enable **Terrain Hole**.
 
-![](Images/TerrainPaintHoles.png)

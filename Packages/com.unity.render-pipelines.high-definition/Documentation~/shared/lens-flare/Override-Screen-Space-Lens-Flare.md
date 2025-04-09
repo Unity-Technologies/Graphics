@@ -1,6 +1,6 @@
 # Add screen space lens flares
 
-![](../../Images/shared/lens-flare/screenspacelensflares.png)
+![Screen space lens flares example](../../Images/shared/lens-flare/screenspacelensflares.png)
 
 The **Screen Space Lens Flare** override adds lens flares to your scene.
 
@@ -29,7 +29,8 @@ You can create the following types of lens flare:
 
 You can control which types of flares appear and how many there are. You can also control the chromatic aberration effect HDRP adds to the flares.
 
-![](../../Images/shared/lens-flare/screenspacelensflares-types.png)<br/>
+![The left image shows an emissive cube with bloom but no lens flares. The right image shows the same cube and a regular flare (top-left), a reversed flare (bottom-right), a warped flare (top-right) and streaks (to the left and right of the cube).](../../Images/shared/lens-flare/screenspacelensflares-types.png)
+
 The left image shows an emissive cube with bloom but no lens flares. The right image shows the same cube and a regular flare (top-left), a reversed flare (bottom-right), a warped flare (top-right) and streaks (to the left and right of the cube). 
 
 ## Enable screen space lens flares

@@ -77,6 +77,4 @@ To make all Shader Variants you need available at runtime, you need to ensure Un
 
 1. You can record the shader variants used during a play session and store them in a **Shader Variant Collection** asset. To do that, navigate to the Project Settings window, open the Graphics tab and select **Save to asset…** This will build a collection containing all Shader Variants currently in use and save them out as an asset. You must then add this asset to the list of Preloaded Shaders for the variants to be included in a build.
 
-![](Images/shader-variants.png)
-
 2. You can include at least one Material using each variant in your Assets folder. You must use this Material in a scene or place it in your Resources Folder, otherwise Unity ignores this Material when it builds the project.
