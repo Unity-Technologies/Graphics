@@ -64,6 +64,8 @@ Shader ""Hidden/GraphErrorShader2""
     Fallback Off
 }";
 
+        public static Texture2D GetIcon() => EditorGUIUtility.IconContent(IconBasePath)?.image as Texture2D;
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
@@ -237,11 +239,7 @@ Shader ""Hidden/GraphErrorShader2""
                 mainObject = ShaderUtil.CreateShaderAsset(ctx, k_ErrorShader, false);
             }
 
-            if (EditorGUIUtility.IconContent(IconBasePath)?.image is Texture2D icon)
-            {
-                ctx.AddObjectToAsset("MainAsset", mainObject, icon);
-            }
-
+            ctx.AddObjectToAsset("MainAsset", mainObject, GetIcon());
             ctx.SetMainObject(mainObject);
 
             var graphDataReadOnly = new GraphDataReadOnly(graph);

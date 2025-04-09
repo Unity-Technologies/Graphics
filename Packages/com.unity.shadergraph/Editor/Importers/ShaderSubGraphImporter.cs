@@ -25,6 +25,8 @@ namespace UnityEditor.ShaderGraph
         public const string Extension = "shadersubgraph";
         const string IconBasePath = "Packages/com.unity.shadergraph/Editor/Resources/Icons/sg_subgraph_icon.png";
 
+        public static Texture2D GetIcon() => EditorGUIUtility.IconContent(IconBasePath)?.image as Texture2D;
+
         [SuppressMessage("ReSharper", "UnusedMember.Local")]
         static string[] GatherDependenciesFromSourceFile(string assetPath)
         {
@@ -113,11 +115,7 @@ namespace UnityEditor.ShaderGraph
                 messageManager.ClearAll();
             }
 
-            if (EditorGUIUtility.IconContent(IconBasePath)?.image is Texture2D icon)
-            {
-                ctx.AddObjectToAsset("MainAsset", graphAsset, icon);
-            }
-
+            ctx.AddObjectToAsset("MainAsset", graphAsset, GetIcon());
             ctx.SetMainObject(graphAsset);
 
             var metadata = ScriptableObject.CreateInstance<ShaderSubGraphMetadata>();

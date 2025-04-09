@@ -188,7 +188,7 @@ namespace UnityEditor.ShaderGraph
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
             graphItem.targets = null;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
-                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
+                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), ShaderGraphImporter.GetIcon(), null);
         }
 
         public static void CreateNewGraphWithOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
@@ -197,7 +197,7 @@ namespace UnityEditor.ShaderGraph
             graphItem.targets = targets;
             graphItem.blocks = blockDescriptors;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
-                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
+                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), ShaderGraphImporter.GetIcon(), null);
         }
 
         public static bool TryGetMetadataOfType<T>(this Shader shader, out T obj) where T : ScriptableObject
