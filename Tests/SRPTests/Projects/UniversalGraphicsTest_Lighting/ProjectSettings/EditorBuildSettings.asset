@@ -156,6 +156,9 @@ EditorBuildSettings:
     path: Assets/Scenes/230_APV_Subtractive.unity
     guid: 885c03fc42bf0a548b6e415c2f70e55b
   - enabled: 1
+    path: Assets/Scenes/231_APV_Subtractive_NoRealtimeShadows.unity
+    guid: 911c47a2fe05f9846b9eca70cf7757ee
+  - enabled: 1
     path: Assets/Scenes/240_Lighting_Bicubic_Sampling.unity
     guid: 9c375b78be67ea4428234deee1bfc581
   m_configObjects: {}

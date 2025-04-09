@@ -513,11 +513,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeAtlas, lightData.reflectionProbeAtlas);
 
                 var asset = UniversalRenderPipeline.asset;
-                #if UNITY_WEBGL && !UNITY_EDITOR
-                bool apvIsEnabled = false; // APV not supported on WebGL, don't try to enable it.
-                #else
+
                 bool apvIsEnabled = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
+                #if UNITY_WEBGL && !UNITY_EDITOR
+                apvIsEnabled &= SystemInfo.graphicsDeviceType == GraphicsDeviceType.WebGPU; // APV not supported on WebGL, don't try to enable it. WebGPU is fine, though.
                 #endif
+
                 ProbeVolumeSHBands probeVolumeSHBands = asset.probeVolumeSHBands;
 
                 cmd.SetKeyword(ShaderGlobalKeywords.ProbeVolumeL1, apvIsEnabled && probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL1);

@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private int renderTargetHeight;
         private int m_ShadowCasterCascadesCount;
         private bool m_CreateEmptyShadowmap;
+        private bool m_SetKeywordForEmptyShadowmap;
         private bool m_EmptyShadowmapNeedsClear;
         private float m_CascadeBorder;
         private float m_MaxShadowDistanceSq;
@@ -55,6 +56,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private class PassData
         {
             internal bool emptyShadowmap;
+            internal bool setKeywordForEmptyShadowmap;
             internal UniversalRenderingData renderingData;
             internal UniversalCameraData cameraData;
             internal UniversalLightData lightData;
@@ -119,8 +121,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RenderingData"/>
         public bool Setup(UniversalRenderingData renderingData, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData)
         {
-            if (!shadowData.mainLightShadowsEnabled)
-                return false;
+            bool shadowsEnabled = shadowData.mainLightShadowsEnabled;
+            bool shadowsSupported = shadowData.supportsMainLightShadows;
 
 #if UNITY_EDITOR
             if (CoreUtils.IsSceneLightingDisabled(cameraData.camera))
@@ -130,18 +132,39 @@ namespace UnityEngine.Rendering.Universal.Internal
             using var profScope = new ProfilingScope(m_ProfilingSetupSampler);
 
             bool stripShadowsOffVariants = cameraData.renderer.stripShadowsOffVariants;
-            if (!shadowData.supportsMainLightShadows)
-                return SetupForEmptyRendering(stripShadowsOffVariants, null, cameraData, shadowData);
 
             Clear();
             int shadowLightIndex = lightData.mainLightIndex;
             if (shadowLightIndex == -1)
-                return SetupForEmptyRendering(stripShadowsOffVariants, null, cameraData, shadowData);
+            {
+                if (shadowsEnabled)
+                    return SetupForEmptyRendering(stripShadowsOffVariants, shadowsEnabled, null, cameraData, shadowData);
+                else
+                    return false;
+            }
 
             VisibleLight shadowLight = lightData.visibleLights[shadowLightIndex];
             Light light = shadowLight.light;
-            if (light.shadows == LightShadows.None)
-                return SetupForEmptyRendering(stripShadowsOffVariants, light, cameraData, shadowData);
+            if (shadowsSupported && light.shadows == LightShadows.None)
+                return SetupForEmptyRendering(stripShadowsOffVariants, shadowsEnabled, light, cameraData, shadowData);
+
+            if (!shadowsEnabled)
+            {
+                // If (realtime) shadows are disabled, but the light casts baked shadows, we need to do empty rendering to setup the _MainLightShadowParams uniform,
+                // which is also used when sampling baked shadows. This allows for using baked shadows even when realtime shadows are completely disabled.
+                if (light.shadows != LightShadows.None &&
+                    light.bakingOutput.isBaked &&
+                    light.bakingOutput.mixedLightingMode != MixedLightingMode.IndirectOnly &&
+                    light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
+                {
+                    return SetupForEmptyRendering(stripShadowsOffVariants, shadowsEnabled, light, cameraData, shadowData);
+                }
+
+                return false;
+            }
+
+            if (!shadowsSupported)
+                return SetupForEmptyRendering(stripShadowsOffVariants, shadowsEnabled, null, cameraData, shadowData);
 
             if (shadowLight.lightType != LightType.Directional)
             {
@@ -149,7 +172,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             if (!renderingData.cullResults.GetShadowCasterBounds(shadowLightIndex, out Bounds _))
-                return SetupForEmptyRendering(stripShadowsOffVariants, light, cameraData, shadowData);
+                return SetupForEmptyRendering(stripShadowsOffVariants, shadowsEnabled, light, cameraData, shadowData);
 
             m_ShadowCasterCascadesCount = shadowData.mainLightShadowCascadesCount;
             renderTargetWidth = shadowData.mainLightRenderTargetWidth;
@@ -164,7 +187,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_CascadeSlices[cascadeIndex] = sliceData;
 
                 if (!shadowCullingInfos.IsSliceValid(cascadeIndex))
-                    return SetupForEmptyRendering(stripShadowsOffVariants, light, cameraData, shadowData);
+                    return SetupForEmptyRendering(stripShadowsOffVariants, shadowsEnabled, light, cameraData, shadowData);
             }
 
             UpdateTextureDescriptorIfNeeded();
@@ -188,13 +211,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        bool SetupForEmptyRendering(bool stripShadowsOffVariants, Light light, UniversalCameraData cameraData, UniversalShadowData shadowData)
+        bool SetupForEmptyRendering(bool stripShadowsOffVariants, bool shadowsEnabled, Light light, UniversalCameraData cameraData, UniversalShadowData shadowData)
         {
             if (!stripShadowsOffVariants)
                 return false;
 
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
+
+            m_SetKeywordForEmptyShadowmap = shadowsEnabled;
 
             // Even though there are not real-time shadows, the light might be using shadowmasks,
             // which is why we need to update the shadow parameters, for example so shadow strength can be used.
@@ -261,7 +286,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             RasterCommandBuffer rasterCommandBuffer = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
             if (m_CreateEmptyShadowmap)
             {
-                rasterCommandBuffer.EnableKeyword(ShaderGlobalKeywords.MainLightShadows);
+                if (m_SetKeywordForEmptyShadowmap)
+                    rasterCommandBuffer.EnableKeyword(ShaderGlobalKeywords.MainLightShadows);
                 SetShadowParamsForEmptyShadowmap(rasterCommandBuffer);
                 universalRenderingData.commandBuffer.SetGlobalTexture(MainLightShadowConstantBuffer._MainLightShadowmapID, m_EmptyMainLightShadowmapTexture.nameID);
                 return;
@@ -404,6 +430,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             passData.pass = this;
             passData.emptyShadowmap = m_CreateEmptyShadowmap;
+            passData.setKeywordForEmptyShadowmap = m_SetKeywordForEmptyShadowmap;
             passData.renderingData = renderingData;
             passData.cameraData = cameraData;
             passData.lightData = lightData;
@@ -472,7 +499,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                     else
                     {
-                        rasterCommandBuffer.EnableKeyword(ShaderGlobalKeywords.MainLightShadows);
+                        if (data.setKeywordForEmptyShadowmap)
+                            rasterCommandBuffer.EnableKeyword(ShaderGlobalKeywords.MainLightShadows);
                         SetShadowParamsForEmptyShadowmap(rasterCommandBuffer);
                     }
                 });
