@@ -1517,7 +1517,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // We can explicitely render the overlay UI from URP when HDR output is not enabled.
                 // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
-                if (shouldRenderUI && !outputToHDR)
+                if (shouldRenderUI && cameraData.isLastBaseCamera && !outputToHDR)
                 {
                     EnqueuePass(m_DrawOverlayUIPass);
                 }

@@ -1430,6 +1430,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<(HDProbe.RenderData, HDProbe)> viewDependentProbesData;
             public bool cullingResultIsShared;
             public XRPass xrPass;
+            public bool isLast;
         }
 
         private void VisitRenderRequestRecursive(List<RenderRequest> requests, List<int> visitStatus, int requestIndex, List<int> renderIndices)
@@ -2353,6 +2354,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             bool isLast = i == renderRequestIndicesToRender.Count - 1;
                             var renderRequestIndex = renderRequestIndicesToRender[i];
                             var renderRequest = renderRequests[renderRequestIndex];
+                            renderRequest.isLast = isLast;
 
                             var cmd = CommandBufferPool.Get("");
 
@@ -3382,9 +3384,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 SupportedRenderingFeatures.active.rendersUIOverlay = false;
             }
-            // When HDR is active and no XR we enforce UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
-            else if (HDROutputForAnyDisplayIsActive())
+            else
             {
+                // Otherwise we enforce SS UI overlay rendering in HDRP
                 SupportedRenderingFeatures.active.rendersUIOverlay = true;
             }
         }

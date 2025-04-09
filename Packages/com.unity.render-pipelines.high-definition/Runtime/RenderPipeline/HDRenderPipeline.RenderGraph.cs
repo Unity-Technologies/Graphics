@@ -434,7 +434,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Stop XR single pass before rendering screenspace UI
                 StopXRSinglePass(m_RenderGraph, hdCamera);
 
-                RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, backBuffer);
+                if (renderRequest.isLast)
+                    RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, backBuffer);
             }
         }
 
