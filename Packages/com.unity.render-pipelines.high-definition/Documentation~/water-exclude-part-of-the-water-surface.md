@@ -4,7 +4,7 @@ Sometimes you might want to prevent water from appearing on top of other surface
 
 You can use a water excluder to remove a water surface inside a floating object. The following example shows a water excluder applied to the inside of a boat.
 
-![](Images/watersystem-excluder.png)
+![A water excluder applied to the inside of a boat.](Images/watersystem-excluder.png)
 
 This image shows the following, from left to right: 
 

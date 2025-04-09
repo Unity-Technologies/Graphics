@@ -13,8 +13,6 @@ Grading curves are an advanced way to adjust specific ranges in hue, saturation,
 
 ## Properties
 
-![](Images/Post-processingColorCurves1.png)
-
 | **Curve**      | **Description**                                              |
 | -------------- | ------------------------------------------------------------ |
 | **Master**     | This curve affects the luminance across the whole image. The x-axis of the graph represents input luminance and the y-axis represents output luminance. You can use this to further adjust the appearance of basic attributes such as contrast and brightness across all color channels at the same time. |

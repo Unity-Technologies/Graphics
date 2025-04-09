@@ -34,7 +34,7 @@ The Approximate model doesn’t automatically look realistic in every lighting s
 
 The Approximate model is best for darker hair tones. For best results with lighter hair tones, use the Physical model.
 
-![](Images/hair-kajiya.png)
+![Approximate hair Material Type sample.](Images/hair-kajiya.png)
 
 <a name="hair-physical"></a>
 
@@ -61,7 +61,7 @@ Change the [**Base Color** block](hair-master-stack-reference.md#fragment-contex
 
 The Physical Material Type is based on the [Marschner](http://www.graphics.stanford.edu/papers/hair/hair-sg03final.pdf) human hair fiber reflectance model.
 
-![](Images/hair-marschner.png)
+![Physical Material Type sample.](Images/hair-marschner.png)
 
 <a name="hair-scattering"></a>
 
@@ -84,7 +84,7 @@ The Scattering Mode options appear when you select the **Physical** material typ
 | **Physical**    | Physically simulates light transport through a volume of hair (multiple scattering). This feature is not available for public use yet. |
 | **Approximate** | Estimates the appearance of light transport through a volume of hair (multiple scattering). This mode does not take into account how transmittance affects the way light travels and slows through a volume of hair. It also ignores the effect that a hair's roughness has on the spread of light. |
 
-![](Images/hair-multiple-scattering.png)
+![Hair multiple scattering sample.](Images/hair-multiple-scattering.png)
 
 <a name="hair-geometry"></a>
 ## Geometry Type

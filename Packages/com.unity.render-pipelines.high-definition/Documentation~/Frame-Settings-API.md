@@ -82,8 +82,6 @@ In the override mask, to allow you to easily access the bit for a given Frame Se
 
 The following example shows how to compare the `humanizedData` from a rendering component's override mask with the rendering component's custom Frame Settings. There are some custom Frame Settings set, but the mask is all zeros which means that this rendering component uses the default Frame Settings.
 
-![](Images/FrameSettingsAPI-watch.png)
-
 ## FrameSettings Scripting API
 
 This is a structure that contains information on how a rendering component should render the Scene. For more information about this structure and the API it contains, see [FrameSettings](xref:UnityEngine.Rendering.HighDefinition.FrameSettings).

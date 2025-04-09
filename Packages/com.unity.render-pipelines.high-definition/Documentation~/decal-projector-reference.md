@@ -10,15 +10,15 @@ The Decal Projector includes a Scene view representation of its bounds and proje
 
 * An arrow that indicates the direction the projector faces. The base of this arrow is on the pivot point.
 
-![](Images/DecalProjector2.png)
+![Decal Projector Scene view.](Images/DecalProjector2.png)
 
 The decal Projector also includes three gizmos. The first two add handles on every face for you to click and drag to alter the size of the projector's bounds.
 
 |**Button**|**Gizmo**|**Description**|
 |-----|-----|-----|
-|![](Images/DecalProjector3.png)|**Scale**|Scales the decal with the projector box. This changes the UVs of the Material to match the size of the projector box. This stretches the decal. The Pivot remains still.|
-|![](Images/DecalProjector4.png)|**Crop**|Crops the decal with the projector box. This changes the size of the projector box but not the UVs of the Material. This crops the decal. The Pivot remains still.|
-|![](Images/DecalProjector5.png)|**Pivot / UV**|Moves the decal's pivot point without moving the projection box. This changes the transform position.<br/>Note this also sets the UV used on the projected texture.|
+|![Decal Projector Scale gizmo.](Images/DecalProjector3.png)|**Scale**|Scales the decal with the projector box. This changes the UVs of the Material to match the size of the projector box. This stretches the decal. The Pivot remains still.|
+|![Decal Projector Crop gizmo.](Images/DecalProjector4.png)|**Crop**|Crops the decal with the projector box. This changes the size of the projector box but not the UVs of the Material. This crops the decal. The Pivot remains still.|
+|![Decal Projector Pivot / UV gizmo.](Images/DecalProjector5.png)|**Pivot / UV**|Moves the decal's pivot point without moving the projection box. This changes the transform position.<br/>Note this also sets the UV used on the projected texture.|
 
 The color of the gizmos can be set up in the Preference window inside Color panel.
 
@@ -27,8 +27,6 @@ The color of the gizmos can be set up in the Preference window inside Color pane
 Using the Inspector allows you to change all of the Decal Projector properties, and lets you use numerical values for **Size**, **Tiling**, and **Offset**, which allows for greater precision than the click-and-drag gizmo method.
 
 ## Properties
-
-![](Images/DecalProjector6.png)
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |

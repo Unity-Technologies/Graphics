@@ -15,8 +15,6 @@ To add the Raytracing Quality Keyword node to the graph:
 
 To use this keyword in the graph, you need to create a [Keyword Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Keyword-Node.html). To do this, drag the **Raytracing Quality** Keyword node  from the Blackboard to the graph or open the Create Node Menu and search for **Raytracing Quality** .
 
-![](Images/RaytracingQualityNode.png)
-
 ### Available Ports
 
 | Name          | Direction | Type           | Description                                                  |

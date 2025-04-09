@@ -13,7 +13,7 @@ When you enable dynamic resolution, HDRP allocates render targets to accommodate
 
 HDRP always uses a software method to upscale the result. The method HDRP uses is defined in the **Upscale Filter**. You can select which upscaling method HDRP uses to do this. For more information, see [Choosing an upscale filter](#Choosing_Upscale_Filter).
 
-![](Images/DynamicResolution1.png)
+![Dynamic resolution sample.](Images/DynamicResolution1.png)
 
 ## Using dynamic resolution
 

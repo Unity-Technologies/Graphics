@@ -2,8 +2,6 @@
 
 ## Properties
 
-![](Images/Override-Shadows1.png)
-
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**                | **Description**                                              |

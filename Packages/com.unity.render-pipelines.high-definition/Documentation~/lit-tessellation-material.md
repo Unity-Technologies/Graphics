@@ -2,11 +2,11 @@
 
 The Lit Tessellation Shader allows you to create Materials that use tessellation to provide adaptive vertex density for meshes. This means that you can render more detailed geometry without the need to create a model that contains a lot of vertices. This Shader also includes options for effects like subsurface scattering, iridescence, vertex or pixel displacement, and decal compatibility. For more information about Materials, Shaders, and Textures, see the[ Unity User Manual](https://docs.unity3d.com/Manual/Shaders.html).
 
-![](Images/LitTessellationShader1.png)
+![Tessellation Mode set to None (off).](Images/LitTessellationShader1.png)
 
 **Tessellation Mode** set to **None** (off).
 
-![](Images/LitTessellationShader2.png)
+![Tessellation Mode set to Phong (on).](Images/LitTessellationShader2.png)
 
 **Tessellation Mode** set to **Phong** (on).
 

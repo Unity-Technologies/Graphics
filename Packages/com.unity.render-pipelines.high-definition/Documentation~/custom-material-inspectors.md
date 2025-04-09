@@ -8,8 +8,6 @@ This page contains information about how to create custom Material Inspectors in
 
 Material Inspectors for most HDRP shaders are made of UI blocks. A UI block is a foldable section that contains a named group of properties. For example, **Surface Options** and **Surface Inputs** in the below image are both UI blocks.
 
-![](Images/custom-material-inspector-ui-blocks.png)
-
 The order of the UI block list defines the display order of the UI blocks in the Inspector. The first item in the list renders at the top and the last item renders at the bottom.
 
 For information about how to create UI Blocks for a custom Material Inspector, see [UI blocks](#creating-ui-blocks).
@@ -69,11 +67,11 @@ This code sample fetches the `_MyColor` property in the shader and displays it.
 2. Select the property to display and view it in the Node Settings tab of the Graph Inspector.
 3. Set **Reference** to the name `FindProperty` uses. In this example, it's **_MyColor**.
 
-![](Images/custom-material-inspector-node-settings-example.png)
+![Example: The _MyColor property in the Node Settings tab of the Graph Inspector.](Images/custom-material-inspector-node-settings-example.png)
 
 The following image shows how the Inspector looks for the UI block in the code sample.
 
-![](Images/custom-material-inspector-ui-block-example.png)
+![How the Inspector looks for the UI block in the code sample.](Images/custom-material-inspector-ui-block-example.png)
 
 #### Implementing a foldout section
 
@@ -117,7 +115,7 @@ You can also hardcode the bit in a UI block but this isn't best practice especia
 
 The following image shows how the Inspector looks for the UI block in the above code sample.
 
-![](Images/custom-material-inspector-ui-block-foldout-example.png)
+![How the Inspector looks for the UI block in the above code sample.](Images/custom-material-inspector-ui-block-foldout-example.png)
 
 #### Block cross-reference
 
@@ -165,7 +163,7 @@ public class LightingInspectorExample : LightingShaderGraphGUI
 
 This code sample produces the following Inspector:
 
-![](Images/custom-material-inspector-lit-example.png)
+![Inspector produced by code sample.](Images/custom-material-inspector-lit-example.png)
 
 ### Custom Unlit Material Inspector
 
@@ -192,7 +190,7 @@ public class UnlitExampleGUI : UnlitShaderGraphGUI
 
 This code sample produces the following Inspector:
 
-![](Images/custom-material-inspector-unlit-example.png)
+![Inspector produced by code sample.](Images/custom-material-inspector-unlit-example.png)
 
 ### Custom Decal Material Inspector
 
@@ -220,7 +218,7 @@ public class DecalGUIExample : DecalShaderGraphGUI
 
 This code sample produces the following Inspector:
 
-![](Images/custom-material-inspector-decal-example.png)
+![Inspector produced by code sample.](Images/custom-material-inspector-decal-example.png)
 
 ### Bespoke Material Inspector
 

@@ -2,7 +2,7 @@
 
 The StackLit Master Stack can render materials that are more complex than the [Lit Master Stack](lit-master-stack-reference.md). It includes all the features available in the Lit shader and, sometimes, provides more advanced or higher quality versions. For example, it uses a more advanced form of specular occlusion and also calculates anisotropic reflections for area lights in the same way the Lit shader does for other light types. It also takes into account light interactions between two vertically stacked physical layers, along with a more complex looking general base layer.
 
-![](Images/HDRPFeatures-StackLitShader.png)
+![Stacklit material example.](Images/HDRPFeatures-StackLitShader.png)
 
 ## Creating a StackLit Shader Graph
 
