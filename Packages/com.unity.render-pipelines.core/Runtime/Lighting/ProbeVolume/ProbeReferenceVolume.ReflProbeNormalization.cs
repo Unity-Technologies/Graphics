@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Collections;
 #if UNITY_EDITOR
@@ -25,6 +26,7 @@ namespace UnityEngine.Rendering
         public static AdditionalGIBakeRequestsManager instance { get { return s_Instance; } }
 
         const float kInvalidSH = 1f;
+        const float kInvalidValidity = 1f;
         const float kValidSHThresh = 0.33f;
 
         private static Dictionary<int, SphericalHarmonicsL2> m_SHCoefficients = new Dictionary<int, SphericalHarmonicsL2>();
@@ -64,6 +66,7 @@ namespace UnityEngine.Rendering
         /// <param name ="sh"> The output SH coefficients that have been computed.</param>
         /// <param name ="pos"> The position for which the computed SH coefficients are valid.</param>
         /// <returns>Whether the request for light probe rendering has been fulfilled and sh is valid.</returns>
+        [Obsolete("Use RetrieveProbe instead.", false)]
         public bool RetrieveProbeSH(int probeInstanceID, out SphericalHarmonicsL2 sh, out Vector3 pos)
         {
             if (m_SHCoefficients.ContainsKey(probeInstanceID))
@@ -75,6 +78,32 @@ namespace UnityEngine.Rendering
 
             sh = new SphericalHarmonicsL2();
             pos = Vector3.negativeInfinity;
+            return false;
+        }
+
+        /// <summary>
+        /// Retrieve the result of a capture request, it will return false if the request ID is invalid.
+        /// </summary>
+        /// <param name ="probeInstanceID"> The instance ID of the probe doing the request.</param>
+        /// <param name ="pos"> The position for which the computed SH coefficients are valid.</param>
+        /// <param name ="sh"> The output SH coefficients that have been computed.</param>
+        /// <param name ="validity"> The output validity that has been computed.</param>
+        /// <returns>True if the request ID is valid.</returns>
+        public bool RetrieveProbe(EntityId probeInstanceID, out Vector3 pos, out SphericalHarmonicsL2 sh, out float validity)
+        {
+            if (m_SHCoefficients.ContainsKey(probeInstanceID))
+            {
+                sh = m_SHCoefficients[probeInstanceID];
+                pos = m_RequestPositions[probeInstanceID];
+                validity = m_SHValidity[probeInstanceID];
+
+                return true;
+            }
+
+            sh = new SphericalHarmonicsL2();
+            pos = Vector3.negativeInfinity;
+            validity = float.NegativeInfinity;
+
             return false;
         }
 

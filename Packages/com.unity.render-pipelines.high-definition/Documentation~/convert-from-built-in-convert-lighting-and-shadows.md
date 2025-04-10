@@ -53,7 +53,7 @@ To set up lighting in your HDRP Project:
 
     1. In the Hierarchy, select a Spot Light and view the Light component in the Inspector.
     2. Go to **Emission** and set **Intensity** to 17000 **Lumen** to represent two 8500 Lumen light bulbs.
-    3. In the **Emission**, select the More menu (&#8942;) and enable [additional properties](expose-all-additional-properties.md).
+    3. In the **Emission**, select the More menu (&#8942;) and enable [additional properties](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.2/manual/advanced-properties.html).
     4. Enable **Reflector** checkbox. This simulates a reflective surface behind the spot Light to adjust the visual intensity.
 
 9. Make the light bulb Material emissive:

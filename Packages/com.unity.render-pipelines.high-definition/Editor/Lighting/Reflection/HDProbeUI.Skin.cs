@@ -28,10 +28,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly Dictionary<ToolBar, GUIContent> k_ToolbarContents = new Dictionary<ToolBar, GUIContent>
         {
-            { ToolBar.InfluenceShape,  EditorGUIUtility.TrIconContent("EditCollider", "Modify the base shape.") },
-            { ToolBar.Blend,  EditorGUIUtility.TrIconContent("PreMatCube", "Modify the influence volume.") },
-            { ToolBar.NormalBlend,  EditorGUIUtility.TrIconContent("SceneViewOrtho", "Modify the influence normal volume.") },
-            { ToolBar.CapturePosition,  EditorGUIUtility.TrIconContent("MoveTool", "Change the capture position.") },
+            { ToolBar.InfluenceShape,  EditorGUIUtility.TrIconContent("EditShape", "Modify the base shape.") },
+            { ToolBar.Blend,  EditorGUIUtility.TrIconContent("BlendDistance", "Modify the influence volume blend distance.") },
+            { ToolBar.NormalBlend,  EditorGUIUtility.TrIconContent("NormalBlendDistance", "Modify the influence volume normal blend distance.") },
+            { ToolBar.CapturePosition,  EditorGUIUtility.TrIconContent("CapturePosition", "Change the capture position.") },
             { ToolBar.MirrorPosition,  EditorGUIUtility.TrIconContent("MoveTool", "Change the mirror position.") },
             { ToolBar.MirrorRotation,  EditorGUIUtility.TrIconContent("RotateTool", "Change the mirror rotation.") },
             { ToolBar.ShowChromeGizmo,  EditorGUIUtility.TrIconContent(IconReflectionProbeGizmoId, "Display the chrome gizmo.") },

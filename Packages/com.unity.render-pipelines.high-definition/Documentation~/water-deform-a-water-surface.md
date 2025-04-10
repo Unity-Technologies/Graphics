@@ -1,14 +1,16 @@
-# Deform a water surface vertically
+# Deform a water surface
 
 You can use water decals to achieve deformation effects on the water surface. Water decals use textures and Shader Graph materials to modify the water's appearance dynamically.
 
 ![A swimming pool with a deformed water surface.](Images/watersystem-deformer.png)
 
+## Deform a water surface vertically
+
 To deform a water surface vertically:
 
 1. Create a [water surface](water-use-the-water-system-in-your-project.md).
 
-1. In the **Inspector** window of the water surface, under **Water Decals**, enable **Deformation**.
+1. In the **Inspector** window of the water surface, go to **Water Surface (Script)** > **Water decals**, and enable **Deformation**.
 
 	To add a deformation only, disable **Foam**.
 
@@ -27,6 +29,39 @@ To deform a water surface vertically:
 	A new material using the [water decal master stack](understand-decals.md) is created in your assets subfolder.
 
 1. In the **Inspector** window of the **Water Decal**, select **Edit** next to the water decal shader graph, then edit the shader graph as needed.
+
+For example, connect the following gradient texture with your deformation pattern with the Deformation fragment.
+
+![Water decal shader graph: Vertical deformation.](Images/new-empty-water-decal.png)
+	
+This results in the following deformation along the Y-axis:
+
+![Water surface deformed vertically](Images/water-deform-a-water-surface-y-axis.jpg)
+
+## Deform a water surface horizontally
+
+Enabling horizontal deformation has the following effects:
+
+- HDRP creates a new buffer, which increases the amount of memory HDRP uses.
+- The results of water scripts, [underwater effects](water-underwater-view.md), and [script interactions](float-objects-on-a-water-surface.md) might be less accurate.
+
+Follow these steps:
+
+1. In the main menu, go to **Edit** > **Project Settings**.
+1. In the **Project Settings** window, go to **Quality** > **HDRP** > **Rendering** > **Water**, then enable **Horizontal Deformation**.
+
+1. If the **Fragment** context doesn't contain a **Horizontal Deformation** block, right-click the **Fragment** context and select **Add Block Node** > **Horizontal Deformation**.
+1. Connect a gradient texture to the **Horizontal Deformation** block. HDRP uses the yellow and blue channels of the texture to deform the x-axis and z-axis of the water surface.
+    
+	For example, connect the red channel of the default HDRP **Default-Particle** texture to both the x-axis and z-axis:
+
+    ![Water decal shader graph example: A deformation along the x-axis and z-axis, built on top of existing vertical deformation.](Images/water-surface-3d-deformation.png)
+
+	This results in deformation along the x-axis and z-axis, built on top of existing vertical deformation.
+
+	![Water surface deformed in 3D](Images/water-deform-a-water-surface-x-axis.jpg)
+    
+You can also view an advanced example of how to apply a 3D deformation to a water surface in the rolling wave [water sample](HDRP-Sample-Content.md).
 
 ## Configure the Deformer and Foam Water Decal template
 
@@ -82,8 +117,11 @@ These properties are specific to the Texture deformer type.
 | **Property**    | **Description**                                                                                                                                                                                                                                                                                                                                                        |
 |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Range Remap** | Specifies the range of the deformer in the [-1, 1] interval. The input texture values will be remapped from [0,1] to the specified range.                                                                                                                                                                                                                              |
-| **Texture**     | The texture used by the deformer. This is a single channel texture that contains the amplitude of the deformation relative to the deformer’s amplitude.<br>This texture can be a regular texture or a Render Texture, which can be updated at runtime by modifying a render target with a compute shader for example. For a Render Texture, use the R16_UNorm format . |
+| **Texture**     | The texture used by the deformer. This is a single channel texture that contains the amplitude of the deformation relative to the deformer’s amplitude.<br>This texture can be a regular texture or a Render Texture, which can be updated at runtime by modifying a render target with a compute shader for example. For a Render Texture, use the R16_UNorm format. |
+
 
 ## Additional resources
 
-[Materials and surfaces](materials-and-surfaces.md)
+- [Materials and surfaces](materials-and-surfaces.md)
+- [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@17.2)
+

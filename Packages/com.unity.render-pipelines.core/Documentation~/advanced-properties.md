@@ -1,3 +1,7 @@
+---
+uid: um-srp-advanced-properties
+---
+
 # Advanced Properties
 
 Unity Render Pipelines components expose standard properties by default that are suitable for most use-cases.

@@ -38,7 +38,6 @@
       * [Configure build settings for different platforms](configure-build-settings-for-different-platforms.md)
       * [Quality settings](quality-settings.md)
       * [Frame Settings](frame-settings.md)
-      * [Expose all additional properties](expose-all-additional-properties.md)
     * [Create an HDRP asset](create-an-hdrp-asset.md)
   * [Scene setup](scene-setup.md)
     * [Understand Volumes](understand-volumes.md)

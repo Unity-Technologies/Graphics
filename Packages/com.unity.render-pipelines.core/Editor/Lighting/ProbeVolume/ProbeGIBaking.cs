@@ -754,8 +754,7 @@ namespace UnityEngine.Rendering
             for (int i = 0; i < perSceneData.Count; ++i)
             {
                 var data = perSceneData[i];
-                var scene = data.gameObject.scene;
-                var sceneGUID = scene.GetGUID();
+                var sceneGUID = data.sceneGUID;
                 var bakingSet = ProbeVolumeBakingSet.GetBakingSetForScene(sceneGUID);
 
                 if (bakingSet == null)
@@ -763,7 +762,8 @@ namespace UnityEngine.Rendering
                     if (isBakingSingleScene)
                         continue;
 
-                    Debug.LogError($"Scene '{scene.name}' does not belong to any Baking Set. Please add it to a Baking Set in the Adaptive Probe Volumes tab of the Lighting Window.");
+                    var sceneName = data.gameObject.scene.name;
+                    Debug.LogError($"Scene '{sceneName}' does not belong to any Baking Set. Please add it to a Baking Set in the Adaptive Probe Volumes tab of the Lighting Window.");
                     return false;
                 }
 
