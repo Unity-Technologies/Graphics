@@ -791,7 +791,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void TryUpdateLuminanceSHL2ForNormalization()
         {
 #if UNITY_EDITOR
-            m_HasValidSHForNormalization = AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(GetInstanceID(), out m_SHForNormalization, out m_SHValidForCapturePosition);
+            const float kValidSHThresh = 0.33f; // This threshold is used to make the code below functionally equivalent to the obsolete RetrieveProbeSH. 
+            m_HasValidSHForNormalization = AdditionalGIBakeRequestsManager.instance.RetrieveProbe(GetEntityId(), out m_SHValidForCapturePosition, out m_SHForNormalization, out float validity);
+            m_HasValidSHForNormalization = m_HasValidSHForNormalization && validity < kValidSHThresh;
             if (m_HasValidSHForNormalization)
                 m_SHValidForSourcePosition = transform.position;
 #endif
