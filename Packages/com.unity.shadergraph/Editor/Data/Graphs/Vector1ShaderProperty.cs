@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 switch (enumType)
                 {
                     case EnumType.CSharpEnum:
-                        return $"[Enum({m_CSharpEnumType.ToString()})]";
+                        return $"[Enum({(m_CSharpEnumType != null ? m_CSharpEnumType.ToString() : m_CSharpEnumString)})]";
                     case EnumType.KeywordEnum:
                         return $"[KeywordEnum({string.Join(", ", enumNames)})]";
                     default:
@@ -57,6 +57,22 @@ namespace UnityEditor.ShaderGraph.Internal
                             enumValuesString += (enumNames[i] + ", " + value + ((i != enumNames.Count - 1) ? ", " : ""));
                         }
                         return $"[Enum({enumValuesString})]";
+                }
+            }
+        }
+
+        string sliderTagString
+        {
+            get
+            {
+                switch (sliderType)
+                {
+                    case SliderType.Power:
+                        return $"[PowerSlider({m_SliderPower})]";
+                    case SliderType.Integer:
+                        return $"[IntRange]";
+                    default:
+                        return string.Empty;
                 }
             }
         }
@@ -77,7 +93,7 @@ namespace UnityEditor.ShaderGraph.Internal
             switch (floatType)
             {
                 case FloatType.Slider:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.y)})) = {valueString}";
+                    return $"{hideTagString}{sliderTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.y)})) = {valueString}";
                 case FloatType.Integer:
                     return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {((int)value).ToString(CultureInfo.InvariantCulture)}";
                 case FloatType.Enum:
@@ -116,6 +132,16 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_RangeValues = value;
         }
 
+        [SerializeField]
+        SliderType m_SliderType = SliderType.Default;
+
+        internal SliderType sliderType { get => m_SliderType; set => m_SliderType = value; }
+
+        [SerializeField]
+        float m_SliderPower = 3.0f;
+        internal float sliderPower { get => m_SliderPower; set => m_SliderPower = value; }
+
+        [SerializeField]
         EnumType m_EnumType = EnumType.Enum;
 
         public EnumType enumType
@@ -132,7 +158,17 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_CSharpEnumType = value;
         }
 
-        List<string> m_EnumNames = new List<string>();
+        [SerializeField]
+        string m_CSharpEnumString;
+
+        internal string cSharpEnumString
+        {
+            get => m_CSharpEnumString;
+            set => m_CSharpEnumString = value;
+        }
+
+        [SerializeField]
+        List<string> m_EnumNames = new List<string>() { "Default" };
 
         public List<string> enumNames
         {
@@ -140,7 +176,8 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_EnumNames = value;
         }
 
-        List<int> m_EnumValues = new List<int>();
+        [SerializeField]
+        List<int> m_EnumValues = new List<int>() { 0 };
 
         public List<int> enumValues
         {
@@ -198,6 +235,8 @@ namespace UnityEditor.ShaderGraph.Internal
     }
 
     public enum FloatType { Default, Slider, Integer, Enum }
+
+    internal enum SliderType { Default, Power, Integer }
 
     public enum EnumType { Enum, CSharpEnum, KeywordEnum, }
 }
