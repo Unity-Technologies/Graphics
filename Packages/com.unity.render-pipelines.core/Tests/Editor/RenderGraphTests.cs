@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Tests
                     if (!camera.enabled)
                         continue;
 
-                    var cmd = new CommandBuffer { name = "Rendering command buffer" };
+                    var cmd = CommandBufferPool.Get();
 
                     RenderGraphParameters rgParams = new()
                     {
@@ -100,6 +100,8 @@ namespace UnityEngine.Rendering.Tests
                     m_RenderGraph.EndRecordingAndExecute();
 
                     renderContext.ExecuteCommandBuffer(cmd);
+
+                    CommandBufferPool.Release(cmd);
                 }
                 renderContext.Submit();
             }
@@ -133,6 +135,8 @@ namespace UnityEngine.Rendering.Tests
             // Getting the RG from the custom asset pipeline
             m_RenderGraph = m_RenderGraphTestPipeline.renderGraph;
 
+            m_RenderGraph.nativeRenderPassesEnabled = true;
+
             // We need a real ScriptableRenderContext and a camera to execute the Render Graph
             m_GameObject = new GameObject("testGameObject")
             {
@@ -165,16 +169,12 @@ namespace UnityEngine.Rendering.Tests
             m_Camera = null;
         }
 
-        void ClearCompiledGraphAndHash()
+        [TearDown]
+        public void CleanupRenderGraph()
         {
-            m_RenderGraph.ClearCurrentCompiledGraph();
-            DelegateHashCodeUtils.ClearCache();
-        }
-
-        [SetUp]
-        public void SetupRenderGraph()
-        {
-            ClearCompiledGraphAndHash();
+            // Cleaning all Render Graph resources and data structures
+            // Nothing remains, Render Graph in next test will start from scratch
+            m_RenderGraph.Cleanup();
         }
 
         class RenderGraphTestPassData
@@ -895,7 +895,7 @@ namespace UnityEngine.Rendering.Tests
             // record and execute render graph calls
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
-                using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPassWithNoRenderFunc", out var passData))
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPassWithNoRenderFunc", out var passData))
                 {
                     builder.AllowPassCulling(false);
 
@@ -1236,6 +1236,99 @@ namespace UnityEngine.Rendering.Tests
             };
 
             m_Camera.Render();
+        }
+
+        class RenderGraphCleanupTestData
+        {
+            public TextureHandle textureToRelease;
+        }
+
+        [Test]
+        public void Cleanup_ReleaseGraphicsResources_WhenCallingCleanup()
+        {
+            // We need to capture this variable in the lambda function of the CleanupPass unfortunately
+            RenderTexture renderTextureToRemove = null;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphCleanupTestData>("CleanupPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    var texDesc = new TextureDesc(Vector2.one, false, false)
+                    {
+                        width = 1920,
+                        height = 1080,
+                        format = GraphicsFormat.B10G11R11_UFloatPack32,
+                        clearBuffer = true,
+                        clearColor = Color.red,
+                        name = "Texture To Release"
+                    };
+                    passData.textureToRelease = m_RenderGraph.CreateTexture(texDesc);
+                    builder.UseTexture(passData.textureToRelease);
+                    builder.SetRenderFunc((RenderGraphCleanupTestData data, UnsafeGraphContext context) =>
+                    {
+                        // textureToRelease has been allocated before executing this node
+
+                        renderTextureToRemove = (RenderTexture)data.textureToRelease;
+                        Assert.IsNotNull(renderTextureToRemove);
+
+                        // textureToRelease will returned to the texture pool after executing this node
+                    });
+                }
+            };
+
+            // Render Graph hasn't started yet, no texture allocated
+            Assert.IsNull(renderTextureToRemove);
+
+            m_Camera.Render();
+
+            // Cleanup pass has been executed
+            // RG resource has been created and then released to the pool
+            // but the graphics resource has not been released, still attached to the pooled resource
+            // in case a next pass will reuse it
+            Assert.IsNotNull(renderTextureToRemove);
+
+            m_RenderGraph.Cleanup();
+
+            // All RG resources and data structures have been released
+            Assert.IsTrue(renderTextureToRemove == null);
+        }
+
+        [Test]
+        public void Cleanup_RenderAgain_AfterCallingCleanup()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphCleanupTestData>("MidCleanupPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    var texDesc = new TextureDesc(Vector2.one, false, false)
+                    {
+                        width = 1920,
+                        height = 1080,
+                        format = GraphicsFormat.B10G11R11_UFloatPack32,
+                        clearBuffer = true,
+                        clearColor = Color.red,
+                        name = "Texture To Release Twice"
+                    };
+
+                    passData.textureToRelease = m_RenderGraph.CreateTexture(texDesc);
+                    builder.SetRenderFunc((RenderGraphCleanupTestData data, UnsafeGraphContext context) =>
+                    {
+                        ///
+                    });
+                }
+            };
+
+            m_Camera.Render();
+
+            // Cleanup everything in Render Graph, even the native data structures
+            m_RenderGraph.Cleanup();
+
+            // Ensure that the Render Graph data structures can be reinitialized at runtime, even native ones
+            Assert.DoesNotThrow(() => m_Camera.Render());
         }
     }
 }
