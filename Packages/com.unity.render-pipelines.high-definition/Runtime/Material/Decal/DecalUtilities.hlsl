@@ -181,7 +181,7 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 float2 deriv = UnpackDerivativeNormalRGorAG(atlasData);
                 src.xyz = SurfaceGradientFromTBN(deriv, tangentToWorld[0], tangentToWorld[1]);
                 #else
-                normalTS = UnpackNormalmapRGorAG(atlasData);
+                normalTS = UnpackNormalMapRGorAG(atlasData);
                 #endif
             }
 
