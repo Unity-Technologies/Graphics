@@ -459,7 +459,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DEBUG_DISPLAY
             // 'Optimize Mesh Data' strip away attribute uv1/uv2 without the keyword set on the vertex stage.
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile_fragment _ LIGHTMAP_BICUBIC_SAMPLING
+            #pragma multi_compile _ LIGHTMAP_BICUBIC_SAMPLING
             // Both DIRLIGHTMAP_COMBINED and DYNAMICLIGHTMAP_ON must have vertex frequency to be able to include UV2 in player
             // If DIRLIGHTMAP_COMBINED isn't define, then DYNAMICLIGHTMAP_ON will not. This is hardcoded in C++
             // For ShaderGraph we don't have this issue as UV2 are always included.
@@ -861,7 +861,7 @@ Shader "HDRP/Lit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile_fragment _ LIGHTMAP_BICUBIC_SAMPLING
+            #pragma multi_compile _ LIGHTMAP_BICUBIC_SAMPLING
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ USE_LEGACY_LIGHTMAPS
@@ -989,7 +989,7 @@ Shader "HDRP/Lit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile_fragment _ LIGHTMAP_BICUBIC_SAMPLING
+            #pragma multi_compile _ LIGHTMAP_BICUBIC_SAMPLING
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ USE_LEGACY_LIGHTMAPS

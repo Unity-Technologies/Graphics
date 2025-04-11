@@ -15,6 +15,8 @@ namespace UnityEngine.Rendering
 
         int IRenderPipelineGraphicsSettings.version { get => m_Version; }
 
+        bool IRenderPipelineGraphicsSettings.isAvailableInPlayerBuild => true;
+
         [SerializeField, Tooltip("Use Bicubic Lightmap Sampling. Enabling this will improve the appearance of lightmaps, but may worsen performance on lower end platforms.")]
         bool m_UseBicubicLightmapSampling;
 
