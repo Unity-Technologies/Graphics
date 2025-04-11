@@ -619,27 +619,29 @@ namespace UnityEngine.Rendering.Universal
             if (handle.rt.enableShadingRate && handle.rt.graphicsFormat != descriptor.colorFormat)
                 return true;
 
-            var rtHandleFormat = (handle.rt.descriptor.depthStencilFormat != GraphicsFormat.None) ? handle.rt.descriptor.depthStencilFormat : handle.rt.descriptor.graphicsFormat;
-            var isShadowMap = handle.rt.descriptor.shadowSamplingMode != ShadowSamplingMode.None;
+            //We should always prefer to cache data from Native to prevent duplicate copy operations when re-fetching
+            var rtDescriptor = handle.rt.descriptor;
+            var rtHandleFormat = (rtDescriptor.depthStencilFormat != GraphicsFormat.None) ? rtDescriptor.depthStencilFormat : rtDescriptor.graphicsFormat;
+            var isShadowMap = rtDescriptor.shadowSamplingMode != ShadowSamplingMode.None;
 
             return
                 rtHandleFormat != descriptor.format ||
-                handle.rt.descriptor.dimension != descriptor.dimension ||
-                handle.rt.descriptor.volumeDepth != descriptor.slices ||
-                handle.rt.descriptor.enableRandomWrite != descriptor.enableRandomWrite ||
-                handle.rt.descriptor.enableShadingRate != descriptor.enableShadingRate ||
-                handle.rt.descriptor.useMipMap != descriptor.useMipMap ||
-                handle.rt.descriptor.autoGenerateMips != descriptor.autoGenerateMips ||
+                rtDescriptor.dimension != descriptor.dimension ||
+                rtDescriptor.volumeDepth != descriptor.slices ||
+                rtDescriptor.enableRandomWrite != descriptor.enableRandomWrite ||
+                rtDescriptor.enableShadingRate != descriptor.enableShadingRate ||
+                rtDescriptor.useMipMap != descriptor.useMipMap ||
+                rtDescriptor.autoGenerateMips != descriptor.autoGenerateMips ||
                 isShadowMap != descriptor.isShadowMap ||
-                (MSAASamples)handle.rt.descriptor.msaaSamples != descriptor.msaaSamples ||
-                handle.rt.descriptor.bindMS != descriptor.bindTextureMS ||
-                handle.rt.descriptor.useDynamicScale != descriptor.useDynamicScale ||
-                handle.rt.descriptor.useDynamicScaleExplicit != descriptor.useDynamicScaleExplicit ||
-                handle.rt.descriptor.memoryless != descriptor.memoryless ||
+                (MSAASamples)rtDescriptor.msaaSamples != descriptor.msaaSamples ||
+                rtDescriptor.bindMS != descriptor.bindTextureMS ||
+                rtDescriptor.useDynamicScale != descriptor.useDynamicScale ||
+                rtDescriptor.useDynamicScaleExplicit != descriptor.useDynamicScaleExplicit ||
+                rtDescriptor.memoryless != descriptor.memoryless ||
                 handle.rt.filterMode != descriptor.filterMode ||
                 handle.rt.wrapMode != descriptor.wrapMode ||
                 handle.rt.anisoLevel != descriptor.anisoLevel ||
-                handle.rt.mipMapBias != descriptor.mipMapBias ||
+                Mathf.Abs(handle.rt.mipMapBias - descriptor.mipMapBias) > Mathf.Epsilon ||
                 handle.name != descriptor.name;
         }
 
