@@ -143,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
                 output.importInfo.height = Screen.height;
                 output.importInfo.volumeDepth = 1;
                 output.importInfo.msaaSamples = numSamples;
-                output.importInfo.format = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha);
+                output.importInfo.format = cameraData.cameraTargetDescriptor.graphicsFormat;
 
                 output.importInfoDepth = output.importInfo;
                 output.importInfoDepth.format = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
@@ -278,16 +278,18 @@ namespace UnityEngine.Rendering.Universal
                     var depthDescriptor = cameraData.cameraTargetDescriptor;
                     depthDescriptor.useMipMap = false;
                     depthDescriptor.autoGenerateMips = false;
-                    depthDescriptor.bindMS = false;
 
                     bool hasMSAA = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
                     bool resolveDepth = RenderingUtils.MultisampleDepthResolveSupported() && renderGraph.nativeRenderPassesEnabled;
 
-                    if (m_CopyDepthPass != null)
-                        m_CopyDepthPass.m_CopyResolvedDepth = resolveDepth;
+                    depthDescriptor.bindMS = !resolveDepth && hasMSAA;
 
-                    if (hasMSAA)
-                        depthDescriptor.bindMS = !resolveDepth;
+                    // binding MS surfaces is not supported by the GLES backend
+                    if (IsGLESDevice())
+                        depthDescriptor.bindMS = false;
+
+                    if (m_CopyDepthPass != null)
+                        m_CopyDepthPass.m_CopyResolvedDepth = !depthDescriptor.bindMS;
 
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
                     depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
