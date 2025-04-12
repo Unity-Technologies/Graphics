@@ -3,7 +3,7 @@
   "description": "Configuration files for the Universal Render Pipeline.",
   "version": "17.0.3",
   "unity": "6000.0",
-  "displayName": "Universal RP Config",
+  "displayName": "Universal Render Pipeline Config",
   "dependencies": {
     "com.unity.render-pipelines.core": "17.0.3"
   }
