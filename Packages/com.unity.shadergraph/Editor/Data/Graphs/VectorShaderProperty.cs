@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{referenceName}(\"{displayName}\", Vector) = ({NodeUtils.FloatToShaderValueShaderLabSafe(value.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.y)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.z)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.w)})";
+            return $"{hideTagString}{referenceName}(\"{displayName}\", Vector, {vectorDimension}) = ({NodeUtils.FloatToShaderValueShaderLabSafe(value.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.y)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.z)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.w)})";
         }
 
         internal override string GetPropertyAsArgumentString(string precisionString)
