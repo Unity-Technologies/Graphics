@@ -451,7 +451,7 @@ float4 ApplyTextureType(float4 value, int textureType)
     // NOTE: when textureType is a compile-time constant, the branches compile out
     if (textureType == TEXTURETYPE_NORMALTANGENTSPACE)
     {
-        value.rgb = UnpackNormalmapRGorAG(value);
+        value.rgb = UnpackNormalMapRGorAG(value);
     }
     else if (textureType == TEXTURETYPE_NORMALOBJECTSPACE)
     {

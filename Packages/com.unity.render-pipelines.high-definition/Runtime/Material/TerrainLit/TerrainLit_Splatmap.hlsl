@@ -55,7 +55,7 @@ float3 SampleNormalGrad(TEXTURE2D_PARAM(textureName, samplerName), float2 uv, fl
     #ifdef UNITY_NO_DXT5nm
         return UnpackNormalRGB(nrm, scale);
     #else
-        return UnpackNormalmapRGorAG(nrm, scale);
+        return UnpackNormalMapRGorAG(nrm, scale);
     #endif
 #endif
 }

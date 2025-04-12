@@ -196,7 +196,7 @@ real3 UnpackNormalAG(real4 packedNormal, real scale = 1.0)
 }
 
 // Unpack normal as DXT5nm (1, y, 0, x) or BC5 (x, y, 0, 1)
-real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
+real3 UnpackNormalMapRGorAG(real4 packedNormal, real scale = 1.0)
 {
     // Convert to (?, y, 0, x)
     packedNormal.a *= packedNormal.r;
@@ -212,7 +212,7 @@ real3 UnpackNormal(real4 packedNormal)
     return UnpackNormalRGBNoScale(packedNormal);
 #else
     // Compiler will optimize the scale away
-    return UnpackNormalmapRGorAG(packedNormal, 1.0);
+    return UnpackNormalMapRGorAG(packedNormal, 1.0);
 #endif
 }
 #endif
@@ -224,7 +224,7 @@ real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 #elif defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGB(packedNormal, bumpScale);
 #else
-    return UnpackNormalmapRGorAG(packedNormal, bumpScale);
+    return UnpackNormalMapRGorAG(packedNormal, bumpScale);
 #endif
 }
 
