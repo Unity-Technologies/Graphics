@@ -511,6 +511,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// </summary>
         public void Cleanup()
         {
+            // Usually done at the end of Execute step
+            // Also doing it here in case RG stopped before it
+            ClearCompiledGraph();
+
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
             m_RenderGraphPool.Cleanup();
@@ -518,7 +522,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             s_RegisteredGraphs.Remove(this);
             onGraphUnregistered?.Invoke(this);
 
-            nativeCompiler?.contextData?.Dispose();
+            nativeCompiler?.Cleanup();
 
             m_CompilationCache?.Clear();
         }
