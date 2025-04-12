@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
+  serializedVersion: 3
   tags: []
   layers:
   - Default
@@ -47,3 +47,12 @@ TagManager:
   - name: FG
     uniqueID: 116359401
     locked: 0
+  m_RenderingLayers:
+  - Default
+  - Test Layer 2
+  - Test Layer 3
+  - Test Layer 4
+  - Test Layer 5
+  - 
+  - 
+  - 
