@@ -16,9 +16,6 @@ namespace UnityEngine.Rendering.Universal
 
         public CustomRenderer(CustomRenderGraphData data) : base(data)
         {
-            stripShadowsOffVariants = true;
-            stripAdditionalLightOffVariants = true;
-
             m_ForwardLights = new ForwardLights();
 
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", true, RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, -1, StencilState.defaultValue, 0);

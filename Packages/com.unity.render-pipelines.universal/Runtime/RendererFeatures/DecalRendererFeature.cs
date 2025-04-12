@@ -217,9 +217,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Create()
         {
-#if UNITY_EDITOR
-            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-#endif
             m_DecalPreviewPass = new DecalPreviewPass();
             m_RecreateSystems = true;
         }

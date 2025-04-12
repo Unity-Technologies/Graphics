@@ -327,6 +327,24 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        
+        internal override bool stripShadowsOffVariants
+        {
+            get => m_StripShadowsOffVariants;
+            set => m_StripShadowsOffVariants = value;
+        }
+
+        internal override bool stripAdditionalLightOffVariants
+        {
+            get => m_StripAdditionalLightOffVariants;
+            set => m_StripAdditionalLightOffVariants = value;
+        }
+
+        [NonSerialized]
+        bool m_StripShadowsOffVariants = true;
+        [NonSerialized]
+        bool m_StripAdditionalLightOffVariants = true;
+
         /// <inheritdoc/>
         protected override void OnEnable()
         {
@@ -345,7 +363,7 @@ namespace UnityEngine.Rendering.Universal
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
 
             if (postProcessData != null)
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
+                postProcessData.Populate();
 #endif
         }
 
