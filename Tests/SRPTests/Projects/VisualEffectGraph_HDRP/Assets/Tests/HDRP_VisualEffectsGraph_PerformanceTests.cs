@@ -14,7 +14,7 @@ using UnityEngine.VFX.PerformanceTest;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
-    public class VFXRuntimePerformanceTests
+    public class VFXRuntimePerformanceTests : PerformanceTests
     {
         [IgnoreGraphicsTest("05_MotionVectors", "No reference images provided")]
         [IgnoreGraphicsTest("13_Decals", "No reference images provided")]
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.PerformanceTest
 #endif
     }
 
-    public class VFXRuntimeMemoryTests
+    public class VFXRuntimeMemoryTests : PerformanceTests
     {
         [IgnoreGraphicsTest("05_MotionVectors", "No reference images provided")]
         [IgnoreGraphicsTest("13_Decals", "No reference images provided")]
