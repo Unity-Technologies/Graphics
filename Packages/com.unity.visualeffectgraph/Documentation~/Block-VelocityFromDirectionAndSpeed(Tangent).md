@@ -11,7 +11,7 @@ The tangent vector is based on the particle's current direction and a given axis
 
 The Block then scales the final direction vector by a speed, and composes it with the velocity attribute.
 
-![](Images/Block-VelocityFromDirectionAndSpeed(Tangent)Example.gif)
+<video title="A VFX Graph emits along the tangent of a circle, creating a spiraling stream of particles." src="Images/Block-VelocityFromDirectionAndSpeed(Tangent)Example.mp4" width="auto" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

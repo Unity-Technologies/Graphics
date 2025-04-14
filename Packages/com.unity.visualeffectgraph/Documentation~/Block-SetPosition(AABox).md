@@ -11,7 +11,7 @@ This Block also calculates a direction vector based on the calculated position o
 
 Note: [Velocity from Direction and Speed](Block-VelocityFromDirectionAndSpeed.md) Blocks can then process the direction attribute.
 
-![](Images/Block-SetPosition(AABox)Main.gif)
+<video title="Colored particles spawn in the directions of the faces of a cube. Each face spawns a different color." src="Images/Block-SetPosition(AABox)Main.mp4" width="auto" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 
