@@ -5,9 +5,7 @@ This section contains a list of the Materials that this Layered Material uses as
 
 If you modify the referenced Material in any way, you can synchronize the properties by pressing the **Reset button**. This copies all of the properties from the referenced Material into the relevant Layered Material layer.
 
-![](../../Images/LayeredLit1.png)
-
 If you assign a Material made from a Shader Graph as a **Layer Material**, make sure the Reference of the properties matches the name of the corresponding properties in the LayeredLit Material.
 For an example of what this means, see **_BaseColorMap** in the screenshot below:
 
-![](../../Images/LayeredLit2.png)
+![The Blackboard and Graph Inspector windows in a shader graph. The Blackboard has a Texture2D called _BaseColorMap, and the Reference property in the Graph Inspector has the same name.](../../Images/LayeredLit2.png)

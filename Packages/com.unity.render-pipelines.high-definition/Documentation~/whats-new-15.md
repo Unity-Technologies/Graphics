@@ -5,7 +5,7 @@ This page contains an overview of new features, improvements, and issues resolve
 ## Added
 
 ### Temporal Anti-Aliasing Sharpening Mode
-![](Images/TAA-Sharpening-header.png)
+![A vintage railway carriage in sharp detail on a railway track.](Images/TAA-Sharpening-header.png)
 
 HDRP 15 adds the following Temporal Anti-Aliasing (TAA) properties: 
 
@@ -19,7 +19,7 @@ HDRP 15 adds the High Quality Line Rendering override that you can use to improv
 
 For more information, refer to [High Quality Line Rendering](Override-High-Quality-Lines.md).
 
-![](Images/WhatsNew15_HQLines.png)
+![A: The head of a lion, where the mane looks rougher. B: The same lion, where the main looks softer and smoother.](Images/WhatsNew15_HQLines.png)
 
 An example of High Quality Line Rendering's effect on animal fur. 
 
@@ -30,7 +30,7 @@ B: Fur that uses the High Quality Line Renderer.
 
 From HDRP 15, you can enable the **Specular Fade** property to reduce the effect of specular light on Lit and StackLit shaders that receive specular light. 
 
-![](Images/Whatsnew15_Specular.png)
+![A: A white sphere with specular light at its top-left and bottom-left edges. B: The same sphere, with no specular light.](Images/Whatsnew15_Specular.png)
 
 An example of the effect of the **Specular Fade** property on a sphere.
 
@@ -40,13 +40,11 @@ B: **Specular Fade** reduces the effect of specular light on the sphere.
 To enable this property, open the Project Settings window, select **HDRP Global Settings** and go to **Miscellaneous** > **Specular Fade**.
 
 ### Screen Space Lens Flare
-![](Images/ScreenSpaceLensFlare-header.png)
+![A car on a forest road, viewed from the front looking over the hood. Bright spots and rings are visible on the car and on the camera lens.](Images/ScreenSpaceLensFlare-header.png)
 
 HDRP 15 includes a new [Screen Space Lens Flare](shared/lens-flare/Override-Screen-Space-Lens-Flare.md) post-processing override, in addition to the existing [Lens Flare (SRP)](shared/lens-flare/lens-flare-component.md) component. The override uses what's on the screen to create multiple types of lens flare, based on the texture from the [Bloom](Post-Processing-Bloom.md) override. Screen space lens flares are useful for bright spots in your scene that appear depending on the camera view, for example a bright specular reflection on a shiny metal object, or a bright outside area viewed from a dark indoor area.
 
 ### Compute Thickness
-
-![](Images/WhatsNew15_ComputeThickness.png)
 
 HDRP 15 adds a full-screen pass called Compute Thickness. You can use this to calculate the density of solid or flat GameObjects. This effect improves the appearance of materials that use subsurface scattering or refraction. 
 
@@ -64,23 +62,11 @@ HDRP 15 adds the following properties to diffusion profiles for Subsurface Scatt
 
 The mixture of two specular lobes replicates the thin, oily layer that covers the skin.
 
-![](Images/profile_dual_lobe_labelled.png)
-
-The effect of two specular lobes on a subsurface scattering material.
-
-**A**: **Dual Lobe Multiplier** first lobe set to 0.8.
-
-**B**: **Dual Lobe Multiplier** second lobe set to 1.2.
-
-**C**: **Lobe Mix** set to 0.5.
-
-**D**: Final result.
-
 For more information, refer to [Diffusion Profile](diffusion-profile-reference.md).
 
 ### Adaptive Probe Volumes (APV)
 
-![](Images/APVSamplingDebug.png)
+![A small 3D grid of spheres in a scene, representing the probes in an Adaptive Probe Volume. Each Probe has a red or green debug value above it.](Images/APVSamplingDebug.png)
 
 HDRP 15 makes the following changes to APV properties:
 
@@ -92,7 +78,7 @@ HDRP 15 makes the following changes to APV properties:
 
 ### Water system
 
-![](Images/Water2023-1.png)
+![An ocean view at sunset.](Images/Water2023-1.png)
 
 HDRP 15 makes the following improvements and additions to the water system:
 
@@ -109,7 +95,7 @@ HDRP 15 makes the following improvements and additions to the water system:
 
 ### Volumetric Clouds
 
-![](Images/Volumetric-Clouds-2023-1.png)
+![Realistic white and grey clouds on a mostly clear day.](Images/Volumetric-Clouds-2023-1.png)
 
 HDRP 15 makes the following improvements to [volumetric clouds](create-realistic-clouds-volumetric-clouds.md):
 - Adds a third level of noise to achieve even more convincing results.

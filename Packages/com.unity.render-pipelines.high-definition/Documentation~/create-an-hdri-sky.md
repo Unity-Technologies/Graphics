@@ -4,7 +4,7 @@ A High-dynamic-range imaging (HDRI) Sky is a simple sky representation that uses
 
 Tip: [Unity HDRI Pack](https://assetstore.unity.com/packages/essentials/beta-projects/unity-hdri-pack-72511) is available on the Unity Asset Store and provides 7 pre-converted HDR Cubemaps ready for use within your Project.
 
-![](Images/HDRPFeatures-HDRISky.png)
+![A stylized car floating on a dirt road in a vast plain.](Images/HDRPFeatures-HDRISky.png)
 
 ## Using HDRI Sky
 

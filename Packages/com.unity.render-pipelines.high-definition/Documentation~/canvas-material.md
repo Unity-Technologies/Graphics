@@ -2,8 +2,6 @@
 
 The Canvas Master Stack material type enables you to author Shader Graph shaders that can be applied to [UGUI user interface elements](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/UICanvas.html).
 
-![](Images/ShaderGraphCanvasSettings.png)
-
 ## Create a Canvas Shader Graph
 
 To create a Canvas material in Shader Graph, use one of the following methods:

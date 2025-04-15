@@ -49,12 +49,12 @@ For example, if you use ray-traced reflections and set **Minimum Smoothness** to
 - Areas with a smoothness value larger than or equal to 0.9 will use the [ray-traced reflections hierarchy](#hierarchy-if-you-use-ray-traced-reflections).
 - Areas with a smoothness value less than 0.9 will use only the [specular hierarchy](#specular).
 
-![](Images/refraction-hierarchy-smoothness.png)<br/>
+![A reflective silver metallic sphere floating next to a bright white capsule.](Images/refraction-hierarchy-smoothness.png)<br/>
 The sphere has a **Smoothness** value of less than 0.9, so it uses the [specular hierarchy](#specular). This means the sphere falls back to using Reflection Probes, and the capsule doesn't appear in reflections because it's a dynamic object.<br/>
 
 ## How reflections inside reflections work
 
-![](Images/refraction-hierarchy-reflections-inside-reflections.png)<br/>
+![A bright white capsule, with a reflective silver metallic sphere on the left and a reflective gold metallic sphere on the right. The capsule is visible in the reflection on the surface of the gold sphere.](Images/refraction-hierarchy-reflections-inside-reflections.png)<br/>
 
 In the above Scene:
 

@@ -66,11 +66,11 @@ To configure **Automatic Mode**:
 - **Average**: The Camera uses the entire luminance buffer to measure exposure.
 - **Spot**: The Camera only uses the center of the buffer to measure exposure. This is useful if you want to only expose light against what's in the center of your screen.
 
-![](Images/Override-Exposure2.png)
+![A small white circle against a black background, representing the area the camera uses when Metering Mode is set to Spot.](Images/Override-Exposure2.png)
 
 - **Center Weighted**: The Camera applies a weight to every pixel in the buffer and then uses them to measure the exposure. Pixels in the center have the maximum weight, pixels at the screen borders have the minimum weight, and pixels between have a progressively lower weight the closer they're to the screen borders.
 
-![](Images/Override-Exposure3.png)
+![A large white oval with diffuse edges, representing the area the camera uses when Metering Mode is set to Center Weighted. The oval almost fills the black background.](Images/Override-Exposure3.png)
 
 - **Mask Weighted**: The Camera applies a weight to every pixel in the buffer then uses the weights to measure the exposure. To specify the weighting, this technique uses the Texture set in the **Weight Texture Mask** field. Note that, if you don't provide a Texture, this metering mode is equivalent to **Average**.
 - **Procedural Mask**: The Camera applies a weight to every pixel in the buffer then uses the weights to measure the exposure. The weights are generated using a mask that's procedurally generated with the following parameters:
