@@ -7,7 +7,7 @@ A water decal is a shader graph Master Stack. It's applied in world space, allow
 By default, water decal regions are anchored to the camera. You can also anchor them to a GameObject.
 
 > [!NOTE]
-> For backward compatibility, water decals are disabled by default.
+> For backward compatibility, [water masks and current water decals](enable-mask-and-current-water-decals.md) are disabled by default.
 
 ## Water decal shader graph Master Stack
 
@@ -17,7 +17,7 @@ By default, the water decal shader graph Master Stack contains the following pro
 - **SurfaceFoam**
 - **DeepFoam**
 
-Once you have [enabled mask and current water decals](enable-mask-and-water-decals.md), you can add the following water features through the Graph Inspector:
+Once you have [enabled water mask and current water decals](enable-mask-and-current-water-decals.md), you can add the following water features through the Graph Inspector:
 
 - **SimulationMask**
 - **SimulationFoamMask**
@@ -31,11 +31,11 @@ Once you have [enabled mask and current water decals](enable-mask-and-water-deca
 To add foam, you can change material properties (base color, smoothness, normals, etc.) by using a [decal](decals.md) on a water surface. For example, you might use this technique to imitate debris floating on the water.
 **Global Opacity** determines the amount of influence the decal has on the appearance of the water surface.
 
-The following [Decal Shader](decal-material-inspector-reference.md) Surface Options don't work with water surfaces:
-* **Affect Metal**
-* **Affect Ambient Occlusion**
-* **Affect Emission**
-* **Affect Base Color** only produces monochromatic output.
+Enabling horizontal deformation has the following effects:
+
+- You can add a new **HorizontalDeformation** feature in the Graph Inspector of a water decal shader graph.
+- HDRP creates a new buffer, which increases the amount of memory HDRP uses.
+- The results of water scripts and [underwater effects](water-underwater-view.md) and [script interactions](float-objects-on-a-water-surface.md)might be less accurate.
 
 ## Additional resources
 
