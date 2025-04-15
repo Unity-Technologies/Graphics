@@ -8,8 +8,6 @@ Volume File is an [Open Source specification](https://github.com/peeweek/VectorF
 
 ## Vector Field Importer
 
-![](Images/VectorFieldInspector.png)
-
 Unity provides the following settings in the Inspector to import Volume File files:
 
 * **Output Format :** Precision of the Output 3D Texture

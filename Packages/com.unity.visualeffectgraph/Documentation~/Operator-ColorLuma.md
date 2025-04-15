@@ -4,7 +4,7 @@ Menu Path : **Operator > Color > Color Luma**
 
 This **Color Luma** Operator outputs the luma (perceived brightness) of the input color.
 
- ![](Images/Operator-ColorHSVLuma.png)
+ ![Left: A ring with segments of different colors. Right: The same ring using shades of gray that represent the perceived brightness of each color.](Images/Operator-ColorHSVLuma.png)
 
 The luma value of a color is useful in many scenarios, for example:
 
