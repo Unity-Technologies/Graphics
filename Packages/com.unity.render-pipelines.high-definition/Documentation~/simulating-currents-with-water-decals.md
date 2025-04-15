@@ -7,7 +7,7 @@ A water decal is a shader graph Master Stack. It's applied in world space, allow
 By default, water decal regions are anchored to the camera. You can also anchor them to a GameObject.
 
 > [!NOTE]
-> For backward compatibility, water decals are disabled by default.
+> For backward compatibility, [water masks and current water decals](enable-mask-and-current-water-decals.md) are disabled by default.
 
 ## Create a water decal
 
@@ -23,9 +23,8 @@ By default, the water decal shader graph Master Stack contains the following pro
 - **SurfaceFoam**
 - **DeepFoam**
 
-Once you have [enabled mask and current water decals](enable-mask-and-water-decals.md), you can add the following water features through the Graph Inspector:
+Once you have [enabled water mask and current water decals](enable-mask-and-current-water-decals.md), you can add the following water features through the Graph Inspector:
 
-- **HorizontalDeformation**. 
 - **SimulationMask**
 - **SimulationFoamMask**
 - **LargeCurrent**
@@ -39,8 +38,9 @@ To enable horizontal deformation, go to the active [HDRP Asset](hdrp-asset.md), 
 
 Enabling horizontal deformation has the following effects:
 
+- You can add a new **HorizontalDeformation** feature in the Graph Inspector of a water decal shader graph.
 - HDRP creates a new buffer, which increases the amount of memory HDRP uses.
-- The results of [water scripts](water-scripting-in-the-water-system.md) and [underwater effects](water-underwater-view.md) might be less accurate.
+- The results of water scripts and [underwater effects](water-underwater-view.md) and [script interactions](float-objects-on-a-water-surface.md)might be less accurate.
 
 ## Additional resources
 

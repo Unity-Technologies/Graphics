@@ -1,6 +1,6 @@
-# Enable mask and water decals
+# Enable mask and current water decals
 
-To enable mask and water decals, follow these steps:
+To enable mask and current water decals, follow these steps:
 
 1. Go to **Edit** > **Project Settings**.
 
