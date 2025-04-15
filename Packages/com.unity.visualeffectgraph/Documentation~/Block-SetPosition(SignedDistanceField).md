@@ -11,7 +11,7 @@ This Block also calculates a direction vector based on the calculated position o
 
 Note: [Velocity from Direction and Speed](Block-VelocityFromDirectionAndSpeed.md) Blocks can then process the direction attribute.
 
-![](Images/Block-SetPosition(SDF)Example.gif)
+<video title="Particles spawn in the shape of a teapot." src="Images/Block-SetPosition(SDF)Example.mp4" width="auto" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

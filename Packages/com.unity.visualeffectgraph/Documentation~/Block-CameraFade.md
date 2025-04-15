@@ -4,8 +4,6 @@ Menu Path : **Output > Camera Fade**
 
 The **Camera Fade** Block fades out particles when they are too close to the near plane of the camera. It calculates an interpolation of the current depth between provided its **Faded Distance** and the **Visible Distance** properties to determine the amount of fade to apply. To fade particles, this Block modifies their color and/or alpha attributes.
 
-![](Images/Block-CameraFadeExample.gif)
-
 If you input a **Faded Distance** that is greater than the **Visible Distance**, the result is that particles fade in as they come close to the camera, rather than fade out as they come close.
 
 ## Block compatibility

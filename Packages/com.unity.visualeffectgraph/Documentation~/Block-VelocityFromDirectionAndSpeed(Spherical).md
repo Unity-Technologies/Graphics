@@ -11,7 +11,7 @@ The spherical vector is a normalized vector that goes from a given position, to 
 
 The Block then scales the final direction vector by a speed, and composes it with the velocity attribute.
 
-![](Images/Block-VelocityFromDirectionAndSpeed(Spherical)Example.gif)
+<video title="Particles emit as an outward burst. When the axes gizmo at the center of the particles is dragged, the spawn point of the particles moves with it." src="Images/Block-VelocityFromDirectionAndSpeed(Spherical)Example.mp4" width="auto" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 
