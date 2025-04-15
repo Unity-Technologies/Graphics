@@ -1556,8 +1556,15 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
+                // Note: External texture replaces internal (intermediate) color buffer here, ignoring the configured internal rendering color buffer format.
+                // This is incorrect. We should use the internal rendering format throughout and blit the result to the external texture at the end (blit could be skipped if the formats match).
+                // However, this would lead to breaking changes in the URP asset as we would need to move the internal rendering format to the renderer asset.
+                // This way it could be selected separately for each target.
+                // Current workflow/workaround is to simply pick a suitable format for the external texture.
                 desc = camera.targetTexture.descriptor;
                 desc.msaaSamples = msaaSamples;
+                // Note: This does not scale the underlying target size.
+                // Instead, it is the scaled viewport rect size which means the viewport offset into the target is always (0,0).
                 desc.width = cameraData.scaledWidth;
                 desc.height = cameraData.scaledHeight;
 
