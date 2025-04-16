@@ -566,7 +566,11 @@ namespace UnityEngine.Rendering
                     displayName = "Max Subdivisions Displayed",
                     tooltip = "The highest (most dense) probe subdivision level displayed in the debug view.",
                     getter = () => probeVolumeDebug.maxSubdivToVisualize,
-                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Max(0, Mathf.Min(v, GetMaxSubdivision() - 1)),
+                    setter = (v) =>
+                    {
+                        // If no baked data, force to set the value as kMaxSubdivisionLevels for UX.
+                        probeVolumeDebug.maxSubdivToVisualize = GetMaxSubdivision() == 0 ? ProbeBrickIndex.kMaxSubdivisionLevels : Mathf.Max(0, Mathf.Min(v, GetMaxSubdivision() - 1));
+                    },
                     min = () => 0,
                     max = () => Mathf.Max(0, GetMaxSubdivision() - 1),
                 });
