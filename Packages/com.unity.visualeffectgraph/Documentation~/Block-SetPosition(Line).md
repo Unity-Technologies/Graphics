@@ -9,7 +9,7 @@ This Block also calculates a direction vector based on the calculated position o
 
 Note: [Velocity from Direction and Speed](Block-VelocityFromDirectionAndSpeed.md) Blocks can then process the direction attribute.
 
-![](Images/Block-SetPosition(Line)Main.gif)
+<video src="Images/Block-SetPosition(Line)Main.mp4" title="Particles being positioned randomly along a straight line." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

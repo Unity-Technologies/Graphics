@@ -2,7 +2,7 @@
 
 A System refers to one or many [Contexts](Contexts.md) that define a standalone part of a visual effect. A System can be a Particle System, a Particle Strip System, a Mesh, or a Spawn machine. In the graph view, a System draws a dashed line box around the Contexts that it consists of.
 
-![](Images/SystemDrawBox.png)
+![A Visual Effect Graph featuring a System enclosed within a green dashed box containing three labeled boxes: Initialize Particle (top), Update Particle (middle), and Output Particle Quad (bottom), each labeled Local. Connections flow sequentially between them: Initialize Particle → Update Particle → Output Particle Quad. Additionally, the Initialize Particle box is connected to a Spawn box located outside the green dashed boundary.](Images/SystemDrawBox.png)
 
 Multiple Systems can interact with each other within a Visual Effect Graph:
 
@@ -23,16 +23,10 @@ Regardless of the System's simulation space, you can use [Spaceable Properties](
 
 ### Setting a System simulation space
 
-A System displays its simulation space in the top-right corner of each Context it consists of. This is the System's **simulation space identifier**. If a Context does not use process anything that depends on simulation space, it does not display the simulation space identifier.
-
-![](Images/SystemSpaceIdentifier.png)
+A System displays its simulation space in the top-right corner of each Context it consists of. This is the System's **simulation space identifier**. The word "Local" in a rounded box stands for "Local space", and the word "World" in a rounded box stands for "World space". If a Context does not use process anything that depends on simulation space, it does not display the simulation space identifier.
 
 To change the simulation space for a System, click the System's simulation space identifier to cycle through the compatible spaces.
 
-![](Images/SystemSpaceLocalWorld.png)
-
 ### Simulation space identifiers in Properties
 
-Some [Spaceable Properties](Properties.md) display a smaller version of the simulation space identifier. This does not change the System's simulation space, but instead allows you to express a value in a space that is different from the System's simulation space. For example, a System could simulate in world space but a Property could be a local position.
-
-![](Images/SystemSpaceLocalWorldSmall.png)
+Some [Spaceable Properties](Properties.md) display a smaller version of the simulation space identifier. An "L" in a rounded box stands for "Local space", and a "W" in a rounded box stands for "World space". This does not change the System's simulation space, but instead allows you to express a value in a space that is different from the System's simulation space. For example, a System could simulate in world space but a Property could be a local position.

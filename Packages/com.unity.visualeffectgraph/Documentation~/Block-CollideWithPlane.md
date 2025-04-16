@@ -4,7 +4,7 @@ Menu Path : **Collision > Collide with Plane**
 
 The **Collide with Plane** Block defines a flat plane with infinite extends for particles to collide with.
 
-![](Images/Block-CollideWithPlaneMain.png)
+![Particles interacting with a flat plane by bouncing or changing direction upon collision.](Images/Block-CollideWithPlaneMain.png)
 
 ## Block compatibility
 

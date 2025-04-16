@@ -16,9 +16,6 @@ To install the Visual Effect Graph package:
 1. Select **Visual Effect Graph** from the list of packages.
 1. In the bottom right corner of the Package Manager window, select **Install**. Unity installs Visual Effect Graph into your Project.
 
-
-![](Images/InstallVisualEffectGraph.png)
-
 __Note:__ When using [HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.0/manual/index.html), VFX Graph is included with  [HDRP Package](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.0/manual/install-hdrp.html#install-the-high-definition-rp-package) and doesn't need to be manually installed
 
 ### Using the correct version of Visual Effect Graph
@@ -87,10 +84,6 @@ This also allows Unity to display the correct gizmos in the scene, which makes s
 To attach a Visual Effect to the opened graph, you can either select the GameObject in the hierarchy, or follow these steps:
 1. In the matching graph, open the __Auto Attach Panel__ from the [Toolbar](VisualEffectGraphWindow.md#Toolbar). 
 1. Click on the **Select a target** field to select a compatible GameObject that exists in the current open scene.
-
-Auto attach panel:
-
-  ![](Images/auto-attach.png) 
 
 ## Manipulating graph elements
 When you open an Asset inside the Visual Effect Graph window, you can see and edit the graph for that specific Asset.

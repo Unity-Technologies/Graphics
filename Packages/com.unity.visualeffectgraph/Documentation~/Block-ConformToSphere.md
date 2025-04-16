@@ -6,7 +6,7 @@ The **Attractor Shape Sphere** Block attracts particles towards a defined sphere
 
 This Operator doesn't support spheres that have scale axis of different lengths (ellipsoids). If you use an ellipsoid as an input, this Operator uses its longest axis to define the sphere.
 
-![](Images/Block-ConformToSphereExample.gif)
+<video src="Images/Block-ConformToSphereExample.mp4" title="Particles moving inwards and adjusting their positions to form a spherical shape." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

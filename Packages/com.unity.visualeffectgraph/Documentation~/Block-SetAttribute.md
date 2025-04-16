@@ -10,8 +10,7 @@ You can either set the value of the attribute directly, or use two different ran
 
 - **Per-Component** calculates a random number in range 0 to 1 for each component in the attribute type then, to produce the final value, uses each random value to interpolate between each component of the two range values (**A** and **B**).
 
-![](Images/Block-SetAttributeExample.gif)
-
+<video src="Images/Block-SetAttributeExample.mp4" title="Two examples of particles arranged in a square. Left: Per-Component random mode, which dynamically changes each particle to a different color. Right: Uniform random mode, which dynamically changes each particle to a grayscale value." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 You can also use this Block to inherit a source attribute and set it directly to the current attribute. For instance, you can inherit the position of a parent particle, and set it to particles generated from a GPU Event. If you set the **Source** setting to **Source**, the Block does not display any input properties for the attribute and instead uses the [source attribute](Attributes.md#attribute-locations) value (or the default source attribute value if the attribute is not present).
 
