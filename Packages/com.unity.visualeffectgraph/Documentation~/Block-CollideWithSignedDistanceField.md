@@ -1,8 +1,8 @@
-# Collide with Signed Distance Field
+# Collision Shape Signed Distance Field
 
-Menu Path : **Collision > Collide with Signed Distance Field**
+Menu Path : **Collision > Collision Shape Signed Distance Field**
 
-The **Collide with Signed Distance Field** Block allows you to create more complex collisions by using an SDF (signed distance field) Asset to represent the shape of the object. This is useful for precise complex collision with predetermined Assets.
+The **Collision Shape Signed Distance Field** Block allows you to create more complex collisions by using an SDF (signed distance field) Asset to represent the shape of the object. This is useful for precise complex collision with predetermined Assets.
 
 ![](Images/Block-CollideWithSDFMain.png)
 
