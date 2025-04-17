@@ -30,4 +30,4 @@ This Block is compatible with the following Contexts:
 
 The system automatically transfers event attributes between spawn events, however, to retrieve the spawn event in an Initialize Context, you have to use **Inherit Source Attribute** or the Get Attribute Operator with **Location** set to **Source**.
 
-![](Images/Block-SetSpawnEventExample.gif)
+<video src="Images/Block-SetSpawnEventExample.mp4" width="500" height="auto" autoplay="true" loop="true" title="A Set SpawnEvent Block in a VFX Graph with the result of colorful square particles spawning." controls></video>
