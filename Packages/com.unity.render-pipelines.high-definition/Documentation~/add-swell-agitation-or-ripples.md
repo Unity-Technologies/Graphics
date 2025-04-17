@@ -1,10 +1,10 @@
-# Add swell, agitation, or ripples
+# Configure swell, agitation, or ripples with a simulation mask
 
-To add swell, agitation or ripples, use a Water Mask to affect the influence the simulation has on specific areas of the water surface.
+To configure swell, agitation, or ripples, use a simulation mask to affect the influence the simulation has on specific areas of the water surface.
 
 Masks take into account the Wrap Mode of the texture. For Ocean, Sea, or Lake water surface types, select **Clamp** rather than the default **Repeat** value.
 
-To add a Water Mask:
+To add a simulation mask:
 
 1. Create and import a texture where the color channels represent the fluctuations.
 
@@ -21,7 +21,7 @@ To add a Water Mask:
 
     The darker the color of a channel, the lesser the effect. For example, use white for 100% intensity and black for 0% intensity.
 
-1. In the Water Volume Inspector window, drag the texture to the **Water Mask** property.
+1. In the Water Volume Inspector window, drag the texture to the **Simulation Mask** property.
 
 ![A water mask that's more red towards the left and more blue towards the right.](Images/WaterMask_Example-22.2.png)
 

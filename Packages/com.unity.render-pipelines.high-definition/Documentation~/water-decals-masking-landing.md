@@ -1,8 +1,8 @@
 # Water surface fluctuations
 
-You can apply effects like swell, agitation, deformation, and foam across the water surface.
+You can apply effects like swell, agitation, and deformation across the water surface.
 
-You can add fluctuations such as swell, agitation, or ripples to the whole of a water surface based on texture channels with a Water Mask.
+You can add fluctuations such as swell, agitation, or ripples to the whole of a water surface based on texture channels with a simulation mask.
 
 You can also add detailed visual effects to localized water areas with water decals, a type of shader graph nodes.
 

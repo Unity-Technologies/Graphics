@@ -426,7 +426,7 @@ Use HDRP's water system to create and control realistic water surfaces. HDRP's w
 - Simulation-based caustics.
 - Underwater rendering.
 - Deformer.
-- Foam Generator.
+- Foam.
 - Water Excluder.
 - A mirrored simulation on the CPU for high-fidelity game interactions.
 - A shader graph interaction for advanced visual customization.
