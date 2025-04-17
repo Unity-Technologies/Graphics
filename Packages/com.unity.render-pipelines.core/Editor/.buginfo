@@ -1,5 +1,5 @@
 rule1:
-  area: SRP Architecture & API
+  area: SRP Foundation
 
 rule2:
   when:
@@ -15,7 +15,7 @@ rule3:
       - ^.*CoreRenderPipelinePreferences.*$
       - ^.*InspectorCurveEditor.*$
       - ^.*RemoveAdditionalDataUtils.*$
-  area: SRP Workflow
+  area: SRP Settings
   
 rule4:
   when:

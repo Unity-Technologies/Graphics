@@ -1,8 +1,8 @@
 rule1:
-  area: SRP Workflow
+  area: SRP Settings
 
 rule2:
   when:
     path:
       - ^.*ShaderStrippingSetting.*$
-  area: SRP Architecture & API
+  area: SRP Foundation

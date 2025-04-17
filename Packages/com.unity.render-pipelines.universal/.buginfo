@@ -1,5 +1,5 @@
 old:
-  area: Universal RP
+  area: SRP Foundation
 
 Workflow:
   when:
@@ -9,7 +9,7 @@ Workflow:
       - ^.*AdditionalLight?.*$
       - ^.*Camera?.*$
       - ^.*ContextualMenuDispatcher?.*$
-  area: SRP Workflow
+  area: SRP Settings
   
 Tools:
   when:

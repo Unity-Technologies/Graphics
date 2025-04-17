@@ -1,5 +1,5 @@
 default:
-  area: SRP Architecture & API
+  area: SRP Foundation
 
 Workflow:
   when:
@@ -12,7 +12,7 @@ Workflow:
       - ^.*ResourceReloader?.*$
       - ^.*SceneRenderPipeline?.*$
       - ^.*TextureCurve?.*$ 
-  area: SRP Workflow
+  area: SRP Settings
 
 xr:
   when:
@@ -24,4 +24,4 @@ workflow:
   when:
     path:
       - ^.*TextureCurve?.*$
-  area: SRP Workflow
+  area: SRP Settings

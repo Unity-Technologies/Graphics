@@ -1,11 +1,11 @@
 default:
-  area: SRP Architecture & API
+  area: SRP Foundation
 
 workflow:
   when:
     path:
       - ^.*Volume.*$
-  area: SRP Workflow
+  area: SRP Settings
 
 tools:
   when:
