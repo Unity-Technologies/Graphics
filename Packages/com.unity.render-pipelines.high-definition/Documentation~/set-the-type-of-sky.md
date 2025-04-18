@@ -24,6 +24,6 @@ After you have set your **Sky Type**, if you want to override the default settin
 
 On the [Gradient Sky](gradient-sky-volume-override-reference.md) override itself, you can enable the checkboxes next to each property to override the property with your own values. For example, enable the checkbox next to the **Middle** property and use the color picker to change the color to pink.
 
-![](Images/Override-VisualEnvironment2.png)
+![The Gradient Sky override with the Middle property highlighted.](Images/Override-VisualEnvironment2.png)
 
 Refer to the [Visual Environment Volume Override reference](visual-environment-volume-override-reference.md) for more information.

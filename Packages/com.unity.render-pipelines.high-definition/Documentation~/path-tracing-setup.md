@@ -11,7 +11,7 @@ Path tracing uses the [Volume](understand-volumes.md) framework, so to enable th
 3. In the Inspector for the Path Tracing Volume Override, set **State** to **Enabled**. If you don't see **State**, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
 4. If the image doesn't converge over time, select the drop-down next to the effect toggle and enable Always Refresh.
 
-![](Images/RayTracingPathTracing3.png)
+![Gizmo menu with the effect toggle dropdown highlighted.](Images/RayTracingPathTracing3.png)
 
 ## Properties
 

@@ -36,7 +36,8 @@ Use the **Streaks** settings to control flares stretched in one direction.
 |                | **Threshold**   | Control how localized the streak effect is. The higher the **Threshold**, the more localized the effect. The range is 0 through 1. The default value is 0.25. |
 |                | **Resolution**  | Control the resolution detail of streaks. HDRP renders lower-resolution streaks faster. The options are **Half**, **Quarter** and **Eighth** full resolution. This property only appears if you open the **More** (⋮) menu and select **Show Additional Properties**. |
 
-![](Images/shared/lens-flare/screenspacelensflares-threshold.gif)<br/>
+<video src="../../Images/shared/lens-flare/screenspacelensflares-threshold.mp4" width="500" height="auto" autoplay="true" loop="true" title="The effect of changing Threshold from 0 (a larger flare effect) to 1 (a smaller flare effect)." controls></video>
+
 The effect of changing **Threshold** from 0 (a larger flare effect) to 1 (a smaller flare effect).
 
 ### Chromatic Aberration
