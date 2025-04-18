@@ -72,6 +72,8 @@ namespace UnityEditor.ShaderGraph
                     return "multi_compile";
                 case KeywordDefinition.ShaderFeature:
                     return "shader_feature";
+                case KeywordDefinition.DynamicBranch:
+                    return "dynamic_branch";
                 default:
                     return string.Empty;
             }

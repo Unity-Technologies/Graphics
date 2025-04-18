@@ -8,11 +8,13 @@ namespace UnityEditor.ShaderGraph
     class KeywordCollector
     {
         public readonly List<ShaderKeyword> keywords;
+        public readonly List<ShaderKeyword> permutableKeywords;
         public readonly List<List<KeyValuePair<ShaderKeyword, int>>> permutations;
 
         public KeywordCollector()
         {
             keywords = new List<ShaderKeyword>();
+            permutableKeywords = new();
             permutations = new List<List<KeyValuePair<ShaderKeyword, int>>>();
         }
 
@@ -22,6 +24,9 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             keywords.Add(chunk);
+
+            if (!chunk.IsDynamic)
+                permutableKeywords.Add(chunk);
         }
 
         public void GetKeywordsDeclaration(ShaderStringBuilder builder, GenerationMode mode)
@@ -59,13 +64,14 @@ namespace UnityEditor.ShaderGraph
 
             // Initialize current permutation
             List<KeyValuePair<ShaderKeyword, int>> currentPermutation = new List<KeyValuePair<ShaderKeyword, int>>();
-            for (int i = 0; i < keywords.Count; i++)
+
+            for (int i = 0; i < permutableKeywords.Count; i++)
             {
-                currentPermutation.Add(new KeyValuePair<ShaderKeyword, int>(keywords[i], 0));
+                currentPermutation.Add(new KeyValuePair<ShaderKeyword, int>(permutableKeywords[i], 0));
             }
 
             // Recursively permute keywords
-            PermuteKeywords(keywords, currentPermutation, 0);
+            PermuteKeywords(permutableKeywords, currentPermutation, 0);
         }
 
         void PermuteKeywords(List<ShaderKeyword> keywords, List<KeyValuePair<ShaderKeyword, int>> currentPermutation, int currentIndex)

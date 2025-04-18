@@ -15,12 +15,18 @@ namespace UnityEditor.ShaderGraph.UnitTests
         const string kExpectedPreviewDeclaration = @"#define BOOLEAN_E0DB5C9A_ON
 #define ENUM_F6B920FA_A
 #define ENUM_7ECD6A43_D
+#define _DYNAMIC_BOOLEAN false
+#define _DYNAMIC_ENUM_A true
+#define _DYNAMIC_ENUM_B false
+#define _DYNAMIC_ENUM_C false
 ";
 
         const string kExpectedForRealsDeclaration = @"#pragma shader_feature_local _ BOOLEAN_E0DB5C9A_ON
 #pragma multi_compile _ BOOLEAN_12C0E932_ON
 #pragma shader_feature_local ENUM_F6B920FA_A ENUM_F6B920FA_B ENUM_F6B920FA_C
 #pragma multi_compile ENUM_7ECD6A43_A ENUM_7ECD6A43_B ENUM_7ECD6A43_C ENUM_7ECD6A43_D
+#pragma dynamic_branch_local _ _DYNAMIC_BOOLEAN
+#pragma dynamic_branch_local _DYNAMIC_ENUM_A _DYNAMIC_ENUM_B _DYNAMIC_ENUM_C
 ";
 
         static string kExpectedPermutationDeclaration = @"#if defined(BOOLEAN_E0DB5C9A_ON) && defined(BOOLEAN_12C0E932_ON) && defined(ENUM_F6B920FA_A) && defined(ENUM_7ECD6A43_A)
@@ -147,7 +153,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void CanPermuteKeywords()
         {
             int permutationCount = 1;
-            foreach(ShaderKeyword keyword in m_Collector.keywords)
+            foreach(ShaderKeyword keyword in m_Collector.permutableKeywords)
             {
                 permutationCount *= keyword.keywordType == KeywordType.Enum ? keyword.entries.Count : 2;
             }
@@ -163,7 +169,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 for(int i = 0; i < permutation.Count; i++)
                 {
-                    if(permutation[i].Key != m_Collector.keywords[i])
+                    if(permutation[i].Key != m_Collector.permutableKeywords[i])
                     {
                         permutationsValid = false;
                     }
