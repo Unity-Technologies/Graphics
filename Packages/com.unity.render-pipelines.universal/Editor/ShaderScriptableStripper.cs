@@ -111,8 +111,8 @@ namespace UnityEditor.Rendering.Universal
         Shader m_PaniniProjection = Shader.Find("Hidden/Universal Render Pipeline/PaniniProjection");
         Shader m_Bloom = Shader.Find("Hidden/Universal Render Pipeline/Bloom");
         Shader m_TerrainLit = Shader.Find("Universal Render Pipeline/Terrain/Lit");
-        Shader m_TerrainLitAddPass = Shader.Find("Universal Render Pipeline/Terrain/Lit (Add Pass)");
-        Shader m_TerrainLitBasePass = Shader.Find("Universal Render Pipeline/Terrain/Lit (Base Pass)");
+        Shader m_TerrainLitAddPass = Shader.Find("Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)");
+        Shader m_TerrainLitBasePass = Shader.Find("Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)");
         Shader m_StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
         Shader m_ClusterDeferred = Shader.Find("Hidden/Universal Render Pipeline/ClusterDeferred");
         Shader m_UberPostShader = Shader.Find("Hidden/Universal Render Pipeline/UberPost");
