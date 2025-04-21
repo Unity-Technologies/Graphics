@@ -194,6 +194,25 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        internal void RemoveMissingRendererFeatures()
+        {
+            string path = AssetDatabase.GetAssetPath(this);
+
+            for (int i = m_RendererFeatures.Count - 1; i >= 0; i--)
+            {
+                if (m_RendererFeatures[i] == null)
+                {
+                    m_RendererFeatures.RemoveAt(i);
+                    m_RendererFeatureMap.RemoveAt(i);
+                }
+            }
+
+            AssetDatabase.RemoveScriptableObjectsWithMissingScript(path);
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssetIfDirty(this);
+            AssetDatabase.Refresh();
+        }
+
         internal bool DuplicateFeatureCheck(Type type)
         {
             Attribute isSingleFeature = type.GetCustomAttribute(typeof(DisallowMultipleRendererFeature));
