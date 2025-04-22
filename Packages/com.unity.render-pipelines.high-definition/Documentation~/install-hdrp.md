@@ -18,7 +18,7 @@ Unity provides an HDRP Template Project which you can use to get set up with HDR
 
 Unity creates a Project and automatically installs the HDRP package, and all its dependencies. After Unity opens the Template Project, you can see the main Scene.
 
-![](Images/GettingStarted1.png)
+![A contemporary room brightly lit by a skylight, with a display of vegetation in a glass box.](Images/GettingStarted1.png)
 
 This template is a great starting point for projects aiming for high-end graphics. It includes multiple physically based lighting setups to help you realistically illuminate environments with HDRP. It also includes examples for many of HDRP's features such as [Decals](decals.md), [Volumes](understand-volumes.md), and physically accurate Materials.
 

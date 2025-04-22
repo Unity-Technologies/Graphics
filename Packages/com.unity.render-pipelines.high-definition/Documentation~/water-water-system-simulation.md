@@ -11,54 +11,17 @@ As you modify the simulation inputs the simulation displaces the water mesh.
 ## Wind and wave types
 There are two types of wind in the HDRP water implementation: distant wind and local wind. Local wind produces **Ripples**, small waves that are close together. Distant wind produces **Swells** (for **River, Sea, or Ocean** surface types) or **Agitation** (for **River** surface types), broader waves that are farther apart.
 
+![An ocean on a clear day, with large wide waves and peaks.](Images/watersystem-OceanSwellOnly.png)
 
+An **Ocean, Sea, or Lake** surface that only has **Swells**. These **Swells** significantly displace the water surface.
 
-<table>
-<tr>
-<td>
-<img src="Images/watersystem-wireframe-swellonly.png">
-</td>
-<td>
-<img src="Images/watersystem-OceanSwellOnly.png">
-</td>
-</tr>
-</table>
+![The same ocean, with a higher number of smaller waves and peaks.](Images/watersystem-OceanRipplesOnly.png)
 
-Here is an **Ocean, Sea, or Lake** surface that only has **Swells**. These **Swells** significantly displace the water surface.
+An **Ocean, Sea, or Lake** surface that only has **Ripples**. These **Ripples** do not significantly displace the water surface.
 
-<br/>
+![A sailing vessel on a dark stormy sea, with both very large wide swells, and smaller waves and peaks.](Images/watersystem-StormySea.png)
 
-
-<table>
-<tr>
-<td>
-<img src="Images/watersystem-wireframeripplesonly.png">
-</td>
-<td>
-<img src="Images/watersystem-OceanRipplesOnly.png">
-</td>
-</tr>
-</table>
-
-
-Here is an **Ocean, Sea, or Lake** surface that only has **Ripples**. These **Ripples** do not significantly displace the water surface.
-<br/>
-
-<table>
-<tr>
-<td>
-<img src="Images/watersystem-wireframe-swellandripples.png">
-</td>
-<td>
-<img src="Images/watersystem-StormySea.png">
-</td>
-</tr>
-</table>
-
-
-Here is an **Ocean, Sea, or Lake** surface with both Swells and Ripples.
-
-
+An **Ocean, Sea, or Lake** surface with both Swells and Ripples.
 
 ## Simulation bands
 A frequency is a measure of the number of vibrations that pass through a specific point in one second. A band is a specific range of frequencies within a broader spectrum. You may have heard of the FM radio broadcast band, for example.
