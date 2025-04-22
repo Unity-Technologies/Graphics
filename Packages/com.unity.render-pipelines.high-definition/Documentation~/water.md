@@ -13,7 +13,7 @@ Create water in the High Definition Render Pipeline (HDRP).
 | [Foam in the water system](water-foam-in-the-water-system.md)                             | Control how much foam appears on your water surface.                  |
 | [Caustics in the water system](water-caustics-in-the-water-system.md)                     | What caustics are, how to adjust them, and their limitations.         |
 | [Create a current in the water system](water-create-a-current-in-the-water-system.md)     | Apply a current map to a water surface.                               |
-| [Deform a water surface](water-deform-a-water-surface.md)                                 | Use a deformer to control the shape of a water surface                |
+| [Deform a water surface](water-deform-a-water-surface.md)                                 | Use a water decal to alter the shape of a water surface.                |
 | [Exclude part of a water surface](water-exclude-part-of-the-water-surface.md)             | Prevent water from appearing on top of other surfaces.                |
 | [Underwater view](water-underwater-view.md)                                               | Learn more about the underwater view of the water surface simulation. |
 | [Materials in the water system](water-materials-in-the-water-system.md)                   | The effects of water Material properties.                             |
