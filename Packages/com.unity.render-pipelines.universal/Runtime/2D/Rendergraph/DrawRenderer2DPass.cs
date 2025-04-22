@@ -89,6 +89,17 @@ namespace UnityEngine.Rendering.Universal
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
 
             var layerBatch = layerBatches[batchIndex];
+            bool isLitView = true;
+
+#if UNITY_EDITOR
+            // Early out for prefabs
+            if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
+                isLitView = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
+
+            // Early out for preview camera
+            if (cameraData.cameraType == CameraType.Preview)
+                isLitView = false;
+#endif
 
             // Preset global light textures for first batch
             if (batchIndex == 0)
@@ -102,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
                             builder.UseTexture(passData.lightTextures[i]);
                     }
 
-                    SetGlobalLightTextures(graph, builder, passData.lightTextures, cameraData, ref layerBatch, rendererData);
+                    SetGlobalLightTextures(graph, builder, passData.lightTextures, ref layerBatch, rendererData, isLitView);
 
                     builder.AllowPassCulling(false);
                     builder.AllowGlobalStateModification(true);
@@ -121,17 +132,8 @@ namespace UnityEngine.Rendering.Universal
                 passData.hdrEmulationScale = rendererData.hdrEmulationScale;
                 passData.isSceneLit = rendererData.lightCullResult.IsSceneLit();
                 passData.layerUseLights = layerBatch.lightStats.useLights;
-
 #if UNITY_EDITOR
-                passData.isLitView = true;
-
-                // Early out for prefabs
-                if (cameraData.isSceneViewCamera && !UnityEditor.SceneView.currentDrawingSceneView.sceneLighting)
-                    passData.isLitView = false;
-
-                // Early out for preview camera
-                if (cameraData.cameraType == CameraType.Preview)
-                    passData.isLitView = false;
+                passData.isLitView = isLitView;
 #endif
 
                 var drawSettings = CreateDrawingSettings(k_ShaderTags, renderingData, cameraData, lightData, SortingCriteria.CommonTransparent);
@@ -159,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
                 // Post set global light textures for next renderer pass 
                 var nextBatch = batchIndex + 1;
                 if (nextBatch < universal2DResourceData.lightTextures.Length)
-                    SetGlobalLightTextures(graph, builder, universal2DResourceData.lightTextures[nextBatch], cameraData, ref layerBatches[nextBatch], rendererData);
+                    SetGlobalLightTextures(graph, builder, universal2DResourceData.lightTextures[nextBatch], ref layerBatches[nextBatch], rendererData, isLitView);
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
@@ -168,21 +170,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void SetGlobalLightTextures(RenderGraph graph, IRasterRenderGraphBuilder builder, TextureHandle[] lightTextures, UniversalCameraData cameraData, ref LayerBatch layerBatch, Renderer2DData rendererData)
+        void SetGlobalLightTextures(RenderGraph graph, IRasterRenderGraphBuilder builder, TextureHandle[] lightTextures, ref LayerBatch layerBatch, Renderer2DData rendererData, bool isLitView)
         {
-#if UNITY_EDITOR
-            bool isLitView = true;
-
-            // Early out for prefabs
-            if (cameraData.isSceneViewCamera && !UnityEditor.SceneView.currentDrawingSceneView.sceneLighting)
-                isLitView = false;
-
-            // Early out for preview camera
-            if (cameraData.cameraType == CameraType.Preview)
-                isLitView = false;
-
             if (isLitView)
-#endif
             {
                 if (layerBatch.lightStats.useLights)
                 {
