@@ -32,4 +32,3 @@ The Mesh index sampling feature has the following limitations:
 
 - If a Mesh is not [readable](https://docs.unity3d.com/ScriptReference/Mesh-isReadable.html), the **Position (Mesh)** Block and **Sample Mesh Index** Operator return zeros values when they attempt to sample it. For information on how to make a Mesh readable, see [Model import settings](https://docs.unity3d.com/Manual/FBXImporter-Model.html)
 
-![](Images/ReadWrite.png)

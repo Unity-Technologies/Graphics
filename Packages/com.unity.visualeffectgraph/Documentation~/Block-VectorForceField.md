@@ -4,9 +4,8 @@ Menu Path : **Force > Vector Field Force**
 
 The **Vector Field Force** Block uses [vector fields](VectorFields.md) to apply a force to the particles. This Block is useful for adding specific forces created in advance and stored in vector field assets.
 
-![](Images/Block-VectorForceFieldExample.gif)
-![](Images/Block-VectorForceFieldExample2D.gif)
-2D view of a Vector Field
+<video src="Images/Block-VectorForceFieldExample.mp4" title="A rotational 2D vector field consisting of vectors curving counterclockwise around a central point. The vectors diminish in magnitude near the center. In the upper left, they are horizontal and point left, while in the lower left, they angle toward the bottom-left corner of the field." width="320" height="auto" autoplay="true" loop="true" controls></video>
+<video src="Images/Block-VectorForceFieldExample2D.mp4" title="" width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

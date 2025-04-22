@@ -4,7 +4,7 @@ Menu Path : **Collision > Collide with AABox**
 
 The **Collide with AABox** Block defines an axis-aligned box volume that particles collide with.
 
-![](Images/Block-CollideWithAABoxMain.png)
+![A cascade of particles falls onto the upper surface of a cube and cascades down the side.](Images/Block-CollideWithAABoxMain.png)
 
 ## Block compatibility
 
