@@ -28,4 +28,5 @@ post-processing-and-ui-features:
   when:
     path:
       - ^.*PostProcessPass?.*$
-  area: Post-processing and UI Features
+  area: Post-processing and Compositing
+
