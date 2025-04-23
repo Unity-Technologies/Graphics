@@ -145,7 +145,8 @@ VisualEffectResource:
         public static void CreateHLSLFileAsset()
         {
             var action = ScriptableObject.CreateInstance<DoCreateHLSLFile>();
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New custom node.hlsl", null, null);
+            var icon = EditorGUIUtility.FindTexture(typeof(TextAsset));
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New custom node.hlsl", icon, null);
         }
 
         public static void CreateTemplateAsset(string pathName, string templateFilePath)
