@@ -751,7 +751,7 @@ MonoBehaviour:
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  WaitFrames: 0
+  WaitFrames: 2
   XRCompatible: 1
   CheckMemoryAllocation: 1
   SetBackBufferResolution: 0
