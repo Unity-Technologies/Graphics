@@ -627,7 +627,7 @@ namespace UnityEngine.Rendering
                     ((DebugUI.Table.Row)table.children[++iRowIndex]).children.Add(s_EmptyDebugUIValue);
 
                     bool isResultParameter = i == 0;
-                    for (int j = 0; j < chain.volumeComponent.parameterList.Count; ++j)
+                    for (int j = 0; j < chain.volumeComponent.parameterList.Length; ++j)
                     {
                         var parameter = chain.volumeComponent.parameterList[j];
                         ((DebugUI.Table.Row)table.children[++iRowIndex]).children.Add(
@@ -675,18 +675,14 @@ namespace UnityEngine.Rendering
                 table.children.Add(separatorRow);
 
                 var results = resolutionChain[0].volumeComponent;
-                for (int i = 0; i < results.parameterList.Count; ++i)
+                for (int i = 0; i < results.parameterList.Length; ++i)
                 {
                     var parameter = results.parameterList[i];
-
-#if UNITY_EDITOR
-                    string displayName = ObjectNames.NicifyVariableName(parameter.debugId); // In the editor, make the name more readable
-#elif DEVELOPMENT_BUILD
-                    string displayName = parameter.debugId; // In the development player, just the debug id
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    string displayName = VolumeDebugData.GetVolumeParameterDebugId(parameter);// In the development player, just the debug id
 #else
                     string displayName = i.ToString(); // Everywhere else, just a dummy id ( TODO: The Volume panel code should be stripped completely in nom-development builds )
 #endif
-
                     table.children.Add(new DebugUI.Table.Row()
                     {
                         displayName = displayName

@@ -149,10 +149,10 @@ namespace UnityEngine.Rendering
             if (!profile.TryGet(selectedComponentType, out VolumeComponent component)) return 0;
             if (!component.active) return 0;
 
-            float weight = Mathf.Clamp01(volume.weight);
+            float weight = volume.weight;
             if (!volume.isGlobal)
             {
-                var colliders = volume.GetComponents<Collider>();
+                var colliders = volume.colliders;
 
                 // Find closest distance to volume, 0 means it's inside it
                 float closestDistanceSqr = float.PositiveInfinity;
