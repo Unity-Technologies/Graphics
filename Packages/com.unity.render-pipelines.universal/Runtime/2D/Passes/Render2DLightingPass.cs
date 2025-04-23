@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.Universal
             var isLitView = true;
 
 #if UNITY_EDITOR
-            if (renderingData.cameraData.isSceneViewCamera)
+            if (renderingData.cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
                 isLitView = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
 
             if (renderingData.cameraData.camera.cameraType == CameraType.Preview)
