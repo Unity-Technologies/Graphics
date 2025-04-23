@@ -1,4 +1,4 @@
-# Simulate currents with water decals
+# Simulate currents with a water decal
 
 To add deformation, foam, or current effects to a water surface, use a water decal, which is a texture projected onto the surface.
 
@@ -27,6 +27,7 @@ By default, the water decal shader graph Master Stack contains the following pro
 
 Once you have [enabled water mask and current water decals](enable-mask-and-current-water-decals.md), you can add the following water features through the Graph Inspector:
 
+- **HorizontalDeformation**. 
 - **SimulationMask**
 - **SimulationFoamMask**
 - **LargeCurrent**

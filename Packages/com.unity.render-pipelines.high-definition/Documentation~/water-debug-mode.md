@@ -6,6 +6,7 @@ They are especially useful for placing the different areas (Mask, Deformation, F
 ## Simulation Mask
 The Simulation Mask mode displays the reduction of each simulation band. White means no reduction. Black means 100% reduction. 
 You can select which channel of the water mask to debug by using the **Simulation Mask Mode** dropdown. 
+
 Note that, for saving texture space, the red channel always attenuate the first band (First swell band for oceans, Agitation for rivers, Ripples for pools), green channel, the second band (Second swell band for oceans, ripples for rivers)... etc
 
 ![An island scene, with a gradient texture that represents the simulation band changing as the water approaches the island.](Images/water-debug-watermask.png)

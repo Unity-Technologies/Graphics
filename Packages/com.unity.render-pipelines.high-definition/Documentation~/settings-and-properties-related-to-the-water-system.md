@@ -114,7 +114,6 @@ To see properties related to <b>Fade</b>, <b>Caustics Intensity</b>, and <b>Caus
 |--------------|--------------|--------------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
 | Yes          | Yes          | Yes          | **Rendering Layer Mask** | Specifies the rendering layers that render on the water surface. To use this feature, enable Decal Layers and/or Light Layers in your HDRP Asset. |
 | Yes          | Yes          | Yes          | **Debug Mode**           | Specifies the view of the debug mode used for the water surface.                                                                                  |
-
 # Water system volume override
 
 <a name="watervoloverride"></a>

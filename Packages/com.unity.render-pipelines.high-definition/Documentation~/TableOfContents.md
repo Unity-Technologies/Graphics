@@ -227,6 +227,7 @@
     * [Underwater view](water-underwater-view.md)
     * [Materials in the Water System](water-materials-in-the-water-system.md)
     * [Scripting in the Water System](water-scripting-in-the-water-system.md)
+    * [VFX Graph in the water system](water-vfx-interaction.md)
       * [Float objects on a water surface](float-objects-on-a-water-surface.md)
       * [Align objects to the water surface using normals](align-objects-to-water-surface-using-normals.md)
       * [Add caustics](add-caustics-and-foam-and-check-waves-and-ripples.md)
