@@ -20,21 +20,23 @@ float3 UnityFlipSprite( in float3 pos, in float2 flip )
     return float3(pos.xy * flip, pos.z);
 }
 
-float3 UnitySkinSprite( in float3 positionOS, in float4 blendIndices, in float4 blendWeights, in float offset )
+float3 UnitySkinSprite( in float3 positionOS, in uint4 blendIndices, in float4 blendWeights, in float offset )
 {
-#if defined(SKINNED_SPRITE)
     float4 vertex = float4(positionOS, 1.0);
+
+#if defined(SKINNED_SPRITE)
+    UNITY_BRANCH
     if (offset >= 0)
     {
         vertex =
-            mul(_SpriteBoneTransforms[offset + blendIndices.x], vertex) * blendWeights.x +
-            mul(_SpriteBoneTransforms[offset + blendIndices.y], vertex) * blendWeights.y +
-            mul(_SpriteBoneTransforms[offset + blendIndices.z], vertex) * blendWeights.z +
-            mul(_SpriteBoneTransforms[offset + blendIndices.w], vertex) * blendWeights.w;
+            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.x], vertex) * blendWeights.x +
+            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.y], vertex) * blendWeights.y +
+            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.z], vertex) * blendWeights.z +
+            mul(_SpriteBoneTransforms[uint(offset) + blendIndices.w], vertex) * blendWeights.w;
     }
+#endif // SKINNED_SPRITE
+
     return vertex.xyz;
-#endif
-    return positionOS;
 }
 
 #ifdef UNITY_INSTANCING_ENABLED
