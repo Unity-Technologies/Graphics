@@ -1,5 +1,5 @@
 rule1:
-  area: SRP Architecture & API
+  area: SRP Foundation
 
 rule2:
   when:
@@ -7,4 +7,4 @@ rule2:
       - ^.*CoreAttributes.*$
       - ^.*IAdditionalData.*$
       - ^.*Reload.*$
-  area: SRP Workflow
+  area: SRP Settings
