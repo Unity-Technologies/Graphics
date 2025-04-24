@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    [HDRPHelpURL("Ray-Traced-Global-Illumination")]
+    [HDRPHelpURL("Override-Screen-Space-GI")]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         bool UsesQualityMode()
