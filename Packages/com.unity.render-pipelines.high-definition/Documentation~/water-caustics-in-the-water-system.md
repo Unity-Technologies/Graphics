@@ -14,7 +14,7 @@ this.GetComponent<DecalProjector>().material.SetTexture("_Base_Color", waterSurf
 Caustics have the following limitations with transparents GameObjects:
 * When the camera is above a water surface, HDRP computes caustics using the position of any opaque object behind a transparent.
 * HDRP doesn't apply caustics to transparent GameObjects when the camera is underwater.
-* Caustics do not react to current maps and Water Mask.
+* Caustics do not react to current maps and simulation masks.
 
 ## Additional resources
 * <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the water system</a>

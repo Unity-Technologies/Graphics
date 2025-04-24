@@ -1,9 +1,9 @@
 # Decals and masking in the water system
 
 ## Masks
-You can use a **Water Mask** to affect the influence the simulation has on specific areas of the water surface.
+You can use a simulation mask to affect the influence the simulation has on specific areas of the water surface.
 
-Masks take into account the **Wrap Mode** of the texture on the importer. For **Ocean, Sea, or Lake** water surface types, choose **Clamp** rather the default, **Repeat**.
+Masks take into account the **Wrap Mode** of the texture on the importer. For **Ocean, Sea, or Lake** water surface types, choose **Clamp** rather than the default, **Repeat**.
 
 ![A square texture with a diffuse cloudy pattern of magenta, pink, light blue, and blue.](Images/WaterMask_Example-22.2.png)
 

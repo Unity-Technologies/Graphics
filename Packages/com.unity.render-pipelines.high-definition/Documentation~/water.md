@@ -9,7 +9,7 @@ Create water in the High Definition Render Pipeline (HDRP).
 | [Water system simulation](water-water-system-simulation.md)                               | How the water system simulation works.                                |
 | [Quality and performance decisions](water-quality-and-performance-decisions.md)           | How to make quality decisions and optimize performance.               |
 | [Water Override for Volumes](water-the-water-system-volume-override.md)                   | Purpose of the water Volume Override.                                 |
-| [Decals and masking in the water system](water-decals-and-masking-in-the-water-system.md) | How foam works in the water system.                                   |
+| [Decals and masking in the water system](water-decals-and-masking-in-the-water-system.md) | How decals and masks work in the water system.                                   |
 | [Foam in the water system](water-foam-in-the-water-system.md)                             | Control how much foam appears on your water surface.                  |
 | [Caustics in the water system](water-caustics-in-the-water-system.md)                     | What caustics are, how to adjust them, and their limitations.         |
 | [Create a current in the water system](water-create-a-current-in-the-water-system.md)     | Apply a current map to a water surface.                               |
