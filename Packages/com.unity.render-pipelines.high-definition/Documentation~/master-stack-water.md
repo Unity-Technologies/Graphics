@@ -53,15 +53,15 @@ When you create a new Water Master Stack, the Vertex Context contains the follow
 <tr>
 <td><b>UV0</b></td>
 <td>Water properties packed into a UV coordinate set for the vertex context.</td>
-<td></td>
-<td></td>
+<td>N/A</td>
+<td>N/A</td>
 </tr>
 
 <tr>
 <td><b>UV1</b></td>
 <td>Water properties packed into a UV coordinate set for the vertex context.</td>
-<td></td>
-<td></td>
+<td>N/A</td>
+<td>N/A</td>
 </tr>
 
 </table>
