@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Vector**
 
 The **Sample Bezier** Operator performs a four-point bezier interpolation based on four positions and a value to represent the progress through the curve. It returns the interpolated position and the position's tangent, which is a vector which points along the bezier curve at the position.
 
-![](Images/Operator-SampleBezierExample.gif)
+<video src="Images/Operator-SampleBezierExample.mp4" title="Dynamic sampling process of a cubic Bézier curve, showing control points, interpolation, and the movement of a marker along the curve as the T parameter changes." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Operator properties
 

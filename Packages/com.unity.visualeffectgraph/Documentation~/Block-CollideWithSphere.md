@@ -4,7 +4,7 @@ Menu Path : **Collision > Collide with Sphere**
 
 The **Collide with Sphere** Block is used to define a spherical volume for particles to collide with.
 
-![](Images/Block-CollideWithSphereMain.png)
+![Particles interacting with a spherical surface by bouncing off or altering their trajectory upon collision.](Images/Block-CollideWithSphereMain.png)
 
 ## Block compatibility
 
@@ -30,12 +30,3 @@ This Block is compatible with the following Contexts:
 | **Lifetime Loss** | Float                    | The proportion of life a particle loses after collision.     |
 | **Roughness**     | Float                    | The amount to randomly adjust the direction of a particle after it collides with the surface.<br/>This property only appears when you enable **Rough Surface**. |
 | **Radius**        | Float                    | The radius of the particle this Block uses for collision detection.<br/>This property only appears when **Radius Mode** is set to **Custom**. |
-
-|      |      |      |
-| ---- | ---- | ---- |
-|      |      |      |
-|      |      |      |
-|      |      |      |
-|      |      |      |
-|      |      |      |
-|      |      |      |
