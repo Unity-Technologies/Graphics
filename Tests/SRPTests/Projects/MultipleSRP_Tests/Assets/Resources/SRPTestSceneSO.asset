@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a31d83ee787523547824bbbd778435f9, type: 3}
+  m_Script: {fileID: 11500000, guid: eb88b38369329a9458f82ce3faed766e, type: 3}
   m_Name: SRPTestSceneSO
   m_EditorClassIdentifier: 
   testDatas:
