@@ -5,21 +5,11 @@ You can use a **Water Mask** to affect the influence the simulation has on speci
 
 Masks take into account the **Wrap Mode** of the texture on the importer. For **Ocean, Sea, or Lake** water surface types, choose **Clamp** rather the default, **Repeat**.
 
-<table>
-<tr>
-<td>
-<img src="Images/WaterMask_Example-22.2.png">
-</td>
-<td>
-<img src="Images/WaterMask_ExempleRender.PNG">
-</td>
-</tr>
-<tr>
-<td colspan="2">
-In this example, the Red channel attenuates the First and Second bands with a gradient. The noise on the Green channel attenuates ripples. See the <a href="settings-and-properties-related-to-the-water-system.md#watermask">Water Mask property description</a> for more information.
-</td>
-</tr>
-</table>
+![A square texture with a diffuse cloudy pattern of magenta, pink, light blue, and blue.](Images/WaterMask_Example-22.2.png)
+
+![A mostly flat ocean with a gentle pattern of waves and ripples.](Images/WaterMask_ExempleRender.PNG)
+
+In this example, the Red channel attenuates the First and Second bands with a gradient. The noise on the Green channel attenuates ripples. See the <a href="settings-and-properties-related-to-the-water-system.md#simulationmask">Simulation Mask property description</a> for more information.
 
 ## Decals
 You can use a [decal](decals.md) with a water surface in the form of a **Decal Layer Mask**. You might use this to imitate debris floating on the water, for example.

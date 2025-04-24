@@ -2,7 +2,7 @@
 
 The Unlit Shader and the Unlit Shader Graph let you create Materials that are not affected by lighting. They include options for the Surface Type, Emissive Color, and GPU Instancing. For more information about Materials, Shaders and Textures, see the [Unity User Manual](https://docs.unity3d.com/Manual/Shaders.html).
 
-![](Images/HDRPFeatures-UnlitShader.png)
+![Two glowing strip lights in a very dark industrial environment.](Images/HDRPFeatures-UnlitShader.png)
 
 ## Creating an Unlit Material
 
@@ -13,8 +13,6 @@ New Materials in HDRP use the [Lit Shader](lit-material.md) by default. To creat
 2. Right-click the Asset Window and select __Create > Material__. This adds a new Material to your Unity Project’s Asset folder.
 
 3. Click the __Shader__ drop-down at the top of the Material Inspector, and select __HDRP > Unlit__.
-
-![](Images/HDRPFeatures-UnlitShader.png)
 
 Refer to [Unlit Material Inspector reference](unlit-material-inspector-reference.md) for more information.
 
