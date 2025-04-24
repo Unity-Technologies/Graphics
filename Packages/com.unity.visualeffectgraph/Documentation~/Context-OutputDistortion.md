@@ -6,7 +6,7 @@ Menu Path : **Context > Output [Strip/Particle] Distortion [Quad/Mesh]**
 
 **Distortion** outputs are Context nodes specific to the High Definition Render Pipeline (HDRP). They utilize HDRP's Distortion pass to simulate the bending of light. The Distortion output is available for both particles and particle strip data types, and particle distortion Contexts support both quad and mesh distortion. Distortion outputs are useful for simulating effects like heat distortion from fire.
 
-![](F:/Graphics/com.unity.visualeffectgraph/Documentation~/Images/Context-OutputDistortion.png)
+![Grid of colored squares labeled with alphanumeric codes (for example, A1, B2, C3) arranged to show increasing blur from bottom to top and increasing distortion from left to right.](Images/Context-OutputDistortion.png)<br/>Grid of colored squares labeled with alphanumeric codes (for example, A1, B2, C3) arranged to show increasing blur from bottom to top and increasing distortion from left to right.
 
 Below is a list of settings and properties specific to the Distortion Context. For information about the generic output settings this Context shares with all other Contexts, see [Global Output Settings and Properties](Context-OutputSharedSettings.md).
 

@@ -17,7 +17,8 @@ Within a Visual Effect Graph, create a new exposed Texture3D property. To do thi
 5. Enable **Exposed** if it is not already.
 6. Drag the property into the graph and connect it to an input that accepts an SDF. For example, the **Distance Field** property of a [Collision Shape Signed Distance Field](Block-CollideWithSignedDistanceField.md) Block.
 
-![](Images/sdf-bake-tool-api-example.png)<br/>*Assigning an SDF to the Distance Field input port of the Collision Shape Signed Distance Field Block*
+![Assigning an SDF to the Distance Field input port of the Collision Shape Signed Distance Field Block.](Images/sdf-bake-tool-api-example.png)
+Assigning an SDF to the Distance Field input port of the Collision Shape Signed Distance Field Block.
 
 ## MonoBehaviour
 
