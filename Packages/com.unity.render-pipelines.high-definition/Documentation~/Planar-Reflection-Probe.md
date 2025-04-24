@@ -80,12 +80,12 @@ You can use Scene view gizmos to visually customize specific properties.
 
 | **Gizmo**                             | **Property**                          | **Description**                                              |
 | ------------------------------------- | ------------------------------------- | ------------------------------------------------------------ |
-| ![](Images/ReflectionProbeGizmo1.png) | **Influence Volume boundary**         | Provides Scene view handles that allow you to move the boundaries of the [Influence Volume](#InfluenceVolume), which defines the area this Reflection Probe affects reflective Materials. Edits the **Box Size** or **Radius** value, depending on the **Shape** you select. |
-| ![](Images/ReflectionProbeGizmo2.png) | **Blend Distance boundary**           | Provides Scene view handles that allows you to alter the inward distance from the **Box Size** or **Radius** at which this Planar Reflection Probe blends with other Reflection Probes. For the **Box** shape, when **Per Axis Control** is enabled, there is a separate handle for each size of the box. |
-| ![](Images/ReflectionProbeGizmo3.png) | **Blend Normal Distance boundary**    | Provides Scene view handles that allow you to resize the boundary where pixels with a normal pointing away from the **Capture Position** don’t receive any influence from this Probe. |
-| ![](Images/ReflectionProbeGizmo4.png) | **Mirror Position**                   | Changes the behavior of the Move Tool so that it alters the **Mirror** **Position** property, rather than the **Position** of the **Transform**. |
-| ![](Images/ReflectionProbeGizmo5.png) | **Mirror Rotation**                   | Changes the behavior of the Rotate Tool so that it alters the **Mirror Rotation** property, rather than the **Rotation** of the **Transform**. |
-| ![](Images/ReflectionProbeGizmo6.png) | **Chrome Gizmo**.                     | Displays a chrome quad to preview the probe's texture in the scene. |
+| ![Influence Volume boundary gizmo](Images/ReflectionProbeGizmo1.png) | **Influence Volume boundary**         | Provides Scene view handles that allow you to move the boundaries of the [Influence Volume](#InfluenceVolume), which defines the area this Reflection Probe affects reflective Materials. Edits the **Box Size** or **Radius** value, depending on the **Shape** you select. |
+| ![Blend Distance boundary gizmo](Images/ReflectionProbeGizmo2.png) | **Blend Distance boundary**           | Provides Scene view handles that allows you to alter the inward distance from the **Box Size** or **Radius** at which this Planar Reflection Probe blends with other Reflection Probes. For the **Box** shape, when **Per Axis Control** is enabled, there is a separate handle for each size of the box. |
+| ![Blend Normal Distance boundary gizmo](Images/ReflectionProbeGizmo3.png) | **Blend Normal Distance boundary**    | Provides Scene view handles that allow you to resize the boundary where pixels with a normal pointing away from the **Capture Position** don’t receive any influence from this Probe. |
+| ![Mirror Position gizmo](Images/ReflectionProbeGizmo4.png) | **Mirror Position**                   | Changes the behavior of the Move Tool so that it alters the **Mirror** **Position** property, rather than the **Position** of the **Transform**. |
+| ![Mirror Rotation gizmo](Images/ReflectionProbeGizmo5.png) | **Mirror Rotation**                   | Changes the behavior of the Rotate Tool so that it alters the **Mirror Rotation** property, rather than the **Rotation** of the **Transform**. |
+| ![Chrome gizmo](Images/ReflectionProbeGizmo6.png) | **Chrome Gizmo**.                     | Displays a chrome quad to preview the probe's texture in the scene. |
 
 ## Best practices
 

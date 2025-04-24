@@ -1,7 +1,5 @@
 # Indirect lighting controller reference
 
-![](Images/Override-IndirectLightingController1.png)
-
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                                         | Description                                                  |

@@ -65,5 +65,5 @@ To resize the Adaptive Probe Volume, use one of the handles of the box gizmo in 
 
 In this screenshot, a red box indicates the box gizmo handles.
 
-![](Images/ProbeVolume-Size-gizmo.png)<br/>
+![Inside a cube, a red box highlights the box gizmo handles.](Images/ProbeVolume-Size-gizmo.png)<br/>
 The resize handles for Adaptive Probe Volumes.
