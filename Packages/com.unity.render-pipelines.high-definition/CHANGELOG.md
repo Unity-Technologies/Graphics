@@ -33,6 +33,7 @@ This version is compatible with Unity 6000.2.0a17.
 - Improved water sample by adding a cave scene using caustics and deformation texture.
 
 ### Fixed
+- Fixed the macro redefinition warnings that occur in Lit.shader and HDShadowAlgorithms.hlsl, by implement a check to see if PUNCTUAL_SHADOW_LOW, USE_FPTL_LIGHTLIST and DIRECTIONAL_SHADOW_LOW have already been previously defined. (UUM-83878)
 - Fixed High Definition Render Pipeline's Wizard to no longer assume a check fail while waiting a reply from the Package Manager and will display a specific pending icon.
 - Fixed an issue where the padding in the Lighting window was different between tabs.
 - Fixed artifacts when blending cascade shadows and distance shadowmask.

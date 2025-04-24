@@ -7,9 +7,15 @@
 
 // For backward compatibility
 #ifdef SHADOW_LOW
+#ifndef PUNCTUAL_SHADOW_LOW
 #define PUNCTUAL_SHADOW_LOW
+#endif
+#ifndef DIRECTIONAL_SHADOW_LOW
 #define DIRECTIONAL_SHADOW_LOW
 #endif
+#endif
+
+
 
 // For non-fragment shaders we might skip the variant with the quality as shadows might not be used, if that's the case define something just to make the compiler happy in case the quality is not defined.
 #ifndef SHADER_STAGE_FRAGMENT
