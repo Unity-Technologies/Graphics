@@ -7,949 +7,113 @@ This page explains the settings and properties you can use to configure the:
 * [Water system in the HDRP asset](#waterhdrpasset)
 
 
-<br/>
-
 ## Water Volume Inspector
 <a name="volumeinspector"></a>
 
 <a name="additionalproperties"></a>
+
 ### Additional properties
 To see properties related to <b>Fade</b>, <b>Caustics Intensity</b>, and <b>Caustics Plane Band Distance</b>, you must enable them in <b>Preferences</b> > <b>Core Render Pipeline</b>. Select the <b>Visibility</b> option <b>All Visible</b>. These properties are not visible by default because they are not essential to use the feature, being primarily for performance optimization.
 
-<br/>
-<br/>
-
-
-
-<table>
-
-<tr>
-<td colspan="3">
-Water type
-</td>
-<td rowspan="2">
-<b>Property</b>
-</td>
-<td rowspan="2">
-<b>Description</b>
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>Pool</b>
-</td>
-<td>
-<b>River</b>
-</td>
-<td>
-<b>Ocean, Sea, or Lake</b>
-</td>
-</tr>
-
-<tr>
-<td rowspan="10">
-X</td>
-<td rowspan="10">
-X</td>
-<td rowspan="10">
-X</td>
-<td colspan="2">
-<b>General</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Surface Type</b>
-</td>
-<td>
-Specifies the type of water body that this surface should imitate.
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>Geometry Type</b>
-</td>
-<td>
-Specifies the shape of the water surface.
-The options are:
-<ul>
-<li><b>Quad</b>: Based on a square.</li>
-<li><b>Instanced Quads</b>: Creates a finite water surface with multiple instanced grids to keep a higher vertex density.</li>
-<li><b>Custom Mesh</b>: Based  on a Mesh you provide. Overrides the vertical position of the vertices to keep the surface of the water consistently level.</li>
-<li><b>Infinite</b> (<b>Ocean, Sea, or Lake</b> only): Bounds the water surface with the Global Volume.</li>
-</ul>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Script Interactions <a name="scriptinteractions"></a></b>
-</td>
-<td>
-Enable to have the ability to query the water surface position and current direction from the simulation. Refer to <a href="water-scripting-in-the-water-system.md">Scripting in the water system</a> for more information.
-</td>
-</tr>
-
-<tr>
-<td>
-- <b>Full Resolution</b>
-</td>
-<td>
-Only available if <b>Script Interactions</b> is active. Enable to have HDRP calculate the CPU simulation at full resolution. Otherwise, HDRP calculates the simulation at half resolution. Full resolution simulations demand more from the CPU.
-</td>
-</tr>
-
-<tr>
-<td>
-- <b>Evaluate Ripples</b>
-</td>
-<td>
-Only available if <b>Script Interactions</b> is active. Enable to have HDRP include ripples in the simulation on the CPU. Increases visual fidelity, but demands more from the CPU.
-</td>
-</tr>
-
-<tr>
-<td>
-<b><a name="tessellation"></a>Tessellation</b>
-</td>
-<td>
-Enable to implement tessellation.
-</td>
-</tr>
-
-<tr>
-<td>
-- <b>Max Tessellation Factor</b>
-</td>
-<td>
-Set the level of detail HDRP applies to the surface geometry relative to the camera's position. A higher maximum tessellation factor makes the water surface more detailed and responsive to waves but increases the computational load.
-</td>
-</tr>
-
-<tr>
-<td>
-- <b>Tessellation Factor Fade Start</b>
-</td>
-<td>
-Set the distance from the camera where the tessellation detail begins to decrease.
-</td>
-</tr>
-
-<tr>
-<td>
-- <b>Tessellation Factor Fade Range</b>
-</td>
-<td>
-Set the distance from the camera at which the tessellation factor reaches 0.
-</td>
-</tr>
-
-<tr>
-<td rowspan="3">
-X
-</td>
-<td rowspan="3">
-X
-</td>
-<td rowspan="3">
-X
-</td>
-<td colspan="2">
-<b>Simulation</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Time Multiplier</b>
-</td>
-<td>
-Determines the speed at which HDRP presents the water simulation. Values above 1 increase the simulation speed; values lower than 1 decrease it.
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b><a name="watermask"></a>Water Mask</b>
-</td>
-<td>
-Set the texture HDRP uses to reduce or stop water frequencies depending on the water surface type.<br/><ul> <li><b>Ocean:</b> Reduces swell (red channel), agitation (green), and ripples (blue).</li> <li><b>River:</b> Reduces agitation (red channel) and ripples (green channel).</li> <li><b>Pool:</b> Reduces ripples (red channel).</li></ul>The Water Mask reduces the intensity of these water effects by multiplying the mask values with the corresponding water properties in the shader. Darker areas (closer to black) reduce the intensity, while lighter areas (closer to white) increase it.<br/>For more information, refer to <a href="water-decals-and-masking-in-the-water-system.html">Decals and masking in the Water System</a>.
-</td>
-</tr>
-
-<tr>
-<td rowspan="5">
-X
-</td>
-<td rowspan="5">
-X
-</td>
-<td rowspan="5" >
-X
-</td>
-<td colspan="2">
-<b>Water Decals</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Region Size</b>
-</td>
-<td>
-Set the width and length in meters of the region HDRP applies the Water Decal to.
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>Region Anchor</b>
-</td>
-<td>
-Anchor the Water Decal to a GameObject. By default, the region follows the camera. To make the region static, anchor it to the water surface.
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>Deformation</b>
-</td>
-<td>
-Enable to activate the option for creating a deformation decal.
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>Foam</b>
-</td>
-<td>
-Enable to activate the option for creating a foam decal.
-</td>
-</tr>
-
-<tr>
-<td rowspan="6">
-
-</td>
-<td rowspan="6">
-X
-</td>
-<td rowspan="6">
-X
-</td>
-<td colspan="2">
-<b>River</b> surface types: <b>Agitation</b><br/>
-<b>Ocean, Sea, or Lake</b> surface types: <b>Swell</b><br/>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Repetition Size</b>
-</td>
-<td>
-The size of the water <a href="water-water-system-simulation.html#patchgrid">patch</a> in meters. Higher values result in less visible repetition. Also affects the <b>Maximum Amplitude</b> of <b>Swell</b> or <b>Agitation</b> simulation bands.
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>Distant Wind Speed</b>
-</td>
-<td>
-Represents the speed of distant wind in kilometers per hour. This property indirectly determines the <b>Maximum Amplitude</b> and shape of the swell in a nonlinear way. Nonlinear means that changes to <b>Distant Wind Speed</b> do not have a proportional effect on swells.
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>Distant Wind Orientation</b>
-</td>
-<td>
-Represents the orientation of distant wind counterclockwise to the world space X vector. (This vector aligns with the blue handle of the <a href="https://docs.unity3d.com/Manual/PositioningGameObjects.html">Transform</a> Gizmo). Only affects a swell with a <b>Chaos</b> value less than 1.
-</td>
-</tr>
-
-
-
-
-<tr>
-<td>
-<b>Chaos</b>
-</td>
-<td>
-Determines how much the <b>Local Wind Orientation</b> affects ripples; values less than 1 increase <b>Local Wind Orientation</b>'s influence. Values more than 1 decrease <b>Local Wind Orientation</b>'s influence.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Current</b>
-</td>
-<td>
-Translates the swell at a constant speed in the given direction.
-<ul>
-<li><b>Speed</b>: Determines how fast the current moves, measured in kilometers per hour.</li>
-<li><b>Orientation</b>: Determines the orientation of the current in degrees relative counterclockwise to the world space X vector. (This vector aligns with the blue handle of the <a href="https://docs.unity3d.com/Manual/PositioningGameObjects.html">Transform</a> Gizmo).</li></ul>
-</td>
-</tr>
-
-
-<tr>
-<td rowspan="5">
-</td>
-<td rowspan="5">
-X
-</td>
-<td rowspan="5">
-X
-</td>
-<td colspan="2">
-Simulation Band properties
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Amplitude Dimmer</b>
-</td>
-<td>
-<b>Amplitude Dimmer</b> (<b>Ocean, Sea, or Lake</b>)<br/>
-<ul>
-<li><b>First band</b>: The degree to which amplitude reduces on the first simulation band of the Swell.</li>
-<li><b>Second Band</b>: The degree to which amplitude reduces on the second simulation band of the Swell.</li></UL>
-
-<br/>
-<b>Amplitude Dimmer</b> (<b>River</b>)<br/>
-A dimmer that determines the degree to which amplitude can reduce on the Agitation simulation band. For example, if your <b>Amplitude</b> value is 10 meters and you set this property to 0.5, your <b>Agitation</b> is 5 meters high.<br/>
-
-
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Fade</b>
-</td>
-<td>
-<a href="#additionalproperties">Additional property</a>. When this option is active, HDRP begins fading the contribution of this simulation band at the distance from the camera that the <b>Range</b> value specifies. This helps minimize distant aliasing artifacts.
-</td>
-</tr>
-
-<tr>
-<td>
-- <b>Range</b>
-</td>
-<td>
-<a href="#additionalproperties">Additional property</a>. The distance from the camera in meters at which HDRP begins to fade the contribution of this simulation band.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Total Amplitude</b>
-</td>
-<td>
-The combined amplitude of all bands.
-</td>
-</tr>
-
-
-
-<tr>
-<td rowspan="2">
-</td>
-<td rowspan="2">
-
-</td>
-<td rowspan="2">
-X
-</td>
-<td colspan="2">
-Simulation Band property specific to <b>Ocean, Sea, or Lake</b>, appears after <b>Amplitude Mulitplier</b> for each band.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Max Amplitude</b>
-</td>
-<td>
-The amplitude of this band, in meters. This is the sum of the original amplitude and the multiplied amplitude.
-</td>
-</tr>
-
-
-
-<tr>
-<td rowspan="7">
-X
-</td>
-<td rowspan="7">
-X
-</td>
-<td rowspan="7">
-X
-</td>
-<td colspan="2"><b>Ripples</b></td>
-</tr>
-
-<tr>
-<td>
-<b>Local Wind Speed</b>
-</td>
-<td>
-Represents the speed of local wind blowing over the water surface in kilometers per hour. This determines the maximum amplitude and shape of ripples indirectly, in a nonlinear way. Nonlinear means that changes to <b>Local Wind Speed</b> do not have a proportional effect on ripples.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Local Wind Orientation</b>
-</td>
-<td>
-Represents the orientation of local wind counterclockwise to the world space X vector. (This vector aligns with the blue handle of the <a href="https://docs.unity3d.com/Manual/PositioningGameObjects.html">Transform</a> Gizmo). Only affects ripples with a <b>Chaos</b> value less than 1.
-
-<b>River</b> and <b>Ocean, Sea, or Lake</b> only: If set to 0, matches the <b>Distant Wind Orientation</b>.
-
-
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Chaos</b>
-</td>
-<td>
-Determines how much the <b>Local Wind Orientation</b> affects ripples; values below 1 increase <b>Local Wind Orientation</b>'s influence. Values above 1 decrease the influence of <b>Local Wind Orientation</b>.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Current</b>
-</td>
-<td>
-<ul>
-<li><B>Pool</B>: Determines the orientation and constant speed of the swells that displace ripples in the pool.
-</li>
-<li><b>River</b>: Determines the orientation and constant speed of the current that displaces ripples in the river. By default, <b>River</b> <b>Current</b> inherits the <b>Agitation</b> values, but you can also set custom orientation and speed values.</li>
-<li><b>Ocean, Sea, or Lake</b>:
-Determines the orientation and constant speed of the current that displaces ripples in the river. By default, <b>Ocean, Sea, or Lake</b> <b>Current</b> inherits the <b>Swell</b> values, but you can also set custom orientation and speed values.</li>
-<li><b>Speed</b>: Determines how fast the current moves, measured in kilometers per hour.</li>
-<li><b>Orientation</b>: Determines the orientation of the current in degrees relative counterclockwise to the world space X vector. (This vector aligns with the blue handle of the <a href="https://docs.unity3d.com/Manual/PositioningGameObjects.html">Transform</a> Gizmo).</li></ul>
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>Fade</b>
-</td>
-<td>
-<a href="#additionalproperties">Additional property</a>. When this option is active, HDRP begins fading the contribution of this simulation band at the distance from the camera that corresponds to the <b>Range</b> value in meters. This helps minimize distant aliasing artifacts.
-</td>
-</tr>
-
-<tr>
-<td>
-- <b>Range</b>
-</td>
-<td>
-<a href="#additionalproperties">Additional property</a>. The distance from the camera, in meters, at which HDRP begins to fade the contribution of this simulation band.
-</td>
-</tr>
-
-
-<tr>
-<td rowspan ="5">
-x
-</td>
-<td rowspan ="5">
-X
-</td>
-<td rowspan ="5">
-X
-</td>
-<td colspan ="2"><b>Deformation </b></td>
-</tr>
-
-<tr>
-<td>
-<b>Enable</b>
-</td>
-<td>Specify if this surface supports deformation.</a>.</td>
-</tr>
-
-<tr>
-<td>
-<b>Resolution</b>
-</td>
-<td>The resolution of the deformation texture used to represent the deformation area.
-<ul>
-<li><b>256 x 256</b>: Set the deformation texture to 256 x 256 pixels.</li>
-<li><b>512 x 512</b>: Set the deformation texture to 512 x 512 pixels.</li>
-<li><b>1024 x 1024</b>: Set the deformation texture to 1024 x 1024 pixels.</li>
-<li><b>2048 x 2048</b>: Set the deformation texture to 2048 x 2048 pixels.</li></ul>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Area Size</b>
-</td>
-<td>Set the size of the deformation area in meters.</td>
-</tr>
-<tr>
-<td>
-<b>Area Offset</b>
-</td>
-<td>Set the offset of the deformation area in meters</td>
-</tr>
-
-
-<tr>
-<td rowspan ="7">
-
-</td>
-<td rowspan ="7">
-X
-</td>
-<td rowspan ="7">
-X
-</td>
-<td colspan ="2">
-<b>Foam</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Simulation Foam Amount</b>
-</td>
-<td>Determines the amount of surface foam. Higher values generate larger foam patches. The <b>Wind Speed Dimmer</b> configuration determines which <b>Distant Wind Speed</b> values generate foam, and how much; refer to <a href="water-foam-in-the-water-system.html">Foam in the water system</a>.</td>
-</tr>
-
-<tr>
-<td>
-<b>Simulation Foam Smoothness</b>
-</td>
-<td>Determines the lifespan of surface foam. Higher values cause foam to persist longer and leave a trail.</td>
-</tr>
-
-<tr>
-<td>
-<b>Texture Tiling</b>
-</td>
-<td>Determines the tile size of the foam texture, in meters.</td>
-</tr>
-
-<tr>
-<td>
-<b>Custom Texture</b>
-</td>
-<td>Choose a texture Unity can use to define foam's appearance. If this is <b>None</b>, HDRP uses the default texture.</td>
-</tr>
-
-<tr>
-<td>
-<b>Mask</b>
-</td>
-<td>Select a texture whose red channel Unity uses to reduce or remove foam.</td>
-</tr>
-
-<tr>
-<td>
-<b>Wind Speed Dimmer</b>
-</td>
-<td>Determines foam intensity. The normalized <b>Distant Wind Speed</b> determines the X axis value. The spline editor configures the Y axis value. Refer to <a href="water-foam-in-the-water-system.html">Foam in the water system</a> for more information.</td>
-</tr>
-
-
-
-<tr>
-<td rowspan="16">
-X
-</td>
-<td rowspan="16">
-X
-</td>
-<td rowspan="16">
-X
-</td>
-<td colspan="2">
-<b>Appearance</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Custom Material</b>
-</td>
-<td>
-Select a custom material Unity can use to render the water surface. If this is <b>None</b>, Unity uses the default material.
-</td>
-</tr>
-
-
-<tr>
-<td colspan="2">
-<b>Smoothness</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Close</b>
-</td>
-<td>
-Determines how detailed the water surface is when closer to the Scene camera than the smoothness <b>Fade Start</b> value.
-</td>
-</tr>
-
-
-<tr>
-<td>
-- <b>Distant</b>
-</td>
-<td>
-Determines how detailed the water surface is when further from the Scene camera than the smoothness <b>Fade Distance</b> value.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Fade Range</b>
-</td>
-<td>
-Specifies the range over which Unity interpolates smoothness from close to distant.<br/>
-<ul>
-<li><b>Start</b>:  Determines the distance in meters from the Scene camera at which HDRP begins removing detail and interpolating the smoothness value for the water surface. </li>
-<li><b>Distance</b>: Determines the distance in meters from the <b>Start</b> point at which the <b>Distant</b> smoothness value takes effect. </li>
-</ul>
-</td>
-</tr>
-
-
-<tr>
-<td colspan="2">
-<b>Refraction</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Color</b>
-</td>
-<td>
-Determines the color HDRP uses to simulate underwater refraction.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Maximum Distance</b>
-</td>
-<td>
-Determines the maximum distance from the Scene camera Unity renders underwater refraction. Higher values increase the distortion amount.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Absorption Distance</b>
-</td>
-<td>
-Determines how deep into the water the camera can perceive, in meters.
-</td>
-</tr>
-
-
-
-<tr>
-<td colspan="2">
-<b>Scattering</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Color</b>
-</td>
-<td>
-Determines the color that Unity uses to simulate underwater scattering.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Ambient Term</b>
-</td>
-<td>
-Determines the intensity of the <a href="https://docs.unity3d.com/Manual/lighting-ambient-light.html">ambient</a> scattering term.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Height Term</b>
-</td>
-<td>
-Determines the intensity of height-based scattering. The higher the vertical displacement, the more the water receives scattering. You can adjust this for artistic purposes.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Displacement Term</b>
-</td>
-<td>
-Determines the intensity of displacement-based scattering. The larger this value is, the more the water receives scattering.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Direct Light Body Term</b>
-</td>
-<td>
-Determines the intensity of direct light scattering on the bodies of waves.
-</td>
-</tr>
-
-<tr>
-<td>
-
-</td>
-<td>
-X
-</td>
-<td>
-X
-</td>
-<td>
-<b>Direct Light Tip Term</b>
-</td>
-<td>
-Determines the intensity of direct light scattering on the tips of waves. You can perceive this effect more at grazing angles.
-</td>
-</tr>
-
-
-<tr>
-<td>
-X
-</td>
-<td>
-X
-</td>
-<td>
-X
-</td>
-<td colspan="2">
-<b>Caustics</b>
-</td>
-</tr>
-
-
-<tr>
-<td rowspan="2">
-X
-</td>
-<td rowspan="2">
-X
-</td>
-<td rowspan="2">
-X
-</td>
-<td>
-<b>Caustics</b>
-</td>
-<td>
-Enable to render caustics.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Caustics Resolution</b>
-</td>
-<td>
-The resolution at which Unity renders caustics in the simulation.
-</td>
-</tr>
-
-<tr>
-<td>
-
-</td>
-<td>
-X
-</td>
-<td>
-X
-</td>
-<td>
-<b>Simulation Band</b>
-</td>
-<td>
-Determines which <b>Simulation Band</b> Unity uses for caustics evaluation. <br/>
-For <b>Ocean, Sea, or Lake</b> water surfaces, the Swell simulation determines the first (index 0) and second (index 1) simulation band values. Ripples determine the third band value (index 2).<br/>
-The <b>River</b> type has two Simulation Bands, one for Agitation simulation and one for Ripples.
-For the <b>Pool</b> type, ripples determine the caustics evaluation. A higher <b>Local Wind Speed</b> value results in larger, looser caustics.
-</td>
-</tr>
-
-
-
-<tr>
-<td  rowspan="3">
-X
-</td>
-<td  rowspan="3">
-X
-</td>
-<td  rowspan="3">
-X
-</td>
-<td>
-<b>Virtual Plane Distance</b>
-</td>
-<td>
-Determines the distance from the camera at which Unity projects simulated caustics. High values generate sharper caustics but can cause artifacts. The larger the waves are, the further the plane distance should be to obtain sharp caustics.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Caustics Intensity</b>
-</td>
-<td>
-<a href="#additionalproperties">Additional property</a>. The normalized intensity of underwater caustics.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Caustics Plane Blend Distance</b>
-</td>
-<td>
-<a href="#additionalproperties">Additional property</a>. The vertical blending distance of the water caustics, in meters from the camera.
-</td>
-</tr>
-
-
-
-
-
-
-
-<tr>
-<td rowspan="5">
-X
-</td>
-<td rowspan="5">
-X
-</td>
-<td rowspan="5">
-X
-</td>
-<td colspan="2">
-<b>Underwater</b>
-</td>
-</tr>
-
-
-
-
-<tr>
-<td>
-<b>Volume Bounds</b>
-</td>
-<td>
-Specifies the collider Unity uses to determine the volume in which it applies the underwater effect for non-infinite water surfaces.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Volume Priority</b>
-</td>
-<td>
-Determines which surface Unity prioritizes for underwater rendering when multiple water surfaces overlap. Unity renders surfaces with a higher value first.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Transition Size</b>
-</td>
-<td>
-Where the distance between the camera and the water surface is lower than or equal to this value, Unity begins to blend the water surface rendering with the underwater rendering to prevent a sharp cutoff between them.
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Absorption Distance Multiplier</b>
-</td>
-<td>
-Determines how far the camera can see underwater. For example, a value of 2.0 means the camera can see twice as far underwater as you can from the water surface.
-</td>
-</tr>
-
-<tr>
-<td rowspan="3">
-X
-</td>
-<td rowspan="3">
-X
-</td>
-<td rowspan="3">
-X
-</td>
-<td colspan="2">
-<b>Miscellaneous</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Rendering Layer Mask</b>
-</td>
-<td>
-Specifies the rendering layers that render on the water surface. To use this feature, enable <b>Decal Layers</b> and/or <b>Light Layers</b> in your HDRP Asset</a>.
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>Debug Mode</b>
-</td>
-<td>
-Specifies the view of the debug mode used for the water surface.
-</td>
-</tr>
-
-</table>
-
-
-
-<br/>
-
+### General
+
+| **Pool**     | **River**    | **Ocean**    | **Property**            | **Subproperty**                    | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|--------------|--------------|--------------|-------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Yes          | Yes          | Yes          | **Surface Type**        | N/A                                | Specifies the type of water body that this surface should imitate.                                                                                                                                                                                                                                                                                                                                                                  |
+| Yes          | Yes          | Yes          | **Geometry Type**       | N/A                                | Specifies the shape of the water surface. The options are:    Quad: Based on a square.   Instanced Quads: Creates a finite water surface with multiple instanced grids to keep a higher vertex density.   Custom Mesh: Based  on a Mesh you provide. Overrides the vertical position of the vertices to keep the surface of the water consistently level.   Infinite (Ocean only): Bounds the water surface with the Global Volume. |
+| Yes          | Yes          | Yes          | **Time Multiplier**     | N/A                                | Specifies the shape of the water surface. The options are:    Quad: Based on a square.   Instanced Quads: Creates a finite water surface with multiple instanced grids to keep a higher vertex density.   Custom Mesh: Based  on a Mesh you provide. Overrides the vertical position of the vertices to keep the surface of the water consistently level.   Infinite (Ocean only): Bounds the water surface with the Global Volume. |
+| Yes          | Yes          | Yes          | **Script Interactions** | N/A                                | Enable to have the ability to query the water surface position and current direction from the simulation. Refer to Scripting in the water system for more information.                                                                                                                                                                                                                                                              |
+| Yes          | Yes          | Yes          | N/A                     | **Evaluate Ripples**               | Only available if Script Interactions is active. Enable to have HDRP include ripples in the simulation on the CPU. Increases visual fidelity, but demands more from the CPU.                                                                                                                                                                                                                                                        |
+| Yes          | Yes          | Yes          | **Tessellation**        | N/A                                | Enable to implement tessellation.                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Yes          | Yes          | Yes          | N/A                     | **Max Tessellation Factor**        | Set the level of detail HDRP applies to the surface geometry relative to the camera's position. A higher maximum tessellation factor makes the water surface more detailed and responsive to waves but increases the computational load.                                                                                                                                                                                            |
+| Yes          | Yes          | Yes          | N/A                     | **Tessellation Factor Fade Start** | Set the distance from the camera where the tessellation detail begins to decrease.                                                                                                                                                                                                                                                                                                                                                  |
+| Yes          | Yes          | Yes          | N/A                     | **Tessellation Factor Fade Range** | Set the distance from the camera at which the tessellation factor reaches 0.                                                                                                                                                                                                                                                                                                                                                        |
+
+### Simulation
+
+| **Pool**     | **River**    | **Ocean**    | **Property**        | **Subproperty**        | **Description**                                                                                                                                                                                                                       |
+|--------------|--------------|--------------|---------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Yes          | Yes          | Yes          | **Water Mask**      | N/A                    | Sets the texture used to attenuate or suppress swell (red and green channels) and ripples (blue channel) water frequencies.                                                                                                           |
+| No           | Yes          | Yes          | **Agitation/Swell** | N/A                    | N/A                                                                                                                                                                                                                                   |
+| No           | Yes          | Yes          | N/A                 | **Repetition Size**    | Controls the size of the water patch in meters. Larger values results in less visible repetition across the water surface. This parameter also affects the maximum amplitude of the swell frequency bands.                            |
+| No           | Yes          | Yes          | N/A                 | **Distant Wind Speed** | Controls the speed of the distant wind in kilometers per hour that blowed over the water surface for a long period of time. This indirectly controls the maximum amplitude and shape of the swell in a non-linear way.                |
+| No           | Yes          | Yes          | N/A                 | **Chaos**              | Controls how directional the swell is. The lower the value, the more the swell waves are traveling in the Distant Wind Orientation.                                                                                                   |
+| No           | Yes          | Yes          | N/A                 | **Orientation**        | Sets the orientation of distant wind in degrees in a counterclockwise fashion relative to the X world vector. This parameter only affects the swell with a chaos value inferior to one.                                               |
+| No           | Yes          | Yes          | N/A                 | **Current Speed**      | Sets the speed of the current for the swell in kilometers per hour. This current translates the I swell at a constant speed.                                                                                                          |
+| No           | Yes          | Yes          | N/A                 | **Current Map**        | Sets the texture used to modify the local swell or agitation currents. The Red and Green channel of Outdoor the texture contain the 2D direction of the current and Blue channel contains the influence of the current map.           |
+| No           | No           | Yes          | N/A                 | **First/Second Band**  | N/A                                                                                                                                                                                                                                   |
+| No           | Yes          | Yes          | N/A                 | **Amplitude Dimmer**   | Controls the attenuation of amplitude on the frequency band of the swell.                                                                                                                                                             |
+| No           | No           | Yes          | N/A                 | **Max Amplitude**      | Displays the current maximum amplitude of the frequency band.                                                                                                                                                                         |
+| No           | Yes          | Yes          | N/A                 | **Fade**               | When enabled, HDRP starts fading the contribution of this frequency band over a given range. This helps reduce the aliasing artifacts at a distance. Automatic mode computes the fading range based on the Repetition Size parameter. |
+| No           | Yes          | Yes          | N/A                 | **Total Amplitude**    | Displays the current maximum amplitude of the swell. This is the sum of the first and second frequency bands.                                                                                                                         |
+| Yes          | Yes          | Yes          | **Ripples**         | N/A                    | When enabled, the Water System allows you to simulate and render ripples. The frequency range is not affected by the swell/agitation parameters.                                                                                      |
+| Yes          | Yes          | Yes          | N/A                 | **Local Wind Speed**   | Controls the speed of the local wind in kilometers per hour that is blowing over the water surface. This indirectly controls the maximum amplitude and shape of the ripples in a non-linear way.                                      |
+| Yes          | Yes          | Yes          | N/A                 | **Chaos**              | Controls how directional the ripples are. The lower the value, the more the ripples are traveling in the Local Wind Orientation.                                                                                                      |
+| Yes          | Yes          | Yes          | N/A                 | **Motion**             | Specifies if the Local Wind's Orientation and Current properties are inherited from the Swell/Agitation or set independently.                                                                                                         |
+| Yes          | Yes          | Yes          | N/A                 | **Fade**               | When enabled, HDRP starts fading the contribution of this frequency band over a given range. This helps reduce the aliasing artifacts at a distance. Automatic mode computes the fading range based on the Repetition Size parameter. |
+
+### Water Decals
+
+| **Pool**     | **River**    | **Ocean**    | **Property**      | **Subproperty**| **Description**                                                                                           |
+|--------------|--------------|--------------|-------------------|----------------|-----------------------------------------------------------------------------------------------------------|
+| Yes          | Yes          | Yes          | **Region Size**   | N/A            | Sets the extent of the decal region in meters.                                                            |
+| Yes          | Yes          | Yes          | **Region Anchor** | N/A            | Sets the center of the decal region. If nothing is set, the region will follow the main camera transform. |
+| Yes          | Yes          | Yes          | **Deformation**   | N/A            | Specifies if decals deforming the surface of the water are supported.                                     |
+| Yes          | Yes          | Yes          | N/A               | **Resolution** | Sets the resolution of the texture covering the region.                                                   |
+| Yes          | Yes          | Yes          | **Foam**          | N/A            | Specifies if decals injecting foam are supported.                                                         |
+| Yes          | Yes          | Yes          | N/A               | **Resolution** | Sets the resolution of the texture covering the region.                                                   |
+
+
+
+### Appearance
+
+| **Pool**     | **River**    | **Ocean**    | **Property**        | **Subproperty**                   | **Description**                                                                                                                                                                                                              |
+|--------------|--------------|--------------|---------------------|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Yes          | Yes          | Yes          | **Custom Material** | N/A                               | Sets a custom material that will be used to render the water surface. If set to None, a default material is used.                                                                                                            |
+| Yes          | Yes          | Yes          | **Smoothness**      | N/A                               | N/A                                                                                                                                                                                                                          |
+| Yes          | Yes          | Yes          | N/A                 | **Value Range**                   | Controls the smoothness value range over the Fade region.                                                                                                                                                                    |
+| Yes          | Yes          | Yes          | N/A                 | **Fade Range**                    | Specifies the range over which the smoothness is interpolated from close to distant.                                                                                                                                         |
+| Yes          | Yes          | Yes          | **Refraction**      | N/A                               | N/A                                                                                                                                                                                                                          |
+| Yes          | Yes          | Yes          | N/A                 | **Color**                         | Sets the color that is used to simulate the underwater refraction.                                                                                                                                                           |
+| Yes          | Yes          | Yes          | N/A                 | **Maximum Distance**              | Controls the maximum distance in meters used to clamp the underwater refraction depth. Higher value increases the distortion amount.                                                                                         |
+| Yes          | Yes          | Yes          | N/A                 | **Absorption Distance**           | Controls the approximative distance in meters that the camera can perceive through a water surface. This distance can vary widely depending on the intensity of the light the object receives.                               |
+| Yes          | Yes          | Yes          | **Scattering**      | N/A                               | N/A                                                                                                                                                                                                                          |
+| Yes          | Yes          | Yes          | N/A                 | **Color**                         | Sets the color that is used to simulate the underwater refraction. The luminance of the color affects the intensity of the scattering terms.                                                                                 |
+| Yes          | Yes          | Yes          | N/A                 | **Ambient Term**                  | Controls the intensity of the ambient scattering term. You can adjust this for artistic purposes.                                                                                                                            |
+| Yes          | Yes          | Yes          | N/A                 | **Height Term**                   | Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. You can adjust this for artistic purposes.                                              |
+| Yes          | Yes          | Yes          | N/A                 | **Displacement Term**             | Controls the intensity of the displacement-based scattering. The bigger the horizontal displacement, the more the water receives scattering. You can adjust this for artistic purposes.                                      |
+| No           | Yes          | Yes          | N/A                 | **Direct Light Tip Term**         | Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.                                                                                             |
+| Yes          | Yes          | Yes          | N/A                 | **Direct Light Body Term**        | Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.                                                                                            |
+| Yes          | Yes          | Yes          | N/A                 | **Maximum Height Override**       | Specifies a maximum wave height that overrides the simulation to support scattering properly for deformers.                                                                                                                  |
+| Yes          | Yes          | Yes          | **Caustics**        | N/A                               | N/A                                                                                                                                                                                                                          |
+| Yes          | Yes          | Yes          | N/A                 | **Caustics Resolution**           | Specifies the resolution at which the water caustics are rendered (simulation only).                                                                                                                                         |
+| Yes          | Yes          | Yes          | N/A                 | **Simulation Band**               | Controls which simulation band is used for the caustics evaluation. The first (index 0) and second band (index 1) come from the swell simulation and the third (index 2) one from the ripples.                               |
+| Yes          | Yes          | Yes          | N/A                 | **Virtual Plane Distance**        | Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artefacts. The larger the waves are, the further the plane distance should be to obtain sharp caustics. |
+| Yes          | Yes          | Yes          | N/A                 | **Tiling Factor**                 | Sets a tiling factor for the water caustics.                                                                                                                                                                                 |
+| Yes          | Yes          | Yes          | N/A                 | **Intensity**                     | Sets the intensity of the under-water caustics.                                                                                                                                                                              |
+| Yes          | Yes          | Yes          | N/A                 | **Caustics Plane Blend Distance** | Sets the vertical blending distance for the water caustics.                                                                                                                                                                  |
+| Yes          | Yes          | Yes          | N/A                 | **Directional Shadow**            | When enabled, the water caustics will take into account the directional light's shadow.                                                                                                                                      |
+| Yes          | Yes          | Yes          | **Underwater**      | N/A                               | When enabled, HDRP will apply a fog and color shift to the final image when the camera is under the surface. This feature has a cost even when the camera is above the water surface.                                        |
+
+### Foam
+
+| **Pool**     | **River**    | **Ocean**    | **Property**               | **Subproperty**       | **Description**                                                                                                                                                                                            |
+|--------------|--------------|--------------|----------------------------|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Yes          | Yes          | Yes          | **Persistence Mutliplier** | N/A                   | Specifies the decal foam persistence multiplier. A higher value will lead to the foam remaining visible Outdoor longer. This option requires Foam to be enabled in the Water Decals section.               |
+| Yes          | Yes          | Yes          | **Current Influence**      | N/A                   | Specifies the influence of the swell current on foam. A value of zero means foam stays still, a value of one makes the foam match with current direction and speed. Ripples motion have no impact on foam. |
+| Yes          | Yes          | Yes          | **Color**                  | N/A                   | Sets the foam color.                                                                                                                                                                                       |
+| Yes          | Yes          | Yes          | **Smoothness**             | N/A                   | Controls the simulation foam smoothness.                                                                                                                                                                   |
+| No           | Yes          | Yes          | **Texture Tiling**         | N/A                   | Sets the per-meter tiling for the foam texture.                                                                                                                                                            |
+| No           | Yes          | Yes          | **Simulation Foam Amount** | N/A                   | Sets the amount of foam.                                                                                                                                                                                   |
+| No           | Yes          | Yes          | N/A                        | **Mask**              | Sets the texture used to attenuate or suppress the simulation foam. The red channel of the texture is used for the masking.                                                                                |
+| No           | Yes          | Yes          | N/A                        | **Wind Speed Dimmer** | Controls the foam intensity depending on the normalized Distant Wind Speed. The X axis refers to the normalized Distant Wind Speed, the Y axis refers to the dimmer value.                                 |
+
+### Miscellaneous
+
+| **Pool**     | **River**    | **Ocean**    | **Property**             | **Description**                                                                                                                                   |
+|--------------|--------------|--------------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| Yes          | Yes          | Yes          | **Rendering Layer Mask** | Specifies the rendering layers that render on the water surface. To use this feature, enable Decal Layers and/or Light Layers in your HDRP Asset. |
+| Yes          | Yes          | Yes          | **Debug Mode**           | Specifies the view of the debug mode used for the water surface.                                                                                  |
 
 # Water system volume override
 
@@ -958,67 +122,12 @@ Specifies the view of the debug mode used for the water surface.
 To use a Volume Override, you must first add a Volume Profile.
 
 Refer to <a href="water-the-water-system-volume-override.md">The water system Volume Override</a> for more information.</br>
-<table>
 
-<tr>
-<td>
-<b>Property</b>
-</td>
-<td>
-<b>Description</b>
-</td>
-</tr>
-
-<tr>
-<td colspan="3">
-<b>General</b>
-</td>
-</tr>
-
-
-<tr>
-<td>
-<b>State</b>
-</td>
-<td>
-Enable the override to render water surfaces.
-</td>
-</tr>
-
-<tr>
-<td colspan="2">
-<b>Level of Detail</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Triangle Size</b>
-</td>
-<td>
-Sets the size of the triangle edge in screen space.
-</td>
-</tr>
-
-<tr>
-<td colspan="2">
-<b>Lighting</b>
-</td>
-</tr>
-
-<tr>
-<td>
-<b>Ambient Probe Dimmer</b>
-</td>
-<td>
-Determines the influence of the <a href="https://docs.unity3d.com/2022.2/Documentation/ScriptReference/RenderSettings-ambientProbe.html">ambient light probe</a> on the water surface.
-</td>
-</tr>
-
-</table>
-
-
-<br/>
+| **Property**                            | **Description**                                                           |
+|-----------------------------------------|---------------------------------------------------------------------------|
+| **General** > **State**                 | Enable the override to render water surfaces.                             |
+| **Level of Detail**> **Triangle Size**  | Sets the size of the triangle edge in screen space.                       |
+| **Lighting** > **Ambient Probe Dimmer** | Determines the influence of the ambient light probe on the water surface. |
 
 # Water system in the rendering debugger
 
@@ -1027,7 +136,6 @@ Determines the influence of the <a href="https://docs.unity3d.com/2022.2/Documen
 
 The **Main Camera** and **Scene Camera Rendering** tabs of the [Rendering Debugger](rendering-debugger-window-reference.md) window include **Water** among their frame settings.
 
-<br/>
 <a name="waterhdrpasset"></a>
 
 # water system in the HDRP Asset

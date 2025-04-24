@@ -214,7 +214,7 @@
     * [Foam in the Water System](water-foam-in-the-water-system.md)
     * [Caustics in the Water System](water-caustics-in-the-water-system.md)
     * [Create a current in the Water System](water-create-a-current-in-the-water-system.md)
-    * [Deform a water surface vertically](water-deform-a-water-surface.md)
+    * [Deform a water surface](water-deform-a-water-surface.md)
     * [Exclude part of a water surface](water-exclude-part-of-the-water-surface.md)
     * [Underwater view](water-underwater-view.md)
     * [Materials in the Water System](water-materials-in-the-water-system.md)
