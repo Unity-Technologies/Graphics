@@ -43,11 +43,13 @@ You can use this setting to optimize your cameras to only use anti-aliasing when
 
 ### Toolkit
 The Toolkit section comes with a few utilities.
-| Property                        | Description                                                  |
+
+| **Property**                        | **Description**                                                  |
 | ------------------------------- | ------------------------------------------------------------ |
 | Export the current frame to EXR | Supports the following modes:<br>- **Full Frame (as displayed):** Exports the current frame of the Camera’s view. For example, if it is set to the Camera shown in the Game View, the export looks exactly like what is shown in the Game View.<br>- **Disable post-processing:** Exports the current frame of the Camera’s view, without any post-processing applied.<br>- **Break before Color Grading (linear):** Exports the current frame of the Camera’s view, but stops rendering just before **Color Grading** is applied. This is useful if you want to author grading LUTs in an external software.<br>- **Break before Color Grading (log):** Exports the current frame of the Camera’s view and log-encodes the output. This is useful if you want to author full-precision HDR grading LUTs in an external software. |
 | Select all layer volumes        | Selects all **Post-process Volume** components that can affect this **Post-process Layer**. |
 | Select all active volumes       | Selects all **Post-process Volume** components currently affecting this **Post-process Layer**. |
+
 ### Custom Effect Sorting
 
 **Custom Effect Sorting** allows you to change the rendering order of custom effects. Custom effects in your scene appear here in a reorderable list from first to last. You can drag and drop each setting to change their order.
