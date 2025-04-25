@@ -82,6 +82,7 @@ The **Waveform** that Unity shows in the Game window.
 | ------------ | ------------------------------------------------------------ |
 | Waveform     | Enable this checkbox to display the **Waveform** monitor in the Game window. |
 | Exposure     | Set the exposure value this graph samples from.              |
+
 <a name="vectorscope"></a>
 ### **Vectorscope**
 
