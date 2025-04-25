@@ -680,8 +680,11 @@ namespace UnityEditor.VFX.UI
 
                         if (m_SourceSlotContainer is VFXOperator)
                             (m_SourceSlotContainer as VFXOperator).ResyncSlots(true);
-                        m_SourceNodeController.ApplyChanges();
                     }
+
+                    // Ensure outputPorts are updated before creating connections
+                    m_SourceNodeController.model.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                    m_SourceNodeController.ApplyChanges();
                     //Link all the outputs to the matching input of the subgraph
                     foreach (var input in inputs)
                     {
