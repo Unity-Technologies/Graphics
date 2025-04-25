@@ -450,7 +450,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (MaterialUpgrader.ProjectFolderContainsNonBuiltinMaterials(
                     UpgradeStandardShaderMaterials.GetHDUpgraders()))
             {
-                container.Add(new HelpBox(Style.nonBuiltinMaterialWarning, HelpBoxMessageType.Warning));
+                var nonBuiltinMaterialHelpBox = new HelpBox(Style.nonBuiltinMaterialWarning, HelpBoxMessageType.Warning);
+                nonBuiltinMaterialHelpBox.AddToClassList("NonBuiltinMaterialWarning");
+                container.Add(nonBuiltinMaterialHelpBox);
             }
 
             container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
@@ -524,6 +526,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     UpdateDisplayOfConfigPackageArea(ConfigPackageState.Present));
             });
             m_InstallConfigPackageHelpbox = new HelpBox(Style.installConfigPackageInfoInCheck, HelpBoxMessageType.Info);
+            m_InstallConfigPackageHelpbox.AddToClassList("InstallConfigPackageMessage");
             m_InstallConfigPackageHelpboxLabel = m_InstallConfigPackageHelpbox.Q<UnityEngine.UIElements.Label>();
             area.Add(m_InstallConfigPackageButton);
             area.Add(m_InstallConfigPackageHelpbox);
