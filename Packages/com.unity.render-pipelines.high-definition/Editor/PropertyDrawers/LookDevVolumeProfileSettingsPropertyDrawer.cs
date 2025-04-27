@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             if (lookDevVolumeProfileSettings.volumeProfile == null)
                             {
                                 lookDevVolumeProfileSettings.volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(
-                                    GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().defaultVolumeProfile);
+                                    GraphicsSettings.GetRenderPipelineSettings<HDRenderPipelineEditorAssets>().lookDevVolumeProfile);
                             }
 
                             m_VolumeProfileSerializedProperty.objectReferenceValue = lookDevVolumeProfileSettings.volumeProfile;
