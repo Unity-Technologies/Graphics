@@ -202,7 +202,15 @@ namespace UnityEditor.Rendering.Universal
                 if (GUILayout.Button("Attempt Fix", EditorStyles.miniButton))
                 {
                     ScriptableRendererData data = target as ScriptableRendererData;
-                    data.ValidateRendererFeatures();
+                    if (!data.ValidateRendererFeatures())
+                    {
+                        if (EditorUtility.DisplayDialog("Remove Missing Renderer Feature",
+                                "This renderer feature script is missing (likely deleted or failed to compile). Do you want to remove it from the list and delete the associated sub-asset?",
+                                "Yes", "No"))
+                        {
+                            data.RemoveMissingRendererFeatures();
+                        }
+                    }
                 }
             }
         }

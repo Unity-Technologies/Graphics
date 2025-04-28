@@ -6,9 +6,7 @@ MatCap mode is useful to navigate and get a sense of the Scene without setting u
 
 ## Using MatCap
 
-To activate MatCap mode, disable the Lighting toggle in the Scene view.
-
-![](Images/MatCap1.png)
+To activate MatCap mode, disable the Lighting toggle in the [Scene view Debug Mode overlay](https://docs.unity3d.com/Manual/ViewModes.html).
 
 MatCap mode preserves the normal maps and you can use the original Material albedo. To configure MatCap mode, go to **Edit** > **Preferences** > **HD Render Pipeline** and use the following properties.
 
@@ -16,8 +14,6 @@ MatCap mode preserves the normal maps and you can use the original Material albe
 
 1. Open the **Graphics** tab in the **Preferences** window (menu: **Edit > Preferences > Graphics**).
 2. Under **High Definition Render Pipeline** and **MatCap Mode**:
-
-![](Images/MatCap_Settings.png)
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
@@ -37,11 +33,11 @@ You can also activate MatCap view as a **Lighting Debug Mode** in the [Rendering
 
 ## MatCap examples
 
-![](Images/MatCap2.png)
+![An interior room with a spaceship, darkly lit with a red spotlight in the corner.](Images/MatCap2.png)<br/>
 MatCap off
 
-![](Images/MatCap3.png)
+![The same view, with a bright albedo material applied.](Images/MatCap3.png)<br/>
 MatCap on
 
-![](Images/MatCap4.png)
+![The same with its original colors, but with a brighter, flatter look.](Images/MatCap4.png)<br/>
 MatCap on with albedo

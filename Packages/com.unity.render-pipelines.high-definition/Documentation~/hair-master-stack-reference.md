@@ -218,6 +218,8 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <table>
 <tr>
 <th>Property</th>
+<th>Option</th>
+<th>Sub-option</th>
 <th>Description</th>
 </tr>
 

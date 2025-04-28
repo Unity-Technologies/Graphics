@@ -21,26 +21,55 @@ namespace UnityEngine.Rendering
         public bool isGlobal
         {
             get => m_IsGlobal;
-            set => m_IsGlobal = value;
+            set
+            {
+                m_IsGlobal = value;
+                if (!m_IsGlobal)
+                    UpdateColliders();
+            }
         }
+
+        [Delayed, SerializeField, FormerlySerializedAs("priority")] 
+        float m_Priority = 0f;
 
         /// <summary>
         /// A value which determines which Volume is being used when Volumes have an equal amount of influence on the Scene. Volumes with a higher priority will override lower ones.
         /// </summary>
-        [Delayed]
-        public float priority = 0f;
-
+        public float priority
+        {
+            get => m_Priority;
+            set
+            {
+                m_Priority = value;
+                m_PreviousPriority = m_Priority;
+                VolumeManager.instance.SetLayerDirty(cachedGameObject.layer);
+            }
+        }
+       
+        [SerializeField, FormerlySerializedAs("blendDistance")] 
+        float m_BlendDistance;
+        
         /// <summary>
         /// The outer distance to start blending from. A value of 0 means no blending and Unity applies
         /// the Volume overrides immediately upon entry.
         /// </summary>
-        public float blendDistance = 0f;
+        public float blendDistance
+        {
+            get => m_BlendDistance;
+            set => m_BlendDistance = Mathf.Max(value, 0f);
+        }
 
+        [Range(0f, 1f), SerializeField, FormerlySerializedAs("weight")]
+        float m_Weight = 1f;
+        
         /// <summary>
         /// The total weight of this volume in the Scene. 0 means no effect and 1 means full effect.
         /// </summary>
-        [Range(0f, 1f)]
-        public float weight = 1f;
+        public float weight
+        {
+            get => m_Weight;
+            set => m_Weight = Mathf.Clamp01(value);
+        }
 
         /// <summary>
         /// The shared Profile that this Volume uses.
@@ -91,12 +120,15 @@ namespace UnityEngine.Rendering
             set => m_InternalProfile = value;
         }
 
-        internal List<Collider> m_Colliders = new List<Collider>();
+        readonly List<Collider> m_Colliders = new List<Collider>();
 
         /// <summary>
         /// The colliders of the volume if <see cref="isGlobal"/> is false
         /// </summary>
         public List<Collider> colliders => m_Colliders;
+        
+        GameObject m_CachedGameObject;
+        internal GameObject cachedGameObject => m_CachedGameObject;
 
         internal VolumeProfile profileRef => m_InternalProfile == null ? sharedProfile : m_InternalProfile;
 
@@ -115,9 +147,10 @@ namespace UnityEngine.Rendering
 
         void OnEnable()
         {
-            m_PreviousLayer = gameObject.layer;
+            m_CachedGameObject = gameObject;
+            m_PreviousLayer = cachedGameObject.layer;
             VolumeManager.instance.Register(this);
-            GetComponents(m_Colliders);
+            UpdateColliders();
         }
 
         void OnDisable()
@@ -128,12 +161,23 @@ namespace UnityEngine.Rendering
         void Update()
         {
             UpdateLayer();
-            UpdatePriority();
 
 #if UNITY_EDITOR
             // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them
-            GetComponents(m_Colliders);
+            UpdateColliders();
 #endif
+        }
+
+        /// <summary>
+        /// Updates the cached list of colliders stored in the Volume.
+        /// </summary>
+        /// <remarks>
+        /// The Volume class caches a list of colliders for performance and quick access.
+        /// If you add or remove colliders at runtime, call this method to refresh the cached collider list.
+        /// </remarks>
+        public void UpdateColliders()
+        {
+            GetComponents(m_Colliders);
         }
 
         internal void UpdateLayer()
@@ -143,7 +187,7 @@ namespace UnityEngine.Rendering
             // Because no event is raised when the layer changes, we have to track it on every
             // frame :/
 
-            int layer = gameObject.layer;
+            int layer = cachedGameObject.layer;
             if (layer == m_PreviousLayer)
                 return;
 
@@ -151,22 +195,14 @@ namespace UnityEngine.Rendering
             m_PreviousLayer = layer;
         }
 
-        internal void UpdatePriority()
-        {
-            if (!(Math.Abs(priority - m_PreviousPriority) > Mathf.Epsilon))
-                return;
-
-            // Same for priority. We could use a property instead, but it doesn't play nice with the
-            // serialization system. Using a custom Attribute/PropertyDrawer for a property is
-            // possible but it doesn't work with Undo/Redo in the editor, which makes it useless for
-            // our case.
-            VolumeManager.instance.SetLayerDirty(gameObject.layer);
-            m_PreviousPriority = priority;
-        }
-
         void OnValidate()
         {
-            blendDistance = Mathf.Max(blendDistance, 0f);
+            //Handle the Undo/Redo case for priority
+            if (Mathf.Abs(priority - m_PreviousPriority) > Mathf.Epsilon && cachedGameObject !=null)
+            {
+                VolumeManager.instance?.SetLayerDirty(cachedGameObject.layer);
+                m_PreviousPriority = priority;
+            }
         }
     }
 }

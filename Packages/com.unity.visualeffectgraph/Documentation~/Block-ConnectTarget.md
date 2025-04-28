@@ -4,11 +4,11 @@ Menu Path : **Orientation > Connect Target**
 
 The **Connect Target** Block scales and orients particles so they connect to a specified target position.
 
-![](Images/Block-ConnectTargetExample.gif)
+<video src="Images/Block-ConnectTargetExample.mp4" title="Particles dynamically connecting to and moving toward a designated target object when Connect Target is enabled." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 The Block also allows you to specify the particle pivot in relation to its position and target position. This is useful for example to specify a custom point of rotation along the particle:
 
-![](Images/Block-ConnectTargetPivotShift.gif)
+<video src="Images/Block-ConnectTargetPivotShift.mp4" title="The Connect Target block with a pivot shift. Particles dynamically connect to a target but their attachment points are offset, creating a shifted connection effect." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

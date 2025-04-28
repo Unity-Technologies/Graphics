@@ -2,7 +2,7 @@
 
 Use the Water Master Stack to render custom physically based water Material in the High Definition Render Pipeline (HDRP). The Water Master Stack approximately models a volumetric water medium, and includes properties to render effects such as caustics, scattering, and refraction.
 
-![](Images/HDRPFeatures-WaterMaterial.png)
+![Water rendering in Unity.](Images/HDRPFeatures-WaterMaterial.png)
 
 ## Create a Water shader graph
 
@@ -53,15 +53,15 @@ When you create a new Water Master Stack, the Vertex Context contains the follow
 <tr>
 <td><b>UV0</b></td>
 <td>Water properties packed into a UV coordinate set for the vertex context.</td>
-<td></td>
-<td></td>
+<td>N/A</td>
+<td>N/A</td>
 </tr>
 
 <tr>
 <td><b>UV1</b></td>
 <td>Water properties packed into a UV coordinate set for the vertex context.</td>
-<td></td>
-<td></td>
+<td>N/A</td>
+<td>N/A</td>
 </tr>
 
 </table>

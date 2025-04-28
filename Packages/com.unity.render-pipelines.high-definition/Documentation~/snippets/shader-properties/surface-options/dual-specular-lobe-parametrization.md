@@ -1,6 +1,6 @@
 <tr>
 <td><strong>Dual Specular Lobe Parametrization</strong></td>
-<td></td>
-<td></td>
+<td>N/A</td>
+<td>N/A</td>
 <td>Specifies the method that controls the second specular lobe. The options are:<br/> &#8226; <strong>Direct</strong>: Gives you direct control of the second lobe. <strong>SmoothnessB</strong> controls the second lobe's smoothness, <strong>LobeMix</strong> controls the amount of mixing between the two lobes, and <strong>Anisotropy</strong> controls the second lobe's anisotropic smoothness.<br/> &#8226; <strong>Hazy Gloss</strong>: Adds a haze effect to the surface directly while keeping the primary lobe mostly unchanged. <strong>Haziness</strong> controls the intensity of the haze effect. <strong>HazeExtent</strong> controls the range of the haze around the central highlight. This option is the most intuitive and controllable way to use two lobes. Note that this mode implicitly modifies the specular color. If the material already has a high specular intensity (close to 1), there is no room to increase it in regions where haziness requires it to be boosted. In this case, haziness has little to no effect.<br/> &#8226; <strong>From Diffusion Profile</strong>: Use the <strong>Dual Lobe Multipliers</strong> and <strong>Lobe Mix</strong> settings in the Diffusion Profile.<br/>This setting only has an effect if you enable <strong>Dual Specular Lobe</strong>.</td>
 </tr>

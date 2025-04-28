@@ -300,7 +300,7 @@ public class SamplesShowcaseEditor : Editor
         parsedText = parsedText.Replace("</link>", "</color></link>");
 
         // Titles
-        parsedText = parsedText.Replace("<h1>", "<b><size=16>");
+        parsedText = parsedText.Replace("<h1>", "<b><size=2em>");
         parsedText = parsedText.Replace("</h1>", "</b></size>");
 
         // Code

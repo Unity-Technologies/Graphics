@@ -8,8 +8,6 @@ Windows:
 macOS: 
 * Navigate to **Unity > Settings > Visual Effects**
 
-![](Images/VisualEffectPreferences.png)
-
 ## Properties:
 
 | Name                                         | Description                                                  |

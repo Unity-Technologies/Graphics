@@ -51,7 +51,6 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderAttachment(universal2DResourceData.normalsTexture[batchIndex], 0);
-                builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture, AccessFlags.Write);
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);

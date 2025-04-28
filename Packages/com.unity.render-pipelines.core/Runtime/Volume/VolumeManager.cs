@@ -204,9 +204,6 @@ namespace UnityEngine.Rendering
             return null;
         }
 
-        // Recycled list used for volume traversal
-        readonly List<Collider> m_TempColliders = new(8);
-
         // The default stack the volume manager uses.
         // We cache this as users able to change the stack through code and
         // we want to be able to switch to the default one through the ResetMainStack() function.
@@ -744,7 +741,7 @@ namespace UnityEngine.Rendering
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
-                    OverrideData(stack, volume, Mathf.Clamp01(volume.weight));
+                    OverrideData(stack, volume, volume.weight);
                     continue;
                 }
 
@@ -752,15 +749,13 @@ namespace UnityEngine.Rendering
                     continue;
 
                 // If volume isn't global and has no collider, skip it as it's useless
-                var colliders = m_TempColliders;
-                volume.GetComponents(colliders);
-                if (colliders.Count == 0)
+                var colliders = volume.colliders;
+                int numColliders = colliders.Count;
+                if (numColliders == 0)
                     continue;
 
                 // Find closest distance to volume, 0 means it's inside it
                 float closestDistanceSqr = float.PositiveInfinity;
-
-                int numColliders = colliders.Count;
                 for (int c = 0; c < numColliders; c++)
                 {
                     var collider = colliders[c];
@@ -774,7 +769,6 @@ namespace UnityEngine.Rendering
                         closestDistanceSqr = d;
                 }
 
-                colliders.Clear();
                 float blendDistSqr = volume.blendDistance * volume.blendDistance;
 
                 // Volume has no influence, ignore it
@@ -790,8 +784,8 @@ namespace UnityEngine.Rendering
                 if (blendDistSqr > 0f)
                     interpFactor = 1f - (closestDistanceSqr / blendDistSqr);
 
-                // No need to clamp01 the interpolation factor as it'll always be in [0;1[ range
-                OverrideData(stack, volume, interpFactor * Mathf.Clamp01(volume.weight));
+                // No need to clamp01 the interpolation factor or weight as both are always in [0;1[ range
+                OverrideData(stack, volume, interpFactor * volume.weight);
             }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -821,10 +815,10 @@ namespace UnityEngine.Rendering
         {
 #if UNITY_2018_3_OR_NEWER && UNITY_EDITOR
             // GameObject for default global volume may not belong to any scene, following check prevents it from being culled
-            if (!volume.gameObject.scene.IsValid())
+            if (!volume.cachedGameObject.scene.IsValid())
                 return true;
             // IsGameObjectRenderedByCamera does not behave correctly when camera is null so we have to catch it here.
-            return camera == null ? true : UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(volume.gameObject, camera);
+            return camera == null || UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(volume.cachedGameObject, camera);
 #else
             return true;
 #endif

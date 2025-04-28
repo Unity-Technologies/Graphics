@@ -30,9 +30,8 @@ namespace UnityEngine.Rendering
     public abstract class VolumeParameter : ICloneable
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        internal string debugId { get; set; }
+        internal int fieldHash { get; set; }
 #endif
-
         /// <summary>
         /// A beautified string for debugger output. This is set on a <c>DebuggerDisplay</c> on every
         /// parameter types.
@@ -278,7 +277,7 @@ namespace UnityEngine.Rendering
         /// <param name="lhs">The first value in a <see cref="VolumeParameter"/>.</param>
         /// <param name="rhs">The second value.</param>
         /// <returns><c>true</c> if both values are equal, <c>false</c> otherwise.</returns>
-        public static bool operator ==(VolumeParameter<T> lhs, T rhs) => lhs != null && !ReferenceEquals(lhs.value, null) && lhs.value.Equals(rhs);
+        public static bool operator ==(VolumeParameter<T> lhs, T rhs) => !ReferenceEquals(lhs, null) && !ReferenceEquals(lhs.value, null) && lhs.value.Equals(rhs);
 
         /// <summary>
         /// Compares the value store in a parameter with another value of the same type.
@@ -311,16 +310,7 @@ namespace UnityEngine.Rendering
         /// <returns><c>true</c> if the specified object is equal to the current object, <c>false</c> otherwise.</returns>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
-                return false;
-
-            if (ReferenceEquals(this, obj))
-                return true;
-
-            if (obj.GetType() != GetType())
-                return false;
-
-            return Equals((VolumeParameter<T>)obj);
+            return Equals(obj as VolumeParameter<T>);
         }
 
         /// <inheritdoc/>

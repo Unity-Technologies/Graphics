@@ -24,8 +24,8 @@ Tools:
       - ^.*MaterialUpgrader?.*$
   area: Graphics Tools
 
-post-processing-and-ui-features:
+post-processing-and-compositing:
   when:
     path:
       - ^.*PostProcessPass?.*$
-  area: Post-processing and UI Features
+  area: Post-processing and Compositing

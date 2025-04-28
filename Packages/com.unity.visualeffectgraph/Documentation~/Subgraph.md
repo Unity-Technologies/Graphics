@@ -14,7 +14,7 @@ Subgraphs allow you to factorize commonly used sets of Nodes in a graph into reu
 
 System Subgraphs are Visual Effect Graphs that are **nested** inside other Visual Effect Graphs:
 
-![](Images/SystemSubgraph.png)
+![Example subgraph of an explosion.](Images/SystemSubgraph.png)<br/>Example subgraph of an explosion.
 
 Visual Effect Graphs used as Subgraphs appear as a [Context](Contexts.md) that presents:
 
@@ -54,7 +54,7 @@ You can send Events to the Workflow inputs of the System Subgraph Node using Eve
 
 Block Subgraphs are specific Subgraphs that only contain Operators and Blocks. You can use Block Subgraphs as Blocks inside another Visual Effect Graph or SubGraph.
 
-![](Images/BlockSubgraph.png)
+![Example Block subgraph of a superpower.](Images/BlockSubgraph.png)<br/>Example Block subgraph of a superpower.
 
 ### Creating Block Subgraphs
 
@@ -75,7 +75,7 @@ You can edit a Block Subgraph in one of the following ways:
 * Double click the Subgraph Asset in the Project view.
 * Right-click the subgraph Block and select **Open Subgraph** in the context menu.
 
-![](Images/BlockSubgraphContext.png)
+![Dropdown edit menu of a Block subgraph.](Images/BlockSubgraphContext.png)<br/>Dropdown edit menu of a Block subgraph.
 
 You can add Blocks inside the non-removable Context named Block Subgraph.
 
@@ -102,7 +102,7 @@ You can customize Block Subgraph properties in the same way as regular Block pro
 
 Operator Subgraphs are specific Subgraphs Assets that only contain Operators and that can be used as Operators inside another Visual Effect Graph or Sub Graph.
 
-![](Images/OperatorSubgraph.png)
+![Example Operator subgraph of a random vector.](Images/OperatorSubgraph.png)<br/>Example Operator subgraph of a random vector.
 
 ### Creating Operator Subgraphs
 

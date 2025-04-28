@@ -13,7 +13,7 @@ This Block also calculates a direction vector based on the calculated position o
 
 **Note**: [Velocity from Direction and Speed](Block-VelocityFromDirectionAndSpeed(ChangeSpeed).md) Blocks can then process the direction attribute.
 
-![](Images/Block-SetPosition(Circle)Main.gif)
+<video src="Images/Block-SetPosition(Circle)Main.mp4" title="Particles being positioned randomly along the circumference or within the area of a circular shape." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

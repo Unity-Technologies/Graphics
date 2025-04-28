@@ -41,6 +41,11 @@
       "displayName": "UGUI Shaders",
       "description": "This sample is all about creating 2D UI elements using the Canvas target in HDRP or URP. It provides a set of subgraphs to speed up and simplify the process of creating buttons, widgets, backgrounds, and other UI elements. It also contains examples of how these subgraphs can be used together to create dynamic UI elements that are fast to render and don't require any texture memory.",
       "path": "Samples~/UGUIShaders"
+    },
+    {
+      "displayName": "Custom Material Property Drawers",
+      "description": "This sample contains an example of a Custom Material Property Drawer that allows using a Min/Max Slider to control a Vector2 x and y values, often used for range remapping. It comes with a documented Shader Graph example.",
+      "path": "Samples~/CustomMaterialPropertyDrawers"
     }
   ]
 }

@@ -9,7 +9,7 @@ The **Velocity from Direction And Speed (New Direction)** Block calculates a vel
 
 The Block then scales the final direction vector by a speed, and composes it with the velocity attribute.
 
-![](Images/Block-VelocityFromDirectionAndSpeed(NewDirection)Example.gif)
+<video title="Particles smoothly transition between emitting in an outward burst, and emitting as a trail." src="Images/Block-VelocityFromDirectionAndSpeed(NewDirection)Example.mp4" width="auto" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

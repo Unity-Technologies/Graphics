@@ -13,7 +13,7 @@ __Note:__ Cloud Layer and Volumetric Clouds do not support Planet Center Positio
 
 ## Volumetric clouds
 
-![](Images/volumetric-clouds-1.png)
+![A vast snowy mountainous landscape, with large fluffy white and grey clouds in a clear blue sky.](Images/volumetric-clouds-1.png)
 
 Volumetric clouds are interactable clouds that can render shadows, and receive fog and volumetric light.
 

@@ -72,11 +72,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     for (int i = 0; i < properties.Length; i++)
                     {
-                        if (properties[i].type != oldProperties[i].type)
+                        if (properties[i].propertyType != oldProperties[i].propertyType)
                             propertyChanged = true;
                         if (properties[i].displayName != oldProperties[i].displayName)
                             propertyChanged = true;
-                        if (properties[i].flags != oldProperties[i].flags)
+                        if (properties[i].propertyFlags != oldProperties[i].propertyFlags)
                             propertyChanged = true;
                         if (properties[i].name != oldProperties[i].name)
                             propertyChanged = true;

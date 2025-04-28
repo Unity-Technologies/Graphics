@@ -829,27 +829,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (m_ActiveSubTarget.value == null)
                 return false;
 
-            if (m_ActiveSubTarget.value is UniversalUnlitSubTarget)
-                return true;
+            if (m_ActiveSubTarget.value is UniversalDecalSubTarget)
+                return false;
 
-            if (m_ActiveSubTarget.value is UniversalSixWaySubTarget)
-                return true;
-
-            if (m_ActiveSubTarget.value is UniversalLitSubTarget)
-                return true;
-
-            if (m_ActiveSubTarget.value is UniversalSpriteLitSubTarget)
-                return true;
-
-            if (m_ActiveSubTarget.value is UniversalSpriteUnlitSubTarget)
-                return true;
-
-            if (m_ActiveSubTarget.value is UniversalSpriteCustomLitSubTarget)
-                return true;
-
-            //It excludes:
-            // - UniversalDecalSubTarget
-            return false;
+            return true;
         }
 
         public bool SupportsVFX() => CanSupportVFX() && m_SupportVFX;

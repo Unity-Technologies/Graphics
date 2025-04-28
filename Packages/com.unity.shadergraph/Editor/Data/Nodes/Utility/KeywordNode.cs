@@ -132,7 +132,27 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
-            switch (keyword.keywordType)
+            if (keyword.keywordDefinition == KeywordDefinition.DynamicBranch)
+            {
+                switch (keyword.keywordType)
+                {
+                    case KeywordType.Boolean:
+                        var onValue = GetSlotValue(1, generationMode);
+                        var offValue = GetSlotValue(2, generationMode);
+                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)} = {keyword.referenceName} ? {onValue} : {offValue};"));
+                        break;
+                    case KeywordType.Enum:
+                        sb.AppendLine(string.Format($"{outputSlot.concreteValueType.ToShaderString()} {GetVariableNameForSlot(OutputSlotId)};"));
+                        for(int i = 0; i < keyword.entries.Count; ++i)
+                        {
+                            string keywordName = $"{keyword.referenceName}_{keyword.entries[i].referenceName}";
+                            var value = GetSlotValue(i + 1, generationMode);
+                            sb.AppendLine(string.Format($"{(i != 0 ? "else" : "")} if({keywordName}) {GetVariableNameForSlot(OutputSlotId)} = {value};"));
+                        }
+                        break;
+                }
+        }
+            else switch (keyword.keywordType)
             {
                 case KeywordType.Boolean:
                 {

@@ -50,34 +50,68 @@ These settings control the draw distance and resolution of the decals atlas that
 | **- Layers**                                 | Enable the checkbox to allow decals to only affect specific layers.|
 
 <a name="DynamicResolution"></a>
-
 ### Dynamic Resolution
+
+For more information about dynamic resolution and upscale filters, refer to [Dynamic Resolution](Dynamic-Resolution.md).
 
 | **Property**                                | **Description**                                              |
 |---------------------------------------------|--------------------------------------------------------------|
 | **Enable**                                  | Enable the checkbox to make HDRP support dynamic resolution in your Unity Project. |
-| **Dynamic Resolution**                      |                                                              |
-| - **Enable DLSS**                           | Enable the checkbox to make HDRP support NVIDIA Deep Learning Super Sampling (DLSS).<br/>This property only appears if you enable the NVIDIA package (`com.unity.modules.nvidia`) in your Unity project. |
-| - **Mode**                                  | Use the drop-down to select which performance mode DLSS operates on. The options are:<br/>&#8226; **Balanced**: Balances performance with quality.<br/>&#8226; **MaxPerf**: Fast performance, lower quality.<br/>&#8226; **MaxQuality**: High quality, lower performance.<br/>&#8226; **UltraPerformance**: Fastest performance, lowest quality. |
-| - **Injection Point**                       | Use the drop-down to select at which point DLSS runs in the rendering pipeline:<br/>&#8226; **Before Post**: DLSS runs when all post-processing effects are at full resolution.<br/>&#8226; **After Depth Of Field**: Depth of field runs at a low resolution, and DLSS upscales everything in the next rendering step. All other post-processing effects run at full resolution.<br/>&#8226; **After Post Process**: DLSS runs at the end of the pipeline when all post-processes are at low resolution. |
-| - **Use Optimal Settings**                 | Enable the checkbox to make DLSS control the Sharpness and Screen Percentage automatically. |
-| - **Sharpness**                            | Controls how the DLSS upsampler renders edges on the image. More sharpness usually means more contrast and a clearer image but can increase flickering and fireflies. Unity ignores this property if you enable **Use Optimal Settings**. |
-| **Dynamic Resolution Type**                 |                                                              |
-| - **Software**                              | Allocates render targets to accommodate the maximum resolution possible, then rescales the viewport accordingly. This allows the viewport to render at varying resolutions. |
-| - **Hardware**                              | Treats the render targets, up until the back buffer, as if they are all the scaled size. This means HDRP clears the render targets faster. |
-| **Upscale Filter**                          |                                                              |
-| - **Catmull-Rom**                           | A bicubic upsample with 4 taps. |
-| - **Contrast Adaptive Sharpen**             | An ultra-sharp upsample. This option is not meant for screen percentages less than 50% and still sharpens when you set the screen percentage to 100%. It uses **FidelityFX (CAS) AMD™**. |
-| - **FidelityFX Super Resolution 1.0 AMD™**  | A spatial super-resolution technology that leverages cutting-edge algorithms to produce impressive upscaling quality at very fast performance. |
-| - **TAA Upscale**                           | A temporal anti-aliasing upscaler that uses information from previous frames to produce high-quality visuals. |
-| - **Spatial-Temporal Post-processing (STP)**| A low-overhead spatio-temporal anti-aliasing upscaler that attempts to produce sharp visuals at scaling factors as low as 50%. |
+| **Advanced Upscalers By Priority** | Displays the list of advanced upscale filters that HDRP can use to increase the resolution after rendering at a lower resolution. To add an upscale filter, select the **Add** (**+**) button. To remove a filter, select it then select the **Remove** (**-**) button.<br/><br/>The options are:<ul><li>**DLSS**: NVIDIA Deep Learning Super Sampling. This option is available only if you enable the NVIDIA built-in package in the [Package Manager window](https://docs.unity3d.com/Manual/upm-ui.html). For more information, refer to [DLSS settings](#dlss-settings).</li><li>**FSR2**: AMD FidelityFX Super Resolution 2.0. This option is available only if you enable the AMD built-in package in the [Package Manager window](https://docs.unity3d.com/Manual/upm-ui.html). For more information, refer to [FSR2 settings](#fsr2-settings).</li><li>**STP**: Spatial-Temporal Post-processing. For more information, refer to [STP settings](#stp-settings).</li></ul> |
+| **Dynamic Resolution Type** | Sets how HDRP renders at a lower resolution. The options are:<ul><li>**Software**: Allocates render targets to accommodate the maximum resolution possible, then rescales the viewport accordingly. This allows the viewport to render at varying resolutions.</li><li>**Hardware**: Treats the render targets up to the back buffer as if they're all the scaled size. This means HDRP clears the render targets faster.</li></ul> |
+| **Default Upscale Filter** | Sets the upscale filter HDRP uses to increase the resolution after rendering at a lower resolution.<br/><br/>The options are: <ul><li>**Catmull-Rom**: A bicubic upsample with 4 taps.</li><li>**Contrast Adaptive Sharpen**: An ultra-sharp upsample. This option is not meant for screen percentages less than 50% and still sharpens when you set the screen percentage to 100%. This filter uses FidelityFX (CAS) AMD™.</li><li>**FidelityFX Super Resolution 1.0 AMD™ (FSR1)**: A spatial super-resolution technology that leverages cutting-edge algorithms to produce high upscaling quality at very fast performance.</li><li>**TAA Upscale**: A temporal anti-aliasing upscaler that uses information from previous frames to produce high-quality visuals.</li></ul>If you add one or more upscale filters to **Advanced Upscalers By Priority**, this property becomes **Default Fallback Upscale Filter**. HDRP uses this filter if your build platform doesn't support the advanced upscale filters you add.|
+| **Injection Point** | Sets when HDRP applies the Catmull-Rom upscale filter. This property is available here only if you set **Default Upscale Filter** to **Catmull-Rom**. For more information, refer to [Injection points dropdown](#injection-points). |
+| **Override FSR Sharpness** | Enables an **FSR Sharpness** slider that lets you set the sharpness of the FSR1 upscale filter. A value of 1.0 means maximum sharpness. A value of 0 means no sharpening. You can also set the sharpness per camera in the [Camera Inspector window](hdrp-camera-component-reference.md). This property is available only if you set **Default Upscale Filter** to **FidelityFX Super Resolution 1.0**. |
+| **TAA Upscale Injection Point** | Sets when HDRP applies the TAA Upscaling filter. This property is available here only if you set **Default Upscale Filter** to **TAA Upscaling**. For more information, refer to [Injection points dropdown](#injection-points). |
 | **Use Mip Bias**                            | Apply a negative bias on the texture samplers of deferred, opaque, and transparent passes. This improves detail on textures but increases the texture fetching cost. Cost varies per platform. |
+| **Force Screen Percentage**              | The specific screen percentage that HDRP uses for dynamic resolution. This property is only visible when you enable the **Force Screen Percentage**. |
 | **Minimum Screen Percentage**               | The minimum screen percentage that dynamic resolution can reach. |
 | **Maximum Screen Percentage**               | The maximum screen percentage that dynamic resolution can reach. This value must be higher than the **Min Screen Percentage**. |
-| **Force Screen Percentage**                 |                                                              |
-| - **Forced Screen Percentage**              | The specific screen percentage that HDRP uses for dynamic resolution. This property is only visible when you enable the **Force Screen Percentage**. |
-| **Low Res Transparency Min Threshold**      | The minimum percentage threshold allowed to clamp low-resolution transparency. When the resolution percentage falls below this threshold, HDRP will clamp the low resolution to this percentage. |
-| **Ray Tracing Half Resolution Threshold**   | The minimum percentage threshold allowed to render ray tracing effects at half resolution. When the resolution percentage falls below this threshold, HDRP will render ray tracing effects at full resolution. |
+| **Low Res Transparency Min Threshold**      | Sets the minimum resolution that HDRP can render transparency, as a percentage of full screen resolution. |
+| **Low Res Screen Space GI Min Threshold** | Sets the minimum resolution that HDRP can render screen-space global illumination, as a percentage of full screen resolution.  |
+| **Low Res Volumetric Clouds Min Threshold** | Sets the minimum resolution that HDRP can render volumetric clouds, as a percentage of full screen resolution.  |
+| **Ray Tracing Half Resolution Threshold**   | Sets the minimum resolution that HDRP can render ray tracing at half resolution. If the resolution falls below this threshold, HDRP renders ray tracing at full resolution.  |
+
+<a name="dlss-settings"></a>
+#### DLSS settings
+
+The following properties are available only if you add **DLSS** to **Advanced Upscalers By Priority**.
+
+| **Property** | **Description** |
+|-|-|
+| **DLSS Mode** | Sets whether DLSS prioritizes quality or performance. The options are:<ul><li>**Maximum Quality**</li><li>**Balanced**</li><li>**Maximum Performance**</li><li>**Ultra Performance**</li></ul> |
+| **DLSS Injection Point** | Sets when DLSS runs in the rendering pipeline. For more information, refer to [Injection points dropdown](#injection-points). |
+| **DLSS Use Optimal Settings** | Enables DLSS controlling screen percentage automatically. |
+
+<a name="fsr2-settings"></a>
+#### FSR2 settings
+
+The following properties are available only if you add **FSR2** to **Advanced Upscalers By Priority**.
+
+| **Property**                                 | **Description**                                              |
+|-|-|
+| **FSR2 Injection Point** | Sets when HDRP applies the FSR2 upscale filter. For more information, refer to [Injection points dropdown](#injection-points). |
+| **FSR2 Enable Sharpness** | Enables an **FSR2 Sharpness** slider that lets you set the sharpness of the FSR2 upscale filter. A value of 1.0 means maximum sharpness. A value of 0 means no sharpening. You can also set the sharpness per camera in the [Camera Inspector window](hdrp-camera-component-reference.md). |
+| **FSR2 Use Optimal Settings** | Enables the **FSR2 Mode** property. |
+| **FSR2 Mode** | Sets whether FSR2 prioritizes quality or performance. This parameter is available only if you enable **FSR2 Use Optimal Settings**. The options are:<ul><li>**Quality**</li><li>**Balanced**</li><li>**Performance**</li><li>**Ultra Performance**</li></ul> |
+
+<a name="stp-settings"></a>
+#### STP settings
+
+The following property is available only if you add **STP** to **Advanced Upscalers By Priority**.
+
+| **Property** | **Description** |
+|-|-|
+| **STP Injection Point** | Sets when HDRP applies the STP upscale filter. For more information, refer to [Injection points dropdown](#injection-points). |
+
+<a name="injection-points"></a>
+#### Injection points dropdown
+
+| **Option** | **Description** |
+|-|-|
+|**Before Post Process**|HDRP upscales when post-processing effects are at full resolution.|
+|**After Depth Of Field**|HDRP upscales when depth of field is at low resolution, but post-processing effects are at full resolution.|
+|**After Post Process**|HDRP upscales at the end of the pipeline, when post-processing effects are at low resolution.|
 
 <a name="Compute Thickness"></a>
 

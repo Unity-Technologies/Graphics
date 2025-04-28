@@ -8,7 +8,7 @@ You can then use the Fullscreen shader in the following ways:
 - To create a [Custom Post Process effect](custom-post-processing-use-full-screen-shader.md).
 - In a C# script with the [`HDUtils.DrawFullscreen`](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@15.0/api/UnityEngine.Rendering.HighDefinition.HDUtils.html) or `Graphics.Blit()` functions. To use `Graphics.Blit()`see [Make a Fullscreen material Blit compatible](create-a-fullscreen-material#make-a-full-screen-shader-graph-blit-compatible).
 
-![](Images/Fullscreen-shader-rain.png)
+![A scene of 3D shapes, with a full-screen shader that applies a raindrop effect to the screen.](Images/Fullscreen-shader-rain.png)
 
 A full-screen shader that applies a raindrop effect to the screen.
 

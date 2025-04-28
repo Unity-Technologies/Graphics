@@ -16,7 +16,7 @@ Culling options allow you to set the alive attribute to true or false depending 
 
 **Important:** For this Block to calculate positions, the specified Camera must be enabled and the Game view must be visible.
 
-![](Images/Block-SetPosition(Depth)Main.gif)
+<video src="Images/Block-SetPosition(Depth)Main.mp4" title="Particles forming the surfaces of three cubes at different orientations." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

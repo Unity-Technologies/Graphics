@@ -26,13 +26,11 @@ To set the area of the underwater view for an ocean, follow these steps:
 
 When the camera is at the limit of the water's surface, the underwater view adds a boundary when transitioning from below to above the water's surface. 
 
-![](Images/water-waterline-raw.png)
+![A view at the same level of a water surface. A clear boundary separates the fluctuating water surface above and the black below.](Images/water-waterline-raw.png)
 
 To customize the water line even more, you can sample the generated underwater buffer in a [Custom Pass](Custom-Pass.md) by using the [HD Sample Buffer](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/HD-Sample-Buffer-Node.html) node from the Shader Graph using the **IsUnderwater** option from the Source Buffer dropdown.
 
 Refer to the Waterline scene in the [HDRP Water samples](HDRP-Sample-Content.md#water-samples) for more details.
-
-![](Images/water-sample-buffer-underwater.png)
 
 ## Limitations
 

@@ -142,3 +142,20 @@
 {
     margin-top: 3px;
 }
+
+.NonBuiltinMaterialWarning
+{
+    margin-left: 20px;
+}
+
+.InstallConfigPackageMessage
+{
+    margin-left: 20px;
+}
+
+HelpBox
+{
+    margin-top: 4px;
+    margin-bottom: 4px;
+    margin-right: 12px;
+}

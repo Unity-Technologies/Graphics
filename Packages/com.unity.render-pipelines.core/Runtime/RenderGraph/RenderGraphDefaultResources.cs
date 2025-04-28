@@ -48,7 +48,16 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_WhiteTexture2D = RTHandles.Alloc(Texture2D.whiteTexture);
 
             if (m_ShadowTexture2D == null)
+            {
                 m_ShadowTexture2D = RTHandles.Alloc(1, 1, CoreUtils.GetDefaultDepthOnlyFormat(), isShadowMap: true, name: "DefaultShadowTexture");
+
+                // Fill the shadow texture with the default (far-plane) depth value for the current platform.
+                CommandBuffer cmd = CommandBufferPool.Get();
+                cmd.SetRenderTarget(m_ShadowTexture2D);
+                cmd.ClearRenderTarget(RTClearFlags.All, Color.white);
+                Graphics.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
         }
 
         internal void Cleanup()

@@ -17,7 +17,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             int fieldToDraw,
             string labelName,
             out VisualElement propertyFloatField,
-            int indentLevel = 0)
+            int indentLevel = 0,
+            string tooltip = null)
         {
             var integerField = new IntegerField { value = fieldToDraw };
 
@@ -29,6 +30,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             propertyFloatField = integerField;
 
             var defaultRow = new PropertyRow(PropertyDrawerUtils.CreateLabel(labelName, indentLevel));
+            defaultRow.tooltip = tooltip;
             defaultRow.Add(propertyFloatField);
 
             defaultRow.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -9,6 +10,7 @@ using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using Object = UnityEngine.Object;
+using UnityEngine.MultipleSRPGraphicsTest;
 
 public class BaseGraphicsTests
 {
@@ -23,9 +25,9 @@ public class BaseGraphicsTests
 #endif
 
     [UnityTest, Category("Base")]
-    [UseGraphicsTestCases]
+    [MultipleSRPGraphicsTest("Assets/GraphicsTests")]
     [Timeout(300 * 1000)]
-    public IEnumerator Run(GraphicsTestCase testCase)
+    public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         if (string.IsNullOrEmpty(testCase.ScenePath))
         {
@@ -37,19 +39,40 @@ public class BaseGraphicsTests
             Assert.Ignore("Ignoring this test because the scene is not under GraphicsTests folder, or not named with GraphicsTest");
         }
 
-        Debug.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImagePathLog}.");
+        GraphicsTestLogger.Log($"Running test case {testCase.ScenePath} with reference image {testCase.ScenePath}. {testCase.ReferenceImage.LoadMessage}.");
 #if UNITY_WEBGL || UNITY_ANDROID
         RuntimeGraphicsTestCaseProvider.AssociateReferenceImageWithTest(testCase);
 #endif
-		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
+		GraphicsTestLogger.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImage.LoadMessage}.");
         var oldTimeScale = Time.timeScale;
         var currentRPAsset = GraphicsSettings.defaultRenderPipeline;
         Time.timeScale = 0.0f;
 
         using (new AsyncShaderCompilationScope())
         {
-            GraphicsSettings.defaultRenderPipeline = testCase.SRPAsset;
-            yield return null;
+            var srpTestSceneAsset = Resources.Load<SRPTestSceneAsset>("SRPTestSceneSO");
+            var srpAssets = new List<RenderPipelineAsset>();
+            foreach (var testDatas in srpTestSceneAsset.testDatas)
+            {
+                foreach (var srpAsset in testDatas.srpAssets)
+                {
+                    if(!srpAssets.Contains(srpAsset))
+                    {
+                        srpAssets.Add(srpAsset); 
+                    }
+                }
+            }
+
+            var parsedTestCaseName = testCase.Name.Split("_");
+            var parsedRenderPipelineAsset = parsedTestCaseName[parsedTestCaseName.Length - 1];
+            foreach (var srpAsset in srpAssets)
+            {
+                if (srpAsset.name == parsedRenderPipelineAsset)
+                {
+                    GraphicsSettings.defaultRenderPipeline = srpAsset;
+                    yield return null;
+                }
+            }
 
             EditorSceneManager.OpenScene(testCase.ScenePath);
             yield return null; // Always wait one frame for scene load
@@ -79,7 +102,7 @@ public class BaseGraphicsTests
 
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+                ImageAssert.AreEqual(testCase.ReferenceImage.Image, camera, settings.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
             }
             catch (Exception e)
             {

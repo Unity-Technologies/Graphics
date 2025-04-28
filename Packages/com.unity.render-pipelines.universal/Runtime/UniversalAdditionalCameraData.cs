@@ -571,8 +571,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the camera stack. Only valid for Base cameras.
-        /// Will return null if it is not a Base camera.
+        /// Returns the stacked Overlay cameras.
+        /// Only Base cameras can have such a stack, it will return null otherwise.
         /// <see cref="CameraRenderType"/>.
         /// </summary>
         public List<Camera> cameraStack

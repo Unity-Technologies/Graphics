@@ -6,15 +6,12 @@ For example, a Sphere Binder can automatically set the position and the radius o
 
 ## Adding Property Binders
 
-![](Images/PropertyBinder.png)
-
 You can add Property Binders through a common MonoBehaviour called **VFX Property Binder**. This behavior allows you to use one or more **Property Bindings**. Each property binding is creates a relationship between an [Exposed Property](Blackboard.md#exposed-properties-in-inspector) and a runtime or scene element.
 
 You can also add Property binders through the **Add Component** menu. Unity creates a VFX Property Binder component automatically if one does not already exist.
 
-
-![](Images/PropertyBinder_example.png)
->Here is an example of using Property Binder to bind Game Object's **transform** and **position** to VFX graph's exposed properties of similar type.
+![A Visual Effect component that uses VFX Property Binder to bind a GameObject's Transform and Position components to VFX Graph's exposed properties of the same type.](Images/PropertyBinder_example.png)
+<br/>A Visual Effect component that uses VFX Property Binder to bind a GameObject's **Transform** and **Position** components to VFX Graph's exposed properties of the same type.
 
 
 ## Built-in Property Binders

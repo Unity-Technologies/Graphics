@@ -211,6 +211,11 @@ public class HDRP_Graphics_Tests
     )]
     [IgnoreGraphicsTest("8207_InstanceIDWithKeywords$", "Missing ref-image.")]
     [IgnoreGraphicsTest(
+        "8212_Fullscreen",
+        "Unstable - see https://jira.unity3d.com/browse/UUM-100863",
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
+    )]
+    [IgnoreGraphicsTest(
         "8213_Thickness$",
         "(Intel Mac) Bunny in the middle should be translucent-pink, not black.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },

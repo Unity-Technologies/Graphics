@@ -15,6 +15,7 @@ using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
 using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
 using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -64,6 +65,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         const string m_DisplayNameDisallowedPattern = "[^\\w_ ]";
         const string m_ReferenceNameDisallowedPattern = @"(?:[^A-Za-z_0-9_])";
+        const string m_EnumRefDisallowedPattern = @"(?:[^A-Za-z_0-9_.])";
+        const string m_AttributeValueDisallowedPattern = @"(?:[^A-Za-z_0-9._ ])";
 
         public ShaderInputPropertyDrawer()
         {
@@ -155,6 +158,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
             BuildDropdownFields(propertySheet, shaderInput);
+            BuildAttributesFields(propertySheet);
             UpdateEnableState();
             return propertySheet;
         }
@@ -174,6 +178,26 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"{prefix}: {shaderInput.displayName}", 0, FontStyle.Bold));
         }
 
+        void BuildPerRendererDataField(PropertySheet propertySheet)
+        {
+            if (!isSubGraph && shaderInput is AbstractShaderProperty property && property.isExposed)
+            {
+                var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
+                propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
+                    evt =>
+                    {
+                        this._preChangeValueCallback("Change PerRendererData Toggle");
+                        property.PerRendererData = evt.isOn;
+                        this._postChangeValueCallback(true, ModificationScope.Graph);
+                    },
+                    new ToggleData(property.PerRendererData),
+                    "Read Only",
+                    out var perRendererDataToggleVisualElement,
+                    tooltip: "Mark this property with [PerRendererData] attribute.\nThis makes it Read-Only in the material inspector."));
+                //perRendererDataToggleVisualElement.SetEnabled(property.isExposed);
+            }
+        }
+
         void BuildExposedField(PropertySheet propertySheet)
         {
             if (!isSubGraph)
@@ -182,9 +206,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
                     evt =>
                     {
+                        if (shaderInput is AbstractShaderProperty property &&
+                            (!property.overrideHLSLDeclaration || property.hlslDeclarationOverride == HLSLDeclaration.DoNotDeclare))
+                        {
+                            property.hlslDeclarationOverride = property.GetDefaultHLSLDeclaration();
+                            property.overrideHLSLDeclaration = true;
+                        }
                         this._preChangeValueCallback("Change Exposed Toggle");
                         this._exposedFieldChangedCallback(evt.isOn);
-                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                        this._postChangeValueCallback(true, ModificationScope.Graph);
                     },
                     new ToggleData(shaderInput.isExposed),
                     shaderInput is ShaderKeyword ? "Generate Material Property" : "Show In Inspector",
@@ -418,6 +448,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 BuildPrecisionField(propertySheet, property);
                 BuildHLSLDeclarationOverrideFields(propertySheet, property);
                 BuildExposedField(propertySheet);
+                BuildPerRendererDataField(propertySheet);
 
                 switch (property)
                 {
@@ -528,8 +559,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         property.hlslDeclarationOverride = evt.newValue;
                         property.overrideHLSLDeclaration = true;
                         UpdateEnableState();
-                        this._exposedFieldChangedCallback(evt.newValue != HLSLDeclaration.Global);
-                        property.generatePropertyBlock = evt.newValue != HLSLDeclaration.Global;
+                        if ((evt.newValue == HLSLDeclaration.Global) ^ (evt.previousValue == HLSLDeclaration.Global))
+                        {
+                            this._exposedFieldChangedCallback(evt.newValue != HLSLDeclaration.Global);
+                            property.generatePropertyBlock = evt.newValue != HLSLDeclaration.Global;
+                        }
                         this._postChangeValueCallback(true, ModificationScope.Graph);
                     });
 
@@ -559,13 +593,46 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 precisionField.SetEnabled(false);
         }
 
+        enum EnumTypeForUI { ExplicitValues = EnumType.Enum, TypeReference = EnumType.CSharpEnum }
+
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
         {
-            var floatType = isCurrentPropertyGlobal ? FloatType.Default : vector1ShaderProperty.floatType;
+            if (shaderInput.isExposed && !isSubGraph && !isCurrentPropertyGlobal)
+            {
+                var enumPropertyDrawer = new EnumPropertyDrawer();
+                propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                    newValue =>
+                    {
+                        this._preChangeValueCallback("Change Vector1 Mode");
+                        vector1ShaderProperty.floatType = (FloatType)newValue;
+                        this._postChangeValueCallback(true);
+                    },
+                    vector1ShaderProperty.floatType,
+                    "Mode",
+                    FloatType.Default,
+                    out var modePropertyEnumField,
+                    tooltip: "Indicate how this float property should appear in the material inspector UI."));
+            }
+
+            var floatType = (!shaderInput.isExposed || isSubGraph || isCurrentPropertyGlobal) ? FloatType.Default : vector1ShaderProperty.floatType;
             // Handle vector 1 mode parameters
             switch (floatType)
             {
                 case FloatType.Slider:
+                    var sliderTypePropertyDrawer = new EnumPropertyDrawer();
+                    propertySheet.Add(sliderTypePropertyDrawer.CreateGUI(
+                        newValue =>
+                        {
+                            this._preChangeValueCallback("Change Slider Type");
+                            vector1ShaderProperty.sliderType = (SliderType)newValue;
+                            this._postChangeValueCallback(true);
+                        },
+                        vector1ShaderProperty.sliderType,
+                    "Slider Type",
+                        SliderType.Default,
+                        out var sliderTypePropertyEnumField,
+                        tooltip: "Set the Slider type."));
+
                     var floatPropertyDrawer = new FloatPropertyDrawer();
                     // Default field
                     propertySheet.Add(floatPropertyDrawer.CreateGUI(
@@ -611,6 +678,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     var minField = (FloatField)minFloatField;
                     var maxField = (FloatField)maxFloatField;
 
+                    defaultField.RegisterValueChangedCallback(v =>
+                    {
+                        if (vector1ShaderProperty.sliderType == SliderType.Integer)
+                            defaultField.value = MathF.Round((float)v.newValue);
+                    });
+
+                    minField.RegisterValueChangedCallback(v =>
+                    {
+                        if (vector1ShaderProperty.sliderType == SliderType.Integer)
+                            minField.value = MathF.Round((float)v.newValue);
+                    });
+
+                    maxField.RegisterValueChangedCallback(v =>
+                    {
+                        if (vector1ShaderProperty.sliderType == SliderType.Integer)
+                            maxField.value = MathF.Round((float)v.newValue);
+                    });
+
                     minField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
                         propertySheet.warningContainer.Q<Label>().text = "";
@@ -626,6 +711,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         defaultField.value = vector1ShaderProperty.value;
                         _postChangeValueCallback();
                     }, TrickleDown.TrickleDown);
+
+                    if (vector1ShaderProperty.sliderType == SliderType.Power)
+                    {
+                        propertySheet.Add(floatPropertyDrawer.CreateGUI(
+                        newValue =>
+                        {
+                            _preChangeValueCallback("Change Slider Power Value");
+                            vector1ShaderProperty.sliderPower = newValue;
+                            _postChangeValueCallback();
+                        },
+                        vector1ShaderProperty.sliderPower,
+                        "Power",
+                        out var propertySliderPowerField));
+                        propertySliderPowerField.tooltip = "The Power factor applied to the Slider";
+                    }
+
                     break;
 
                 case FloatType.Integer:
@@ -643,6 +744,60 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         out var integerPropertyField));
                     break;
 
+                case FloatType.Enum:
+                    var enumValuePropertyDrawer = new IntegerPropertyDrawer();
+                    // Default field
+                    propertySheet.Add(enumValuePropertyDrawer.CreateGUI(
+                        newValue =>
+                        {
+                            this._preChangeValueCallback("Change property value");
+                            this._changeValueCallback((float)newValue);
+                            this._postChangeValueCallback();
+                        },
+                        (int)vector1ShaderProperty.value,
+                        isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
+                        out var enumValuePropertyField));
+
+                    var enumPropertyDrawer = new EnumPropertyDrawer();
+                    propertySheet.Add(enumPropertyDrawer.CreateGUI(
+                        newValue =>
+                        {
+                            this._preChangeValueCallback("Change Enum Type");
+                            vector1ShaderProperty.enumType = (EnumType)newValue;
+                            this._postChangeValueCallback(true);
+                        },
+                        (EnumTypeForUI)vector1ShaderProperty.enumType,
+                        "Enum Type",
+                        EnumTypeForUI.ExplicitValues,
+                        out var modePropertyEnumField,
+                        tooltip: "Set the Enum value type."));
+
+                    switch (vector1ShaderProperty.enumType)
+                    {
+                        case EnumType.Enum:
+                            var container = new IMGUIContainer(() => OnEnumGUIHandler()) { name = "ListContainer" };
+                            AddPropertyRowToSheet(propertySheet, container, "Entries");
+                            break;
+                        case EnumType.CSharpEnum:
+                            var textPropertyDrawer = new TextPropertyDrawer();
+                            propertySheet.Add(textPropertyDrawer.CreateGUI(
+                                newValue =>
+                                {
+                                    this._preChangeValueCallback("Change C# Enum Type");
+                                    newValue = GetSanitizedEnumRefName(newValue);
+                                    vector1ShaderProperty.cSharpEnumString = newValue;
+                                    this._postChangeValueCallback(true);
+                                },
+                                vector1ShaderProperty.cSharpEnumString,
+                                "C# Enum Type",
+                                tooltip: "Enter an Enum type."));
+                            break;
+                        case EnumType.KeywordEnum:
+                        default:
+                            break;
+                    }
+                    break;
+
                 default:
                     var defaultFloatPropertyDrawer = new FloatPropertyDrawer();
                     // Default field
@@ -658,25 +813,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         out var defaultFloatPropertyField));
                     break;
             }
-
-            if (!isSubGraph && !isCurrentPropertyGlobal)
-            {
-                var enumPropertyDrawer = new EnumPropertyDrawer();
-                propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                    newValue =>
-                    {
-                        this._preChangeValueCallback("Change Vector1 Mode");
-                        vector1ShaderProperty.floatType = (FloatType)newValue;
-                        this._postChangeValueCallback(true);
-                    },
-                    (FloatTypeForUI)vector1ShaderProperty.floatType,
-                    "Mode",
-                    FloatTypeForUI.Default,
-                    out var modePropertyEnumField,
-                    tooltip: "Indicate how this float property should appear in the material inspector UI."));
-            }
         }
-        enum FloatTypeForUI { Default = FloatType.Default, Integer = FloatType.Integer, Slider = FloatType.Slider }
 
         void HandleVector2ShaderProperty(PropertySheet propertySheet, Vector2ShaderProperty vector2ShaderProperty)
         {
@@ -736,21 +873,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }
             }
 
-            propertySheet.Add(colorPropertyDrawer.CreateGUI(
-                newValue =>
-                {
-                    this._preChangeValueCallback("Change property value");
-                    this._changeValueCallback(newValue);
-                    this._postChangeValueCallback();
-                },
-                colorProperty.value,
-                isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
-                out var propertyColorField));
-
-            var colorField = (ColorField)propertyColorField;
-            colorField.hdr = colorProperty.colorMode == ColorMode.HDR;
-
-            if (!isSubGraph && !isCurrentPropertyGlobal)
+            if (/*shaderInput.isExposed && */!isSubGraph && !isCurrentPropertyGlobal)
             {
                 var enumPropertyDrawer = new EnumPropertyDrawer();
 
@@ -766,6 +889,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     ColorMode.Default,
                     out var colorModeField));
             }
+
+            propertySheet.Add(colorPropertyDrawer.CreateGUI(
+                newValue =>
+                {
+                    this._preChangeValueCallback("Change property value");
+                    this._changeValueCallback(newValue);
+                    this._postChangeValueCallback();
+                },
+                colorProperty.value,
+                isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
+                out var propertyColorField));
+
+            var colorField = (ColorField)propertyColorField;
+            colorField.hdr = colorProperty.colorMode == ColorMode.HDR;
         }
 
         void HandleTexture2DProperty(PropertySheet propertySheet, Texture2DShaderProperty texture2DProperty)
@@ -1272,6 +1409,139 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 out var propertyGradientField));
         }
 
+        void BuildAttributesFields(PropertySheet propertySheet)
+        {
+            if (isSubGraph || isCurrentPropertyGlobal)
+                return;
+
+            if (shaderInput.isExposed && shaderInput is AbstractShaderProperty property)
+            {
+                var container = new IMGUIContainer(() => OnCustomAttributesGUIHandler()) { name = "ListContainer" };
+                AddPropertyRowToSheet(propertySheet, container, "Custom Attributes", "Add Custom Attributes to be used with Custom Property Drawers.");
+            }
+        }
+
+        ReorderableList m_CustomAttributesReorderableList;
+        int m_CustomAttributesSelectedIndex;
+
+        void OnCustomAttributesGUIHandler()
+        {
+            if (m_CustomAttributesReorderableList == null)
+            {
+                CustomAttributesRecreateList();
+                CustomAttributesAddCallbacks();
+            }
+
+            m_CustomAttributesReorderableList.index = m_CustomAttributesSelectedIndex;
+            m_CustomAttributesReorderableList.DoLayoutList();
+        }
+
+        internal void CustomAttributesRecreateList()
+        {
+            if (shaderInput is AbstractShaderProperty property)
+            {
+                // Create reorderable list from entries
+                m_CustomAttributesReorderableList = new ReorderableList(property.customAttributes, typeof(Tuple<string, int>), true, true, true, true);
+            }
+        }
+
+        void CustomAttributesAddCallbacks()
+        {
+            if (shaderInput is AbstractShaderProperty property)
+            {
+                // Draw Header
+                m_CustomAttributesReorderableList.drawHeaderCallback = (Rect rect) =>
+                {
+                    int indent = 14;
+                    var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
+                    EditorGUI.LabelField(displayRect, "Name");
+                    var referenceRect = new Rect((rect.x + indent) + (rect.width - indent) / 2, rect.y, (rect.width - indent) / 2, rect.height);
+                    EditorGUI.LabelField(referenceRect, "Value");
+                };
+
+                // Draw Element
+                m_CustomAttributesReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+                {
+                    var entry = (AbstractShaderProperty.PropertyAttribute)m_CustomAttributesReorderableList.list[index];
+                    Rect displayRect = new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight);
+
+                    EditorGUI.BeginChangeCheck();
+                    var name = EditorGUI.DelayedTextField(displayRect, entry.name, EditorStyles.label);
+                    var value = EditorGUI.DelayedTextField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.value);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        this._preChangeValueCallback("Edit Custom Attribute Entry");
+                        name = GetSanitizedReferenceName(name);
+                        if (string.IsNullOrWhiteSpace(name))
+                            Debug.LogWarning("Invalid Attribute name. Attribute names cannot be empty or all whitespace.");
+                        else if (int.TryParse(name, out int intVal) || float.TryParse(name, out float floatVal))
+                            Debug.LogWarning("Invalid Attribute name. Attribute names cannot be valid integer or floating point numbers.");
+
+                        value = GetSanitizedAttributeValue(value);
+                        property.customAttributes[index].name = name;
+                        property.customAttributes[index].value = value;
+
+                        this._postChangeValueCallback(true);
+                    }
+                };
+
+                // Add
+                m_CustomAttributesReorderableList.onAddCallback = (ReorderableList list) =>
+                {
+                    this._preChangeValueCallback("Add Custom Attribute");
+
+                    // Add new entry
+                    property.customAttributes.Add(new("MyCustomAttribute", string.Empty));
+
+                    // Update GUI
+                    this._postChangeValueCallback(true);
+                    m_CustomAttributesSelectedIndex = list.list.Count - 1;
+                };
+
+                // Remove
+                m_CustomAttributesReorderableList.onRemoveCallback = (ReorderableList list) =>
+                {
+                    this._preChangeValueCallback("Remove Custom Attribute");
+
+                    // Remove entry
+                    property.customAttributes.RemoveAt(list.index);
+
+                    // Rebuild();
+                    this._postChangeValueCallback(true);
+                    m_CustomAttributesSelectedIndex = m_CustomAttributesSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_CustomAttributesSelectedIndex;
+                };
+
+                // Element height
+                m_CustomAttributesReorderableList.elementHeightCallback = (int indexer) =>
+                {
+                    return m_CustomAttributesReorderableList.elementHeight;
+                };
+
+                // Can add
+                m_CustomAttributesReorderableList.onCanAddCallback = (ReorderableList list) =>
+                {
+                    return list.count < 8;
+                };
+
+                // Can remove
+                m_CustomAttributesReorderableList.onCanRemoveCallback = (ReorderableList list) => true;
+
+                // Select
+                m_CustomAttributesReorderableList.onSelectCallback = (ReorderableList list) =>
+                {
+                    m_CustomAttributesSelectedIndex = list.index;
+                };
+
+                // Reorder
+                m_CustomAttributesReorderableList.onReorderCallbackWithDetails = (ReorderableList list, int oldIndex, int newIndex) =>
+                {
+                    this._preChangeValueCallback("Reordered Custom Attributes");
+                    this._postChangeValueCallback(true);
+                };
+            }
+        }
+
         enum KeywordShaderStageDropdownUI    // maps to KeywordShaderStage, this enum ONLY used for the UI dropdown menu
         {
             All = KeywordShaderStage.All,
@@ -1401,13 +1671,188 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             container.SetEnabled(!keyword.isBuiltIn);
         }
 
-        static void AddPropertyRowToSheet(PropertySheet propertySheet, VisualElement control, string labelName)
+        static void AddPropertyRowToSheet(PropertySheet propertySheet, VisualElement control, string labelName, string tooltip = default)
         {
             propertySheet.Add(new PropertyRow(new Label(labelName)), (row) =>
             {
                 row.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
                 row.Add(control);
+                row.tooltip = tooltip;
             });
+        }
+
+        ReorderableList m_EnumReorderableList;
+        int m_EnumSelectedIndex;
+
+        void OnEnumGUIHandler()
+        {
+            if (m_EnumReorderableList == null)
+            {
+                EnumRecreateList();
+                EnumAddCallbacks();
+            }
+
+            m_EnumReorderableList.index = m_EnumSelectedIndex;
+            m_EnumReorderableList.DoLayoutList();
+        }
+
+        void CheckEnumNamesAndValuesListLength(Vector1ShaderProperty vector1ShaderProperty)
+        {
+            var diff = vector1ShaderProperty.enumNames.Count - vector1ShaderProperty.enumValues.Count;
+            if (diff == 0)
+                return;
+            if (diff > 0) // missing values
+            {
+                for (int i = 0; i < diff; i++)
+                    vector1ShaderProperty.enumValues.Add(0);
+            }
+            else // missing names
+            {
+                for (int i = 0; i < -diff; i++)
+                    vector1ShaderProperty.enumNames.Add("_");
+            }
+        }
+
+        internal void EnumRecreateList()
+        {
+            if (shaderInput is Vector1ShaderProperty vector1Property && vector1Property.floatType == FloatType.Enum && vector1Property.enumType == EnumType.Enum)
+            {
+                // Create a virtual list of names and values
+                List<(string name, int value)> list = new();
+                CheckEnumNamesAndValuesListLength(vector1Property);
+                for (int i = 0; i < vector1Property.enumNames.Count; i++)
+                {
+                    var name = vector1Property.enumNames[i];
+                    var value = vector1Property.enumValues[i];
+                    list.Add(new(name, value));
+                }
+                // Create reorderable list from entries
+                m_EnumReorderableList = new ReorderableList(list, typeof(Tuple<string, int>), true, true, true, true);
+            }
+        }
+
+        void EnumAddCallbacks()
+        {
+            if (shaderInput is Vector1ShaderProperty vector1Property && vector1Property.floatType == FloatType.Enum && vector1Property.enumType == EnumType.Enum)
+            {
+                // Draw Header
+                m_EnumReorderableList.drawHeaderCallback = (Rect rect) =>
+                {
+                    int indent = 14;
+                    var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
+                    EditorGUI.LabelField(displayRect, "Name");
+                    var referenceRect = new Rect((rect.x + indent) + (rect.width - indent) / 2, rect.y, (rect.width - indent) / 2, rect.height);
+                    EditorGUI.LabelField(referenceRect, "Value");
+                };
+
+                // Draw Element
+                m_EnumReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+                {
+                    (string name, int value) entry = ((string name, int value))m_EnumReorderableList.list[index];
+                    Rect displayRect = new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight);
+
+                    EditorGUI.BeginChangeCheck();
+                    var name = EditorGUI.DelayedTextField(displayRect, entry.name, EditorStyles.label);
+                    var value = EditorGUI.IntField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.value);
+
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        this._preChangeValueCallback("Edit Enum Entry");
+                        name = GraphUtil.SanitizeName(vector1Property.enumNames, "{0} {1}", name, m_DisplayNameDisallowedPattern);
+                        if (string.IsNullOrWhiteSpace(name))
+                            Debug.LogWarning("Invalid display name. Display names cannot be empty or all whitespace.");
+                        else if (int.TryParse(name, out int intVal) || float.TryParse(name, out float floatVal))
+                            Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
+
+                        vector1Property.enumNames[index] = name;
+                        vector1Property.enumValues[index] = value;
+
+                        this._postChangeValueCallback(true);
+                    }
+                };
+
+                // Add
+                m_EnumReorderableList.onAddCallback = (ReorderableList list) =>
+                {
+                    this._preChangeValueCallback("Add Enum Entry");
+
+                    var name = "New";
+                    name = GraphUtil.SanitizeName(vector1Property.enumNames, "{0} {1}", name, m_DisplayNameDisallowedPattern);
+                    var value = FindSmallestMissingPositive(vector1Property.enumValues);
+
+                    // Add new entry
+                    vector1Property.enumNames.Add(name);
+                    vector1Property.enumValues.Add(value);
+
+                    // Update GUI
+                    this._postChangeValueCallback(true);
+                    m_EnumSelectedIndex = list.count - 1;
+                };
+
+                // Remove
+                m_EnumReorderableList.onRemoveCallback = (ReorderableList list) =>
+                {
+                    this._preChangeValueCallback("Remove Keyword Entry");
+
+                    // Remove entry
+                    vector1Property.enumNames.RemoveAt(list.index);
+                    vector1Property.enumValues.RemoveAt(list.index);
+
+                    // Rebuild();
+                    this._postChangeValueCallback(true);
+                    m_EnumSelectedIndex = m_EnumSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_EnumSelectedIndex;
+                };
+
+                // Element height
+                m_EnumReorderableList.elementHeightCallback = (int indexer) =>
+                {
+                    return m_EnumReorderableList.elementHeight;
+                };
+
+                // Can add
+                m_EnumReorderableList.onCanAddCallback = (ReorderableList list) =>
+                {
+                    return list.count < 7;
+                };
+
+                // Can remove
+                m_EnumReorderableList.onCanRemoveCallback = (ReorderableList list) =>
+                {
+                    return list.count > 1;
+                };
+
+                // Select
+                m_EnumReorderableList.onSelectCallback = (ReorderableList list) =>
+                {
+                    m_EnumSelectedIndex = list.index;
+                };
+
+                // Reorder
+                m_EnumReorderableList.onReorderCallbackWithDetails = (ReorderableList list, int oldIndex, int newIndex) =>
+                {
+                    this._preChangeValueCallback("Reordered Enum Entries");
+                    var name = vector1Property.enumNames[oldIndex];
+                    var value = vector1Property.enumValues[oldIndex];
+                    vector1Property.enumNames.RemoveAt(oldIndex);
+                    vector1Property.enumValues.RemoveAt(oldIndex);
+                    vector1Property.enumNames.Insert(newIndex, name);
+                    vector1Property.enumValues.Insert(newIndex, value);
+                    this._postChangeValueCallback(true);
+                };
+            }
+        }
+
+        static int FindSmallestMissingPositive(List<int> nums)
+        {
+            HashSet<int> positiveNumbers = new HashSet<int>(nums.Where(x => x >= 0));
+
+            int smallestMissing = 0;
+            while (positiveNumbers.Contains(smallestMissing))
+            {
+                smallestMissing++;
+            }
+
+            return smallestMissing;
         }
 
         void OnKeywordGUIHandler()
@@ -1461,6 +1906,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                 if (EditorGUI.EndChangeCheck())
                 {
+                    this._preChangeValueCallback("Edit Enum Keyword Entry");
+
                     displayName = GetSanitizedDisplayName(displayName);
                     referenceName = GetSanitizedReferenceName(displayName.ToUpper());
                     var duplicateIndex = FindDuplicateKeywordReferenceNameIndex(entry.id, referenceName);
@@ -1581,6 +2028,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void KeywordReorderEntries(ReorderableList list)
         {
+            this._preChangeValueCallback("Reorder Keyword Entry");
             this._postChangeValueCallback(true);
         }
 
@@ -1627,6 +2075,29 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return Regex.Replace(name, m_ReferenceNameDisallowedPattern, "_");
         }
 
+        string GetSanitizedEnumRefName(string value)
+        {
+            value = value.Trim();
+            return Regex.Replace(value, m_EnumRefDisallowedPattern, "_");
+        }
+
+        string GetSanitizedAttributeValue(string value)
+        {
+            var values = value.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (values.Length == 0)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                for (int i = 0; i < values.Length; i++)
+                {
+                    values[i] = Regex.Replace(values[i], m_AttributeValueDisallowedPattern, "_").Trim();
+                }
+                return string.Join(", ", values);
+            }
+        }
+
         int FindDuplicateKeywordReferenceNameIndex(int id, string referenceName)
         {
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
@@ -1640,7 +2111,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 return;
 
             BuildDropdownField(propertySheet, dropdown);
-            BuildExposedField(propertySheet);
         }
 
         void BuildDropdownField(PropertySheet propertySheet, ShaderDropdown dropdown)

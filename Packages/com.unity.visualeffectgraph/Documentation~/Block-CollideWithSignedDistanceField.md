@@ -4,7 +4,7 @@ Menu Path : **Collision > Collision Shape Signed Distance Field**
 
 The **Collision Shape Signed Distance Field** Block allows you to create more complex collisions by using an SDF (signed distance field) Asset to represent the shape of the object. This is useful for precise complex collision with predetermined Assets.
 
-![](Images/Block-CollideWithSDFMain.png)
+![A car-shaped signed distance field made up of particles.](Images/Block-CollideWithSDFMain.png)
 
 To generate a signed distance field Asset, use an external DCC tool.
 
@@ -33,12 +33,3 @@ This Block is compatible with the following Contexts:
 | **Lifetime Loss**   | Float                          | The proportion of life a particle loses after collision.     |
 | **Roughness**       | Float                          | The amount to randomly adjust the direction of a particle after it collides with the surface.<br/>This property only appears when you enable **Rough Surface**. |
 | **Radius**          | Float                          | The radius of the particle this Block uses for collision detection.<br/>This property only appears when **Radius Mode** is set to **Custom**. |
-
-|      |      |      |
-| ---- | ---- | ---- |
-|      |      |      |
-|      |      |      |
-|      |      |      |
-|      |      |      |
-|      |      |      |
-|      |      |      |

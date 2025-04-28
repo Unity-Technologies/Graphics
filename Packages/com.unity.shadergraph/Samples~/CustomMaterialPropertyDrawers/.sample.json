@@ -1,0 +1,6 @@
+{
+	"displayName":"Custom Material Property Drawers",
+	"interactiveImport": "false",
+	"description":"This sample contains an example of a Custom Material Property Drawer that allows using a Min/Max Slider to control a Vector2 x and y values, often used for range remapping. It comes with a documented Shader Graph example.",
+	"createSeparatePackage": true
+}

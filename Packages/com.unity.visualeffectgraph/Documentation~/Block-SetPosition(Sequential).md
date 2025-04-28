@@ -9,13 +9,13 @@ There are different modes available which determine which index to use for the s
 This Block also calculates the direction for the sampled **position** and stores it to the [direction attribute](Reference-Attributes.md), based on composition. The way this Block calculates the direction changes depending on the sequence type. The selection types available are:
 
 * **Line Sequencer**: The direction equals the direction of the line from start to finish.
-![](Images/Block-SetPosition(Sequential)Line.gif)
+<video title="Particles form a straight line as they appear and disappear." src="Images/Block-SetPosition(Sequential)Line.mp4" width="auto" height="auto" autoplay="true" loop="true" controls></video>
 
 * **Circle Sequencer**: The direction is the normal of the circle at the calculated position.
-![img](Images/Block-SetPosition(Sequential)Circle.gif)
+<video title="Particles form a circular shape as they appear and disappear." src="Images/Block-SetPosition(Sequential)Circle.mp4" width="auto" height="auto" autoplay="true" loop="true" controls></video>
 
 * **Three Dimensional Sequencer**: The direction equals the normalized vector from the origin to the calculated position.
-![img](Images/Block-SetPosition(Sequential)3D.gif)
+<video title="Particles form sequential slices of a cube, forming the slice from bottom-left to top-right as they appear and disappear." src="Images/Block-SetPosition(Sequential)3D.mp4" width="auto" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

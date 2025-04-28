@@ -4,7 +4,7 @@ Menu Path : **Force > Turbulence**
 
 The **Turbulence** Block generates a noise field which it applies to the particle’s velocity. This Block is useful for adding natural-looking movement to particles. For more information on the types of noise, see the [Value Curl](Operator-ValueCurlNoise.md), [Perlin Curl](Operator-PerlinCurlNoise.md), and [Cellular Curl](Operator-CellularCurlNoise.md) noise Operators.
 
-![](Images/Block-TurbulenceExample.gif)
+<video src="Images/Block-Turbulence.mp4" title="Particles being dynamically displaced and influenced by turbulent noise to create chaotic, swirling motion." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

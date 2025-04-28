@@ -131,8 +131,8 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <thead>
   <tr>
     <th>Property</th>
-    <th></th>
-    <th></th>
+    <th>Option</th>
+    <th>Sub-option</th>
     <th>Description</th>
   </tr>
 </thead>

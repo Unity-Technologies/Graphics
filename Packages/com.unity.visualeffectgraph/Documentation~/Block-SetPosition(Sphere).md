@@ -13,7 +13,7 @@ This Block also calculates a direction vector based on the calculated position o
 
 Note: [Velocity from Direction and Speed](Block-VelocityFromDirectionAndSpeed.md) Blocks can then process the direction attribute.
 
-![](Images/Block-SetPosition(Sphere)Main.gif)
+<video src="Images/Block-SetPosition(Sphere)Main.mp4" title="Particles forming a sphere. The particles adjust when the sphere changes size and the arc radius is reduced." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

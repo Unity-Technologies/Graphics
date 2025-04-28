@@ -566,7 +566,11 @@ namespace UnityEngine.Rendering
                     displayName = "Max Subdivisions Displayed",
                     tooltip = "The highest (most dense) probe subdivision level displayed in the debug view.",
                     getter = () => probeVolumeDebug.maxSubdivToVisualize,
-                    setter = (v) => probeVolumeDebug.maxSubdivToVisualize = Mathf.Max(0, Mathf.Min(v, GetMaxSubdivision() - 1)),
+                    setter = (v) =>
+                    {
+                        // If no baked data, force to set the value as kMaxSubdivisionLevels for UX.
+                        probeVolumeDebug.maxSubdivToVisualize = GetMaxSubdivision() == 0 ? ProbeBrickIndex.kMaxSubdivisionLevels : Mathf.Max(0, Mathf.Min(v, GetMaxSubdivision() - 1));
+                    },
                     min = () => 0,
                     max = () => Mathf.Max(0, GetMaxSubdivision() - 1),
                 });
@@ -1122,7 +1126,8 @@ namespace UnityEngine.Rendering
             out float[] validity,
             out Vector4[] occlusion,
             out Vector4[] skyOcclusion,
-            out Vector3[] skyOcclusionDirections)
+            out Vector3[] skyOcclusionDirections,
+            out Vector3[] virtualOffset)
         {
             positions = null;
             irradiance = null;
@@ -1130,6 +1135,7 @@ namespace UnityEngine.Rendering
             occlusion = null;
             skyOcclusion = null;
             skyOcclusionDirections = null;
+            virtualOffset = null;
 
             var positionsList = new List<Vector3>();
             var irradianceList = new List<SphericalHarmonicsL2>();
@@ -1137,6 +1143,7 @@ namespace UnityEngine.Rendering
             var occlusionList = new List<Vector4>();
             var skyOcclusionList = new List<Vector4>();
             var skyOcclusionDirectionList = new List<Vector3>();
+            var virtualOffsetList = new List<Vector3>();
 
             foreach (var cell in cells.Values)
             {
@@ -1201,6 +1208,12 @@ namespace UnityEngine.Rendering
                                     var skyOccSDI = cell.data.skyShadingDirectionIndices[probeFlatIndex];
                                     var skyOcclusionDirection = DecodeSkyShadingDirection(skyOccSDI);
                                     skyOcclusionDirectionList.Add(skyOcclusionDirection);
+                                }
+
+                                if (cell.data.offsetVectors.Length > 0)
+                                {
+                                    var offsetValue = cell.data.offsetVectors[probeFlatIndex];
+                                    virtualOffsetList.Add(offsetValue);
                                 }
 
                                 Vector4 L0_L1Rx  = Vector4.zero;
@@ -1304,6 +1317,7 @@ namespace UnityEngine.Rendering
             occlusion = occlusionList.ToArray();
             skyOcclusion = skyOcclusionList.ToArray();
             skyOcclusionDirections = skyOcclusionDirectionList.ToArray();
+            virtualOffset = virtualOffsetList.ToArray();
 
             return true;
         }

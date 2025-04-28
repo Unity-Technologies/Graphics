@@ -135,7 +135,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
 #else // DECAL_SURFACE_GRADIENT
 
     #ifdef _NORMALMAP
-    float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
+    float3 normalTS = UnpackNormalMapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
     #else
     float3 normalTS = float3(0.0, 0.0, 1.0);
     #endif

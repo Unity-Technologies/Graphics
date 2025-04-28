@@ -4,10 +4,10 @@ Rendering line topology via traditional hardware rasterization, for example to r
 
 Use the **High Quality Line Rendering** override to draw line geometry with analytic anti-aliasing and transparent sorting.
 
-![](Images/HQLines-HW.png)
+![The head of a lion, where the mane looks rougher and more pixelated.](Images/HQLines-HW.png)<br/>
 An example of hardware lines.
 
-![](Images/HQLines-SW.png)
+![The same lion, where the main looks softer and smoother.](Images/HQLines-SW.png)<br/>
 An example of high quality lines.
 
 The High Quality Line Renderer is a line segment software rasterizer designed for fast, high quality transparency and anti-aliasing.

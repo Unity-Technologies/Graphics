@@ -400,7 +400,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var foldout = new HeaderFoldout
                 {
                     text = label,
-                    tooltip = tooltip,
                     documentationURL = DocumentationInfo.GetPageLink(Documentation.packageName, $"Render-Pipeline-Wizard", $"{mode}Tab")
                 };
 
@@ -432,6 +431,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 foldout.value = HDUserSettings.IsOpen(mode);
                 foldout.RegisterValueChangedCallback(evt => HDUserSettings.SetOpen(mode, evt.newValue));
+                foldout.Q(className: "header-foldout__label").tooltip = tooltip; // Tooltip on the label to ensure the position doesn't change when opening the foldout
 
                 Add(foldout);
             }

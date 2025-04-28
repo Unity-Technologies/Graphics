@@ -23,8 +23,6 @@ For each property the following options are available:
 To use a property in the graph you can either drag and drop it in the graph, or find it by name in the node search.    
 You can use the same property as many times as you want in the graph (even in different systems)
 
-![Blackboard-Properties](Images/blackboard-properties.png)
-
 ### Add a property
 To add a property, click the plus `+` button in the top-left corner of the Blackboard.    
 A menu will open offering two options: **Property** and [**Attribute**](#attributes). Choose the **Property** option and then select the desired type.
@@ -57,16 +55,9 @@ The value is either the default value set in the blackboard or the overriden val
 
 You can expand them to use a sub-member of the property value.
 
-![PropertyNode](Images/PropertyNode.png)
-<div style="text-align: center">On the left are unexposed properties, on the right exposed properties (notice the green dot)</div>
-
-<br/>
-
 ### Exposed Properties in the Inspector
 When you enable the **Exposed** setting for a property, the property becomes visible in the **Properties** section of the Inspector for a [Visual Effect](VisualEffectComponent.md) component.    
 Properties appear in the same order and categories that you set in the Blackboard.
-
-![Properties-Inspector](Images/blackboard-properties-inspector.png)
 
 #### Overriding property values per GameObject
 
@@ -81,15 +72,13 @@ The blackboard now lets you manage both built-in attributes and custom attribute
 
 The icon on the left represents the type of the attribute. In the screenshot below, we can see that the attribute is a `Vector3`
 
-![Attribute](Images/blackboard-attribute.png)
+![An attribute in the Custom Attributes list with a yellow three-axes icon that represents a Vector3.](Images/blackboard-attribute.png)
 
 To use an attribute in the graph you can drag&drop it in the graph.
 * If you drop it in a context, it will create a `Set Attribute` block.    
 * If you drop it in the void, it will create a `Get Attribute` operator.    
 
 You can also find the attribute in the node search window.
-
-![](Images/blackboard-dragdrop-attribute.gif)
 
 ### Custom Attributes
 For each custom attribute you can:
@@ -104,8 +93,6 @@ For each built-in attribute you have the follwing information:
 - Type
 - Access (is it read-only or not)
 - Description
-
-![Built-in Attributes](Images/blackboard-builtin-attributes.png)
 
 ### Custom HLSL
 To avoid typo when writing [custom HLSL](CustomHLSL-Common.md) code, you can drag&drop an attribute inside the HLSL code editor (in Unity).
@@ -123,8 +110,6 @@ This applies for both custom and built-in attributes.
 - **Select unused**: when right clicking on categories (or at the top of the blackboard) a context menu offers options to select unused properties or unused custom attributes.
 This can be helpful when you want to cleanup your VFX.
 
-- ![Select Unused](Images/blackboard-unused.png)
-
 > [!TIP]
 > A handy workflow for custom attribute is to duplicate a built-in attribute with `Ctrl + D` (macOS: `Cmd + D`).    
 This will create a new custom attribute with a name like `orignalname_1` and with same type.
@@ -135,12 +120,8 @@ Near the top of the blackboard, there are three tabs which let you filter which 
 - **Properties**: Only properties are displayed
 - **Attributes**: Only attributes are displayed
 
-![Filter](Images/blackboard-filter.png)
-
 ## Subgraph Category
 When dealing with a subgraph, the blackboard lets you specify a category that will be used in the node search.
 To change the category, double-click the sub-title of the blackboard and enter the desired category name, then validate using the `Return` key
 
 To create multiple category levels, use the `/` character. For example, `MySubgraphs/Math`.
-
-![Blackboard-Category](Images/blackboard-subgraph.png)

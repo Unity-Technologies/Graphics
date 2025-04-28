@@ -236,26 +236,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         static void DrawVector2Property(MaterialEditor materialEditor, MaterialProperty property)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = property.hasMixedValue;
-            Vector2 newValue = EditorGUI.Vector2Field(GetRect(property), property.displayName, new Vector2(property.vectorValue.x, property.vectorValue.y));
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-            {
-                property.vectorValue = newValue;
-            }
+            materialEditor.ShaderProperty(property, property.displayName);
         }
 
         static void DrawVector3Property(MaterialEditor materialEditor, MaterialProperty property)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = property.hasMixedValue;
-            Vector3 newValue = EditorGUI.Vector3Field(GetRect(property), property.displayName, new Vector3(property.vectorValue.x, property.vectorValue.y, property.vectorValue.z));
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-            {
-                property.vectorValue = newValue;
-            }
+            materialEditor.ShaderProperty(property, property.displayName);
         }
 
         static void DrawVector4Property(MaterialEditor materialEditor, MaterialProperty property)

@@ -37,7 +37,7 @@ public class MySettings : IRenderPipelineGraphicsSettings
   public Material myMaterial;
 }
 ```
-![](Images/customsettings-addsetting.png)<br/>
+![Screenshot of the Project Settings window. The Graphics section contains the new custom settings from the example script.](Images/customsettings-addsetting.png)<br/>
 The **Edit** > **Project Settings** > **Graphics** window with the new custom setting from the example script.
 
 ## Set the default asset for a reference property
