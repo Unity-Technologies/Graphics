@@ -77,7 +77,7 @@ Current maps behave in a different way depending on the type of water surface:
 
 ## Make an object follow a current map
 
-When using [Script Interactions](water-scripting-in-the-water-system.md) to make an object float on the surface, you can get the current at the resulting location to make the object move with the flow of the water.
+If you use a script to [float an object on the water surface](float-objects-on-a-water-surface.md), you can get the current at the resulting location to make the object move with the flow of the water.
 
 The [River sample scene](#river-sample-scene) includes a script that extends the Float script to make objects float along the current map.
 
