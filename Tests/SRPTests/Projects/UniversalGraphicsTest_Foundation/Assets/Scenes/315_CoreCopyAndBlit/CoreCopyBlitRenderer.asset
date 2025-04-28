@@ -15,6 +15,7 @@ MonoBehaviour:
   m_Active: 1
   material: {fileID: -876546973899608171, guid: bf2e2addfe63d9343bcb763c30861e06,
     type: 3}
+  materialTint: {fileID: 2100000, guid: 7d802d7973863cb4d98e06fc8275d3e3, type: 2}
   pass: 0
 --- !u!114 &11400000
 MonoBehaviour:
@@ -66,5 +67,7 @@ MonoBehaviour:
   m_RenderingMode: 0
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 1
+  m_DepthAttachmentFormat: 0
+  m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1

@@ -1146,92 +1146,12 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
     ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 2
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-66357, UUM-67324
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 11
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-66357
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 13
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-67324
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-67324
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-66357, UUM-67324
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 22
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-67324
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 24
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-67324
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 25
-    Architecture: 0
-    XrSdk: 
-    StereoModes: 0
-    Reason: UUM-67324
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 233f6d76572eee0439080cc4973b42ee, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 44
+    BuildPlatform: 20
     GraphicsDevice: 4
     Architecture: 0
     XrSdk: 
     StereoModes: 0
-    Reason: UUM-67324
+    Reason: No support GLES3
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 81446d3c9a10ff94a873a19e2d8804e9, type: 3}
