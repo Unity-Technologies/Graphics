@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Test
             VFXTestCommon.CloseAllUnecessaryWindows();
         }
 
-        [OneTimeTearDown]
+        [TearDown]
         public void CleanUp()
         {
             VFXTestCommon.DeleteAllTemporaryGraph();
@@ -370,6 +370,63 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(3u, shaders.Length);
             Assert.AreEqual(3u, relevantMaterialCount);
+            foreach (var shader in shaders)
+            {
+                var allMessages = ShaderUtil.GetShaderMessages(shader);
+                Assert.AreEqual(0, allMessages.Length, allMessages.Length > 0 ? allMessages[0].message : string.Empty);
+
+                Assert.IsFalse(ShaderUtil.ShaderHasError(shader));
+                Assert.IsFalse(ShaderUtil.ShaderHasWarnings(shader));
+            }
+        }
+
+        public static bool[] kChangeMeshLodCount =  { false, true };
+
+		[UnityTest, Description("UUM-97850")]
+        public IEnumerator Output_Mesh_With_Strip_System([ValueSource(nameof(kChangeMeshLodCount))] bool changeMeshLodCount)
+        {
+            var packagePath = "Packages/com.unity.testing.visualeffectgraph/Tests/Editor/Data/Repro_97850.unitypackage";
+            AssetDatabase.ImportPackageImmediately(packagePath);
+            AssetDatabase.SaveAssets();
+            yield return null;
+
+            var vfxPath = VFXTestCommon.tempBasePath + "Repro_97850.vfx";
+
+            if (changeMeshLodCount)
+            {
+                var graph = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath)
+                    .GetOrCreateResource()
+                    .GetOrCreateGraph();
+                Assert.IsNotNull(graph);
+                var meshOutput = graph.children.OfType<VFXMeshOutput>().SingleOrDefault();
+                Assert.IsNotNull(meshOutput);
+                meshOutput.SetSettingValue("MeshCount", 2u);
+                Assert.AreEqual(1, meshOutput.meshCount); //Strip is expected to override this behavior
+                AssetDatabase.ImportAsset(vfxPath);
+            }
+
+            var objets = AssetDatabase.LoadAllAssetsAtPath(vfxPath);
+
+            var shaders = objets.OfType<Shader>().ToArray();
+            var materials = objets.OfType<Material>().ToArray();
+
+            int relevantMaterialCount = 0;
+            foreach (var material in materials)
+            {
+                var shaderData = ShaderUtil.GetShaderData(material.shader);
+                if (shaders.Contains(material.shader))
+                    relevantMaterialCount++;
+
+                int passCount = shaderData.ActiveSubshader.PassCount;
+                for (int pass = 0; pass < passCount; pass++)
+                {
+                    ShaderUtil.CompilePass(material, pass, true);
+                }
+            }
+            Assert.AreEqual(1u, shaders.Length);
+            Assert.AreEqual(1u, relevantMaterialCount);
+            yield return null;
+
             foreach (var shader in shaders)
             {
                 var allMessages = ShaderUtil.GetShaderMessages(shader);

@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
                 VFXOutputUpdate.Features features = base.outputUpdateFeatures;
                 if (!HasStrips(true)) // TODO make it compatible with strips
                 {
-                    if (MeshCount > 1)
+                    if (meshCount > 1)
                         features |= VFXOutputUpdate.Features.MultiMesh;
                     if (lod)
                         features |= VFXOutputUpdate.Features.LOD;
@@ -60,7 +60,7 @@ namespace UnityEditor.VFX
                 foreach (var property in base.inputProperties)
                     yield return property;
 
-                foreach (var property in VFXMultiMeshHelper.GetInputProperties(MeshCount, outputUpdateFeatures))
+                foreach (var property in VFXMultiMeshHelper.GetInputProperties(meshCount, outputUpdateFeatures))
                     yield return property;
 
                 if (GetOrRefreshShaderGraphObject() == null)
@@ -116,7 +116,7 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.CPU:
                 {
-                    foreach (var name in VFXMultiMeshHelper.GetCPUExpressionNames(MeshCount))
+                    foreach (var name in VFXMultiMeshHelper.GetCPUExpressionNames(meshCount))
                         mapper.AddExpression(inputSlots.First(s => s.name == name).GetExpression(), name, -1);
                     break;
                 }
