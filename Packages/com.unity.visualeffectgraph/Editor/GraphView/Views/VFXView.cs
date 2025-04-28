@@ -1056,7 +1056,20 @@ namespace UnityEditor.VFX.UI
             m_ComponentBoard.RefreshInitializeErrors();
         }
 
+        public void ToggleDebugPanels()
+        {
+            if (m_ProfilingBoard.parent != null && attachedComponent != null)
+            {
+                m_ProfilingBoard.TogglePanelsVisibility();
+            }
+        }
+
         public void ToggleProfilingBoard()
+        {
+            m_ToggleProfilingBoard.value = !m_ToggleProfilingBoard.value;
+        }
+
+        void OnToggleProfilingBoard()
         {
             if (m_ProfilingBoard.parent == null)
             {
@@ -1116,7 +1129,7 @@ namespace UnityEditor.VFX.UI
         Toggle m_ToggleProfilingBoard;
         void ToggleProfilingBoard(ChangeEvent<bool> e)
         {
-            ToggleProfilingBoard();
+            OnToggleProfilingBoard();
         }
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
@@ -1965,11 +1978,6 @@ namespace UnityEditor.VFX.UI
                 m_Blackboard.RemoveFromHierarchy();
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, false);
             }
-        }
-
-        public void ToggleDebugPanels()
-        {
-            m_ProfilingBoard.TogglePanelsVisibility();
         }
 
         public IEnumerable<VFXContextUI> GetAllContexts()
