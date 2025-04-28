@@ -1299,8 +1299,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (serialized.renderPipelineSettings.supportRayTracing.boolValue)
                         DisplayRayTracingSupportBox();
-                    else
-                        EditorGUILayout.HelpBox(Styles.rayTracingUnsupportedWarning.text, MessageType.Warning, wide: true);
                 }
                 --EditorGUI.indentLevel;
             }

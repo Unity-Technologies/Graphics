@@ -183,7 +183,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing");
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode");
             public static readonly GUIContent supportVFXRayTracing = EditorGUIUtility.TrTextContent("Visual Effects Ray Tracing", "When enabled, Visual Effects Outputs which have Enable Ray Tracing on will be accounted for in Ray-traced effects.");
-            public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12, Playstation 5 and Xbox Series X.", null, CoreEditorStyles.iconWarn);
             public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent waterMSAAUnsupported = EditorGUIUtility.TrTextContent("When Water is enabled in asset, MSAA is not supported. Please refer to the documentation.");
