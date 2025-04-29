@@ -13,12 +13,15 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
     {
         Material m_Material;
         Material m_materialTint;
+        Material m_materialDummyTint;
 
         int m_Pass;
-        public void init(Material material, Material materialTint, int pass)
+        public void init(Material material, Material materialTint, Material materialDummyTint, int pass)
         {
             m_Material = material;
             m_materialTint = materialTint;
+            m_materialDummyTint = materialDummyTint;
+
             m_Pass = pass;
         }
 
@@ -33,7 +36,7 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
 
             var mip = 0;
 
-            if (textureDesc.msaaSamples != MSAASamples.None && RenderGraphUtils.CanAddCopyPassMSAA())
+            if (textureDesc.msaaSamples != MSAASamples.None && RenderGraphUtils.CanAddCopyPassMSAA(textureDesc))
             {
                 textureDesc.name = "Temp FBFetchMSAA";
                 TextureHandle fbFetchDestinationMSAA = renderGraph.CreateTexture(textureDesc);
@@ -44,13 +47,29 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
                 // Tint the temp texture, this works through alpha blending on the blit material and thus ensures we're not just sampling
                 // an auto-resolved surface or something but that the copied pixels are good for "framebuffer operations"
                 BlitMaterialParameters param = new BlitMaterialParameters(TextureHandle.nullHandle, fbFetchDestinationMSAA, m_materialTint, 0);
-                renderGraph.AddBlitPass(param);
+                renderGraph.AddBlitPass(param, passName: "Tint Temp Texture Blit");
 
                 // Copy the whole thing back to the main color texture
                 renderGraph.AddCopyPass(fbFetchDestinationMSAA, resourceData.activeColorTexture, 0, 0, mip, mip, "Copy MSAA 2");
+
+                // This blit does nothing, it tints the color buffer by 1,1,1 it just ensures the blit pass below renders correctly
+                // I "assume" it ensures vulkan thinks the color buffer has changed and it will correctly pick up the values in the inverse blit pass below.
+                // Without this dummy pass it actually picks up the untinted values (i.e. the results of the copy pass above are not visible)
+                // My suspicion is that this is because the copy pass goes through the renderpass api and the blit goes through setRT
+                // we've seen similar issues before in other code where mixing renderpasses/setRT confused things.
+                // When looking at this in renderdoc without this dummy pass you will see:
+                // Pass "DrawOpaqueObjects": Resolves to 2d color attachment #x
+                // Pass "Copy MSAA 2": Resolves to 2d color attachment #y
+                // Pass "Blit inverse using Material": Reads from color attachment #x < so it incorrectly picks an old version X istead of Y (note: this is the resolve target specifically the MSAA samples target seems to be correct?)
+                if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+                {
+                    BlitMaterialParameters paramDummy = new BlitMaterialParameters(TextureHandle.nullHandle, resourceData.activeColorTexture, m_materialDummyTint, 0);
+                    renderGraph.AddBlitPass(paramDummy, passName: "Dummy Blit");
+                }
             }
             else
             {
+                // If we can't do MSAA copies that part of the test doesn't apply. But we just tint the buffer here so the ref images are still the same for all cases
                 BlitMaterialParameters param = new BlitMaterialParameters(TextureHandle.nullHandle, resourceData.activeColorTexture, m_materialTint, 0);
                 renderGraph.AddBlitPass(param);
             }
@@ -84,11 +103,16 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
     CustomRenderPass m_ScriptablePass;
     public Material material = null;
     public Material materialTint = null;
+    private Material materialDummy = null;
+
     public int pass = 0;
     /// <inheritdoc/>
     public override void Create()
     {
         m_ScriptablePass = new CustomRenderPass();
+        materialDummy = new Material(materialTint);
+        materialDummy.SetColor("_Color", Color.white);
+        materialDummy.SetColor("_EyeOneColor", Color.white);
 
         // Configures where the render pass should be injected.
         m_ScriptablePass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
@@ -99,7 +123,7 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (material == null || materialTint == null) return;
-        m_ScriptablePass.init(material, materialTint, pass);
+        m_ScriptablePass.init(material, materialTint, materialDummy, pass);
         m_ScriptablePass.requiresIntermediateTexture = true;
         renderer.EnqueuePass(m_ScriptablePass);
     }
