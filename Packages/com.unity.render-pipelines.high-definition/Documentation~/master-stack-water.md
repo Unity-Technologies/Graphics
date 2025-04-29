@@ -2,7 +2,7 @@
 
 Use the Water Master Stack to render custom physically based water Material in the High Definition Render Pipeline (HDRP). The Water Master Stack approximately models a volumetric water medium, and includes properties to render effects such as caustics, scattering, and refraction.
 
-![](Images/HDRPFeatures-WaterMaterial.png)
+![Water rendering in Unity.](Images/HDRPFeatures-WaterMaterial.png)
 
 ## Create a Water shader graph
 

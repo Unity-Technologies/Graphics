@@ -84,5 +84,5 @@ Inspector window with the **Sclera Diffusion Profile** fix option highlighted.
 
 You must provide seperate Texture maps for the Iris and Sclera. This is because of the way that properties for subsurface scattering, limbal ring, smoothness, and other surface information blends between the Iris and Sclera. This means you need to create a Sclera map with no Iris information, and an Iris map with no Sclera information:
 
-![](Images/eye-shader-sclera-map.png)![](Images/eye-shader-iris-map.png)
+![An eye shader sclera map.](Images/eye-shader-sclera-map.png)![An eye shader iris map.](Images/eye-shader-iris-map.png)
 
