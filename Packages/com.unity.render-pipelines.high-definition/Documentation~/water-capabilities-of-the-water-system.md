@@ -28,7 +28,7 @@ For more in-depth water Material customizations, you can use [the water ShaderGr
 ## Masking
 You can assign custom masks to attenuate or supress ripples, swells, and foam on specific portions of a water surface. You can also use them to adjust decal and light layers.
 ## Scripting
-It is possible to create [scripts that interact with the water system](water-scripting-in-the-water-system.md), to imitate buoyancy, for example.
+You can create scripts that interact with the water system, for example, to imitate buoyancy.
 
 ## Limitations and caveats
 The water system does not currently support:
@@ -66,4 +66,3 @@ Also, **Affect Base Color** only produces monochromatic output.
 
 # Additional resources
 * [Settings and properties related to the water system](settings-and-properties-related-to-the-water-system.md)
-* [Scripting in the water system](water-scripting-in-the-water-system.md)

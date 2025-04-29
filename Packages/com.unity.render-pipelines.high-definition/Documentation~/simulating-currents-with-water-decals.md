@@ -33,3 +33,17 @@ Once you have [enabled water mask and current water decals](enable-mask-and-curr
 - **LargeCurrentInfluence**
 - **RipplesCurrent**
 - **RipplesCurrentInfluence**
+
+## Enable horizontal deformation
+
+To enable horizontal deformation, go to the active [HDRP Asset](hdrp-asset.md), then under **Rendering** > **Water** enable **Horizontal Deformation**.
+
+Enabling horizontal deformation has the following effects:
+
+- HDRP creates a new buffer, which increases the amount of memory HDRP uses.
+- The results of water scripts and [underwater effects](water-underwater-view.md) might be less accurate.
+
+## Additional resources
+
+- The **RollingWave** scene in the [Water package samples](HDRP-Sample-Content.md#water-samples).
+- [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest)

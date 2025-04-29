@@ -54,7 +54,7 @@ To break up overly regular patterns of waves, you can increase the **Chaos** val
 The Volume Override uses the terms Patch and Grid. The Patch is the size of the area on which Unity runs the simulation for a particular Simulation Band. The Grid is the geometry Unity uses to render the water, which is always a rectangle.
 
 ## Scripting with the water simulation
-You can query a water surface for position and current direction which you can use in scripts, for example to create a customized buoyancy effect that makes it possible to float a ball on the waves (for example). See [Scripting in the water system](water-scripting-in-the-water-system.md) for more information.
+You can query a water surface for position and current direction which you can use in scripts, for example to create a customized buoyancy effect that makes it possible to float a ball on the waves (for example). The [River sample scene](#river-sample-scene) includes a script that extends the Float script to make objects float along the current map.
 
 
 ## Additional resources

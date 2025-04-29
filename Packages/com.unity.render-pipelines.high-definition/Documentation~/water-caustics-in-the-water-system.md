@@ -1,20 +1,63 @@
-# Caustics in the water system
-Caustics are a consequence of light rays refracted or reflected by a curved surface and projected onto another object.
+# Customize caustics in the water system
 
-## Wave size
-HDRP uses the **Ripples** **Simulation Band** for **Caustics** calculations by default if the **Ripples** band is active. If you wish to base caustics on larger waves in a **River** or **Ocean, Sea, or Lake** water surface, you need to adjust the **Simulation Band** setting. It may also be necessary to adjust the **Virtual Plane Distance** to ensure a plausible result.  To prevent aliasing artifacts, you can increase the **Caustics Resolution**.
+![A swimming pool with water caustics below the surface.](Images/caustics.jpg)
 
-## Limitations
-In the current water implementation, caustics do not have an effect above the water unless you script this behavior. For example, if you have a boat sitting in the water, HDRP does not project caustics on the part of its hull that is not submerged, and a swimming pool inside of a room does not bounce caustics off the walls or ceiling.
-You can manually implement this effect by creating a **Decal Projector** in the following way:
-```cs
-this.GetComponent<DecalProjector>().material.SetTexture("_Base_Color", waterSurface.GetFoamBuffer(out Vector2 _));
+Customize the appearance of caustics, which are bright light patterns on GameObjects caused by the curved water surface reflecting and refracting light.
+
+## Create caustics from larger waves
+
+By default, the High Definition Render Pipeline (HDRP) uses the ripples [simulation band](water-water-system-simulation.md#simulation-bands) to calculate caustics.
+
+To calculate caustics from larger waves in a river, ocean, sea, or lake, follow these steps:
+
+1. Select the water surface GameObject.
+2. In the **Inspector** window, go to **Appearance**. In the **Caustics** section, set the **Simulation Band** to a different band.
+3. Increase **Virtual Plane Distance** until you get the desired result.
+
+To prevent aliasing artifacts, set **Caustics Resolution** to a higher value.
+
+![On the left, caustics with the simulation band set to **Ripples**. On the right, caustics with the simulation band set to **Swell First Band**.](Images/caustics-simulation-bands.jpg)<br/>
+On the left, caustics with the simulation band set to **Ripples**. On the right, caustics with the simulation band set to **Swell First Band**.
+
+## Add caustics above water
+
+To add caustics to GameObjects above water, for example the parts of a boat that sit above the water surface, follow these steps: 
+
+1. Create a [Decal Projector](understand-decals.md#decal-projector).
+2. Add a script to the Decal Projector that uses the `GetCausticsBuffer` API to get the caustics texture from the water surface, and apply the texture as the Decal Projector texture.
+
+For example:
+
+```c#
+using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
+
+public class ProjectCaustics : MonoBehaviour
+{
+    public WaterSurface waterSurface;
+
+    void Update()
+    {
+        this.GetComponent<DecalProjector>().material.SetTexture("_Base_Color", waterSurface.GetCausticsBuffer(out float regionSize));
+    }
+}
 ```
 
-Caustics have the following limitations with transparents GameObjects:
-* When the camera is above a water surface, HDRP computes caustics using the position of any opaque object behind a transparent.
+Caustics have the following limitations with transparent GameObjects:
+
+* When the camera is above a water surface, HDRP calculates caustics using the position of any opaque GameObject behind a transparent GameObject.
 * HDRP doesn't apply caustics to transparent GameObjects when the camera is underwater.
-* Caustics do not react to current maps and simulation masks.
+* Caustics don't react to current maps and water masks.
+
+## Make caustics less visible
+
+You can reduce the absorption distance of the water surface. When water has a lower absorption distance, it's muddier and refracts less light, which makes caustics less visible.
+
+To make caustics less visible, follow these steps:
+
+1. Select the water surface GameObject.
+2. In the **Inspector** window, in the **Refraction** section, decrease **Absorption Distance**.
 
 ## Additional resources
-* <a href="settings-and-properties-related-to-the-water-system.md">Settings and properties related to the water system</a>
+
+- [Settings and properties related to the water system](settings-and-properties-related-to-the-water-system.md)
