@@ -268,7 +268,7 @@ HDRP, being a high-end modern renderer, contains a lot of compute shader passes.
 
 ### Screen Space Reflection
 
-![](Images/HDRP-SSRImprovement.png)
+![Split-screen 3D render of a flooded Venetian street during high tide, with buildings reflected in the water. The left side shows four orange vertical beams reflected on the water surface. On the right side are two slanted color calibration patterns reflected on the water surface.](Images/HDRP-SSRImprovement.png)
 
 HDRP improves the Screen Space Reflection by providing a new implementation 'PBR Accumulation'
 
