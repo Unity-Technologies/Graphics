@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering
     public abstract class VolumeParameter : ICloneable
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        internal string debugId { get; set; }
+        internal int fieldHash { get; set; }
 #endif
 
         /// <summary>
