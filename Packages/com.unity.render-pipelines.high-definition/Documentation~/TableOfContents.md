@@ -206,6 +206,7 @@
     * [Quality and performance decisions](water-quality-and-performance-decisions.md)
     * [Water Override for Volumes](water-the-water-system-volume-override.md)
     * [Water surface fluctuations](water-decals-masking-landing.md)
+        * [Introduction to water decals](introduction-to-water-decals.md)
         * [Enable mask and current water decals](enable-mask-and-current-water-decals.md)
         * [Configure swell, agitation, or ripples](add-swell-agitation-or-ripples.md)
         * [Simulating currents with water decals](simulating-currents-with-water-decals.md)
