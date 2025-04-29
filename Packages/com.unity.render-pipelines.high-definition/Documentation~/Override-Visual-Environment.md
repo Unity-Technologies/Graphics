@@ -17,8 +17,6 @@ You can use the **Visual Environment** override to control the sky and fog for t
 
 ## Properties
 
-![](Images/Override-VisualEnvironment1.png)
-
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 ### Sky
@@ -56,4 +54,3 @@ After you have set your **Sky Type**, if you want to override the default settin
 
 On the [Gradient Sky](Override-Gradient-Sky.md) override itself, you can enable the checkboxes next to each property to override the property with your own values. For example, enable the checkbox next to the **Middle** property and use the color picker to change the color to pink.
 
-![](Images/Override-VisualEnvironment2.png)

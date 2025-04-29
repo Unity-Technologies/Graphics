@@ -4,8 +4,6 @@ The Cloud Layer Volume Override lets you configure a simple representation of cl
 
 ## Properties
 
-![](Images/Override-CloudLayer.png)
-
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                  | Description                                                  |
