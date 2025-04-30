@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return profileLine;
         }
 
-        public class HDRPDefaultVolumeProfileSettingsContextMenu : DefaultVolumeProfileSettingsContextMenu<HDRPDefaultVolumeProfileSettings, HDRenderPipeline>
+        public class HDRPDefaultVolumeProfileSettingsContextMenu : DefaultVolumeProfileSettingsContextMenu2<HDRPDefaultVolumeProfileSettings, HDRenderPipeline>
         {
             protected override string defaultVolumeProfilePath
             {

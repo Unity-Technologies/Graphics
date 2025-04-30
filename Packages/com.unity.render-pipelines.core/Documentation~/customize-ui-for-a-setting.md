@@ -55,16 +55,16 @@ public class MySettingsPropertyDrawer : PropertyDrawer
 
 To add items to the **More** (⋮) menu of a settings group, follow these steps:
 
-1. Create a class that implements the [`IRenderPipelineGraphicsSettingsContextMenu`](https://docs.unity3d.com/6000.1/Documentation/ScriptReference/Rendering.IRenderPipelineGraphicsSettingsContextMenu.html) interface.
+1. Create a class that implements the [`IRenderPipelineGraphicsSettingsContextMenu2<T>`](https://docs.unity3d.com/6000.1/Documentation/ScriptReference/Rendering.IRenderPipelineGraphicsSettingsContextMenu2_1.html) interface.
 2. Implement the `PopulateContextMenu` method.
 3. To add an item, use the `AddItem` API.
 
 For example:
 
 ```c#
-public class MySettingsContextMenu : IRenderPipelineGraphicsSettingsContextMenu<MySettings>
+public class MySettingsContextMenu : IRenderPipelineGraphicsSettingsContextMenu2<MySettings>
 {
-    void IRenderPipelineGraphicsSettingsContextMenu<MySettings>.PopulateContextMenu(MySettings setting, PropertyDrawer _, ref GenericMenu menu)
+    void IRenderPipelineGraphicsSettingsContextMenu2<MySettings>.PopulateContextMenu(MySettings setting, SerializedProperty _, ref GenericMenu menu)
     {
         menu.AddItem(new GUIContent("My custom menu item"), false, () => { Debug.Log("Menu item was selected."); });
     }
@@ -74,4 +74,5 @@ public class MySettingsContextMenu : IRenderPipelineGraphicsSettingsContextMenu<
 ## Additional resources
 
 - [PropertyDrawer](xref:UnityEditor.PropertyDrawer)
-- [IRenderPipelineGraphicsSettingsContextMenu](https://docs.unity3d.com/6000.1/Documentation/ScriptReference/Rendering.IRenderPipelineGraphicsSettingsContextMenu.html)
+- [IRenderPipelineGraphicsSettingsContextMenu2](https://docs.unity3d.com/6000.2/Documentation/ScriptReference/Rendering.IRenderPipelineGraphicsSettingsContextMenu2.html)
+- [IRenderPipelineGraphicsSettingsContextMenu2<T>](https://docs.unity3d.com/6000.2/Documentation/ScriptReference/Rendering.IRenderPipelineGraphicsSettingsContextMenu2_1.html)
