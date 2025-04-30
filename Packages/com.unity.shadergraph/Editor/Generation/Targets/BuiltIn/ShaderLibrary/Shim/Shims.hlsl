@@ -18,12 +18,13 @@
 #include "SurfaceShaderProxy.hlsl"
 
 #include "UnityShaderVariables.cginc"
-#include "UnityShaderUtilities.cginc"
 #include "UnityCG.cginc"
+#include "UnityShadowLibraryShim.hlsl"
+#include "UnityShaderUtilities.cginc"
 #include "Lighting.cginc"
 #include "UnityPBSLighting.cginc"
-#include "AutoLight.cginc"
 
+#include "AutoLightShim.hlsl"
 
 #ifdef POINT
 #   define COPY_FROM_LIGHT_COORDS(dest, src) dest = src._LightCoord

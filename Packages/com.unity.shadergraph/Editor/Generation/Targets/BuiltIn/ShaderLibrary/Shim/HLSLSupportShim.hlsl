@@ -35,6 +35,7 @@
 
 #define UNITY_PROJ_COORD(a) a
 #define UNITY_SAMPLE_DEPTH_TEXTURE(tex, coord) SAMPLE_DEPTH_TEXTURE(tex, sampler##tex, coord)
+#define SAMPLE_DEPTH_TEXTURE_PROJ(sampler, uv) (tex2Dproj(sampler, uv).r)
 
 // 2D textures
 #define UNITY_DECLARE_TEX2D(tex) TEXTURE2D(tex); SAMPLER(sampler##tex)
