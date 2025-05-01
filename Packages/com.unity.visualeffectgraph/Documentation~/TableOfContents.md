@@ -84,13 +84,9 @@
         * [Calculate Mass from Volume](Block-CalculateMassFromVolume.md)
       * [Map](Block-SetAttributeFromMap.md)
       * [Set](Block-SetAttribute.md)
-    * Collision
-      * [Collide with AABox](Block-CollideWithAABox.md)
-      * [Collide with Cone](Block-CollideWithCone.md)
-      * [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md)
-      * [Collide with Plane](Block-CollideWithPlane.md)
-      * [Collision Shape Signed Distance Field](Block-CollideWithSignedDistanceField.md)
-      * [Collide with Sphere](Block-CollideWithSphere.md)
+    * [Collision](Block-Collision-LandingPage.md)
+      * [Collision Shape](Block-CollisionShape.md)
+      * [Collision Depth Buffer](Block-CollideWithDepthBuffer.md)
     * Flipbook
       * [Flipbook Player](Block-FlipbookPlayer.md)
     * Force
@@ -119,19 +115,11 @@
     * Output
       * [Camera Fade](Block-CameraFade.md)
       * [Subpixel Anti-Aliasing](Block-SubpixelAntiAliasing.md)
-    * Position
+    * [Position Shape](Block-SetPositionShape-LandingPage.md)
       * [Set Position (Depth)](Block-SetPosition(Depth).md)
-      * [Position (Mesh)](Block-SetPosition(Mesh).md)
-      * [Position (Signed Distance Field)](Block-SetPosition(SignedDistanceField).md)
-      * [Position (Skinned Mesh)](Block-SetPosition(SkinnedMesh).md)
-      * [Set Position (Sequential : Circle)](Block-SetPosition(Sequential).md)
-      * [Set Position (Sequential : Line)](Block-SetPosition(Sequential).md)
-      * [Set Position (Sequential : ThreeDimensional)](Block-SetPosition(Sequential).md)
-      * [Set Position (Shape : AABox)](Block-SetPosition(AABox).md)
-      * [Set Position (Shape : Circle)](Block-SetPosition(Circle).md)
-      * [Set Position (Shape : Cone)](Block-SetPosition(Cone).md)
-      * [Set Position (Shape : Line)](Block-SetPosition(Line).md)
-      * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
+      * [Set Position (Mesh)](Block-SetPosition(Mesh).md)
+      * [Set Position (Skinned Mesh)](Block-SetPosition(SkinnedMesh).md)
+      * [Set Position Shape](Block-SetPositionShape.md)
       * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
       * [Tile/Warp Positions](Block-TileWarpPositions.md)
     * Size
