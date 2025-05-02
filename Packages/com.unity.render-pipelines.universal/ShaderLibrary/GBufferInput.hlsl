@@ -25,7 +25,7 @@ FRAMEBUFFER_INPUT_X_HALF(GBUFFER_IDX_RGBA_SHADOWMASK);
 
 // Dynamic index GBuffer: Rendering layers
 #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
-FRAMEBUFFER_INPUT_X_HALF(GBUFFER_IDX_R_RENDERING_LAYERS);
+FRAMEBUFFER_INPUT_X_UINT(GBUFFER_IDX_R_RENDERING_LAYERS);
 #endif
 
 #else
@@ -50,7 +50,7 @@ TEXTURE2D_X_HALF(GBUFFER_TEX2D_NAME(GBUFFER_IDX_AFTER(GBUFFER_IDX_RGBA_SHADOWMAS
 
 // Dynamic index GBuffer: Rendering layers
 #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
-TEXTURE2D_X_HALF(GBUFFER_TEX2D_NAME(GBUFFER_IDX_AFTER(GBUFFER_IDX_R_RENDERING_LAYERS)));
+TYPED_TEXTURE2D_X(uint4, GBUFFER_TEX2D_NAME(GBUFFER_IDX_AFTER(GBUFFER_IDX_R_RENDERING_LAYERS)));
 #endif
 
 #endif
@@ -58,12 +58,12 @@ TEXTURE2D_X_HALF(GBUFFER_TEX2D_NAME(GBUFFER_IDX_AFTER(GBUFFER_IDX_R_RENDERING_LA
 // Load raw GBuffer data.
 // Use this if overriding data in the GBuffers, otherwise use UnpackGBuffers().
 // If shadow mask is not used, shadowMask defaults to (1, 1, 1, 1).
-// If rendering layers is not used, renderingLayers defaults to 1.
+// If rendering layers is not used, renderingLayers defaults to 0xffff.
 // Note that unCoord2 is in pixel coordinates, not screen UVs.
 void LoadGBuffers(uint2 unCoord2, out half4 gBuffer0, out half4 gBuffer1, out half4 gBuffer2, out float depth,
-                  out float renderingLayers, out half4 shadowMask)
+                  out uint renderingLayers, out half4 shadowMask)
 {
-    renderingLayers = 1;
+    renderingLayers = 0xffff;
     shadowMask = half4(1, 1, 1, 1);
 
     #if defined(GBUFFER_FBFETCH_AVAILABLE)
@@ -107,7 +107,7 @@ GBufferData UnpackGBuffers(uint2 unCoord2)
     half4 gBuffer1;
     half4 gBuffer2;
     float depth;
-    float renderingLayers;
+    uint renderingLayers;
     half4 shadowMask;
 
     LoadGBuffers(unCoord2, gBuffer0, gBuffer1, gBuffer2, depth, renderingLayers, shadowMask);
@@ -123,12 +123,7 @@ GBufferData UnpackGBuffers(uint2 unCoord2)
     gBufferData.smoothness = gBuffer2.a;
     gBufferData.depth = depth;
     gBufferData.shadowMask = shadowMask;
-
-    #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
-    gBufferData.meshRenderingLayers = DecodeMeshRenderingLayer(renderingLayers);
-    #else
-    gBufferData.meshRenderingLayers = 0xFFFF;
-    #endif
+    gBufferData.meshRenderingLayers = renderingLayers;
 
     return gBufferData;
 }

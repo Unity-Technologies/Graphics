@@ -2,7 +2,7 @@
 #define REBLUR_BILATERAL_UTILITIES_H_
 
 TEXTURE2D_X(_LightingDistanceHistoryBuffer);
-TEXTURE2D_X_UINT(_AccumulationHistoryBuffer);
+TYPED_TEXTURE2D_X(uint, _AccumulationHistoryBuffer);
 TEXTURE2D_X(_HistoryDepthTexture);
 
 // Function that holds everything relative to the bilateral tap region

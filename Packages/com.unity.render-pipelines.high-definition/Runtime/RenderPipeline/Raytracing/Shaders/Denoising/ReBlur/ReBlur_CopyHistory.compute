@@ -13,7 +13,7 @@
 // Input textures
 TEXTURE2D_X(_LightingDistanceTexture);
 #if defined(ACCUMULATION)
-TEXTURE2D_X_UINT(_AccumulationTexture);
+TYPED_TEXTURE2D_X(uint, _AccumulationTexture);
 #endif
 
 // Output texture

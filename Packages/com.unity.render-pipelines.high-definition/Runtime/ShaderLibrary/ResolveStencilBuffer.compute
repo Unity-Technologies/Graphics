@@ -27,7 +27,7 @@
 TEXTURE2D_X_MSAA(uint2, _StencilTexture);
 RW_TEXTURE2D_X(uint2, _OutputStencilBuffer);
 #else
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 #endif
 
 // TODO: Wasting 3 bytes here per entry, but still better than a texture as can be scalar read.

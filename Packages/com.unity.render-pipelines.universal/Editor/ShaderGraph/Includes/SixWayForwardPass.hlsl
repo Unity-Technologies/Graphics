@@ -57,7 +57,7 @@ void frag(
     , out half4 outColor : SV_Target0
     , bool frontFace : FRONT_FACE_SEMANTIC
 #ifdef _WRITE_RENDERING_LAYERS
-    , out float4 outRenderingLayers : SV_Target1
+    , out uint outRenderingLayers : SV_Target1
 #endif
 
 )
@@ -116,7 +116,6 @@ void frag(
     outColor = color;
 
 #ifdef _WRITE_RENDERING_LAYERS
-    uint renderingLayers = GetMeshRenderingLayer();
-    outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+    outRenderingLayers = EncodeMeshRenderingLayer();
 #endif
 }

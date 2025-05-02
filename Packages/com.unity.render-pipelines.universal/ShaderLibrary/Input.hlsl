@@ -128,7 +128,6 @@ half4 _AmbientOcclusionParam;
 half4 _AdditionalLightsCount;
 
 uint _RenderingLayerMaxInt;
-float _RenderingLayerRcpMaxInt;
 
 // Screen coord override.
 float4 _ScreenCoordScaleBias;

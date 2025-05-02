@@ -32,8 +32,8 @@ TEXTURE2D_X(_DenoiseInputTexture);
 TEXTURE2D_X(_StabilizationHistoryBuffer);
 TEXTURE2D_X(_HistoryBuffer);
 TEXTURE2D_X(_DepthTexture);
-TEXTURE2D_X_UINT(_ValidationBuffer);
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint, _ValidationBuffer);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 
 // Output texture
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);

@@ -60,9 +60,6 @@
     #define TEXTURE2D_X_ARGS                                                 TEXTURE2D_ARRAY_ARGS
     #define TEXTURE2D_X_HALF                                                 TEXTURE2D_ARRAY_HALF
     #define TEXTURE2D_X_FLOAT                                                TEXTURE2D_ARRAY_FLOAT
-    #define TEXTURE2D_X_UINT(textureName)                                    Texture2DArray<uint> textureName
-    #define TEXTURE2D_X_UINT2(textureName)                                   Texture2DArray<uint2> textureName
-    #define TEXTURE2D_X_UINT4(textureName)                                   Texture2DArray<uint4> textureName
     //Using explicit sample count of 1 to force DXC to actually reflect the texture as MS. The actual count appears to be irrelevant and any 2D MS texture array should bind to it
     #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMSArray<type, 1> textureName
 
@@ -89,9 +86,6 @@
     #define TEXTURE2D_X_ARGS                                                 TEXTURE2D_ARGS
     #define TEXTURE2D_X_HALF                                                 TEXTURE2D_HALF
     #define TEXTURE2D_X_FLOAT                                                TEXTURE2D_FLOAT
-    #define TEXTURE2D_X_UINT(textureName)                                    Texture2D<uint> textureName
-    #define TEXTURE2D_X_UINT2(textureName)                                   Texture2D<uint2> textureName
-    #define TEXTURE2D_X_UINT4(textureName)                                   Texture2D<uint4> textureName
     //Using explicit sample count of 1 to force DXC to actually reflect the texture as MS. The actual count appears to be irrelevant and any 2D MS texture should bind to it
     #define TEXTURE2D_X_MSAA(type, textureName)                              Texture2DMS<type, 1> textureName
 
@@ -201,8 +195,8 @@
     // Use regular texture loads as a fallback these can be either 2d or array depending on the TEXTURE2D_X (USE_TEXTURE2D_X_AS_ARRAY) macros
 #define FRAMEBUFFER_INPUT_X_HALF(idx)                               TEXTURE2D_X_HALF(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
 #define FRAMEBUFFER_INPUT_X_FLOAT(idx)                              TEXTURE2D_X_FLOAT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-#define FRAMEBUFFER_INPUT_X_INT(idx)                                TEXTURE2D_X_INT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-#define FRAMEBUFFER_INPUT_X_UINT(idx)                               TEXTURE2D_X_UINT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define FRAMEBUFFER_INPUT_X_INT(idx)                                TYPED_TEXTURE2D_X(int4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define FRAMEBUFFER_INPUT_X_UINT(idx)                               TYPED_TEXTURE2D_X(uint4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
 #define LOAD_FRAMEBUFFER_INPUT_X(idx, v2fvertexname)                LOAD_TEXTURE2D_X(_UnityFBInput##idx,v2fvertexname.xy)
 
 #define FRAMEBUFFER_INPUT_X_FLOAT_MS(idx) TEXTURE2D_X_MSAA(float4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize

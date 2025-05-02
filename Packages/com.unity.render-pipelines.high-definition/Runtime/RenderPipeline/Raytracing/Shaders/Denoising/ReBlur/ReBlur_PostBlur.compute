@@ -23,7 +23,7 @@
 
 // Input buffers
 TEXTURE2D_X(_LightingDistanceTexture);
-TEXTURE2D_X_UINT(_AccumulationTexture);
+TYPED_TEXTURE2D_X(uint, _AccumulationTexture);
 
 // Output texture
 RW_TEXTURE2D_X(float4, _LightingDistanceTextureRW);

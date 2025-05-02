@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurTileCommon.hlsl"
 
-TEXTURE2D_X_UINT(_TileToScatterMax);
+TYPED_TEXTURE2D_X(uint, _TileToScatterMax);
 TEXTURE2D_X(_TileToScatterMin);
 RW_TEXTURE2D_X(float3, _TileMaxNeighbourhood);
 

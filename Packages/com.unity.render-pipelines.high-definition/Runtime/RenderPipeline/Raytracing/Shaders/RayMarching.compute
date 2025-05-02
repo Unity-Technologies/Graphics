@@ -32,7 +32,7 @@ TEXTURE2D_X(_InputDepthTexture);
 // Input depth pyramid texture
 TEXTURE2D_X(_DepthTexture);
 // Stencil texture
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 // Input direction buffer
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
 // Input texture that holds the offset for every level of the depth pyramid

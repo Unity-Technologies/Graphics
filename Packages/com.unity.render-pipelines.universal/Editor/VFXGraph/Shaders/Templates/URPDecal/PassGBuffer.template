@@ -46,7 +46,7 @@ Pass
     #define GBUFFER3 0
     #define GBUFFER4 1
     FRAMEBUFFER_INPUT_X_HALF(GBUFFER3);
-    FRAMEBUFFER_INPUT_X_HALF(GBUFFER4);
+    FRAMEBUFFER_INPUT_X_UINT(GBUFFER4);
     #endif
 
     struct ps_input

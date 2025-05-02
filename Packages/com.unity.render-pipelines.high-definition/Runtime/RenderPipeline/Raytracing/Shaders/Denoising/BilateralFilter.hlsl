@@ -6,7 +6,7 @@
 
 // Depth buffer of the current frame
 TEXTURE2D_X(_DepthTexture);
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 TEXTURE2D_X(_ClearCoatMaskTexture);
 
 // ----------------------------------------------------------------------------

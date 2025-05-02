@@ -29,7 +29,7 @@ TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X(_SsrLightingTextureRW);
 TEXTURE2D_X(_DirectionPDFTexture);
 TEXTURE2D_X(_SsrClearCoatMaskTexture);
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 
 // Output Textures for the spatial filtering
 RW_TEXTURE2D_X(float4, _RaytracingReflectionTexture);

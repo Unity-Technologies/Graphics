@@ -20,7 +20,7 @@
 
 // The target acceleration structure that we will evaluate the reflexion in
 TEXTURE2D_X(_DepthTexture);
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 
 // Output structure of the reflection raytrace shader
 RW_TEXTURE2D_X(float, _AmbientOcclusionTextureRW);
