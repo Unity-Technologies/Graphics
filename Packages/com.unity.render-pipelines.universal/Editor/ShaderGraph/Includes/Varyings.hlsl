@@ -253,7 +253,7 @@ Varyings BuildVaryings(Attributes input
     #endif
 
     #if defined(VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA)
-        GatherDiffuseGIData(vertexInput.positionWS, normalWS.xyz, tangentWS.xyz, output.diffuseGIData0, output.diffuseGIData1, output.diffuseGIData2);
+        GatherDiffuseGIData(vertexInput.positionWS, normalWS.xyz, tangentWS, output.diffuseGIData0, output.diffuseGIData1, output.diffuseGIData2);
     #endif
     }
 

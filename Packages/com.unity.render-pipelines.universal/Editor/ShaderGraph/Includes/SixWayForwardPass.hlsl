@@ -103,6 +103,9 @@ void frag(
     surfaceData.diffuseGIData0 = unpacked.diffuseGIData0;
     surfaceData.diffuseGIData1 = unpacked.diffuseGIData1;
     surfaceData.diffuseGIData2 = unpacked.diffuseGIData2;
+    if(!frontFace)
+        surfaceData.diffuseGIData2.xyz *= -1.0f;
+
 #if defined(_SIX_WAY_COLOR_ABSORPTION)
     surfaceData.absorptionRange = INV_PI + saturate(surfaceDescription.AbsorptionStrength) * (1 - INV_PI);
 #endif

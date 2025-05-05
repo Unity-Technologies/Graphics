@@ -128,7 +128,7 @@ bool GetMeshAndElementIndex(inout VFX_SRP_ATTRIBUTES input, inout AttributesElem
     input.normalOS = float3(0, 0, -1);
 #endif
 #ifdef ATTRIBUTES_NEED_TANGENT
-    input.tangentOS = float4(1, 0, 0, 1);
+    input.tangentOS = float4(1, 0, 0, -1);
 #endif
 #ifdef ATTRIBUTES_NEED_COLOR
     input.color = float4(1, 1, 1, 1);

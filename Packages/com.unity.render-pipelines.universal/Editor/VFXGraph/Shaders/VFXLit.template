@@ -12,7 +12,7 @@ void VFXGetURPLitData(out SurfaceData surfaceData, out InputData inputData, VFX_
     float4 posSS = i.VFX_VARYING_POSCS;
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
 
-    surfaceData = VFXGetSurfaceData(i, normalWS, uvData);
+    surfaceData = VFXGetSurfaceData(i, normalWS, uvData, frontFace);
     inputData = VFXGetInputData(i, posInput, normalWS, frontFace);
 }
 #endif
