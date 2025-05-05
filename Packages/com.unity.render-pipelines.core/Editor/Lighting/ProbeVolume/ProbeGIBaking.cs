@@ -938,8 +938,11 @@ namespace UnityEngine.Rendering
 
         static bool InitializeBake()
         {
-            if (ProbeVolumeLightingTab.instance?.PrepareAPVBake() == false) return false;
-            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP) return false;
+            if (ProbeVolumeLightingTab.instance?.PrepareAPVBake(ProbeReferenceVolume.instance) == false)
+                return false;
+
+            if (!ProbeReferenceVolume.instance.isInitialized || !ProbeReferenceVolume.instance.enabledBySRP)
+                return false;
 
             using var scope = new BakingSetupProfiling(BakingSetupProfiling.Stages.PrepareWorldSubdivision);
 
@@ -954,13 +957,16 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return false;
+            if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0)
+                return false;
 
             var sceneDataList = GetPerSceneDataList();
-            if (sceneDataList.Count == 0) return false;
+            if (sceneDataList.Count == 0)
+                return false;
 
             var pvList = GetProbeVolumeList();
-            if (pvList.Count == 0) return false; // We have no probe volumes.
+            if (pvList.Count == 0)
+                return false; // We have no probe volumes.
 
             CachePVHashes(pvList);
 
