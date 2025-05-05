@@ -727,7 +727,16 @@ namespace UnityEngine.Rendering.Universal
                 if (rendererFeatures[i] == null)
                     continue;
 
-                rendererFeatures[i].Dispose();
+                try
+                {
+                    // Guard the renderer feature Dispose() call so if it raises any exception,
+                    // it doesn't leave the renderer in a partially destructed state.
+                    rendererFeatures[i].Dispose();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
 
             Dispose(true);
