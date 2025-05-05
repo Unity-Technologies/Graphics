@@ -211,6 +211,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // User render requests can use different ones to avoid mixing history information
         HDCamera.HistoryChannel m_CurrentCameraHistoryChannel = HDCamera.HistoryChannel.RenderLoopHistory;
 
+        bool m_HasResolutionChanged = false;
+        Action m_OnResolutionChanged;
+
         internal GraphicsFormat GetColorBufferFormat()
         {
             if (CoreUtils.IsSceneFilteringEnabled())
@@ -723,6 +726,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             GPUInlineDebugDrawer.Initialize();
 #endif
+
+            m_OnResolutionChanged = () =>
+            {
+                m_HasResolutionChanged = true;
+            };
         }
 
         private void SetLodQualitySettings()
@@ -1066,6 +1074,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             GPUInlineDebugDrawer.Dispose();
 #endif
+            m_OnResolutionChanged = null;
         }
 
         void Resize(HDCamera hdCamera)
@@ -2280,7 +2289,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // only select the current instance for this camera. We dont pass the settings set to prevent an update.
                     // This will set a new instance in DynamicResolutionHandler.instance that is specific to this camera.
-                    DynamicResolutionHandler.UpdateAndUseCamera(camera);
+                    DynamicResolutionHandler.UpdateAndUseCamera(camera, null, m_OnResolutionChanged);
 
                     //Warning!! do not read anything off the dynResHandler, until we have called Update(). Otherwise, the handler is in the process of getting constructed.
                     var dynResHandler = DynamicResolutionHandler.instance;
