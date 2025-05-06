@@ -1173,3 +1173,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: UUM-85648
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 45
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
