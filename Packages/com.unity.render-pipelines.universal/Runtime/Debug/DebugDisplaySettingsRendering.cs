@@ -553,7 +553,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     displayName = "Rendering Debug",
                     flags = DebugUI.Flags.FrequentlyUsed,
-                    isHeader = true,
                     opened = true,
                     children =
                     {
@@ -575,7 +574,6 @@ namespace UnityEngine.Rendering.Universal
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Pixel Validation",
-                    isHeader = true,
                     opened = true,
                     children =
                     {
@@ -597,7 +595,6 @@ namespace UnityEngine.Rendering.Universal
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "HDR Output",
-                    isHeader = true,
                     opened = true,
                     children =
                     {

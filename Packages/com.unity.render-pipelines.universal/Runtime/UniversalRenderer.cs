@@ -626,7 +626,10 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 #endif
-
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (DebugHandler is { IsDepthPrimingCompatible: false })
+                return false;
+#endif
             // depth priming requires an extra depth copy, disable it on platforms not supporting it (like GLES when MSAA is on)
             if (!CanCopyDepth(cameraData))
                 return false;

@@ -162,6 +162,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal bool IsDepthPrimingCompatible => RenderingSettings.sceneOverrideMode != DebugSceneOverrideMode.Wireframe;
+
         internal int stpDebugViewIndex { get { return RenderingSettings.stpDebugViewIndex; } }
 
         internal DebugHandler()

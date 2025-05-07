@@ -147,6 +147,16 @@ namespace UnityEngine.Rendering.Universal
                     break;
                 }
 
+                case DebugSceneOverrideMode.Wireframe:
+                {
+                    // Disable culling to see all lines
+                    renderStateBlock.rasterState = new RasterState(
+                        cullingMode: CullMode.Off        
+                    );
+
+                    renderStateBlock.mask = RenderStateMask.Raster;
+                    break;
+                }
                 case DebugSceneOverrideMode.SolidWireframe:
                 case DebugSceneOverrideMode.ShadedWireframe:
                 {
