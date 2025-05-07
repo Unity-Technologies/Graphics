@@ -16,6 +16,7 @@ MonoBehaviour:
   - m_name: Water
     m_description: Enable Water rendering.
     propertyPath: m_RenderPipelineSettings.supportWater
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
@@ -24,6 +25,7 @@ MonoBehaviour:
   - m_name: Volumetric Clouds
     m_description: Enable Volumetric Clouds.
     propertyPath: m_RenderPipelineSettings.supportVolumetricClouds
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
@@ -32,6 +34,7 @@ MonoBehaviour:
   - m_name: Volumetric Fog
     m_description: Enable Volumetric Fog.
     propertyPath: m_RenderPipelineSettings.supportVolumetrics
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
@@ -40,16 +43,18 @@ MonoBehaviour:
   - m_name: Screen Space Reflection
     m_description: Enable Screen Space Reflection.
     propertyPath: m_RenderPipelineSettings.supportSSR
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
     uiSectionInt: 32
-    uiSubSectionInt: 1
+    uiSubSectionInt: 8
   - m_name: Screen Space Reflection On Transparent
     m_description: Enable Screen Space Reflection On Transparent.
     propertyPath: m_RenderPipelineSettings.supportSSRTransparent
+    globalSettingsType: 
     valueType: 0
     targetValue: 1
     validationType: 0
     uiSectionInt: 32
-    uiSubSectionInt: 1
+    uiSubSectionInt: 8
