@@ -23,13 +23,13 @@ The following table shows the compatibility of the High Definition Render Pipeli
 
 ## Render pipeline compatibility
 
-Projects made using HDRP aren't compatible with the Universal Render Pipeline (URP) or the Built-in Render Pipeline. Before you start development, you must decide which render pipeline to use in your Project. For information on choosing a render pipeline, see the [Render Pipelines](https://docs.unity3d.com/2019.3/Documentation/Manual/render-pipelines.html) section of the Unity Manual.
+Projects made using HDRP aren't compatible with the Universal Render Pipeline (URP) or the Built-in Render Pipeline. Before you start development, you must decide which render pipeline to use in your Project. For information on choosing a render pipeline, refer to the [Render Pipelines](https://docs.unity3d.com/Manual/render-pipelines.html) section of the Unity Manual.
 
 ## Unity Player system requirements
 
 This section describes the HDRP package’s target platform requirements. For platforms or use cases not covered in this section, general system requirements for the Unity Player apply.
 
-For more information, see [System requirements for Unity](https://docs.unity3d.com/Manual/system-requirements.html).
+For more information, refer to [System requirements for Unity](https://docs.unity3d.com/Manual/system-requirements.html).
 
 HDRP is compatible with the following platforms:
 
@@ -47,4 +47,4 @@ HDRP is compatible with the following platforms:
 
 ### Ray tracing
 
-To use ray tracing in HDRP, there are hardware requirements you must meet. For information on these requirements, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
+To use ray tracing in HDRP, there are hardware requirements you must meet. For information on these requirements, refer to [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
