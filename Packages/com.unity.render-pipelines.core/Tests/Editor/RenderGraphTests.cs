@@ -928,6 +928,120 @@ namespace UnityEngine.Rendering.Tests
             m_Camera.Render();
         }
 
+        class TestBufferTextureComputeData
+        {
+            public BufferHandle bufferHandle;
+            public TextureHandle depthTexture;
+            public ComputeShader computeShader;
+        }
+
+        [Test, ConditionalIgnore("IgnoreGraphicsAPI", "Compute Shaders are not supported for this Graphics API.")]
+        public void RenderGraphClearDepthTextureWithDepthReadOnlyFlag()
+        {
+            const int kWidth = 4;
+            const int kHeight = 4;
+            const string kPathComputeShader = "Packages/com.unity.render-pipelines.core/Tests/Editor/CopyDepthToBuffer.compute";
+
+            var computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(kPathComputeShader);
+            // Check if the compute shader was loaded successfully
+            if (computeShader == null)
+            {
+                Debug.LogError("Compute Shader not found!");
+                return;
+            }
+
+            // Define the size of the buffer (number of elements)
+            int bufferSize = kWidth*kHeight; // We are only interested in the first four values
+
+            // Allocate the buffer with the given size and format
+            var buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, bufferSize, sizeof(float));
+
+            // Initialize the buffer with zeros
+            float[] initialData = new float[bufferSize];
+            
+
+            // Ensure the data is set to 0.0f
+            for (int i = 0; i < bufferSize; i++)
+            {
+                initialData[i] = 1.0f;
+            }
+
+            buffer.SetData(initialData);
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+                TextureHandle texture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+                TextureHandle depthTexture = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.D16_UNorm });
+                // no depth
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                {
+
+                    builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                    builder.UseTexture(texture1, AccessFlags.Read);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                // with depth
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                {
+                    builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(depthTexture, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                // Compute pass
+                using (var builder = m_RenderGraph.AddComputePass<TestBufferTextureComputeData>("TestPass Compute", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    // Import resources into the Render Graph
+                    passData.bufferHandle = m_RenderGraph.ImportBuffer(buffer); // Import external ComputeBuffer
+                    passData.depthTexture = depthTexture; // Import RTHandle texture
+
+                    builder.UseBuffer(passData.bufferHandle, AccessFlags.Write); // Ensure correct usage of the buffer
+                    builder.UseTexture(passData.depthTexture, AccessFlags.ReadWrite);
+
+                    // Assign the compute shader
+                    passData.computeShader = computeShader;
+                
+                    builder.SetRenderFunc((TestBufferTextureComputeData data, ComputeGraphContext ctx) =>
+                    {
+                        int kernel = data.computeShader.FindKernel("CSMain");
+                
+                        ctx.cmd.SetComputeBufferParam(data.computeShader, kernel, "resultBuffer", data.bufferHandle);
+                        ctx.cmd.SetComputeTextureParam(data.computeShader, kernel, "_DepthTexture", data.depthTexture);
+                        ctx.cmd.DispatchCompute(data.computeShader, kernel, kWidth, kHeight, 1);
+                    });
+                }
+
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+                Assert.AreEqual(1, passes.Count); // 1 native Pass + compute
+                Assert.AreEqual(2, passes[0].numNativeSubPasses);
+                Assert.True(result.contextData.nativeSubPassData[0].flags.HasFlag(SubPassFlags.ReadOnlyDepth));
+            };
+            m_Camera.Render();
+
+            // TODO: With current structure of the Tests, nativePassCompiler is not accessible out of recordRenderGraphBody.
+            // Add checks for the passes.count and checks if first subpass has readOnlyDepth flag in future update
+
+            // Read back the data from the buffer
+            float[] result2 = new float[bufferSize];
+            buffer.GetData(result2);
+
+            buffer.Release();
+
+            // Ensure the data has been updated
+            for (int i = 0; i < bufferSize; i++)
+            {
+                Assert.IsTrue(result2[i] == 0.0f);
+            }
+        }
+
         /*
         // Disabled for now as version management is not exposed to user code
         [Test]
