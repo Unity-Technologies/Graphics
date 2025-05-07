@@ -814,6 +814,10 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.HasNormalPrepass = renderPassInputs.requiresNormalsTexture;
 
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
+                
+                // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
+                // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
+                m_DeferredLights.CreateGbufferResources();
 
                 if (m_DeferredLights.UseFramebufferFetch)
                 {
