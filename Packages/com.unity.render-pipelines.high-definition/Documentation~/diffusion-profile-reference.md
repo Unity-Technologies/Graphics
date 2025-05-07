@@ -2,7 +2,7 @@
 
 The High Definition Render Pipeline (HDRP) stores most [Subsurface Scattering](skin-and-diffusive-surfaces-subsurface-scattering.md) settings in a **Diffusion Profile** Asset. You can assign a **Diffusion Profile** Asset directly to Materials that use Subsurface Scattering.
 
-To create a Diffusion Profile, navigate to **Assets > Create > Rendering > HDRP Diffusion Profile**. For HDRP to detect it, you must add it to the **Diffusion Profile List** of the [Diffusion Profile List Component](Override-Diffusion-Profile.md) in an active [Volume](Volumes.md).
+To create a Diffusion Profile, navigate to **Assets > Create > Rendering > HDRP Diffusion Profile**. For HDRP to detect it, you must add it to the **Diffusion Profile List** of the [Diffusion Profile List Component](Override-Diffusion-Profile.md) in an active [Volume](volume-component.md).
 
 ## Properties
 
