@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7, UpgradeV8, UpgradeV9 };
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7, UpgradeV8, UpgradeV9, UpgradeV10 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -416,7 +416,7 @@ namespace UnityEditor.Rendering.Universal
 
         // We want to disable the custom motion vector pass for SpeedTrees which won't have any
         // vertex animation due to no wind. This is done to prevent performance regression from
-        // rendering trees with no motion vector output. 
+        // rendering trees with no motion vector output.
         static void UpgradeV9(Material material, ShaderID shaderID)
         {
             if(shaderID != ShaderID.SpeedTree8)
@@ -427,6 +427,19 @@ namespace UnityEditor.Rendering.Universal
             {
                 bool motionVectorPassEnabled = SpeedTree8MaterialUpgrader.IsWindEnabled(material);
                 material.SetShaderPassEnabled(MotionVectorRenderPass.k_MotionVectorsLightModeTag, motionVectorPassEnabled);
+            }
+        }
+
+        // Changed the emission-toggle evaluation. Need to make sure materials which enabled emission previously, still
+        // enable it after this fix.
+        static void UpgradeV10(Material material, ShaderID shaderID)
+        {
+            if ((material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0)
+            {
+                material.globalIlluminationFlags |= MaterialGlobalIlluminationFlags.BakedEmissive;
+                if (material.HasProperty(Property.EmissionColor))
+                    MaterialEditor.FixupEmissiveFlag(material);
+                CoreUtils.SetKeyword(material, ShaderKeywordStrings._EMISSION, (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.AnyEmissive) != 0);
             }
         }
     }
