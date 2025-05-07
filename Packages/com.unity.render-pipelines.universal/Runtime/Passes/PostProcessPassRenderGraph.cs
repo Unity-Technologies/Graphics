@@ -1413,6 +1413,7 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PostProcessingFinalSetupPassData>("Postprocessing Final Setup Pass", out var passData, ProfilingSampler.Get(URPProfileId.RG_FinalSetup)))
             {
                 Material material = m_Materials.scalingSetup;
+                material.shaderKeywords = null;
 
                 if (settings.isFxaaEnabled)
                     material.EnableKeyword(ShaderKeywordStrings.Fxaa);
