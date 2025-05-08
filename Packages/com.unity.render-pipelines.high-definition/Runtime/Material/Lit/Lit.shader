@@ -1042,7 +1042,9 @@ Shader "HDRP/Lit"
 
             #ifndef SHADER_STAGE_FRAGMENT
             #define SHADOW_LOW
+            #ifndef USE_FPTL_LIGHTLIST
             #define USE_FPTL_LIGHTLIST
+            #endif
             #endif
 
             #define SHADERPASS SHADERPASS_FORWARD
