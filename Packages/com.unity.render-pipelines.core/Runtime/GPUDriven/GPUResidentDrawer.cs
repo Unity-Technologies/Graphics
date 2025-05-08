@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering
             if (IsForcedOnViaCommandLine())
                 settings.mode = GPUResidentDrawerMode.InstancedDrawing;
 
-            if (IsOcclusionForcedOnViaCommandLine())
+            if (IsOcclusionForcedOnViaCommandLine() || ForceOcclusion)
                 settings.enableOcclusionCulling = true;
 
             return settings;
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering
         /// Is GRD forced on via the command line via -force-gpuresidentdrawer. Editor only.
         /// </summary>
         /// <returns>true if forced on</returns>
-        private static bool IsForcedOnViaCommandLine()
+        internal static bool IsForcedOnViaCommandLine()
         {
 #if UNITY_EDITOR
             return s_IsForcedOnViaCommandLine;
@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering
         /// Is occlusion culling forced on via the command line via -force-gpuocclusion. Editor only.
         /// </summary>
         /// <returns>true if forced on</returns>
-        private static bool IsOcclusionForcedOnViaCommandLine()
+        internal static bool IsOcclusionForcedOnViaCommandLine()
         {
 #if UNITY_EDITOR
             return s_IsOcclusionForcedOnViaCommandLine;
@@ -270,6 +270,7 @@ namespace UnityEngine.Rendering
         }
 
         internal static bool MaintainContext { get; set; } = false;
+        internal static bool ForceOcclusion { get; set; } = false;
 
         internal static void Reinitialize()
         {
