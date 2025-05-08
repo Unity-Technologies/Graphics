@@ -158,7 +158,10 @@ namespace UnityEditor.VFX
                 }
                 finally
                 {
+                    // swap dirty and scheduled models
+                    var tmp = m_DirtyModels;
                     m_DirtyModels = m_ScheduledModels;
+                    m_ScheduledModels = tmp;
                     m_ScheduledModels.Clear();
                     m_IsGeneratingErrors = false;
                 }
