@@ -64,6 +64,11 @@ Repositories.ini eol=lf
 *.[mM][sS][iI] filter=lfs diff=lfs merge=lfs -text
 *.[aA][rR][cC] filter=lfs diff=lfs merge=lfs -text
 
+# media files
+*.[mM][pP]4 filter=lfs diff=lfs merge=lfs -text
+*.[mM][oO][vV] filter=lfs diff=lfs merge=lfs -text
+*.[wW][eE][bB][mM] filter=lfs diff=lfs merge=lfs -text
+
 # executables and libraries
 *.[aA] filter=lfs diff=lfs merge=lfs -text
 *.[oO] filter=lfs diff=lfs merge=lfs -text
@@ -360,6 +365,12 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 **/GfxTestProjectFolder/**/*.[cC][uU][bB][eE][mM][aA][pP] filter=lfs diff=lfs merge=lfs -text
 **/GfxTestProjectFolder/**/*.[pP][rR][xX] filter=lfs diff=lfs merge=lfs -text
 **/GfxTestProjectFolder/**/*.[dD][fF][oO][nN][tT] filter=lfs diff=lfs merge=lfs -text
+
+# Video tests
+# ---
+# `.ts` is used for MPEG Transport Stream files. This rule is very specific to a certain video
+# package because the `.ts` extension clashes with the TypeScript file extension.
+**/EditModeAndPlayModeTests/Video/**/HLS/**/*.[tT][sS] filter=lfs diff=lfs merge=lfs -text
 
 # memoryprofiler test snapshots
 **/com.unity.memoryprofiler.tests/**/*.[sS][nN][aA][pP] filter=lfs diff=lfs merge=lfs -text
