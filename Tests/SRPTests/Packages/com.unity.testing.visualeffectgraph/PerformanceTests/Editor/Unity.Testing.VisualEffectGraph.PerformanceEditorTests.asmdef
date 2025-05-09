@@ -1,5 +1,6 @@
 {
     "name": "Unity.Testing.VisualEffectGraph.PerformanceEditorTests",
+    "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "Unity.PerformanceTesting",
@@ -7,7 +8,8 @@
         "UnityEngine.TestTools.Graphics.Performance.Editor",
         "UnityEngine.TestTools.Graphics.Performance",
         "Unity.Testing.VisualEffectGraph.PerformanceRuntimeTests",
-        "Unity.VisualEffectGraph.Editor"
+        "Unity.VisualEffectGraph.Editor",
+        "UnityEngine.TestTools.Graphics"
     ],
     "includePlatforms": [
         "Editor"

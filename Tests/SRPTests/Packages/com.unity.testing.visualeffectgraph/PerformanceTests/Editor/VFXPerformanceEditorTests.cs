@@ -13,6 +13,7 @@ using UnityEngine.TestTools;
 using System.IO;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using UnityEngine.VFX.PerformanceTest;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
@@ -53,7 +54,7 @@ namespace UnityEditor.VFX.PerformanceTest
         {
             get
             {
-                yield return UnityEngine.VFX.PerformanceTest.VFXPerformanceUseGraphicsTestCasesAttribute.GetPrefix();
+                yield return UnityEngine.VFX.PerformanceTest.VFXPerformanceGraphicsTestCaseSource.GetPrefix();
             }
         }
 

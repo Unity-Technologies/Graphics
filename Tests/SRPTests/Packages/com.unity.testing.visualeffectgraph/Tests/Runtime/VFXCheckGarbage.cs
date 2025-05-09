@@ -7,6 +7,8 @@ using UnityEngine.Profiling;
 using Unity.Profiling;
 using Unity.Testing.VisualEffectGraph;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics;
+using Unity.Testing.VisualEffectGraph.Tests;
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +21,8 @@ using UnityEditorInternal;
 namespace UnityEngine.VFX.Test
 {
     [TestFixture]
-    [PrebuildSetup("SetupGraphicsTestCases")]
+    [MockHmdSetup(99)]
+    [AssetBundleSetup]
     public class VFXCheckGarbage
     {
         public static readonly string[] s_CustomGarbageWrapperTest = new[] { "Reference_Forcing_Garbage_Creation", "Basic_Usage" };
