@@ -122,6 +122,14 @@ Near the top of the blackboard, there are three tabs which let you filter which 
 
 ## Subgraph Category
 When dealing with a subgraph, the blackboard lets you specify a category that will be used in the node search.
-To change the category, double-click the sub-title of the blackboard and enter the desired category name, then validate using the `Return` key
+To change the category, double-click the subtitle of the blackboard and enter the desired category name, then validate using the `Return` key.
 
 To create multiple category levels, use the `/` character. For example, `MySubgraphs/Math`.
+![Subtitle in the blackboard](Images/blackboard-subtitle.png)
+
+> [!TIP]
+> You can also define visual separators to better organize your subgraphs within their category using the following syntax:
+> `MySubgraphs/Math/#0Trigonometry` or `MySubgraphs/Math/#1Algebra`.
+> The `#` character indicates a separator and the number indicates the sorting order.
+>
+> ![Separator in the blackboard](Images/nodesearch-separator.png)
