@@ -16,6 +16,7 @@
   * [Experimental Features](ExperimentalFeatures.md)
   * [Sample Content](sample-content.md)
     * [Learning Templates](sample-learningTemplates.md)
+  * [Shortcuts](Shortcuts.md) 
 * [Graph Logic & Philosophy](GraphLogicAndPhilosophy.md)
   * [Systems](Systems.md)
   * [Contexts](Contexts.md)
@@ -343,7 +344,7 @@
       * [Value Noise](Operator-ValueNoise.md)
     * Random
       * [Random Number](Operator-RandomNumber.md)
-	  * [Random Selector](Operator-RandomSelectorWeighted.md)
+      * [Random Selector](Operator-RandomSelectorWeighted.md)
     * Sampling
       * [Buffer Count](Operator-BufferCount.md)
       * [Get Mesh Index Count](Operator-MeshIndexCount.md)
