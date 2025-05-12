@@ -2,12 +2,12 @@
 
 The Profiling and Debug panels provide useful information about your running Visual Effects, such as CPU and GPU timings, memory usage, texture usage, and various states. These allow you to keep the performance of your effects under control while you author them.
 
-To enable the Profiling and Debug panels, select the debug icon in the top right of the Visual Effect Graph window. All the information displayed in the Profiling and Debug panels refers to the attached GameObject.
+To enable the Profiling and Debug panels, follow these steps:
 
-**Note**: For the Profiling and Debug panels to work, the Visual Effect Graph window needs to be attached to a GameObject that has a Visual Effect component. For details on how to attach a GameObject to the working window, see [Attaching a Visual Effect] (GettingStarted.md#attaching-a-visual-effect-from-the-scene-to-the-current-graph). 
+1. Attach the **Visual Effect Graph** window to a GameObject that has a **Visual Effect** component. For more information, refer to [Attaching a Visual Effect](GettingStarted.md#attaching-a-visual-effect-from-the-scene-to-the-current-graph).
+2. Select the debug icon in the top-right of the **Visual Effect Graph** window.
 
-
-![ProfilingPanel-Overview.png](Images%2FProfilingPanel-Overview.png)
+All the information displayed in the Profiling and Debug panels refers to the attached GameObject.
 
 ## Graph Debug Information
 
