@@ -8,32 +8,32 @@ namespace UnityEngine.Rendering.Tests
     {
         class RegularMethodInRegularClass
         {
-            public void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context)
+            public void RenderFunc(RenderGraphTestPassData data, RasterGraphContext context)
             {
             }
         }
 
         static class StaticMethodInsideStaticClass
         {
-            public static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context)
+            public static void RenderFunc(RenderGraphTestPassData data, RasterGraphContext context)
             {
             }
         }
 
         class StaticMethodInsideRegularClass
         {
-            public static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context)
+            public static void RenderFunc(RenderGraphTestPassData data, RasterGraphContext context)
             {
             }
 
-            public static void RenderFunc2(RenderGraphTestPassData data, RenderGraphContext context)
+            public static void RenderFunc2(RenderGraphTestPassData data, UnsafeGraphContext context)
             {
             }
         }
 
         class StaticMethodInsideRegularClass2
         {
-            public static void RenderFunc(RenderGraphTestPassData data, RenderGraphContext context)
+            public static void RenderFunc(RenderGraphTestPassData data, UnsafeGraphContext context)
             {
             }
         }
@@ -49,47 +49,47 @@ namespace UnityEngine.Rendering.Tests
         {
             //Method of the class instance
             TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.UseColorBuffer(texture0, 0);
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
                 var firstInstance = new RegularMethodInRegularClass();
                 builder.SetRenderFunc<RenderGraphTestPassData>(firstInstance.RenderFunc);
             }
 
             //Static method of the static class
             TextureHandle texture1 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
-                builder.UseColorBuffer(texture1, 0);
+                builder.SetRenderAttachment(texture1, 0, AccessFlags.Write);
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideStaticClass.RenderFunc);
             }
 
             //Lambdas with captured variable
             TextureHandle texture2 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
-                builder.UseColorBuffer(texture2, 0);
+                builder.SetRenderAttachment(texture2, 0, AccessFlags.Write);
                 builder.SetRenderFunc<RenderGraphTestPassData>((data, context) => { Debug.Log(texture2.GetHashCode()); });
             }
 
             //Local method with captured variable
             TextureHandle texture3 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass3", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass3", out var passData))
             {
-                builder.UseColorBuffer(texture3, 0);
+                builder.SetRenderAttachment(texture3, 0, AccessFlags.Write);
                 builder.SetRenderFunc<RenderGraphTestPassData>(LocalMethod);
             }
 
-            void LocalMethod(RenderGraphTestPassData data, RenderGraphContext renderGraphContext)
+            void LocalMethod(RenderGraphTestPassData data, RasterGraphContext renderGraphContext)
             {
                 Debug.Log(texture3.GetHashCode());
             }
 
             //Static method of the regular class
             TextureHandle texture4 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass4", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass4", out var passData))
             {
-                builder.UseColorBuffer(texture4, 0);
+                builder.SetRenderAttachment(texture4, 0, AccessFlags.Write);
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideRegularClass.RenderFunc);
             }
 
@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.Tests
 
             void RecordRenderGraph(RenderGraph renderGraph, RegularMethodInRegularClass instance)
             {
-                using var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+                using var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
                 builder.SetRenderFunc<RenderGraphTestPassData>(instance.RenderFunc);
             }
         }
@@ -131,13 +131,13 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void ComputeGraphHash_WhenDifferentStaticMethodsWithTheSameNameUsed_HashcodeIsDifferent()
         {
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideRegularClass.RenderFunc);
 
             var hash0 = m_RenderGraph.ComputeGraphHash();
             ClearCompiledGraphAndHash();
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideRegularClass2.RenderFunc);
 
             var hash1 = m_RenderGraph.ComputeGraphHash();
@@ -149,26 +149,26 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void ComputeGraphHash_WhenManyDifferentPassesUsed_HashcodeIsDifferent()
         {
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
             }
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
             }
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
             }
 
             var hash0 = m_RenderGraph.ComputeGraphHash();
             ClearCompiledGraphAndHash();
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
             }
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass1", out var passData))
             {
             }
 
@@ -218,8 +218,8 @@ namespace UnityEngine.Rendering.Tests
             void RecordRenderGraph(RenderGraph renderGraph, TextureDesc desc)
             {
                 var texture0 = renderGraph.CreateTexture(desc);
-                using var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
-                builder.UseColorBuffer(texture0, 0);
+                using var builder = renderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
             }
         }
 
@@ -228,13 +228,13 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void ComputeGraphHash_WhenUsedLambdasDiffer_HashcodeIsDifferent()
         {
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>((_, _) => { });
 
             var hash0 = m_RenderGraph.ComputeGraphHash();
             ClearCompiledGraphAndHash();
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>((_, _) => { });
 
             var hash1 = m_RenderGraph.ComputeGraphHash();
@@ -246,13 +246,13 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void ComputeGraphHash_WhenUsedStaticMethodsDiffer_HashcodeIsDifferent()
         {
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideRegularClass.RenderFunc);
 
             var hash0 = m_RenderGraph.ComputeGraphHash();
             ClearCompiledGraphAndHash();
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideRegularClass.RenderFunc2);
 
             var hash1 = m_RenderGraph.ComputeGraphHash();
@@ -276,15 +276,15 @@ namespace UnityEngine.Rendering.Tests
 
             void RecordRenderGraph(RenderGraph renderGraph)
             {
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
                 {
                 }
 
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass1", out var passData))
                 {
                 }
 
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass2", out var passData))
                 {
                 }
             }
@@ -293,12 +293,12 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void ComputeGraphHashForTheSameSetup_WhenStaticsInStaticClassUsed_HashcodeIsSame()
         {
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideStaticClass.RenderFunc);
             var hash0 = m_RenderGraph.ComputeGraphHash();
             ClearCompiledGraphAndHash();
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideStaticClass.RenderFunc);
             var hash1 = m_RenderGraph.ComputeGraphHash();
             ClearCompiledGraphAndHash();
@@ -309,12 +309,12 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void ComputeGraphHashForTheSameSetup_WhenStaticsInRegularClassUsed_HashcodeIsSame()
         {
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideRegularClass.RenderFunc);
             var hash0 = m_RenderGraph.ComputeGraphHash();
             ClearCompiledGraphAndHash();
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
                 builder.SetRenderFunc<RenderGraphTestPassData>(StaticMethodInsideRegularClass.RenderFunc);
             var hash1 = m_RenderGraph.ComputeGraphHash();
             ClearCompiledGraphAndHash();
@@ -339,13 +339,13 @@ namespace UnityEngine.Rendering.Tests
 
             static void RecordRenderGraph(RenderGraph renderGraph)
             {
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
                     builder.SetRenderFunc<RenderGraphTestPassData>((p, c) => { });
 
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass1", out var passData))
                     builder.SetRenderFunc<RenderGraphTestPassData>((p, c) => { });
 
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass2", out var passData))
                     builder.SetRenderFunc<RenderGraphTestPassData>((p, c) => { });
             }
         }
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.Tests
 
             void RecordRenderGraph(RenderGraph renderGraph, TextureHandle handle)
             {
-                using var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData);
+                using var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData);
                 builder.SetRenderFunc<RenderGraphTestPassData>((data, context) =>
                 {
                     if (!handle.IsValid())
@@ -395,17 +395,17 @@ namespace UnityEngine.Rendering.Tests
 
             void RecordRenderGraph(RenderGraph renderGraph)
             {
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
                     builder.SetRenderFunc<RenderGraphTestPassData>(LocalRenderFunc);
 
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass1", out var passData))
                     builder.SetRenderFunc<RenderGraphTestPassData>(LocalRenderFunc);
 
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass2", out var passData))
                     builder.SetRenderFunc<RenderGraphTestPassData>(LocalRenderFunc);
             }
 
-            void LocalRenderFunc(RenderGraphTestPassData data, RenderGraphContext renderGraphContext)
+            void LocalRenderFunc(RenderGraphTestPassData data, UnsafeGraphContext renderGraphContext)
             {
             }
         }
@@ -428,18 +428,18 @@ namespace UnityEngine.Rendering.Tests
             void RecordRenderGraph(RenderGraph renderGraph)
             {
                 var outerScopeVariable = "1";
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
                     builder.SetRenderFunc<RenderGraphTestPassData>(LocalRenderFunc);
 
                 outerScopeVariable = "2";
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass1", out var passData))
                     builder.SetRenderFunc<RenderGraphTestPassData>(LocalRenderFunc);
 
                 outerScopeVariable = "3";
-                using (var builder = renderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass2", out var passData))
                     builder.SetRenderFunc<RenderGraphTestPassData>(LocalRenderFunc);
 
-                void LocalRenderFunc(RenderGraphTestPassData data, RenderGraphContext renderGraphContext)
+                void LocalRenderFunc(RenderGraphTestPassData data, UnsafeGraphContext renderGraphContext)
                     => Debug.Log(outerScopeVariable);
             }
         }
