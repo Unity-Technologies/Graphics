@@ -1023,89 +1023,57 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             passToMerge.nativeSubPassIndex = nativePass.numNativeSubPasses - 1;
         }
 
-        // In the case where we add a new graph pass with depth to a native pass that didn't have it, we need to update
-        // inputs in all the previous native subpasses of the native pass
-        static void UpdateNativeSubPassesAttachments(CompilerContextData contextData, ref NativePassData nativePass)
+        // Call this function while merging a graph pass and you need to add the depth attachment used by this graph pass
+        // Make sure to call it before adding the rest of the graph pass attachments and its generated subpass
+        void AddDepthAttachmentFirstDuringMerge(CompilerContextData contextData, in PassFragmentData depthAttachment)
         {
-            int lastVisitedNativeSubpassIdx = -1;
-            ref readonly var fragmentList = ref nativePass.fragments;
+            // Native pass can only have a single depth attachment
+            Debug.Assert(!hasDepth);
 
-            var countPasses = nativePass.lastGraphPass - nativePass.firstGraphPass + 1;
+            fragments.Add(depthAttachment);
+            hasDepth = true;
 
-            // Do not iterate over the last graph pass as it is the one we are currently adding
-            for (var graphPassIdx = 0; graphPassIdx < countPasses - 1; ++graphPassIdx)
+            var size = fragments.size;
+
+            // If depth is the only attachment of the native pass, we are done
+            if (size == 1) return;
+
+            // size > 1
+            // In this case, we are adding depth attachment to a native pass with other existing attachments
+            int prevDepthIdx = size - 1;
+
+            // Depth must always been the first attachment, so we switch the previous first one with the recently added depth attachment
+            (fragments[0], fragments[prevDepthIdx]) = (fragments[prevDepthIdx], fragments[0]);
+            
+            var depthFlag = GetSubPassFlagForMerging();
+          
+            // We also need to increment the attachment indices of all the previous subpasses of this native pass.
+            // Otherwise the existing subpasses will point to the wrong attachments with depth being set as the first one
+            for (var nativeSubPassIndex = firstNativeSubPass; nativeSubPassIndex < firstNativeSubPass + numNativeSubPasses; nativeSubPassIndex++)
             {
-                // We only check the first graph pass of each existing native subpass - if other graph passes
-                // have been merged into a native subpass, it's because they had the same attachments.
-                ref readonly var currGraphPass =
-                    ref contextData.passData.ElementAt(nativePass.firstGraphPass + graphPassIdx);
-
-                // Already updated this native subpass
-                if (currGraphPass.nativeSubPassIndex + nativePass.firstNativeSubPass == lastVisitedNativeSubpassIdx)
-                {
-                    continue;
-                }
-
-                // Shouldn't be necessary since we only check the first graph pass of each existing native subpass
-                // But let's be safe and check anyway if the pass has been culled or not.
-                if (currGraphPass.culled)
-                {
-                    continue;
-                }
-
-                lastVisitedNativeSubpassIdx = currGraphPass.nativeSubPassIndex + nativePass.firstNativeSubPass;
-                ref var nativeSubPassDescriptor =
-                    ref contextData.nativeSubPassData.ElementAt(lastVisitedNativeSubpassIdx);
+                ref var subPassDesc = ref contextData.nativeSubPassData.ElementAt(nativeSubPassIndex);
 
                 // If depth ends up being bound only because of merging
-                if (!currGraphPass.fragmentInfoHasDepth && nativePass.hasDepth)
+                // Set SubPassFlags to best match the pass we are trying to merge with
+                subPassDesc.flags = depthFlag;
+
+                // Updating subpass color outputs
+                for (int i = 0; i < subPassDesc.colorOutputs.Length; i++)
                 {
-                    // Set SubPassFlags to best match the pass we are trying to merge with
-                    nativeSubPassDescriptor.flags = nativePass.GetSubPassFlagForMerging();
-                }
-
-                // MRT attachments
-                {
-                    int fragmentIdx = 0;
-                    int colorOffset = (currGraphPass.fragmentInfoHasDepth) ? -1 : 0;
-
-                    nativeSubPassDescriptor.colorOutputs =
-                        new AttachmentIndexArray(currGraphPass.numFragments + colorOffset);
-
-                    foreach (ref readonly var graphPassFragment in currGraphPass.Fragments(contextData))
+                    if (subPassDesc.colorOutputs[i] == 0)
                     {
-                        // Check if we're handling the depth attachment
-                        if (currGraphPass.fragmentInfoHasDepth && fragmentIdx == 0)
-                        {
-                            nativeSubPassDescriptor.flags = (graphPassFragment.accessFlags.HasFlag(AccessFlags.Write))
-                                ? SubPassFlags.None
-                                : SubPassFlags.ReadOnlyDepth;
-                        }
-                        // It's a color attachment
-                        else
-                        {
-                            // Find the index of this subpass's attachment in the native renderpass attachment list
-                            int colorAttachmentIdx = -1;
-                            for (int fragmentId = 0; fragmentId < fragmentList.size; ++fragmentId)
-                            {
-                                if (fragmentList[fragmentId].resource.index == graphPassFragment.resource.index)
-                                {
-                                    colorAttachmentIdx = fragmentId;
-                                    break;
-                                }
-                            }
-
-                            Debug.Assert(colorAttachmentIdx >=
-                                         0); // If this is not the case it means we are using an attachment in a sub pass that is not part of the native pass !?!? clear bug
-
-                            // Set up the color indexes
-                            nativeSubPassDescriptor.colorOutputs[fragmentIdx + colorOffset] = colorAttachmentIdx;
-                        }
-
-                        fragmentIdx++;
+                        subPassDesc.colorOutputs[i] = prevDepthIdx;
                     }
                 }
 
+                // Updating subpass color inputs (framebuffer fetch)
+                for (int i = 0; i < subPassDesc.inputs.Length; i++)
+                {
+                    if (subPassDesc.inputs[i] == 0)
+                    {
+                        subPassDesc.inputs[i] = prevDepthIdx;
+                    }
+                }
             }
         }
 
@@ -1132,14 +1100,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // as we require the depth attachment to be at index 0
             if (!nativePass.hasDepth && passToMerge.fragmentInfoHasDepth)
             {
-                nativePass.hasDepth = true;
-                nativePass.fragments.Add(contextData.fragmentData[passToMerge.firstFragment]);
-                var size = nativePass.fragments.size;
-                if (size > 1)
-                    (nativePass.fragments[0], nativePass.fragments[size-1]) = (nativePass.fragments[size-1], nativePass.fragments[0]);
-
-                // Must update indices from Native subPasses created before
-                UpdateNativeSubPassesAttachments(contextData, ref nativePass);
+                nativePass.AddDepthAttachmentFirstDuringMerge(contextData, contextData.fragmentData[passToMerge.firstFragment]);
             }
 
             // Update versions and flags of existing attachments and
