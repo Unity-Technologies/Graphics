@@ -10,6 +10,17 @@ uid: urp-changelog
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.2.0] - 2025-05-14
+
+This version is compatible with Unity 6000.2.0b2.
+
+### Fixed
+- Fixed HDR debug mode not working when Compatibility Mode is enabled.
+- Avoid crash when a RendererFeature tries to render into a released RenderTexture.
+- Fixed light rendering incorrectly from certain angles when using Forward+ in URP.
+- Fixed an issue where the emission property of the Lit shader did not animate correctly when `_EmissionColor` was initially set to `(0, 0, 0)`.
+- Added Prepass Layer Mask to determine which GameObjects write depth.
+
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
