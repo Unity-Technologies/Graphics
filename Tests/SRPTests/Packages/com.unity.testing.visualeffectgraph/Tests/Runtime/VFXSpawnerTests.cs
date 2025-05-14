@@ -278,7 +278,7 @@ namespace UnityEditor.VFX.Test
                 var random = ScriptableObject.CreateInstance<Operator.Random>();
                 random.SetSettingValue("seed", VFXSeedMode.PerVFXComponent);
                 random.SetSettingValue("constant", true);
-                graph.AddChild(outputEvent);
+                graph.AddChild(random);
                 random.outputSlots.First().Link(setAttributePosition.inputSlots.First()[i]);
             }
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
@@ -313,8 +313,6 @@ namespace UnityEditor.VFX.Test
                 Assert.AreNotEqual(1, distinctCount);
             else
                 Assert.AreEqual(1, distinctCount);
-
-            
         }
 
         [UnityTest]
