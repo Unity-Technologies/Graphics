@@ -77,6 +77,15 @@ public class HDRP_Graphics_Tests
         "issue on Yamato only: jira: https://jira.unity3d.com/browse/UUM-26542",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsPlayer }
     )]
+    [IgnoreGraphicsTest(
+        "10003_TerrainShadow",
+        "Disabled for Instability https://jira.unity3d.com/browse/UUM-104980",
+        runtimePlatforms: new RuntimePlatform[] 
+        { 
+            RuntimePlatform.GameCoreXboxSeries, 
+            RuntimePlatform.WindowsPlayer 
+        }
+    )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         yield return HDRP_GraphicTestRunner.Run(testCase);
