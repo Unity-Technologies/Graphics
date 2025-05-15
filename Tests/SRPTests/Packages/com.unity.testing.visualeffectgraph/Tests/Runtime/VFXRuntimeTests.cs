@@ -628,6 +628,115 @@ namespace UnityEngine.VFX.Test
             structuredBuffer.Release();
         }
 
+        [UnityTest, Description("Cover internal cache behavior from NamedObject")]
+        public IEnumerator Cover_ReloadAssetCacheIfNeeded()
+        {
+            SceneManagement.SceneManager.LoadScene("Packages/com.unity.testing.visualeffectgraph/Scenes/NamedObject_ExposedProperties.unity");
+            yield return null;
+
+            var gameObjectMesh = GameObject.Find("NamedObject_ExposedPropertiesMesh");
+            var gameObjectTexture = GameObject.Find("NamedObject_ExposedPropertiesTexture");
+            var gameObjectSkinned = GameObject.Find("NamedObject_ExposedPropertiesSkinnedMesh");
+
+            Assert.IsNotNull(gameObjectMesh);
+            Assert.IsNotNull(gameObjectTexture);
+            Assert.IsNotNull(gameObjectSkinned);
+
+            var vfxMesh = gameObjectMesh.GetComponent<VisualEffect>();
+            var vfxTexture = gameObjectTexture.GetComponent<VisualEffect>();
+            var vfxSkinned = gameObjectSkinned.GetComponent<VisualEffect>();
+            Assert.IsNotNull(vfxMesh);
+            Assert.IsNotNull(vfxTexture);
+            Assert.IsNotNull(vfxSkinned);
+            Assert.AreNotEqual(vfxMesh, vfxTexture);
+            Assert.AreNotEqual(vfxTexture, vfxSkinned);
+
+            var maxFrame = 64;
+            while (--maxFrame > 0)
+            {
+                if (vfxMesh.aliveParticleCount > 0
+                    && vfxTexture.aliveParticleCount > 0
+                    && vfxSkinned.aliveParticleCount > 0)
+                    break;
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0, "Effect aren't alive in scene");
+
+            //Mesh
+            var cubeMesh = CoreUtils.CreateCubeMesh(new Vector4(-0.123f, -0.456f, -0.789f), new Vector4(0.987f, 0.654f, 0.321f));
+            var exposedProperties = new List<VFXExposedProperty>();
+
+            vfxMesh.visualEffectAsset.GetExposedProperties(exposedProperties);
+            Assert.AreEqual(1, exposedProperties.Count);
+            Assert.AreEqual(typeof(Mesh), exposedProperties[0].type);
+
+            vfxMesh.SetMesh(exposedProperties[0].name, cubeMesh);
+            vfxMesh.Reinit();
+            yield return null;
+
+            maxFrame = 64;
+            while (--maxFrame > 0)
+            {
+                if (vfxMesh.aliveParticleCount > 0)
+                    break;
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0, "Effect isn't alive in scene");
+
+            //Now destroy mesh
+            Object.DestroyImmediate(cubeMesh);
+            cubeMesh = null;
+            GC.Collect();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            //Texture
+            var texture = new Texture2D(32, 32);
+            vfxTexture.visualEffectAsset.GetExposedProperties(exposedProperties);
+            Assert.AreEqual(1, exposedProperties.Count);
+            Assert.AreEqual(typeof(Texture), exposedProperties[0].type);
+
+            vfxTexture.SetTexture(exposedProperties[0].name, texture);
+            vfxTexture.Reinit();
+            maxFrame = 64;
+            while (--maxFrame > 0)
+            {
+                if (vfxTexture.aliveParticleCount > 0)
+                    break;
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0, "Effect isn't alive in scene");
+            //Now destroy Texture
+            Object.DestroyImmediate(texture);
+            texture = null;
+            GC.Collect();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            //SkinMeshRenderer case
+            var smr = new SkinnedMeshRenderer();
+            vfxSkinned.visualEffectAsset.GetExposedProperties(exposedProperties);
+            Assert.AreEqual(1, exposedProperties.Count);
+            Assert.AreEqual(typeof(SkinnedMeshRenderer), exposedProperties[0].type);
+
+            vfxSkinned.SetSkinnedMeshRenderer(exposedProperties[0].name, smr);
+            vfxSkinned.Reinit();
+            maxFrame = 64;
+            while (--maxFrame > 0)
+            {
+                if (vfxSkinned.aliveParticleCount > 0)
+                    break;
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0, "Effect isn't alive in scene");
+            //Now destroy SMR
+            Object.DestroyImmediate(smr);
+            smr = null;
+            GC.Collect();
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+        }
+
         [OneTimeTearDown]
         public void TearDown()
         {

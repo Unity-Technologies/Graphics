@@ -37,6 +37,7 @@ namespace UnityEditor.VFX.PerformanceTest
         [IgnoreGraphicsTest("Empty_With_Camera", "No reference images provided")]
         [IgnoreGraphicsTest("StressTestRuntime_GPUEvent", "No reference images provided")]
         [IgnoreGraphicsTest("Timeline_FirstFrame", "No reference images provided")]
+        [IgnoreGraphicsTest("NamedObject_ExposedProperties", "No reference images provided")]
 
         [MockHmdSetup(99)]
         [AssetBundleSetup]
@@ -82,6 +83,7 @@ namespace UnityEditor.VFX.PerformanceTest
         [IgnoreGraphicsTest("Empty_With_Camera", "No reference images provided")]
         [IgnoreGraphicsTest("StressTestRuntime_GPUEvent", "No reference images provided")]
         [IgnoreGraphicsTest("Timeline_FirstFrame", "No reference images provided")]
+        [IgnoreGraphicsTest("NamedObject_ExposedProperties", "No reference images provided")]
 
         [MockHmdSetup(99)]
         [AssetBundleSetup]
