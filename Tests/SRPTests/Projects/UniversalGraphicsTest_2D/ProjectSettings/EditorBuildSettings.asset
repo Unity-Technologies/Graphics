@@ -195,6 +195,9 @@ EditorBuildSettings:
     path: Assets/Scenes/021_Shadow_Batching_03.unity
     guid: c5d8258f10589fa4c986556b16becf52
   - enabled: 1
+    path: Assets/Scenes/022_Normals_FlipXY.unity
+    guid: 0fd9ba64f5114634b81f084fb92123e1
+  - enabled: 1
     path: Assets/Scenes/056_2D_Lights-Shadows.unity
     guid: 4f7a50da47cfeca46b45fe14be17081d
   - enabled: 1
