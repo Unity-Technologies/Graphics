@@ -126,6 +126,24 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Check if the ScriptableRenderer implements a camera opaque pass.
+        /// </summary>
+        /// <returns>Returns true if the ScriptableRenderer implements a camera opaque pass. False otherwise.</returns>
+        protected internal virtual bool SupportsCameraOpaque()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Check if the ScriptableRenderer implements a camera normal pass.
+        /// </summary>
+        /// <returns>Returns true if the ScriptableRenderer implements a camera normal pass. False otherwise.</returns>
+        protected internal virtual bool SupportsCameraNormals()
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Override to provide a custom profiling name
         /// </summary>
         protected ProfilingSampler profilingExecute { get; set; }
