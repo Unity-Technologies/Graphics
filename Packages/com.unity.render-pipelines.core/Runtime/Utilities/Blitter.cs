@@ -5,6 +5,7 @@ using UnityEngine.Assertions;
 using System.Text.RegularExpressions;
 using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.RenderGraphModule;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -285,10 +286,9 @@ namespace UnityEngine.Rendering
 
         internal static bool CanCopyMSAA()
         {
-            //Temporary disable most msaa copies as we fix UUM-67324 which is a bit more involved due to the internal work required
-            GraphicsDeviceType deviceType = SystemInfo.graphicsDeviceType;
-            if (deviceType != GraphicsDeviceType.Metal || deviceType != GraphicsDeviceType.Vulkan)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4)
             {
+                // Will be done later, see: UUM-97281
                 return false;
             }
 
@@ -298,10 +298,34 @@ namespace UnityEngine.Rendering
             return s_Copy.passCount == 2;
         }
 
+        internal static bool CanCopyMSAA(in TextureDesc sourceDesc)
+        {
+
+            // Real native renderpass platforms
+            // TODO: Expose this through systeminfo
+            bool hasRenderPass =
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal
+                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan
+                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12;
+
+            if (SystemInfo.supportsMultisampleAutoResolve &&
+                !hasRenderPass && sourceDesc.bindTextureMS == false)
+            {
+                // If we have autoresolve it means msaa rendertextures render as MSAA but  magically resolve in the driver when accessed as a texture, the MSAA surface is fully hidden inside the GFX device
+                // this is contrary to most platforms where the resolve magic on reading happens in the engine layer (and thus allocates proper multi sampled and resolve surfaces the engine can access)
+                // So in the cases of auto resolving, and a renderpass framebuffer fetch emulation layer we can't correctly access the individual unresolved msaa samples and thus don't allow this case here
+                // Note: In practice the above check mostly triggers on GLES.
+                return false;
+            }
+
+            return CanCopyMSAA();
+        }
+
         /// <summary>
         /// Copy a texture to another texture using framebuffer fetch.
         /// </summary>
         /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="isMSAA">Use the MSAA variant of the copy shader (otherwise single sample is used).</param>
         /// <param name="force2DForXR">Disable the special handling when XR is active where the source and destination are considered array
         /// textures with a slice for each eye. Setting this to true will consider source and destination as regular 2D textures. When XR is
         /// disabled, textures are always 2D so forcing them to 2D has no impact.</param>
