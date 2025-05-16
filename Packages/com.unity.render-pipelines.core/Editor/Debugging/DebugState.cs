@@ -179,7 +179,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Object Debug State.
     /// </summary>
-    [Serializable, DebugState(typeof(DebugUI.ObjectPopupField), typeof(DebugUI.CameraSelector))]
+    [Serializable, DebugState(typeof(DebugUI.ObjectPopupField), typeof(DebugUI.CameraSelector), typeof(DebugUI.ObjectField))]
     public sealed class DebugStateObject : DebugState<UnityEngine.Object>
     {
         /// <summary>
