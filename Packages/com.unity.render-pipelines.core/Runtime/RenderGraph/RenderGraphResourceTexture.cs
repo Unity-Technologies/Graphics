@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public int width;
         ///<summary>Texture height.</summary>
         public int height;
-        ///<summary>Number of texture slices..</summary>
+        ///<summary>Number of texture slices.</summary>
         public int slices;
         ///<summary>Texture scale.</summary>
         public Vector2 scale;
