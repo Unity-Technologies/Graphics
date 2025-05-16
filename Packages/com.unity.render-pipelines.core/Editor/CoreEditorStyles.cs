@@ -118,6 +118,8 @@ namespace UnityEditor.Rendering
 
         /// <summary> Warning icon </summary>
         public static readonly Texture2D iconWarn;
+        /// <summary> Info icon </summary>
+        public static readonly Texture2D iconInfo;
         /// <summary> Help icon </summary>
         public static readonly Texture2D iconHelp;
         /// <summary> Fail icon </summary>
@@ -144,7 +146,7 @@ namespace UnityEditor.Rendering
                 case MessageType.None:
                     return null;
                 case MessageType.Info:
-                    return iconHelp;
+                    return iconInfo;
                 case MessageType.Warning:
                     return iconWarn;
                 case MessageType.Error:
@@ -215,7 +217,8 @@ namespace UnityEditor.Rendering
             greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green, "Green 1x1");
             blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue, "Blue 1x1");
 
-            iconHelp = CoreEditorUtils.LoadIcon("icons", "console.infoicon", ".png");
+            iconHelp = CoreEditorUtils.LoadIcon("icons", "_Help", ".png");
+            iconInfo = CoreEditorUtils.LoadIcon("icons", "console.infoicon", ".png");
             iconWarn = CoreEditorUtils.LoadIcon("icons", "console.warnicon", ".png");
             iconFail = CoreEditorUtils.LoadIcon("icons", "console.erroricon", ".png");
             iconSuccess = EditorGUIUtility.FindTexture("TestPassed");
