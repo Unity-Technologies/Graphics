@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Vector4[] m_CascadeSplitDistances;
 
         bool m_CreateEmptyShadowmap;
+        private bool m_EmptyShadowmapNeedsClear = false;
 
         int renderTargetWidth;
         int renderTargetHeight;
@@ -76,7 +77,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_MainLightShadowmapID = Shader.PropertyToID(k_MainLightShadowMapTextureName);
 
-            m_EmptyMainLightShadowmapTexture = RTHandles.Alloc(Texture2D.blackTexture);
+            m_EmptyMainLightShadowmapTexture = ShadowUtils.AllocShadowRT(1, 1, k_ShadowmapBufferBits, 1, 0, name: "_EmptyLightShadowmapTexture");
+            m_EmptyShadowmapNeedsClear = true;
         }
 
         /// <summary>
@@ -163,7 +165,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
-            ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyMainLightShadowmapTexture, k_EmptyShadowMapDimensions, k_EmptyShadowMapDimensions, k_ShadowmapBufferBits, name: k_EmptyMainLightShadowMapTextureName);
+
+            // Required for scene view camera(URP renderer not initialized)
+            if(ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyMainLightShadowmapTexture, 1, 1, k_ShadowmapBufferBits, name: "_EmptyLightShadowmapTexture"))
+                m_EmptyShadowmapNeedsClear = true;
 
             return true;
         }
@@ -171,14 +176,20 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc />
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            
-            if (m_CreateEmptyShadowmap)
+            if (m_CreateEmptyShadowmap && !m_EmptyShadowmapNeedsClear)
             {
                 // Reset pass RTs to null
                 ResetTarget();
                 return;
             }
+            if (m_CreateEmptyShadowmap)
+            {
+                ConfigureTarget(m_EmptyMainLightShadowmapTexture);
+                m_EmptyShadowmapNeedsClear = false;
+            }
+            else
                 ConfigureTarget(m_MainLightShadowmapTexture);
+
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
