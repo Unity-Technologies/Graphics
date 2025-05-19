@@ -31,8 +31,6 @@ These properties appear in the Inspector regardless of the **Bake Mode** you sel
 
 This section only appears if you set **Bake Mode** to **Mesh**.
 
-![](Images/pcache-mesh-inspector.png)<br/>*Point Cache Bake Tool's Mesh Baking section in the Inspector.*
-
 | **Property**       | **Description**                                              |
 | ------------------ | ------------------------------------------------------------ |
 | **Mesh**           | The Mesh to produce a Point Cache representation of.         |
@@ -58,8 +56,6 @@ This section of the window only appears if you assign a Mesh asset to the **Mesh
 ### Texture Baking
 
 This section only appears if you set **Bake Mode** to **Texture**.
-
-![](Images/pcache-texture-inspector.png)<br/>*Point Cache Bake Tool's Texture Baking section in the Inspector.*
 
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |

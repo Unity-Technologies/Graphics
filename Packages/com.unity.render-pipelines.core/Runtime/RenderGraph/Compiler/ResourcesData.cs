@@ -207,25 +207,36 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             resourceNames = new DynamicArray<Name>[(int)RenderGraphResourceType.Count];
 
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
-            {
-                // Note: All these lists are allocated with zero capacity, they will be resized in Initialize when
-                // the amount of resources is known.
-                versionedData[t] = new NativeList<ResourceVersionedData>(0, AllocatorManager.Persistent);
-                unversionedData[t] = new NativeList<ResourceUnversionedData>(0, AllocatorManager.Persistent);
-                readerData[t] = new NativeList<ResourceReaderData>(0, AllocatorManager.Persistent);
                 resourceNames[t] = new DynamicArray<Name>(0); // T in NativeList<T> cannot contain managed types, so the names are stored separately
-            }
         }
 
         public void Clear()
         {
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
             {
-                unversionedData[t].Clear();
-                versionedData[t].Clear();
-                readerData[t].Clear();
+                if (unversionedData[t].IsCreated)
+                    unversionedData[t].Clear();
+
+                if (versionedData[t].IsCreated)
+                    versionedData[t].Clear();
+
+                if (readerData[t].IsCreated)
+                    readerData[t].Clear();
+
                 resourceNames[t].Clear();
             }
+        }
+
+        void AllocateAndResizeNativeListIfNeeded<T>(ref NativeList<T> nativeList, int size, NativeArrayOptions options) where T : unmanaged
+        {
+            // Allocate the first time or if Dispose() has been called through RenderGraph.Cleanup()
+            // Length remains 0, list is still empty
+            if (!nativeList.IsCreated)
+                nativeList = new NativeList<T>(size, AllocatorManager.Persistent);
+
+            // Resize the list (it will allocate if necessary)
+            // List is not empty anymore
+            nativeList.Resize(size, options);
         }
 
         public void Initialize(RenderGraphResourceRegistry resources)
@@ -238,9 +249,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 RenderGraphResourceType resourceType = (RenderGraphResourceType) t;
                 var numResources = resources.GetResourceCount(resourceType);
 
-                // For each resource type, resize the buffer (only allocate if bigger)
-                // We don't clear the buffer as we reinitialize it right after
-                unversionedData[t].Resize(numResources, NativeArrayOptions.UninitializedMemory);
+                // We don't clear the list as we reinitialize it right after
+                AllocateAndResizeNativeListIfNeeded(ref unversionedData[t], numResources, NativeArrayOptions.UninitializedMemory);
+
                 resourceNames[t].Resize(numResources, true);
 
                 if (numResources > 0) // Null Resource
@@ -301,8 +312,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 MaxVersions = (int)maxWriters + 1;
 
                 // Clear the other caching structures, they will be filled later
-                versionedData[t].Resize(MaxVersions * numResources, NativeArrayOptions.ClearMemory);
-                readerData[t].Resize(MaxVersions * MaxReaders * numResources, NativeArrayOptions.ClearMemory);
+                AllocateAndResizeNativeListIfNeeded(ref versionedData[t], MaxVersions * numResources, NativeArrayOptions.ClearMemory);
+                AllocateAndResizeNativeListIfNeeded(ref readerData[t], MaxVersions * MaxReaders * numResources, NativeArrayOptions.ClearMemory);
             }
         }
 
@@ -340,9 +351,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             for (int t = 0; t < (int)RenderGraphResourceType.Count; t++)
             {
-                versionedData[t].Dispose();
-                unversionedData[t].Dispose();
-                readerData[t].Dispose();
+                if (versionedData[t].IsCreated)
+                    versionedData[t].Dispose();
+
+                if (unversionedData[t].IsCreated)
+                    unversionedData[t].Dispose();
+
+                if (readerData[t].IsCreated)
+                    readerData[t].Dispose();
             }
         }
     }

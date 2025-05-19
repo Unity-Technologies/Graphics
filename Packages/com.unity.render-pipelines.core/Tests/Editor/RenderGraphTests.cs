@@ -41,6 +41,10 @@ namespace UnityEngine.Rendering.Tests
         RenderGraphTestPipelineAsset m_RenderGraphTestPipeline;
         RenderGraphTestGlobalSettings m_RenderGraphTestGlobalSettings;
 
+        // We need a camera to execute the render graph and a game object to attach a camera
+        GameObject m_GameObject;
+        Camera m_Camera;
+
         // For the testing of the following RG steps: Execute and Submit (native) with camera rendering, use this custom RenderGraph render pipeline
         // through a camera render call to test the RG with a real ScriptableRenderContext
         class RenderGraphTestPipelineAsset : RenderPipelineAsset<RenderGraphTestPipelineInstance>
@@ -79,7 +83,7 @@ namespace UnityEngine.Rendering.Tests
                     if (!camera.enabled)
                         continue;
 
-                    var cmd = new CommandBuffer { name = "Rendering command buffer" };
+                    var cmd = CommandBufferPool.Get();
 
                     RenderGraphParameters rgParams = new()
                     {
@@ -96,6 +100,8 @@ namespace UnityEngine.Rendering.Tests
                     m_RenderGraph.EndRecordingAndExecute();
 
                     renderContext.ExecuteCommandBuffer(cmd);
+
+                    CommandBufferPool.Release(cmd);
                 }
                 renderContext.Submit();
             }
@@ -128,6 +134,16 @@ namespace UnityEngine.Rendering.Tests
 
             // Getting the RG from the custom asset pipeline
             m_RenderGraph = m_RenderGraphTestPipeline.renderGraph;
+
+            m_RenderGraph.nativeRenderPassesEnabled = true;
+            
+            // We need a real ScriptableRenderContext and a camera to execute the Render Graph
+            m_GameObject = new GameObject("testGameObject")
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            m_GameObject.tag = "MainCamera";
+            m_Camera = m_GameObject.AddComponent<Camera>();
         }
 
         [OneTimeTearDown]
@@ -147,12 +163,18 @@ namespace UnityEngine.Rendering.Tests
             EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset<RenderGraphTestPipelineInstance>(null);
 #endif
             Object.DestroyImmediate(m_RenderGraphTestGlobalSettings);
+
+            GameObject.DestroyImmediate(m_GameObject);
+            m_GameObject = null;
+            m_Camera = null;
         }
 
-        [SetUp]
-        public void SetupRenderGraph()
+        [TearDown]
+        public void CleanupRenderGraph()
         {
-            m_RenderGraph.ClearCompiledGraph();
+            // Cleaning all Render Graph resources and data structures
+            // Nothing remains, Render Graph in next test will start from scratch
+            m_RenderGraph.Cleanup();
         }
 
         class RenderGraphTestPassData
@@ -1030,16 +1052,6 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void CreateLegacyRendererLists()
         {
-            // We need a real ScriptableRenderContext and a camera to call correctly the legacy RendererLists API
-
-            // add the default camera
-            var gameObject = new GameObject("testGameObject")
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
-            gameObject.tag = "MainCamera";
-            var camera = gameObject.AddComponent<Camera>();
-
             // record and execute render graph calls
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
@@ -1061,27 +1073,16 @@ namespace UnityEngine.Rendering.Tests
                 rendererListHandle = m_RenderGraph.CreateSkyboxRendererList(camera, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity, Matrix4x4.identity);
                 Assert.IsTrue(rendererListHandle.IsValid());
             };
-            camera.Render();
-
-            GameObject.DestroyImmediate(gameObject);
+            m_Camera.Render();
         }
 
         [Test]
         public void RenderPassWithNoRenderFuncThrows()
         {
-            // We need a real ScriptableRenderContext and a camera to execute the render graph
-            // add the default camera
-            var gameObject = new GameObject("testGameObject")
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
-            gameObject.tag = "MainCamera";
-            var camera = gameObject.AddComponent<Camera>();
-
             // record and execute render graph calls
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
-                using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPassWithNoRenderFunc", out var passData))
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPassWithNoRenderFunc", out var passData))
                 {
                     builder.AllowPassCulling(false);
 
@@ -1090,9 +1091,7 @@ namespace UnityEngine.Rendering.Tests
             };
             LogAssert.Expect(LogType.Error, "Render Graph Execution error");
             LogAssert.Expect(LogType.Exception, "InvalidOperationException: RenderPass TestPassWithNoRenderFunc was not provided with an execute function.");
-            camera.Render();
-
-            GameObject.DestroyImmediate(gameObject);
+            m_Camera.Render();
         }
 
         /*
@@ -1167,15 +1166,6 @@ namespace UnityEngine.Rendering.Tests
             const int kHeight = 4;
             const GraphicsFormat format = GraphicsFormat.R8G8B8A8_SRGB;
 
-            // We need a real ScriptableRenderContext and a camera to execute the render graph
-            // add the default camera
-            var gameObject = new GameObject("testGameObject")
-            {
-                hideFlags = HideFlags.HideAndDontSave,
-                tag = "MainCamera"
-            };
-            var camera = gameObject.AddComponent<Camera>();
-
             NativeArray<byte> pixels = default;
             bool passExecuted = false;
 
@@ -1208,7 +1198,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             };
 
-            camera.Render();
+            m_Camera.Render();
 
             AsyncGPUReadback.WaitAllRequests();
 
@@ -1223,7 +1213,6 @@ namespace UnityEngine.Rendering.Tests
             }
 
             pixels.Dispose();
-            GameObject.DestroyImmediate(gameObject);
         }
 
         void RenderGraphTest_AsyncReadbackCallback(AsyncGPUReadbackRequest request)
@@ -1286,14 +1275,6 @@ namespace UnityEngine.Rendering.Tests
         [Test, ConditionalIgnore("IgnoreGraphicsAPI", "Compute Shaders are not supported for this Graphics API.")]
         public void ImportingBufferWorks()
         {
-            // We need a real ScriptableRenderContext and a camera to execute the render graph
-            // add the default camera
-            var gameObject = new GameObject("testGameObject")
-            {
-                hideFlags = HideFlags.HideAndDontSave,
-                tag = "MainCamera"
-            };
-            var camera = gameObject.AddComponent<Camera>();
 #if UNITY_EDITOR
             var computeShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(kPathToComputeShader);
 #else
@@ -1344,7 +1325,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             };
 
-            camera.Render();
+            m_Camera.Render();
 
             // Read back the data from the buffer
             float[] result2 = new float[bufferSize];
@@ -1357,6 +1338,136 @@ namespace UnityEngine.Rendering.Tests
             {
                 Assert.IsTrue(result2[i] == 1.0f);
             }
+        }
+        
+        class RenderGraphTransientTestData
+        {
+            public TextureHandle transientTexture;
+            public TextureHandle whiteTexture;
+        }
+
+        private static readonly int k_DefaultWhiteTextureID = Shader.PropertyToID("_DefaultWhiteTex");
+
+        [Test]
+        public void TransientHandleAreValidatedByCommandBufferSafetyLayer()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTransientTestData>("TransientPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    var texDesc = new TextureDesc(Vector2.one, false, false)
+                    {
+                        width = 1920,
+                        height = 1080,
+                        format = GraphicsFormat.B10G11R11_UFloatPack32,
+                        clearBuffer = true,
+                        clearColor = Color.red,
+                        name = "Transient Texture"
+                    };
+                    passData.transientTexture = builder.CreateTransientTexture(texDesc);
+                    passData.whiteTexture = m_RenderGraph.defaultResources.whiteTexture;
+
+                    builder.SetRenderFunc((RenderGraphTransientTestData data, UnsafeGraphContext context) =>
+                    {
+                        // Will ensure the transient texture is valid or throw an exception otherwise
+                        Assert.DoesNotThrow(delegate { context.cmd.SetGlobalTexture(k_DefaultWhiteTextureID, data.transientTexture); });
+                        // Put back white instead
+                        context.cmd.SetGlobalTexture(k_DefaultWhiteTextureID, data.whiteTexture);
+                    });
+                }
+            };
+
+            m_Camera.Render();
+        }
+        
+        class RenderGraphCleanupTestData
+        {
+            public TextureHandle textureToRelease;
+        }
+
+        [Test]
+        public void Cleanup_ReleaseGraphicsResources_WhenCallingCleanup()
+        {
+            // We need to capture this variable in the lambda function of the CleanupPass unfortunately
+            RenderTexture renderTextureToRemove = null;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphCleanupTestData>("CleanupPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    var texDesc = new TextureDesc(Vector2.one, false, false)
+                    {
+                        width = 1920,
+                        height = 1080,
+                        format = GraphicsFormat.B10G11R11_UFloatPack32,
+                        clearBuffer = true,
+                        clearColor = Color.red,
+                        name = "Texture To Release"
+                    };
+                    passData.textureToRelease = m_RenderGraph.CreateTexture(texDesc);
+                    builder.UseTexture(passData.textureToRelease);
+                    builder.SetRenderFunc((RenderGraphCleanupTestData data, UnsafeGraphContext context) =>
+                    {
+                        // textureToRelease has been allocated before executing this node
+                        renderTextureToRemove = (RenderTexture)data.textureToRelease;
+                        Assert.IsNotNull(renderTextureToRemove);
+                        // textureToRelease will returned to the texture pool after executing this node
+                    });
+                }
+            };
+
+            // Render Graph hasn't started yet, no texture allocated
+            Assert.IsNull(renderTextureToRemove);
+
+            m_Camera.Render();
+
+            // Cleanup pass has been executed
+            // RG resource has been created and then released to the pool
+            // but the graphics resource has not been released, still attached to the pooled resource
+            // in case a next pass will reuse it
+            Assert.IsNotNull(renderTextureToRemove);
+
+            m_RenderGraph.Cleanup();
+
+            // All RG resources and data structures have been released
+            Assert.IsTrue(renderTextureToRemove == null);
+        }
+
+        [Test]
+        public void Cleanup_RenderAgain_AfterCallingCleanup()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphCleanupTestData>("MidCleanupPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    var texDesc = new TextureDesc(Vector2.one, false, false)
+                    {
+                        width = 1920,
+                        height = 1080,
+                        format = GraphicsFormat.B10G11R11_UFloatPack32,
+                        clearBuffer = true,
+                        clearColor = Color.red,
+                        name = "Texture To Release Twice"
+                    };
+                    passData.textureToRelease = m_RenderGraph.CreateTexture(texDesc);
+                    builder.SetRenderFunc((RenderGraphCleanupTestData data, UnsafeGraphContext context) =>
+                    {
+                        ///
+                    });
+                }
+            };
+
+            m_Camera.Render();
+
+            // Cleanup everything in Render Graph, even the native data structures
+            m_RenderGraph.Cleanup();
+
+            // Ensure that the Render Graph data structures can be reinitialized at runtime, even native ones
+            Assert.DoesNotThrow(() => m_Camera.Render());
         }
     }
 }

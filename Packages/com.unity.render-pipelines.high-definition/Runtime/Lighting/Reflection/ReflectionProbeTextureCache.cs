@@ -641,8 +641,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ReserveReflectionProbeSlot(HDProbe probe)
         {
             Texture texture = probe.texture;
-            Assert.IsTrue(texture.width == texture.height);
-            Assert.IsTrue(texture.dimension == TextureDimension.Tex2D || texture.dimension == TextureDimension.Cube);
+            Assert.IsTrue(texture.width == texture.height, "Reflection probe should be a square texture. Check the import settings of the texture, or your Texture Importer presets");
+            Assert.IsTrue(texture.dimension == TextureDimension.Tex2D || texture.dimension == TextureDimension.Cube, "Reflection probe should be a 2D or Cube texture. Check the import settings of the texture, or your Texture Importer presets");
 
             int textureId = GetTextureIDAndSize(probe, out int textureSize);
 

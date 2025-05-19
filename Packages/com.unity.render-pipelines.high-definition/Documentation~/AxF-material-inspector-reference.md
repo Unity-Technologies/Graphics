@@ -2,8 +2,6 @@
 
 The AxF Shader allows you to render X-Rite AxF materials in the High Definition Render Pipeline (HDRP). AxF is a standardized format that allows for the exchange of material appearance data. The production of an AxF file typically involves an authoring suite that includes real-world material measurements from which it can produce various textures and model properties.
 
-![](Images/AxFShader1.png)
-
 To translate AxF file data into Material properties and data that HDRP's AxF Shader can understand and render, Unity uses the **AxF Importer** package. You are not required to use the importer and can instead use the Inspector to assign values yourself. However, the AxF Shader is specifically designed to work with data the AxF Importer translates from AxF files. Unity currently does not provide a method to author certain Assets that AxF Materials rely on to accurately portray the real-world material they represent. This means that, if you create the AxF Material manually, you may not be able to reproduce certain results available from an imported AxF file.
 
 ## Importing and Creating an AxF Material

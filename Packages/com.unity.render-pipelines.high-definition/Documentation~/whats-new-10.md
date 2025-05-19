@@ -14,7 +14,7 @@ This version of HDRP includes support for the Game Core Xbox Series platform as 
 
 ### IES Profiles and light cookies
 
-![](Images/HDRPFeatures-IESProfiles.png)
+![IES Profiles sample.](Images/HDRPFeatures-IESProfiles.png)
 
 HDRP now supports the Illuminating Engineering Society's (IES) file format for describing the distribution of light from a light source. HDRP supports the IES profile for Point, Spot (Cone, Pyramid, and Box), and rectangular Area [Lights](Light-Component.md). You can also mix the IES profile with [cookies](https://docs.unity3d.com/Manual/Cookies.html) and even use the profile and cookie mix for [light map baking](https://docs.unity3d.com/Manual/LightMode-Baked.html).
 
@@ -45,7 +45,7 @@ This version of HDRP includes scalability settings for fog and subsurface scatte
 
 ### Screen-space global illumination
 
-![](Images/HDRPFeatures-SSGI.png)
+![Screen-space global illumination sample.](Images/HDRPFeatures-SSGI.png)
 
 This version of HDRP introduces screen-space global illumination (SSGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
 
@@ -53,14 +53,14 @@ For more information, see [Screen Space Global Illumination](Override-Screen-Spa
 
 ### Custom Pass AOV Export
 
-![img](Images/aov_example.png)
+![Custom Pass AOV Export example.](Images/aov_example.png)
 This feature allows you to export arbitrary data from custom pass injection points using an extension of the Arbitrary Output Variables (AOV) API in HDRP. An example use-case is for exporting “Object IDs” that are rendered with a custom pass. For information about the feature and example scripts, see the [AOV documentation](AOVs.md).
 
 ### Debug modes
 
 #### Light debug view
 
-![](Images/LightDebugView.png)
+![Light debug view example.](Images/LightDebugView.png)
 
 To help you to debug lighting in your Scene, HDRP now includes various lighting debug view modes that allow you to separate the various components of the light into multiple parts. These debug modes are also available in the [AOV](AOVs.md) API to allow recorders to export them. The new lighting debug modes are:
 
@@ -79,13 +79,13 @@ HDRP now includes a new [light layer](Rendering-Layers.md) debug mode which can 
 For more information, see the Lighting panel section in the [Rendering Debugger](rendering-debugger-window-reference.md).
 
 #### Volume debug mode
-![](Images/VolumeDebugMode.png)
+![Volume debug mode example.](Images/VolumeDebugMode.png)
 
 The Rendering Debugger window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [Rendering Debugger](rendering-debugger-window-reference.md#VolumePanel).
 
 #### Quad Overdraw and Vertex Density
 
-![quad_density](Images/quad_density_example.png)
+![Quad Overdraw and Vertex Density example.](Images/quad_density_example.png)
 To help you finding GameObjects in you scene that need LODs, HDRP includes two new full screen rendering debug modes to spot Meshes far away or with too many details.
 
 - Quad Overdraw: highlights GPU quads running multiple fragment shaders, which is mainly caused by small or thin triangles. (Not supported on Metal and PS4)
@@ -131,7 +131,7 @@ For more information, see the [Create an HDRI sky](create-an-hdri-sky.md).
 
 ### Graphics Compositor
 
-![](Images/Compositor-HDRPTemplateWithLogo_Feature.png)
+![Example: Compositor template with logo feature.](Images/Compositor-HDRPTemplateWithLogo_Feature.png)
 The Graphics Compositor allows real-time compositing operations between layers of 3D content, static images, and videos.
 
 The tool support three types of compositing techniques:
@@ -148,7 +148,7 @@ For information about the feature, see the [HDRP Compositor documentation](graph
 
 #### Path-traced depth of field
 
-![](Images/Path-traced-DOF-Feature.png)
+![Path-traced depth of field example.](Images/Path-traced-DOF-Feature.png)
 
 This version of HDRP includes a new depth of field mode for producing path-traced images with high-quality defocus blur. Compared to post-processed depth of field, this mode works correctly with multiple layers of transparency and does not produce any artifacts, apart from noise typical in path traced images (which you can mitigate by increasing the sample count and/or using an external denoising tool).
 
@@ -156,21 +156,21 @@ For more information about this feature, see [Depth-of-field](Post-Processing-De
 
 #### Accumulation motion blur and path tracer convergence APIs
 
-![](Images/Path_tracing_recording-Feature.png)
+![Accumulation motion blur and path tracer convergence APIs example.](Images/Path_tracing_recording-Feature.png)
 HDRP now includes a recording API which you can use to render effects such as high-quality accumulation motion blur and converged path-traced images. These techniques create the final "converged" frame by combining information from multiple intermediate sub-frames. The new API allows your scripts to extract the properly converged final frames and do further processing or save them to disk.
 
 For information about this feature and for some example scripts, see [Multiframe rendering and accumulation documentation](Accumulation.md).
 
 #### Path-traced sub-surface scattering
 
-![](Images/Path-traced-SSS-Feature.png)
+![Path-traced sub-surface scattering example.](Images/Path-traced-SSS-Feature.png)
 
 Path tracing now supports subsurface scattering (SSS), using a random walk approach. To use it, enable path tracing and set up SSS in the same way as you would for HDRP materials.
 
 For information on SSS in HDRP, see [subsurface scattering](subsurface-scattering.md).
 
 #### Path-traced fog
-![](Images/Path-traced-fog-Feature.png)
+![Path-traced fog example.](Images/Path-traced-fog-Feature.png)
 
 Path tracing now supports fog absorption. Like SSS, to use this feature, enable path tracing and set up fog in the same way as you would for standard fog in HDRP.
 
@@ -268,19 +268,19 @@ HDRP, being a high-end modern renderer, contains a lot of compute shader passes.
 
 ### Screen Space Reflection
 
-![](Images/HDRP-SSRImprovement.png)
+![Split-screen 3D render of a flooded Venetian street during high tide, with buildings reflected in the water. The left side shows four orange vertical beams reflected on the water surface. On the right side are two slanted color calibration patterns reflected on the water surface.](Images/HDRP-SSRImprovement.png)
 
 HDRP improves the Screen Space Reflection by providing a new implementation 'PBR Accumulation'
 
 ### Planar reflection probe filtering
 
-![](Images/PlanarReflectionFiltering-Feature.png)
+![Planar reflection probe filtering example.](Images/PlanarReflectionFiltering-Feature.png)
 
 Planar reflection probe filtering is a process that combines the result of planar reflection and surfaces smoothness. Up until this version, the implementation for planar reflection probe filtering did not always produce results of fantastic quality. This version of HDRP includes a new implementation that is closer to being physically-based and improves on the image quality significantly.
 
 ### Fake distance based roughness for reflection probe
 
-![](Images/DistanceBaseRoughness-Feature.png)
+![Fake distance based roughness for reflection probe example.](Images/DistanceBaseRoughness-Feature.png)
 
 Reflection Probe can now fake the increasing preceive bluriness of a surface reflection with distance from the object. This option is disabled by default and need to be enabled on the Reflection Probe.
 
@@ -324,7 +324,7 @@ More options are now available for [contact shadows](Override-Contact-Shadows.md
 
 ### Light component user experience
 
-![](Images/NewLightUX.png)
+![Light component visualization example.](Images/NewLightUX.png)
 
 The [Light component](Light-Component.md) now includes a visualization to help you set the intensity of your lights using [physical light units](Physical-Light-Units.md).
 
@@ -340,7 +340,7 @@ Auto-exposure systems calculate the average scene luminance and try to map this 
 
 ### Custom Pass API
 
-![](Images/CustomPass_API.png)
+![Custom Pass API example.](Images/CustomPass_API.png)
 
 From this version, within the rendering of your main Camera, you can now render GameObjects from another point of view (a disabled camera for example). The new API also comes with built-in support for rendering Depth, Normal and Tangent into an RTHandle.
 

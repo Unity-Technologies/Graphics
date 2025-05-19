@@ -107,7 +107,7 @@
     #define GATHER_GREEN_TEXTURE2D_X                                         GATHER_GREEN_TEXTURE2D
     #define GATHER_BLUE_TEXTURE2D_X                                          GATHER_BLUE_TEXTURE2D
     #define GATHER_ALPHA_TEXTURE2D_X                                         GATHER_ALPHA_TEXTURE2D
-#endif
+#endif //defined(USE_TEXTURE2D_X_AS_ARRAY)
 
 // see Unity\Shaders\Includes\UnityShaderVariables.cginc for impl used by the C++ renderer
 #if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_INSTANCING_ENABLED)
@@ -127,5 +127,105 @@
     // Backward compatibility
     #define UNITY_STEREO_ASSIGN_COMPUTE_EYE_INDEX   UNITY_XR_ASSIGN_VIEW_INDEX
 #endif
+
+#if defined(SHADER_API_METAL) && defined(UNITY_NEEDS_RENDERPASS_FBFETCH_FALLBACK)
+    // Special metal fallback (allows branching per input to texture load or proper fbf)
+
+#if defined(USE_TEXTURE2D_X_AS_ARRAY)
+
+#define RENDERPASS_DECLARE_FALLBACK_X(T, idx)                                                   \
+            Texture2DArray<T> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize;                    \
+            inline T ReadFBInput_##idx(bool var, uint2 coord) {                                             \
+            [branch]if(var) { return hlslcc_fbinput_##idx; }                                                \
+            else { return _UnityFBInput##idx.Load(uint4(coord, SLICE_ARRAY_INDEX, 0)); }                    \
+            }
+
+#define FRAMEBUFFER_INPUT_X_HALF(idx)                               cbuffer hlslcc_SubpassInput_f_##idx { half4 hlslcc_fbinput_##idx; bool hlslcc_fbfetch_##idx; };    \
+                                                                                RENDERPASS_DECLARE_FALLBACK_X(half4, idx)
+
+#define FRAMEBUFFER_INPUT_X_FLOAT(idx)                              cbuffer hlslcc_SubpassInput_f_##idx { float4 hlslcc_fbinput_##idx; bool hlslcc_fbfetch_##idx; };   \
+                                                                                RENDERPASS_DECLARE_FALLBACK_X(float4, idx)
+
+#define FRAMEBUFFER_INPUT_X_INT(idx)                                cbuffer hlslcc_SubpassInput_f_##idx { int4 hlslcc_fbinput_##idx; bool hlslcc_fbfetch_##idx; };    \
+                                                                                RENDERPASS_DECLARE_FALLBACK_X(int4, idx)
+
+#define FRAMEBUFFER_INPUT_X_UINT(idx)                               cbuffer hlslcc_SubpassInput_f_##idx { uint4 hlslcc_fbinput_##idx; bool hlslcc_fbfetch_##idx; };   \
+                                                                                RENDERPASS_DECLARE_FALLBACK_X(uint4, idx)
+
+#define LOAD_FRAMEBUFFER_INPUT_X(idx, v2fname)                      ReadFBInput_##idx(hlslcc_fbfetch_##idx, uint2(v2fname.xy))
+
+
+#define RENDERPASS_DECLARE_FALLBACK_MS_X(T, idx)                                                          \
+            Texture2DMSArray<T> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize;                      \
+            inline T ReadFBInput_##idx(bool var, uint2 coord, uint sampleIdx) {                                 \
+                [branch]if(var) { return hlslcc_fbinput_##idx[sampleIdx]; }                                     \
+                else { return _UnityFBInput##idx.Load(uint3(coord, SLICE_ARRAY_INDEX), sampleIdx); }            \
+            }
+
+#define FRAMEBUFFER_INPUT_X_FLOAT_MS(idx)                                                                 \
+            cbuffer hlslcc_SubpassInput_F_##idx { float4 hlslcc_fbinput_##idx[8]; bool hlslcc_fbfetch_##idx; }; \
+            RENDERPASS_DECLARE_FALLBACK_MS_X(float4, idx)
+
+#define FRAMEBUFFER_INPUT_X_HALF_MS(idx)                                                                  \
+            cbuffer hlslcc_SubpassInput_H_##idx { half4 hlslcc_fbinput_##idx[8]; bool hlslcc_fbfetch_##idx; };  \
+            RENDERPASS_DECLARE_FALLBACK_MS_X(half4, idx)
+
+#define FRAMEBUFFER_INPUT_X_INT_MS(idx)                                                                   \
+            cbuffer hlslcc_SubpassInput_I_##idx { int4 hlslcc_fbinput_##idx[8]; bool hlslcc_fbfetch_##idx; };   \
+            RENDERPASS_DECLARE_FALLBACK_MS_X(int4, idx)
+
+#define FRAMEBUFFER_INPUT_X_UINT_MS(idx)                                                                  \
+            cbuffer hlslcc_SubpassInput_U_##idx { uint4 hlslcc_fbinput_##idx[8]; bool hlslcc_fbfetch_##idx; };  \
+            UNITY_RENDERPASS_DECLARE_FALLBACK_MS_X(uint4, idx)
+
+#define LOAD_FRAMEBUFFER_INPUT_X_MS(idx, sampleIdx, v2fname) ReadFBInput_##idx(hlslcc_fbfetch_##idx, uint2(v2fname.xy), sampleIdx)
+
+#else
+    // X is just 2D texture so just use the existing macros that have all the metal magic for regular 2D textures
+    #define FRAMEBUFFER_INPUT_X_HALF(idx)                               FRAMEBUFFER_INPUT_HALF(idx)
+    #define FRAMEBUFFER_INPUT_X_FLOAT(idx)                              FRAMEBUFFER_INPUT_FLOAT(idx)
+    #define FRAMEBUFFER_INPUT_X_INT(idx)                                FRAMEBUFFER_INPUT_INT(idx)
+    #define FRAMEBUFFER_INPUT_X_UINT(idx)                               FRAMEBUFFER_INPUT_UINT(idx)
+    #define LOAD_FRAMEBUFFER_INPUT_X(idx, v2fname)                      LOAD_FRAMEBUFFER_INPUT(idx, v2fname)
+
+    #define FRAMEBUFFER_INPUT_X_HALF_MS(idx) FRAMEBUFFER_INPUT_HALF_MS(idx)
+    #define FRAMEBUFFER_INPUT_X_FLOAT_MS(idx) FRAMEBUFFER_INPUT_FLOAT_MS(idx)
+    #define FRAMEBUFFER_INPUT_X_INT_MS(idx) FRAMEBUFFER_INPUT_INT_MS(idx)
+    #define FRAMEBUFFER_INPUT_X_UINT_MS(idx) FRAMEBUFFER_INPUT_UINT_MS(idx)
+    #define LOAD_FRAMEBUFFER_INPUT_X_MS(idx, sampleIdx, v2fvertexname) LOAD_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fvertexname)
+
+#endif //defined(USE_TEXTURE2D_X_AS_ARRAY)
+
+#elif !defined(PLATFORM_SUPPORTS_NATIVE_RENDERPASS)
+
+    // Use regular texture loads as a fallback these can be either 2d or array depending on the TEXTURE2D_X (USE_TEXTURE2D_X_AS_ARRAY) macros
+#define FRAMEBUFFER_INPUT_X_HALF(idx)                               TEXTURE2D_X_HALF(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define FRAMEBUFFER_INPUT_X_FLOAT(idx)                              TEXTURE2D_X_FLOAT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define FRAMEBUFFER_INPUT_X_INT(idx)                                TEXTURE2D_X_INT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define FRAMEBUFFER_INPUT_X_UINT(idx)                               TEXTURE2D_X_UINT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define LOAD_FRAMEBUFFER_INPUT_X(idx, v2fvertexname)                LOAD_TEXTURE2D_X(_UnityFBInput##idx,v2fvertexname.xy)
+
+#define FRAMEBUFFER_INPUT_X_FLOAT_MS(idx) TEXTURE2D_X_MSAA(float4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define FRAMEBUFFER_INPUT_X_HALF_MS(idx) TEXTURE2D_X_MSAA(float4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define FRAMEBUFFER_INPUT_X_INT_MS(idx) TEXTURE2D_X_MSAA(int4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define FRAMEBUFFER_INPUT_X_UINT_MS(idx) TEXTURE2D_X_MSAA(uint4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+#define LOAD_FRAMEBUFFER_INPUT_X_MS(idx, sampleIdx, v2fvertexname) LOAD_TEXTURE2D_X_MSAA(_UnityFBInput##idx, v2fvertexname.xy, sampleIdx)
+
+#else
+
+    // Proper fbf, it will automatically ensure the correct eye is fb-fetched so we do not care if USE_TEXTURE2D_X_AS_ARRAY is enabled or not
+#define FRAMEBUFFER_INPUT_X_HALF(idx)                               FRAMEBUFFER_INPUT_HALF(idx)
+#define FRAMEBUFFER_INPUT_X_FLOAT(idx)                              FRAMEBUFFER_INPUT_FLOAT(idx)
+#define FRAMEBUFFER_INPUT_X_INT(idx)                                FRAMEBUFFER_INPUT_INT(idx)
+#define FRAMEBUFFER_INPUT_X_UINT(idx)                               FRAMEBUFFER_INPUT_UINT(idx)
+#define LOAD_FRAMEBUFFER_INPUT_X(idx, v2fname)                      LOAD_FRAMEBUFFER_INPUT(idx, v2fname)
+
+#define FRAMEBUFFER_INPUT_X_HALF_MS(idx) FRAMEBUFFER_INPUT_HALF_MS(idx)
+#define FRAMEBUFFER_INPUT_X_FLOAT_MS(idx) FRAMEBUFFER_INPUT_FLOAT_MS(idx)
+#define FRAMEBUFFER_INPUT_X_INT_MS(idx) FRAMEBUFFER_INPUT_INT_MS(idx)
+#define FRAMEBUFFER_INPUT_X_UINT_MS(idx) FRAMEBUFFER_INPUT_UINT_MS(idx)
+#define LOAD_FRAMEBUFFER_INPUT_X_MS(idx, sampleIdx, v2fvertexname) LOAD_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fname)
+
+#endif //!defined(PLATFORM_SUPPORTS_NATIVE_RENDERPASS)
 
 #endif // UNITY_TEXTUREXR_INCLUDED

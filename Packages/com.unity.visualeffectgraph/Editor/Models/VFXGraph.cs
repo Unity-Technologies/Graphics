@@ -374,19 +374,7 @@ namespace UnityEditor.VFX
                         AssetDatabase.StartAssetEditing();
                     }
                     var vfxResource = VisualEffectResource.GetResourceAtPath(path);
-                    if (vfxResource != null)
-                    {
-                        vfxResource.GetOrCreateGraph().UpdateSubAssets();
-                        try
-                        {
-                            VFXGraph.compilingInEditMode = vfxResource.GetOrCreateGraph().GetCompilationMode() == VFXCompilationMode.Edition;
-                            vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
-                        }
-                        finally
-                        {
-                            VFXGraph.compilingInEditMode = false;
-                        }
-                    }
+                    vfxResource?.WriteAssetWithSubAssets();
                 }
             }
             finally
@@ -430,6 +418,13 @@ namespace UnityEditor.VFX
         public static void UpdateSubAssets(this VisualEffectResource resource)
         {
             resource.GetOrCreateGraph().UpdateSubAssets();
+        }
+
+        public static void WriteAssetWithSubAssets(this VisualEffectResource resource)
+        {
+            var graph = resource.GetOrCreateGraph();
+            graph.UpdateSubAssets();
+            resource.WriteAsset();
         }
 
         public static bool IsAssetEditable(this VisualEffectResource resource)
@@ -487,15 +482,6 @@ namespace UnityEditor.VFX
         // 17: New Flipbook player and split the different Flipbook modes in UVMode into separate variables
         // 18: Change ProbabilitySampling m_IntegratedRandomDeprecated changed to m_Mode
         public static readonly int CurrentVersion = 18;
-
-        [NonSerialized]
-        internal static bool compilingInEditMode = false;
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            m_ExpressionGraphDirty = true;
-        }
 
         public override void OnSRPChanged()
         {
@@ -1139,7 +1125,7 @@ namespace UnityEditor.VFX
 
         public void SetCompilationMode(VFXCompilationMode mode, bool reimport = true)
         {
-            if (m_CompilationMode != mode)
+            if (m_CompilationMode != mode && !GetResource().isSubgraph)
             {
                 m_CompilationMode = mode;
                 SetExpressionGraphDirty();
@@ -1400,11 +1386,10 @@ namespace UnityEditor.VFX
 
         public void CompileForImport()
         {
-            if (compilingInEditMode)
-                m_CompilationMode = VFXCompilationMode.Edition;
+            bool isSubgraph = GetResource().isSubgraph;
 
             SyncCustomAttributes();
-            if (!GetResource().isSubgraph)
+            if (!isSubgraph)
             {
                 // Check Graph Before Import can be needed to synchronize modified shaderGraph
                 foreach (var child in children)
@@ -1492,21 +1477,15 @@ namespace UnityEditor.VFX
         [SerializeField]
         private int m_ResourceVersion;
 
-        [NonSerialized]
         private bool m_GraphSanitized = false;
-        [NonSerialized]
         private bool m_ExpressionGraphDirty = true;
-        [NonSerialized]
         private bool m_ExpressionValuesDirty = true;
-        [NonSerialized]
         private bool m_DependentDirty = true;
-        [NonSerialized]
         private bool m_MaterialsDirty = false;
-        [NonSerialized]
         private bool m_CustomAttributesDirty = false;
 
-        [NonSerialized]
         private VFXGraphCompiledData m_CompiledData;
+
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
         private bool m_ForceShaderDebugSymbols = false;
         private bool m_ForceShaderValidation = false;

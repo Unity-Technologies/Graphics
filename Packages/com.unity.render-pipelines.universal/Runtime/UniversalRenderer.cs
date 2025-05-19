@@ -238,8 +238,8 @@ namespace UnityEngine.Rendering.Universal
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
 
-            this.stripShadowsOffVariants = true;
-            this.stripAdditionalLightOffVariants = true;
+            this.stripShadowsOffVariants = data.stripShadowsOffVariants;
+            this.stripAdditionalLightOffVariants = data.stripAdditionalLightOffVariants;
 #if ENABLE_VR && ENABLE_VR_MODULE
 #if PLATFORM_WINRT || PLATFORM_ANDROID
             // AdditionalLightOff variant is available on HL&Quest platform due to performance consideration.
@@ -1324,7 +1324,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 var colorDesc = cameraTargetDescriptor;
                 colorDesc.graphicsFormat = MotionVectorRenderPass.k_TargetFormat;
-                colorDesc.depthStencilFormat = GraphicsFormat.None; 
+                colorDesc.depthStencilFormat = GraphicsFormat.None;
                 colorDesc.msaaSamples = 1;  // Disable MSAA, consider a pixel resolve for half left velocity and half right velocity --> no velocity, which is untrue.
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: MotionVectorRenderPass.k_MotionVectorTextureName);
 
@@ -1466,7 +1466,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // We can explicitely render the overlay UI from URP when HDR output is not enabled.
                 // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
-                if (shouldRenderUI && !outputToHDR)
+                if (shouldRenderUI && cameraData.isLastBaseCamera && !outputToHDR)
                 {
                     EnqueuePass(m_DrawOverlayUIPass);
                 }
@@ -1843,7 +1843,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
         }
 
-        bool PlatformRequiresExplicitMsaaResolve()
+        internal static bool PlatformRequiresExplicitMsaaResolve()
         {
 #if UNITY_EDITOR
             // In the editor play-mode we use a Game View Render Texture, with

@@ -2,9 +2,9 @@
 
 The Physically Based Sky Volume Override lets you configure how the High Definition Render Pipeline (HDRP) renders physically based sky.
 
-![](Images/Override-PhysicallyBasedSky2.png)
+![A forest in daytime, with a clear sky and a hazy sun.](Images/Override-PhysicallyBasedSky2.png)
 
-![](Images/Override-PhysicallyBasedSky3.png)
+![The same forest at night, with the trees in silhouette and the sky a gradient of dark yellow and orange.](Images/Override-PhysicallyBasedSky3.png)
 
 ## Using Physically Based Sky
 

@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Wave > Sawtooth Wave**
 
 The **Sawtooth Wave** Operator evaluates an input to generate a value which linearly increases from a minimum to a maximum value. When the output value reaches the maximum, it resets to the minimum value.
 
-![](Images/Operator-SawtoothWaveAnimation.gif)
+<video src="Images/Operator-SawtoothWaveAnimation.mp4" title="Animated sawtooth wave progression, showcasing the wave's repeating linear ramp pattern as the input value cycles continuously." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 If you set **Frequency** to **1**, the output value goes from **Min** to **Max** as the **Input** changes from **0** to almost **1**. When **Input** reaches **1**, the output value goes back to **Min** and starts the cycle again.
 

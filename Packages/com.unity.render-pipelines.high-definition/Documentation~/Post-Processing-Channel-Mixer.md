@@ -13,7 +13,7 @@ The Channel Mixer effect modifies the influence of each input color channel on t
 
 ## Properties
 
-![](Images/Post-processingChannelMixer1.png)
+The Channel Mixer component has the following properties.
 
 ### Output channels
 

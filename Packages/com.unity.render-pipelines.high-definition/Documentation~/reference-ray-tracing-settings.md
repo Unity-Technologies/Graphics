@@ -18,6 +18,6 @@ In the High Definition Render Pipeline (HDRP), various ray-traced effects share 
 
 ### <a name="extended-culling"></a>Extended frustum culling
 
-![](Images/RayTracingSettings_extended_frustum.png)
+![A frustum representing the camera view. The distance from the camera to the far clipping plane is d. The width and height of the far clipping plane is w and h.](Images/RayTracingSettings_extended_frustum.png)
 
 If you enable **Extend Shadow Culling** or **Extend Camera Culling**, HDRP sets the culling region to the width and height of the frustum at the far clipping plane, and sets the depth to twice the distance from the camera to the far clipping plane.

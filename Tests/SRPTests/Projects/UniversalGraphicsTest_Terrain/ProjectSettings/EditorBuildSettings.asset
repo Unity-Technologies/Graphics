@@ -30,6 +30,9 @@ EditorBuildSettings:
     path: Assets/Scenes/058_SpeedTree_V8.unity
     guid: 9227139f6abe79f42bf0defa48491666
   - enabled: 1
+    path: Assets/Scenes/040_Shader_TerrainBlend_deferred_RenderingLayers.unity
+    guid: f6c6afe0840e7464c98b248ee2e77d64
+  - enabled: 1
     path: Assets/Scenes/059_SpeedTree_LODTransition.unity
     guid: a5c33cf0330b15b4394b7584c84cfdca
   - enabled: 1

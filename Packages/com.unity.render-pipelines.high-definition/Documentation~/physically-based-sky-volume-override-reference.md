@@ -4,7 +4,7 @@ The Physically Based Sky Volume Override lets you configure how the High Definit
 
 Refer to [Create a physically based sky](create-a-physically-based-sky.md) for more information.
 
-![](Images/Override-PhysicallyBasedSky2.png)
+![A forest in daytime, with a clear sky and a hazy sun.](Images/Override-PhysicallyBasedSky2.png)
 
 ## Understand the sky model
 

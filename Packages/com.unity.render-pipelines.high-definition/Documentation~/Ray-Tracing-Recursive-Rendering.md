@@ -6,7 +6,7 @@ Rays ignore the smoothness of a Material when being reflected or refracted, whic
 
 HDRP might display the sky color instead of a GameObject that has ray tracing applied. This happens when the GameObject is further away from the Camera than the Max Ray Length value set in the volume component. To make the GameObject appear correctly, increase the value of the Max Ray Length property.
 
-![](Images/RayTracingRecursiveRendering1.png)
+![Car gear shift rendered with recursive ray tracing.](Images/RayTracingRecursiveRendering1.png)
 
 **Car gear shift rendered with recursive ray tracing**
 

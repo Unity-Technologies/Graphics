@@ -79,7 +79,7 @@ Ray tracing in HDRP isn't compatible with the following features.
 - Per-pixel displacement techniques such as parallax occlusion mapping, depth offset, and non-terrain height maps.
 - The detail meshes and trees in the [Terrain system](https://docs.unity3d.com/Manual/script-Terrain.html). To include detailed meshes and trees in ray traced reflections, use [mixed tracing](Override-Screen-Space-Reflection.md#mixed-tracing).
 - Vertex animation, for example wind deformation of vegetation.
-- [Decals](decals.md).
+- Emissive [Decals](decals.md). To disable emission, go to the [Decal Material Inspector window](decal-material-inspector-reference.md) and disable **Affect Emissive**.
 - [Tessellation](Tessellation.md).
 
 #### Framework and workflow

@@ -39,8 +39,6 @@ To edit properties for Materials that use Shader Graphs, the Inspector window on
 2. To expose the rest of the properties, click on the gear in the top right of the Master Node. See these other properties in the **Surface Options** section of the screenshot below.
 3. Edit the values for the gear's properties in the same way as you would do in the Inspector window. The list of inputs on the Master Node, and the available properties in the gear's list, changes depending on what options you select.
 
-![](Images/CreatingAndEditingHDRPShaderGraphs1.png)
-
 ## Material properties
 
 When you edit a Shader Graph Asset, you can create properties on the [Blackboard](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Blackboard.html) for Materials that use it. This allows you to change the value of the property at runtime.

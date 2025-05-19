@@ -6,7 +6,7 @@ To create a light cluster HDRP builds an axis-aligned grid which, in each cell, 
 
 In the rasterization rendering step, HDRP uses the tile structure for opaque objects and the cluster structure for transparent objects. The main difference between these two structures and this one used for ray tracing is that the light cluster structure is not based on the Camera frustum.
 
-![](Images/RayTracingLightCluster1.png)
+![Light Cluster Debug Mode](Images/RayTracingLightCluster1.png)
 
 **Light Cluster [Debug Mode](Ray-Tracing-Debug.md#debug-modes)**
 

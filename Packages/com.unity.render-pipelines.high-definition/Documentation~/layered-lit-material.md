@@ -4,7 +4,7 @@ The Layered Lit Shader allows you to stack up to four Materials on the same Game
 
 The Layered Lit Shader is perfect for photogrammetry. For a tutorial on how to use it in a photogrammetry workflow, see the [Photogrammetry with the Layered Shader Expert Guide](<https://unity3d.com/files/solutions/photogrammetry/Unity-Photogrammetry-Workflow-Layered-Shader_v2.pdf?_ga=2.199967142.94076306.1557740919-264818330.1555079437>).
 
-![](Images/HDRPFeatures-LayeredLitShader.png)
+![Layered lit material sample.](Images/HDRPFeatures-LayeredLitShader.png)
 
 ## Creating a Layered Lit Material
 

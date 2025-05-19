@@ -183,11 +183,10 @@ namespace UnityEngine.Rendering.Universal
                     || !cameraData.isDefaultViewport
                     || cameraData.requireSrgbConversion
                     || !cameraData.resolveFinalTarget
+                    || cameraData.cameraTargetDescriptor.msaaSamples > 1 && UniversalRenderer.PlatformRequiresExplicitMsaaResolve()
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f)
                     || (DebugHandler != null && DebugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget));
-
-            inputSummary.requiresDepthTexture |= (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer);
 
             return inputSummary;
         }
@@ -233,7 +232,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var depthDescriptor = cameraTargetDescriptor;
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat; 
+                    depthDescriptor.depthStencilFormat = k_DepthStencilFormat;
                     if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
                         depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
                     RenderingUtils.ReAllocateHandleIfNeeded(ref m_DepthTextureHandle, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
@@ -472,7 +471,7 @@ namespace UnityEngine.Rendering.Universal
 
             // We can explicitely render the overlay UI from URP when HDR output is not enabled.
             // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
-            if (shouldRenderUI && !outputToHDR)
+            if (shouldRenderUI && cameraData.isLastBaseCamera && !outputToHDR)
             {
                 EnqueuePass(m_DrawOverlayUIPass);
             }
@@ -535,9 +534,14 @@ namespace UnityEngine.Rendering.Universal
             m_ColorBufferSystem.EnableMSAA(enable);
         }
 
+        internal static bool IsGLESDevice()
+        {
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+        }
+
         internal static bool IsGLDevice()
         {
-            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
+            return IsGLESDevice() || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore;
         }
 
         internal static bool supportsMRT

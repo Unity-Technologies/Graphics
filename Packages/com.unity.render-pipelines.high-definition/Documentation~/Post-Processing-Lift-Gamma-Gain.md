@@ -13,8 +13,6 @@ This effect allows you to perform three-way color grading. The **Lift Gamma Gain
 
 ## Properties
 
-![](Images/Post-processingLiftGammaGain1.png)
-
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
 | **Lift**     | Use this to control the dark tones. This has a more exaggerated effect on shadows.<br>&#8226; Use the trackball to select which color HDRP should shift the hue of the dark tones to.<br/>&#8226;Use the slider to offset the color lightness of the trackball color. |

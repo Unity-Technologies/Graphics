@@ -35,7 +35,7 @@ You can reuse the same Proxy Volume with other Reflection Probes, as long as the
 
 Use the Scene view Gizmo to visually modify the size of the **Box** and **Sphere** shapes. Click and drag the handles to move the boundaries of the Proxy Volume.
 
-![](Images/ReflectionProxyVolume2-gizmo.png)<br/>
+![Scene view Gizmo](Images/ReflectionProxyVolume2-gizmo.png)<br/>
 
 ## Properties
 | **Property** | **Description**|

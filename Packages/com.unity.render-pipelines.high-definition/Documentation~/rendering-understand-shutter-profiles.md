@@ -2,7 +2,7 @@
 
 In the [multiframe rendering API](rendering-multiframe-recording-api.md), the `BeginRecording` call allows you to specify how fast the camera shutter opens and closes. The speed of the camera shutter defines the so called “shutter profile”. The following image demonstrates how different shutter profiles affect the appearance of motion blur on a blue sphere moving from left to right.
 
-![](Images/shutter_profiles.png)
+![Different shutter profiles and their impact on image blur caused by motion or exposure changes. A Uniform Shutter opens fully for an even duration, creating sharp-edged, uniform blur. A Slow Open Shutter gradually opens and briefly remains open, generating a blur that fades progressively on one side. A Linear Open and Close Shutter moves at a consistent rate, producing tapered edges with a linear gradient effect. Finally, a Smooth Open and Close Shutter opens slowly, reaches full exposure, and closes smoothly, resulting in a blur with soft transitions on both sides. Each profile shapes how light reaches the sensor, directly influencing motion blur and gradient effects in the image.](Images/shutter_profiles.png)
 
 In all cases, the speed of the sphere is the same. The only change is the shutter profile. The horizontal axis of the profile diagram corresponds to time, and the vertical axis corresponds to the openning of the shutter.
 

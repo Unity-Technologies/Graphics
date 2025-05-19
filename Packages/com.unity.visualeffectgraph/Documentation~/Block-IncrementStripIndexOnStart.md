@@ -6,7 +6,7 @@ The **Increment Strip Index On Start** Block helps to manage the initialization 
 
 The stripIndex attribute returns to zero when a stop event triggers or if stripIndex reaches the **Strip Max Count**. This goes back to the first strip group index.
 
-![](Images/Block-IncrementStripIndexOnStartExample.gif)
+<video src="Images/Block-IncrementStripIndexOnStartExample.mp4" width="500" height="auto" autoplay="true" loop="true" title="A VFX Graph with an Increment Strip Index On Start Block, resulting in colorful particles spawning." controls></video><br/>A VFX Graph with an Increment Strip Index On Start Block, resulting in colorful particles spawning.
 
 ## Block compatibility
 

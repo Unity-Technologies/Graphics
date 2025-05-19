@@ -165,6 +165,9 @@ EditorBuildSettings:
     path: Assets/Scenes/014_Layer_Batching_GlobalLightWithShadows.unity
     guid: 428ccbee9b0fb7c4ca5f4dd5579b62d3
   - enabled: 1
+    path: Assets/Scenes/015_Shadergraph_VFX.unity
+    guid: 320bc6f8378f61647959c52de7e45603
+  - enabled: 1
     path: Assets/Scenes/016_Shadergraph_Colors.unity
     guid: e41db3beb44cb774db3b1b67d7ccc323
   - enabled: 1
@@ -219,6 +222,9 @@ EditorBuildSettings:
     path: Assets/Scenes/061_PostProcessing_DepthOfField_Shadergraph.unity
     guid: db099ca108d9963499e679d61fcfcf22
   - enabled: 1
+    path: Assets/Scenes/062_MSAA.unity
+    guid: 2927736f597c14a478595009f36fcb00
+  - enabled: 1
     path: Assets/Scenes/063_LayerMask.unity
     guid: 589fffe344f1a3847910fd1b61c8404c
   - enabled: 1
@@ -260,5 +266,22 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/083_GPU_Instancing.unity
     guid: 67d46509b9dfceb43bf64d2d1ae052f5
-  m_configObjects: {}
+  - enabled: 1
+    path: Assets/Scenes/084_SpriteShape_Batching.unity
+    guid: 04c5421de28253e4698974917df2d68b
+  - enabled: 1
+    path: Assets/Scenes/085_SpriteShape_Batching_Multi_Material.unity
+    guid: 75bc3d3d22879cf4ea62792c1a8158d8
+  - enabled: 1
+    path: Assets/Scenes/086_SpriteAtlas.unity
+    guid: 5f981f02c2fc4ef4f9ff3fda036a736f
+  - enabled: 1
+    path: Assets/Scenes/087_SpriteAtlas_Dilate.unity
+    guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Scenes/088_TilemapRenderer_MaskInteraction.unity
+    guid: f5c31dad7aab75241a867c300ce2bc5e
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 20e925b8abdd424429b17f709e9d00f8,
+      type: 2}
   m_UseUCBPForAssetBundles: 0

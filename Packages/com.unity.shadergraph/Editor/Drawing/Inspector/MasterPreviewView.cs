@@ -52,7 +52,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         }
 
         List<string> m_DoNotShowPrimitives = new List<string>(new string[] { PrimitiveType.Plane.ToString() });
-        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
 
 
@@ -111,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             var image = new Image { name = "preview", image = texture, scaleMode = ScaleMode.ScaleAndCrop };
             image.AddManipulator(new Draggable(OnMouseDragPreviewMesh, true));
-            image.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
+            image.AddManipulator(new MasterPreviewManipulator((Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
             return image;
         }
 

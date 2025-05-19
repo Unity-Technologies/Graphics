@@ -1,6 +1,6 @@
 # Decal Material Inspector reference
 
-![](Images/HDRPFeatures-DecalShader.png)
+![Decal Material sample.](Images/HDRPFeatures-DecalShader.png)
 
 You can modify the properties of a Decal material in the Decal Material Inspector.
 

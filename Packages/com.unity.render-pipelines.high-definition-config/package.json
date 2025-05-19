@@ -3,7 +3,7 @@
   "description": "Configuration files for the High Definition Render Pipeline.",
   "version": "17.0.4",
   "unity": "6000.0",
-  "displayName": "High Definition RP Config",
+  "displayName": "High Definition Render Pipeline Config",
   "dependencies": {
     "com.unity.render-pipelines.core": "17.0.4"
   }

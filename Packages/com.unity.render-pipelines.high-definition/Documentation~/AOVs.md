@@ -4,7 +4,7 @@ Arbitrary Output Variables (AOVs) are additional images that an [HDRP Camera](hd
 
 Here is an example of three AOVs, containing from left to right the Albedo, Normal, and Object ID of each pixel:
 
-![](Images/aov_example.png)
+![Example: Three AOVs, containing from left to right the Albedo, Normal, and Object ID of each pixel:](Images/aov_example.png)
 
 In HDRP, you can access and configure AOVs in the following ways:
 - Using the [HDRP Compositor tool](graphics-compositor.md).

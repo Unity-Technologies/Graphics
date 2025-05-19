@@ -4,7 +4,7 @@ The Fog Volume master stack refers to the settings and contexts that the Fog Vol
 
 To use this master stack, [set up a Fog Volume in your scene](fog.md).
 
-![](Images/Volumetric-ground-fog.png)
+![Example fog effect.](Images/Volumetric-ground-fog.png)
 
 An example of a Fog Volume shader graph used to create smoke at ground level. 
 

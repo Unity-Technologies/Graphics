@@ -43,8 +43,6 @@ To set up lighting in your HDRP Project:
     3. Enable **Mode** and set it to **Automatic**.
     4. To refresh the exposure, go to the Scene view and enable **Always Refresh**.
 
-    ![](Images/UpgradingToHDRP2.png)
-
 7. HDRP supports colored light cookies, whereas the Built-in light cookies use a texture format that only contains alpha. To correct the Light cookie:
 
     1. In the Project window, select your Light cookie from your **Assets** folder.

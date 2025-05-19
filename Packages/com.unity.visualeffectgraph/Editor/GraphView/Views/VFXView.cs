@@ -1056,7 +1056,20 @@ namespace UnityEditor.VFX.UI
             m_ComponentBoard.RefreshInitializeErrors();
         }
 
+        public void ToggleDebugPanels()
+        {
+            if (m_ProfilingBoard.parent != null && attachedComponent != null)
+            {
+                m_ProfilingBoard.TogglePanelsVisibility();
+            }
+        }
+
         public void ToggleProfilingBoard()
+        {
+            m_ToggleProfilingBoard.value = !m_ToggleProfilingBoard.value;
+        }
+
+        void OnToggleProfilingBoard()
         {
             if (m_ProfilingBoard.parent == null)
             {
@@ -1116,7 +1129,7 @@ namespace UnityEditor.VFX.UI
         Toggle m_ToggleProfilingBoard;
         void ToggleProfilingBoard(ChangeEvent<bool> e)
         {
-            ToggleProfilingBoard();
+            OnToggleProfilingBoard();
         }
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
@@ -1812,27 +1825,7 @@ namespace UnityEditor.VFX.UI
         {
             m_ComponentBoard?.DeactivateBoundsRecordingIfNeeded(); //Avoids saving the graph with unnecessary bounds computations
 
-            var graphToSave = new HashSet<VFXGraph>();
-            GetGraphsRecursively(controller.graph, graphToSave);
-            foreach (var graph in graphToSave)
-            {
-                if (EditorUtility.IsDirty(graph) || UnityEngine.Object.ReferenceEquals(graph, controller.graph))
-                {
-                    graph.UpdateSubAssets();
-                    try
-                    {
-                        VFXGraph.compilingInEditMode = !m_IsRuntimeMode;
-                        graph.visualEffectResource.WriteAsset();
-                    }
-                    finally
-                    {
-                        VFXGraph.compilingInEditMode = false;
-                    }
-                }
-            }
-
-            // Only for testing purpose
-            //VFXAnalytics.GetInstance().OnSaveVFXAsset(this);
+            controller.graph.visualEffectResource.WriteAssetWithSubAssets();
         }
 
         internal void SaveAs(string newPath)
@@ -1845,46 +1838,6 @@ namespace UnityEditor.VFX.UI
             if (!AssetDatabase.CopyAsset(oldFilePath, newPath))
             {
                 Debug.Log($"Could not save VFX Graph at {newPath}");
-            }
-        }
-
-        void GetGraphsRecursively(VFXGraph start, HashSet<VFXGraph> graphs)
-        {
-            if (graphs.Contains(start))
-                return;
-            graphs.Add(start);
-            foreach (var child in start.children)
-            {
-                if (child is VFXSubgraphOperator ope)
-                {
-                    if (ope.subgraph != null)
-                    {
-                        var graph = ope.subgraph.GetResource().GetOrCreateGraph();
-                        GetGraphsRecursively(graph, graphs);
-                    }
-                }
-                else if (child is VFXSubgraphContext subCtx)
-                {
-                    if (subCtx.subgraph != null)
-                    {
-                        var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
-                        GetGraphsRecursively(graph, graphs);
-                    }
-                }
-                else if (child is VFXContext ctx)
-                {
-                    foreach (var block in ctx.children.Cast<VFXBlock>())
-                    {
-                        if (block is VFXSubgraphBlock subBlock)
-                        {
-                            if (subBlock.subgraph != null)
-                            {
-                                var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
-                                GetGraphsRecursively(graph, graphs);
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -1965,11 +1918,6 @@ namespace UnityEditor.VFX.UI
                 m_Blackboard.RemoveFromHierarchy();
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, false);
             }
-        }
-
-        public void ToggleDebugPanels()
-        {
-            m_ProfilingBoard.TogglePanelsVisibility();
         }
 
         public IEnumerable<VFXContextUI> GetAllContexts()

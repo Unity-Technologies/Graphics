@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Wave > Sine Wave**
 
 The **Sine Wave** Operator evaluates an input to generate a value which smoothly oscillates between a minimum and a maximum value. This Operator also includes a frequency value which changes the rate at which the output value oscillates.
 
-![](Images/Operator-SineWaveAnimation.gif)
+<video src="Images/Operator-SineWaveAnimation.mp4" title="Animated sine wave, illustrating the smooth oscillation of values as the input cycles continuously." width="320" height="auto" autoplay="true" loop="true" controls></video>
 
 If you set **Frequency** to **1**, the output value goes from **Min** to **Max** and back to **Min** as the **Input** changes from **0** to **1**.
 

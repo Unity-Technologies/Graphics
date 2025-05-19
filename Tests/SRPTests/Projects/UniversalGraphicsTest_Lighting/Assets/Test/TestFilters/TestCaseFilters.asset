@@ -164,3 +164,53 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-73634
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 911c47a2fe05f9846b9eca70cf7757ee, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 20
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: APV does not support web platforms.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 885c03fc42bf0a548b6e415c2f70e55b, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 20
+    GraphicsDevice: 11
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: APV does not support web platforms.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 911c47a2fe05f9846b9eca70cf7757ee, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 20
+    GraphicsDevice: 28
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: APV does not support web platforms.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 885c03fc42bf0a548b6e415c2f70e55b, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 20
+    GraphicsDevice: 28
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: APV does not support web platforms.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 1f02677e19d67ea478c4e8ee27537933, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 42
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://jira.unity3d.com/browse/UUM-92597

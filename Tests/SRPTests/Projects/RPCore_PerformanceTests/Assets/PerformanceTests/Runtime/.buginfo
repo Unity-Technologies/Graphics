@@ -2,4 +2,4 @@ rp-foundation:
   when:
     path:
       - ^.*RenderGraph.*$
-  area: SRP Architecture & API
+  area: SRP Foundation

@@ -1115,5 +1115,19 @@ namespace UnityEngine.Rendering
 
             return size;
         }
+
+        internal bool HasSameSceneGUIDs(ProbeVolumeBakingSet other)
+        {
+            var otherSceneGUIDs = other.sceneGUIDs;
+            if (m_SceneGUIDs.Count != otherSceneGUIDs.Count)
+                return false;
+
+            for (var i = 0; i < m_SceneGUIDs.Count; ++i)
+            {
+                if (m_SceneGUIDs[i] != otherSceneGUIDs[i])
+                    return false;
+            }
+            return true;
+        }
     }
 }

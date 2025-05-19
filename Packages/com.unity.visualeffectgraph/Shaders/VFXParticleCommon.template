@@ -170,7 +170,12 @@ index = indirectBuffer[VFXGetIndirectBufferIndex(index, instanceActiveIndex)];
 #if HAS_STRIPS_DATA
 StripData stripData;
 uint relativeIndexInStrip = 0;
-if (!FindIndexInStrip(index, id, instanceIndex, relativeIndexInStrip, stripData))
+uint primitiveID = 0;
+#if HAS_STRIPS
+	primitiveID = id;
+#endif
+
+if (!FindIndexInStrip(index, primitiveID, instanceIndex, relativeIndexInStrip, stripData))
 {
 	CULL_VERTEX(o);
 }

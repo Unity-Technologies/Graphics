@@ -13,8 +13,6 @@ The **Lens Distortion** effect distorts the final rendered picture to simulate t
 
 ## Properties
 
-![](Images/Post-processingLensDistortion1.png)
-
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
 | **Intensity**    | Use the slider to set the overall strength of the distortion effect. |

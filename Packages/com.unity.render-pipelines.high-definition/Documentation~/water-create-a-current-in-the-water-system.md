@@ -22,16 +22,16 @@ To open the River sample scene:
 
 You can create a Current map texture in any  image-editing software. The image can be in any non sRGB format. The resolution of a current map texture has a small impact on the current effect.
 
-![](Images/watersystem-curent.png)
+![Current map texture.](Images/watersystem-curent.png)
 
 The Red and Green channels contain the 2D direction of the current and the Blue channel contains the influence of the current map. 
 The default direction is +X, as a result, the neutral value for a current map is (1, 0.5, 1). 
 When importing a current map in the editor, make sure to that the sRGB checkbox is disabled in the texture importer.
 
 The following images display each channel of the current map included in the River sample scene.
-* The red channel of a current map: ![](Images/watersystem-curent-r.png)
-* The green channel of a current map: ![](Images/watersystem-curent-g.png)
-* The blue channel of a current map: ![](Images/watersystem-curent-b.png)
+* The red channel of a current map: ![The red channel of a current map.](Images/watersystem-curent-r.png)
+* The green channel of a current map: ![The green channel of a current map.](Images/watersystem-curent-g.png)
+* The blue channel of a current map: ![The blue channel of a current map.](Images/watersystem-curent-b.png)
 
 ## Create a current map texture in Krita
 
@@ -77,7 +77,7 @@ Current maps behave in a different way depending on the type of water surface:
 
 ## Make an object follow a current map
 
-When using [Script Interactions](water-scripting-in-the-water-system.md) to make an object float on the surface, you can get the current at the resulting location to make the object move with the flow of the water.
+If you use a script to [float an object on the water surface](float-objects-on-a-water-surface.md), you can get the current at the resulting location to make the object move with the flow of the water.
 
 The [River sample scene](#river-sample-scene) includes a script that extends the Float script to make objects float along the current map.
 
@@ -89,4 +89,4 @@ To visualize the effect of a current map on a water surface:
 - Open the **Miscellaneous** section.
 - Locate **Debug Mode** and select **Current.**
 
-![](Images/watersystem-current-debug.png)
+![You can visualize the effect of a current map on a water surface.](Images/watersystem-current-debug.png)

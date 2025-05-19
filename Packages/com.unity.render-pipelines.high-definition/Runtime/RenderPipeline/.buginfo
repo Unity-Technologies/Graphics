@@ -2,4 +2,4 @@ Workflow:
   when:
     path:
       - ^.*GlobalSettings?.*$
-  area: SRP Workflow
+  area: SRP Settings

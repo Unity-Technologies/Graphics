@@ -15,16 +15,20 @@ You can do the following:
 
 If the Rendering Debugger displays invalid probes when you select **Display Probes**, refer to [Fix issues with Adaptive Probe Volumes](probevolumes-fixissues.md).
 
-![](Images/probevolumes-debug-displayprobes.PNG)<br/>
+![The Rendering Debugger with Display Probes enabled.](Images/probevolumes-debug-displayprobes.PNG)<br/>
+
 The Rendering Debugger with **Display Probes** enabled.
 
-![](Images/probevolumes-debug-displayprobebricks1.PNG)<br/>
+![The Rendering Debugger with Display Bricks enabled.](Images/probevolumes-debug-displayprobebricks1.PNG)
+
 The Rendering Debugger with **Display Bricks** enabled.
 
-![](Images/probevolumes-debug-displayprobecells.PNG)<br/>
+![The Rendering Debugger with Display Cells enabled.](Images/probevolumes-debug-displayprobecells.PNG)
+
 The Rendering Debugger with **Display Cells** enabled.
 
-![](Images/APVsamplingDebug.png)<br/>
+![The Rendering Debugger with Debug Probe Sampling enabled](Images/APVsamplingDebug.png)
+
 The Rendering Debugger with **Debug Probe Sampling** enabled
 
 Refer to [Rendering Debugger window reference](rendering-debugger-window-reference.md#ProbeVolume) for more information.

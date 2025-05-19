@@ -434,7 +434,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Stop XR single pass before rendering screenspace UI
                 StopXRSinglePass(m_RenderGraph, hdCamera);
 
-                RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, backBuffer);
+                if (renderRequest.isLast)
+                    RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, backBuffer);
             }
         }
 
@@ -1570,7 +1571,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!output.enablePerPixelSorting)
                 return output;
 
-            output.depthBufferPreRefraction = CreateDepthBuffer(renderGraph, false, hdCamera.msaaSamples, "CameraDepthStencil PreRefraction", false);
+            output.depthBufferPreRefraction = CreateDepthBuffer(renderGraph, m_HasResolutionChanged, hdCamera.msaaSamples, "CameraDepthStencil PreRefraction", false);
+            m_HasResolutionChanged = false;
 
             output.beforeRefraction = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             { format = GraphicsFormat.B10G11R11_UFloatPack32, msaaSamples = hdCamera.msaaSamples, clearBuffer = true, name = "Before Refraction" });

@@ -8,7 +8,7 @@ The **Velocity from Direction And Speed : Change Speed** Block calculates a velo
 
 To do this, it scales the direction vector by a speed, and composes it with the velocity attribute.
 
-![](Images/Block-VelocityFromDirectionAndSpeed(ChangeSpeed)Example.gif)
+<video title="A burst of particles transitions quickly from a small slow ring of particles to a large cloud of fast-moving particles." src="Images/Block-VelocityFromDirectionAndSpeed(ChangeSpeed)Example.mp4" width="auto" height="auto" autoplay="true" loop="true" controls></video>
 
 ## Block compatibility
 

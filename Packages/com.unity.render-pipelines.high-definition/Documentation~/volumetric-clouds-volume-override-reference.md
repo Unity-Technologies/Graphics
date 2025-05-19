@@ -113,11 +113,11 @@ For the **Cloud LUT**, the color channels represent:
 
 When importing these two map Textures, disable **sRGB**. For best results, do not use any compression.
 
-![](Images/CloudLUT_Advanced.png)
+![A small rectangular texture with a bright cyan background. On the left are two small white clouds at different heights. On the right is a curving gradient from red to green.](Images/CloudLUT_Advanced.png)<br/>
 As a reference, here is the procedurally generated cloud LUT used for advanced mode. You can clearly see the 3 types of clouds (mid-altitude on the left, high altitude in the middle and cumulonimbus on the right).
 Also, there is variations in the green and blue channels to specify more of less erosion and ambient occlusion depending on the cloud profile. 
 
-![](Images/Volumetric-Clouds-manual-lut.png)
+![A rectangular texture with 8 bands of 32 pixels each. The first 3 bands are thin clouds at different heights. The next band is a tall fluffy cloud. The next 3 bands are clouds that get spottier at different heights. The final band is a curving vertical cloud. The edge at 96 pixels maps to the top-left of the sky, and the edge at 128 pixels maps to the center of the sky. The final image is a tower of layered cloud, with smaller clouds scattered nearby.)](Images/Volumetric-Clouds-manual-lut.png)
 
 Here is an example cloud LUT that can be used in manual mode. On the top image, the LUT is divided into 8 32px wide parts, each representing a cloud type with a specific profile and altitude. (stratus on the left and cumulus on the right)
 On the bottom left, the cloud map uses grayscale values to map which type of clouds is used. For exemple a radial gradient using thoses values creates a circular cloud as seen on the bottom right using the profile set on the cloud LUT.  

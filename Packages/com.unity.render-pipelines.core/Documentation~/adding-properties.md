@@ -30,4 +30,4 @@ For example:
 
 Unity shows the new properties in the **Core Render Pipeline** settings section:
 
-![](Images/core_render_pipeline_preference_provider.png)
+![Screenshot of the Preferences window showing the new properties in the Core Render Pipeline settings section.](Images/core_render_pipeline_preference_provider.png)

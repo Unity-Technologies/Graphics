@@ -33,7 +33,7 @@ To add subsurface scattering to a Material:
 
 The following image displays grass in an environment scene. In the left image the grass renders correctly. The grass in the right image has the bright green tint that HDRP applies to a Material that doesn't have a valid diffusion profile:
 
-![](Images/missing_profile.png)
+![Grass in an environment scene: In the left image the grass renders correctly. The grass in the right image has the bright green tint that HDRP applies to a Material that doesn't have a valid diffusion profile.](Images/missing_profile.png)
 
 The Material appears bright green in the following cases:
 

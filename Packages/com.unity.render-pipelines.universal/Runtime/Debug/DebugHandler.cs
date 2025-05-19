@@ -231,6 +231,7 @@ namespace UnityEngine.Rendering.Universal
             descriptor.autoGenerateMips = false;
             descriptor.useDynamicScale = true;
             descriptor.depthStencilFormat = depthStencilFormat;
+            descriptor.graphicsFormat = GraphicsFormat.None;
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

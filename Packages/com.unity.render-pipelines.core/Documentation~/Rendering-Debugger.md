@@ -127,7 +127,7 @@ public class CustomDebugPanel : MonoBehaviour
 
 Add the script to a GameObject. You should see a new **My Custom Panel** panel in the **Rendering Debugger** window.
 
-![](Images/rendering-debugger.png)
+![Screenshot of the Rendering Debugger window showing a new custom panel.](Images/rendering-debugger.png)
 
 ### Add a control to an existing panel
 
