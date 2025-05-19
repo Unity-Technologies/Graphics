@@ -537,7 +537,7 @@ namespace UnityEditor.Rendering
                             if (dragging)
                             {
                                 splitterPos += Event.current.delta.x;
-                                splitterPos = Mathf.Clamp(splitterPos, minSideBarWidth, Screen.width - minContentWidth);
+                                splitterPos = Mathf.Clamp(splitterPos, minSideBarWidth, position.width - minContentWidth);
                                 Repaint();
                             }
                             break;
