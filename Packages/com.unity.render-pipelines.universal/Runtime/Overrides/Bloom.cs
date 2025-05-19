@@ -19,6 +19,30 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// This controls the filtering method of the bloom texture blur.
+    /// </summary>
+    public enum BloomFilterMode
+    {
+        /// <summary>
+        /// Gaussian blur on downsample and bilinear/bicubic on upsample. Best quality.
+        /// </summary>
+        [Tooltip("Best quality.")]
+        Gaussian,
+
+        /// <summary>
+        /// Dual blur combines Kawase like blur with downsampling and upsampling. It is faster than Gaussian but has worse quality. Dual can be faster than Kawase at high resolutions.
+        /// </summary>
+        [Tooltip("Balanced quality and speed.")]
+        Dual,
+
+        /// <summary>
+        /// Kawase blur uses a fixed size texture. It can be faster at lower resolutions while saving small amount of memory.
+        /// </summary>
+        [Tooltip("Lowest quality. Fastest at low resolutions. Saves memory.")]
+        Kawase
+    }
+
+    /// <summary>
     /// A volume component that holds settings for the Bloom effect.
     /// </summary>
     /// <remarks>
@@ -134,6 +158,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ColorParameter"/>
     /// <seealso cref="BoolParameter"/>
     /// <seealso cref="DownscaleParameter"/>
+    /// <seealso cref="BloomFilterModeParameter"/>
     /// <seealso cref="ClampedIntParameter"/>
     /// <seealso cref="TextureParameter"/>
     [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
@@ -181,6 +206,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [Tooltip("Use bicubic sampling instead of bilinear sampling for the upsampling passes. This is slightly more expensive but helps getting smoother visuals.")]
         public BoolParameter highQualityFiltering = new BoolParameter(false);
+
+        /// <summary>
+        /// Controls the filtering method used for the bloom downsampling and upsampling passes.
+        /// </summary>
+        [Tooltip("Set the filtering algorithm for the Bloom effect.")]
+        public BloomFilterModeParameter filter = new BloomFilterModeParameter(BloomFilterMode.Gaussian);
 
         /// <summary>
         /// Controls the starting resolution that this effect begins processing.
@@ -233,5 +264,19 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public DownscaleParameter(BloomDownscaleMode value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="BloomFilterMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class BloomFilterModeParameter : VolumeParameter<BloomFilterMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="BloomFilterModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public BloomFilterModeParameter(BloomFilterMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

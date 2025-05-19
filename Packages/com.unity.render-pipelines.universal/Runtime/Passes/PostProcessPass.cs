@@ -1950,6 +1950,7 @@ namespace UnityEngine.Rendering.Universal
 
             public static readonly int _ColorTexture = Shader.PropertyToID("_ColorTexture");
             public static readonly int _Params = Shader.PropertyToID("_Params");
+            public static readonly int _Params2 = Shader.PropertyToID("_Params2");
             public static readonly int _SourceTexLowMip = Shader.PropertyToID("_SourceTexLowMip");
             public static readonly int _Bloom_Params = Shader.PropertyToID("_Bloom_Params");
             public static readonly int _Bloom_Texture = Shader.PropertyToID("_Bloom_Texture");

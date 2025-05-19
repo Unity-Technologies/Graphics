@@ -60,6 +60,9 @@ EditorBuildSettings:
     path: Assets/Scenes/100_BloomHDR.unity
     guid: 5bc15ee9dd5b1fc4aaecb48fb9ae2d94
   - enabled: 1
+    path: Assets/Scenes/100_BloomHDR_Kawase_Dual.unity
+    guid: 33a955dcd61a3452a8421609e9e4426f
+  - enabled: 1
     path: Assets/Scenes/101_FXAA.unity
     guid: 736a5167224854841be61166040606c6
   - enabled: 1
