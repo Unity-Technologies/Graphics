@@ -178,7 +178,8 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
   - Tessellation.
   - Tube and Disc-shaped Area Lights.
   - Translucent Opaque Materials.
-  - Several of HDRP's Materials. This includes Eye, Hair, and Decal.
+  - Several of HDRP's Materials. This includes Eye and Hair.
+  - Emissive [Decals](Decal.md). To disable emission, go to the Decal Material Inspector window and disable **Affect Emissive**.
   - Per-pixel displacement (parallax occlusion mapping, height map, depth offset).
   - MSAA.
   - [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
