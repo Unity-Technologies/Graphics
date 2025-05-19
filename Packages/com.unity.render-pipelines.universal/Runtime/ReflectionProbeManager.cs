@@ -325,6 +325,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_AtlasTexture0.Release();
             }
+            m_AtlasAllocator.Dispose();
+
             Object.DestroyImmediate(m_AtlasTexture0);
             Object.DestroyImmediate(m_AtlasTexture1);
 

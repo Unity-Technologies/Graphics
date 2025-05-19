@@ -47,18 +47,14 @@ The Camera Inspector includes the following groups of properties:
 | |**Barrel Clipping** | Use the slider to set the strength of the “cat eye” effect. You can see this effect on bokeh as a result of lens shadowing (distortion along the edges of the frame). This property affects the look of the [Depth of Field](Post-Processing-Depth-of-Field.md) bokeh. |
 | |**Anamorphism**    | Use the slider to stretch the sensor to simulate an anamorphic look. Positive values distort the Camera vertically, negative values distort the Camera horizontally. This property affects the look of the [Depth of Field](Post-Processing-Depth-of-Field.md) bokeh and the [Bloom](Post-Processing-Bloom.md) effect if you enable its *Anamorphic* property. |
 
+
 <a name="Rendering"></a>
 ## Rendering
 
 |    **Property** ||**Description**|
 | --------- | - | :-------------------------------------------------------------------- |
 | **Allow Dynamic Resolution**    || Enable the checkbox to make this Camera support dynamic resolution for buffers linked to it. |
-| **Allow DLSS**                  || Enable this property to allow this Camera to use NVIDIA Deep Learning Super Sampling (DLSS). To use NVIDIA DLSS, enable the NVIDIA package (com.unity.modules.nvidia) in your Unity project and enable DLSS in your [HDRP Asset](HDRP-Asset.md). |
-| |**Use Custom Quality**        | Indicates whether this Camera overrides the DLSS quality mode specified in the [HDRP Asset](HDRP-Asset.md). When you enable this property, HDRP uses the **Mode** property. |
-| |**Mode**  | Specifies the performance quality mode override for performance quality mode for DLSS.The options are:<br/>&#8226; **Balanced**: - Balances performance with quality.<br/>&#8226; **MaxPerf**: Fast performance, lower quality.<br/>&#8226; **MaxQuality**:  High quality, lower performance.<br/>&#8226; **UltraPerformance**: Fastest performance, lowest quality.<br/>This property only appears if you enable **Use Custom Quality**. |
-| |**Use Custom Attributes**     | Enable this property to make this Camera override the DLSS attributes specified in the [HDRP Asset](HDRP-Asset.md). |
-| |**Use Optimal Settings**      | Enable this property to allow DLSS to automatically control the sharpness and screen percentage for this Camera. This property only appears if you enable **Use Custom Attributes**. |
-| |**Sharpness**                 | The pixel sharpness that the DLSS upscaler uses for this Camera.<br/>This property only appears if you enable **Use Custom Attributes**. |
+| **Allow DLSS**                  || Enables NVIDIA Deep Learning Super Sampling (DLSS). This property has an effect only if you add DLSS to your [HDRP Asset](HDRP-Asset.md). For more information, refer to [DLSS settings](#dlss-settings). |
 | **Post Anti-aliasing**        || This Camera can use [multisample anti-aliasing (MSAA)](Anti-Aliasing.md#MSAA), at the same time as post-process anti-aliasing. This is because MSAA is a hardware feature. To control post-process anti-aliasing, use the [Frame Settings](Frame-Settings.md).<br />&#8226; **No Anti-aliasing**: This Camera processes MSAA but doesn't process any post-process anti-aliasing. <br/>&#8226; **Fast Approximate Anti-aliasing (FXAA)**: Smooths edges on a per-pixel level. This is the most efficient anti-aliasing technique in HDRP.<br />&#8226; **Temporal Anti-aliasing (TAA)**: Uses frames from a history buffer to smooth edges more effectively than fast approximate anti-aliasing.<br />&#8226; **Subpixel Morphological Anti-aliasing (SMAA)**: Finds patterns in borders of the image and blends the pixels on these borders according to the pattern. |
 || **SMAA Quality Preset**         | Use the drop-down to select the quality of SMAA. The difference in resource intensity is small between **Low** and **High**.<br />&#8226; **Low**: The lowest SMAA quality. This is the least resource-intensive option.<br />&#8226; **Medium**: A good balance between SMAA quality and resource intensity.<br />&#8226; **High**: The highest SMAA quality. This is the most resource-intensive option. This property only appears when you select **Subpixel Morphological Anti-aliasing (SMAA)** from the **Anti-aliasing** drop-down. |
 | |**TAA Quality Preset**         | The quality level of TAA. The default settings for higher presets aren't guaranteed to produce better results than lower presets. The result depends on the content in your scene. However, the high quality presets give you more options that you can use to adapt the anti-aliasing to your content. |
@@ -73,6 +69,18 @@ The Camera Inspector includes the following groups of properties:
 | **Culling Mask**                | |Use the drop-down to set the Layer Mask that the Camera uses to exclude GameObjects from the rendering process. The Camera only renders Layers that you include in the Layer Mask. |
 | **Occlusion Culling**           | |Enable the checkbox to make this Camera not render GameObjects that aren't currently visible. For more information, see the [Occlusion Culling documentation](<https://docs.unity3d.com/Manual/OcclusionCulling.html>). |
 | **Exposure Target** | |The GameObject to center the [Auto Exposure](Override-Exposure.md) procedural mask around. |
+
+<a name="dlss-settings"></a>
+### DLSS settings
+
+The following properties are available only if you enable **Allow DLSS**.
+
+| **Property** | **Description** |
+|-|-|
+| **Use DLSS Custom Quality**        | Indicates whether this Camera overrides the DLSS quality mode specified in the [HDRP Asset](HDRP-Asset.md). |
+| **DLSS Mode** | Sets whether DLSS prioritizes quality or performance. The options are:<ul><li>**Maximum Quality**</li><li>**Balanced**</li><li>**Maximum Performance**</li><li>**Ultra Performance**</li></ul>This property is available only if you enable **Use DLSS Custom Quality**. |
+| **Use DLSS Custom Attributes**     | Overrides the DLSS properties specified in the [HDRP Asset](HDRP-Asset.md), on this camera. |
+| **DLSS Use Optimal Settings**      | Enables DLSS controlling sharpness and screen percentage automatically. This property is available only if you enable **Use DLSS Custom Attributes**. |
 
 <a name="Environment"></a>
 ## Environment

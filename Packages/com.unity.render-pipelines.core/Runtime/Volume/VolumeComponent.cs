@@ -163,15 +163,7 @@ namespace UnityEngine.Rendering
                     {
                         VolumeParameter volumeParameter = (VolumeParameter)field.GetValue(o);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-                        var attr = (DisplayInfoAttribute[])field.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
-                        if (attr.Length != 0)
-                        {
-                            volumeParameter.debugId = attr[0].name;
-                        }
-                        else
-                        {
-                            volumeParameter.debugId = field.Name;
-                        }
+                        VolumeDebugData.AddVolumeParameterDebugId(volumeParameter, field);
 #endif
                         parameters.Add(volumeParameter);
                     }

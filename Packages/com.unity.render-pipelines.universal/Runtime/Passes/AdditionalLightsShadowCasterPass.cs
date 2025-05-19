@@ -62,6 +62,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RTHandle m_AdditionalLightsShadowmapHandle;
 
         private bool m_CreateEmptyShadowmap;
+        private bool m_EmptyShadowmapNeedsClear = false;
+
         private RTHandle m_EmptyAdditionalLightShadowmapTexture;
         private const int k_EmptyShadowMapDimensions = 1;
         private const string k_AdditionalLightShadowMapTextureName = "_AdditionalLightsShadowmapTexture";
@@ -142,7 +144,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_ShadowResolutionRequests.Capacity = maxVisibleAdditionalLights;
             }
 
-            m_EmptyAdditionalLightShadowmapTexture = RTHandles.Alloc(Texture2D.blackTexture);
+            m_EmptyAdditionalLightShadowmapTexture = ShadowUtils.AllocShadowRT(1, 1, k_ShadowmapBufferBits, 1, 0, name: "_EmptyAdditionalLightShadowmapTexture");
+            m_EmptyShadowmapNeedsClear = true;
         }
 
         /// <summary>
@@ -151,6 +154,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Dispose()
         {
             m_AdditionalLightsShadowmapHandle?.Release();
+            m_EmptyAdditionalLightShadowmapTexture?.Release();
         }
 
         private int GetPunctualLightShadowSlicesCount(in LightType lightType)
@@ -850,6 +854,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CreateEmptyShadowmap = true;
             useNativeRenderPass = false;
 
+            // Required for scene view camera(URP renderer not initialized)
+            if(ShadowUtils.ShadowRTReAllocateIfNeeded(ref m_EmptyAdditionalLightShadowmapTexture, 1, 1, k_ShadowmapBufferBits, name: "_EmptyAdditionalLightShadowmapTexture"))
+                m_EmptyShadowmapNeedsClear = true;
+
             // initialize _AdditionalShadowParams
             for (int i = 0; i < m_AdditionalLightIndexToShadowParams.Length; ++i)
                 m_AdditionalLightIndexToShadowParams[i] = c_DefaultShadowParams;
@@ -860,13 +868,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            
-            if (m_CreateEmptyShadowmap)
+            if (m_CreateEmptyShadowmap && !m_EmptyShadowmapNeedsClear)
             {
                 // Reset pass RTs to null
                 ResetTarget();
                 return;
             }
+            if (m_CreateEmptyShadowmap)
+            {
+                ConfigureTarget(m_EmptyAdditionalLightShadowmapTexture);
+                m_EmptyShadowmapNeedsClear = false;
+            }
+            else
                 ConfigureTarget(m_AdditionalLightsShadowmapHandle);
 
             ConfigureClear(ClearFlag.All, Color.black);
