@@ -1078,6 +1078,11 @@ namespace UnityEngine.Rendering
             m_VertexSampling = value;
         }
 
+        internal void ForceMemoryBudget(ProbeVolumeTextureMemoryBudget budget)
+        {
+            m_MemoryBudget = budget;
+        }
+
         // This is used for steps such as dilation that require the maximum order allowed to be loaded at all times. Should really never be used as a general purpose function.
         internal void ForceSHBand(ProbeVolumeSHBands shBands)
         {

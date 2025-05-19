@@ -41,7 +41,7 @@
 // Input depth pyramid texture
 TEXTURE2D_X(_DepthTexture);
 // Stencil buffer of the current frame
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 // Input texture that holds the offset for every level of the depth pyramid
 StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
 

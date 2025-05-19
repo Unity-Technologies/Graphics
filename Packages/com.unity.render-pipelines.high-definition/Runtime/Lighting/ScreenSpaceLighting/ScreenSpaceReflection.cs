@@ -365,6 +365,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField, FormerlySerializedAs("rayMaxIterations")]
         private MinIntParameter m_RayMaxIterationsRT = new MinIntParameter(48, 0);
+
+        /// <summary>
+        /// Controls which rendering layer mask to prioritize when sampling probes for indirect diffuse in reflections.
+        /// </summary>
+        [Tooltip("Controls which APV rendering layer mask to sample from. If no probes in proximity are from the specified layer or the feature is disabled for the Baking Set, any surrounding probes will be sampled.")]
+        [AdditionalProperty]
+        public RenderingLayerMaskParameter adaptiveProbeVolumesLayerMask = new RenderingLayerMaskParameter(UnityEngine.RenderingLayerMask.defaultRenderingLayerMask);
         #endregion
 
         internal static bool RayTracingActive(ScreenSpaceReflection volume)

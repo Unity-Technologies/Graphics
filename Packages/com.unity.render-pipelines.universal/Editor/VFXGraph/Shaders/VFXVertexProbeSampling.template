@@ -26,7 +26,12 @@ void EvaluateProbesSixWay(inout VFX_VARYING_PS_INPUTS input)
 {
     float3 positionWS = GetAbsolutePositionWS(input.VFX_VARYING_POSWS);
     float3 normalWS = input.VFX_VARYING_NORMAL.xyz;
-    float3 tangentWS = input.VFX_VARYING_TANGENT.xyz;
+
+    #if VFX_PRIMITIVE_QUAD || VFX_PRIMITIVE_TRIANGLE || VFX_PRIMITIVE_OCTAGON
+    float4 tangentWS = float4(input.VFX_VARYING_TANGENT, -1.0f);
+    #else
+    float4 tangentWS = input.VFX_VARYING_TANGENT;
+    #endif
 
     GatherDiffuseGIData(positionWS, normalWS, tangentWS, input.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0],
                                                          input.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[1],

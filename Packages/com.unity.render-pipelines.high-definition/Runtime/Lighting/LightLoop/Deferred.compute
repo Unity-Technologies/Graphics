@@ -98,7 +98,7 @@ CBUFFER_END
 // variable declaration
 //-------------------------------------------------------------------------------------
 
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 RW_TEXTURE2D_X(float3, diffuseLightingUAV);
 RW_TEXTURE2D_X(float4, specularLightingUAV);
 

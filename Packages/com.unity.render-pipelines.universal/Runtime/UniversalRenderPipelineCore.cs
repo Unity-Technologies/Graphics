@@ -892,7 +892,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int ditheringTextureInvSize = Shader.PropertyToID("_DitheringTextureInvSize");
 
         public static readonly int renderingLayerMaxInt = Shader.PropertyToID("_RenderingLayerMaxInt");
-        public static readonly int renderingLayerRcpMaxInt = Shader.PropertyToID("_RenderingLayerRcpMaxInt");
 
         public static readonly int overlayUITexture = Shader.PropertyToID("_OverlayUITexture");
         public static readonly int hdrOutputLuminanceParams = Shader.PropertyToID("_HDROutputLuminanceParams");

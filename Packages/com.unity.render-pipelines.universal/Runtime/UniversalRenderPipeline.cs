@@ -1613,6 +1613,7 @@ namespace UnityEngine.Rendering.Universal
             if (universalRenderer != null)
             {
                 data.renderingMode = universalRenderer.renderingModeActual;
+                data.prepassLayerMask = universalRenderer.prepassLayerMask;
                 data.opaqueLayerMask = universalRenderer.opaqueLayerMask;
                 data.transparentLayerMask = universalRenderer.transparentLayerMask;
             }

@@ -281,6 +281,7 @@ namespace UnityEngine.Rendering
                     if (!ignoreErrorLog)
                         Debug.LogError("Cannot allocate more brick chunks, probe volume brick pool is full.");
 
+                    Deallocate(outAllocations);
                     outAllocations.Clear();
                     return false; // failure case, pool is full
                 }

@@ -38,7 +38,7 @@
 // Depth buffer of the current frame
 TEXTURE2D_X(_DepthTexture);
 // Stencil buffer of the current frame
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 int _ObjectMotionStencilBit;
 // Depth buffer of the previous frame
 TEXTURE2D_X(_HistoryDepthTexture);
@@ -147,7 +147,7 @@ void ValidateHistory(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
 }
 
 // Validation buffer that tells us if the history should be ignored for a given pixel.
-TEXTURE2D_X_UINT(_ValidationBuffer);
+TYPED_TEXTURE2D_X(uint, _ValidationBuffer);
 #ifdef HISTORY_IS_ARRAY
 // This buffer holds the previously accumualted signal
 TEXTURE2D_ARRAY(_HistoryBuffer);

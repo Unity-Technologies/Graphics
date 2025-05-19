@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_DenoiserAntiFlickeringStrength;
         SerializedDataParameter m_Mode;
+        SerializedDataParameter m_APVMask;
 
         // Mixed
         SerializedDataParameter m_RayMaxIterationsRT;
@@ -95,6 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
             m_DenoiserAntiFlickeringStrength = Unpack(o.Find(x => x.denoiserAntiFlickeringStrength));
             m_Mode = Unpack(o.Find(x => x.mode));
+            m_APVMask = Unpack(o.Find(x => x.adaptiveProbeVolumesLayerMask));
 
             // Mixed
             m_RayMaxIterationsRT = Unpack(o.Find(x => x.rayMaxIterationsRT));
@@ -243,6 +245,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 RayTracingPerformanceModeGUI(tracingMode == RayCastingMode.Mixed);
             }
+
+            if (currentAsset?.currentPlatformRenderPipelineSettings.lightProbeSystem == RenderPipelineSettings.LightProbeSystem.AdaptiveProbeVolumes)
+                PropertyField(m_APVMask);
         }
 
         public override void OnInspectorGUI()

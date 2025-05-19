@@ -18,7 +18,7 @@
 
 // Buffers used for refraction sorting
 #if defined(SUPPORT_WATER_ABSORPTION) || defined (_TRANSPARENT_REFRACTIVE_SORT)
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 TEXTURE2D_X(_RefractiveDepthBuffer);
 #endif
 

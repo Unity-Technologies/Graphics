@@ -151,8 +151,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     if (inputPass.type == RenderGraphPassType.Legacy)
                     {
                         throw new Exception("Pass '" + inputPass.name + "' is using the legacy rendergraph API." +
-                                            " You cannot use legacy passes with the native render pass compiler." +
-                                            " Please do not use AddPass on the rendergraph but use one of the more specific pass types such as AddRasterRenderPass");
+                                            " You cannot use legacy passes with the Native Render Pass Compiler." +
+                                            " The APIs that are compatible with the Native Render Pass Compiler are AddUnsafePass, AddComputePass and AddRasterRenderPass.");
                     }
 #endif
 

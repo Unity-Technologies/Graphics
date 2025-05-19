@@ -27,7 +27,7 @@ struct GBufferFragOutput
     #endif
 
     #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
-    DECL_OPT_GBUFFER_TARGET(half4, meshRenderingLayers, GBUFFER_IDX_R_RENDERING_LAYERS);
+    DECL_OPT_GBUFFER_TARGET(uint, meshRenderingLayers, GBUFFER_IDX_R_RENDERING_LAYERS);
     #endif
 };
 
@@ -66,8 +66,7 @@ GBufferFragOutput PackGBuffersSurfaceData(SurfaceData surfaceData, InputData inp
     #endif
 
     #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
-    uint renderingLayers = GetMeshRenderingLayer();
-    output.meshRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0.0, 0.0, 0.0);
+    output.meshRenderingLayers = EncodeMeshRenderingLayer();
     #endif
 
     return output;
@@ -121,8 +120,7 @@ GBufferFragOutput PackGBuffersBRDFData(BRDFData brdfData, InputData inputData, h
     #endif
 
     #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
-    uint renderingLayers = GetMeshRenderingLayer();
-    output.meshRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0.0, 0.0, 0.0);
+    output.meshRenderingLayers = EncodeMeshRenderingLayer();
     #endif
 
     return output;

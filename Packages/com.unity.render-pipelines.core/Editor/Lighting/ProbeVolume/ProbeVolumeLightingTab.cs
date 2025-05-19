@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public static ProbeVolumeLightingTab instance;
+        public static ProbeVolumeLightingTab instance = new();
 
         public static bool singleSceneMode => instance?.m_SingleSceneMode ?? true;
 
@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering
             {
                 if (newSet != null) { EditorUtility.SetDirty(newSet); newSet.singleSceneMode = false; }
                 activeSet = newSet;
-                
+
                 ProbeReferenceVolume.instance.Clear();
             }
 
@@ -959,9 +959,8 @@ namespace UnityEngine.Rendering
             return (bool)k_Lightmapping_BakeAllReflectionProbesSnapshots.Invoke(null, null);
         }
 
-        internal bool PrepareAPVBake()
+        internal bool PrepareAPVBake(ProbeReferenceVolume prv)
         {
-            var prv = ProbeReferenceVolume.instance;
             if (!prv.isInitialized || !prv.enabledBySRP)
                 return false;
 
@@ -981,9 +980,11 @@ namespace UnityEngine.Rendering
             {
                 if(!activeSet.DialogNoProbeVolumeInSetShown())
                 {
-                    if(EditorUtility.DisplayDialog("No Adaptive Probe Volume in Scene", "Adaptive Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
-                        "Do you wish to add an Adaptive Probe Volume to the Active Scene?", "Yes", "No"))
-                        CreateProbeVolume();
+                    if (!Application.isBatchMode)
+                        if (EditorUtility.DisplayDialog("No Adaptive Probe Volume in Scene",
+                                "Adaptive Probe Volumes are enabled for this Project, but none exist in the Scene.\n\n" +
+                                "Do you wish to add an Adaptive Probe Volume to the Active Scene?", "Yes", "No"))
+                            CreateProbeVolume();
                     activeSet.SetDialogNoProbeVolumeInSetShown(true);
                 }
             }
@@ -991,7 +992,13 @@ namespace UnityEngine.Rendering
             {
                 if (GetFirstProbeVolumeInNonActiveScene() != null)
                 {
-                    int res = EditorUtility.DisplayDialogComplex("Create Baking Set?", "You are using the Single Scene Baking Mode and have more than one Scene loaded. It is not possible to generate lighting.\n\n" +
+                    const string warning = "You are using the Single Scene Baking Mode and have more than one Scene loaded. It is not possible to generate lighting.";
+                    if (Application.isBatchMode)
+                    {
+                        Debug.LogWarning(warning + " Consider creating a Baking Set.");
+                        return false;
+                    }
+                    int res = EditorUtility.DisplayDialogComplex("Create Baking Set?", warning + "\n\n" +
                         "Do you want to create a Baking Set instead?", "Yes", "Cancel", "Bake anyway");
                     if (res == 0)
                         ConvertTempBakingSet();
@@ -1022,7 +1029,7 @@ namespace UnityEngine.Rendering
             if (AdaptiveProbeVolumes.partialBakeSceneList.Count == activeSet.sceneGUIDs.Count)
                 AdaptiveProbeVolumes.partialBakeSceneList = null;
 
-            if (ProbeReferenceVolume.instance.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario) && activeSet.m_LightingScenarios.Count > 0)
+            if (prv.supportLightingScenarios && !activeSet.m_LightingScenarios.Contains(activeSet.lightingScenario) && activeSet.m_LightingScenarios.Count > 0)
                 activeSet.SetActiveScenario(activeSet.m_LightingScenarios[0], false);
 
             // Layout has changed and is incompatible.
@@ -1030,14 +1037,26 @@ namespace UnityEngine.Rendering
             {
                 if (AdaptiveProbeVolumes.partialBakeSceneList != null)
                 {
-                    if (EditorUtility.DisplayDialog("Incompatible Layout", "You are partially baking the set with an incompatible cell layout. Proceeding will invalidate all previously bake data.\n\n" + "Do you wish to continue?", "Yes", "No"))
+                    const string warning = "You are partially baking the set with an incompatible cell layout.";
+                    if (Application.isBatchMode)
+                    {
+                        Debug.LogWarning(warning);
+                        return false;
+                    }
+                    if (EditorUtility.DisplayDialog("Incompatible Layout", warning + " Proceeding will invalidate all previously bake data.\n\n" + "Do you wish to continue?", "Yes", "No"))
                         ClearBakedData();
                     else
                         return false;
                 }
-                else if (ProbeReferenceVolume.instance.supportLightingScenarios && activeSet.scenarios.Count != (activeSet.scenarios.ContainsKey(activeSet.lightingScenario) ? 1 : 0))
+                else if (prv.supportLightingScenarios && activeSet.scenarios.Count != (activeSet.scenarios.ContainsKey(activeSet.lightingScenario) ? 1 : 0))
                 {
-                    if (EditorUtility.DisplayDialog("Incompatible Layout", "You are baking scenarios with incompatible cell layouts. Proceeding will invalidate all previously bake data.\n\n" + "Do you wish to continue?", "Yes", "No"))
+                    const string warning = "You are baking scenarios with incompatible cell layouts.";
+                    if (Application.isBatchMode)
+                    {
+                        Debug.LogWarning(warning);
+                        return false;
+                    }
+                    if (EditorUtility.DisplayDialog("Incompatible Layout", warning + " Proceeding will invalidate all previously bake data.\n\n" + "Do you wish to continue?", "Yes", "No"))
                         ClearBakedData();
                     else
                         return false;

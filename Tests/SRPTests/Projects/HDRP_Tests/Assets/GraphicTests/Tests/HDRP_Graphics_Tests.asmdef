@@ -10,7 +10,8 @@
         "UnityEditor.TestTools.Graphics",
         "Unity.Testing.XR.Runtime",
         "Unity.Testing.XR.Editor",
-        "UnityEngine.TestTools.Graphics.Contexts"
+        "UnityEngine.TestTools.Graphics.Contexts",
+        "UnityEngine.Graphics.Testing.Common.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

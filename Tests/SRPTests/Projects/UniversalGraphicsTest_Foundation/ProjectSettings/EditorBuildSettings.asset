@@ -566,5 +566,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/350_VRS_CustomPass.unity
     guid: 017307890e4a741e8acc882ddae1555d
+  - enabled: 1
+    path: Assets/Scenes/351_PrepassLayer.unity
+    guid: e9d95e3bc94f8524dba39d89dbb09e9b
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the fallback hierarchy for indirect diffuse in case the ray misses.
         /// </summary>
-        [Tooltip("Rendering Layer Mask to use when sampling the Adaptive Probe Volumes.\nThis is only used if Rendering Layers Masks are enabled for the active Baking Set.")]
+        [Tooltip("Controls which APV rendering layer mask to sample from. If no probes in proximity are from the specified layer or the feature is disabled for the Baking Set, any surrounding probes will be sampled.")]
         [AdditionalProperty]
         public RenderingLayerMaskParameter adaptiveProbeVolumesLayerMask = new RenderingLayerMaskParameter(UnityEngine.RenderingLayerMask.defaultRenderingLayerMask);
         #endregion

@@ -48,7 +48,14 @@ class SampleDependencyImporter : IPackageManagerExtension
         PackageManagerExtensions.RegisterExtension(new SampleDependencyImporter());
     }
     
-    const string k_unityPrefixPackage = "com.unity.";
+    string[] allowedPackageList =
+    {
+        "com.unity.render-pipelines.high-definition",
+        "com.unity.render-pipelines.universal",
+        "com.unity.shadergraph",
+        "com.unity.visualeffectgraph"
+    };
+
     bool importingTextMeshProEssentialResources = false;
 
     PackageInfo m_PackageInfo;
@@ -65,16 +72,27 @@ class SampleDependencyImporter : IPackageManagerExtension
     /// </summary>
     void IPackageManagerExtension.OnPackageSelectionChange(PackageInfo packageInfo)
     {
-        var isUnityPackage = packageInfo != null && packageInfo.name.StartsWith(k_unityPrefixPackage);
-        
-        if (isUnityPackage)
+        if (packageInfo == null)
+            return;
+
+        // Triggers the dependencies import only on specific packages
+        bool packageFound = false;
+        foreach (string name in allowedPackageList)
+            if (name == packageInfo.name)
+            {
+                packageFound = true;
+                break;
+            }
+
+
+        if (!packageFound)
+            return;
+
+        m_PackageInfo = packageInfo;
+        m_Samples = GetSamples(packageInfo);
+        // Only trigger the import if the package has samples. 
+        if (m_Samples != null && m_Samples.Count > 0)
         {
-
-           
-           
-
-                m_PackageInfo = packageInfo;
-            m_Samples = GetSamples(packageInfo);
             if (TryLoadSampleConfiguration(m_PackageInfo, out m_SampleList))
             {
                 SamplePostprocessor.AssetImported += LoadAssetDependencies;

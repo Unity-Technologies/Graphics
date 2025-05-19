@@ -93,7 +93,7 @@ TEXTURE2D_X(_DepthTexture);
 #endif
 
 #ifdef SSR_TRACE
-    TEXTURE2D_X_UINT2(         _StencilTexture);
+    TYPED_TEXTURE2D_X(uint2, _StencilTexture);
     RW_TEXTURE2D_X(float2, _SsrHitPointTexture);
 #elif defined(SSR_REPROJECT)
        TEXTURE2D_X(        _SsrHitPointTexture);

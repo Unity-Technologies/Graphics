@@ -19,6 +19,7 @@ static const float kSHBasisCoef[] = { kSHBasis0, -kSHBasis1, kSHBasis1, -kSHBasi
 #define kClampedCosine0 (1.0f)
 #define kClampedCosine1 (2.0f / 3.0f)
 #define kClampedCosine2 (1.0f / 4.0f)
+#define kInvClampedCosine1 (3.0f / 2.0f)
 
 static const float kClampedCosineCoefs[] = { kClampedCosine0, kClampedCosine1, kClampedCosine1, kClampedCosine1, kClampedCosine2, kClampedCosine2, kClampedCosine2, kClampedCosine2, kClampedCosine2 };
 

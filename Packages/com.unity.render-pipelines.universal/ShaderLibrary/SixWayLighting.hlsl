@@ -40,19 +40,21 @@ void SampleAPVSixWay(APVSample apvSample, half3x3 tbn, out half4 diffuseGIData[3
     [unroll]
     for (int i = 0; i<3; i++)
     {
-        EvaluateAPVL1(apvSample, tbn[i], diffuseGIData[i].xyz);
+        EvaluateAPVL1(apvSample, tbn[i] * kInvClampedCosine1, diffuseGIData[i].xyz);
         diffuseGIData[i].w = apvSample.L0[i];
     }
 }
 #endif
 
-void GatherDiffuseGIData(float3 positionWS, float3 normalWS, float3 tangentWS, inout half4 diffuseGIData0, inout half4 diffuseGIData1, inout half4 diffuseGIData2)
+void GatherDiffuseGIData(float3 positionWS, float3 normalWS, float4 tangentWS, inout half4 diffuseGIData0, inout half4 diffuseGIData1, inout half4 diffuseGIData2)
 {
     #if defined(LIGHTMAP_ON)
     //Do nothing
     #else
         half4 diffuseGIData[] = {diffuseGIData0, diffuseGIData1, diffuseGIData2};
-        float3x3 tbn = float3x3(tangentWS, cross(-normalWS, tangentWS), -normalWS);
+        float crossSign = (tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+        float3 bitangentWS = crossSign * cross(normalWS, tangentWS.xyz);
+        float3x3 tbn = float3x3(tangentWS.xyz, bitangentWS, -normalWS);
 
         #if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
             APVSample apvSample = SampleAPV(positionWS, normalWS, 0xFFFFFFFF, 0);
@@ -66,7 +68,7 @@ void GatherDiffuseGIData(float3 positionWS, float3 normalWS, float3 tangentWS, i
 
             for (int i = 0; i<3; i++)
             {
-                diffuseGIData[i].xyz = SHEvalLinearL1(tbn[i], unity_SHAr.xyz, unity_SHAg.xyz, unity_SHAb.xyz);
+                diffuseGIData[i].xyz = SHEvalLinearL1(tbn[i] * kInvClampedCosine1, unity_SHAr.xyz, unity_SHAg.xyz, unity_SHAb.xyz);
                 diffuseGIData[i].w = L0[i];
             }
         #endif
@@ -102,7 +104,6 @@ half3 ComputeGIColor(SixWaySurfaceData surfaceData)
 half3 SixWayLightBlend(SixWaySurfaceData surfaceData, Light light,  half3x3 tangentToWorld)
 {
     half3x3 localFrame = tangentToWorld;
-    localFrame[1] *= -1;
     localFrame[2] *= -1;
     half3 dir = mul(localFrame, light.direction);
     half3 weights = dir >= 0 ? surfaceData.rightTopBack.xyz : surfaceData.leftBottomFront.xyz;

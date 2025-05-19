@@ -69,12 +69,18 @@ namespace UnityEngine.Rendering
             }
 
             /// <summary>
-            /// Pop an element of the queue.
+            /// Try to pop an element of the queue.
             /// </summary>
             /// <param name="v">Output result string.</param>
-            /// <returns>True if an element was succesfuly poped.</returns>
+            /// <returns>True if an element was successfully popped.</returns>
             public bool TryPop(out string v)
             {
+                if (m_ReadCursor + sizeof(int) >= m_BufferEnd)
+                {
+                    v = null;
+                    return false;
+                }
+
                 var size = *(int*)m_ReadCursor;
                 if (size != 0)
                 {
@@ -84,7 +90,7 @@ namespace UnityEngine.Rendering
                     return true;
                 }
 
-                v = default;
+                v = null;
                 return false;
             }
 

@@ -975,7 +975,7 @@ namespace UnityEditor.VFX
                 {
                     stripBufferIndex = bufferDescs.Count;
                     uint stripCapacity = (uint)data.GetSettingValue("stripCapacity");
-                    bufferDescs.Add(new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = stripCapacity * 5 + 1, stride = 4});
+                    bufferDescs.Add(new VFXGPUBufferDesc() { debugName = "VFXStripDataBuffer", target = GraphicsBuffer.Target.Structured, size = stripCapacity * 5 + 1, stride = 4});
                 }
                 buffers.stripBuffers.Add(data, stripBufferIndex);
 
@@ -983,7 +983,7 @@ namespace UnityEditor.VFX
                 if (data.NeedsComputeBounds())
                 {
                     boundsBufferIndex = bufferDescs.Count;
-                    bufferDescs.Add(new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = 6, stride = 4});
+                    bufferDescs.Add(new VFXGPUBufferDesc() { debugName = "VFXBoundsBuffer", target = GraphicsBuffer.Target.Structured, size = 6, stride = 4});
                 }
                 buffers.boundsBuffers.Add(data, boundsBufferIndex);
             }
@@ -997,7 +997,7 @@ namespace UnityEditor.VFX
                 {
                     eventBufferIndex = bufferDescs.Count;
                     // event count (1) + total event count (1) + event prefix sum (1) + source index (capacity)
-                    bufferDescs.Add(new VFXGPUBufferDesc() { target = GraphicsBuffer.Target.Structured, size = 3 + capacity, stride = 4 });
+                    bufferDescs.Add(new VFXGPUBufferDesc() { debugName = "VFXGPUEventsBuffer", target = GraphicsBuffer.Target.Structured, size = 3 + capacity, stride = 4 });
                 }
                 buffers.eventBuffers.Add(data, eventBufferIndex);
             }

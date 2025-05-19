@@ -399,7 +399,7 @@ To match the scale of the GameObjects in your Scene, change the Backplate's **Sc
 
 ![A scene of a town square with a cloudy sky.](Images/HDRPFeatures-CloudLayer.png)
 
-In HDRP, you set up cloud layers inside a [Volume](Volumes.md), so you can change clouds settings, or even the type of clouds itself, depending on the position of the Camera in the Scene. HDRP allows you to separate the clouds in the visual sky from the clouds that you use for environment lighting. HDRP includes the following built-in cloud type for you to use in your Unity Project:
+In HDRP, you set up cloud layers inside a [Volume](volume-component.md), so you can change clouds settings, or even the type of clouds itself, depending on the position of the Camera in the Scene. HDRP allows you to separate the clouds in the visual sky from the clouds that you use for environment lighting. HDRP includes the following built-in cloud type for you to use in your Unity Project:
 
 - [Cloud Layer](create-simple-clouds-cloud-layer.md): Renders a cloud texture with options to simulate sky and sun light scattering in the clouds, and to project shadows on the ground.
 
@@ -425,7 +425,7 @@ Use HDRP's water system to create and control realistic water surfaces. HDRP's w
 - Multiple presets.
 - Simulation-based caustics.
 - Underwater rendering.
-- Deformer.
+- Deformation.
 - Foam.
 - Water Excluder.
 - A mirrored simulation on the CPU for high-fidelity game interactions.

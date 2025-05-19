@@ -26,11 +26,12 @@ This example code demonstrates how to schedule and perform a command to clear th
 ```lang-csharp
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 public class ExampleRenderPipeline : RenderPipeline
 {
-        public ExampleRenderPipeline() {
-        }
+    public ExampleRenderPipeline() {
+    }
 
     protected override void Render(ScriptableRenderContext context, List<Camera> cameras) {
         // Create and schedule a command to clear the current render target

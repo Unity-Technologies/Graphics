@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -1306,6 +1306,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_NormalizedViewPortRect.height
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5925587397941101150, guid: a477888deb65a194793f87af3323de08,
+        type: 3}
+      propertyPath: WaitFrames
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5925587397941101150, guid: a477888deb65a194793f87af3323de08,
+        type: 3}
+      propertyPath: SetBackBufferResolution
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6456975910273469994, guid: a477888deb65a194793f87af3323de08,
         type: 3}

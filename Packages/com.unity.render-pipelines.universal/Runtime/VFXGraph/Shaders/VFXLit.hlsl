@@ -32,7 +32,7 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
 
 #if defined(VFX_MATERIAL_TYPE_SIX_WAY_SMOKE) && defined(VFX_VARYING_TANGENT)
     float signNormal = frontFace ? 1.0 : -1.0f;
-    float3 bitangent = cross(i.VFX_VARYING_NORMAL.xyz, i.VFX_VARYING_TANGENT.xyz);
+    float3 bitangent = cross(i.VFX_VARYING_TANGENT.xyz, i.VFX_VARYING_NORMAL.xyz);
     inputData.tangentToWorld = half3x3(i.VFX_VARYING_TANGENT.xyz, bitangent.xyz, signNormal * i.VFX_VARYING_NORMAL.xyz);
 #endif
 
@@ -121,7 +121,7 @@ float3 GetSurfaceEmissive(VFX_VARYING_PS_INPUTS i, const VFXUVData uvData)
 }
 
 #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
-SixWaySurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
+SixWaySurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, bool frontFace)
 {
         SixWaySurfaceData surfaceData = (SixWaySurfaceData)0;
 
@@ -176,6 +176,8 @@ SixWaySurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normal
             surfaceData.diffuseGIData0 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0];
             surfaceData.diffuseGIData1 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[1];
             surfaceData.diffuseGIData2 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[2];
+            if(!frontFace)
+                surfaceData.diffuseGIData2.xyz *= -1.0f;
         #endif
 
     #if URP_USE_EMISSIVE
@@ -206,7 +208,7 @@ SixWaySurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normal
 }
 #else
 
-SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
+SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData, bool frontFace)
 {
     SurfaceData surfaceData = (SurfaceData)0;
 

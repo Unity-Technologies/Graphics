@@ -126,7 +126,7 @@ const VFXUVData uvData = GetUVData(i);
 
 #ifdef VFX_VARYING_TANGENT
 float3 tangentWS = normalize(i.VFX_VARYING_TANGENT.xyz);
-float3 bitangentWS = cross(normalWS,tangentWS) * (i.VFX_VARYING_TANGENT.w * faceMul);
+float3 bitangentWS = cross(normalWS,tangentWS) * i.VFX_VARYING_TANGENT.w  * GetOddNegativeScale();
 float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
 
 #if USE_NORMAL_MAP

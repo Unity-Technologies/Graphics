@@ -16,7 +16,8 @@ HDRP path tracing in Unity currently has the following limitations:
   - Local Volumetric Fog.
   - Tessellation.
   - Translucent Opaque Materials.
-  - Several of HDRP's Materials. This includes Eye, Hair, and Decal.
+  - Several of HDRP's Materials. This includes Eye and Hair.
+  - Emissive [Decals](decals.md). To disable emission, go to the [Decal Material Inspector window](decal-material-inspector-reference.md) and disable **Affect Emissive**.
   - Per-pixel displacement (parallax occlusion mapping, height map, depth offset).
   - Emissive Decals.
   - Volumetric Clouds.

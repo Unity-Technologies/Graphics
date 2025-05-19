@@ -440,6 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.raytracingCB._RayTracingRayMissUseAmbientProbeAsSky = 0;
             deferredParameters.raytracingCB._RayTracingLastBounceFallbackHierarchy = deferredParameters.lastBounceFallbackHierarchy;
             deferredParameters.raytracingCB._RayTracingAmbientProbeDimmer = settings.ambientProbeDimmer.value;
+            deferredParameters.raytracingCB._RaytracingAPVLayerMask = settings.adaptiveProbeVolumesLayerMask.value;           
 
             return deferredParameters;
         }
@@ -500,6 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int rayMissfallbackHierarchy;
             public int lastBouncefallbackHierarchy;
             public float ambientProbeDimmer;
+            public UnityEngine.RenderingLayerMask adaptiveProbeVolumesLayerMask;
             public int frameIndex;
 
             // Other parameters
@@ -553,6 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayMissfallbackHierarchy = (int)settings.rayMiss.value;
                 passData.lastBouncefallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
                 passData.ambientProbeDimmer = settings.ambientProbeDimmer.value;
+                passData.adaptiveProbeVolumesLayerMask = settings.adaptiveProbeVolumesLayerMask.value;
                 passData.frameIndex = RayTracingFrameIndex(hdCamera, 32);
 
                 // Other parameters
@@ -607,6 +610,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RayTracingLastBounceFallbackHierarchy = data.lastBouncefallbackHierarchy;
                         data.shaderVariablesRayTracingCB._RayTracingAmbientProbeDimmer = data.ambientProbeDimmer;
                         data.shaderVariablesRayTracingCB._RayTracingReflectionFrameIndex = data.frameIndex;
+                        data.shaderVariablesRayTracingCB._RaytracingAPVLayerMask = data.adaptiveProbeVolumesLayerMask.value;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Inject the ray-tracing sampling data

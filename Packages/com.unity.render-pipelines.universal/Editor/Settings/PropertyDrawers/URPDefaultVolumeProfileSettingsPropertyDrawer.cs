@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.Universal
             return profileLine;
         }
 
-        public class URPDefaultVolumeProfileSettingsContextMenu : DefaultVolumeProfileSettingsContextMenu<URPDefaultVolumeProfileSettings, UniversalRenderPipeline>
+        public class URPDefaultVolumeProfileSettingsContextMenu : DefaultVolumeProfileSettingsContextMenu2<URPDefaultVolumeProfileSettings, UniversalRenderPipeline>
         {
             protected override string defaultVolumeProfilePath => "Assets/VolumeProfile_Default.asset";
         }
