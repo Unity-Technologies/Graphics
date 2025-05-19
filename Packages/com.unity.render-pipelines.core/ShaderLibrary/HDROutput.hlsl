@@ -151,6 +151,17 @@ float3 RotateRec2020ToP3D65(float3 Rec2020Input)
     return mul(Rec2020ToP3D65Mat, Rec2020Input);
 }
 
+float3 RotateP3D65ToRec709(float3 P3D65Input)
+{
+    static const float3x3 P3D65ToRec709Mat = float3x3(
+        1.224940, -0.224940,  0.000000,
+       -0.042057,  1.042057,  0.000000,
+       -0.019638, -0.078635,  1.098274
+    );
+
+    return mul(P3D65ToRec709Mat, P3D65Input);
+}
+
 float3 RotateP3D65ToRec2020(float3 P3D65Input)
 {
     static const float3x3 P3D65ToRec2020Mat = float3x3(
@@ -192,6 +203,22 @@ float3 RotateRec2020ToOutputSpace(float3 Rec2020Input)
     else // HDRCOLORSPACE_REC709
     {
         return RotateRec2020ToRec709(Rec2020Input);
+    }
+}
+
+float3 RotateOutputSpaceToRec709(float3 ODTInput)
+{
+    if (_HDRColorspace == HDRCOLORSPACE_REC2020)
+    {
+        return RotateRec2020ToRec709(ODTInput);
+    }
+    else if (_HDRColorspace == HDRCOLORSPACE_P3D65)
+    {
+        return RotateP3D65ToRec709(ODTInput);
+    }
+    else // HDRCOLORSPACE_REC709
+    {
+        return ODTInput;
     }
 }
 

@@ -1428,6 +1428,70 @@ namespace UnityEditor.VFX.Test
             window.graphView.controller = null;
         }
 
+        [UnityTest]
+        public IEnumerator ConvertToSubGraphBlock_Nested()
+        {
+            string vfxPath;
+            {
+                var vfxGraph = VFXTestCommon.CreateGraph_And_System();
+                vfxPath = AssetDatabase.GetAssetPath(vfxGraph);
+                var update = vfxGraph.children.OfType<VFXBasicUpdate>().Single();
+                var gravityDesc = VFXLibrary.GetBlocks().First(o => o.modelType == typeof(Gravity));
+                var gravity = gravityDesc.CreateInstance();
+                update.AddChild(gravity);
+                AssetDatabase.ImportAsset(vfxPath);
+            }
+
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            Assert.IsTrue(VisualEffectAssetEditor.OnOpenVFX(asset.GetInstanceID(), 0));
+
+            var window = VFXViewWindow.GetWindow(asset);
+            window.LoadAsset(asset, null);
+            var viewController = window.graphView.controller;
+            Assert.IsNotNull(viewController);
+
+            var firstSubgraphBlockPath = vfxPath + "block";
+            var secondSubgraphBlockPath = firstSubgraphBlockPath.Replace(".vfxblock", "_bis.vfxblock");
+
+            {
+                var update = viewController.graph.children.OfType<VFXBasicUpdate>().Single();
+                var gravityBlock = update.children.OfType<Gravity>().First();
+                var controller = viewController.GetNodeController(gravityBlock, 0);
+                VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, new[] { controller }, Rect.zero, firstSubgraphBlockPath);
+                viewController.ApplyChanges();
+            }
+
+            yield return null;
+
+            {
+                var update = viewController.graph.children.OfType<VFXBasicUpdate>().Single();
+                var subgraphBlock = update.children.OfType<VFXSubgraphBlock>().First();
+                var controller = viewController.GetNodeController(subgraphBlock, 0);
+                VFXConvertSubgraph.ConvertToSubgraphBlock(window.graphView, new[] { controller }, Rect.zero, secondSubgraphBlockPath);
+                viewController.ApplyChanges();
+            }
+
+            yield return null;
+
+            //Basic check on expected shader generation output
+            AssetDatabase.ImportAsset(vfxPath);
+            var graph = asset.GetOrCreateResource();
+            bool foundGravityInSource = false;
+            for (int shaderIndex = 0; shaderIndex < graph.GetShaderSourceCount(); ++shaderIndex)
+            {
+                if (!graph.GetShaderSourceName(shaderIndex).Contains("Update"))
+                    continue;
+
+                var source = graph.GetShaderSource(shaderIndex);
+                if (source.Contains("Gravity"))
+                {
+                    foundGravityInSource = true;
+                    break;
+                }
+            }
+            Assert.IsTrue(foundGravityInSource);
+        }
+
         [UnityTest][Description("(Non regression test for FB case #1419176")]
         public IEnumerator Rename_Asset_Dont_Lose_Subgraph()
         {

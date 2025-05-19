@@ -1,3 +1,9 @@
-This is the documentation for the Scripting APIs of this package.
+---
+uid: hdrp-api-index
+---
 
-**Note**: The High Definition Render Pipeline (HDRP) is built on the Scriptable Render Pipeline (SRP) and uses some class types that you can only find in the [SRP Scripting API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/index.html).
+# High Definition Render Pipeline scripting API
+
+This is the documentation for the scripting APIs of the High Definition Render Pipeline (HDRP) package.
+
+**Note**: HDRP is built on the Scriptable Render Pipeline (SRP) Core package and uses some class types that you can only find in the [SRP Core scripting API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@17.3/api/index.html).

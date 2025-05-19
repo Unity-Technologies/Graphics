@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.2.0] - 2025-05-14
+
+This version is compatible with Unity 6000.2.0b2.
+
+### Changed
+- Added debug names for GPU resources managed by VFX Graph to make debugging easier.
+
+### Fixed
+- Fixed external connections being lost during subgraph conversion.
+- Fixed rendering of volumetric output connected to particle strips.
+- Avoid compilation warnings while emptying ribbon vfx.
+- Fixed VFX URP Decal output on macOS silicon.
+- Restored the use of global textures for materials where textures are set to *None* when using GPU instancing.
+- Fixed an issue with six-way axes inversion when using the Six-way Shader Graph target on non-VFX objects.
+- Fixed erroneous error feedback within the Visual Effect Graph.
+
 ## [17.0.3] - 2025-02-13
 
 This version is compatible with Unity 6000.2.0a17.

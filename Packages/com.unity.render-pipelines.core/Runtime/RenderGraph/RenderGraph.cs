@@ -717,7 +717,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="rt">External RTHandle that needs to be imported.</param>
         /// <param name="importParams">Info describing the clear behavior of imported textures. Clearing textures using importParams may be more efficient than manually clearing the texture using `cmd.Clear` on some hardware.</param>
         /// <returns>A new TextureHandle that represents the imported texture in the context of this rendergraph.</returns>
-        public TextureHandle ImportTexture(RTHandle rt, ImportResourceParams importParams )
+        public TextureHandle ImportTexture(RTHandle rt, ImportResourceParams importParams)
         {
             CheckNotUsedWhenExecuting();
 
@@ -740,7 +740,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="info">The properties of the passed in RTHandle.</param>
         /// <param name="importParams">Info describing the clear behavior of imported textures. Clearing textures using importParams may be more efficient than manually clearing the texture using `cmd.Clear` on some hardware.</param>
         /// <returns>A new TextureHandle that represents the imported texture in the context of this rendergraph.</returns>
-        public TextureHandle ImportTexture(RTHandle rt, RenderTargetInfo info, ImportResourceParams importParams = new ImportResourceParams() )
+        public TextureHandle ImportTexture(RTHandle rt, RenderTargetInfo info, ImportResourceParams importParams = new ImportResourceParams())
         {
             CheckNotUsedWhenExecuting();
 

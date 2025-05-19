@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [17.2.0] - 2025-05-14
+
+This version is compatible with Unity 6000.2.0b2.
+
+### Fixed
+- Fixed tooltip positions in HDWizard.
+- Fixed warning padding in HDWizard.
+- Updated UI warnings to provide clearer messaging when ray tracing is not supported.
+- Prevent CustomPass using camera depth if the injection point is set to AfterPostprocess. Show a warning in the CustomPass inspector if this configuration is present.
+- Fixed a crash in `AMDUnityPlugin.dll` when there are multiple cameras and one is toggled off.
+- Fixed a ghosting issue with DX11.
+
 ## [17.0.3] - 2025-02-13
 
 This version is compatible with Unity 6000.2.0a17.
