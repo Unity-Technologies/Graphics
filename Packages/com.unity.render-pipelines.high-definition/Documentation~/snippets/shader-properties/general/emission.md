@@ -1,5 +1,5 @@
 <tr>
   <td>Emission</td>
-  <td></td>
+  <td>N/A</td>
   <td>Toggles whether emission affects global illumination.</td>
 </tr>

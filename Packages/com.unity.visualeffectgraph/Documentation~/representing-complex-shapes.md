@@ -10,7 +10,7 @@ Very detailed meshes require a high texture resolution to represent them, which 
 
 For more information, see [Signed Distance Fields](sdf-in-vfx-graph.md).
 
-![](Images/sdf-size-precision.gif)<br/>*This gif shows how different 3D texture resolutions affect the accuracy of an SDF. It also shows how the SDF representations compare to the original geometry.*
+<video src="Images/sdf-size-precision.mp4" Title="A dog displayed as a Signed Distance Field (SDF). The resolution of the SDF affects the appearance of the model. At lower precision, the dog looks blocky and less defined, while at higher precision, the dog's shape becomes smoother and more accurately detailed." width="320" height="auto" autoplay="true" loop="true" controls></video><br/>*This video shows how different 3D texture resolutions affect the accuracy of an SDF. It also shows how the SDF representations compare to the original geometry.*
 
 ## Point Caches
 
@@ -18,4 +18,4 @@ A [Point Cache](point-cache-in-vfx-graph.md) is an asset that stores a fixed lis
 
 You can use Point Caches to represent lists of points generated from 3D meshes or 2D textures, but not their actual geometry. Point attributes are baked into the asset, so if you want a wider variety of points, you need to add more during the baking process. For more information, see [Point Caches](point-cache-in-vfx-graph.md).
 
-![](Images/point-cache-relax.gif)<br/>*This gif shows how relaxing points in a Point Cache results in a more even spacing between*
+<video src="Images/point-cache-relax.mp4" title="Points representing the dog gradually reposition themselves, becoming more evenly distributed across the surface, resulting in a smoother and more uniform visual representation of the dog's shape." width="320" height="auto" autoplay="true" loop="true" controls></video><br/>*This video shows how relaxing points in a Point Cache results in a more even spacing between*

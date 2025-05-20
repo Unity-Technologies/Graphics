@@ -28,7 +28,7 @@ To create a Diffusion Profile, navigate to **Assets > Create > Rendering > HDRP 
 
 The following image displays the effect of each Texturing Mode option on a human face model:
 
-![](Images/profile_texturing_mode.png)
+![Three versions of a close-up view of a pair of lips. Subsurface Scattering (Disabled): the textured lines on the lips and the shadows are clear. Subsurface Scattering (Post-Scatter): the lines and shadows are blurrier. Subsurface Scattering (Pre and Post-Scatter): the lines and shadows are even blurrier.](Images/profile_texturing_mode.png)
 
 To simulate the thin oily layer on the skin of lips, HDRP uses two specular lobes (dual lobes). A specular lobe is the shape of light reflecting off the surface, based on the smoothness of the surface.
 
@@ -38,12 +38,15 @@ If you use the StackLit shader, set the __Dual Specular Lobe Parametrization__ t
 
 The following image shows the effect of dual lobes on a human face model, with **Lobe Mix** set to 0.5.
 
-![](Images/profile_dual_lobe.png)
+![Four versions of a close-up view of a nose and mouth. The first lobe has a smoothess of 0.8, and little specular light. The second lobe has a smoothness of 1.2, and a greater amount of specular light on the nose and lips. The Lobe Mix of 0.5 has a look that's between the two. The final image is the full color result.](Images/profile_dual_lobe.png)
 
 The following image shows the effect of increasing **Diffuse Shading Power** on a human face model.
 
-![](Images/profile_diffuse_power.gif)
-
+<canvas class="image-comparison" role="img" aria-label="The front view of a head. When Diffuse Shading Power is increased from 1 to 1.9, the head looks less flat and has deeper shadows.">
+    <img src="Images/profile_diffuse_power.jpg" title="">
+    <img src="Images/profile_diffuse_power-2.jpg" title="">
+</canvas>
+<br />Drag the slider to compare the images.
 
 ### Transmission only
 
@@ -57,7 +60,7 @@ The following image shows the effect of increasing **Diffuse Shading Power** on 
 
 The image below displays a human ear model without transmission (left) and with a configured **Thickness Remap** value (right):
 
-![](Images/transmission_thick.png)
+![Two images of an ear in very bright light. Light is visible through he ear on the right.](Images/transmission_thick.png)
 
 
 ### Profile Previews

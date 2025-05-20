@@ -478,15 +478,11 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < results.parameterList.Count; ++i)
                 {
                     var parameter = results.parameterList[i];
-
-#if UNITY_EDITOR
-                    string displayName = UnityEditor.ObjectNames.NicifyVariableName(parameter.debugId); // In the editor, make the name more readable
-#elif DEVELOPMENT_BUILD
-                    string displayName = parameter.debugId; // In the development player, just the debug id
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    string displayName = VolumeDebugData.GetVolumeParameterDebugId(parameter);// In the development player, just the debug id
 #else
                     string displayName = i.ToString(); // Everywhere else, just a dummy id ( TODO: The Volume panel code should be stripped completely in nom-development builds )
 #endif
-
                     table.children.Add(new DebugUI.Table.Row()
                     {
                         displayName = displayName

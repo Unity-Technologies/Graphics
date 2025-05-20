@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Base implementation for drawing Default Volume Profile UI in Graphics Settings.
     /// </summary>
-    public abstract class DefaultVolumeProfileSettingsPropertyDrawer : PropertyDrawer
+    public abstract partial class DefaultVolumeProfileSettingsPropertyDrawer : PropertyDrawer
     {
         // UUM-77758: Due to how PropertyDrawers are created and cached, there is no way to retrieve them reliably
         // later. We know that only one DefaultVolumeProfile exists at any given time, so we can access it through
@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <typeparam name="TSetting">Default Volume Profile Settings type</typeparam>
         /// <typeparam name="TRenderPipeline">Render Pipeline type</typeparam>
-        public abstract class DefaultVolumeProfileSettingsContextMenu<TSetting, TRenderPipeline> : IRenderPipelineGraphicsSettingsContextMenu<TSetting>
+        public abstract class DefaultVolumeProfileSettingsContextMenu2<TSetting, TRenderPipeline> : IRenderPipelineGraphicsSettingsContextMenu2<TSetting>
             where TSetting : class, IDefaultVolumeProfileSettings
             where TRenderPipeline : RenderPipeline
         {
@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering
             /// </summary>
             protected abstract string defaultVolumeProfilePath { get; }
 
-            void IRenderPipelineGraphicsSettingsContextMenu<TSetting>.PopulateContextMenu(TSetting setting, PropertyDrawer _, ref GenericMenu menu)
+            void IRenderPipelineGraphicsSettingsContextMenu2<TSetting>.PopulateContextMenu(TSetting setting, SerializedProperty _, ref GenericMenu menu)
             {
                 bool canCreateNewAsset = RenderPipelineManager.currentPipeline is TRenderPipeline;
                 VolumeProfileUtils.AddVolumeProfileContextMenuItems(ref menu,

@@ -56,9 +56,7 @@ HDRP enables DirextX12 by default. To enable DirectX 12 manually:
 4. Unity uses Direct3d11 by default. To make Unity use Direct3d12, move **Direct3d12 (Experimental)** to the top of the list.
 5. To apply the changes, you may need to restart the Unity Editor. If a window prompt appears telling you to restart the Editor, click **Restart Editor** in the window.
 
-The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar:
-
-![](Images/RayTracingGettingStarted1.png)
+The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar.
 
 <a name="ManualSetup-DisablingStaticBatching"></a>
 
@@ -198,7 +196,7 @@ HDRP supports ray tracing for DirectX 12 and specific console platforms. Consult
 HDRP ray tracing in Unity isn't compatible with the following features:
 
 - Vertex animation, for example wind deformation of vegetation.
-- [Decals](decals.md).
+- Emissive [Decals](decals.md). To disable emission, go to the [Decal Material Inspector window](decal-material-inspector-reference.md) and disable **Affect Emissive**.
 - Ray tracing is not compatible with the detail meshes and trees in the [Terrain system](https://docs.unity3d.com/Manual/script-Terrain.html). It is compatible with terrain geometry. To include detailed meshes and trees in ray traced reflections, use [mixed tracing](Override-Screen-Space-Reflection.md#mixed-tracing).
 - Volumetric [fog](create-a-local-fog-effect.md).
 - [Tessellation](Tessellation.md).

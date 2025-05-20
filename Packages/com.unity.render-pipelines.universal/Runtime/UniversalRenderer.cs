@@ -814,6 +814,10 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.HasNormalPrepass = renderPassInputs.requiresNormalsTexture;
 
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
+                
+                // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
+                // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
+                m_DeferredLights.CreateGbufferResources();
 
                 if (m_DeferredLights.UseFramebufferFetch)
                 {
@@ -1517,7 +1521,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // We can explicitely render the overlay UI from URP when HDR output is not enabled.
                 // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
-                if (shouldRenderUI && !outputToHDR)
+                if (shouldRenderUI && cameraData.isLastBaseCamera && !outputToHDR)
                 {
                     EnqueuePass(m_DrawOverlayUIPass);
                 }
@@ -1901,7 +1905,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
         }
 
-        bool PlatformRequiresExplicitMsaaResolve()
+        internal static bool PlatformRequiresExplicitMsaaResolve()
         {
 #if UNITY_EDITOR
             // In the editor play-mode we use a Game View Render Texture, with

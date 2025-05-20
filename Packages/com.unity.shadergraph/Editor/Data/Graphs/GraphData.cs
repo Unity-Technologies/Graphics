@@ -1371,11 +1371,32 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        private static void CollectSubgraphKeywordsR(KeywordCollector collector, SubGraphAsset asset)
+        {
+            if (asset is null || !asset.isValid || asset.isNull)
+                return;
+                
+            foreach(var keyword in asset.keywords)
+            {
+                collector.AddShaderKeyword(keyword);
+            }
+            foreach(var guid in asset.children)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var child = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(path);
+                CollectSubgraphKeywordsR(collector, child);
+            }
+        }
+
         public void CollectShaderKeywords(KeywordCollector collector, GenerationMode generationMode)
         {
             foreach (var keyword in keywords)
             {
                 collector.AddShaderKeyword(keyword);
+            }
+            foreach(var node in GetNodes<SubGraphNode>())
+            {
+                CollectSubgraphKeywordsR(collector, node.asset);
             }
 
             // Alwways calculate permutations when collecting
@@ -2854,6 +2875,8 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
+            // OnEnable may be called multiple times. Ensure the callback only exists once.
+            ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;
         }
 

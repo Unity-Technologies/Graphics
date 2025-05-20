@@ -1516,6 +1516,21 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
+        /// <summary>
+        /// Returns the index of the last base camera to draw ScreenSpace Overlay UI at the last base camera.
+        /// </summary>
+        private int GetLastBaseCameraIndex(List<Camera> cameras)
+        {
+            int lastBaseCameraIndex = 0;
+            for (int i = 0; i < cameras.Count; i++)
+            {
+                cameras[i].TryGetComponent<UniversalAdditionalCameraData>(out var baseCameraAdditionalData);
+                if (baseCameraAdditionalData?.renderType == CameraRenderType.Base)
+                    lastBaseCameraIndex = i;
+            }
+            return lastBaseCameraIndex;
+        }
+
         internal static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, HDRColorBufferPrecision requestHDRColorBufferPrecision, bool needsAlpha)
         {
             if (isHdrEnabled)

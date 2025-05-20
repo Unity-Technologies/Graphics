@@ -37,7 +37,7 @@ public class MySettings : IRenderPipelineGraphicsSettings
 }
 ```
 
-![](Images/customsettings-settingsgroup.png)<br/>
+![Screenshot of the Project Settings window. The Graphics section contains the new custom settings group from the example script.](Images/customsettings-settingsgroup.png)<br/>
 The **Edit** > **Project Settings** > **Graphics** window with the new custom settings group from the example script.
 
 ## Change the display order of settings groups

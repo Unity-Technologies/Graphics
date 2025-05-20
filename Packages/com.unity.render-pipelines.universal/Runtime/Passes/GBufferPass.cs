@@ -234,43 +234,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             passData.gbuffer = m_DeferredLights.GbufferTextureHandles;
 
-            // If the gbuffer targets are already set up, then assume we are setting up for the second gbuffer pass when doing two-pass occlusion culling.
-            // We want to continue to render to the same targets as the first pass in this case, so just attach them for this pass.
-            if (m_DeferredLights.IsGBufferValid)
+            for (int i = 0; i < m_DeferredLights.GBufferSliceCount; i++)
             {
-                for (int i = 0; i < m_DeferredLights.GBufferSliceCount; i++)
-                {
-                    builder.SetRenderAttachment(passData.gbuffer[i], i, AccessFlags.Write);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < m_DeferredLights.GBufferSliceCount; i++)
-                {
-                    var gbufferSlice = cameraData.cameraTargetDescriptor;
-                    gbufferSlice.depthStencilFormat = GraphicsFormat.None; // make sure no depth surface is actually created
-                    gbufferSlice.stencilFormat = GraphicsFormat.None;
-
-                    if (i == m_DeferredLights.GBufferNormalSmoothnessIndex && m_DeferredLights.HasNormalPrepass)
-                        passData.gbuffer[i] = resourceData.cameraNormalsTexture;
-                    else if (i == m_DeferredLights.GBufferRenderingLayers && useCameraRenderingLayersTexture)
-                        passData.gbuffer[i] = resourceData.renderingLayersTexture;
-                    else if (i != m_DeferredLights.GBufferLightingIndex)
-                    {
-                        gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                        passData.gbuffer[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, gbufferSlice, DeferredLights.k_GBufferNames[i], true);
-                    }
-                    else
-                        passData.gbuffer[i] = cameraColor;
-
-                    builder.SetRenderAttachment(passData.gbuffer[i], i, AccessFlags.Write);
-                }
-
-                m_DeferredLights.IsGBufferValid = true;
+                Debug.Assert(passData.gbuffer[i].IsValid());
+                builder.SetRenderAttachment(passData.gbuffer[i], i, AccessFlags.Write);
             }
 
-			RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
-            resourceData.gBuffer = passData.gbuffer;
+            RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
             passData.depth = cameraDepth;
             builder.SetRenderAttachmentDepth(cameraDepth, AccessFlags.Write);
@@ -279,8 +249,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             InitRendererLists(ref passData, default(ScriptableRenderContext), renderGraph, renderingData, cameraData, lightData, true);
             builder.UseRendererList(passData.rendererListHdl);
             builder.UseRendererList(passData.objectsWithErrorRendererListHdl);
-            
- 			if (setGlobalTextures)
+
+            if (setGlobalTextures)
             {
                 builder.SetGlobalTextureAfterPass(resourceData.cameraNormalsTexture, s_CameraNormalsTextureID);
 
@@ -293,7 +263,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
             {
-            	ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl);
+                ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl);
             });
         }
     }

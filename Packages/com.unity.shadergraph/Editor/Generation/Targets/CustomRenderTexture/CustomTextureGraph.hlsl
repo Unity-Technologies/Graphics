@@ -8,7 +8,7 @@ float3 LinearToSRGB( float3 c ) { return c; }
 
 // Unpack normal as DXT5nm (1, y, 1, x) or BC5 (x, y, 0, 1)
 // Note neutral texture like "bump" is (0, 0, 1, 1) to work with both plain RGB normal and DXT5nm/BC5
-float3 UnpackNormalmapRGorAG(float4 packednormal)
+float3 UnpackNormalMapRGAG(float4 packednormal)
 {
     // This do the trick
     packednormal.x *= packednormal.w;
@@ -24,7 +24,7 @@ inline float3 UnpackNormal(float4 packednormal)
 #if defined(UNITY_NO_DXT5nm)
     return packednormal.xyz * 2 - 1;
 #else
-    return UnpackNormalmapRGorAG(packednormal);
+    return UnpackNormalMapRGAG(packednormal);
 #endif
 }
 

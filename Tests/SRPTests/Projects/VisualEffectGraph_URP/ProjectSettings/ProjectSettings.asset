@@ -597,7 +597,25 @@ PlayerSettings:
   scriptingBackend:
     Standalone: 0
   il2cppCompilerConfiguration: {}
-  managedStrippingLevel: {}
+  il2cppCodeGeneration: {}
+  il2cppStacktraceInformation: {}
+  managedStrippingLevel:
+    Android: 4
+    EmbeddedLinux: 4
+    GameCoreScarlett: 4
+    GameCoreXboxOne: 4
+    Kepler: 4
+    Nintendo Switch: 4
+    PS4: 4
+    PS5: 4
+    QNX: 4
+    ReservedCFE: 4
+    VisionOS: 4
+    WebGL: 4
+    Windows Store Apps: 4
+    XboxOne: 4
+    iPhone: 4
+    tvOS: 4
   incrementalIl2cppBuild: {}
   allowUnsafeCode: 0
   useDeterministicCompilation: 1

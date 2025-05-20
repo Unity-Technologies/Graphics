@@ -28,7 +28,7 @@ The following example code represents one possible outcome of this node per **Sp
 ```
 void Unity_NormalUnpack_float(float4 In, out float3 Out)
 {
-    Out = UnpackNormalmapRGorAG(In);
+    Out = UnpackNormalMapRGorAG(In);
 }
 ```
 

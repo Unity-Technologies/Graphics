@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering
     /// A volume component that holds settings for the Adaptive Probe Volumes System per-camera options.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Adaptive Probe Volumes Options"), SupportedOnRenderPipeline]
+    [CurrentPipelineHelpURL("probevolumes")]
     public sealed class ProbeVolumesOptions : VolumeComponent
     {
         ProbeVolumesOptions()

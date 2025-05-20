@@ -1,4 +1,4 @@
-# Synchronize water surfaces
+# Synchronize multiple water surfaces
 
 If you use multiple water surfaces, you can synchronize the water simulation of each surface. For example, if you need to make sure the water surface is the same for all the players in a multiplayer game.
 

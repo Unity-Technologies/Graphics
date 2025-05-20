@@ -1281,7 +1281,13 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.UseFramebufferFetch = renderGraph.nativeRenderPassesEnabled;
                 m_DeferredLights.HasNormalPrepass = isDepthNormalPrepass;
                 m_DeferredLights.HasDepthPrepass = requiresDepthPrepass;
+
                 m_DeferredLights.ResolveMixedLightingMode(lightData);
+                // Once the mixed lighting mode has been discovered, we know how many MRTs we need for the gbuffer.
+                // Subtractive mixed lighting requires shadowMask output, which is actually used to store unity_ProbesOcclusion values.
+                m_DeferredLights.CreateGbufferResourcesRenderGraph(renderGraph, resourceData);
+                resourceData.gBuffer = m_DeferredLights.GbufferTextureHandles;
+
 
                 RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingGbuffer);
 
@@ -1644,7 +1650,7 @@ namespace UnityEngine.Rendering.Universal
 
             // We can explicitely render the overlay UI from URP when HDR output is not enabled.
             // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
-            bool shouldRenderUI = cameraData.rendersOverlayUI;
+            bool shouldRenderUI = cameraData.rendersOverlayUI && cameraData.isLastBaseCamera;
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && !outputToHDR)
             {

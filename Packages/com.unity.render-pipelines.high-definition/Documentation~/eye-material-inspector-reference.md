@@ -36,7 +36,7 @@ Refer to [Eyes](eyes.md) for more information.
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
 | **Pupil Radius**             | Sets the radius of the Pupil in the Iris Map as a percentage. |
-| **Pupil Debug Mode**         | When enabled, displays a debug mode that allows you to calibrate the desired **Pupil Radius** for your Iris Map. For proper calibration, ensure that the **Iris Offset** is **0**, the **Pupil Aperture** is **0.5** (the neutral position) and then the white circle must be inside the iris pattern. See the following screenshot for an example:<br/>![](Images/eye-shader-pupil-debug-mode.png) |
+| **Pupil Debug Mode**         | When enabled, displays a debug mode that allows you to calibrate the desired **Pupil Radius** for your Iris Map. For proper calibration, ensure that the **Iris Offset** is **0**, the **Pupil Aperture** is **0.5** (the neutral position) and then the white circle must be inside the iris pattern. See the following screenshot for an example:<br/>![A front view of an eye, with a white pupil inside the iris.](Images/eye-shader-pupil-debug-mode.png) |
 | **Pupil Aperture**           | Sets the state of the pupil’s aperture, 0 being the smallest aperture (**Min Pupil Aperture**) and 1 the widest aperture (**Max Pupil Aperture**). |
 | **Minimal Pupil Aperture**   | Sets the minimum pupil aperture value.                       |
 | **Maximal Pupil Aperture**   | Sets the maximum pupil aperture value.                       |

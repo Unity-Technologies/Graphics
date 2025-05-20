@@ -2,8 +2,6 @@
 
 Visual Effect Graph Project Settings is a section in Unity Project Settings Window. You can access these settings in **Edit > Project Settings > VFX**.
 
-![](Images/VisualEffectProjectSettings.png)
-
 ## Properties:
 
 | Name                               | Description                                                  |

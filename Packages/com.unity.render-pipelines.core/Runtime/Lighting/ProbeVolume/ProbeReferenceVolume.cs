@@ -1388,7 +1388,7 @@ namespace UnityEngine.Rendering
                 return;
             }
 
-            if (m_CurrentBakingSet != null && bakingSet != m_CurrentBakingSet)
+            if (m_CurrentBakingSet != null && !m_CurrentBakingSet.HasSameSceneGUIDs(bakingSet))
             {
                 // Trying to load data for a scene from a different baking set than currently loaded ones.
                 // This should not throw an error, but it's not supported

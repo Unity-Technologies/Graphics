@@ -1416,5 +1416,167 @@ namespace UnityEngine.Rendering.Tests
                 return gcAllocRecorder.sampleBlockCount;
             }
         }
+
+        [Test]
+        public void UpdateSubpassAttachmentIndices_WhenDepthAttachmentIsAdded()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("NoDepth0_Subpass0", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Render Pass
+            //   attachments: [extraBuffers[0]]
+            //   subpass 0: color outputs : [0]
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("NoDepth1_Subpass0", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Render Pass
+            //   attachments: [extraBuffers[0]]
+            //   subpass 0: color outputs : [0]
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("NoDepth2_Subpass1", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+            
+            // Render Pass
+            //   attachments: [extraBuffers[0], extraBuffers[1]]
+            //   subpass 0: color outputs : [0]
+            //   subpass 1: color outputs : [1]
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("NoDepth3_Subpass2", out var passData))
+            {
+                builder.SetInputAttachment(buffers.extraBuffers[0], 0);
+                builder.SetInputAttachment(buffers.extraBuffers[1], 1);
+                builder.SetRenderAttachment(buffers.extraBuffers[2], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Render Pass
+            //   attachments: [extraBuffers[0], extraBuffers[1], extraBuffers[2]]
+            //   subpass 0: color outputs : [0]
+            //   subpass 1: color outputs : [1]
+            //   subpass 2: color outputs : [2], inputs : [0, 1]
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Depth_Subpass3", out var passData))
+            {
+                builder.SetInputAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[3], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Render Pass
+            //   attachments: [depthBuffer, extraBuffers[1], extraBuffers[2], extraBuffers[0], extraBuffers[3]]
+            //   subpass 0: color outputs : [0 -> 3]
+            //   subpass 1: color outputs : [1]
+            //   subpass 2: color outputs : [2], inputs : [0 -> 3, 1]
+            //   subpass 3: color outputs : [4], inputs : [3]
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // All graph passes are merged in the same render pass
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 5 && passes[0].numNativeSubPasses == 4);
+
+            // Depth is the first attachment
+            Assert.IsTrue(passes[0].attachments[0].handle.index == buffers.depthBuffer.handle.index);
+            Assert.IsTrue(passes[0].attachments[1].handle.index == buffers.extraBuffers[1].handle.index);
+            Assert.IsTrue(passes[0].attachments[2].handle.index == buffers.extraBuffers[2].handle.index);
+            Assert.IsTrue(passes[0].attachments[3].handle.index == buffers.extraBuffers[0].handle.index);
+            Assert.IsTrue(passes[0].attachments[4].handle.index == buffers.extraBuffers[3].handle.index);
+
+            // Check first subpass is correctly updated
+            ref var subPassDesc0 = ref result.contextData.nativeSubPassData.ElementAt(0);
+            Assert.IsTrue(subPassDesc0.colorOutputs.Length == 1);
+            Assert.IsTrue(subPassDesc0.colorOutputs[0] == 3);
+
+            // Check second subpass is correctly updated
+            ref var subPassDesc1 = ref result.contextData.nativeSubPassData.ElementAt(1);
+            Assert.IsTrue(subPassDesc1.colorOutputs.Length == 1);
+            Assert.IsTrue(subPassDesc1.colorOutputs[0] == 1);
+
+            // Check third subpass is correctly updated
+            ref var subPassDesc2 = ref result.contextData.nativeSubPassData.ElementAt(2);
+            Assert.IsTrue(subPassDesc2.colorOutputs.Length == 1);
+            Assert.IsTrue(subPassDesc2.colorOutputs[0] == 2);
+            Assert.IsTrue(subPassDesc2.inputs.Length == 2);
+            Assert.IsTrue(subPassDesc2.inputs[0] == 3);
+            Assert.IsTrue(subPassDesc2.inputs[1] == 1);
+
+            // Check fourth subpass with depth is correct
+            ref var subPassDesc3 = ref result.contextData.nativeSubPassData.ElementAt(3);
+            Assert.IsTrue(subPassDesc3.colorOutputs.Length == 1);
+            Assert.IsTrue(subPassDesc3.colorOutputs[0] == 4);
+            Assert.IsTrue(subPassDesc3.inputs.Length == 1);
+            Assert.IsTrue(subPassDesc3.inputs[0] == 3);
+        }
+
+/* //VRS bug. It seems that there is a bug with VRS forcing pass breaking between passes using the same shading rate image where it shouldn't: UUM-102113.
+        [Test]
+        public void UpdateShadingRateImageIndex_WhenDepthAttachmentIsAdded()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("NoDepth_Subpass0", out var passData))
+            {
+                builder.SetShadingRateImageAttachment(buffers.extraBuffers[0]);
+                builder.SetRenderAttachment(buffers.extraBuffers[1], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Render Pass
+            //   attachments: [extraBuffers[0], extraBuffers[1]]
+            //   shading rate image : [0]
+            //   subpass 0: color outputs : [1]
+
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("Depth_Subpass1", out var passData))
+            {
+                builder.SetShadingRateImageAttachment(buffers.extraBuffers[0]);
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[2], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            // Render Pass
+            //   attachments: [depthBuffer, extraBuffers[1], extraBuffers[0], extraBuffers[2]]
+            //   shading rate image : [0 -> 2]
+            //   subpass 0: color outputs : [1]
+            //   subpass 1: color outputs : [3]
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // All graph passes are merged in the same render pass
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 2 && passes[0].numNativeSubPasses == 2);
+
+            // Depth is the first attachment
+            Assert.IsTrue(passes[0].attachments[0].handle.index == buffers.depthBuffer.handle.index);
+            Assert.IsTrue(passes[0].attachments[1].handle.index == buffers.extraBuffers[1].handle.index);
+            Assert.IsTrue(passes[0].attachments[2].handle.index == buffers.extraBuffers[0].handle.index);
+            Assert.IsTrue(passes[0].attachments[3].handle.index == buffers.extraBuffers[2].handle.index);
+
+            // Check Shading Rate Image index is correctly updated
+            Assert.IsTrue(passes[0].shadingRateImageIndex == buffers.extraBuffers[0].handle.index);
+        }
+*/
     }
 }

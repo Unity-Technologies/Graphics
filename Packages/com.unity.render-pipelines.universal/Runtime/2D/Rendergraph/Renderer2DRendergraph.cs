@@ -61,7 +61,12 @@ namespace UnityEngine.Rendering.Universal
 
         private bool IsPixelPerfectCameraEnabled(UniversalCameraData cameraData)
         {
-            cameraData.camera.TryGetComponent<PixelPerfectCamera>(out var ppc);
+            PixelPerfectCamera ppc = null;
+
+            // Pixel Perfect Camera doesn't support camera stacking.
+            if (cameraData.renderType == CameraRenderType.Base && cameraData.resolveFinalTarget)
+                cameraData.camera.TryGetComponent(out ppc);
+
             return ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None;
         }
 
@@ -226,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
                         var upscaleDescriptor = cameraTargetDescriptor;
                         upscaleDescriptor.width = ppc.refResolutionX * ppc.pixelRatio;
                         upscaleDescriptor.height = ppc.refResolutionY * ppc.pixelRatio;
-                        upscaleDescriptor.depthStencilFormat = GraphicsFormat.None; 
+                        upscaleDescriptor.depthStencilFormat = GraphicsFormat.None;
 
                         universal2DResourceData.upscaleTexture = UniversalRenderer.CreateRenderGraphTexture(renderGraph, upscaleDescriptor, "_UpscaleTexture", true, ppc.finalBlitFilterMode);
                     }
@@ -237,7 +242,8 @@ namespace UnityEngine.Rendering.Universal
             var width = (int)Mathf.Max(1, cameraData.cameraTargetDescriptor.width * renderTextureScale);
             var height = (int)Mathf.Max(1, cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
-            CreateCameraNormalsTextures(renderGraph, cameraTargetDescriptor);
+            // Normals and Light textures have to be of the same renderTextureScale, to prevent any sampling artifacts during lighting calculations
+            CreateCameraNormalsTextures(renderGraph, cameraTargetDescriptor, width, height);
 
             CreateLightTextures(renderGraph, width, height);
 
@@ -359,11 +365,11 @@ namespace UnityEngine.Rendering.Universal
                 CreateCameraDepthCopyTexture(renderGraph, cameraTargetDescriptor);
         }
 
-        void CreateCameraNormalsTextures(RenderGraph renderGraph, RenderTextureDescriptor descriptor)
+        void CreateCameraNormalsTextures(RenderGraph renderGraph, RenderTextureDescriptor descriptor, int width, int height)
         {
             Universal2DResourceData resourceData = frameData.Get<Universal2DResourceData>();
 
-            var desc = new RenderTextureDescriptor(descriptor.width, descriptor.height);
+            var desc = new RenderTextureDescriptor(width, height);
             desc.graphicsFormat = RendererLighting.GetRenderTextureFormat();
             desc.autoGenerateMips = false;
             desc.msaaSamples = descriptor.msaaSamples;
@@ -703,7 +709,7 @@ namespace UnityEngine.Rendering.Universal
 
             // We can explicitly render the overlay UI from URP when HDR output is not enabled.
             // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
-            bool shouldRenderUI = cameraData.rendersOverlayUI;
+            bool shouldRenderUI = cameraData.rendersOverlayUI && cameraData.isLastBaseCamera;
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && !outputToHDR)
                 m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, in finalColorHandle, in finalDepthHandle);

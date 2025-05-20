@@ -7,15 +7,17 @@ A water decal is a shader graph Master Stack. It's applied in world space, allow
 By default, water decal regions are anchored to the camera. You can also anchor them to a GameObject.
 
 > [!NOTE]
-> For backward compatibility, water decals are disabled by default.
+> For backward compatibility, [water masks and current water decals](enable-mask-and-current-water-decals.md) are disabled by default.
 
 ## Create a water decal
 
-1. In the main menu, select **GameObject** > **Water** > **Water Decal**.
+1. In the main menu, go to **GameObject** > **Water** > **Water Decal**.
 
     Unity adds a **Water Decal** GameObject to your scene.
-2. Move the **Water Decal** GameObject to the area of water you want to affect.
-3. To add deformation, foam, or current effects to the water decal shader graph, select the **Water Decal** GameObject, then under **Water Decal (Material)** select **Edit...**.
+
+1. Move the **Water Decal** GameObject to the area of water you want to affect.
+
+1. To add deformation, foam, or current effects to the water decal shader graph, in the **Inspector** window of the **Water Decal**, go to **Water Decal (Script)**, then select **Edit** in the **Water Decal (Material)** section.
 
 By default, the water decal shader graph Master Stack contains the following properties:
 
@@ -23,9 +25,8 @@ By default, the water decal shader graph Master Stack contains the following pro
 - **SurfaceFoam**
 - **DeepFoam**
 
-Once you have [enabled mask and current water decals](enable-mask-and-water-decals.md), you can add the following water features through the Graph Inspector:
+Once you have [enabled water mask and current water decals](enable-mask-and-current-water-decals.md), you can add the following water features through the Graph Inspector:
 
-- **HorizontalDeformation**. 
 - **SimulationMask**
 - **SimulationFoamMask**
 - **LargeCurrent**
@@ -40,7 +41,7 @@ To enable horizontal deformation, go to the active [HDRP Asset](hdrp-asset.md), 
 Enabling horizontal deformation has the following effects:
 
 - HDRP creates a new buffer, which increases the amount of memory HDRP uses.
-- The results of [water scripts](water-scripting-in-the-water-system.md) and [underwater effects](water-underwater-view.md) might be less accurate.
+- The results of water scripts and [underwater effects](water-underwater-view.md) might be less accurate.
 
 ## Additional resources
 

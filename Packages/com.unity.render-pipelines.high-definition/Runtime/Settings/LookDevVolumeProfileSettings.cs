@@ -69,7 +69,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             if (UnityEditor.Rendering.EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<HDRenderPipelineEditorAssets, HDRenderPipeline>(out var rpgs))
             {
-                volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(rpgs.lookDevVolumeProfile);
+                //UUM-100350
+                //When opening the new HDRP project from the template the first time, the global settings is created and the population of IRenderPipelineGraphicsSettings
+                //will call this Reset() method. At this time, the copied item will appear ok but will be seen as null soon after. This lead to errors when opening the 
+                //inspector of the LookDev's VolumeProfile (at the creation of Editors for VolumeComponent). Closing and opening the project would make this issue disappear.
+                //This asset data base manipulation issue disappear if we delay it.
+                UnityEditor.EditorApplication.delayCall += () =>
+                    volumeProfile = VolumeUtils.CopyVolumeProfileFromResourcesToAssets(rpgs.lookDevVolumeProfile);
             }
 #endif
         }

@@ -6,30 +6,23 @@ Incorrect lighting, such as missing shadows or lighting leaks, can occur if the 
 
 - Lighting leaks and insufficient light contributions can occur in scenes with closed environments, improper probe placement, or incorrect fallback settings.
 
-    > [!NOTE]
-    > For each rasterized pixel, the lighting comes from at least five distinct sources:
-    >     * Bullet text.
-    >     * Directional (global) lights and their shadows
-    >     * Direct local lights (point, spot, area) and their shadows
-    >     * Indirect specular lighting:
-    >         * Screen Space Reflection (SSR)/Ray Traced Reflection (RTR)
-    >         * Planar reflection
-    >         * Reflection probes
-    >         * Sky cubemap
+To resolve lighting issues, you need to check the following light sources, which contribute to the illumination of each rasterized pixel in your scene:
 
-- Indirect diffuse lighting:
+* Directional (global) lights and their shadows
+* Direct local lights (point, spot, area) and their shadows
+* Indirect specular lighting:
+    * Screen Space Reflection (SSR)/Ray Traced Reflection (RTR)
+	* Planar reflection
+	* Reflection probes
+	* Sky cubemap
 
-    - Screen Space Global Illumination (SSGI)/Ray-Traced Global Illumination (RTGI)
-
-    - Adaptive Probe Volumes (APV)
-
-    - Light probe groups
-
-    - Lightmaps
-
-    - Ambient probes
-
-- Fog
+* Indirect diffuse lighting:
+    * Screen Space Global Illumination (SSGI)/Ray-Traced Global Illumination (RTGI)
+    * Adaptive Probe Volumes (APV)
+    * Light probe groups
+    * Lightmaps
+    * Ambient probes
+* Fog
 
 ## Fix missing shadows from directional lights
 

@@ -248,6 +248,8 @@ namespace UnityEditor.VFX.UI
                 TransferEdges();
                 //TransferContextsFlowEdges();
                 UninitSmart();
+
+                m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
             }
 
             public void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path)
@@ -282,6 +284,8 @@ namespace UnityEditor.VFX.UI
                 var subGraphOperator = m_SourceNode as VFXSubgraphOperator;
                 subGraphOperator.RecreateCopy();
                 subGraphOperator.ResyncSlots(true);
+
+                m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
             }
 
             List<VFXBlockController> m_SourceBlockControllers;
@@ -374,6 +378,8 @@ namespace UnityEditor.VFX.UI
                 TransferEdges();
                 m_SourceControllers = m_SourceControllersWithBlocks.ToList();
                 UninitSmart();
+
+                m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
             }
 
             bool CreateUniqueSubgraph(string typeName, string extension, Func<string, VisualEffectObject> createFunc)

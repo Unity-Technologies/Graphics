@@ -6,8 +6,6 @@ Refer to [Create a global fog effect](create-a-global-fog-effect.md) for more in
 
 ## Properties
 
-![](Images/Override-VolumetricFog1.png)
-
 [!include[](snippets/volume-override-api.md)]
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]

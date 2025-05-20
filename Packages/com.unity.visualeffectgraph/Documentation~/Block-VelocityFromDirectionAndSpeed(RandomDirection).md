@@ -9,7 +9,7 @@ The **Velocity from Direction And Speed (Random Direction)** Block calculates a 
 
 The Block then scales the final direction vector by a speed, and composes it with the velocity attribute.
 
-![](Images/Block-VelocityFromDirectionAndSpeed(RandomDirection)Example.gif)
+![Velocity from Direction And Speed (Random Direction) Block sample.](Images/Block-VelocityFromDirectionAndSpeed(RandomDirection)Example.gif)
 
 ## Block compatibility
 

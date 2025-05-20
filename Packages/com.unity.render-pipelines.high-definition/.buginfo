@@ -1,5 +1,5 @@
 old:
-  area: SRP Architecture & API
+  area: SRP Foundation
 
 Workflow:
   when:
@@ -10,7 +10,7 @@ Workflow:
       - ^.*AdditionalLight?.*$
       - ^.*AdditionalReflectionProbe?.*$
       - ^.*ContextualMenuDispatcher?.*$
-  area: SRP Workflow
+  area: SRP Settings
   
 Tools:
   when:

@@ -177,11 +177,10 @@ namespace UnityEngine.Rendering.Universal
                     || !cameraData.isDefaultViewport
                     || cameraData.requireSrgbConversion
                     || !cameraData.resolveFinalTarget
+                    || cameraData.cameraTargetDescriptor.msaaSamples > 1 && UniversalRenderer.PlatformRequiresExplicitMsaaResolve()
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f)
                     || (DebugHandler != null && DebugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget));
-
-            inputSummary.requiresDepthTexture |= (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer);
 
             return inputSummary;
         }
@@ -227,7 +226,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var depthDescriptor = cameraTargetDescriptor;
                     depthDescriptor.colorFormat = RenderTextureFormat.Depth;
-                    depthDescriptor.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat(); 
+                    depthDescriptor.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
                     if (!cameraData.resolveFinalTarget && m_UseDepthStencilBuffer)
                         depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
                     RenderingUtils.ReAllocateHandleIfNeeded(ref m_DepthTextureHandle, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
@@ -466,7 +465,7 @@ namespace UnityEngine.Rendering.Universal
 
             // We can explicitely render the overlay UI from URP when HDR output is not enabled.
             // SupportedRenderingFeatures.active.rendersUIOverlay should also be set to true.
-            if (shouldRenderUI && !outputToHDR)
+            if (shouldRenderUI && cameraData.isLastBaseCamera && !outputToHDR)
             {
                 EnqueuePass(m_DrawOverlayUIPass);
             }

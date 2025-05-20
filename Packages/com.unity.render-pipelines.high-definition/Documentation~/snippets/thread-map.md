@@ -2,7 +2,7 @@
 
 The Fabric shaders can use a thread map for the high-frequency details that fabrics exhibit. This is similar to the [detail map](../Mask-Map-And-Detail-Map.md#DetailMap) found in HDRP's Lit shaders. The Thread Map input is channel-packed to optimise memory and is arranged in a way to optimise precision for the normal map. The Fabric Material Sample includes some pre-authored Thread Maps for you.
 
-![img](../Images/thread-map.png)
+![Sample thread map.](../Images/thread-map.png)
 
 The format of the thread map texture:
 

@@ -11,7 +11,6 @@ using UnityEngine.VFX.Test;
 using UnityEngine.TestTools.Graphics;
 using Object = UnityEngine.Object;
 using UnityEngine.Profiling;
-using UnityEngine.VFX.PerformanceTest;
 using Unity.Profiling;
 using Unity.Testing.VisualEffectGraph;
 using UnityEngine.TestTools.Graphics.Performance;
@@ -21,7 +20,7 @@ using static UnityEngine.TestTools.Graphics.Performance.PerformanceMetricNames;
 
 namespace UnityEditor.VFX.PerformanceTest
 {
-    public class VFXRuntimePerformanceTests : PerformanceTests
+    public class VisualEffectsGraphRuntimePerformanceTests : PerformanceTests
     {
 #if UNITY_EDITOR
         bool m_PreviousAsyncShaderCompilation;
@@ -136,9 +135,9 @@ namespace UnityEditor.VFX.PerformanceTest
             }
         }
 
-        public static IEnumerator Load_And_Prepare(GraphicsTestCase testCase)
+        public static IEnumerator Load_And_Prepare(SceneGraphicsTestCase testCase)
         {
-            Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
+            Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}'.");
             UnityEngine.SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
             yield return new WaitForEndOfFrame();
 
@@ -173,11 +172,7 @@ namespace UnityEditor.VFX.PerformanceTest
             yield return new WaitForEndOfFrame();
         }
 
-        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, Performance]
-#if UNITY_EDITOR
-        [PrebuildSetup("SetupGraphicsTestCases")]
-#endif
-        public IEnumerator Counters(GraphicsTestCase testCase)
+        public static IEnumerator Counters(SceneGraphicsTestCase testCase)
         {
             yield return Load_And_Prepare(testCase);
 
@@ -214,7 +209,7 @@ namespace UnityEditor.VFX.PerformanceTest
         }
     }
 
-    public class VFXRuntimeMemoryTests : PerformanceTests
+    public class VisualEffectsGraphRuntimeMemoryTests : PerformanceTests
     {
 #if UNITY_EDITOR
         bool m_PreviousAsyncShaderCompilation;
@@ -232,7 +227,7 @@ namespace UnityEditor.VFX.PerformanceTest
         }
 #endif
 
-        private IEnumerable<Type> GetVFXMemoryObjectTypes()
+        private static IEnumerable<Type> GetVFXMemoryObjectTypes()
         {
             yield return typeof(VisualEffect);
             yield return typeof(VisualEffectAsset);
@@ -242,7 +237,7 @@ namespace UnityEditor.VFX.PerformanceTest
 
         private static long s_minObjectSize = 1024 * 64;
 
-        private IEnumerator FreeMemory()
+        private static IEnumerator FreeMemory()
         {
             GC.Collect();
             var unloadAsync = Resources.UnloadUnusedAssets();
@@ -250,15 +245,11 @@ namespace UnityEditor.VFX.PerformanceTest
                 yield return new WaitForEndOfFrame();
         }
 
-        [Timeout(600 * 1000), Version("1"), UnityTest, VFXPerformanceUseGraphicsTestCases, Performance, Order(0)]
-#if UNITY_EDITOR
-        [PrebuildSetup("SetupGraphicsTestCases")]
-#endif
-        public IEnumerator Memory(GraphicsTestCase testCase)
+        public static IEnumerator Memory(SceneGraphicsTestCase testCase)
         {
             yield return FreeMemory();
 
-            yield return VFXRuntimePerformanceTests.Load_And_Prepare(testCase);
+            yield return VisualEffectsGraphRuntimePerformanceTests.Load_And_Prepare(testCase);
 
             var results = new List<(string name, long size)>();
             long totalMemory = 0u;
@@ -307,8 +298,7 @@ namespace UnityEditor.VFX.PerformanceTest
             yield return FreeMemory();
         }
 
-        [Version("1"), UnityTest, Performance, Order(1000)]
-        public IEnumerator RemainingMemoryAfterAllRun()
+        public static IEnumerator RemainingMemoryAfterAllRun()
         {
             yield return FreeMemory();
 

@@ -34,14 +34,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public NativePassCompiler(RenderGraphCompilationCache cache)
         {
             m_CompilationCache = cache;
-            defaultContextData = new CompilerContextData(k_EstimatedPassCount);
+            defaultContextData = new CompilerContextData();
             toVisitPassIds = new Stack<int>(k_EstimatedPassCount);
-            m_BeginRenderPassAttachments = new NativeList<AttachmentDescriptor>(FixedAttachmentArray<AttachmentDescriptor>.MaxAttachments, Allocator.Persistent);
         }
 
         // IDisposable implementation
-
-        bool m_Disposed;
 
         ~NativePassCompiler() => Cleanup();
 
@@ -51,12 +48,15 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             GC.SuppressFinalize(this);
         }
 
-        void Cleanup()
+        public void Cleanup()
         {
-            if (!m_Disposed)
+            // If caching enabled, the two can be different
+            contextData?.Dispose();
+            defaultContextData?.Dispose();
+
+            if (m_BeginRenderPassAttachments.IsCreated)
             {
                 m_BeginRenderPassAttachments.Dispose();
-                m_Disposed = true;
             }
         }
 
@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_SetupContextData)))
             {
-                contextData.Initialize(resources);
+                contextData.Initialize(resources, k_EstimatedPassCount);
             }
         }
 
@@ -1180,6 +1180,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
 
                 // Filling the attachments array to be sent to the rendering command buffer
+                if(!m_BeginRenderPassAttachments.IsCreated)
+                    m_BeginRenderPassAttachments = new NativeList<AttachmentDescriptor>(FixedAttachmentArray<AttachmentDescriptor>.MaxAttachments, Allocator.Persistent);
+
                 m_BeginRenderPassAttachments.Resize(attachmentCount, NativeArrayOptions.UninitializedMemory);
                 for (var i = 0; i < attachmentCount; ++i)
                 {

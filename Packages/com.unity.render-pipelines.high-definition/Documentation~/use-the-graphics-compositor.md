@@ -17,11 +17,11 @@ If you set the Game view to show **Display 1**, , make sure the Graphics Composi
 
 The following example uses the Graphics Compositor to render a watermark on top of a Unity Scene.
 
-![](Images/Compositor-CompositorSimpleGraph.png)
+![This example uses the Graphics Compositor to render a watermark on top of a Unity Scene.](Images/Compositor-CompositorSimpleGraph.png)
 
 The composition graph.
 
-![](Images/Compositor-HDRPTemplateWithLogo.png)
+![The composition graph.](Images/Compositor-HDRPTemplateWithLogo.png)
 
 The result.
 
@@ -50,7 +50,7 @@ When you create a Composition Graph, there are two main types of input property 
 
 The following graph contains examples of the property types described above. The **Logo** property is an example of a Composition Layer and the **Opacity** property is an example of an input property to control an aspect of the composition:
 
-![](Images/Compositor-CompositorSimpleGraph.png)
+![This graph contains examples of the property types described above.](Images/Compositor-CompositorSimpleGraph.png)
 
 Unity saves the Graphics Compositor properties in a .asset file with the same name as the Composition Graph. When the Graphics Compositor loads a Composition Graph, it also loads the properties from the corresponding Asset file if one exists, otherwise, it creates a new Asset with default settings.
 

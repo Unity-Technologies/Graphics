@@ -89,24 +89,26 @@ namespace UnityEditor.VFX
             desc.hiddenSettings = new(kAlwaysFilteredOutSettings);
             var srpBinder = VFXLibrary.currentSRPBinder;
 
-            if (actualShaderGraph != null && srpBinder != null)
+            if (actualShaderGraph != null)
             {
-                desc.name = shaderGraph != null ? srpBinder.GetShaderName(actualShaderGraph) : string.Empty;
-
-                if (srpBinder.TryGetCastShadowFromMaterial(actualShaderGraph, materialSettings, out var hasShadowCasting))
+                desc.name = string.Empty;
+                if (srpBinder != null)
                 {
-                    desc.hasShadowCasting = hasShadowCasting;
-                    desc.hiddenSettings.Add("castShadows");
-                }
+                    desc.name = shaderGraph != null ? srpBinder.GetShaderName(actualShaderGraph) : string.Empty;
+                    if (srpBinder.TryGetCastShadowFromMaterial(actualShaderGraph, materialSettings, out var hasShadowCasting))
+                    {
+                        desc.hasShadowCasting = hasShadowCasting;
+                        desc.hiddenSettings.Add("castShadows");
+                    }
 
-                if (srpBinder.TryGetQueueOffset(actualShaderGraph, materialSettings, out var sortingPriority))
-                {
-                    desc.sortingPriority = sortingPriority;
-                    desc.hiddenSettings.Add("sortingPriority");
+                    if (srpBinder.TryGetQueueOffset(actualShaderGraph, materialSettings, out var sortingPriority))
+                    {
+                        desc.sortingPriority = sortingPriority;
+                        desc.hiddenSettings.Add("sortingPriority");
+                    }
+                    desc.supportMotionVectorPerVertex = srpBinder.GetSupportsMotionVectorPerVertex(actualShaderGraph, materialSettings);
+                    desc.blendMode = srpBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings);
                 }
-
-                desc.supportMotionVectorPerVertex = srpBinder.GetSupportsMotionVectorPerVertex(actualShaderGraph, materialSettings);
-                desc.blendMode = srpBinder.GetBlendModeFromMaterial(actualShaderGraph, materialSettings);
                 desc.hasAlphaClipping = actualShaderGraph.alphaClipping;
 
                 var shaderGraphProperties = VFXShaderGraphHelpers.GetProperties(actualShaderGraph);

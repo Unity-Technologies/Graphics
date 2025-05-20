@@ -2,7 +2,8 @@
 
 Refraction is when light bends as it passes from one material ('medium') into another. Your eye can see refraction only through a transparent material, because most light is absorbed or reflected in opaque materials.
 
-![](Images/refraction-glass-of-water.png)<br/>
+![Light rays bend as they travel through the different mediums of air, water, and glass, so the pencil appears deformed.](Images/refraction-glass-of-water.png)
+
 Light rays bend as they travel through the different mediums of air, water, and glass, so the pencil appears deformed.
 
 ## How refraction works in HDRP

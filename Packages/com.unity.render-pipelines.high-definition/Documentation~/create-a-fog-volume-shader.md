@@ -4,7 +4,7 @@ Use the Fog Volume [shader graph](https://docs.unity3d.com/Packages/com.unity.sh
 
 For details on the settings in the Fog Volume shader graph, refer to [Fog Volume Master Stack](fog-volume-master-stack-reference.md)
 
-![](Images/Volumetric-ground-fog.png)
+![Example fog effect.](Images/Volumetric-ground-fog.png)
 
 <a name="create-volumetric-shadergraph"></a>
 

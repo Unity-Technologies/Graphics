@@ -727,7 +727,16 @@ namespace UnityEngine.Rendering.Universal
                 if (rendererFeatures[i] == null)
                     continue;
 
-                rendererFeatures[i].Dispose();
+                try
+                {
+                    // Guard the renderer feature Dispose() call so if it raises any exception,
+                    // it doesn't leave the renderer in a partially destructed state.
+                    rendererFeatures[i].Dispose();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
 
             Dispose(true);
@@ -975,6 +984,8 @@ namespace UnityEngine.Rendering.Universal
         private class DrawGizmosPassData
         {
             public RendererListHandle gizmoRenderList;
+            public TextureHandle color;
+            public TextureHandle depth;
         };
 
         /// <summary>
@@ -992,20 +1003,25 @@ namespace UnityEngine.Rendering.Universal
             if (!Handles.ShouldRenderGizmos() || cameraData.camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
-            using (var builder = renderGraph.AddRasterRenderPass<DrawGizmosPassData>("Draw Gizmos Pass", out var passData,
+            // We cannot draw gizmo rendererlists from an raster pass as the gizmo rendering triggers the  MonoBehaviour.OnDrawGizmos or MonoBehaviour.OnDrawGizmosSelected callbacks that could run arbitrary graphics code
+            // like SetRenderTarget, texture and resource loading, ...
+            using (var builder = renderGraph.AddUnsafePass<DrawGizmosPassData>("Draw Gizmos Pass", out var passData,
                 Profiling.drawGizmos))
             {
-                builder.SetRenderAttachment(color, 0, AccessFlags.Write);
-                builder.SetRenderAttachmentDepth(depth, AccessFlags.ReadWrite);
+                builder.UseTexture(color, AccessFlags.Write);
+                builder.UseTexture(depth, AccessFlags.ReadWrite);
 
                 passData.gizmoRenderList = renderGraph.CreateGizmoRendererList(cameraData.camera, gizmoSubset);
+                passData.color = color;
+                passData.depth = depth;
                 builder.UseRendererList(passData.gizmoRenderList);
                 builder.AllowPassCulling(false);
 
-                builder.SetRenderFunc((DrawGizmosPassData data, RasterGraphContext rgContext) =>
+                builder.SetRenderFunc((DrawGizmosPassData data, UnsafeGraphContext rgContext) =>
                 {
                     using (new ProfilingScope(rgContext.cmd, Profiling.drawGizmos))
                     {
+                        rgContext.cmd.SetRenderTarget(data.color, data.depth);
                         rgContext.cmd.DrawRendererList(data.gizmoRenderList);
                     }
                 });

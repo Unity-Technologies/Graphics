@@ -49,12 +49,6 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        private struct ToggleFoldoutResult
-        {
-            public bool foldoutState;
-            public bool toggleState;
-        }
-
         private static class Styles
         {
             public static readonly GUIContent InnerOuterSpotAngle = EditorGUIUtility.TrTextContent("Inner / Outer Spot Angle", "Adjusts the inner / outer angles of this light to change the angle ranges of this Spot Light’s beam.");
@@ -191,10 +185,8 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        private ToggleFoldoutResult DrawHeaderFoldoutWithToggle(GUIContent title, bool foldoutState, bool toggleState, string documentationURL = "")
+        private void DrawHeaderFoldoutWithToggle(GUIContent title, SavedBool foldoutState, SerializedProperty toggleState, string documentationURL = "")
         {
-            ToggleFoldoutResult foldoutResult = new ToggleFoldoutResult();
-
             const float height = 17f;
             var backgroundRect = GUILayoutUtility.GetRect(0, 0);
             float xMin = backgroundRect.xMin;
@@ -204,13 +196,18 @@ namespace UnityEditor.Rendering.Universal
             labelRect.xMin += 16f;
             labelRect.xMax -= 20f;
 
-            foldoutResult.toggleState = GUI.Toggle(labelRect, toggleState, " ");  // Needs a space because the checkbox won't have a proper outline if we don't make a space here
-            foldoutResult.foldoutState = CoreEditorUtils.DrawHeaderFoldout("", foldoutState);
+            bool newToggleState = GUI.Toggle(labelRect, toggleState.boolValue, " ");  // Needs a space because the checkbox won't have a proper outline if we don't make a space here
+            bool newFoldoutState = CoreEditorUtils.DrawHeaderFoldout("", foldoutState.value);
+
+            if (newToggleState != toggleState.boolValue)
+                toggleState.boolValue = newToggleState;
+
+            if (newFoldoutState != foldoutState.value)
+                foldoutState.value = newFoldoutState;
+
+
             labelRect.xMin += 20;
             EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
-
-
-            return foldoutResult;
         }
 
         void OnEnable()
@@ -317,7 +314,10 @@ namespace UnityEditor.Rendering.Universal
         void DrawBlendingGroup()
         {
             CoreEditorUtils.DrawSplitter(false);
-            m_BlendingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.blendingSettingsFoldout, m_BlendingSettingsFoldout.value);
+            bool foldoutState = CoreEditorUtils.DrawHeaderFoldout(Styles.blendingSettingsFoldout, m_BlendingSettingsFoldout.value);
+            if (foldoutState != m_BlendingSettingsFoldout.value)
+                m_BlendingSettingsFoldout.value = foldoutState;
+
             if (m_BlendingSettingsFoldout.value)
             {
                 if (!m_AnyBlendStyleEnabled)
@@ -334,9 +334,7 @@ namespace UnityEditor.Rendering.Universal
         {
             CoreEditorUtils.DrawSplitter(false);
 
-            ToggleFoldoutResult result = DrawHeaderFoldoutWithToggle(Styles.shadowsSettingsFoldout, m_ShadowsSettingsFoldout.value, m_ShadowsEnabled.boolValue);
-            m_ShadowsEnabled.boolValue = result.toggleState;
-            m_ShadowsSettingsFoldout.value = result.foldoutState;
+            DrawHeaderFoldoutWithToggle(Styles.shadowsSettingsFoldout, m_ShadowsSettingsFoldout, m_ShadowsEnabled);
 
             if (m_ShadowsSettingsFoldout.value)
             {
@@ -354,9 +352,8 @@ namespace UnityEditor.Rendering.Universal
         {
             CoreEditorUtils.DrawSplitter(false);
 
-            ToggleFoldoutResult result = DrawHeaderFoldoutWithToggle(Styles.volumetricSettingsFoldout, m_VolumetricSettingsFoldout.value, m_VolumetricEnabled.boolValue);
-            m_VolumetricSettingsFoldout.value = result.foldoutState;
-            m_VolumetricEnabled.boolValue = result.toggleState;
+            DrawHeaderFoldoutWithToggle(Styles.volumetricSettingsFoldout, m_VolumetricSettingsFoldout, m_VolumetricEnabled);
+
             if (m_VolumetricSettingsFoldout.value)
             {
                 EditorGUI.indentLevel++;
@@ -375,7 +372,10 @@ namespace UnityEditor.Rendering.Universal
         void DrawNormalMapGroup()
         {
             CoreEditorUtils.DrawSplitter(false);
-            m_NormalMapsSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.normalMapsSettingsFoldout, m_NormalMapsSettingsFoldout.value);
+            bool foldoutState = CoreEditorUtils.DrawHeaderFoldout(Styles.normalMapsSettingsFoldout, m_NormalMapsSettingsFoldout.value);
+            if (foldoutState != m_NormalMapsSettingsFoldout.value)
+                m_NormalMapsSettingsFoldout.value = foldoutState;
+
             if (m_NormalMapsSettingsFoldout.value)
             {
                 EditorGUILayout.PropertyField(m_NormalMapQuality, Styles.generalNormalMapLightQuality);

@@ -8,13 +8,13 @@ This debug mode shows a heat map of the scene luminance converted to [EV<sup>100
 
 Furthermore, this debug view shows the numerical value of the pixel at the center of the screen. It also displays this value in the heatmap indicator at the bottom of the screen to show where it's relative to the full range.
 
-![](Images/Override-Exposure4.png)
+![A scene of spaceship machinery with a heat map of the scene luminance. The majority of the scene is in various shades of blue, with yellow on areas underneath the lights and a few orange marks. Blue indicates a lower value and orange indicates a higher value.](Images/Override-Exposure4.png)
 
 ## Histogram View
 
 In **Automatic Histogram** mode, if may be difficult to set the upper and lower brightness percentages without a references. To help with this, HDRP includes the Histogram debug view which shows an overview of what the scene brightness distribution looks like.
 
-![](Images/Override-Exposure5.png)
+![A scene of a spaceship interior with red, blue, and neutral color overlays representing exposure levels. Red indicates overexposed areas, while blue marks underexposed regions. A histogram with a curve is at the bottom, indicating luminance distribution and current exposure settings. Text overlays in the bottom-left corner display exposure values.](Images/Override-Exposure5.png)
 
 There are two places this debug mode displays information:
 
@@ -37,11 +37,11 @@ By default, the values on the x-axis are fixed, however, you can also make the h
 
 The Metering Weighted debug view displays the scene alongside a picture of what the scene looks like after HDRP weights it with the metering mask. This is useful to set up the procedural metering masks or determine the right texture mask.
 
-![](Images/Override-Exposure6.png)
+![A scene of a spaceship interior in the Metering Weighted debug view, which displays the scene alongside a picture of what the scene looks like after HDRP weights it with the metering mask. With the metering mask, the scene is significantly darker.](Images/Override-Exposure6.png)
 
 #### Final Image Histogram
 
 The final image histogram debug view displays the scene alongside an overlay representing the histogram of the image after all post-processing (tonemapping and gamma correction included) is applied. This histogram has 256 bins to map to 8-bit image values.
 This view can display both luminance histogram or RGB channels represented separately.
 
-![](Images/Override-Exposure7.png)
+![A scene of a spaceship interior with the final image histogram debug view.](Images/Override-Exposure7.png)

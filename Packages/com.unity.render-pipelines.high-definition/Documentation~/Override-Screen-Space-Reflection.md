@@ -44,7 +44,8 @@ In the following example image, the car GameObject is in the center of the Camer
 
 This example image uses **Speed From Reflected Surface** to accumulate the samples from the car and partially accumulate the samples from the sky. This makes the car and its reflection appear green, and the surface that reflects the sky appear orange.
 
-![](Images/ScreenSpaceReflectionPBR_SpeedRejectionSmooth.gif)
+![Example: This image uses the **Speed From Reflected Surface** property to accumulate the samples from the car and partially accumulate the samples from the sky. This makes the car and its reflection appear green, and the surface that reflects the sky appear orange.](Images/ScreenSpaceReflectionPBR_SpeedRejectionSmooth.gif)
+
 ## Limitations
 
 ### Screen-space reflection
@@ -53,7 +54,7 @@ To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated duri
 
 The color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). However, HDRP incorrectly reflects a transparent GameObject using the depth of the surface behind it, even if you enable **Depth Write** in the GameObject's Material properties. This is because HDRP calculates SSR before it adds the depth of transparent GameObjects to the depth buffer.
 
-![](Images/SSRTransparents.png)
+![Example: How opaque, refraction-based transparent, and default transparent materials interact with the depth buffer, affecting their visibility in screen space reflections in a 3D rendering environment.](Images/SSRTransparents.png)
 
 If a transparent material has **Receive SSR Transparent** enabled, HDRP always uses the **Approximation** algorithm to calculate SSR, even you select **PBR Accumulation**.
 

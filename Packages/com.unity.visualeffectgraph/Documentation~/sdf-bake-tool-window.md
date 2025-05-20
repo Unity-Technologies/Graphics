@@ -6,7 +6,7 @@ To open the SDF Bake Tool window, select **Window** > **Visual Effects** > **Uti
 
 ## Working with the SDF Bake Tool window
 
-In the Unity Editor, in the [Visual Effect Graph window](VisualEffectGraphWindow.md), blocks and operators, such as [Collide With Signed Distance Field](Block-CollideWithSignedDistanceField.md), take an SDF as an input.
+In the Unity Editor, in the [Visual Effect Graph window](VisualEffectGraphWindow.md), blocks and operators, such as [Collision Shape](Block-CollisionShape.md), take an SDF as an input.
 
 ![The Update Particle context.](Images/sdf-update-particle-context.png)
 The **Update Particle** context.
@@ -28,7 +28,7 @@ To make it easier to iterate over signed distance fields, the SDF Bake Tool wind
 * With the SDF Bake Tool window open, select the asset in the Project window.
 * In the Project window, double-click the asset. If the SDF Bake Tool window isn't open, this opens the window and assigns the asset.
 
-Note: To use the SDF asset with the [Collide With Signed Distance Field](Block-CollideWithSignedDistanceField.md) block. In the block, set the **Size** of the **Field Transform** to match the **Box Size** that you used in the SDF Bake Tool.
+Note: To use the SDF asset with the [Collision Shape](Block-CollisionShape.md) block. In the block, set the **Size** of the **Field Transform** to match the **Box Size** that you used in the SDF Bake Tool.
 
 ## Properties
 

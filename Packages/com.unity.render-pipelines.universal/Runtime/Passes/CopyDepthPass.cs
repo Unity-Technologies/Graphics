@@ -289,7 +289,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // binding a dummy color target as a workaround to NRP depth only rendering limitation:
                     // "Attempting to render to a depth only surface with no dummy color attachment"
                     if (cameraData.xr.enabled && cameraData.xr.copyDepth)
-                        builder.SetRenderAttachment(resourceData.backBufferColor, 0);
+                    {
+                        RenderTargetInfo backBufferDesc = renderGraph.GetRenderTargetInfo(resourceData.backBufferColor);
+                        // In the case where MSAA is enabled, we have to bind a different dummy texture
+                        // This is to ensure that we don't render black in the resolve result of the color backbuffer
+                        // This also makes this pass unmergeable in this case, potentially impacting performance
+                        if (backBufferDesc.msaaSamples > 1)
+                        {
+                            TextureHandle dummyXRRenderTarget = renderGraph.CreateTexture(new TextureDesc(backBufferDesc.width, backBufferDesc.height, false, true)
+                            {
+                                name = "XR Copy Depth Dummy Render Target",
+                                slices = backBufferDesc.volumeDepth,
+                                format = backBufferDesc.format,
+                                msaaSamples = (MSAASamples)backBufferDesc.msaaSamples,
+                                clearBuffer = false,
+                                bindTextureMS = backBufferDesc.bindMS
+                            });
+                            builder.SetRenderAttachment(dummyXRRenderTarget, 0);
+                        }
+                        else
+                            builder.SetRenderAttachment(resourceData.backBufferColor, 0);
+                    }
 #endif
                 }
                 else

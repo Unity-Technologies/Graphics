@@ -13,7 +13,10 @@
         "Unity.VisualEffectGraph.Runtime",
         "UnityEngine.TestTools.Graphics",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "Unity.Testing.XR.Editor",
+        "UnityEngine.TestTools.Graphics.Performance",
+        "UnityEngine.Graphics.Testing.Common.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

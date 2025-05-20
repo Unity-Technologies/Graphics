@@ -7,7 +7,7 @@ The High Definition Render Pipeline (HDRP) includes the following ways to create
 
 To use these methods, you need to create a decal Material. A decal Material is a Material that uses the Decal Shader or Decal Master Stack. You can then place or project your decal Material into a Scene.
 
-![](Images/HDRPFeatures-DecalShader.png)
+![Rocky ground with two dark iridescent oil patches.](Images/HDRPFeatures-DecalShader.png)
 
 Refer to [Use decals](use-decals.md) for more information.
 
@@ -17,7 +17,7 @@ When the Decal Projector component projects decals into the Scene, they interact
 
 The Decal Projector also supports [Decal Layers](use-decals.md#decal-layers) which means you can control which Materials receive decals on a Layer by Layer basis.
 
-![](Images/DecalProjector1.png)
+![A stony forest floor in the Scene view, with a rectanglar area represnting a Decal Projector above a reflective puddle.](Images/DecalProjector1.png)
 
 ## Limitations
 

@@ -1,7 +1,5 @@
 # Light Anchor reference
 
-![](Images/LightAnchor0.png)
-
 ## Properties
 
 | **Property**                 | **Description**                                              |

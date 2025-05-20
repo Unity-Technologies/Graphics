@@ -8,7 +8,7 @@ The High Definition Render Pipeline (HDRP) includes the following ways to create
 
 To use these methods, you need to create a decal Material. A decal Material is a Material that uses the [Decal Shader](Decal-Shader.md) or [Decal Master Stack](master-stack-decal.md). You can then place or project your decal Material into a Scene.
 
-![](Images/HDRPFeatures-DecalShader.png)
+![Decal shader.](Images/HDRPFeatures-DecalShader.png)
 
 ## Decal Layers
 
@@ -69,7 +69,7 @@ HDRP renders Material depth in a Depth Prepass to apply decals to opaque Materia
 You can use Additive normal blending to blend decal normals with the normals of a specific GameObject. 
 In the following image examples, the screenshot on the left doesn't use additive normal blending, and the screenshot on the right uses additive normal blending.
 
-![](Images/HDRPFeatures-SurfGrad.png)
+![The image on the left doesn't use additive normal blending, and the image on the right uses additive normal blending.](Images/HDRPFeatures-SurfGrad.png)
 
 To use Additive Normal Blending:
 1. Open your Project’s [HDRP Asset](HDRP-Asset.md).

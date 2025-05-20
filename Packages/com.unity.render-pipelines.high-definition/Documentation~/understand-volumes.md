@@ -19,7 +19,7 @@ Refer to [Set up a volume](set-up-a-volume.md) for more information.
 
 Each Volume component references a Volume Profile, which contains scene properties in one or more Volume Overrides. Each Volume Override controls different settings.
 
-![](Images/VolumeProfile3.png)
+![The default Sky and Fog Volume selected in the Hierarchy window and open in the Inspector window. The volume profile is set to SkyandFogSettingsProfile, and there is a dropdown and properties for each Volume Override.](Images/VolumeProfile3.png)
 
 The default **Sky and Fog Volume** GameObject in a new HDRP project. The GameObject has a global volume. The Volume Profile has **Visual Environment**, **Physically Based Sky**, **Fog** and **Exposure** Volume Overrides.
 

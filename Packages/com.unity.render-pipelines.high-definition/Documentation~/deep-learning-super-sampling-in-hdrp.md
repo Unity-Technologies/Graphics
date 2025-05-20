@@ -78,10 +78,9 @@ If you need a specific custom mip bias for a Texture, create a custom sampler th
 Out = SAMPLE_TEXTURE2D_BIAS(TextureInput, SamplerInput, UV, MipBias);
 ```
 
-![](Images/CustomMipSupportNode.png)
+![Example: The above script in the Node Settings Body field.](Images/CustomMipSupportNode.png)
 
-
-![](Images/CustomMipSupportNodeExample.png)
+![Example: Custom Mip support node in a shader graph.](Images/CustomMipSupportNodeExample.png)
 
 ## Additional resources
 

@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
         public static void CreateMaterialSubGraph()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateShaderSubGraph>(),
-                string.Format("New Shader Sub Graph.{0}", ShaderSubGraphImporter.Extension), null, null);
+                string.Format("New Shader Sub Graph.{0}", ShaderSubGraphImporter.Extension), ShaderSubGraphImporter.GetIcon(), null);
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)

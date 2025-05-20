@@ -85,7 +85,7 @@ To set color tint and light absorption:
 - In a Material's settings, in the [Transparency Inputs](Surface-Type.md#transparency-inputs) section, set **Transmission Color** and **Absorption Distance**.
 - In Shader Graph, in the Master Stack, input a value or map into **Absorption Distance** and **Transmittance Color**.
 
-![](Images/refraction-absorption.png)<br/>
+![Materials with the same transmission color but decreasing absorption distance from left to right.](Images/refraction-absorption.png)<br/>
 Materials with the same transmission color but decreasing absorption distance from left to right.
 
 <a name="set-smoothness"></a>
@@ -98,8 +98,7 @@ To set smoothness:
 - In a Material's settings, in the [Surface Inputs](Surface-Type.md) section, set **Smoothness**.
 - In Shader Graph, in the Master Stack, set **Smoothness**.
 
-![](Images/refraction-smoothness.png)<br/>
-Materials with decreasing smoothness from left to right.
+![Materials with decreasing smoothness from left to right.](Images/refraction-smoothness.png)<br/>
 
 <a name="add-probe"></a>
 ### Add a Reflection Probe

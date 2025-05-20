@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.Universal
             // Components First
             using var componentContext =
                 Search.SearchService.CreateContext("asset", "urp=convert-ppv2component a=URPConverterIndex");
-            using var componentItems = Search.SearchService.Request(componentContext);
+            using var componentItems = Search.SearchService.Request(componentContext, SearchFlags.Synchronous);
             {
                 AddSearchItemsAsConverterAssetEntries(componentItems, context);
             }
@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.Universal
             // Then ScriptableObjects
             using var scriptableObjectContext =
                 Search.SearchService.CreateContext("asset", "urp=convert-ppv2scriptableobject a=URPConverterIndex ");
-            using var scriptableObjectItems = Search.SearchService.Request(scriptableObjectContext);
+            using var scriptableObjectItems = Search.SearchService.Request(scriptableObjectContext, SearchFlags.Synchronous);
             {
                 AddSearchItemsAsConverterAssetEntries(scriptableObjectItems, context);
             }

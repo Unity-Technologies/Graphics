@@ -117,6 +117,7 @@ Pass
 
         // We can not use usual GBuffer functions (etc. BRDFDataToGbuffer) as we use alpha for blending
         half3 packedNormalWS = PackGBufferNormal(decalSurfaceData.normalWS.xyz);
+        fragmentOutput = (GBufferFragOutput)0;
         fragmentOutput.gBuffer0 = half4(decalSurfaceData.baseColor.rgb, decalSurfaceData.baseColor.a);
         fragmentOutput.gBuffer1 = 0;
         fragmentOutput.gBuffer2 = half4(packedNormalWS, decalSurfaceData.normalWS.a);
@@ -125,20 +126,27 @@ Pass
 #else
         fragmentOutput.color = 0;
 #endif
-        #if defined(GBUFFER_FEATURE_DEPTH)
-        fragmentOutput.depth = inputData.positionCS.z;
-        #endif
-
         #if defined(GBUFFER_FEATURE_SHADOWMASK)
         fragmentOutput.shadowMask = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
         #endif
+
     }
 
     #pragma fragment frag
     void frag(VFX_VARYING_PS_INPUTS i, out GBufferFragOutput fragmentOutput)
     {
+        #pragma warning (disable : 3578) // The output value isn't completely initialized.
+        GBufferFragOutput tempFragmentOutput = (GBufferFragOutput)0;
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i)
-        VFXComputePixelOutputToGBuffer(i, fragmentOutput);
+        VFXComputePixelOutputToGBuffer(i, tempFragmentOutput);
+        fragmentOutput.gBuffer0 = tempFragmentOutput.gBuffer0;
+        fragmentOutput.gBuffer1 = tempFragmentOutput.gBuffer1;
+        fragmentOutput.gBuffer2 = tempFragmentOutput.gBuffer2;
+        fragmentOutput.color = tempFragmentOutput.color;
+        #if defined(GBUFFER_FEATURE_SHADOWMASK)
+        fragmentOutput.shadowMask = tempFragmentOutput.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
+        #endif
+        #pragma warning (default : 3578) // Restore output value isn't completely initialized.
     }
     ENDHLSL
 }
