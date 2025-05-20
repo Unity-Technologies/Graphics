@@ -860,7 +860,8 @@ namespace UnityEngine.Rendering
                 //depth stencil texture
                 colorFormat = GraphicsFormat.None;
                 depthStencilFormat = format;
-                stencilFormat = GetStencilFormat(format);
+                // If the depth stencil buffer is memoryless, you cannot read the stencil buffer as a texture (through sampling)
+                stencilFormat = (memoryless != RenderTextureMemoryless.None) ? GraphicsFormat.None : GetStencilFormat(format);
 
                 fullName = CoreUtils.GetRenderTargetAutoName(width, height, slices, format, dimension, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples, dynamicRes: useDynamicScale, dynamicResExplicit: useDynamicScaleExplicit);
             }

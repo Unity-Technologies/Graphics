@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
     {
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations, potentially in the middle of the stack).
         // The list needs to be sorted otherwise you could get inconsistent resource usage from one frame to another.
-
         protected Dictionary<int, SortedList<int, (Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, SortedList<int, (Type resource, int frameIndex)>>();
 
         // This list allows us to determine if all resources were correctly released in the frame when validity checks are enabled.
@@ -58,6 +57,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public override void Cleanup()
         {
+            // Removing the actual graphics resources
             foreach (var kvp in m_ResourcePool)
             {
                 foreach (var res in kvp.Value)
@@ -65,6 +65,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     ReleaseInternalResource(res.Value.resource);
                 }
             }
+
+            // Clearing the lists and the pool itself
+            m_ResourcePool.Clear();
+
+            // Clearing it, if not done already
+            m_FrameAllocatedResources.Clear();
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
@@ -140,6 +146,33 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
 
             logger.LogLine($"\nTotal Size [{total:0.00}]");
+        }
+
+        public float GetMemorySizeInMB()
+        {
+            float totalSize = 0;
+
+            foreach (var kvp in m_ResourcePool)
+            {
+                foreach (var res in kvp.Value)
+                {
+                    totalSize += GetResourceSize(res.Value.resource) / (1024.0f * 1024.0f);
+                }
+            }
+
+            return totalSize;
+        }
+
+        public int GetNumResourcesAvailable()
+        {
+            int totalResources = 0;
+
+            foreach (var kvp in m_ResourcePool)
+            {
+                totalResources += kvp.Value.Count;
+            }
+
+            return totalResources;
         }
 
         static List<int> s_ToRemoveList = new List<int>(32);

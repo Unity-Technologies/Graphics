@@ -204,7 +204,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public bool useDynamicScale;
         ///<summary>[See Dynamic Resolution documentation](https://docs.unity3d.com/Manual/DynamicResolution.html)</summary>
         public bool useDynamicScaleExplicit;
-        ///<summary>Memory less flag.</summary>
+        ///<summary>
+        ///[See Memoryless documentation](https://docs.unity3d.com/ScriptReference/RenderTextureMemoryless.html)
+        ///</summary>
+        ///<remarks>
+        ///If this is a Render Graph created resource only used in a single raster render pass, and not sampled (no UseTexture() usage), Render Graph will automatically set this resource as memoryless.
+        ///</remarks>
         public RenderTextureMemoryless memoryless;
         ///<summary>Special treatment of the VR eye texture used in stereoscopic rendering.</summary>
         public VRTextureUsage vrUsage;

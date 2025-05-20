@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public int lastUsePassID; // Index of last used pass. The resource (if not imported) is destroyed after this pass.
         public int lastWritePassID; // The last pass writing it. After this other passes may still read the resource
         public int firstUsePassID; //First pas using the resource this may be reading or writing. If not imported the resource is allocated just before this pass.
-        public bool memoryLess;// Never create the texture it is allocated/freed within a renderpass
+        public bool memoryLess; // Never create the texture on GPU if it is allocated/freed within a renderpass
 
         public readonly int width;
         public readonly int height;

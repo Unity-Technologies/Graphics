@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #if UNITY_EDITOR
                 if (m_CurrentRegistry == null)
                 {
-                    throw new InvalidOperationException("Current Render Graph Resource Registry is not set. You are probably trying to cast a Render Graph handle to a resource outside of a Render Graph Pass.");
+                    throw new InvalidOperationException("Current Render Graph Resource Registry is not set. You are probably trying to cast a Render Graph handle to a resource outside of the execution of a Render Graph Pass (SetRenderFunc()).");
                 }
 #endif
                 return m_CurrentRegistry;
@@ -823,6 +823,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.transientPassIndex = transientPassIndex;
             texResource.requestFallBack = desc.fallBackToBlackTexture;
             return new TextureHandle(newHandle);
+        }
+
+        internal void SetTextureAsMemoryLess(in ResourceHandle handle)
+        {
+            Debug.Assert(handle.type == RenderGraphResourceType.Texture);
+
+            var texture = GetTextureResource(handle);
+
+            ref var texDesc = ref texture.desc;
+            texDesc.memoryless = GraphicsFormatUtility.IsDepthStencilFormat(texDesc.format) ? RenderTextureMemoryless.Depth : RenderTextureMemoryless.Color;
+
+            if (texDesc.msaaSamples != MSAASamples.None)
+                texDesc.memoryless |= RenderTextureMemoryless.MSAA;
         }
 
         internal int GetResourceCount(RenderGraphResourceType type)

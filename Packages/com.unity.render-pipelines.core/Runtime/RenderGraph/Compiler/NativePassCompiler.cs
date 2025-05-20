@@ -748,23 +748,33 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             foreach (ref readonly var res in subPass.FirstUsedResources(contextData))
                             {
                                 ref readonly var resInfo = ref contextData.UnversionedResourceData(res);
-                                if (!resInfo.memoryLess)
+                                
+                                if (!resInfo.isImported)
                                 {
-                                    if (!resInfo.isImported)
-                                    {
-                                        bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
+                                    bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
 
-                                        // This resource is read for the first time as a regular texture and not as a framebuffer attachment
-                                        // so we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
-                                        // TODO: Should this be a performance warning?? Maybe rare enough in practice?
-                                        resources.forceManualClearOfResource = !usedAsFragmentThisPass;
-                                        resources.CreatePooledResource(rgContext, res.iType, res.index);
-                                    }
-                                    else // Imported resource
+                                    // This resource is read for the first time as a regular texture and not as a framebuffer attachment
+                                    // so we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
+                                    // TODO: Should this be a performance warning?? Maybe rare enough in practice?
+                                    resources.forceManualClearOfResource = !usedAsFragmentThisPass;
+
+                                    // If the compiler has detected that this resource can be memoryless,
+                                    // we need to update the texture descriptor that will be used to create the memoryless RTHandle.
+                                    // Memoryless resources are created to allow implicit conversion from TextureHandle to RTHandle.
+                                    // Such conversions can happen on users side when manipulating texture handles.
+                                    if (resInfo.memoryLess)
                                     {
-                                        if (resInfo.clear)
-                                            resources.ClearResource(rgContext, res.iType, res.index);
+                                        resources.SetTextureAsMemoryLess(res);
                                     }
+
+                                    // We create the resources from a pool
+                                    // memoryless resources are also created but will not allocate in system memory 
+                                    resources.CreatePooledResource(rgContext, res.iType, res.index);
+                                }
+                                else // Imported resource
+                                {
+                                    if (resInfo.clear && !resInfo.memoryLess)
+                                        resources.ClearResource(rgContext, res.iType, res.index);
                                 }
                             }
                         }
@@ -1335,7 +1345,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             foreach (ref readonly var res in subPass.LastUsedResources(contextData))
                             {
                                 ref readonly var resInfo = ref contextData.UnversionedResourceData(res);
-                                if (resInfo.isImported == false && resInfo.memoryLess == false)
+                                if (resInfo.isImported == false)
                                 {
                                     resources.ReleasePooledResource(rgContext, res.iType, res.index);
                                 }

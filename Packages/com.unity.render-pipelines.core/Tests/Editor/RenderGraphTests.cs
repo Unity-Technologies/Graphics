@@ -1765,5 +1765,209 @@ namespace UnityEngine.Rendering.Tests
             // Ensure that the Render Graph data structures can be reinitialized at runtime, even native ones
             Assert.DoesNotThrow(() => m_Camera.Render());
         }
+
+        class ErrorCastPassData
+        {
+            public TextureHandle outputHandle;
+        }
+
+        [Test]
+        public void CastToRTHandle_ThrowsException_WhenCastingHandleOutsideSetRenderFunc()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                var texDesc = new TextureDesc(Vector2.one, false, false)
+                {
+                    width = 1920,
+                    height = 1080,
+                    format = GraphicsFormat.R8G8B8A8_UNorm,
+                    clearBuffer = true,
+                    clearColor = Color.red,
+                    name = "Dummy Texture"
+                };
+                var output = m_RenderGraph.CreateTexture(texDesc);
+                using (var builder = m_RenderGraph.AddRasterRenderPass<ErrorCastPassData>("TestPass0", out var passData))
+                {
+                    // Trying to cast to a RTHandle too early, it will be created later during the execution of the pass
+                    Assert.Throws<InvalidOperationException>(() =>
+                    {
+                        RTHandle error = (RTHandle)output;
+                    });
+                    passData.outputHandle = output;
+                    builder.AllowPassCulling(false);
+                    builder.UseTexture(output);
+                    builder.SetRenderFunc((ErrorCastPassData data, RasterGraphContext context) =>
+                    {
+                        // We can safely cast into a RTHandle during the RG execution, resource has been created
+                        Assert.DoesNotThrow(() => 
+                        {
+                            RTHandle rtHandle = (RTHandle)data.outputHandle;
+                        });
+                    });
+                }
+            };
+
+            m_Camera.Render();
+        }
+
+        class MemorylessCastPassData
+        {
+            public TextureHandle createdDepthOutputHandle;
+            public TextureHandle createdColorOutputHandle;
+            public TextureHandle transientColorOutputHandle;
+        }
+
+        [Test]
+        public void CastToRTHandle_WithMemorylessResource()
+        {
+            // Testing for each MSAA value
+            foreach (var msaaSamplesId in Enum.GetValues(typeof(MSAASamples)))
+            {
+                var msaaSamples = (MSAASamples)msaaSamplesId;
+                GraphicsFormat depthStencilFormat = GraphicsFormat.D24_UNorm_S8_UInt;
+                GraphicsFormat colorFormat = GraphicsFormat.R8G8B8A8_UNorm;
+
+                // No need to check MSAA > 2
+                if (msaaSamples != MSAASamples.None && msaaSamples != MSAASamples.MSAA2x)
+                    continue;
+
+                // Skipping testing when the texture format is not supported by the platform
+                if ((msaaSamples == MSAASamples.None && !SystemInfo.IsFormatSupported(depthStencilFormat, GraphicsFormatUsage.Render)) ||
+                   (msaaSamples == MSAASamples.None && !SystemInfo.IsFormatSupported(colorFormat, GraphicsFormatUsage.Render)) ||
+                   (msaaSamples == MSAASamples.MSAA2x && !SystemInfo.IsFormatSupported(depthStencilFormat, GraphicsFormatUsage.MSAA2x)) ||
+                   (msaaSamples == MSAASamples.MSAA2x && !SystemInfo.IsFormatSupported(colorFormat, GraphicsFormatUsage.MSAA2x)))
+                    continue;
+
+                m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+                {
+                    using (var builder = m_RenderGraph.AddRasterRenderPass<MemorylessCastPassData>("TestPass", out var passData))
+                    {
+                        var depthTexDesc = new TextureDesc(Vector2.one, false, false)
+                        {
+                            width = 1920,
+                            height = 1080,
+                            format = depthStencilFormat,
+                            msaaSamples = msaaSamples,
+                            memoryless = RenderTextureMemoryless.None, // Initially set memoryless to false, RG will modify it
+                            name = "Dummy Depth Memoryless Texture"
+                        };
+
+                        var colorTexDesc = new TextureDesc(Vector2.one, false, false)
+                        {
+                            width = 1920,
+                            height = 1080,
+                            format = colorFormat,
+                            clearBuffer = true,
+                            clearColor = Color.red,
+                            msaaSamples = msaaSamples,
+                            memoryless = RenderTextureMemoryless.None, // Initially set memoryless to false, RG will modify it
+                            name = "Dummy Color Memoryless Texture"
+                        };
+
+                        var createdDepthOutput = m_RenderGraph.CreateTexture(depthTexDesc);
+                        var createdColorOutput = m_RenderGraph.CreateTexture(colorTexDesc);
+                        colorTexDesc.name = "Transient Color Memoryless Texture";
+                        var transientColorOutput = builder.CreateTransientTexture(colorTexDesc);
+
+                        passData.createdDepthOutputHandle = createdDepthOutput;
+                        passData.createdColorOutputHandle = createdColorOutput;
+                        passData.transientColorOutputHandle = transientColorOutput;
+
+                        builder.AllowPassCulling(false);
+
+                        // These two resources should be tagged as memoryless by the NRP compiler as they are used as attachments in a single pass
+                        builder.SetRenderAttachmentDepth(createdDepthOutput);
+                        builder.SetRenderAttachment(createdColorOutput, 0);
+                        builder.SetRenderAttachment(transientColorOutput, 1);
+                        builder.SetRenderFunc((MemorylessCastPassData data, RasterGraphContext context) =>
+                        {
+                            RTHandle createdDepthRTHandle = null;
+                            RTHandle createdColorRTHandle = null;
+                            RTHandle transientColorRTHandle = null;
+
+                            // Verify that the texture handles can be casted into RTHandles
+                            Assert.DoesNotThrow(() =>
+                            {
+                                createdDepthRTHandle = (RTHandle)data.createdDepthOutputHandle;
+                                createdColorRTHandle = (RTHandle)data.createdColorOutputHandle;
+                                transientColorRTHandle = (RTHandle)data.transientColorOutputHandle;
+                            });
+
+                            // And let's make sure that the RTHandles are memoryless, i.e. no memory is allocated in system memory
+                            if (msaaSamples != MSAASamples.None)
+                            {
+                                Assert.IsTrue(createdDepthRTHandle.rt.memorylessMode == (RenderTextureMemoryless.Depth | RenderTextureMemoryless.MSAA));
+                                Assert.IsTrue(createdColorRTHandle.rt.memorylessMode == (RenderTextureMemoryless.Color | RenderTextureMemoryless.MSAA));
+                                Assert.IsTrue(transientColorRTHandle.rt.memorylessMode == (RenderTextureMemoryless.Color | RenderTextureMemoryless.MSAA));
+                            }
+                            else
+                            {
+                                Assert.IsTrue(createdDepthRTHandle.rt.memorylessMode == RenderTextureMemoryless.Depth);
+                                Assert.IsTrue(createdColorRTHandle.rt.memorylessMode == RenderTextureMemoryless.Color);
+                                Assert.IsTrue(transientColorRTHandle.rt.memorylessMode == RenderTextureMemoryless.Color);
+                            }
+                        });
+                    }
+                };
+
+                m_Camera.Render();
+
+                m_RenderGraph.Cleanup();
+            }
+        }
+
+        [Test]
+        public void ResourcePool_Cleanup_ReleaseGfxResourceAndClearPool()
+        {
+            var texturePool = new TexturePool();
+
+            // Initialize the RTHandle system if necessary
+            RTHandles.Initialize(9, 9);
+
+            // Create a new RTHandle texture
+            RTHandle resIn = RTHandles.Alloc(9, 9,
+                                               GraphicsFormat.R8G8B8A8_UNorm,
+                                               dimension: TextureDimension.Tex2D,
+                                               useMipMap: false,
+                                               autoGenerateMips: false,
+                                               name: "DummyPoolTexture");
+            // Release it into the pool
+            texturePool.ReleaseResource(0, resIn, 0);
+
+            Assert.IsTrue(texturePool.GetMemorySizeInMB() > 0);
+            Assert.IsTrue(texturePool.GetNumResourcesAvailable() == 1);
+
+            // Clean the pool
+            texturePool.Cleanup();
+
+            Assert.IsTrue(texturePool.GetMemorySizeInMB() == 0);
+            Assert.IsTrue(texturePool.GetNumResourcesAvailable() == 0);
+        }
+
+        [Test]
+        public void ResourcePool_TryGet()
+        {
+            var texturePool = new TexturePool();
+
+            // Initialize the RTHandle system if necessary
+            RTHandles.Initialize(9, 9);
+
+            // Create a new RTHandle texture
+            RTHandle resIn = RTHandles.Alloc(9, 9,
+                                               GraphicsFormat.R8G8B8A8_UNorm,
+                                               dimension: TextureDimension.Tex2D,
+                                               useMipMap: false,
+                                               autoGenerateMips: false,
+                                               name: "DummyPoolTexture");
+            // Release it into the pool
+            texturePool.ReleaseResource(0, resIn, 0);
+
+            // Retrieve it from the pool and make sure this is the right one
+            RTHandle resOut;
+            texturePool.TryGetResource(0, out resOut);
+            Assert.IsTrue(resIn.GetInstanceID() == resOut.GetInstanceID());
+
+            texturePool.Cleanup();
+        }
     }
 }
