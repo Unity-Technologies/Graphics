@@ -647,7 +647,12 @@ namespace UnityEngine.Rendering
 
         static bool m_IsInit = false;
         static BakingBatch m_BakingBatch;
-        static ProbeVolumeBakingSet m_BakingSet = null;
+        static ProbeVolumeBakingSetWeakReference m_BakingSetReference = new();
+        static ProbeVolumeBakingSet m_BakingSet
+        {
+            get => m_BakingSetReference.Get();
+            set => m_BakingSetReference.Set(value);
+        }
         static TouchupVolumeWithBoundsList s_AdjustmentVolumes;
 
         static Bounds globalBounds = new Bounds();
