@@ -34,7 +34,7 @@ The **Decals** panel has tools that you can use to debug [decals](decal-material
 The **display stats** panel is only visible in play mode. You can use it to debug performance issues in your project.
 
 Use the [runtime shortcuts](#Navigation at runtime) to open the Display stats window in the scene view at runtime.
-<table>
+
 <a name="frame-stats"></a>
 
 ### Frame Stats
