@@ -13,7 +13,8 @@
 
 #TestLabel
 {
-    width: 425px;
+    border-right-width: 36px;
+    overflow: hidden;
 }
 
 #Resolver
@@ -28,6 +29,7 @@
 {
     flex-direction:row;
     margin-top: 5px;
+    overflow: hidden;
 }
 
 #FixAllWarning
@@ -140,7 +142,12 @@
 
 #WizardCheckbox
 {
-    margin-top: 3px;
+    overflow: hidden;
+}
+
+#WizardButton
+{
+    overflow: hidden;
 }
 
 .NonBuiltinMaterialWarning
