@@ -99,6 +99,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 case PassBreakReason.DifferentShadingRateStates:
                     message += $"{prevPassName} uses different shading rate states than {passName}.";
                     break;
+                case PassBreakReason.PassMergingDisabled:
+                    message += "The pass merging is disabled.";
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

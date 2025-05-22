@@ -18,6 +18,14 @@ namespace UnityEditor.Rendering
             "Compute Pass"
         };
 
+        static readonly string[] k_PassTypeNamesNotMergedMessage =
+        {
+            "This is a Legacy Render Pass. Only Raster Render Passes can be merged.",
+            "This is an Unsafe Render Pass. Only Raster Render Passes can be merged.",
+            "Pass merging was disabled.",
+            "This is a Compute Pass. Only Raster Render Passes can be merged."
+        };
+
         static partial class Names
         {
             public const string kPanelContainer = "panel-container";
@@ -370,8 +378,7 @@ namespace UnityEditor.Rendering
                 else
                 {
                     CreateTextElement(passItem, "Pass break reasoning", Classes.kSubHeaderText);
-                    var msg = $"This is a {k_PassTypeNames[(int) firstPassData.type]}. Only Raster Render Passes can be merged.";
-                    msg = msg.Replace("a Unsafe", "an Unsafe");
+                    string msg = k_PassTypeNamesNotMergedMessage[(int)firstPassData.type];
                     CreateTextElement(passItem, msg);
                 }
 
