@@ -1687,6 +1687,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void HandleCullingFailed(HDCullingResults cullingResults, CubemapFace face, ref ProbeRenderSteps skippedRenderSteps)
+        {
+            // Skip request and free resources
+            m_CullingResultsPool.Release(cullingResults);
+            skippedRenderSteps |= ProbeRenderStepsExt.FromCubeFace(face);
+        }
+
         void AddHDProbeRenderRequests(
             HDProbe visibleProbe,
             Transform viewerTransform,
@@ -1726,6 +1733,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
 
+            var isPlanarReflectionProbe = false;
             switch (visibleProbe.type)
             {
                 case ProbeSettings.ProbeType.ReflectionProbe:
@@ -1740,6 +1748,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     break;
                 case ProbeSettings.ProbeType.PlanarProbe:
+                    isPlanarReflectionProbe = true;
 
                     if (visibleProbe.IsTurnedOff())
                     {
@@ -1825,26 +1834,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 var _cullingResults = m_CullingResultsPool.Get();
                 _cullingResults.Reset();
 
-                if (!(TryCalculateFrameParameters(
-                    camera,
-                    XRSystem.emptyPass,
-                    out _,
-                    out var hdCamera,
-                    out var cullingParameters
-                )
-                      && TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, XRSystem.emptyPass, ref _cullingResults)
-                ))
+                if (!TryCalculateFrameParameters(camera, XRSystem.emptyPass, out _, out var hdCamera, out var cullingParameters))
                 {
-                    // Skip request and free resources
-                    m_CullingResultsPool.Release(_cullingResults);
-                    skippedRenderSteps |= ProbeRenderStepsExt.FromCubeFace(face);
+                    HandleCullingFailed(_cullingResults, face, ref skippedRenderSteps);
+                    continue;
+                }
+
+                if (isPlanarReflectionProbe)
+                {
+                    hdCamera.SetRayTracingCullingOverride(false);
+                }
+
+                var cullSuccess = TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, XRSystem.emptyPass, ref _cullingResults);
+                hdCamera.SetRayTracingCullingOverride(true);
+
+                if(!cullSuccess)
+                {
+                    HandleCullingFailed(_cullingResults, face, ref skippedRenderSteps);
                     continue;
                 }
 
                 bool useFetchedGpuExposure = false;
                 float fetchedGpuExposure = 1.0f;
 
-                if (visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe)
+                if (isPlanarReflectionProbe)
                 {
                     //cache the resolved settings. Otherwise if we use the internal probe settings, it will be the wrong resolved result.
                     visibleProbe.ExposureControlEnabled = hdCamera.exposureControlFS;
@@ -3115,7 +3128,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyManager.UpdateCurrentSkySettings(hdCamera);
                 skyManager.SetupAmbientProbe(hdCamera);
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
+                    hdCamera.allowRayTracingCullingOverride)
                 {
                     OverrideCullingForRayTracing(hdCamera, camera, ref cullingParams);
                 }
