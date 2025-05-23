@@ -35,6 +35,11 @@ public class HDRP_Runtime_Graphics_Tests
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Vulkan }
     )]
     [IgnoreGraphicsTest(
+        "001-HDTemplate$",
+        "https://jira.unity3d.com/browse/UUM-105789",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5, RuntimePlatform.WindowsPlayer }
+    )]
+    [IgnoreGraphicsTest(
         "002-HDMaterials$",
         "",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
@@ -43,6 +48,11 @@ public class HDRP_Runtime_Graphics_Tests
         "002-HDMaterials$",
         "Multiple materials are fully black or completely missing.",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
+    )]
+    [IgnoreGraphicsTest(
+        "002-HDMaterials$",
+        "https://jira.unity3d.com/browse/UUM-105789",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsPlayer }
     )]
     [IgnoreGraphicsTest(
         "003-VirtualTexturing$",
@@ -59,15 +69,30 @@ public class HDRP_Runtime_Graphics_Tests
         architectures: new [] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
+        "004-CloudsFlaresDecals$",
+        "https://jira.unity3d.com/browse/UUM-105789",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.OSXPlayer, RuntimePlatform.WindowsPlayer }
+    )]
+    [IgnoreGraphicsTest(
         "006-Compositor$",
         "Quite different compositing results from the reference (strong shadows on the BG + character not-so blue).",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch }
+    )]
+    [IgnoreGraphicsTest(
+        "006-Compositor$",
+        "https://jira.unity3d.com/browse/UUM-105789",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsPlayer }
     )]
     [IgnoreGraphicsTest(
         "007-BasicAPV$",
         "https://jira.unity3d.com/browse/UUM-54029",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal },
         architectures: new Architecture[] { Architecture.X64 }
+    )]
+    [IgnoreGraphicsTest(
+        "010-BRG-Simple$",
+        "https://jira.unity3d.com/browse/UUM-105789",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsPlayer }
     )]
     [IgnoreGraphicsTest(
         "011-HighQualityLines$",
