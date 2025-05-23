@@ -9,11 +9,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Burst;
 using UnityEngine.Profiling;
 
-[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.RegisterNewInstancesJob<UnityEngine.Rendering.BatchMeshID>))]
-[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.RegisterNewInstancesJob<UnityEngine.Rendering.BatchMaterialID>))]
-[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.FindNonRegisteredInstancesJob<UnityEngine.Rendering.BatchMeshID>))]
-[assembly: RegisterGenericJobType(typeof(UnityEngine.Rendering.FindNonRegisteredInstancesJob<UnityEngine.Rendering.BatchMaterialID>))]
-
 namespace UnityEngine.Rendering
 {
     internal delegate void OnCullingCompleteCallback(JobHandle jobHandle, in BatchCullingContext cullingContext, in BatchCullingOutput cullingOutput);
@@ -192,45 +187,106 @@ namespace UnityEngine.Rendering
     }
 
     [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-    internal struct FindNonRegisteredInstancesJob<T> : IJobParallelForBatch where T : unmanaged
+    internal struct FindNonRegisteredMeshesJob : IJobParallelForBatch
     {
         public const int k_BatchSize = 128;
 
         [ReadOnly] public NativeArray<int> instanceIDs;
-        [ReadOnly] public NativeParallelHashMap<int, T> hashMap;
+        [ReadOnly] public NativeParallelHashMap<int, BatchMeshID> hashMap;
 
         [WriteOnly] public NativeList<int>.ParallelWriter outInstancesWriter;
 
         public unsafe void Execute(int startIndex, int count)
         {
-            int* notFoundinstanceIDs = stackalloc int[k_BatchSize];
-            int length = 0;
+            int* notFoundinstanceIDsPtr = stackalloc int[k_BatchSize];
+            var notFoundinstanceIDs = new UnsafeList<int>(notFoundinstanceIDsPtr, k_BatchSize);
+
+            notFoundinstanceIDs.Length = 0;
 
             for (int i = startIndex; i < startIndex + count; ++i)
             {
                 int instanceID = instanceIDs[i];
 
                 if (!hashMap.ContainsKey(instanceID))
-                    notFoundinstanceIDs[length++] = instanceID;
+                    notFoundinstanceIDs.AddNoResize(instanceID);
             }
 
-            outInstancesWriter.AddRangeNoResize(notFoundinstanceIDs, length);
+            outInstancesWriter.AddRangeNoResize(notFoundinstanceIDsPtr, notFoundinstanceIDs.Length);
         }
     }
 
     [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-    internal struct RegisterNewInstancesJob<T> : IJobParallelFor where T : unmanaged
+    internal struct FindNonRegisteredMaterialsJob : IJobParallelForBatch
     {
         public const int k_BatchSize = 128;
 
         [ReadOnly] public NativeArray<int> instanceIDs;
-        [ReadOnly] public NativeArray<T> batchIDs;
+        [ReadOnly] public NativeArray<GPUDrivenPackedMaterialData> packedMaterialDatas;
+        [ReadOnly] public NativeParallelHashMap<int, BatchMaterialID> hashMap;
 
-        [WriteOnly] public NativeParallelHashMap<int, T>.ParallelWriter hashMap;
+        [WriteOnly] public NativeList<int>.ParallelWriter outInstancesWriter;
+        [WriteOnly] public NativeList<GPUDrivenPackedMaterialData>.ParallelWriter outPackedMaterialDatasWriter;
 
-        public unsafe void Execute(int index)
+        public unsafe void Execute(int startIndex, int count)
+        {
+            int* notFoundinstanceIDsPtr = stackalloc int[k_BatchSize];
+            var notFoundinstanceIDs = new UnsafeList<int>(notFoundinstanceIDsPtr, k_BatchSize);
+
+            GPUDrivenPackedMaterialData* notFoundPackedMaterialDatasPtr = stackalloc GPUDrivenPackedMaterialData[k_BatchSize];
+            var notFoundPackedMaterialDatas = new UnsafeList<GPUDrivenPackedMaterialData>(notFoundPackedMaterialDatasPtr, k_BatchSize);
+
+            notFoundinstanceIDs.Length = 0;
+            notFoundPackedMaterialDatas.Length = 0;
+
+            for (int i = startIndex; i < startIndex + count; ++i)
+            {
+                int instanceID = instanceIDs[i];
+
+                if (!hashMap.ContainsKey(instanceID))
+                {
+                    notFoundinstanceIDs.AddNoResize(instanceID);
+                    notFoundPackedMaterialDatas.AddNoResize(packedMaterialDatas[i]);
+                }
+            }
+
+            outInstancesWriter.AddRangeNoResize(notFoundinstanceIDsPtr, notFoundinstanceIDs.Length);
+            outPackedMaterialDatasWriter.AddRangeNoResize(notFoundPackedMaterialDatasPtr, notFoundPackedMaterialDatas.Length);
+        }
+    }
+
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
+    internal struct RegisterNewMeshesJob : IJobParallelFor
+    {
+        public const int k_BatchSize = 128;
+
+        [ReadOnly] public NativeArray<int> instanceIDs;
+        [ReadOnly] public NativeArray<BatchMeshID> batchIDs;
+
+        [WriteOnly] public NativeParallelHashMap<int, BatchMeshID>.ParallelWriter hashMap;
+
+        public void Execute(int index)
         {
             hashMap.TryAdd(instanceIDs[index], batchIDs[index]);
+        }
+    }
+
+    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
+    internal struct RegisterNewMaterialsJob : IJobParallelFor
+    {
+        public const int k_BatchSize = 128;
+
+        [ReadOnly] public NativeArray<int> instanceIDs;
+        [ReadOnly] public NativeArray<GPUDrivenPackedMaterialData> packedMaterialDatas;
+        [ReadOnly] public NativeArray<BatchMaterialID> batchIDs;
+
+        [WriteOnly] public NativeParallelHashMap<int, BatchMaterialID>.ParallelWriter batchMaterialHashMap;
+        [WriteOnly] public NativeParallelHashMap<int, GPUDrivenPackedMaterialData>.ParallelWriter packedMaterialHashMap;
+
+        public void Execute(int index)
+        {
+            var instanceID = instanceIDs[index];
+            batchMaterialHashMap.TryAdd(instanceID, batchIDs[index]);
+            packedMaterialHashMap.TryAdd(instanceID, packedMaterialDatas[index]);
         }
     }
 
@@ -698,41 +754,45 @@ namespace UnityEngine.Rendering
         private void RegisterBatchMeshes(NativeArray<int> meshIDs)
         {
             var newMeshIDs = new NativeList<int>(meshIDs.Length, Allocator.TempJob);
-            new FindNonRegisteredInstancesJob<BatchMeshID>
+            new FindNonRegisteredMeshesJob
             {
                 instanceIDs = meshIDs,
                 hashMap = m_BatchMeshHash,
                 outInstancesWriter = newMeshIDs.AsParallelWriter()
             }
-            .ScheduleBatch(meshIDs.Length, FindNonRegisteredInstancesJob<BatchMeshID>.k_BatchSize).Complete();
+            .ScheduleBatch(meshIDs.Length, FindNonRegisteredMeshesJob.k_BatchSize).Complete();
             var newBatchMeshIDs = new NativeArray<BatchMeshID>(newMeshIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             m_BRG.RegisterMeshes(newMeshIDs.AsArray(), newBatchMeshIDs);
 
             int totalMeshesNum = m_BatchMeshHash.Count() + newBatchMeshIDs.Length;
             m_BatchMeshHash.Capacity = Math.Max(m_BatchMeshHash.Capacity, Mathf.CeilToInt(totalMeshesNum / 1023.0f) * 1024);
 
-            new RegisterNewInstancesJob<BatchMeshID>
+            new RegisterNewMeshesJob
             {
                 instanceIDs = newMeshIDs.AsArray(),
                 batchIDs = newBatchMeshIDs,
                 hashMap = m_BatchMeshHash.AsParallelWriter()
             }
-            .Schedule(newMeshIDs.Length, RegisterNewInstancesJob<BatchMeshID>.k_BatchSize).Complete();
+            .Schedule(newMeshIDs.Length, RegisterNewMeshesJob.k_BatchSize).Complete();
 
             newMeshIDs.Dispose();
             newBatchMeshIDs.Dispose();
         }
 
-        private void RegisterBatchMaterials(in NativeArray<int> usedMaterialIDs)
+        private void RegisterBatchMaterials(in NativeArray<int> usedMaterialIDs, in NativeArray<GPUDrivenPackedMaterialData> usedPackedMaterialDatas)
         {
+            Debug.Assert(usedMaterialIDs.Length == usedPackedMaterialDatas.Length, "Each material ID should correspond to one packed material data.");
             var newMaterialIDs = new NativeList<int>(usedMaterialIDs.Length, Allocator.TempJob);
-            new FindNonRegisteredInstancesJob<BatchMaterialID>
+            var newPackedMaterialDatas = new NativeList<GPUDrivenPackedMaterialData>(usedMaterialIDs.Length, Allocator.TempJob);
+            new FindNonRegisteredMaterialsJob
             {
                 instanceIDs = usedMaterialIDs,
+                packedMaterialDatas = usedPackedMaterialDatas,
                 hashMap = m_BatchMaterialHash,
-                outInstancesWriter = newMaterialIDs.AsParallelWriter()
+                outInstancesWriter = newMaterialIDs.AsParallelWriter(),
+                outPackedMaterialDatasWriter = newPackedMaterialDatas.AsParallelWriter()
             }
-            .ScheduleBatch(usedMaterialIDs.Length, FindNonRegisteredInstancesJob<BatchMaterialID>.k_BatchSize).Complete();
+            .ScheduleBatch(usedMaterialIDs.Length, FindNonRegisteredMaterialsJob.k_BatchSize).Complete();
 
             var newBatchMaterialIDs = new NativeArray<BatchMaterialID>(newMaterialIDs.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             m_BRG.RegisterMaterials(newMaterialIDs.AsArray(), newBatchMaterialIDs);
@@ -741,15 +801,18 @@ namespace UnityEngine.Rendering
             m_BatchMaterialHash.Capacity = Math.Max(m_BatchMaterialHash.Capacity, Mathf.CeilToInt(totalMaterialsNum / 1023.0f) * 1024);
             m_PackedMaterialHash.Capacity = m_BatchMaterialHash.Capacity;
 
-            new RegisterNewInstancesJob<BatchMaterialID>
+            new RegisterNewMaterialsJob
             {
                 instanceIDs = newMaterialIDs.AsArray(),
+                packedMaterialDatas = newPackedMaterialDatas.AsArray(),
                 batchIDs = newBatchMaterialIDs,
-                hashMap = m_BatchMaterialHash.AsParallelWriter()
+                batchMaterialHashMap = m_BatchMaterialHash.AsParallelWriter(),
+                packedMaterialHashMap = m_PackedMaterialHash.AsParallelWriter()
             }
-            .Schedule(newMaterialIDs.Length, RegisterNewInstancesJob<BatchMaterialID>.k_BatchSize).Complete();
+            .Schedule(newMaterialIDs.Length, RegisterNewMaterialsJob.k_BatchSize).Complete();
 
             newMaterialIDs.Dispose();
+            newPackedMaterialDatas.Dispose();
             newBatchMaterialIDs.Dispose();
         }
 
@@ -765,15 +828,13 @@ namespace UnityEngine.Rendering
 
         public void BuildBatch(
             NativeArray<InstanceHandle> instances,
-            NativeArray<int> usedMaterialIDs,
-            NativeArray<int> usedMeshIDs,
             in GPUDrivenRendererGroupData rendererData,
             bool registerMaterialsAndMeshes)
         {
             if (registerMaterialsAndMeshes)
             {
-                RegisterBatchMaterials(usedMaterialIDs);
-                RegisterBatchMeshes(usedMeshIDs);
+                RegisterBatchMaterials(rendererData.materialID, rendererData.packedMaterialData);
+                RegisterBatchMeshes(rendererData.meshID);
             }
 
             var rangeHash = m_DrawInstanceData.rangeHash;
