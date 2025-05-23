@@ -686,7 +686,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             s_EmptyAdditionalShadowFadeParams = new Vector4(shadowFadeScale, shadowFadeBias, 0, 0);
 
             var visibleLights = lightData.visibleLights;
-            if (m_VisibleLightIndexToAdditionalLightIndex.Length < visibleLights.Length)
+            if (s_EmptyAdditionalLightIndexToShadowParams.Length < visibleLights.Length)
             {
                 m_VisibleLightIndexToAdditionalLightIndex = new short[visibleLights.Length];
                 m_VisibleLightIndexToIsCastingShadows = new bool[visibleLights.Length];
