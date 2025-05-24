@@ -35,6 +35,11 @@ public class HDRP_Runtime_Graphics_Tests
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Vulkan }
     )]
     [IgnoreGraphicsTest(
+        "001-HDTemplate$",
+        "https://jira.unity3d.com/browse/UUM-105789",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5, RuntimePlatform.WindowsPlayer }
+    )]
+    [IgnoreGraphicsTest(
         "002-HDMaterials$",
         "",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
