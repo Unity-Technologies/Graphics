@@ -5,6 +5,7 @@ using Unity.Collections;
 using UnityEngine.Profiling;
 using Unity.Profiling;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 // NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 //

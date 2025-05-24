@@ -58,6 +58,7 @@ namespace UnityEditor.Rendering
 
         // Functions for compute only
         static List<FunctionInfo> computeFunctions = new List<FunctionInfo> {
+                "SetComputeParamsFromMaterial",
                 "SetComputeFloatParam",
                 "SetComputeIntParam",
                 "SetComputeVectorArrayParam",
@@ -68,11 +69,7 @@ namespace UnityEditor.Rendering
                 new FunctionInfo("SetComputeTextureParam", textureArg: "rt"),
                 "SetComputeBufferParam",
                 "SetComputeConstantBufferParam",
-                "SetComputeFloatParam",
-                "SetComputeIntParam",
                 "SetComputeVectorParam",
-                "SetComputeVectorArrayParam",
-                "SetComputeMatrixParam",
                 "DispatchCompute",
                 "BuildRayTracingAccelerationStructure",
                 "SetRayTracingAccelerationStructure",
@@ -87,6 +84,7 @@ namespace UnityEditor.Rendering
                 "SetRayTracingVectorArrayParam",
                 "SetRayTracingMatrixParam",
                 "SetRayTracingMatrixArrayParam",
+                "SetRayTracingShaderPass",
                 "DispatchRays",
                 "SetBufferData",
                 "SetBufferCounterValue",
@@ -119,6 +117,17 @@ namespace UnityEditor.Rendering
                 "SetRenderTarget",
                 "Clear",
                 "RequestAsyncReadbackIntoNativeArray",
+                "RequestAsyncReadback",
+                "ClearRandomWriteTargets",
+                "SetRandomWriteTarget",
+                "CopyTexture",
+                "GenerateMips",
+                // Next APIs are already available in UnsafeCommandBuffer through compute or base functions lists,
+                // but the added overloads below relax safety rules to support texture parameters without texture handle usage.
+                new FunctionInfo("SetGlobalTexture", textureArg: "", modifiesGlobalState: true),
+                "SetRayTracingTextureParam",
+                "SetComputeTextureParam",
+                // End of added unsafe overloads
             };
         // Generated file header
         static string preamble =
@@ -129,6 +138,7 @@ using Unity.Collections;
 using UnityEngine.Profiling;
 using Unity.Profiling;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Experimental.Rendering;
 
 // NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE  NOTE
 //
@@ -255,27 +265,30 @@ namespace UnityEngine.Rendering
             BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
             var methods = commandBufferType.GetMethods(flags);
 
+            var allowedFuncInfoMethodList = new List<Tuple<FunctionInfo, MethodInfo>>();
+
+            // Filtering function list to only keep the ones existing in CommandBuffer
             foreach (var method in methods)
             {
-                bool allowed = false;
-                FunctionInfo info = new FunctionInfo();
                 foreach (var fn in functionList)
                 {
                     if (fn.name == method.Name)
-                    {
-                        allowed = true;
-                        info = fn;
-                        break;
-                    }
+                        allowedFuncInfoMethodList.Add(new Tuple<FunctionInfo, MethodInfo>(fn, method));
                 }
-                if (!allowed) continue;
+            }
 
+            // Generating function list, we can have duplicates due to overloads in methods and different support in the different functionLists (TextureHandle overload or not)
+            foreach (var allowedFuncInfoMethod in allowedFuncInfoMethodList)
+            {
                 StringBuilder argList = new StringBuilder();
                 StringBuilder typedArgList = new StringBuilder();
                 StringBuilder argDocList = new StringBuilder();
                 StringBuilder validationCode = new StringBuilder();
                 StringBuilder genericArgList = new StringBuilder();
                 StringBuilder genericConstraints = new StringBuilder();
+
+                var info = allowedFuncInfoMethod.Item1;
+                var method = allowedFuncInfoMethod.Item2;
 
                 if (info.modifiesGlobalState)
                 {
@@ -326,7 +339,7 @@ namespace UnityEngine.Rendering
 
                 if (method.ContainsGenericParameters)
                 {
-                    // Hack: The current command buffer only inclues very simple single generic functions. We just hard code these but in the future we might need reflection on the generic arguments if needed.
+                    // Hack: The current command buffer only includes very simple single generic functions. We just hard code these but in the future we might need reflection on the generic arguments if needed.
                     genericArgList.Append("<T>");
                     genericConstraints.Append("where T : struct");
                     argDocList.Append("\n");

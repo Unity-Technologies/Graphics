@@ -1367,6 +1367,68 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
+        private void ExecuteSetRenderTargets(RenderGraphPass pass, InternalRenderGraphContext rgContext)
+        {
+            if (pass.depthAccess.textureHandle.IsValid() || pass.colorBufferMaxIndex != -1)
+            {
+                var m_Resources = graph.m_ResourcesForDebugOnly;
+
+                var mrtArray = rgContext.renderGraphPool.GetTempArray<RenderTargetIdentifier>(pass.colorBufferMaxIndex + 1);
+                var colorBuffers = pass.colorBufferAccess;
+
+                if (pass.colorBufferMaxIndex > 0)
+                {
+                    for (int i = 0; i <= pass.colorBufferMaxIndex; ++i)
+                    {
+                        if (!colorBuffers[i].textureHandle.IsValid())
+                            throw new InvalidOperationException("MRT setup is invalid. Some indices are not used.");
+
+                        mrtArray[i] = m_Resources.GetTexture(colorBuffers[i].textureHandle);
+                    }
+
+                    CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(colorBuffers[0].textureHandle));
+
+                    if (pass.depthAccess.textureHandle.IsValid())
+                    {
+                        CoreUtils.SetRenderTarget(rgContext.cmd, mrtArray, m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Setting MRTs without a depth buffer is not supported.");
+                    }
+                }
+                else
+                {
+                    if (pass.depthAccess.textureHandle.IsValid())
+                    {
+                        if (pass.colorBufferMaxIndex > -1)
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle),
+                                m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
+                        }
+                        else
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                        }
+                    }
+                    else
+                    {
+                        if (pass.colorBufferAccess[0].textureHandle.IsValid())
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
+                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Neither depth nor color render targets are correctly setup at pass " + pass.name + ".");
+                        }
+                    }
+                }
+            }
+        }
+
         internal unsafe void ExecuteSetRandomWriteTarget(in CommandBuffer cmd, RenderGraphResourceRegistry resources, int index, ResourceHandle resource, bool preserveCounterValue = true)
         {
             if (resource.type == RenderGraphResourceType.Texture)
@@ -1443,13 +1505,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             {
                 ref var pass = ref contextData.passData.ElementAt(passIndex);
 
-                //Fix low level passes being merged into nrp giving errors
-                //because of the "isRaster" check below
-
                 if (pass.culled)
                     continue;
 
-                var isRaster = pass.type == RenderGraphPassType.Raster;
+                bool isRaster = pass.type == RenderGraphPassType.Raster;
+                bool isUnsafe = pass.type == RenderGraphPassType.Unsafe;
 
                 ExecuteInitializeResource(rgContext, resources, pass);
 
@@ -1485,6 +1545,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             inRenderPass = true;
                         }
                     }
+                }
+                else if (isUnsafe)
+                {
+                    ExecuteSetRenderTargets(passes[passIndex], rgContext);
                 }
 
                 if (pass.mergeState >= PassMergeState.SubPass)
