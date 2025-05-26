@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
-            if (isSubgraphProperty)
+            if (isSubgraphProperty && !promoteToFinalShader)
                 return referenceName;
             else
                 return $"UnityBuildSamplerStateStruct({propertyReferenceName})";

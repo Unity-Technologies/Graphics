@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph
             m_Entries.Add(new DropdownEntry(2, "B"));
         }
 
+        internal override bool canPromoteToFinalShader => false;
+
         [SerializeField]
         private List<DropdownEntry> m_Entries;
 

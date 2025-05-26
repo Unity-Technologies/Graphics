@@ -11,6 +11,8 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
 
+        internal override bool canPromoteToFinalShader => true;
+
         // user selected precision setting
         [SerializeField]
         Precision m_Precision = Precision.Inherit;

@@ -28,6 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override bool isExposable => true;         // the textures are exposable at least..
         internal override bool isRenamable => true;
+        internal override bool canPromoteToFinalShader => false;
 
         internal override void GetPropertyReferenceNames(List<string> result)
         {

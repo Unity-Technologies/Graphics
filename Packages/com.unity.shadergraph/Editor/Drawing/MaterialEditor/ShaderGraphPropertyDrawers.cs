@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         MaterialProperty prop = FindProperty(propData.referenceName, properties);
                         if (prop == null) continue;
-                        DrawMaterialProperty(materialEditor, prop, propData.propertyType, propData.isKeyword, propData.keywordType);
+                        DrawMaterialProperty(materialEditor, prop, propData.propertyType, propData.isKeyword, propData.keywordType, propData.tooltip);
                     }
                     else
                     {
@@ -136,17 +136,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             EditorGUI.indentLevel--;
         }
 
-        static void DrawMaterialProperty(MaterialEditor materialEditor, MaterialProperty property, PropertyType propertyType, bool isKeyword = false, KeywordType keywordType = KeywordType.Boolean)
+        static void DrawMaterialProperty(MaterialEditor materialEditor, MaterialProperty property, PropertyType propertyType, bool isKeyword = false, KeywordType keywordType = KeywordType.Boolean, string tooltip = "")
         {
             if (isKeyword)
             {
                 switch (keywordType)
                 {
                     case KeywordType.Boolean:
-                        DrawBooleanKeyword(materialEditor, property);
+                        DrawBooleanKeyword(materialEditor, property, tooltip);
                         break;
                     case KeywordType.Enum:
-                        DrawEnumKeyword(materialEditor, property);
+                        DrawEnumKeyword(materialEditor, property, tooltip);
                         break;
                 }
             }
@@ -155,136 +155,136 @@ namespace UnityEditor.ShaderGraph.Drawing
                 switch (propertyType)
                 {
                     case PropertyType.SamplerState:
-                        DrawSamplerStateProperty(materialEditor, property);
+                        DrawSamplerStateProperty(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Matrix4:
-                        DrawMatrix4Property(materialEditor, property);
+                        DrawMatrix4Property(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Matrix3:
-                        DrawMatrix3Property(materialEditor, property);
+                        DrawMatrix3Property(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Matrix2:
                         DrawMatrix2Property(materialEditor, property);
                         break;
                     case PropertyType.Texture2D:
-                        DrawTexture2DProperty(materialEditor, property);
+                        DrawTexture2DProperty(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Texture2DArray:
-                        DrawTexture2DArrayProperty(materialEditor, property);
+                        DrawTexture2DArrayProperty(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Texture3D:
-                        DrawTexture3DProperty(materialEditor, property);
+                        DrawTexture3DProperty(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Cubemap:
-                        DrawCubemapProperty(materialEditor, property);
+                        DrawCubemapProperty(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Gradient:
                         break;
                     case PropertyType.Vector4:
-                        DrawVector4Property(materialEditor, property);
+                        DrawVector4Property(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Vector3:
-                        DrawVector3Property(materialEditor, property);
+                        DrawVector3Property(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Vector2:
-                        DrawVector2Property(materialEditor, property);
+                        DrawVector2Property(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Float:
-                        DrawFloatProperty(materialEditor, property);
+                        DrawFloatProperty(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Boolean:
-                        DrawBooleanProperty(materialEditor, property);
+                        DrawBooleanProperty(materialEditor, property, tooltip);
                         break;
                     case PropertyType.VirtualTexture:
-                        DrawVirtualTextureProperty(materialEditor, property);
+                        DrawVirtualTextureProperty(materialEditor, property, tooltip);
                         break;
                     case PropertyType.Color:
-                        DrawColorProperty(materialEditor, property);
+                        DrawColorProperty(materialEditor, property, tooltip);
                         break;
                 }
             }
         }
 
-        static void DrawColorProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawColorProperty(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawEnumKeyword(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawEnumKeyword(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawBooleanKeyword(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawBooleanKeyword(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawVirtualTextureProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawVirtualTextureProperty(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
         }
 
-        static void DrawBooleanProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawBooleanProperty(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawFloatProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawFloatProperty(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawVector2Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawVector2Property(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawVector3Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawVector3Property(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawVector4Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawVector4Property(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawCubemapProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawCubemapProperty(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawTexture3DProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawTexture3DProperty(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawTexture2DArrayProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawTexture2DArrayProperty(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawTexture2DProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawTexture2DProperty(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
-            materialEditor.ShaderProperty(property, property.displayName);
+            materialEditor.ShaderProperty(property, new GUIContent(property.displayName, tooltip));
         }
 
-        static void DrawMatrix2Property(MaterialEditor materialEditor, MaterialProperty property)
-        {
-            //we dont expose
-        }
-
-        static void DrawMatrix3Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawMatrix2Property(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
             //we dont expose
         }
 
-        static void DrawMatrix4Property(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawMatrix3Property(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
             //we dont expose
         }
 
-        static void DrawSamplerStateProperty(MaterialEditor materialEditor, MaterialProperty property)
+        static void DrawMatrix4Property(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
+        {
+            //we dont expose
+        }
+
+        static void DrawSamplerStateProperty(MaterialEditor materialEditor, MaterialProperty property, string tooltip = "")
         {
             //we dont expose
         }

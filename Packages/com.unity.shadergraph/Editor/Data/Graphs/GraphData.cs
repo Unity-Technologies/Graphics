@@ -1366,25 +1366,7 @@ namespace UnityEditor.ShaderGraph
                     GradientUtil.GetGradientPropertiesForPreview(collector, gradientProp.referenceName, gradientProp.value);
                     continue;
                 }
-
                 collector.AddShaderProperty(prop);
-            }
-        }
-
-        private static void CollectSubgraphKeywordsR(KeywordCollector collector, SubGraphAsset asset)
-        {
-            if (asset is null || !asset.isValid || asset.isNull)
-                return;
-
-            foreach(var keyword in asset.keywords)
-            {
-                collector.AddShaderKeyword(keyword);
-            }
-            foreach(var guid in asset.children)
-            {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
-                var child = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(path);
-                CollectSubgraphKeywordsR(collector, child);
             }
         }
 
@@ -1394,13 +1376,43 @@ namespace UnityEditor.ShaderGraph
             {
                 collector.AddShaderKeyword(keyword);
             }
-            foreach(var node in GetNodes<SubGraphNode>())
+
+            // promoted keywords should be included in permutations when generating the final shader.
+            if (generationMode == GenerationMode.ForReals)
             {
-                CollectSubgraphKeywordsR(collector, node.asset);
+                foreach (var node in GetNodes<SubGraphNode>())
+                {
+                    foreach (var keyword in node.asset.keywords)
+                    {
+                        if (keyword.promoteToFinalShader)
+                            collector.AddShaderKeyword(keyword);
+                    }
+                }
             }
 
             // Alwways calculate permutations when collecting
             collector.CalculateKeywordPermutations();
+        }
+
+        internal IEnumerable<ShaderInput> GetPromotedInputs()
+        {
+            foreach (var subnode in GetNodes<SubGraphNode>())
+            {
+                foreach (var prop in subnode.asset.nodeProperties)
+                {
+                    if (!prop.promoteToFinalShader)
+                        continue;
+
+                    yield return prop;
+                }
+                foreach (var keyword in subnode.asset.keywords)
+                {
+                    if (!keyword.promoteToFinalShader)
+                        continue;
+
+                    yield return keyword;
+                }
+            }
         }
 
         public bool IsInputAllowedInGraph(ShaderInput input)
@@ -1549,16 +1561,36 @@ namespace UnityEditor.ShaderGraph
             return sanitizedName;
         }
 
+        private HashSet<string> EvaluateUsedReferenceNames(ShaderInput ignore = null)
+        {
+            HashSet<string> results = new();
+            foreach (var node in GetNodes<SubGraphNode>())
+                foreach (var name in node.UsedReferenceNames())
+                    results.Add(name);
+
+            foreach(var prop in properties)
+                if (prop != ignore)
+                    results.Add(prop.referenceName);
+            foreach(var key in keywords)
+                if (key != ignore)
+                    results.Add(key.referenceName);
+            foreach(var drop in dropdowns)
+                if (drop != ignore)
+                    results.Add(drop.referenceName);
+
+            return results;
+        }
+
         public string SanitizeGraphInputReferenceName(ShaderInput input, string desiredName)
         {
             var sanitizedName = NodeUtils.ConvertToValidHLSLIdentifier(desiredName, (desiredName) => (NodeUtils.IsShaderLabKeyWord(desiredName) || NodeUtils.IsShaderGraphKeyWord(desiredName)));
+            var existingNames = EvaluateUsedReferenceNames(input);
 
             switch (input)
             {
                 case AbstractShaderProperty property:
                 {
                     // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
-                    var existingNames = properties.Where(p => p != property).Select(p => p.referenceName).Union(keywords.Select(p => p.referenceName)).Union(dropdowns.Select(p => p.referenceName));
                     sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
                 }
                 break;
@@ -1566,14 +1598,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
                     sanitizedName = sanitizedName.ToUpper();
-                    var existingNames = properties.Select(p => p.referenceName).Union(keywords.Where(p => p != input).Select(p => p.referenceName)).Union(dropdowns.Select(p => p.referenceName));
                     sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
                 }
                 break;
                 case ShaderDropdown dropdown:
                 {
                     // must deduplicate ref names against keywords, dropdowns, and properties, as they occupy the same name space
-                    var existingNames = properties.Select(p => p.referenceName).Union(keywords.Select(p => p.referenceName)).Union(dropdowns.Where(p => p != input).Select(p => p.referenceName));
                     sanitizedName = GraphUtil.DeduplicateName(existingNames, "{0}_{1}", sanitizedName);
                 }
                 break;
@@ -1645,6 +1675,15 @@ namespace UnityEditor.ShaderGraph
                 {
                     categoryData.RemoveItemFromCategory(input);
                     break;
+                }
+            }
+
+            foreach(var node in GetNodes<SubGraphNode>())
+            {
+                if (node.UsedReferenceNames().Contains(input.referenceName))
+                {
+                    node.ValidateNode();
+                    node.Dirty(ModificationScope.Graph);
                 }
             }
 

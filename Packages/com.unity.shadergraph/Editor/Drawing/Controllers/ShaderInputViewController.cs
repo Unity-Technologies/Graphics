@@ -325,6 +325,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     colorManager.SetNodesDirty(nodes);
                     colorManager.UpdateNodeViews(nodes);
+
+                    // Cant determine if Sub Graphs contain a promoted property where the reference name is in use
+                    foreach (var node in DataStore.State.GetNodes<SubGraphNode>())
+                    {
+                        node.ValidateNode();
+                        node.Dirty(modificationScope);
+                    }
                     break;
                 case ShaderKeyword keyword:
                     // Cant determine if Sub Graphs contain the keyword so just update them

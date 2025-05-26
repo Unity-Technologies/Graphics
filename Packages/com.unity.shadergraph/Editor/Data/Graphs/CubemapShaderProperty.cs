@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
-            if (isSubgraphProperty)
+            if (isSubgraphProperty && !promoteToFinalShader)
                 return referenceName;
             else
                 return $"UnityBuildTextureCubeStruct({referenceName})";

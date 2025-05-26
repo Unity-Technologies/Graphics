@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
@@ -13,6 +14,34 @@ namespace UnityEditor.ShaderGraph.Internal
         SerializableGuid m_Guid = new SerializableGuid();
 
         internal Guid guid => m_Guid.guid;
+
+        [SerializeField]
+        internal string promotedFromAssetID = null;
+
+        [SerializeField]
+        internal string promotedFromCategoryName = null;
+
+        [SerializeField]
+        internal int promotedOrdering = -1;
+
+        internal string PromotedAssetName => !string.IsNullOrEmpty(PromotedAssetPath) ? Path.GetFileName(PromotedAssetPath) : null;
+        internal string PromotedAssetPath => !string.IsNullOrEmpty(promotedFromAssetID) ? AssetDatabase.GUIDToAssetPath(promotedFromAssetID) : null;
+        internal bool HasPromotedCategory => !string.IsNullOrEmpty(promotedFromCategoryName);
+        internal string PromotedCategoryName {
+            get {
+                if (HasPromotedCategory)
+                    return promotedFromCategoryName;
+
+                var src = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(PromotedAssetPath);
+                if (src is null || src.isNull || !src.isValid)
+                    return null;
+
+                return src.name;
+            }
+        }
+
+        internal bool promoteToFinalShader => !string.IsNullOrEmpty(promotedFromAssetID);
+        internal virtual bool canPromoteToFinalShader => false;
 
         internal void OverrideGuid(string namespaceId, string name) { m_Guid.guid = GenerateNamespaceUUID(namespaceId, name); }
 

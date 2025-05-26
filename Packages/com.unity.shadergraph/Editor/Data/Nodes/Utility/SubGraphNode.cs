@@ -586,7 +586,8 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
-            base.ValidateNode();
+            owner.ClearErrorsForNode(this);
+            base.ValidateNode();            
 
             if (asset == null)
             {
@@ -654,6 +655,42 @@ namespace UnityEditor.ShaderGraph
             }
 
             ValidateShaderStage();
+            ValidatePromotedProperties();
+        }
+
+        internal HashSet<string> UsedReferenceNames()
+        {
+            HashSet<string> usedNames = new();
+
+            foreach (var property in this.asset.nodeProperties)
+                if (property.promoteToFinalShader)
+                    usedNames.Add(property.referenceName);
+
+            foreach (var keyword in this.asset.keywords)
+                if (keyword.promoteToFinalShader)
+                    usedNames.Add(keyword.referenceName);
+
+            return usedNames;
+        }
+        
+        void ValidatePromotedProperties()
+        {
+            var usedNames = UsedReferenceNames();
+
+            foreach (var property in this.owner.properties)
+            {
+                if (usedNames.Contains(property.referenceName))
+                {
+                    owner.AddValidationError(objectId, $"A promoted reference name '{property.referenceName}' conflicts with property '{property.displayName}' in this graph.");
+                }
+            }
+            foreach (var keyword in this.owner.keywords)
+            {
+                if (usedNames.Contains(keyword.referenceName))
+                {
+                    owner.AddValidationError(objectId, $"A promoted reference name '{keyword.referenceName}' conflicts with keyword '{keyword.displayName}' in this graph.");
+                }
+            }
         }
 
         public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
@@ -687,6 +724,10 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var keyword in asset.keywords)
             {
+                // when generating the final shader, the main graph will pull the promoted keywords out for permutations
+                // so they don't need to be provided here.
+                if (generationMode == GenerationMode.ForReals && keyword.promoteToFinalShader)
+                    continue;
                 keywords.AddShaderKeyword(keyword as ShaderKeyword);
             }
         }

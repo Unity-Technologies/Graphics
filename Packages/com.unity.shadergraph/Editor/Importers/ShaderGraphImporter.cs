@@ -10,7 +10,6 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
-using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -281,84 +280,60 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
-            List<GraphInputData> inputInspectorDataList = new List<GraphInputData>();
-            foreach (AbstractShaderProperty property in graph.properties)
-            {
-                // Don't write out data for non-exposed blackboard items
-                if (!property.isExposed)
-                    continue;
-
-                // VTs are treated differently
-                if (property is VirtualTextureShaderProperty virtualTextureShaderProperty)
-                    inputInspectorDataList.Add(MinimalCategoryData.ProcessVirtualTextureProperty(virtualTextureShaderProperty));
-                else
-                    inputInspectorDataList.Add(new GraphInputData() { referenceName = property.referenceName, propertyType = property.propertyType, isKeyword = false });
-            }
-            foreach (ShaderKeyword keyword in graph.keywords)
-            {
-                // Don't write out data for non-exposed blackboard items
-                if (!keyword.isExposed)
-                    continue;
-
-                var sanitizedReferenceName = keyword.referenceName;
-                if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
-                    sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
-
-                inputInspectorDataList.Add(new GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true });
-            }
-
-            sgMetadata.categoryDatas = new List<MinimalCategoryData>();
+            CategoryDataCollection categoryDatas = new();
+            int propertyOrder = 0;
+            int categoryOrder = 1;
+            HashSet<ShaderInput> existsInMainGraphCategory = new();
             foreach (CategoryData categoryData in graph.categories)
             {
                 // Don't write out empty categories
                 if (categoryData.childCount == 0)
                     continue;
 
-                MinimalCategoryData mcd = new MinimalCategoryData()
-                {
-                    categoryName = categoryData.name,
-                    propertyDatas = new List<GraphInputData>()
-                };
+                propertyOrder = 0; // reset for the new category.
                 foreach (var input in categoryData.Children)
                 {
-                    GraphInputData propData;
-                    // Only write out data for exposed blackboard items
-                    if (input.isExposed == false)
-                        continue;
-
-                    // VTs are treated differently
-                    if (input is VirtualTextureShaderProperty virtualTextureShaderProperty)
+                    existsInMainGraphCategory.Add(input);
+                    if (MinimalCategoryData.TryProcessInput(input, out var data))
                     {
-                        propData = MinimalCategoryData.ProcessVirtualTextureProperty(virtualTextureShaderProperty);
-                        inputInspectorDataList.RemoveAll(inputData => inputData.referenceName == propData.referenceName);
-                        mcd.propertyDatas.Add(propData);
-                        continue;
+                        categoryDatas.Set(categoryData.name, data, propertyOrder++, categoryOrder++);
                     }
-                    else if (input is ShaderKeyword keyword)
-                    {
-                        var sanitizedReferenceName = keyword.referenceName;
-                        if (keyword.keywordType == KeywordType.Boolean && keyword.referenceName.Contains("_ON"))
-                            sanitizedReferenceName = sanitizedReferenceName.Replace("_ON", String.Empty);
-
-                        propData = new GraphInputData() { referenceName = sanitizedReferenceName, keywordType = keyword.keywordType, isKeyword = true };
-                    }
-                    else
-                    {
-                        var prop = input as AbstractShaderProperty;
-                        propData = new GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false };
-                    }
-
-                    mcd.propertyDatas.Add(propData);
-                    inputInspectorDataList.Remove(propData);
                 }
-                sgMetadata.categoryDatas.Add(mcd);
             }
 
-            // Any uncategorized elements get tossed into an un-named category at the top as a fallback
-            if (inputInspectorDataList.Count > 0)
+            foreach (AbstractShaderProperty property in graph.properties)
             {
-                sgMetadata.categoryDatas.Insert(0, new MinimalCategoryData() { categoryName = "", propertyDatas = inputInspectorDataList });
+                if (!existsInMainGraphCategory.Contains(property) && MinimalCategoryData.TryProcessInput(property, out var data))
+                    categoryDatas.Set("", data, propertyOrder++, 0);
             }
+            foreach (ShaderKeyword keyword in graph.keywords)
+            {
+                if (!existsInMainGraphCategory.Contains(keyword) && MinimalCategoryData.TryProcessInput(keyword, out var data))
+                    categoryDatas.Set("", data, propertyOrder++, 0);
+            }
+
+            // get a property/score offset based on the asset source name so that
+            // promoted properties that share a category are not interleaved.
+            HashSet<string> sources = new();
+            foreach (var input in graph.GetPromotedInputs())
+                sources.Add(input.PromotedAssetName);
+
+            var orderedSources = new List<string>(sources);
+            orderedSources.Sort();
+
+            //// Handle Promoted Property Categories
+            foreach (var input in graph.GetPromotedInputs())
+            {
+                // big numbers just prevent subraph properties from ever coming before main graph properties.
+                int sourceOffset = (orderedSources.IndexOf(input.PromotedAssetName)+1) * 1000 + 100000;
+                propertyOrder = sourceOffset + input.promotedOrdering;
+                if (MinimalCategoryData.TryProcessInput(input, out var data))
+                {
+                    categoryDatas.Set(input.PromotedCategoryName, data, propertyOrder, input.HasPromotedCategory ? 1000 : 10000);
+                }
+            }
+
+            sgMetadata.categoryDatas = categoryDatas.GenerateMCD();
 
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);
 
