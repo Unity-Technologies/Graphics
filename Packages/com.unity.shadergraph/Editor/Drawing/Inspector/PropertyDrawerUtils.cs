@@ -153,6 +153,28 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 });
                 parentElement.Add(propertyRow);
             }
+
+            EnumField interpolationField = null;
+            {
+                interpolationField = new EnumField(node.customInterpolation);
+                var propertyRow = new PropertyRow(new Label("Interpolation"));
+                propertyRow.Add(interpolationField, (field) =>
+                {
+                    field.RegisterValueChangedCallback(evt =>
+                    {
+                        if (evt.newValue.Equals(node.customInterpolation))
+                            return;
+
+                        setNodesAsDirtyCallback?.Invoke();
+                        node.owner.owner.RegisterCompleteObjectUndo("Change Block Interpolation");
+                        node.customInterpolation = (BlockNode.CustomInterpolationType)evt.newValue;
+                        updateNodeViewsCallback?.Invoke();
+                        node.Dirty(ModificationScope.Topological);
+                        node.owner?.ValidateGraph();
+                    });
+                });
+                parentElement.Add(propertyRow);
+            }
         }
 
         internal static void AddCustomCheckboxProperty(

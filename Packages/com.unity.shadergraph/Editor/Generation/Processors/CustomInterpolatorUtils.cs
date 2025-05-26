@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph
                     var agg = new List<FieldDescriptor>();
                     foreach (var cib in customBlockNodes)
                     {
-                        var fd = new FieldDescriptor(ps.name, cib.customName, "", ShaderValueTypeFrom((int)cib.customWidth), subscriptOptions: StructFieldOptions.Generated);
+                        var fd = new FieldDescriptor(ps.name, cib.customName, "", ShaderValueTypeFrom((int)cib.customWidth), subscriptOptions: StructFieldOptions.Generated, interpolation: cib.descriptor.interpolation);
 
                         agg.Add(fd);
                         activeFields.AddAll(fd);
@@ -262,10 +262,10 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var bn in customBlockNodes)
                 {
-                    builder.AppendLine($"float{(int)bn.customWidth} {bn.customName};");
+                    builder.AppendLine($"{BlockNode.EnumToInterpolation(bn.customInterpolation)} float{(int)bn.customWidth} {bn.customName};");
                 }
                 foreach (var field in customFieldDescriptors)
-                    builder.AppendLine($"float{(int)field.vectorCount} {field.name};");
+                    builder.AppendLine($"{field.interpolation} float{(int)field.vectorCount} {field.name};");
             }
             builder.AppendLine("};");
             if (makeDefine != null && makeDefine != "")

@@ -12,8 +12,8 @@ namespace UnityEditor.ShaderGraph
 
         internal string path { get; set; }
 
-        public BlockFieldDescriptor(string tag, string referenceName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false, bool isCustom = false)
-            : base(tag, referenceName, define)
+        public BlockFieldDescriptor(string tag, string referenceName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false, bool isCustom = false, string interpolation = "")
+            : base(tag, referenceName, define, interpolation)
         {
             this.displayName = referenceName;
             this.control = control;

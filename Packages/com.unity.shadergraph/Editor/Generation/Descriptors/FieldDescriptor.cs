@@ -16,11 +16,12 @@ namespace UnityEditor.ShaderGraph
         public string preprocessor { get; }
         public StructFieldOptions subscriptOptions { get; }
 
-        public FieldDescriptor(string tag, string name, string define)
+        public FieldDescriptor(string tag, string name, string define, string interpolation = "")
         {
             this.tag = tag;
             this.name = name;
             this.define = define;
+            this.interpolation = interpolation;
         }
 
         public FieldDescriptor(string tag, string name, string define, ShaderValueType type,
