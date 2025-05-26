@@ -1,7 +1,8 @@
 ---
 uid: urp-index
 ---
-# Universal Render Pipeline (URP) scripting reference
+
+# Universal Render Pipeline (URP)
 
 The [scripting API](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.1/api/index.html) documentation is available on this website.
 
