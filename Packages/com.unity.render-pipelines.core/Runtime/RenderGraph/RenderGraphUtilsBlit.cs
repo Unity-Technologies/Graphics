@@ -318,7 +318,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 [CallerLineNumber] int line = 0)
 #endif
         {
+            if (!source.IsValid())
+            {
+                throw new ArgumentException($"BlitPass: {passName} source needs to be a valid texture handle.");
+            }
             var sourceDesc = graph.GetTextureDesc(source);
+
+            if (!destination.IsValid())
+            {
+                throw new ArgumentException($"BlitPass: {passName} destination needs to be a valid texture handle.");
+            }
             var destinationDesc = graph.GetTextureDesc(destination);
 
             int sourceMaxWidth = math.max(math.max(sourceDesc.width, sourceDesc.height), sourceDesc.slices);

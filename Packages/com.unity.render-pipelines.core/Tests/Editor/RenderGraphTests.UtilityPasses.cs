@@ -111,5 +111,21 @@ namespace UnityEngine.Rendering.Tests
                 builder.UseTexture(resources.textures[0], AccessFlags.Read);
             }
         }
+
+        [Test]
+        public void RenderPassAddBlitNullSourceSupport()
+        {
+            var resources = CreateBlitResources(m_RenderGraph);
+            resources.blitParameters.source = TextureHandle.nullHandle;
+
+            // Using a Null Source support using a custom shader is allowed
+            Assert.DoesNotThrow(delegate { m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPassNullSource"); });
+
+            // Using a Null Source support using a internal blit shader is not allowed and throws an exception
+            Assert.Throws<System.ArgumentException>(() =>
+            {
+                m_RenderGraph.AddBlitPass(resources.blitParameters.source, resources.blitParameters.destination, Vector2.one, Vector2.zero, passName: "BlitPass2");
+            });
+        }
     }
 }
