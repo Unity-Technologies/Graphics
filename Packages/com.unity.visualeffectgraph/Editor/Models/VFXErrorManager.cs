@@ -129,7 +129,8 @@ namespace UnityEditor.VFX
                 else
                 {
                     m_Errors[model] = new List<ReportError> { reportError };
-                }
+                    m_DirtyModels.Add(model);
+                }       
             }
         }
 

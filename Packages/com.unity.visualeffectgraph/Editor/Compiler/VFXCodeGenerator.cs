@@ -129,7 +129,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        internal static VFXShaderWriter GenerateStoreAttribute(string matching, VFXContext context, uint linkedOutCount)
+        internal static VFXShaderWriter GenerateStoreAttribute(string matching, VFXContext context, (VFXSlot, VFXData data)[] linkedOut)
         {
             var r = new VFXShaderWriter();
             var regex = new Regex(matching);
@@ -146,17 +146,33 @@ namespace UnityEditor.VFX
 
             if (regex.IsMatch(VFXAttribute.EventCount.name))
             {
-                for (uint i = 0; i < linkedOutCount; ++i)
+                uint linkOutLength = (uint)linkedOut.Length;
+                var particleData = context.GetData() as VFXDataParticle;
+                var attachedStripData = particleData.attachedStripData;
+                bool checkStripOverflow = attachedStripData ? (uint)particleData.GetSetting("capacity").value > (uint)attachedStripData.GetSetting("stripCapacity").value : false;
+
+                for (uint i = 0; i < linkOutLength; ++i)
                 {
+                    bool isStripChildSystemToCheck = checkStripOverflow && ReferenceEquals(linkedOut[i].data, attachedStripData);
+                    if (isStripChildSystemToCheck)
+                    {
+                        r.WriteLine("if (index < ATTACHED_STRIP_COUNT)"); // To avoid flooding eventBuffer with events that won't be consumed
+                        r.EnterScope();
+                    }
+
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    r.WriteLineFormat(@"
-for (uint i_{0} = 0; i_{0} < min({1}_{0}, {1}_{0}_Capacity); ++i_{0})
+                    r.WriteLineFormat(@"for (uint i_{0} = 0; i_{0} < min({1}_{0}, {1}_{0}_Capacity); ++i_{0})
     AppendEventBuffer({2}_{0}, index, {1}_{0}_Capacity, instanceIndex);
 AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
 ",
                         prefix,
                         VFXAttribute.EventCount.name,
                         eventListOutName);
+
+                    if (isStripChildSystemToCheck)
+                    {
+                        r.ExitScope();
+                    }
                 }
             }
             return r;
@@ -676,7 +692,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             codeGeneratorCache.TryAddSnippet("${VFXLoadAttributes}", loadAttributes.builder);
 
             //< Store Attribute
-            var storeAttribute = GenerateStoreAttribute(".*", context, (uint)taskData.linkedEventOut.Length);
+            var storeAttribute = GenerateStoreAttribute(".*", context, taskData.linkedEventOut);
             codeGeneratorCache.TryAddSnippet("${VFXStoreAttributes}", storeAttribute.builder);
 
             //< Detect needed pragma require

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -236,7 +236,7 @@ namespace UnityEditor.VFX
             {
                 MatchSnippetPattern(templateContent, index, out string key, out string pattern);
                 var storeAttribute = VFXCodeGenerator.GenerateStoreAttribute(pattern, m_ShaderGenerationData.m_Context,
-                    (uint)m_ShaderGenerationData.m_TaskData.linkedEventOut.Length);
+                    m_ShaderGenerationData.m_TaskData.linkedEventOut);
                 AddLeafNodeFromShaderWriter(snippetIndent, storeAttribute, key);
                 int startIndex = index + key.Length + 1;
                 return startIndex;

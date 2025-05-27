@@ -263,7 +263,7 @@ namespace UnityEditor.VFX
         public BoundsSettingMode boundsMode = BoundsSettingMode.Recorded;
 
         public bool hasStrip => dataType == DataType.ParticleStrip;
-        public bool hasAttachedStrip => IsAttributeStored(VFXAttribute.StripAlive);
+        public bool needsAttachedStripAliveTracking => IsAttributeStored(VFXAttribute.StripAlive);
         public VFXDataParticle attachedStripData => (VFXDataParticle)dependenciesOut.FirstOrDefault(d => ((VFXDataParticle)d).hasStrip); // TODO Handle several strip attached
 
         public override void OnSettingModified(VFXSetting setting)
@@ -345,7 +345,7 @@ namespace UnityEditor.VFX
                     yield return "#define STRIP_COUNT " + stripCapacity + "u";
                     yield return "#define PARTICLE_PER_STRIP_COUNT " + particlePerStripCount + "u";
                 }
-                if (hasAttachedStrip)
+                if (attachedStripData != null)
                 {
                     var stripData = attachedStripData;
                     yield return "#define ATTACHED_STRIP_COUNT " + stripData.stripCapacity + "u";
@@ -793,6 +793,25 @@ namespace UnityEditor.VFX
             return needsStripData;
         }
 
+        private void CheckCapacity(VFXDataParticle parentData, IVFXErrorReporter reporter)
+        {
+            if (parentData != null && hasStrip)
+            {
+                uint parentCapacity = (uint)parentData.GetSetting("capacity").value;
+
+                if (parentCapacity > stripCapacity)
+                {
+                    reporter?.RegisterError("NotMatchingParentAndChildStripCapacity", VFXErrorType.Warning,
+                        $"Strip Capacity ({stripCapacity}) does not match parent capacity ({parentCapacity}). Some parent particles will not be able to have an attached strip.", m_Owners[0]);
+                }
+                else if (stripCapacity > parentCapacity)
+                {
+                    reporter?.RegisterError("NotMatchingParentAndChildStripCapacity", VFXErrorType.Warning,
+                        $"Strip Capacity ({stripCapacity}) does not match parent capacity ({parentCapacity}). Strip system is holding more memory than required.", m_Owners[0]);
+                }
+            }
+        }
+
         public override void FillDescs(
             IVFXErrorReporter reporter,
             VFXCompilationMode compilationMode,
@@ -837,6 +856,8 @@ namespace UnityEditor.VFX
                 eventGPUFrom = dependentBuffers.eventBuffers[this];
 
                 systemValueMappings.Add(new VFXMapping("parentSystemIndex", (int)dataToSystemIndex[dependency]));
+
+                CheckCapacity(dependency as VFXDataParticle, reporter);
             }
             var systemFlag = VFXSystemFlag.SystemDefault;
             if (attributeBufferIndex != -1)
@@ -1310,7 +1331,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (hasAttachedStrip)
+                if (needsAttachedStripAliveTracking)
                 {
                     bufferMappings.Add(new VFXMapping("attachedStripDataBuffer", dependentBuffers.stripBuffers[attachedStripData]));
                 }
