@@ -163,7 +163,7 @@ namespace UnityEditor.VFX
                         yield return new Property()
                         {
                             property = new VFXPropertyWithValue(
-                                new VFXProperty(typeof(bool), shaderKeyword.referenceName), shaderKeyword.value != 0),
+                                new VFXProperty(typeof(bool), shaderKeyword.displayName), shaderKeyword.value != 0),
                             multiCompile = shaderKeyword.keywordDefinition == KeywordDefinition.MultiCompile,
                             keywordsMapping = new[] { shaderKeyword.referenceName }
                         };
@@ -181,7 +181,7 @@ namespace UnityEditor.VFX
                         yield return new Property
                         {
                             property = new VFXPropertyWithValue(
-                                new VFXProperty(typeof(uint), shaderKeyword.referenceName, new VFXPropertyAttributes(new EnumAttribute(enumNames))), (uint)shaderKeyword.value),
+                                new VFXProperty(typeof(uint), shaderKeyword.displayName, new VFXPropertyAttributes(new EnumAttribute(enumNames))), (uint)shaderKeyword.value),
                             multiCompile = shaderKeyword.keywordDefinition == KeywordDefinition.MultiCompile,
                             keywordsMapping = keywordsMapping
                         };

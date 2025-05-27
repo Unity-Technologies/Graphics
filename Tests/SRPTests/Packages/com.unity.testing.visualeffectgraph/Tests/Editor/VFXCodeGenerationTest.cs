@@ -253,6 +253,77 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        public struct ShaderKeywordProperties
+        {
+            internal string Name;
+            internal string Dump;
+
+            public override string ToString()
+            {
+                return Name;
+            }
+        }
+
+
+        static ShaderKeywordProperties[] kShaderKeywordCases = new []
+        {
+            new ShaderKeywordProperties()
+            {
+                Name = "025_ShaderKeywords_Constant_MultiCompile",
+                Dump = "Smooth - {_SMOOTH}\r\nColor_A - {_COLOR_A_RED, _COLOR_A_SMASHED_PUMPKIN, _COLOR_A_RAJAH, _COLOR_A_PEACH_YELLOW, _COLOR_A_GREEN_SHEEN, _COLOR_A_DARK_CYAN, _COLOR_A_SEA_BLUE, _COLOR_A_OXFORD_BLUE} [Red, Smashed Pumpkin, Rajah, Peach Yellow, Green Sheen, Dark Cyan, Sea Blue, Oxford Blue]\r\nColor_B - {_COLOR_B_RED, _COLOR_B_SMASHED_PUMPKIN, _COLOR_B_RAJAH, _COLOR_B_PEACH_YELLOW, _COLOR_B_GREEN_SHEEN, _COLOR_B_DARK_CYAN, _COLOR_B_SEA_BLUE, _COLOR_B_OXFORD_BLUE} [Red, Smashed Pumpkin, Rajah, Peach Yellow, Green Sheen, Dark Cyan, Sea Blue, Oxford Blue]"
+            },
+            new ShaderKeywordProperties()
+            {
+                Name = "025_ShaderKeywords_Constant_ShaderFeature",
+                Dump = "_Color_A\r\n_Color_B\r\n_Color_C\r\n_Color_D\r\nShape - {_SHAPE_HEXAGON, _SHAPE_CIRCLE} [Hexagon, Circle]"
+            },
+            new ShaderKeywordProperties()
+            {
+                Name = "025_ShaderKeywords_Dynamic",
+                Dump = "_Color_A\r\n_Color_B\r\nCircle - {_CIRCLE}\r\nOrient - {_ORIENT_NORTH, _ORIENT_SOUTH, _ORIENT_EAST, _ORIENT_WEST} [North, South, East, West]"
+            }
+        };
+
+        [Test]
+        public void Slot_Naming_And_Content_ShaderKeyword([ValueSource(nameof(kShaderKeywordCases))] ShaderKeywordProperties testCase)
+        {
+            var shaderGraphPath = $"Packages/com.unity.testing.visualeffectgraph/Scenes/{testCase.Name}.shadergraph";
+            var vfxShaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraph.Internal.ShaderGraphVfxAsset>(shaderGraphPath);
+
+            var dump = new StringBuilder();
+            foreach (var property in VFXShaderGraphHelpers.GetProperties(vfxShaderGraph))
+            {
+                dump.Append(property.property.property.name);
+                if (property.keywordsMapping != null)
+                {
+                    dump.Append(" - {");
+                    dump.AppendJoin(", ", property.keywordsMapping);
+                    dump.Append("}");
+
+                    var enumAttribute = property.property.property.attributes.attributes.OfType<EnumAttribute>().FirstOrDefault();
+                    if (enumAttribute != null)
+                    {
+                        dump.Append(" [");
+                        dump.AppendJoin(", ", enumAttribute.values);
+                        dump.Append("]");
+                    }
+                }
+
+                dump.AppendLine();
+            }
+
+            var expectedDump = new System.IO.StringReader(testCase.Dump);
+            var actualDump = new System.IO.StringReader(dump.ToString());
+            while (true)
+            {
+                var expected = expectedDump.ReadLine();
+                var actual = actualDump.ReadLine();
+                Assert.AreEqual(expected, actual, "Unexpected diff: {0}", dump);
+                if (expected == null)
+                    break;
+            }
+        }
+
         [Test]
         public void Constant_Folding_With_ShaderKeyword([ValueSource("allCompilationMode")] string compilationModeName)
         {
