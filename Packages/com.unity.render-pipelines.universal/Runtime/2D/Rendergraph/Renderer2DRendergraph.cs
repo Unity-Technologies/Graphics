@@ -491,11 +491,12 @@ namespace UnityEngine.Rendering.Universal
             OnBeforeRendering(renderGraph);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.BeforeRendering);
+
             OnMainRendering(renderGraph);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.BeforeRenderingPostProcessing);
-            OnAfterRendering(renderGraph);
 
+            OnAfterRendering(renderGraph);
         }
 
         public override void OnEndRenderGraphFrame()
@@ -650,20 +651,37 @@ namespace UnityEngine.Rendering.Universal
             bool hasPassesAfterPostProcessing = activeRenderPassQueue.Find(x => x.renderPassEvent == RenderPassEvent.AfterRenderingPostProcessing) != null;
             bool needsColorEncoding = DebugHandler == null || !DebugHandler.HDRDebugViewIsActive(cameraData.resolveFinalTarget);
 
+            // Don't resolve during post processing if there are passes after or pixel perfect camera is used
+            bool pixelPerfectCameraEnabled = ppc != null && ppc.enabled;
+            bool hasCaptureActions = cameraData.captureActions != null && cameraData.resolveFinalTarget;
+            bool resolvePostProcessingToCameraTarget = cameraData.resolveFinalTarget && !hasCaptureActions && !hasPassesAfterPostProcessing && !applyFinalPostProcessing && !pixelPerfectCameraEnabled;
+            bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
+
             if (applyPostProcessing)
             {
                 TextureHandle activeColor = commonResourceData.activeColorTexture;
+
+                bool isTargetBackbuffer = resolvePostProcessingToCameraTarget;
 
                 // if the postprocessing pass is trying to read and write to the same CameraColor target, we need to swap so it writes to a different target,
                 // since reading a pass attachment is not possible. Normally this would be possible using temporary RenderGraph managed textures.
                 // The reason why in this case we need to use "external" RTHandles is to preserve the results for camera stacking.
                 // TODO RENDERGRAPH: Once all cameras will run in a single RenderGraph we can just use temporary RenderGraph textures as intermediate buffer.
-                ImportResourceParams importColorParams = new ImportResourceParams();
-                importColorParams.clearOnFirstUse = true;
-                importColorParams.clearColor = Color.black;
-                importColorParams.discardOnLastUse = cameraData.resolveFinalTarget;  // check if last camera in the stack
+                if (!isTargetBackbuffer)
+                {
+                    ImportResourceParams importColorParams = new ImportResourceParams();
+                    importColorParams.clearOnFirstUse = true;
+                    importColorParams.clearColor = Color.black;
+                    importColorParams.discardOnLastUse = cameraData.resolveFinalTarget;  // check if last camera in the stack
 
-                commonResourceData.cameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
+                    commonResourceData.cameraColor = renderGraph.ImportTexture(nextRenderGraphCameraColorHandle, importColorParams);
+                }
+
+                // Desired target for post-processing pass.
+                var target = isTargetBackbuffer ? commonResourceData.backBufferColor : commonResourceData.cameraColor;
+
+                if (resolveToDebugScreen && isTargetBackbuffer)
+                    target = commonResourceData.debugScreenColor;
 
                 postProcessPass.RenderPostProcessingRenderGraph(
                     renderGraph,
@@ -671,15 +689,22 @@ namespace UnityEngine.Rendering.Universal
                     activeColor,
                     commonResourceData.internalColorLut,
                     commonResourceData.overlayUITexture,
-                    commonResourceData.activeColorTexture,
+                    target,
                     applyFinalPostProcessing,
                     resolveToDebugScreen,
-                    needsColorEncoding);
+                    doSRGBEncoding);
+
+                if (isTargetBackbuffer)
+                {
+                    commonResourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
+                    commonResourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                }
             }
 
             var finalColorHandle = commonResourceData.activeColorTexture;
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRenderingPostProcessing);
+
             // Do PixelPerfect upscaling when using the Stretch Fill option
             if (requirePixelPerfectUpscale)
             {
@@ -691,20 +716,30 @@ namespace UnityEngine.Rendering.Universal
             var finalBlitTarget = resolveToDebugScreen ? commonResourceData.debugScreenColor : commonResourceData.backBufferColor;
             var finalDepthHandle = resolveToDebugScreen ? commonResourceData.debugScreenDepth : commonResourceData.backBufferDepth;
 
-            if (createColorTexture)
+            if (applyFinalPostProcessing)
             {
-                if (applyFinalPostProcessing)
-                    postProcessPass.RenderFinalPassRenderGraph(renderGraph, frameData, in finalColorHandle, commonResourceData.overlayUITexture, in finalBlitTarget, needsColorEncoding);
-                else if (cameraData.resolveFinalTarget)
-                    m_FinalBlitPass.Render(renderGraph, frameData, cameraData, finalColorHandle, finalBlitTarget, commonResourceData.overlayUITexture);
+                postProcessPass.RenderFinalPassRenderGraph(renderGraph, frameData, in finalColorHandle, commonResourceData.overlayUITexture, in finalBlitTarget, needsColorEncoding);
+
+                commonResourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
+                commonResourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+            }
+
+            // If post-processing then we already resolved to camera target while doing post.
+            // Also only do final blit if camera is not rendering to RT.
+            bool cameraTargetResolved =
+                   // final PP always blit to camera target
+                   applyFinalPostProcessing ||
+                   // no final PP but we have PP stack. In that case it blit unless there are render pass after PP or pixel perfect camera is used
+                   (applyPostProcessing && !hasPassesAfterPostProcessing && !hasCaptureActions && !pixelPerfectCameraEnabled);
+
+            if (!commonResourceData.isActiveTargetBackBuffer && cameraData.resolveFinalTarget && !cameraTargetResolved)
+            {
+                m_FinalBlitPass.Render(renderGraph, frameData, cameraData, finalColorHandle, finalBlitTarget, commonResourceData.overlayUITexture);
 
                 finalColorHandle = finalBlitTarget;
 
-                if (cameraData.resolveFinalTarget)
-                {
-                    commonResourceData.activeColorID = ActiveID.BackBuffer;
-                    commonResourceData.activeDepthID = ActiveID.BackBuffer;
-                }
+                commonResourceData.activeColorID = ActiveID.BackBuffer;
+                commonResourceData.activeDepthID = ActiveID.BackBuffer;
             }
 
             // We can explicitly render the overlay UI from URP when HDR output is not enabled.
@@ -713,7 +748,6 @@ namespace UnityEngine.Rendering.Universal
             bool outputToHDR = cameraData.isHDROutputActive;
             if (shouldRenderUI && !outputToHDR)
                 m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, in finalColorHandle, in finalDepthHandle);
-
 
             // If HDR debug views are enabled, DebugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
             DebugHandler?.Setup(renderGraph, cameraData.isPreviewCamera);
