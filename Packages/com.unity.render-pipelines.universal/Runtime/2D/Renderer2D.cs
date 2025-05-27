@@ -390,6 +390,7 @@ namespace UnityEngine.Rendering.Universal
             bool pixelPerfectCameraEnabled = ppc != null && ppc.enabled;
             bool hasCaptureActions = cameraData.captureActions != null && lastCameraInStack;
             bool resolvePostProcessingToCameraTarget = lastCameraInStack && !hasCaptureActions && !hasPassesAfterPostProcessing && !requireFinalPostProcessPass && !pixelPerfectCameraEnabled;
+            bool doSRGBEncoding = resolvePostProcessingToCameraTarget && needsColorEncoding;
 
             if (hasPostProcess)
             {
@@ -404,7 +405,7 @@ namespace UnityEngine.Rendering.Universal
                     colorGradingLutHandle,
                     null,
                     requireFinalPostProcessPass,
-                    afterPostProcessColorHandle.nameID == k_CameraTarget.nameID && needsColorEncoding);
+                    doSRGBEncoding);
 
                 EnqueuePass(postProcessPass);
             }
