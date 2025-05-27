@@ -155,6 +155,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
 
+        RTHandle m_CurrentColorBackBuffer;
+        RTHandle m_CurrentDepthBackBuffer;
+
         // Constant Buffers
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
         ShaderVariablesXR m_ShaderVariablesXRCB = new ShaderVariablesXR();
@@ -1013,6 +1016,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CustomPassDepthBuffer.IsValueCreated)
                 RTHandles.Release(m_CustomPassDepthBuffer.Value);
 
+            RTHandles.Release(m_CurrentColorBackBuffer);
+            RTHandles.Release(m_CurrentDepthBackBuffer);
+
             CullingGroupManager.instance.Cleanup();
 
             CoreUtils.SafeRelease(m_DepthPyramidMipLevelOffsetsBuffer);
@@ -1411,9 +1417,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public struct Target
             {
-                public RenderTargetIdentifier id;
+                public RenderTargetIdentifier colorId;
+                public RenderTargetIdentifier depthId;
                 public CubemapFace face;
-                public RTHandle targetDepth;
+                public bool isProbe;
             }
             public HDCamera hdCamera;
             public bool clearCameraSettings;
@@ -1587,7 +1594,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Select render target
-            RenderTargetIdentifier targetId = camera.targetTexture ?? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
+            RenderTargetIdentifier targetColorId = camera.targetTexture ?? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
+            RenderTargetIdentifier targetDepthId = camera.targetTexture ?? new RenderTargetIdentifier(BuiltinRenderTextureType.Depth);
             if (camera.targetTexture != null)
             {
                 camera.targetTexture.IncrementUpdateCount(); // Necessary if the texture is used as a cookie.
@@ -1595,7 +1603,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Render directly to XR render target if active
             if (hdCamera.xr.enabled)
-                targetId = hdCamera.xr.renderTarget;
+            {
+                targetColorId = hdCamera.xr.renderTarget;
+                targetDepthId = hdCamera.xr.renderTarget;
+            }
 
             hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, DynamicResolutionHandler.instance);
 
@@ -1606,7 +1617,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingResults = cullingResults,
                 target = new RenderRequest.Target
                 {
-                    id = targetId,
+                    colorId = targetColorId,
+                    depthId = targetDepthId,
                     face = cubemapFace
                 },
                 dependsOnRenderRequestIndices = ListPool<int>.Get(),
@@ -1938,17 +1950,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     request.target = new RenderRequest.Target
                     {
-                        id = visibleProbe.realtimeTextureRTH,
-                        face = face
+                        colorId = visibleProbe.realtimeTextureRTH,
+                        face = face,
+                        isProbe = true
                     };
                 }
                 else
                 {
                     request.target = new RenderRequest.Target
                     {
-                        id = visibleProbe.realtimeTextureRTH,
-                        targetDepth = visibleProbe.realtimeDepthTextureRTH,
-                        face = CubemapFace.Unknown
+                        colorId = visibleProbe.realtimeTextureRTH,
+                        depthId = visibleProbe.realtimeDepthTextureRTH,
+                        face = CubemapFace.Unknown,
+                        isProbe = true
                     };
                 }
 
@@ -2821,7 +2835,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (GL.wireframe)
                 {
-                    RenderWireFrame(cullingResults, hdCamera, target.id, renderContext, cmd);
+                    RenderWireFrame(cullingResults, hdCamera, target.colorId, renderContext, cmd);
                     return;
                 }
 

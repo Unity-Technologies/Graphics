@@ -83,7 +83,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 UpdateParentExposure(m_RenderGraph, hdCamera);
 
-                TextureHandle backBuffer = m_RenderGraph.ImportBackbuffer(target.id);
+                TextureHandle colorBackBuffer = ImportColorBackBuffer(m_RenderGraph, target.colorId);
+                TextureHandle depthBackBuffer = ImportDepthBackBuffer(m_RenderGraph, target.depthId);
+
                 TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa, true);
                 m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
                 TextureHandle currentColorPyramid = m_RenderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
@@ -348,7 +350,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool postProcessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera, aovRequest);
                 TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(m_RenderGraph, hdCamera, pathTracing, cullingResults, prepassOutput);
                 var postProcessTargetFace = postProcessIsFinalPass ? target.face : CubemapFace.Unknown;
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, opticalFogTransmittance, cullingResults, hdCamera, postProcessTargetFace, postProcessIsFinalPass);
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, colorBackBuffer, uiBuffer, afterPostProcessBuffer, opticalFogTransmittance, cullingResults, hdCamera, postProcessTargetFace, postProcessIsFinalPass);
 
                 var xyMapping = GenerateDebugHDRxyMapping(m_RenderGraph, hdCamera, postProcessDest);
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
@@ -370,8 +372,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
 
                 // Copy and rescale depth buffer for XR devices
-                if (hdCamera.xr.enabled && hdCamera.xr.copyDepth)
-                    CopyDepth(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer, true);
+                if (hdCamera.xr.enabled && hdCamera.xr.copyDepth && depthBackBuffer.IsValid())
+                    CopyDepth(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, depthBackBuffer, true);
 
                 if (m_CurrentDebugDisplaySettings.data.historyBuffersView != -1)
                 {
@@ -408,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
-                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, HDROutputActiveForCameraType(hdCamera), target.face);
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, colorBackBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, HDROutputActiveForCameraType(hdCamera), target.face);
                     }
 
                     if (aovRequest.isValid)
@@ -419,17 +421,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // we need to do this separately.
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
-                    if (target.targetDepth != null)
+                    if (target.isProbe && depthBackBuffer.IsValid())
                     {
-                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), uiBuffer, afterPostProcessBuffer, viewIndex, outputsToHDR: false, cubemapFace: target.face);
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, depthBackBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, outputsToHDR: false, cubemapFace: target.face);
                     }
                 }
 
                 SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
 
-                SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer, target.face);
+                SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, colorBackBuffer, target.face);
 
-                RenderWireOverlay(m_RenderGraph, hdCamera, backBuffer);
+                RenderWireOverlay(m_RenderGraph, hdCamera, colorBackBuffer);
 
                 RenderGizmos(m_RenderGraph, hdCamera, GizmoSubset.PostImageEffects);
 
@@ -437,7 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 StopXRSinglePass(m_RenderGraph, hdCamera);
 
                 if (renderRequest.isLast)
-                    RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, backBuffer);
+                    RenderScreenSpaceOverlayUI(m_RenderGraph, hdCamera, colorBackBuffer);
             }
         }
 
@@ -2096,6 +2098,51 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDUtils.DrawFullScreen(context.cmd, data.applyDistortionMaterial, data.colorBuffer, data.depthStencilBuffer, null, 0);
                     });
             }
+        }
+
+        TextureHandle ImportColorBackBuffer(RenderGraph renderGraph, RenderTargetIdentifier colorBackBufferId)
+        {
+            if (m_CurrentColorBackBuffer == null)
+            {
+                m_CurrentColorBackBuffer = RTHandles.Alloc(colorBackBufferId, "Backbuffer color");
+            }
+            else
+            {
+                RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_CurrentColorBackBuffer, colorBackBufferId);
+            }
+
+            // Importing the backbuffer, using dummy information as we used to do with ImportBackbuffer API
+            // TODO: Pass the right information using engine APIs and camera settings like in URP
+            RenderTargetInfo dummyImportInfo = new RenderTargetInfo();
+            dummyImportInfo.width = dummyImportInfo.height = dummyImportInfo.volumeDepth = dummyImportInfo.msaaSamples = 1;
+            dummyImportInfo.format = GraphicsFormat.R8G8B8A8_SRGB;
+
+            return m_RenderGraph.ImportTexture(m_CurrentColorBackBuffer, dummyImportInfo);
+        }
+
+        TextureHandle ImportDepthBackBuffer(RenderGraph renderGraph, RenderTargetIdentifier depthBackBufferId)
+        {
+            if (m_CurrentDepthBackBuffer == null)
+            {
+                m_CurrentDepthBackBuffer = RTHandles.Alloc(depthBackBufferId, "Backbuffer depth");
+            }
+            else
+            {
+                RTHandleStaticHelpers.SetRTHandleUserManagedWrapper(ref m_CurrentDepthBackBuffer, depthBackBufferId);
+            }
+
+            // We might have requests without depth buffer
+            bool noDepthBackBuffer = depthBackBufferId == default(RenderTargetIdentifier);
+            if (noDepthBackBuffer)
+                return TextureHandle.nullHandle;
+
+            // Importing the backbuffer, using dummy information as we used to do with ImportBackbuffer API
+            // TODO: Pass the right information using engine APIs and camera settings like in URP
+            RenderTargetInfo dummyImportInfo = new RenderTargetInfo();
+            dummyImportInfo.width = dummyImportInfo.height = dummyImportInfo.volumeDepth = dummyImportInfo.msaaSamples = 1;
+            dummyImportInfo.format = CoreUtils.GetDefaultDepthStencilFormat();
+
+            return m_RenderGraph.ImportTexture(m_CurrentDepthBackBuffer, dummyImportInfo);  
         }
 
         TextureHandle CreateColorBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa, bool fallbackToBlack = false)

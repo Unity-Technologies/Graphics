@@ -726,7 +726,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         /// <summary>
         /// Import an external texture to the Render Graph. This overload should be used for RTHandles  wrapping a RenderTargetIdentifier.
-        /// If the RTHandle is wrapping a RenderTargetIdentifer, Rendergrpah can't derive the render texture's properties so the user has to provide this info to the graph through RenderTargetInfo.
+        /// If the RTHandle is wrapping a RenderTargetIdentifer, Rendergraph can't derive the render texture's properties so the user has to provide this info to the graph through RenderTargetInfo.
         ///
         /// Any pass writing to an imported texture will be considered having side effects and can't be automatically culled.
         ///
