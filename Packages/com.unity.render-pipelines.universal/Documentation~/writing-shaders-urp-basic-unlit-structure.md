@@ -4,7 +4,9 @@ This example shows a basic URP-compatible shader. This shader fills the mesh sha
 
 To see the shader in action, copy and paste the following ShaderLab code into the Shader asset.
 
-```c++
+**Note**: If you enable **Depth Priming Mode** in the [URP asset](universalrp-asset.md), this shader renders opaque objects as invisible. For more information, refer to [Write depth only in a shader](writing-shaders-urp-depth-only.md).
+
+``` lang-cpp
 // This shader fills the mesh shape with a color predefined in the code.
 Shader "Example/URPUnlitShaderBasic"
 {
