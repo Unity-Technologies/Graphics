@@ -113,7 +113,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         {
             // for visual effect graph editor ScriptableObject select them when double clicking on them.
             //Since .vfx importer is a copyasset, the default is to open it with an external editor.
-            Selection.activeInstanceID = instanceID;
+            Selection.activeEntityId = instanceID;
             return true;
         }
         else if (obj is VisualEffectAsset vfxAsset)
