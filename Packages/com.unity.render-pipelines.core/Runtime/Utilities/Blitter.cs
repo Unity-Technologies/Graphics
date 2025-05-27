@@ -356,7 +356,6 @@ namespace UnityEngine.Rendering
 
         internal static bool CanCopyMSAA(in TextureDesc sourceDesc)
         {
-
             // Real native renderpass platforms
             // TODO: Expose this through systeminfo
             bool hasRenderPass =

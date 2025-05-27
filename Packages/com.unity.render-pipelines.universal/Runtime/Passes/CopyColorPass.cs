@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -132,7 +133,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, source, renderingData.cameraData.xr.enabled);
         }
 
-        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source,  bool useDrawProceduralBlit)
+        private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source, bool useDrawProceduralBlit)
         {
             var samplingMaterial = passData.samplingMaterial;
             var copyColorMaterial = passData.copyColorMaterial;
@@ -191,13 +192,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             ConfigureDescriptor(downsampling, ref descriptor, out var filterMode);
 
             destination = UniversalRenderer.CreateRenderGraphTexture(renderGraph, descriptor, "_CameraOpaqueTexture", true, filterMode);
-            
-            RenderInternal(renderGraph, destination, source, cameraData.xr.enabled);                    
+
+            RenderInternal(renderGraph, destination, source, cameraData.xr.enabled);
 
             return destination;
         }
-
-
 
         // This will not create a new texture, but will reuse an existing one as destination.
         // Typical use case is a persistent texture imported to the render graph. For example history textures.
@@ -213,6 +212,24 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private void RenderInternal(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit)
         {
+            var downsamplingEnabled = m_DownsamplingMethod != Downsampling.None;
+            var useDirectCopyPass = !downsamplingEnabled && renderGraph.CanAddCopyPass(source, destination);
+
+            if (useDirectCopyPass)
+            {
+                using (var builder = renderGraph.AddCopyPass(source, destination, returnBuilder: true))
+                {
+                    builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraOpaqueTexture"));
+                }
+            }
+            else
+            {
+                AddDownsamplingRenderPass(renderGraph, destination, source, useProceduralBlit);
+            }
+        }
+
+        private void AddDownsamplingRenderPass(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit)
+        {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.destination = destination;
@@ -225,11 +242,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.downsamplingMethod = m_DownsamplingMethod;
                 passData.sampleOffsetShaderHandle = m_SampleOffsetShaderHandle;
 
-                if (destination.IsValid())
-                    builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraOpaqueTexture"));
-
-                // TODO RENDERGRAPH: culling? force culling off for testing
-                builder.AllowPassCulling(false);
+                builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraOpaqueTexture"));
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {

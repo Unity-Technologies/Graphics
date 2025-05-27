@@ -42,7 +42,7 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
                 TextureHandle fbFetchDestinationMSAA = renderGraph.CreateTexture(textureDesc);
 
                 // Copy to the temp texture
-                renderGraph.AddCopyPass(resourceData.activeColorTexture, fbFetchDestinationMSAA, 0, 0, mip, mip, "Copy MSAA 1");
+                renderGraph.AddCopyPass(resourceData.activeColorTexture, fbFetchDestinationMSAA, "Copy MSAA 1");
 
                 // Tint the temp texture, this works through alpha blending on the blit material and thus ensures we're not just sampling
                 // an auto-resolved surface or something but that the copied pixels are good for "framebuffer operations"
@@ -50,7 +50,7 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
                 renderGraph.AddBlitPass(param, passName: "Tint Temp Texture Blit");
 
                 // Copy the whole thing back to the main color texture
-                renderGraph.AddCopyPass(fbFetchDestinationMSAA, resourceData.activeColorTexture, 0, 0, mip, mip, "Copy MSAA 2");
+                renderGraph.AddCopyPass(fbFetchDestinationMSAA, resourceData.activeColorTexture, "Copy MSAA 2");
 
                 // This blit does nothing, it tints the color buffer by 1,1,1 it just ensures the blit pass below renders correctly
                 // I "assume" it ensures vulkan thinks the color buffer has changed and it will correctly pick up the values in the inverse blit pass below.
@@ -92,7 +92,7 @@ public class CoreCopyBlitTestFeature : ScriptableRendererFeature
             renderGraph.AddBlitPass(para, passName: "Blit inverse using Material");
 
             // Copy to another temp texture, this tests the non-msaa copy pass
-            renderGraph.AddCopyPass(blitDestination, fbFetchDestination, 0, 0, mip, mip, passName: "Copy non MSAA");
+            renderGraph.AddCopyPass(blitDestination, fbFetchDestination, passName: "Copy non MSAA");
 
             // Blit back to the main view this is just so the image comparison picks up the results
             renderGraph.AddBlitPass(fbFetchDestination, resourceData.activeColorTexture, new Vector2(1, 1), new Vector2(0, 0), passName: "Blit back");
