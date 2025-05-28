@@ -1,14 +1,13 @@
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.RenderGraphModule;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.CompatibilityMode
 {
     /// <summary>
     /// Renders the post-processing effect stack.
     /// </summary>
-    internal partial class PostProcessPass : ScriptableRenderPass
+    internal class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
         RTHandle m_Source;
@@ -24,8 +23,6 @@ namespace UnityEngine.Rendering.Universal
         RTHandle[] m_BloomMipUp;
         string[] m_BloomMipDownName;
         string[] m_BloomMipUpName;
-        TextureHandle[] _BloomMipUp;
-        TextureHandle[] _BloomMipDown;
         RTHandle m_BlendTexture;
         RTHandle m_EdgeColorTexture;
         RTHandle m_EdgeStencilTexture;
@@ -122,8 +119,7 @@ namespace UnityEngine.Rendering.Universal
 
         Material m_BlitMaterial;
 
-        // Cached bloom params from previous frame to avoid unnecessary material updates
-        BloomMaterialParams m_BloomParamsPrev;
+
 
         /// <summary>
         /// Creates a new <c>PostProcessPass</c> instance.
@@ -145,10 +141,6 @@ namespace UnityEngine.Rendering.Universal
             m_BloomMipDown = new RTHandle[k_MaxPyramidSize];
             m_BloomMipDownName = new string[k_MaxPyramidSize];
             m_BloomMipUpName = new string[k_MaxPyramidSize];
-
-            // Bloom pyramid TextureHandles
-            _BloomMipUp = new TextureHandle[k_MaxPyramidSize];
-            _BloomMipDown = new TextureHandle[k_MaxPyramidSize];
 
             for (int i = 0; i < k_MaxPyramidSize; i++)
             {

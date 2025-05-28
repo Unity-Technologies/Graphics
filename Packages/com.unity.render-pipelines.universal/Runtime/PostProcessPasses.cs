@@ -1,9 +1,8 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
-using UnityEngine.Serialization;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.CompatibilityMode
 {
     /// <summary>
     /// Run-time creation parameters for post process passes.

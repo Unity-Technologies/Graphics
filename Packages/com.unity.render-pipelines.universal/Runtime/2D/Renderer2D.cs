@@ -45,10 +45,11 @@ namespace UnityEngine.Rendering.Universal
         internal bool createColorTexture => m_CreateColorTexture;
         internal bool createDepthTexture => m_CreateDepthTexture;
 
-        PostProcessPasses m_PostProcessPasses;
+        // Compatibility
+        CompatibilityMode.PostProcessPasses m_PostProcessPasses;
         internal ColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
-        internal PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
-        internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
+        internal CompatibilityMode.PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
+        internal CompatibilityMode.PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle afterPostProcessColorHandle { get => m_PostProcessPasses.afterPostProcessColor; }
         internal RTHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
 
@@ -96,10 +97,17 @@ namespace UnityEngine.Rendering.Universal
             // Samples (MSAA) depend on camera and pipeline
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorAttachment");
 
-            var ppParams = PostProcessParams.Create();
+            var ppParams = CompatibilityMode.PostProcessParams.Create();
             ppParams.blitMaterial = m_BlitMaterial;
             ppParams.requestColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-            m_PostProcessPasses = new PostProcessPasses(data.postProcessData, ref ppParams);
+
+            if (UniversalRenderPipeline.useRenderGraph && data.postProcessData is not null)
+            {
+                m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, ppParams.requestColorFormat);
+                m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
+            }
+            else
+                m_PostProcessPasses = new CompatibilityMode.PostProcessPasses(data.postProcessData, ref ppParams);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -130,6 +138,8 @@ namespace UnityEngine.Rendering.Universal
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
             Light2DManager.Dispose();
+            m_PostProcessPassRenderGraph?.Cleanup();
+            m_ColorGradingLutPassRenderGraph?.Cleanup();
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
@@ -409,7 +419,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (hasPostProcess)
             {
-                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat);
+                var desc = CompatibilityMode.PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat);
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
 
                 postProcessPass.Setup(
