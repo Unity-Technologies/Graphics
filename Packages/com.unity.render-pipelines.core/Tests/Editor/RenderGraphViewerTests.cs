@@ -114,13 +114,13 @@ namespace UnityEditor.Rendering.Tests
         [Test, TestCaseSource(nameof(SearchFilterTestCases))]
         public void SearchFiltering(Dictionary<VisualElement, List<TextElement>> content, string searchString, List<string> expectedResults, bool isMatch)
         {
-            RenderGraphViewer.PerformSearch(content, searchString);
+            RenderGraphViewer.PerformSearch(content, searchString, hideRootElementIfNoMatch: true);
 
             var elements = content[k_FoldoutElement];
             for (int i = 0; i < elements.Count; i++)
             {
-                Assert.AreEqual(elements[i].text, expectedResults[i]);
-                Assert.AreEqual(k_FoldoutElement.style.display.value, isMatch ? DisplayStyle.Flex : DisplayStyle.None);
+                Assert.AreEqual(expectedResults[i], elements[i].text);
+                Assert.AreEqual(isMatch ? DisplayStyle.Flex : DisplayStyle.None, k_FoldoutElement.style.display.value);
             }
         }
     }

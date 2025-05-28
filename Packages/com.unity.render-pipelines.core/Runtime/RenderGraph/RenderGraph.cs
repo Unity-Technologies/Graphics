@@ -230,7 +230,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
     public struct RenderGraphParameters
     {
         ///<summary>Identifier for this render graph execution.</summary>
+        [Obsolete("Not used anymore. The debugging tools use the name of the object identified by executionId. #from(6000.3)", false)]
         public string executionName;
+        ///<summary>Identifier for this render graph execution (i.e. EntityId of the Camera rendering). Used for debugging tools.</summary>
+        public EntityId executionId;
+        ///<summary>Whether the execution should generate debug data and be visible in Render Graph Viewer.</summary>
+        public bool generateDebugData;
         ///<summary>Index of the current frame being rendered.</summary>
         public int currentFrameIndex;
         ///<summary> Controls whether to enable Renderer List culling or not.</summary>
@@ -405,7 +410,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             get
             {
-                foreach (var graph in s_RegisteredGraphs)
+                foreach (var (graph, _) in s_RegisteredExecutions)
                     if (graph.nativeRenderPassesEnabled)
                         return true;
                 return false;
@@ -477,7 +482,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         Stack<int> m_CullingStack = new Stack<int>();
 
-        string m_CurrentExecutionName;
+        EntityId m_CurrentExecutionId;
+        bool m_CurrentExecutionCanGenerateDebugData;
         int m_ExecutionCount;
         int m_CurrentFrameIndex;
         int m_CurrentImmediatePassIndex;
@@ -486,23 +492,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
         bool m_EnableCompilationCaching;
         CompiledGraph m_DefaultCompiledGraph = new();
         CompiledGraph m_CurrentCompiledGraph;
-        string m_CaptureDebugDataForExecution; // Null unless debug data has been requested
         RenderGraphState m_RenderGraphState;
 
-        Dictionary<string, DebugData> m_DebugData = new Dictionary<string, DebugData>();
-
-        // Global list of living render graphs
-        static List<RenderGraph> s_RegisteredGraphs = new List<RenderGraph>();
+        // Global container of registered render graphs, associated with the list of executions that have been registered for them.
+        // When a RenderGraph is created, an entry is added to this dictionary. When that RenderGraph renders something,
+        // and a debug session is active, an entry is added to the list of executions for that RenderGraph using the executionId
+        // as the key. So when you render multiple times with the same executionId, only one DebugExecutionItem is created.
+        static Dictionary<RenderGraph, List<DebugExecutionItem>> s_RegisteredExecutions = new ();
 
         #region Public Interface
         /// <summary>Name of the Render Graph.</summary>
         public string name { get; private set; } = "RenderGraph";
-
-        /// <summary>Request debug data be captured for the provided execution on the next frame.</summary>
-        internal void RequestCaptureDebugData(string executionName)
-        {
-            m_CaptureDebugDataForExecution = executionName;
-        }
 
         internal RenderGraphState RenderGraphState
         {
@@ -511,7 +511,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         /// <summary>If true, the Render Graph Viewer is active.</summary>
-        public static bool isRenderGraphViewerActive { get; internal set; }
+        public static bool isRenderGraphViewerActive => RenderGraphDebugSession.hasActiveDebugSession;
 
         /// <summary>If true, the Render Graph will run its various validity checks while processing (not considered in release mode).</summary>
         internal static bool enableValidityChecks { get; private set; }
@@ -552,12 +552,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_TempMRTArrays[i] = new RenderTargetIdentifier[i + 1];
 
             m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_FrameInformationLogger);
-            s_RegisteredGraphs.Add(this);
-            onGraphRegistered?.Invoke(this);
+            s_RegisteredExecutions.Add(this, new List<DebugExecutionItem>());
+            onGraphRegistered?.Invoke(this.name);
 
             m_RenderGraphState = RenderGraphState.Idle;
 
             RenderGraph.RenderGraphExceptionMessages.enableCaller = true;
+
+#if !UNITY_EDITOR && DEVELOPMENT_BUILD
+            if (RenderGraphDebugSession.currentDebugSession == null)
+                RenderGraphDebugSession.Create<RenderGraphPlayerRemoteDebugSession>();
+#endif
         }
 
         /// <summary>
@@ -586,8 +591,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_DefaultResources.Cleanup();
             m_RenderGraphPool.Cleanup();
 
-            s_RegisteredGraphs.Remove(this);
-            onGraphUnregistered?.Invoke(this);
+            s_RegisteredExecutions.Remove(this);
+            onGraphUnregistered?.Invoke(name);
 
             nativeCompiler?.Cleanup();
 
@@ -638,20 +643,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <returns>The list of all registered render graphs.</returns>
         public static List<RenderGraph> GetRegisteredRenderGraphs()
         {
-            return s_RegisteredGraphs;
+            return new List<RenderGraph>(s_RegisteredExecutions.Keys);
         }
 
-        /// <summary>
-        /// Returns the last rendered frame debug data. Can be null if requireDebugData is set to false.
-        /// </summary>
-        /// <returns>The last rendered frame debug data</returns>
-        internal DebugData GetDebugData(string executionName)
-        {
-            if (m_DebugData.TryGetValue(executionName, out var debugData))
-                return debugData;
-
-            return null;
-        }
+        internal static Dictionary<RenderGraph, List<DebugExecutionItem>> GetRegisteredExecutions() => s_RegisteredExecutions;
 
         /// <summary>
         /// End frame processing. Purge resources that have been used since last frame and resets internal states.
@@ -1442,7 +1437,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_RenderGraphState = RenderGraphState.RecordingGraph;
 
             m_CurrentFrameIndex = parameters.currentFrameIndex;
-            m_CurrentExecutionName = parameters.executionName != null ? parameters.executionName : "RenderGraphExecution";
+            m_CurrentExecutionId = parameters.executionId;
+
+            // Ignore preview cameras and render requests for debug data generation. They would cause the same camera to
+            // be rendered twice with different render graphs, confusing users and causing the RG Viewer to constantly update.
+            m_CurrentExecutionCanGenerateDebugData = parameters.generateDebugData && parameters.executionId != EntityId.None;
+
             // Cannot do renderer list culling with compilation caching because it happens after compilation is done so it can lead to discrepancies.
             m_RendererListCulling = parameters.rendererListCulling && !m_EnableCompilationCaching;
 
@@ -1450,7 +1450,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             if (m_DebugParameters.enableLogging)
             {
-                m_FrameInformationLogger.Initialize(m_CurrentExecutionName);
+                m_FrameInformationLogger.Initialize(GetExecutionNameAllocates(m_CurrentExecutionId));
             }
 
             m_DefaultResources.InitializeForRendering(this);
@@ -1546,9 +1546,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
                     m_Resources.BeginExecute(m_CurrentFrameIndex);
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                     // Feeding Render Graph Viewer before resource deallocation at pass execution
-                    GenerateDebugData();
+                    GenerateDebugData(graphHash);
 #endif
                     if (nativeRenderPassesEnabled)
                         ExecuteNativeRenderGraph();
@@ -1679,14 +1679,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        internal delegate void OnGraphRegisteredDelegate(RenderGraph graph);
+        internal delegate void OnGraphRegisteredDelegate(string graphName);
         internal static event OnGraphRegisteredDelegate onGraphRegistered;
         internal static event OnGraphRegisteredDelegate onGraphUnregistered;
-        internal delegate void OnExecutionRegisteredDelegate(RenderGraph graph, string executionName);
+        internal delegate void OnExecutionRegisteredDelegate(string graphName, EntityId executionId, string executionName);
         internal static event OnExecutionRegisteredDelegate onExecutionRegistered;
-        internal static event OnExecutionRegisteredDelegate onExecutionUnregistered;
-        internal static event Action onDebugDataCaptured;
-
         #endregion
 
         #region Private Interface
@@ -2640,7 +2637,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.enableLogging)
             {
-                m_FrameInformationLogger.LogLine($"==== Render Graph Frame Information Log ({m_CurrentExecutionName}) ====");
+                m_FrameInformationLogger.LogLine($"==== Render Graph Frame Information Log {GetExecutionNameAllocates(m_CurrentExecutionId)} ====");
 
                 if (!m_DebugParameters.immediateMode)
                     m_FrameInformationLogger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
@@ -2725,41 +2722,71 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
-        void GenerateDebugData()
+        // Note: obj.name allocates so make sure you only call this when debug tools / options are active
+        static string GetExecutionNameAllocates(EntityId entityId)
         {
-            if (m_ExecutionExceptionWasRaised)
+            var obj = Resources.EntityIdToObject(entityId);
+            return obj != null ? obj.name : $"RenderGraphExecution ({entityId})";
+        }
+
+        void GenerateDebugData(int graphHash)
+        {
+            if (!RenderGraphDebugSession.hasActiveDebugSession || !m_CurrentExecutionCanGenerateDebugData || m_ExecutionExceptionWasRaised)
                 return;
 
-            if (!isRenderGraphViewerActive)
+            var registeredExecutions = s_RegisteredExecutions[this];
+
+            // The reverse loop prunes deleted cameras and checks if the current camera needs to be registered.
+            bool alreadyRegistered = false;
+            using var deletedExecutionIdsDisposable = ListPool<EntityId>.Get(out var deletedExecutionIds);
+            for (int i = registeredExecutions.Count - 1; i >= 0; i--)
             {
-                CleanupDebugData();
-                return;
+                DebugExecutionItem executionItem = registeredExecutions[i];
+                if (Resources.EntityIdToObject(executionItem.id) == null)
+                {
+                    registeredExecutions.RemoveAt(i);
+                    deletedExecutionIds.Add(executionItem.id);
+                    continue;
+                }
+                if (executionItem.id == m_CurrentExecutionId)
+                    alreadyRegistered = true;
             }
 
-            if (!m_DebugData.TryGetValue(m_CurrentExecutionName, out var debugData))
+            var currentExecutionName = GetExecutionNameAllocates(m_CurrentExecutionId);
+            if (!alreadyRegistered)
             {
-                onExecutionRegistered?.Invoke(this, m_CurrentExecutionName);
-                debugData = new DebugData();
-                m_DebugData.Add(m_CurrentExecutionName, debugData);
-                return; // Generate the debug data on the next frame, because script metadata is collected during recording step
+                registeredExecutions.Add(new DebugExecutionItem(m_CurrentExecutionId, currentExecutionName));
             }
 
-            // Only generate debug data on request
-            if (m_CaptureDebugDataForExecution == null || !m_CaptureDebugDataForExecution.Equals(m_CurrentExecutionName))
-                return;
+            if (deletedExecutionIds.Count > 0)
+                RenderGraphDebugSession.DeleteExecutionIds(name, deletedExecutionIds); // Clear stale debug data entries for deleted cameras
+
+            if (!alreadyRegistered)
+            {
+                onExecutionRegistered?.Invoke(name, m_CurrentExecutionId, currentExecutionName);
+            }
+
+            // When compilation caching is disabled, we don't hash the graph. In order to avoid UI needing to update every
+            // frame, we still want to use the hash to know if debug data should be updated, so compute the hash now.
+            if (!m_EnableCompilationCaching)
+                graphHash = ComputeGraphHash();
+
+            var debugData = RenderGraphDebugSession.GetDebugData(name, m_CurrentExecutionId);
+            bool cameraWasRenamed = debugData.executionName != currentExecutionName;
+            if (debugData.valid && debugData.graphHash == graphHash && !cameraWasRenamed)
+                return; // No need to update
 
             debugData.Clear();
+            debugData.executionName = currentExecutionName;
+            debugData.graphHash = graphHash;
 
             if (nativeRenderPassesEnabled)
                 nativeCompiler.GenerateNativeCompilerDebugData(ref debugData);
             else
                 GenerateCompilerDebugData(ref debugData);
 
-            onDebugDataCaptured?.Invoke();
-
-            m_CaptureDebugDataForExecution = null;
-
-            ClearPassDebugMetadata();
+            debugData.valid = true;
+            RenderGraphDebugSession.SetDebugData(name, m_CurrentExecutionId, debugData);
         }
 
         void GenerateCompilerDebugData(ref DebugData debugData)
@@ -2839,18 +2866,22 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 ref CompiledPassInfo passInfo = ref compiledPassInfo[i];
                 RenderGraphPass pass = m_RenderPasses[passInfo.index];
 
-                DebugData.PassData newPass = new DebugData.PassData();
-                newPass.name = pass.name;
-                newPass.type = pass.type;
-                newPass.culled = passInfo.culled;
-                newPass.async = passInfo.enableAsyncCompute;
-                newPass.generateDebugData = pass.generateDebugData;
-                newPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
-                newPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
-                newPass.syncFromPassIndex = passInfo.syncFromPassIndex;
-                newPass.syncToPassIndex = passInfo.syncToPassIndex;
+                DebugData.PassData newPass = new DebugData.PassData
+                {
+                    name = pass.name,
+                    type = pass.type,
+                    culled = passInfo.culled,
+                    async = passInfo.enableAsyncCompute,
+                    generateDebugData = pass.generateDebugData,
+                    resourceReadLists = new RenderGraph.DebugData.PassData.ResourceIdLists(),
+                    resourceWriteLists = new RenderGraph.DebugData.PassData.ResourceIdLists(),
+                    syncFromPassIndex = passInfo.syncFromPassIndex,
+                    syncToPassIndex = passInfo.syncToPassIndex
+                };
 
-                DebugData.s_PassScriptMetadata.TryGetValue(pass, out newPass.scriptInfo);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                newPass.scriptInfo = pass.debugScriptInfo;
+#endif
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {
@@ -2884,17 +2915,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 debugData.passList.Add(newPass);
             }
         }
-
-        void CleanupDebugData()
-        {
-            foreach (var kvp in m_DebugData)
-            {
-                onExecutionUnregistered?.Invoke(this, kvp.Key);
-            }
-
-            m_DebugData.Clear();
-        }
-
         #endregion
 
 

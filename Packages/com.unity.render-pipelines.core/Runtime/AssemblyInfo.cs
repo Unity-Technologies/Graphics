@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.GraphicTests.Performance.Universal.Runtime")] // access to internal ProfileIds
 
 // Smoke test project visibility
+[assembly: InternalsVisibleTo("SRPSmoke.Runtime")]
 [assembly: InternalsVisibleTo("SRPSmoke.Runtime.Tests")]
 [assembly: InternalsVisibleTo("SRPSmoke.Editor.Tests")]
 [assembly: InternalsVisibleTo("Assembly-CSharp-Editor-testable")]

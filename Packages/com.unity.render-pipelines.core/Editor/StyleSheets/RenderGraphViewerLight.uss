@@ -23,18 +23,6 @@
     --store-action-border-color: #555555;
 }
 
-#capture-button {
-    background-image: url("../Icons/RenderGraphViewer/Refresh@2x.png");
-}
-
-#capture-button:hover {
-    background-color: #BBBBBB;
-}
-
-#capture-button:active {
-    background-color: #656565;
-}
-
 .resource-icon--imported {
     background-image: url("../Icons/RenderGraphViewer/Import@2x.png");
 }

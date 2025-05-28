@@ -5,11 +5,12 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline
     {
-        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera, string cameraName)
+        static void RecordAndExecuteRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context, ScriptableRenderer renderer, CommandBuffer cmd, Camera camera)
         {
             RenderGraphParameters rgParams = new RenderGraphParameters
             {
-                executionName = cameraName,
+                executionId = camera.GetEntityId(),
+                generateDebugData = camera.cameraType != CameraType.Preview && !camera.isProcessingRenderRequest,
                 commandBuffer = cmd,
                 scriptableRenderContext = context,
                 currentFrameIndex = Time.frameCount,

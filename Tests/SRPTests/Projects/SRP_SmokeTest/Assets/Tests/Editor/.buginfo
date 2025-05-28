@@ -1,0 +1,8 @@
+default:
+  area: SRP Settings
+
+probes:
+  when:
+    path:
+      - ^.*Probe?.*$
+  area: Lighting

@@ -30,13 +30,12 @@ namespace UnityEngine.Rendering.Universal
         {
             public class CameraMetadataCacheEntry
             {
-                public string name;
                 public ProfilingSampler sampler;
             }
 
             static Dictionary<int, CameraMetadataCacheEntry> s_MetadataCache = new();
 
-            static readonly CameraMetadataCacheEntry k_NoAllocEntry = new() { name = "Unknown", sampler = new ProfilingSampler("Unknown") };
+            static readonly CameraMetadataCacheEntry k_NoAllocEntry = new() { sampler = new ProfilingSampler("Unknown") };
 
             public static CameraMetadataCacheEntry GetCached(Camera camera)
             {
@@ -49,7 +48,6 @@ namespace UnityEngine.Rendering.Universal
                     string cameraName = camera.name; // Warning: camera.name allocates
                     result = new CameraMetadataCacheEntry
                     {
-                        name = cameraName,
                         sampler = new ProfilingSampler(
                             $"{nameof(UniversalRenderPipeline)}.{nameof(RenderSingleCameraInternal)}: {cameraName}")
                     };
@@ -859,7 +857,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (useRenderGraph)
                 {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, cameraMetadata.name);
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
                     renderer.FinishRenderGraphRendering(cmd);
                 }
                 else

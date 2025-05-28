@@ -5,6 +5,8 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "SRPSmoke.Runtime.Tests",
+        "SRPSmoke.Runtime",
+        "SRPSmoke.Editor",
         "Unity.RenderPipelines.Core.Editor",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",

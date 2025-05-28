@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                foreach (var graph in RenderGraph.GetRegisteredRenderGraphs())
+                foreach (var (graph, _) in RenderGraph.GetRegisteredExecutions())
                 {
                     if (graph.areAnySettingsActive)
                         return true;

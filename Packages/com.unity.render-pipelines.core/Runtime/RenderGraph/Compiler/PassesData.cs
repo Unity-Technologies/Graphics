@@ -833,7 +833,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
             }
 
-            
+
             // Gather which attachments to add to the current renderpass
             var attachmentsToTryAdding = new FixedAttachmentArray<PassFragmentData>();
 
@@ -869,7 +869,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     }
                 }
             }
-            
+
 
             foreach (ref readonly var fragmentInput in passToMerge.FragmentInputs(contextData))
             {
@@ -927,7 +927,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // Nothing to merge with
             if (nativePass.numNativeSubPasses == 0)
             {
-                return false; 
+                return false;
             }
 
             ref var lastPass = ref contextData.nativeSubPassData.ElementAt(nativePass.firstNativeSubPass +
@@ -963,7 +963,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             ref readonly var fragmentList = ref nativePass.fragments;
 
-            // MRT attachments  
+            // MRT attachments
             int fragmentIdx = 0;
             foreach (ref readonly var graphPassFragment in passToMerge.Fragments(contextData))
             {
@@ -996,7 +996,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 fragmentIdx++;
             }
-            
+
 
             // FB-fetch attachments
             int inputIndex = 0;
@@ -1173,9 +1173,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             // Depth must always been the first attachment, so we switch the previous first one with the recently added depth attachment
             (fragments[0], fragments[prevDepthIdx]) = (fragments[prevDepthIdx], fragments[0]);
-            
+
             var depthFlag = GetSubPassFlagForMerging();
-          
+
             // We also need to increment the attachment indices of all the previous subpasses of this native pass.
             // Otherwise the existing subpasses will point to the wrong attachments with depth being set as the first one
             for (var nativeSubPassIndex = firstNativeSubPass; nativeSubPassIndex < firstNativeSubPass + numNativeSubPasses; nativeSubPassIndex++)

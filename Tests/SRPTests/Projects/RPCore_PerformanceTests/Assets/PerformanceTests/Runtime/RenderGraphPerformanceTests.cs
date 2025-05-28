@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.PerformanceTesting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -28,6 +29,7 @@ namespace PerformanceTests.Runtime
         readonly RenderGraph m_RenderGraph = new();
         readonly ScriptableRenderContext m_Context = new(); // NOTE: Dummy context, can't call its functions
         readonly Compiler m_Compiler;
+        Camera m_Camera;
 
         int m_NumPasses;
 
@@ -47,6 +49,21 @@ namespace PerformanceTests.Runtime
         public void OneTimeTearDown()
         {
             m_RenderGraph.Cleanup();
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            var camera = new GameObject("Camera", typeof(Camera));
+            m_Camera = camera.GetComponent<Camera>();
+            m_Camera.cameraType = CameraType.Game;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            CoreUtils.Destroy(m_Camera);
+            m_Camera = null;
         }
 
         public enum TestCase
@@ -117,6 +134,8 @@ namespace PerformanceTests.Runtime
         {
             RenderGraphParameters rgParams = new()
             {
+                executionId = m_Camera.GetEntityId(),
+                generateDebugData = m_Camera.cameraType != CameraType.Preview && !m_Camera.isProcessingRenderRequest,
                 commandBuffer = new CommandBuffer(),
                 scriptableRenderContext = m_Context,
                 currentFrameIndex = Time.frameCount,

@@ -450,9 +450,12 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext,
             CommandBuffer commandBuffer)
         {
+            var hdCamera = renderRequest.hdCamera;;
+            var camera = hdCamera.camera;
             var parameters = new RenderGraphParameters
             {
-                executionName = renderRequest.hdCamera.name,
+                executionId = camera.GetEntityId(),
+                generateDebugData = camera.cameraType != CameraType.Preview && !camera.isProcessingRenderRequest,
                 currentFrameIndex = m_FrameCount,
                 rendererListCulling = m_RenderGraphSettings.dynamicRenderPassCullingEnabled,
                 scriptableRenderContext = renderContext,

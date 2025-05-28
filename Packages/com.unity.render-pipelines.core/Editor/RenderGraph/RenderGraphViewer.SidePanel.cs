@@ -31,8 +31,7 @@ namespace UnityEditor.Rendering
             public const string kPanelContainer = "panel-container";
             public const string kResourceListFoldout = "panel-resource-list";
             public const string kPassListFoldout = "panel-pass-list";
-            public const string kResourceSearchField = "resource-search-field";
-            public const string kPassSearchField = "pass-search-field";
+            public const string kSearchField = "search-field";
         }
         static partial class Classes
         {
@@ -57,8 +56,11 @@ namespace UnityEditor.Rendering
         float m_SidePanelFixedPaneHeight = 0;
         float m_ContentSplitViewFixedPaneWidth = 280;
 
-        Dictionary<VisualElement, List<TextElement>> m_ResourceDescendantCache = new ();
-        Dictionary<VisualElement, List<TextElement>> m_PassDescendantCache = new ();
+        // Lists of text elements that the search filters are able to highlight
+        Dictionary<VisualElement, List<TextElement>> m_SidePanelResourceTexts = new ();
+        Dictionary<VisualElement, List<TextElement>> m_SidePanelPassTexts = new ();
+        Dictionary<VisualElement, List<TextElement>> m_GridResourceListTexts = new ();
+        Dictionary<VisualElement, List<TextElement>> m_GridPassListTexts = new ();
 
         void InitializeSidePanel()
         {
@@ -110,14 +112,9 @@ namespace UnityEditor.Rendering
             passListFoldout.icon = m_PassListIcon;
             passListFoldout.contextMenuGenerator = () => CreateContextMenu(passListFoldout.Q<ScrollView>());
 
-            // Search fields
-            var resourceSearchField = rootVisualElement.Q<ToolbarSearchField>(Names.kResourceSearchField);
-            resourceSearchField.placeholderText = "Search";
-            resourceSearchField.RegisterValueChangedCallback(evt => OnSearchFilterChanged(m_ResourceDescendantCache, evt.newValue));
-
-            var passSearchField = rootVisualElement.Q<ToolbarSearchField>(Names.kPassSearchField);
-            passSearchField.placeholderText = "Search";
-            passSearchField.RegisterValueChangedCallback(evt => OnSearchFilterChanged(m_PassDescendantCache, evt.newValue));
+            var searchField = rootVisualElement.Q<ToolbarSearchField>(Names.kSearchField);
+            searchField.placeholderText = L10n.Tr("Search");
+            searchField.RegisterValueChangedCallback(evt => OnSearchFilterChanged(evt.newValue));
         }
 
         static bool IsInsideTag(string input, int index)
@@ -161,7 +158,7 @@ namespace UnityEditor.Rendering
         private IVisualElementScheduledItem m_PreviousSearch;
         private string m_PendingSearchString = string.Empty;
         private const int k_SearchStringLimit = 15;
-        void OnSearchFilterChanged(Dictionary<VisualElement, List<TextElement>> elementCache, string searchString)
+        void OnSearchFilterChanged(string searchString)
         {
             // Ensure the search string is within the allowed length limit (15 chars max)
             if (searchString.Length > k_SearchStringLimit)
@@ -186,18 +183,21 @@ namespace UnityEditor.Rendering
                 .schedule
                 .Execute(() =>
                 {
-                    PerformSearch(elementCache, searchString);
+                    PerformSearch(m_SidePanelResourceTexts, searchString, hideRootElementIfNoMatch: true);
+                    PerformSearch(m_SidePanelPassTexts, searchString, hideRootElementIfNoMatch: true);
+                    PerformSearch(m_GridResourceListTexts, searchString);
+                    PerformSearch(m_GridPassListTexts, searchString);
                 })
                 .StartingIn(5); // Avoid spamming multiple search if the user types really fast
         }
 
-        internal static void PerformSearch(Dictionary<VisualElement, List<TextElement>> elementCache, string searchString)
+        internal static void PerformSearch(Dictionary<VisualElement, List<TextElement>> elementCache, string searchString, bool hideRootElementIfNoMatch = false)
         {
             // Display filter
-            foreach (var (foldout, descendants) in elementCache)
+            foreach (var (rootElement, textElements) in elementCache)
             {
                 bool anyDescendantMatchesSearch = false;
-                foreach (var elem in descendants)
+                foreach (var elem in textElements)
                 {
                     var text = elem.text;
 
@@ -224,7 +224,9 @@ namespace UnityEditor.Rendering
                     elem.text = text;
                     anyDescendantMatchesSearch = true;
                 }
-                foldout.style.display = anyDescendantMatchesSearch ? DisplayStyle.Flex : DisplayStyle.None;
+
+                if (hideRootElementIfNoMatch)
+                    rootElement.style.display = anyDescendantMatchesSearch ? DisplayStyle.Flex : DisplayStyle.None;
             }
         }
 
@@ -248,7 +250,7 @@ namespace UnityEditor.Rendering
 
             UpdatePanelHeights();
 
-            m_ResourceDescendantCache.Clear();
+            m_SidePanelResourceTexts.Clear();
 
             int visibleResourceIndex = 0;
             foreach (var visibleResourceElement in m_ResourceElementsInfo)
@@ -310,7 +312,7 @@ namespace UnityEditor.Rendering
 
                 content.Add(resourceItem);
 
-                m_ResourceDescendantCache[resourceItem] = resourceItem.Query().Descendents<TextElement>().ToList();
+                m_SidePanelResourceTexts[resourceItem] = resourceItem.Query().Descendents<TextElement>().ToList();
             }
         }
 
@@ -329,7 +331,7 @@ namespace UnityEditor.Rendering
 
             UpdatePanelHeights();
 
-            m_PassDescendantCache.Clear();
+            m_SidePanelPassTexts.Clear();
 
             void CreateTextElement(VisualElement parent, string text, string className = null)
             {
@@ -492,7 +494,7 @@ namespace UnityEditor.Rendering
 
                 content.Add(passItem);
 
-                m_PassDescendantCache[passItem] = passItem.Query().Descendents<TextElement>().ToList();
+                m_SidePanelPassTexts[passItem] = passItem.Query().Descendents<TextElement>().ToList();
             }
         }
 
@@ -503,7 +505,7 @@ namespace UnityEditor.Rendering
 
         void UpdatePanelHeights()
         {
-            bool passListExpanded = m_PassListExpanded && (m_CurrentDebugData != null && m_CurrentDebugData.isNRPCompiler);
+            bool passListExpanded = m_PassListExpanded && HasValidDebugData && m_CurrentDebugData.isNRPCompiler;
             const int kFoldoutHeaderHeightPx = 18;
             const int kFoldoutHeaderExpandedMinHeightPx = 50;
             const int kWindowExtraMarginPx = 6;
