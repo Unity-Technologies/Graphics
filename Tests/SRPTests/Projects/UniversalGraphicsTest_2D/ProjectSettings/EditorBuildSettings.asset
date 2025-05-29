@@ -228,6 +228,9 @@ EditorBuildSettings:
     path: Assets/Scenes/063_LayerMask.unity
     guid: 589fffe344f1a3847910fd1b61c8404c
   - enabled: 1
+    path: Assets/Scenes/064_FullScreenRendererFeature.unity
+    guid: f47933cb58d03af41a718fdea55dea08
+  - enabled: 1
     path: Assets/Scenes/069_2D_Forward_Shader_Compatibility_Forward.unity
     guid: 4387c323b80b3f8479359d07b90f0031
   - enabled: 1
