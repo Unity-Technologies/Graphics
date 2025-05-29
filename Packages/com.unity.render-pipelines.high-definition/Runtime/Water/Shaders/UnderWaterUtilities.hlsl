@@ -40,7 +40,7 @@ float GetUnderWaterDistance(uint2 coord)
     uint xr = unity_StereoEyeIndex * _BufferStride;
     uint2 boundsX = uint2(0xFFFFFFFF - _WaterLine[0 + xr], _WaterLine[1 + xr]);
     uint posX = round(dot((float2)coord.xy, rightVector) - _BoundsSS.x);
-    posX = clamp(posX, boundsX.x, boundsX.y);
+    posX = clamp(posX, min(boundsX.y, boundsX.x), max(boundsX.x, boundsX.y));
 
     // Decompress water line height
     float posY = dot((float2)coord.xy, upVector) - _BoundsSS.z;
