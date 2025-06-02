@@ -28,6 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         const int m_MaxXRViewsCount = 4;
 
+        const int kIntelVendorId = 0x8086;
+
         void InitializePrepass(HDRenderPipelineAsset hdAsset)
         {
             m_MSAAResolveMaterial = CoreUtils.CreateEngineMaterial(runtimeShaders.depthValuesPS);
@@ -1404,7 +1406,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Integrated Intel GPU on Mac don't support the texture format use for normal (RGBA_8UNORM) for SetRandomWriteTarget
             // So on Metal for now we don't patch normal buffer if we detect an intel GPU
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && SystemInfo.graphicsDeviceName.Contains("Intel"))
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && SystemInfo.graphicsDeviceVendorID == kIntelVendorId)
             {
                 return;
             }

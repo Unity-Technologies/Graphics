@@ -281,6 +281,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/088_TilemapRenderer_MaskInteraction.unity
     guid: f5c31dad7aab75241a867c300ce2bc5e
+  - enabled: 1
+    path: Assets/Scenes/089_Sprite_MBP_Animation.unity
+    guid: 6b171e9d6c5830346986426b97513fce
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 20e925b8abdd424429b17f709e9d00f8,
       type: 2}

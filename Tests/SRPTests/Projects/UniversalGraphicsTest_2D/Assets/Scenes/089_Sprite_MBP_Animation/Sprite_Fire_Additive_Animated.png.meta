@@ -1,0 +1,586 @@
+fileFormatVersion: 2
+guid: 0477d6698c265a649a6a01373703a6b2
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 2
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 1
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WindowsStoreApps
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: CloudRendering
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Switch
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: GameCoreXboxOne
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: GameCoreScarlett
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: PS4
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: PS5
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Sprite_Fire_Additive_0
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 265
+        width: 157
+        height: 214
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline:
+      - - {x: 60.5, y: -93}
+        - {x: 63.5, y: -87}
+        - {x: 64.5, y: -83}
+        - {x: 65.5, y: -57}
+        - {x: 67.5, y: -53}
+        - {x: 67.5, y: -36}
+        - {x: 59.5, y: -16}
+        - {x: 51.5, y: 1}
+        - {x: 46.5, y: 7}
+        - {x: 38.5, y: 12}
+        - {x: 25.5, y: 18}
+        - {x: 8.5, y: 24}
+        - {x: 6.5, y: 38}
+        - {x: 8.5, y: 46}
+        - {x: 8.5, y: 56}
+        - {x: 5.5, y: 62}
+        - {x: -5.5, y: 70}
+        - {x: -11.5, y: 78}
+        - {x: -12.5, y: 85}
+        - {x: -20.5, y: 94}
+        - {x: -22.5, y: 95}
+        - {x: -34.5, y: 95}
+        - {x: -40.5, y: 88}
+        - {x: -45.5, y: 82}
+        - {x: -48.5, y: 78}
+        - {x: -52.5, y: 69}
+        - {x: -55.5, y: 62}
+        - {x: -57.5, y: 34}
+        - {x: -62.5, y: 27}
+        - {x: -69.5, y: 10}
+        - {x: -69.5, y: -17}
+        - {x: -67.5, y: -29}
+        - {x: -59.5, y: -46}
+        - {x: -52.5, y: -54}
+        - {x: -43.5, y: -57}
+        - {x: -33.5, y: -56}
+        - {x: -24.5, y: -52}
+        - {x: -19.5, y: -47}
+        - {x: -10.5, y: -32}
+        - {x: 4.5, y: -33}
+        - {x: 9.5, y: -39}
+        - {x: 9.5, y: -53}
+        - {x: 10.5, y: -57}
+        - {x: 17.5, y: -67}
+        - {x: 13.5, y: -85}
+        - {x: 4.5, y: -86}
+        - {x: 1.5, y: -89}
+        - {x: 2.5, y: -93}
+        - {x: 16.5, y: -91}
+        - {x: 23.5, y: -96}
+        - {x: 29.5, y: -99}
+        - {x: 51.5, y: -99}
+      physicsShape: []
+      tessellationDetail: 0.4
+      bones: []
+      spriteID: b104135ae5d43514a9d4ae07fd74cada
+      internalID: -1383448332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sprite_Fire_Additive_1
+      rect:
+        serializedVersion: 2
+        x: 301
+        y: 258
+        width: 178
+        height: 252
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline:
+      - - {x: 41, y: -114}
+        - {x: 48, y: -109}
+        - {x: 50, y: -105}
+        - {x: 56, y: -90}
+        - {x: 57, y: -80}
+        - {x: 56, y: -78}
+        - {x: 47, y: -66}
+        - {x: 50, y: -48}
+        - {x: 54, y: -45}
+        - {x: 66, y: -45}
+        - {x: 71, y: -43}
+        - {x: 77, y: -37}
+        - {x: 80, y: -33}
+        - {x: 80, y: -17}
+        - {x: 79, y: -14}
+        - {x: 76, y: -7}
+        - {x: 69, y: 2}
+        - {x: 72, y: 18}
+        - {x: 71, y: 36}
+        - {x: 68, y: 40}
+        - {x: 59, y: 49}
+        - {x: 58, y: 54}
+        - {x: 62, y: 59}
+        - {x: 67, y: 69}
+        - {x: 67, y: 86}
+        - {x: 64, y: 95}
+        - {x: 61, y: 102}
+        - {x: 52, y: 112}
+        - {x: 46, y: 115}
+        - {x: 27, y: 115}
+        - {x: 23, y: 113}
+        - {x: 16, y: 107}
+        - {x: 16, y: 95}
+        - {x: 18, y: 80}
+        - {x: 14, y: 74}
+        - {x: 3, y: 70}
+        - {x: -4, y: 67}
+        - {x: -13, y: 67}
+        - {x: -30, y: 79}
+        - {x: -37, y: 83}
+        - {x: -62, y: 83}
+        - {x: -69, y: 80}
+        - {x: -73, y: 75}
+        - {x: -75, y: 72}
+        - {x: -75, y: 65}
+        - {x: -74, y: 59}
+        - {x: -70, y: 54}
+        - {x: -62, y: 35}
+        - {x: -56, y: 31}
+        - {x: -39, y: 23}
+        - {x: -33, y: 17}
+        - {x: -31, y: 1}
+        - {x: -39, y: -5}
+        - {x: -47, y: -5}
+        - {x: -57, y: -8}
+        - {x: -60, y: -9}
+        - {x: -67, y: -17}
+        - {x: -70, y: -21}
+        - {x: -69, y: -36}
+        - {x: -64, y: -41}
+        - {x: -58, y: -46}
+        - {x: -54, y: -47}
+        - {x: -48, y: -54}
+        - {x: -48, y: -75}
+        - {x: -46, y: -81}
+        - {x: -41, y: -85}
+        - {x: -36, y: -87}
+        - {x: -26, y: -87}
+        - {x: -12, y: -85}
+        - {x: -5, y: -90}
+        - {x: -2, y: -96}
+        - {x: 3, y: -108}
+        - {x: 13, y: -116}
+        - {x: 17, y: -117}
+        - {x: 36, y: -117}
+      physicsShape: []
+      tessellationDetail: 0.4
+      bones: []
+      spriteID: 4fd6658a3cb353b4e97e401b911f4694
+      internalID: 2060993720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sprite_Fire_Additive_2
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 11
+        width: 172
+        height: 238
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline:
+      - - {x: -33, y: -100}
+        - {x: -21, y: -84}
+        - {x: -13, y: -78}
+        - {x: -5, y: -80}
+        - {x: 3, y: -92}
+        - {x: 15, y: -99}
+        - {x: 28, y: -99}
+        - {x: 37, y: -97}
+        - {x: 55, y: -96}
+        - {x: 61, y: -95}
+        - {x: 70, y: -82}
+        - {x: 71, y: -76}
+        - {x: 70, y: -61}
+        - {x: 55, y: -49}
+        - {x: 54, y: -42}
+        - {x: 74, y: -21}
+        - {x: 77, y: -13}
+        - {x: 77, y: -2}
+        - {x: 74, y: 5}
+        - {x: 64, y: 14}
+        - {x: 70, y: 26}
+        - {x: 73, y: 38}
+        - {x: 73, y: 53}
+        - {x: 71, y: 58}
+        - {x: 63, y: 65}
+        - {x: 54, y: 64}
+        - {x: 33, y: 55}
+        - {x: 18, y: 55}
+        - {x: 11, y: 59}
+        - {x: 9, y: 69}
+        - {x: 12, y: 76}
+        - {x: 20, y: 84}
+        - {x: 22, y: 89}
+        - {x: 22, y: 102}
+        - {x: 12, y: 110}
+        - {x: -2, y: 110}
+        - {x: -10, y: 109}
+        - {x: -30, y: 96}
+        - {x: -38, y: 80}
+        - {x: -45, y: 61}
+        - {x: -51, y: 46}
+        - {x: -59, y: 37}
+        - {x: -62, y: 32}
+        - {x: -61, y: 19}
+        - {x: -52, y: 11}
+        - {x: -31, y: -1}
+        - {x: -22, y: -8}
+        - {x: -21, y: -16}
+        - {x: -26, y: -24}
+        - {x: -40, y: -33}
+        - {x: -64, y: -45}
+        - {x: -75, y: -55}
+        - {x: -78, y: -65}
+        - {x: -78, y: -78}
+        - {x: -68, y: -94}
+        - {x: -58, y: -104}
+        - {x: -53, y: -107}
+        - {x: -39, y: -107}
+      physicsShape: []
+      tessellationDetail: 0.4
+      bones: []
+      spriteID: 63a17d19b68525d4a98500e7d772ab4b
+      internalID: 652107442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sprite_Fire_Additive_3
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 10
+        width: 190
+        height: 253
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline:
+      - - {x: 66, y: -108.5}
+        - {x: 73, y: -100.5}
+        - {x: 78, y: -84.5}
+        - {x: 79, y: -80.5}
+        - {x: 79, y: -65.5}
+        - {x: 70, y: -54.5}
+        - {x: 76, y: -46.5}
+        - {x: 81, y: -33.5}
+        - {x: 83, y: -27.5}
+        - {x: 83, y: -12.5}
+        - {x: 82, y: -10.5}
+        - {x: 80, y: -5.5}
+        - {x: 72, y: 1.5}
+        - {x: 69, y: 2.5}
+        - {x: 62, y: 4.5}
+        - {x: 51, y: 3.5}
+        - {x: 41, y: -0.5}
+        - {x: 18, y: -13.5}
+        - {x: 12, y: -11.5}
+        - {x: 0, y: -2.5}
+        - {x: -2, y: 3.5}
+        - {x: -1, y: 10.5}
+        - {x: 15, y: 21.5}
+        - {x: 20, y: 27.5}
+        - {x: 27, y: 37.5}
+        - {x: 33, y: 48.5}
+        - {x: 32, y: 62.5}
+        - {x: 17, y: 81.5}
+        - {x: 6, y: 92.5}
+        - {x: -7, y: 97.5}
+        - {x: -22, y: 112.5}
+        - {x: -32, y: 116.5}
+        - {x: -52, y: 116.5}
+        - {x: -59, y: 113.5}
+        - {x: -81, y: 91.5}
+        - {x: -84, y: 84.5}
+        - {x: -85, y: 80.5}
+        - {x: -85, y: 69.5}
+        - {x: -83, y: 64.5}
+        - {x: -75, y: 56.5}
+        - {x: -72, y: 55.5}
+        - {x: -62, y: 55.5}
+        - {x: -54, y: 57.5}
+        - {x: -51, y: 53.5}
+        - {x: -57, y: 32.5}
+        - {x: -57, y: 30.5}
+        - {x: -80, y: 7.5}
+        - {x: -84, y: -0.5}
+        - {x: -86, y: -10.5}
+        - {x: -86, y: -26.5}
+        - {x: -85, y: -32.5}
+        - {x: -77, y: -43.5}
+        - {x: -71, y: -49.5}
+        - {x: -67, y: -61.5}
+        - {x: -66, y: -71.5}
+        - {x: -61, y: -79.5}
+        - {x: -51, y: -88.5}
+        - {x: -44, y: -94.5}
+        - {x: -33, y: -99.5}
+        - {x: -20, y: -99.5}
+        - {x: -12, y: -90.5}
+        - {x: -7, y: -79.5}
+        - {x: -3, y: -75.5}
+        - {x: 4, y: -73.5}
+        - {x: 10, y: -70.5}
+        - {x: 19, y: -71.5}
+        - {x: 24, y: -73.5}
+        - {x: 31, y: -80.5}
+        - {x: 34, y: -87.5}
+        - {x: 36, y: -103.5}
+        - {x: 40, y: -111.5}
+        - {x: 48, y: -112.5}
+        - {x: 56, y: -112.5}
+      physicsShape: []
+      tessellationDetail: 0.4
+      bones: []
+      spriteID: ed3672787f35b4448b81fe5a7301c0e5
+      internalID: 131858358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      Sprite_Fire_Additive_0: -1383448332
+      Sprite_Fire_Additive_1: 2060993720
+      Sprite_Fire_Additive_2: 652107442
+      Sprite_Fire_Additive_3: 131858358
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
