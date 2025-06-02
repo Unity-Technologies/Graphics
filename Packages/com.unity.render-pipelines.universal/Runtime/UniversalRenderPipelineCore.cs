@@ -1676,7 +1676,7 @@ namespace UnityEngine.Rendering.Universal
                         lightData.Init(ref discLight);
                         break;
                     default:
-                        lightData.InitNoBake(light.GetInstanceID());
+                        lightData.InitNoBake(light.GetEntityId());
                         break;
                 }
 
@@ -1690,7 +1690,7 @@ namespace UnityEngine.Rendering.Universal
                 for (int i = 0; i < requests.Length; i++)
                 {
                     Light light = requests[i];
-                    lightData.InitNoBake(light.GetInstanceID());
+                    lightData.InitNoBake(light.GetEntityId());
                     lightsOutput[i] = lightData;
                 }
             }
@@ -1720,14 +1720,14 @@ namespace UnityEngine.Rendering.Universal
                             break;
                         case LightType.Rectangle:
                             // Rect area light is baked only in URP.
-                            lightData.InitNoBake(light.GetInstanceID());
+                            lightData.InitNoBake(light.GetEntityId());
                             break;
                         case LightType.Disc:
                             // Disc light is baked only.
-                            lightData.InitNoBake(light.GetInstanceID());
+                            lightData.InitNoBake(light.GetEntityId());
                             break;
                         default:
-                            lightData.InitNoBake(light.GetInstanceID());
+                            lightData.InitNoBake(light.GetEntityId());
                             break;
                     }
                     lightData.falloff = FalloffType.InverseSquared;

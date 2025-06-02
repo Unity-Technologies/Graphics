@@ -107,6 +107,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return CreateTransientTexture(desc);
         }
 
+        public void GenerateDebugData(bool value)
+        {
+            m_RenderPass.GenerateDebugData(value);
+        }
+        
         public void Dispose()
         {
             Dispose(true);

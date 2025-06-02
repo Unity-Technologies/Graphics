@@ -75,6 +75,16 @@ namespace UnityEditor.Rendering
         public virtual bool IsAutoProperty() => true;
 
         /// <summary>
+        /// Gets the vertical space (height) required to draw the parameter's GUI. Override this
+        /// method if your custom GUI implemented in <see cref="OnGUI"/> requires a specific height
+        /// different from the default property height.
+        /// </summary>
+        /// <param name="parameter">The parameter for which to calculate the height.</param>
+        /// <returns>The required height in pixels. The default implementation returns
+        /// <c>EditorGUI.GetPropertyHeight(parameter.value)</c>.</returns>
+        public virtual float GetElementHeight(SerializedDataParameter parameter) => EditorGUI.GetPropertyHeight(parameter.value);
+
+        /// <summary>
         /// Draws the parameter in the editor. If the input parameter is invalid you should return
         /// <c>false</c> so that Unity displays the default editor for this parameter.
         /// </summary>

@@ -6,6 +6,8 @@ namespace UnityEditor.ShaderGraph.Internal
     {
         public class LightmapTextureArrayProperty : Texture2DArrayShaderProperty
         {
+            internal override bool canPromoteToFinalShader => false;
+
             internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
             {
                 // no declaration from ShaderGraph side -- declared by SRP internal include files

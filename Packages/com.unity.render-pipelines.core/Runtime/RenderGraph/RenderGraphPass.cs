@@ -66,6 +66,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public List<ResourceHandle> implicitReadsList = new List<ResourceHandle>();
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        public RenderGraph.DebugData.PassScriptInfo debugScriptInfo { get; set; }
+#endif
+
         public RenderGraphPass()
         {
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
@@ -356,7 +360,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 var res = resources.GetTextureResource(handle);
                 var graphicsResource = res.graphicsResource;
                 ref var desc = ref res.desc;
-                
+
                 var externalTexture = graphicsResource.externalTexture;
                 if (externalTexture != null) // External texture
                 {
@@ -421,7 +425,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 }
             }
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void ComputeHashForTextureAccess(ref HashFNV1A32 generator, in ResourceHandle handle, in TextureAccess textureAccess)
         {

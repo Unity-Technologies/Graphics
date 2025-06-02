@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering
 
         [SerializeField]
         SerializedDictionary<string, SceneBakeData> m_SceneBakeData = new();
-        internal static Dictionary<string, ProbeVolumeBakingSet> sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSet>();
+        internal static Dictionary<string, ProbeVolumeBakingSetWeakReference> sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSetWeakReference>();
 
         /// <summary>
         /// Tries to add a scene to the baking set.
@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering
         {
             m_SceneGUIDs.Add(guid);
             m_SceneBakeData.Add(guid, bakeData != null ? bakeData : new SceneBakeData());
-            sceneToBakingSet[guid] = this;
+            sceneToBakingSet[guid] = new ProbeVolumeBakingSetWeakReference(this);
 
             EditorUtility.SetDirty(this);
         }
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering
             var previousSceneGUID = m_SceneGUIDs[index];
             m_SceneGUIDs[index] = guid;
             sceneToBakingSet.Remove(previousSceneGUID);
-            sceneToBakingSet[guid] = this;
+            sceneToBakingSet[guid] = new ProbeVolumeBakingSetWeakReference(this);
             m_SceneBakeData.Add(guid, bakeData != null ? bakeData : new SceneBakeData());
 
             EditorUtility.SetDirty(this);
@@ -291,26 +291,34 @@ namespace UnityEngine.Rendering
 
         internal static void SyncBakingSets()
         {
-            sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSet>();
+            sceneToBakingSet = new Dictionary<string, ProbeVolumeBakingSetWeakReference>();
 
-            var setGUIDs = AssetDatabase.FindAssets("t:" + typeof(ProbeVolumeBakingSet).Name);
+            var setGUIDs = AssetDatabase.FindAssets("t:" + nameof(ProbeVolumeBakingSet));
 
             foreach (var setGUID in setGUIDs)
             {
-                var set = AssetDatabase.LoadAssetAtPath<ProbeVolumeBakingSet>(AssetDatabase.GUIDToAssetPath(setGUID));
+                string bakingSetPath = AssetDatabase.GUIDToAssetPath(setGUID);
+                bool alreadyLoaded = AssetDatabase.IsMainAssetAtPathLoaded(bakingSetPath);
+
+                var set = AssetDatabase.LoadAssetAtPath<ProbeVolumeBakingSet>(bakingSetPath);
                 if (set != null)
                 {
                     // We need to call Migrate here because of Version.RemoveProbeVolumeSceneData step.
                     // This step needs the obsolete ProbeVolumeSceneData to be initialized first which can happen out of order. Here we now it's ok.
                     set.Migrate();
 
+                    var reference = new ProbeVolumeBakingSetWeakReference(set);
                     foreach (var guid in set.sceneGUIDs)
-                        sceneToBakingSet[guid] = set;
+                        sceneToBakingSet[guid] = reference;
+
+                    // If the asset wasn't already in-memory, and we just loaded it into memory, free it, so we don't waste memory.
+                    if (!alreadyLoaded)
+                        reference.Unload();
                 }
             }
         }
 
-        internal static ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) => sceneToBakingSet.GetValueOrDefault(sceneGUID, null);
+        internal static ProbeVolumeBakingSet GetBakingSetForScene(string sceneGUID) => sceneToBakingSet.GetValueOrDefault(sceneGUID, null)?.Get();
         internal static ProbeVolumeBakingSet GetBakingSetForScene(Scene scene) => GetBakingSetForScene(scene.GetGUID());
 
         internal void SetDefaults()

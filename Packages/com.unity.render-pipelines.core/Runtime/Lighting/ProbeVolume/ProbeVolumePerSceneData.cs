@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering
 
         void OnEnable()
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             // In the editor, always refresh the GUID as it may become out of date is scene is duplicated or other weird things
             // This field is serialized, so it will be available in standalones, where it can't change anymore.
             // Only change the GUID if the new one is valid.
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering
                 sceneGUID = newGUID;
                 EditorUtility.SetDirty(this);
             }
-            #endif
+#endif
 
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
         }

@@ -7,7 +7,8 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A generic Volume component holding a <see cref="VolumeProfile"/>.
     /// </summary>
-    [CurrentPipelineHelpURL("Volumes")]
+    [PipelineHelpURL("HDRenderPipelineAsset","understand-volumes")]
+    [PipelineHelpURL("UniversalRenderPipelineAsset", "Volumes")]
     [ExecuteAlways]
     [AddComponentMenu("Miscellaneous/Volume")]
     public class Volume : MonoBehaviour, IVolume

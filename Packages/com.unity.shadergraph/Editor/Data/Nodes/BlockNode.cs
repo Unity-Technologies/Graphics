@@ -77,18 +77,26 @@ namespace UnityEditor.ShaderGraph
 
         internal enum CustomBlockType { Float = 1, Vector2 = 2, Vector3 = 3, Vector4 = 4 }
 
+        internal enum CustomInterpolationType { Linear, NoPerspective, NoInterpolation }
+
         internal bool isCustomBlock { get => m_Descriptor?.isCustom ?? false; }
 
         internal string customName
         {
             get => m_Descriptor.name;
-            set => OnCustomBlockFieldModified(value, customWidth);
+            set => OnCustomBlockFieldModified(value, customWidth, customInterpolation);
         }
 
         internal CustomBlockType customWidth
         {
             get => (CustomBlockType)ControlToWidth(m_Descriptor.control);
-            set => OnCustomBlockFieldModified(customName, value);
+            set => OnCustomBlockFieldModified(customName, value, customInterpolation);
+        }
+
+        internal CustomInterpolationType customInterpolation
+        {
+            get => InterpolationToEnum(m_Descriptor.interpolation);
+            set => OnCustomBlockFieldModified(customName, customWidth, value);
         }
 
         public void Init(BlockFieldDescriptor fieldDescriptor)
@@ -115,7 +123,7 @@ namespace UnityEditor.ShaderGraph
 
         internal void InitCustomDefault()
         {
-            Init(MakeCustomBlockField(k_CustomBlockDefaultName, CustomBlockType.Vector4));
+            Init(MakeCustomBlockField(k_CustomBlockDefaultName, CustomBlockType.Vector4, CustomInterpolationType.Linear));
         }
 
         private void AddSlotFromControlType(bool attemptToModifyExisting = true)
@@ -298,7 +306,7 @@ namespace UnityEditor.ShaderGraph
             return requirements.requiresVertexColor;
         }
 
-        private void OnCustomBlockFieldModified(string name, CustomBlockType width)
+        private void OnCustomBlockFieldModified(string name, CustomBlockType width, CustomInterpolationType interpolation)
         {
             if (!isCustomBlock)
             {
@@ -306,7 +314,7 @@ namespace UnityEditor.ShaderGraph
                 return;
             }
 
-            m_Descriptor = MakeCustomBlockField(name, width);
+            m_Descriptor = MakeCustomBlockField(name, width, interpolation);
 
             // TODO: Preserve the original slot's value and try to reapply after the slot is updated.
             AddSlotFromControlType(false);
@@ -322,7 +330,7 @@ namespace UnityEditor.ShaderGraph
                 if (isCustomBlock)
                 {
                     int width = ControlToWidth(m_Descriptor.control);
-                    m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}#{width}";
+                    m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}#{width}#{m_Descriptor.interpolation}";
                 }
                 else
                 {
@@ -333,11 +341,11 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize()
         {
-            // TODO: Go find someone to tell @esme not to do this.
             if (m_SerializedDescriptor.Contains("#"))
             {
                 string descName = k_CustomBlockDefaultName;
                 CustomBlockType descWidth = CustomBlockType.Vector4;
+                string interpolation = "";
                 var descTag = BlockFields.VertexDescription.name;
 
                 name = $"{descTag}.{descName}";
@@ -353,26 +361,52 @@ namespace UnityEditor.ShaderGraph
                     Debug.LogWarning(String.Format("Bad width found while deserializing custom interpolator {0}, defaulting to 4.", m_SerializedDescriptor));
                     descWidth = CustomBlockType.Vector4;
                 }
+                try { interpolation = wsplit[3]; }
+                catch { }
 
                 IControl control;
                 try { control = (IControl)FindSlot<MaterialSlot>(0).InstantiateControl(); }
                 catch { control = WidthToControl((int)descWidth); }
 
                 descName = NodeUtils.ConvertToValidHLSLIdentifier(wsplit[1]);
-                m_Descriptor = new BlockFieldDescriptor(descTag, descName, "", control, ShaderStage.Vertex, isCustom: true);
+                m_Descriptor = new BlockFieldDescriptor(descTag, descName, "", control, ShaderStage.Vertex, isCustom: true, interpolation:interpolation);
             }
         }
 
         #region CustomInterpolatorHelpers
-        private static BlockFieldDescriptor MakeCustomBlockField(string name, CustomBlockType width)
+        private static BlockFieldDescriptor MakeCustomBlockField(string name, CustomBlockType width, CustomInterpolationType interp)
         {
             name = NodeUtils.ConvertToValidHLSLIdentifier(name);
             var referenceName = name;
             var define = "";
             IControl control = WidthToControl((int)width);
+            string interpolation = EnumToInterpolation(interp);
             var tag = BlockFields.VertexDescription.name;
 
-            return new BlockFieldDescriptor(tag, referenceName, define, control, ShaderStage.Vertex, isCustom: true);
+            return new BlockFieldDescriptor(tag, referenceName, define, control, ShaderStage.Vertex, isCustom: true, interpolation: interpolation);
+        }
+
+        private static CustomInterpolationType InterpolationToEnum(string interpolation)
+        {
+            switch(interpolation)
+            {
+                case "noperspective": return CustomInterpolationType.NoPerspective;
+                case "nointerpolation": return CustomInterpolationType.NoInterpolation;
+                default:
+                case "linear":
+                case "": return CustomInterpolationType.Linear;
+            }
+        }
+
+        internal static string EnumToInterpolation(CustomInterpolationType interpolation)
+        {
+            switch (interpolation)
+            {
+                case CustomInterpolationType.NoPerspective: return "noperspective";
+                case CustomInterpolationType.NoInterpolation: return "nointerpolation";
+                default:
+                case CustomInterpolationType.Linear: return "";
+            }
         }
 
         private static IControl WidthToControl(int width)

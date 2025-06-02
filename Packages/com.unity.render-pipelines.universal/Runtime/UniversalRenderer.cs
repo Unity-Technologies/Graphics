@@ -219,10 +219,11 @@ namespace UnityEngine.Rendering.Universal
         Material m_ClusterDeferredMaterial = null;
         Material m_CameraMotionVecMaterial = null;
 
-        PostProcessPasses m_PostProcessPasses;
+        // Compatibility
+        CompatibilityMode.PostProcessPasses m_PostProcessPasses;
         internal ColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
-        internal PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
-        internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
+        internal CompatibilityMode.PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
+        internal CompatibilityMode.PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
         internal LayerMask prepassLayerMask { get; set; }
@@ -418,14 +419,21 @@ namespace UnityEngine.Rendering.Universal
 
             {
                 // URP post-processing format follows the back-buffer format.
-                var postProcessParams = PostProcessParams.Create();
+                var postProcessParams = CompatibilityMode.PostProcessParams.Create();
                 postProcessParams.blitMaterial = m_BlitMaterial;
                 postProcessParams.requestColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 var asset = UniversalRenderPipeline.asset;
                 if (asset)
                     postProcessParams.requestColorFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
 
-                m_PostProcessPasses = new PostProcessPasses(data.postProcessData, ref postProcessParams);
+                if (UniversalRenderPipeline.useRenderGraph && data.postProcessData is not null)
+                {
+                    m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, postProcessParams.requestColorFormat);
+                    m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
+                }
+
+                else
+                    m_PostProcessPasses = new CompatibilityMode.PostProcessPasses(data.postProcessData, ref postProcessParams);
             }
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
@@ -481,6 +489,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             m_StencilCrossFadeRenderPass?.Dispose();
+
+            // RG
+            m_PostProcessPassRenderGraph?.Cleanup();
+            m_ColorGradingLutPassRenderGraph?.Cleanup();
 
             m_TargetColorHandle?.Release();
             m_TargetDepthHandle?.Release();
@@ -793,7 +805,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Gather render pass history requests and update history textures.
             UpdateCameraHistory(cameraData);
-             
+
             // Gather render pass require rendering layers event and mask size
             bool requiresRenderingLayer = RenderingLayerUtils.RequireRenderingLayers(this, rendererFeatures,
                 cameraTargetDescriptor.msaaSamples,
@@ -936,7 +948,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
-            createColorTexture |= RequiresIntermediateColorTexture(cameraData, in renderPassInputs);
+            createColorTexture |= RequiresIntermediateColorTexture(cameraData, in renderPassInputs, usesDeferredLighting, applyPostProcessing);
             createColorTexture &= !isPreviewCamera;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
@@ -1492,7 +1504,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (applyPostProcessing)
             {
-                var desc = PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, GraphicsFormat.None);
+                var desc = CompatibilityMode.PostProcessPass.GetCompatibleDescriptor(cameraTargetDescriptor, cameraTargetDescriptor.width, cameraTargetDescriptor.height, cameraTargetDescriptor.graphicsFormat, GraphicsFormat.None);
                 RenderingUtils.ReAllocateHandleIfNeeded(ref m_PostProcessPasses.m_AfterPostProcessColor, desc, FilterMode.Point, TextureWrapMode.Clamp, name: "_AfterPostProcessTexture");
             }
 
@@ -1943,7 +1955,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData contains all relevant render target information for the camera.</param>
         /// <seealso cref="CameraData"/>
         /// <returns>Return true if pipeline needs to render to a intermediate render texture.</returns>
-        bool RequiresIntermediateColorTexture(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs)
+        static bool RequiresIntermediateColorTexture(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool usesDeferredLighting, bool applyPostProcessing)
         {
             // When rendering a camera stack we always create an intermediate render texture to composite camera results.
             // We create it upon rendering the Base camera.
@@ -1977,8 +1989,7 @@ namespace UnityEngine.Rendering.Universal
                 isCompatibleBackbufferTextureDimension = cameraData.xr.renderTargetDesc.dimension == cameraTargetDescriptor.dimension;
             }
 #endif
-            bool postProcessEnabled = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
-            bool requiresBlitForOffscreenCamera = postProcessEnabled || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
+            bool requiresBlitForOffscreenCamera = applyPostProcessing || cameraData.requiresOpaqueTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport;
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
@@ -1994,7 +2005,7 @@ namespace UnityEngine.Rendering.Universal
         // When Dynamic Resolution is enabled on the camera and a scale factor (from ScalableBufferManager) is different than 1, we need to use an intermediate texture.
         // Note: cameraData.renderScale resizes screen space textures, while dynamic resolution (ScalableBufferManager) doesn't and instead uses memory aliasing.
         // These features are different and should work independently, though they can be used together at the same time.
-        bool IsScalableBufferManagerUsed(UniversalCameraData cameraData)
+        static bool IsScalableBufferManagerUsed(UniversalCameraData cameraData)
         {
             const float epsilon = 0.0001f;
 

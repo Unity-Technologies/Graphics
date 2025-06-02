@@ -18,9 +18,9 @@ namespace UnityEditor.ShaderGraph
             displayName = "Gradient";
             value = new Gradient();
         }
-
         public override PropertyType propertyType => PropertyType.Gradient;
 
+        internal override bool canPromoteToFinalShader => false;
         internal override bool isExposable => false;
         internal override bool isRenamable => true;
 

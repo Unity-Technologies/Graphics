@@ -380,7 +380,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             ToolbarButton button = new ToolbarButton(() => PackageManager.UI.Window.Open(k_HdrpPackageName))
             {
-                text = Style.OpenPackageManager
+                text = Style.OpenPackageManager,
+                name = "WizardButton"
             };
 
             toolbar.Add(CreateWizardBehaviour());

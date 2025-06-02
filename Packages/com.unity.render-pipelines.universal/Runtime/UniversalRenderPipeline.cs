@@ -30,13 +30,12 @@ namespace UnityEngine.Rendering.Universal
         {
             public class CameraMetadataCacheEntry
             {
-                public string name;
                 public ProfilingSampler sampler;
             }
 
             static Dictionary<int, CameraMetadataCacheEntry> s_MetadataCache = new();
 
-            static readonly CameraMetadataCacheEntry k_NoAllocEntry = new() { name = "Unknown", sampler = new ProfilingSampler("Unknown") };
+            static readonly CameraMetadataCacheEntry k_NoAllocEntry = new() { sampler = new ProfilingSampler("Unknown") };
 
             public static CameraMetadataCacheEntry GetCached(Camera camera)
             {
@@ -49,7 +48,6 @@ namespace UnityEngine.Rendering.Universal
                     string cameraName = camera.name; // Warning: camera.name allocates
                     result = new CameraMetadataCacheEntry
                     {
-                        name = cameraName,
                         sampler = new ProfilingSampler(
                             $"{nameof(UniversalRenderPipeline)}.{nameof(RenderSingleCameraInternal)}: {cameraName}")
                     };
@@ -859,7 +857,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (useRenderGraph)
                 {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, cameraMetadata.name);
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
                     renderer.FinishRenderGraphRendering(cmd);
                 }
                 else
@@ -1819,9 +1817,8 @@ namespace UnityEngine.Rendering.Universal
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeLightData);
 
             UniversalLightData lightData = frameData.Create<UniversalLightData>();
-
+            lightData.visibleLights = visibleLights;
             lightData.mainLightIndex = GetMainLightIndex(settings, visibleLights);
-
             if (settings.additionalLightsRenderingMode != LightRenderingMode.Disabled)
             {
                 lightData.additionalLightsCount = Math.Min((lightData.mainLightIndex != -1) ? visibleLights.Length - 1 : visibleLights.Length, maxVisibleAdditionalLights);
@@ -1833,15 +1830,25 @@ namespace UnityEngine.Rendering.Universal
                 lightData.maxPerObjectAdditionalLightsCount = 0;
             }
 
+            if (settings.mainLightRenderingMode == LightRenderingMode.Disabled)
+            {
+                var mainLightIndex = GetBrightestDirectionalLightIndex(settings, visibleLights);
+                if (mainLightIndex != -1)
+                {
+                    // a visible main light was disabled, since it is still in the visible lights array we need to maintain
+                    // the mainLightIndex otherwise indexing in the lightloop goes wrong
+                    lightData.additionalLightsCount--;
+                    lightData.mainLightIndex = mainLightIndex;
+                }
+            }
+
             lightData.supportsAdditionalLights = settings.additionalLightsRenderingMode != LightRenderingMode.Disabled;
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
-            lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
             lightData.reflectionProbeAtlas = settings.reflectionProbeBlending && (isDeferredPlus || settings.reflectionProbeAtlas || settings.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled);
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
-
             return lightData;
         }
 
@@ -1971,20 +1978,12 @@ namespace UnityEngine.Rendering.Universal
             return configuration;
         }
 
-        // Main Light is always a directional light
-        static int GetMainLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
+        static int GetBrightestDirectionalLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
         {
-            using var profScope = new ProfilingScope(Profiling.Pipeline.getMainLightIndex);
-
-            int totalVisibleLights = visibleLights.Length;
-
-            if (totalVisibleLights == 0 || settings.mainLightRenderingMode != LightRenderingMode.PerPixel)
-                return -1;
-
-
             Light sunLight = RenderSettings.sun;
             int brightestDirectionalLightIndex = -1;
             float brightestLightIntensity = 0.0f;
+            int totalVisibleLights = visibleLights.Length;
             for (int i = 0; i < totalVisibleLights; ++i)
             {
                 ref VisibleLight currVisibleLight = ref visibleLights.UnsafeElementAtMutable(i);
@@ -2012,6 +2011,19 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return brightestDirectionalLightIndex;
+        }
+
+        // Main Light is always a directional light
+        static int GetMainLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
+        {
+            using var profScope = new ProfilingScope(Profiling.Pipeline.getMainLightIndex);
+
+            int totalVisibleLights = visibleLights.Length;
+
+            if (totalVisibleLights == 0 || settings.mainLightRenderingMode != LightRenderingMode.PerPixel)
+                return -1;
+
+            return GetBrightestDirectionalLightIndex(settings, visibleLights);
         }
 
         void SetupPerFrameShaderConstants()

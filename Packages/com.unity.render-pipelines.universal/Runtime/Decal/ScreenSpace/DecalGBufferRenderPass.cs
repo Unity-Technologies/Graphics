@@ -170,18 +170,22 @@ namespace UnityEngine.Rendering.Universal
 
                 InitPassData(cameraData, ref passData);
 
-                TextureHandle[] gBufferHandles = resourceData.gBuffer;
-                builder.SetRenderAttachment(gBufferHandles[0], 0, AccessFlags.Write);
-                builder.SetRenderAttachment(gBufferHandles[1], 1, AccessFlags.Write);
-                builder.SetRenderAttachment(gBufferHandles[2], 2, AccessFlags.Write);
-                builder.SetRenderAttachment(gBufferHandles[3], 3, AccessFlags.Write);
+                // GBuffers 0 - 4
+                for (int i = 0; i <= m_DeferredLights.GBufferLightingIndex; i++)
+                {
+                    if (resourceData.gBuffer[i].IsValid())
+                    {
+                        builder.SetRenderAttachment(resourceData.gBuffer[i], i, AccessFlags.Write);
+                    }
+                }
                 builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
 
                 if (renderGraph.nativeRenderPassesEnabled)
                 {
-                    builder.SetInputAttachment(gBufferHandles[4], 0, AccessFlags.Read);
-                    if (m_DecalLayers)
-                        builder.SetInputAttachment(gBufferHandles[5], 1, AccessFlags.Read);
+                    if (resourceData.gBuffer[4].IsValid())
+                        builder.SetInputAttachment(resourceData.gBuffer[4], 0, AccessFlags.Read);
+                    if (m_DecalLayers && resourceData.gBuffer[5].IsValid())
+                        builder.SetInputAttachment(resourceData.gBuffer[5], 1, AccessFlags.Read);
                 }
                 else if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, AccessFlags.Read);

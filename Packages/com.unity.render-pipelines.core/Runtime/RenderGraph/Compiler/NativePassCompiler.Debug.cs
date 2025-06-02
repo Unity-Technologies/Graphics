@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 loadReason = loadReason,
                 storeReason = storeReason,
                 storeMsaaReason = storeMsaaReason,
-                attachment = attachment
+                attachment = new RenderGraph.DebugData.SerializableNativePassAttachment(attachment)
             };
         }
 
@@ -263,10 +263,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 debugPass.async = passData.asyncCompute;
                 debugPass.nativeSubPassIndex = passData.nativeSubPassIndex;
                 debugPass.generateDebugData = graphPass.generateDebugData;
-                debugPass.resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
-                debugPass.resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
+                debugPass.resourceReadLists = new RenderGraph.DebugData.PassData.ResourceIdLists();
+                debugPass.resourceWriteLists = new RenderGraph.DebugData.PassData.ResourceIdLists();
 
-                RenderGraph.DebugData.s_PassScriptMetadata.TryGetValue(graphPass, out debugPass.scriptInfo);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                debugPass.scriptInfo = graphPass.debugScriptInfo;
+#endif
 
                 debugPass.syncFromPassIndex = -1; // TODO async compute support
                 debugPass.syncToPassIndex = -1; // TODO async compute support
@@ -321,7 +323,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     nativePassInfo.attachmentInfos = new ();
                     for (int a = 0; a < nativePassData.attachments.size; a++)
                         nativePassInfo.attachmentInfos.Add(MakeAttachmentInfo(ctx, in nativePassData, a));
-                    nativePassInfo.passCompatibility = new Dictionary<int, RenderGraph.DebugData.PassData.NRPInfo.NativeRenderPassInfo.PassCompatibilityInfo>();
+                    nativePassInfo.passCompatibility = new ();
                     nativePassInfo.mergedPassIds = mergedPassIds;
 
                     for (int i = 0; i < mergedPassIds.Count; ++i)

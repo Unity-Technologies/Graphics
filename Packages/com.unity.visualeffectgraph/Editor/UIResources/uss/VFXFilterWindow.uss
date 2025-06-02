@@ -126,6 +126,11 @@ Label {
     padding: 2px 3px;
     border-width: 0;
     border-radius: 3px;
+    color: #323232;
+    background-color: #B3B3B3;
+}
+
+.dark .node-name.setting {
     color: #B7B7B7;
     background-color: #323232;
 }
@@ -180,13 +185,24 @@ Label {
     margin-top: 8px;
     margin-right: 4px;
     margin-bottom: 10px;
+    border-bottom-width: 1px;
+    color: #3A3A3A;
+    border-color: #3A3A3A;
+}
+
+.dark .separator Label {
     color: var(--unity-colors-app_toolbar_button-background-checked);
     border-color: var(--unity-colors-app_toolbar_button-background-checked);
-    border-bottom-width: 1px;
 }
 
 #ListOfVariants .separator Label {
+    color: #1A1A1A;
+    border-color: #1A1A1A;
+}
+
+.dark #ListOfVariants .separator Label {
     color: var(--unity-colors-default-text);
+    border-color: var(--unity-colors-app_toolbar_button-background-checked);
 }
 /* ---------- */
 

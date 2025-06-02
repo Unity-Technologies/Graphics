@@ -127,49 +127,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="value">True to enable foveated rendering.</param>
         public void EnableFoveatedRasterization(bool value);
-    }
-
-    /// <summary>
-    /// A builder for a compute render pass
-    /// <see cref="RenderGraph.AddComputePass"/>
-    /// </summary>
-    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
-    public interface IComputeRenderGraphBuilder : IBaseRenderGraphBuilder
-    {
 
         /// <summary>
-        /// Specify the render function to use for this pass.
-        /// A call to this is mandatory for the pass to be valid.
+        /// Generates debugging data for this pass, intended for visualization in the RenderGraph Viewer.
         /// </summary>
-        /// <typeparam name="PassData">The Type of the class that provides data to the Render Pass.</typeparam>
-        /// <param name="renderFunc">Render function for the pass.</param>
-        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, ComputeGraphContext> renderFunc)
-            where PassData : class, new();
+        /// <param name="value">True to enable debug data generation for this pass.</param>
+        public void GenerateDebugData(bool value);
     }
 
     /// <summary>
-    /// A builder for an unsafe render pass.
-    /// <see cref="RenderGraph.AddUnsafePass"/>
+    /// An intermediary interface for builders that can set render attachments and random access attachments (UAV).
     /// </summary>
-    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
-    public interface IUnsafeRenderGraphBuilder : IBaseRenderGraphBuilder
-    {
-        /// <summary>
-        /// Specify the render function to use for this pass.
-        /// A call to this is mandatory for the pass to be valid.
-        /// </summary>
-        /// <typeparam name="PassData">The Type of the class that provides data to the Render Pass.</typeparam>
-        /// <param name="renderFunc">Render function for the pass.</param>
-        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, UnsafeGraphContext> renderFunc)
-            where PassData : class, new();
-    }
-
-    /// <summary>
-    /// A builder for a raster render pass
-    /// <see cref="RenderGraph.AddRasterRenderPass"/>
-    /// </summary>
-    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
-    public interface IRasterRenderGraphBuilder : IBaseRenderGraphBuilder
+    public interface IRenderAttachmentRenderGraphBuilder : IBaseRenderGraphBuilder
     {
         /// <summary>
         /// Use the texture as an rendertarget attachment.
@@ -221,37 +190,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice);
 
         /// <summary>
-        /// Use the texture as an input attachment.
-        ///
-        /// This informs the graph that any shaders in pass will only read from this texture at the current fragment position using the
-        /// LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros. The index passed to LOAD_FRAMEBUFFER_INPUT needs
-        /// to match the index passed to SetInputAttachment for this texture.
-        ///
-        /// </summary>
-        /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="index">Index the shader will use to access this texture.</param>
-        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.Read. Writing is currently not supported on any platform. </param>
-        void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Read)
-        {
-            SetInputAttachment(tex, index, flags, 0, -1);
-        }
-
-        /// <summary>
-        /// Use the texture as an input attachment.
-        ///
-        /// This informs the graph that any shaders in pass will only read from this texture at the current fragment position using the
-        /// LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros. The index passed to LOAD_FRAMEBUFFER_INPUT needs
-        /// to match the index passed to SetInputAttachment for this texture.
-        ///
-        /// </summary>
-        /// <param name="tex">Texture to use during this pass.</param>
-        /// <param name="index">Index the shader will use to access this texture.</param>
-        /// <param name="flags">How this pass will access the texture. Writing is currently not supported on any platform. </param>
-        /// <param name="mipLevel">Selects which mip map to used.</param>
-        /// <param name="depthSlice">Used to index into a texture array. Use -1 to use bind all slices.</param>
-        void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice);
-
-        /// <summary>
         /// Use the texture as a depth buffer for the Z-Buffer hardware.  Note you can only test-against and write-to a single depth texture in a pass.
         /// If you want to write depth to more than one texture you will need to register the second texture as SetRenderAttachment and manually calculate
         /// and write the depth value in the shader.
@@ -290,7 +228,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// This informs the graph that any shaders in the pass will access the texture as a random access attachment through RWTexture2d&lt;T&gt;, RWTexture3d&lt;T&gt;,...
         /// The texture can then be read/written by regular HLSL commands (including atomics, etc.).
         ///
-        /// As in other parts of the Unity graphics APIs random access textures share the index-based slots with render targets and input attachments. See CommandBuffer.SetRandomWriteTarget for details.
+        /// As in other parts of the Unity graphics APIs random access textures share the index-based slots with render targets and input attachments (if any). See CommandBuffer.SetRandomWriteTarget for details.
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
@@ -304,7 +242,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,...
         /// The buffer can then be read/written by regular HLSL commands (including atomics, etc.).
         ///
-        /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments. See CommandBuffer.SetRandomWriteTarget for details.
+        /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments (if any). See CommandBuffer.SetRandomWriteTarget for details.
         /// </summary>
         /// <param name="tex">Buffer to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
@@ -318,7 +256,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// This informs the graph that any shaders in the pass will access the buffer as a random access attachment through RWStructuredBuffer, RWByteAddressBuffer,...
         /// The buffer can then be read/written by regular HLSL commands (including atomics, etc.).
         ///
-        /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments. See CommandBuffer.SetRandomWriteTarget for details.
+        /// As in other parts of the Unity graphics APIs random access buffers share the index-based slots with render targets and input attachments (if any). See CommandBuffer.SetRandomWriteTarget for details.
         /// </summary>
         /// <param name="tex">Buffer to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture. This is set in the shader through the `register(ux)`  keyword.</param>
@@ -326,6 +264,79 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="flags">How this pass will access the buffer. Default value is set to AccessFlag.Read.</param>
         /// <returns>The value passed to 'input'. You should not use the returned value it will be removed in the future.</returns>
         BufferHandle UseBufferRandomAccess(BufferHandle tex, int index, bool preserveCounterValue, AccessFlags flags = AccessFlags.Read);
+    }
+
+    /// <summary>
+    /// A builder for a compute render pass.
+    /// <see cref="RenderGraph.AddComputePass"/>
+    /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
+    public interface IComputeRenderGraphBuilder : IBaseRenderGraphBuilder
+    {
+        /// <summary>
+        /// Specify the render function to use for this pass.
+        /// A call to this is mandatory for the pass to be valid.
+        /// </summary>
+        /// <typeparam name="PassData">The Type of the class that provides data to the Render Pass.</typeparam>
+        /// <param name="renderFunc">Render function for the pass.</param>
+        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, ComputeGraphContext> renderFunc)
+            where PassData : class, new();
+    }
+
+    /// <summary>
+    /// A builder for an unsafe render pass.
+    /// <see cref="RenderGraph.AddUnsafePass"/>
+    /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
+    public interface IUnsafeRenderGraphBuilder : IRenderAttachmentRenderGraphBuilder
+    {
+        /// <summary>
+        /// Specify the render function to use for this pass.
+        /// A call to this is mandatory for the pass to be valid.
+        /// </summary>
+        /// <typeparam name="PassData">The Type of the class that provides data to the Render Pass.</typeparam>
+        /// <param name="renderFunc">Render function for the pass.</param>
+        public void SetRenderFunc<PassData>(BaseRenderFunc<PassData, UnsafeGraphContext> renderFunc)
+            where PassData : class, new();
+    }
+
+    /// <summary>
+    /// A builder for a raster render pass.
+    /// <see cref="RenderGraph.AddRasterRenderPass"/>
+    /// </summary>
+    [MovedFrom(true, "UnityEngine.Experimental.Rendering.RenderGraphModule", "UnityEngine.Rendering.RenderGraphModule")]
+    public interface IRasterRenderGraphBuilder : IRenderAttachmentRenderGraphBuilder
+    {
+        /// <summary>
+        /// Use the texture as an input attachment.
+        ///
+        /// This informs the graph that any shaders in pass will only read from this texture at the current fragment position using the
+        /// LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros. The index passed to LOAD_FRAMEBUFFER_INPUT needs
+        /// to match the index passed to SetInputAttachment for this texture.
+        ///
+        /// </summary>
+        /// <param name="tex">Texture to use during this pass.</param>
+        /// <param name="index">Index the shader will use to access this texture.</param>
+        /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.Read. Writing is currently not supported on any platform. </param>
+        void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags = AccessFlags.Read)
+        {
+            SetInputAttachment(tex, index, flags, 0, -1);
+        }
+
+        /// <summary>
+        /// Use the texture as an input attachment.
+        ///
+        /// This informs the graph that any shaders in pass will only read from this texture at the current fragment position using the
+        /// LOAD_FRAMEBUFFER_INPUT(idx)/LOAD_FRAMEBUFFER_INPUT_MS(idx,sampleIdx) macros. The index passed to LOAD_FRAMEBUFFER_INPUT needs
+        /// to match the index passed to SetInputAttachment for this texture.
+        ///
+        /// </summary>
+        /// <param name="tex">Texture to use during this pass.</param>
+        /// <param name="index">Index the shader will use to access this texture.</param>
+        /// <param name="flags">How this pass will access the texture. Writing is currently not supported on any platform. </param>
+        /// <param name="mipLevel">Selects which mip map to used.</param>
+        /// <param name="depthSlice">Used to index into a texture array. Use -1 to use bind all slices.</param>
+        void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice);
 
         /// <summary>
         /// Enables Variable Rate Shading (VRS) on the current rasterization pass. Rasterization will use the texture to determine the rate of fragment shader invocation.

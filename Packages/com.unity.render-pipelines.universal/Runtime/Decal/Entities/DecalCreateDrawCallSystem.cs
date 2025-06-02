@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.Universal
                     normalToDecals.c3 = new float4(fadeFactor * 1.0f, angleFade.x, angleFade.y, uvScaleBias.w);
                     normalToDecalsDraw[instanceIndex] = normalToDecals;
 
-                    renderingLayerMasksDraw[instanceIndex] = (float)renderingLayerMasks[decalIndex];
+                    renderingLayerMasksDraw[instanceIndex] = math.asfloat(renderingLayerMasks[decalIndex]);
 
                     instanceIndex++;
 

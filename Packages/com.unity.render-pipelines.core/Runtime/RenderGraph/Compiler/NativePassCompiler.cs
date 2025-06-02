@@ -439,7 +439,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (mergeTestResult.reason != PassBreakReason.Merged)
                         {
                             SetPassStatesForNativePass(activeNativePassId);
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                             ref var nativePassData = ref contextData.nativePassData.ElementAt(activeNativePassId);
                             nativePassData.breakAudit = mergeTestResult;
 #endif
@@ -463,7 +463,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 {
                     // "Close" the last native pass by marking the last graph pass as end
                     SetPassStatesForNativePass(activeNativePassId);
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                     ref var nativePassData = ref contextData.nativePassData.ElementAt(activeNativePassId);
                     nativePassData.breakAudit = new PassBreakAudit(PassBreakReason.EndOfGraph, -1);
 #endif
@@ -748,23 +748,33 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             foreach (ref readonly var res in subPass.FirstUsedResources(contextData))
                             {
                                 ref readonly var resInfo = ref contextData.UnversionedResourceData(res);
-                                if (!resInfo.memoryLess)
+                                
+                                if (!resInfo.isImported)
                                 {
-                                    if (!resInfo.isImported)
-                                    {
-                                        bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
+                                    bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
 
-                                        // This resource is read for the first time as a regular texture and not as a framebuffer attachment
-                                        // so we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
-                                        // TODO: Should this be a performance warning?? Maybe rare enough in practice?
-                                        resources.forceManualClearOfResource = !usedAsFragmentThisPass;
-                                        resources.CreatePooledResource(rgContext, res.iType, res.index);
-                                    }
-                                    else // Imported resource
+                                    // This resource is read for the first time as a regular texture and not as a framebuffer attachment
+                                    // so we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
+                                    // TODO: Should this be a performance warning?? Maybe rare enough in practice?
+                                    resources.forceManualClearOfResource = !usedAsFragmentThisPass;
+
+                                    // If the compiler has detected that this resource can be memoryless,
+                                    // we need to update the texture descriptor that will be used to create the memoryless RTHandle.
+                                    // Memoryless resources are created to allow implicit conversion from TextureHandle to RTHandle.
+                                    // Such conversions can happen on users side when manipulating texture handles.
+                                    if (resInfo.memoryLess)
                                     {
-                                        if (resInfo.clear)
-                                            resources.ClearResource(rgContext, res.iType, res.index);
+                                        resources.SetTextureAsMemoryLess(res);
                                     }
+
+                                    // We create the resources from a pool
+                                    // memoryless resources are also created but will not allocate in system memory 
+                                    resources.CreatePooledResource(rgContext, res.iType, res.index);
+                                }
+                                else // Imported resource
+                                {
+                                    if (resInfo.clear && !resInfo.memoryLess)
+                                        resources.ClearResource(rgContext, res.iType, res.index);
                                 }
                             }
                         }
@@ -827,7 +837,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     RenderBufferLoadAction loadAction = RenderBufferLoadAction.DontCare;
                     RenderBufferStoreAction storeAction = RenderBufferStoreAction.DontCare;
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                     nativePass.loadAudit.Add(new LoadAudit(LoadReason.FullyRewritten));
                     ref var currLoadAudit = ref nativePass.loadAudit[nativePass.loadAudit.size - 1]; // Get the last added element
 
@@ -854,7 +864,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (resourceData.firstUsePassID < nativePass.firstGraphPass)
                         {
                             loadAction = RenderBufferLoadAction.Load;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                             currLoadAudit = new LoadAudit(LoadReason.LoadPreviouslyWritten, resourceData.firstUsePassID);
 #endif
                             // Once we decide to load a resource, we must default to the Store action if the resource is used after the current native pass.
@@ -863,7 +873,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             if (usedAfterThisNativePass)
                             {
                                 storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                 currStoreAudit = new StoreAudit(StoreReason.StoreUsedByLaterPass, destroyPassID);
 #endif
                             }
@@ -878,14 +888,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 if (resourceData.clear)
                                 {
                                     loadAction = RenderBufferLoadAction.Clear;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                     currLoadAudit = new LoadAudit(LoadReason.ClearImported);
 #endif
                                 }
                                 else
                                 {
                                     loadAction = RenderBufferLoadAction.Load;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                     currLoadAudit = new LoadAudit(LoadReason.LoadImported);
 #endif
                                 }
@@ -894,7 +904,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             {
                                 // Created by the graph internally clear on first read
                                 loadAction = RenderBufferLoadAction.Clear;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                 currLoadAudit = new LoadAudit(LoadReason.ClearCreated);
 #endif
                             }
@@ -911,7 +921,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             {
                                 // The resource is still used after this native pass so we need to store it.
                                 storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                 currStoreAudit = new StoreAudit(StoreReason.StoreUsedByLaterPass, destroyPassID);
 #endif
                             }
@@ -928,14 +938,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     if (resourceData.discard)
                                     {
                                         storeAction = RenderBufferStoreAction.DontCare;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                         currStoreAudit = new StoreAudit(StoreReason.DiscardImported);
 #endif
                                     }
                                     else
                                     {
                                         storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                         currStoreAudit = new StoreAudit(StoreReason.StoreImported);
 #endif
                                     }
@@ -943,7 +953,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 else
                                 {
                                     storeAction = RenderBufferStoreAction.DontCare;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                     currStoreAudit = new StoreAudit(StoreReason.DiscardUnused);
 #endif
                                 }
@@ -1014,7 +1024,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 if (needsMSAASamples && needsResolvedData)
                                 {
                                     storeAction = RenderBufferStoreAction.StoreAndResolve;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                     currStoreAudit = new StoreAudit(
                                         (isImportedLastWriter ? StoreReason.StoreImported : StoreReason.StoreUsedByLaterPass),
                                         userPassID,
@@ -1025,7 +1035,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 else if (needsResolvedData)
                                 {
                                     storeAction = RenderBufferStoreAction.Resolve;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                     currStoreAudit = new StoreAudit(
                                         (isImportedLastWriter ? StoreReason.StoreImported : StoreReason.StoreUsedByLaterPass),
                                         userPassID,
@@ -1035,7 +1045,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 else if (needsMSAASamples)
                                 {
                                     storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                     currStoreAudit = new StoreAudit(
                                         (resourceData.bindMS ? StoreReason.DiscardBindMs : StoreReason.DiscardUnused),
                                         -1,
@@ -1058,14 +1068,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     if (resourceData.discard)
                                     {
                                         storeAction = RenderBufferStoreAction.DontCare;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                         currStoreAudit = new StoreAudit(StoreReason.DiscardImported);
 #endif
                                     }
                                     else
                                     {
                                         storeAction = RenderBufferStoreAction.Store;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                         currStoreAudit = new StoreAudit(
                                             StoreReason.DiscardBindMs, -1, StoreReason.StoreImported);
 #endif
@@ -1085,7 +1095,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                         storeAction = isDepthAttachment
                                             ? RenderBufferStoreAction.DontCare
                                             : RenderBufferStoreAction.Resolve;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                         currStoreAudit = new StoreAudit(
                                             StoreReason.DiscardImported, -1, StoreReason.DiscardImported);
 #endif
@@ -1093,7 +1103,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                     else
                                     {
                                         storeAction = RenderBufferStoreAction.StoreAndResolve;
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                                         currStoreAudit = new StoreAudit(
                                             StoreReason.StoreImported, -1, StoreReason.StoreImported);
 #endif
@@ -1107,7 +1117,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
                         memoryless = true;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
                         // Ensure load/store actions are actually valid for memory less
                         if (loadAction == RenderBufferLoadAction.Load)
                             throw new Exception("Resource was marked as memoryless but is trying to load.");
@@ -1335,7 +1345,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             foreach (ref readonly var res in subPass.LastUsedResources(contextData))
                             {
                                 ref readonly var resInfo = ref contextData.UnversionedResourceData(res);
-                                if (resInfo.isImported == false && resInfo.memoryLess == false)
+                                if (resInfo.isImported == false)
                                 {
                                     resources.ReleasePooledResource(rgContext, res.iType, res.index);
                                 }
@@ -1351,6 +1361,68 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (pointTo.isImported == false)
                         {
                             resources.ReleasePooledResource(rgContext, destroy.iType, destroy.index);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ExecuteSetRenderTargets(RenderGraphPass pass, InternalRenderGraphContext rgContext)
+        {
+            if (pass.depthAccess.textureHandle.IsValid() || pass.colorBufferMaxIndex != -1)
+            {
+                var m_Resources = graph.m_ResourcesForDebugOnly;
+
+                var mrtArray = rgContext.renderGraphPool.GetTempArray<RenderTargetIdentifier>(pass.colorBufferMaxIndex + 1);
+                var colorBuffers = pass.colorBufferAccess;
+
+                if (pass.colorBufferMaxIndex > 0)
+                {
+                    for (int i = 0; i <= pass.colorBufferMaxIndex; ++i)
+                    {
+                        if (!colorBuffers[i].textureHandle.IsValid())
+                            throw new InvalidOperationException("MRT setup is invalid. Some indices are not used.");
+
+                        mrtArray[i] = m_Resources.GetTexture(colorBuffers[i].textureHandle);
+                    }
+
+                    CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(colorBuffers[0].textureHandle));
+
+                    if (pass.depthAccess.textureHandle.IsValid())
+                    {
+                        CoreUtils.SetRenderTarget(rgContext.cmd, mrtArray, m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Setting MRTs without a depth buffer is not supported.");
+                    }
+                }
+                else
+                {
+                    if (pass.depthAccess.textureHandle.IsValid())
+                    {
+                        if (pass.colorBufferMaxIndex > -1)
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle),
+                                m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
+                        }
+                        else
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                        }
+                    }
+                    else
+                    {
+                        if (pass.colorBufferAccess[0].textureHandle.IsValid())
+                        {
+                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
+                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("Neither depth nor color render targets are correctly setup at pass " + pass.name + ".");
                         }
                     }
                 }
@@ -1433,13 +1505,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             {
                 ref var pass = ref contextData.passData.ElementAt(passIndex);
 
-                //Fix low level passes being merged into nrp giving errors
-                //because of the "isRaster" check below
-
                 if (pass.culled)
                     continue;
 
-                var isRaster = pass.type == RenderGraphPassType.Raster;
+                bool isRaster = pass.type == RenderGraphPassType.Raster;
+                bool isUnsafe = pass.type == RenderGraphPassType.Unsafe;
 
                 ExecuteInitializeResource(rgContext, resources, pass);
 
@@ -1475,6 +1545,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             inRenderPass = true;
                         }
                     }
+                }
+                else if (isUnsafe)
+                {
+                    ExecuteSetRenderTargets(passes[passIndex], rgContext);
                 }
 
                 if (pass.mergeState >= PassMergeState.SubPass)

@@ -215,7 +215,7 @@ void Frag(PackedVaryings packedInput,
 #else
     uint surfaceRenderingLayer = LoadSceneRenderingLayer(positionCS.xy);
 #endif
-    uint projectorRenderingLayer = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal));
+    uint projectorRenderingLayer = asuint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal));
     // This is simple trick to clip if there is no matching layers
     // Part (surfaceRenderingLayer & projectorRenderingLayer) will produce 0, 1, 2 ...
     // Finally we subtract with small value to remmap only zero to negative value

@@ -20,6 +20,12 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #define Threshold           _Params.z
         #define ThresholdKnee       _Params.w
 
+        float4 _Params2; // x: kawaseDistance y: kawaseScatter z: dualScatter w: dualScatter * 0.5
+        #define KawaseDistance  _Params2.x
+        #define KawaseScatter   _Params2.y
+        #define DualScatter     _Params2.z
+        #define DualHalfScatter _Params2.w
+
         half4 EncodeHDR(half3 color)
         {
         #if UNITY_COLORSPACE_GAMMA
@@ -38,6 +44,12 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #endif
 
             return color;
+        }
+
+        half3 SampleHDR(float2 uv,  float2 offset)
+        {
+            float2 texelSize = _BlitTexture_TexelSize.xy;
+            return DecodeHDR(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(uv - offset * texelSize, texelSize)));
         }
 
         half3 SamplePrefilter(float2 uv,  float2 offset)
@@ -136,11 +148,11 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
 
             // Optimized bilinear 5-tap gaussian on the same-sized source (9-tap equivalent)
-            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(uv - float2(0.0, texelSize.y * 3.23076923), texelSize)));
-            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(uv - float2(0.0, texelSize.y * 1.38461538), texelSize)));
-            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(uv                                        , texelSize)));
-            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(uv + float2(0.0, texelSize.y * 1.38461538), texelSize)));
-            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, ClampUVForBilinear(uv + float2(0.0, texelSize.y * 3.23076923), texelSize)));
+            half3 c0 = SampleHDR(uv, -float2(0.0, 3.23076923));
+            half3 c1 = SampleHDR(uv, -float2(0.0, 1.38461538));
+            half3 c2 = SampleHDR(uv,  float2(0.0, 0.0));
+            half3 c3 = SampleHDR(uv, +float2(0.0, 1.38461538));
+            half3 c4 = SampleHDR(uv, +float2(0.0, 3.23076923));
 
             half3 color = c0 * 0.07027027 + c1 * 0.31621622
                         + c2 * 0.22702703
@@ -169,6 +181,68 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             return EncodeHDR(color);
         }
 
+        half4 FragKawase(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
+
+            const float d = KawaseDistance;
+
+            half3 c0 = SampleHDR(uv, float2( d,  d));
+            half3 c1 = SampleHDR(uv, float2(-d,  d));
+            half3 c2 = SampleHDR(uv, float2(-d, -d));
+            half3 c3 = SampleHDR(uv, float2( d, -d));
+
+            half3 color = (c0 + c1 + c2 + c3) * 0.25;
+
+            if (KawaseScatter < 0.999)
+                color = lerp(SampleHDR(uv, float2( 0,  0)), color, Scatter);
+
+            return EncodeHDR(color);
+        }
+
+        half4 FragDualDownsample(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
+
+            half3 c0 = SampleHDR(uv, float2(0, 0));
+
+            half3 c1 = SampleHDR(uv, float2( 0.5,  0.5));
+            half3 c2 = SampleHDR(uv, float2(-0.5,  0.5));
+            half3 c3 = SampleHDR(uv, float2(-0.5, -0.5));
+            half3 c4 = SampleHDR(uv, float2( 0.5, -0.5));
+
+            half3 color = (1.0 / 8.0) * (c0 * 4.0 + c1 + c2 + c3 + c4);
+
+            return EncodeHDR(color);
+        }
+
+        half4 FragDualUpsample(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.texcoord);
+
+            const float hs = DualHalfScatter;
+            half3 c1 = SampleHDR(uv, float2( hs,  hs));
+            half3 c2 = SampleHDR(uv, float2(-hs,  hs));
+            half3 c3 = SampleHDR(uv, float2(-hs, -hs));
+            half3 c4 = SampleHDR(uv, float2( hs, -hs));
+
+            const float s = DualScatter;
+            half3 c5 = SampleHDR(uv, float2(-s, 0.0));
+            half3 c6 = SampleHDR(uv, float2( s, 0.0));
+            half3 c7 = SampleHDR(uv, float2( 0.0,  s));
+            half3 c8 = SampleHDR(uv, float2( 0.0, -s));
+
+            half3 color = (1.0 / 12.0) *
+                ((c1 + c2 + c3 + c4) * 2.0 +
+                  c5 + c6 + c7 + c8);
+
+            return EncodeHDR(color);
+        }
+
+
     ENDHLSL
 
     SubShader
@@ -177,7 +251,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         LOD 100
         ZTest Always ZWrite Off Cull Off
 
-        Pass
+        Pass // 0
         {
             Name "Bloom Prefilter"
 
@@ -189,7 +263,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             ENDHLSL
         }
 
-        Pass
+        Pass // 1
         {
             Name "Bloom Blur Horizontal"
 
@@ -199,7 +273,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             ENDHLSL
         }
 
-        Pass
+        Pass // 2
         {
             Name "Bloom Blur Vertical"
 
@@ -209,7 +283,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             ENDHLSL
         }
 
-        Pass
+        Pass // 3
         {
             Name "Bloom Upsample"
 
@@ -217,6 +291,36 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
                 #pragma vertex Vert
                 #pragma fragment FragUpsample
                 #pragma multi_compile_local_fragment _ _BLOOM_HQ
+            ENDHLSL
+        }
+
+        Pass // 4
+        {
+            Name "Bloom Kawase"
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragKawase
+            ENDHLSL
+        }
+
+        Pass // 5
+        {
+            Name "Bloom Dual Downsample"
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragDualDownsample
+            ENDHLSL
+        }
+
+        Pass // 6
+        {
+            Name "Bloom Dual Upsample"
+
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragDualUpsample
             ENDHLSL
         }
     }

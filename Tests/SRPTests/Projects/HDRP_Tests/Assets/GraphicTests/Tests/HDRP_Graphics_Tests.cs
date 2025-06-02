@@ -214,6 +214,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
         )]
         [IgnoreGraphicsTest(
+            "4089_DRS-DLSS-Software$",
+            "Instability https://jira.unity3d.com/browse/UUM-100863",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Vulkan }
+        )]
+        [IgnoreGraphicsTest(
             "4096_DRS-TAAU-Hardware$",
             "Very small fringing across edges. Maybe a sampling artifact?",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }

@@ -1,12 +1,18 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:r="UnityEditor.Rendering" editor-extension-mode="True">
     <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/StyleSheets/RenderGraphViewer.uss" />
     <ui:VisualElement name="header-container">
-        <ui:Button name="capture-button" tooltip="Capture"/>
-        <ui:DropdownField name="current-graph-dropdown" label="Graph" />
-        <ui:DropdownField name="current-execution-dropdown" label="Camera" />
-        <uie:EnumFlagsField label="Pass Filter" name="pass-filter-field"/>
-        <uie:EnumFlagsField label="Resource Filter" name="resource-filter-field"/>
-        <uie:EnumFlagsField label="View Options" name="view-options-field"/>
+        <ui:VisualElement name="header-container-left">
+            <uie:ToolbarToggle name="auto-pause-toggle" text="Pause" />
+            <ui:DropdownField name="current-graph-dropdown" label="Graph" />
+            <ui:IMGUIContainer name="connection-dropdown" tooltip="Target selection" />
+            <uie:ToolbarMenu name="current-execution-toolbar-menu" text="Camera" />
+            <uie:ToolbarMenu name="pass-filter-field" />
+            <uie:ToolbarMenu name="resource-filter-field" />
+            <uie:ToolbarMenu name="view-options-field" />
+        </ui:VisualElement>
+        <ui:VisualElement name="header-container-right">
+            <uie:ToolbarSearchField name="search-field" class="panel-search-field"/>
+        </ui:VisualElement>
     </ui:VisualElement>
 
     <ui:TwoPaneSplitView name="content-container" orientation="Horizontal">
@@ -27,11 +33,9 @@
         </ui:VisualElement>
         <ui:TwoPaneSplitView name="panel-container" orientation="Vertical">
             <r:HeaderFoldout text="Resource List" name="panel-resource-list">
-                <uie:ToolbarSearchField name="resource-search-field" class="panel-search-field"/>
                 <ui:ScrollView name="panel-resource-list-scroll-view"/>
             </r:HeaderFoldout>
             <r:HeaderFoldout text="Pass List" name="panel-pass-list">
-                <uie:ToolbarSearchField name="pass-search-field" class="panel-search-field"/>
                 <ui:ScrollView name="panel-pass-list-scroll-view"/>
             </r:HeaderFoldout>
         </ui:TwoPaneSplitView>

@@ -155,7 +155,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             BuildPropertyNameLabel(propertySheet);
             BuildDisplayNameField(propertySheet);
             BuildReferenceNameField(propertySheet);
-            BuildPropertyFields(propertySheet);
+            BuildPromoteField(propertySheet);
+            BuildPropertyFields(propertySheet);            
             BuildKeywordFields(propertySheet, shaderInput);
             BuildDropdownFields(propertySheet, shaderInput);
             BuildAttributesFields(propertySheet);
@@ -180,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void BuildPerRendererDataField(PropertySheet propertySheet)
         {
-            if (!isSubGraph && shaderInput is AbstractShaderProperty property && property.isExposed)
+            if ((!isSubGraph || shaderInput.promoteToFinalShader) && shaderInput is AbstractShaderProperty property && property.isExposed)
             {
                 var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
                 propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
@@ -198,9 +199,28 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             }
         }
 
+        void BuildPromoteField(PropertySheet propertySheet)
+        {
+            if (!isSubGraph || !shaderInput.canPromoteToFinalShader)
+                return;
+
+            var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
+            propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
+                evt =>
+                {
+                    this._preChangeValueCallback("Change Promote to Shader toggle");
+                    shaderInput.promotedFromAssetID = evt.isOn ? graphData.assetGuid : null;
+                    this._postChangeValueCallback(true, ModificationScope.Graph);
+                },
+                new ToggleData(shaderInput.promoteToFinalShader),
+                "Promote to final Shader",
+                out var promoteToggleVisualElement,
+                tooltip: "Promote this as a material property to the final shader. It will not show up as an input port on the Subgraph Node."));
+        }
+
         void BuildExposedField(PropertySheet propertySheet)
         {
-            if (!isSubGraph)
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
             {
                 var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
                 propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
@@ -226,7 +246,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void BuildCustomBindingField(PropertySheet propertySheet, ShaderInput property)
         {
-            if (isSubGraph && property.isCustomSlotAllowed)
+            if (isSubGraph && property.isCustomSlotAllowed && !shaderInput.promoteToFinalShader)
             {
                 var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
                 propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
@@ -332,7 +352,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void BuildReferenceNameField(PropertySheet propertySheet)
         {
-            if (!isSubGraph || shaderInput is ShaderKeyword)
+            if ((!isSubGraph || shaderInput.promoteToFinalShader) || shaderInput is ShaderKeyword)
             {
                 m_ReferenceNameDrawer = new TextPropertyDrawer();
                 propertySheet.Add(m_ReferenceNameDrawer.CreateGUI(
@@ -523,7 +543,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void BuildHLSLDeclarationOverrideFields(PropertySheet propertySheet, AbstractShaderProperty property)
         {
-            if (isSubGraph)
+            if (isSubGraph && !shaderInput.promoteToFinalShader)
                 return;
 
             var hlslDecls = Enum.GetValues(typeof(HLSLDeclaration));
@@ -597,7 +617,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
         {
-            if (shaderInput.isExposed && !isSubGraph && !isCurrentPropertyGlobal)
+            if (shaderInput.isExposed && (!isSubGraph || shaderInput.promoteToFinalShader) && !isCurrentPropertyGlobal)
             {
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
@@ -614,7 +634,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     tooltip: "Indicate how this float property should appear in the material inspector UI."));
             }
 
-            var floatType = (!shaderInput.isExposed || isSubGraph || isCurrentPropertyGlobal) ? FloatType.Default : vector1ShaderProperty.floatType;
+            var floatType = (!shaderInput.isExposed || isSubGraph || isCurrentPropertyGlobal) && !shaderInput.promoteToFinalShader ? FloatType.Default : vector1ShaderProperty.floatType;
             // Handle vector 1 mode parameters
             switch (floatType)
             {
@@ -858,7 +878,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             var colorPropertyDrawer = new ColorPropertyDrawer();
 
-            if (!isSubGraph)
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
             {
                 if (colorProperty.isMainColor)
                 {
@@ -873,7 +893,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }
             }
 
-            if (/*shaderInput.isExposed && */!isSubGraph && !isCurrentPropertyGlobal)
+            if (/*shaderInput.isExposed && */(!isSubGraph || shaderInput.promoteToFinalShader) && !isCurrentPropertyGlobal)
             {
                 var enumPropertyDrawer = new EnumPropertyDrawer();
 
@@ -909,7 +929,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             var texture2DPropertyDrawer = new Texture2DPropertyDrawer();
 
-            if (!isSubGraph)
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
             {
                 if (texture2DProperty.isMainTexture)
                 {
@@ -937,7 +957,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 out var texture2DField
             ));
 
-            if (!isSubGraph && !isCurrentPropertyGlobal)
+            if ((!isSubGraph || shaderInput.promoteToFinalShader) && !isCurrentPropertyGlobal)
             {
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
@@ -957,7 +977,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                 textureModeField.SetEnabled(texture2DProperty.generatePropertyBlock);
             }
-            if (!isSubGraph)
+            if (!isSubGraph || shaderInput.promoteToFinalShader)
             {
                 var togglePropertyDrawer = new ToggleDataPropertyDrawer();
                 propertySheet.Add(togglePropertyDrawer.CreateGUI(
@@ -1411,7 +1431,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         void BuildAttributesFields(PropertySheet propertySheet)
         {
-            if (isSubGraph || isCurrentPropertyGlobal)
+            if ((isSubGraph || isCurrentPropertyGlobal) && !shaderInput.promoteToFinalShader)
                 return;
 
             if (shaderInput.isExposed && shaderInput is AbstractShaderProperty property)
@@ -1572,7 +1592,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 out var typeField,
                 tooltip: "Indicate how the keyword is defined and under what circumstances its permutations will be compiled."));
 
-            if (keyword.keywordDefinition == KeywordDefinition.ShaderFeature && isSubGraph)
+            if (keyword.keywordDefinition == KeywordDefinition.ShaderFeature && isSubGraph && !keyword.promoteToFinalShader)
             {
                 var help = new HelpBoxRow("Shader Feature Keywords in SubGraphs do not generate variant permutations.", MessageType.Info);
                 propertySheet.Add(help);
