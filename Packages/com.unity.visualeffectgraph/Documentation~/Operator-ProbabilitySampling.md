@@ -6,7 +6,7 @@ Menu Path : **Operator > Logic > Probability Sampling**
 
 The **Probability Sampling** Operator performs a kind of switch/case operation where a weight controls the probability of selecting a case. If all weights are equal, this Operator produces a uniform distribution of the different output values.
 
-![img](Images/Operator-ProbabilitySamplingExample.gif)
+![A Random Selector Weighted Operator, and its effect on a 32 x 32 grid. In the Operator, Value 0 is red with a weight of 1, Value 1 is green with a weight of 0, and Value 2 is blue with a weight of 0. The grid is fully red. As the weight of Value 1 is dragged from 0 to 1, more red squares turn green. As the weight of Value 2 is then dragged from 0 to 1, more red and green squares turn blue.](Images/Operator-ProbabilitySamplingExample.gif)
 
 ## Operator settings
 
