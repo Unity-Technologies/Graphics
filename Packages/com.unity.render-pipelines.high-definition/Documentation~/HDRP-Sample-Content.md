@@ -78,7 +78,7 @@ This sample includes examples on how to create a [Fullscreen Shader](create-a-fu
 The Water samples contain the following scenes you can use to learn about HDRP's [Water](water.md) features: 
 
 - Pool: Demonstrates ripples and buoyancy.
-- Glacier: Demonstrates current, water deformers, floating objects, and a simulation mask.
+- Glacier: Demonstrates current, deformation, water decals, floating objects, and a simulation mask.
 - Island: Demonstrates waves, foam, and the water excluder.
 - Rain: Demonstrates how to add pertubations to the normals using shader graph.
 - Waterline: Demonstrates how to override rendering of the waterline using a [Custom Pass](Custom-Pass.md).

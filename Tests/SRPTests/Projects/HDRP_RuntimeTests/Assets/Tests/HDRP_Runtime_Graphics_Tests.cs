@@ -24,6 +24,11 @@ public class HDRP_Runtime_Graphics_Tests
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
     )]
     [IgnoreGraphicsTest(
+        "001-HDTemplate",
+        "https://jira.unity3d.com/browse/UUM-105789",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.PS5, RuntimePlatform.WindowsPlayer }
+    )]
+    [IgnoreGraphicsTest(
         "002-HDMaterials",
         "",
         graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Metal }
@@ -48,6 +53,11 @@ public class HDRP_Runtime_Graphics_Tests
         "003-VirtualTexturing-Forward",
         "https://jira.unity3d.com/browse/UUM-51336",
         runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxSeries }
+    )]
+    [IgnoreGraphicsTest(
+        "004-CloudsFlaresDecals",
+        "https://jira.unity3d.com/browse/UUM-105789",
+        runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.OSXPlayer, RuntimePlatform.WindowsPlayer }
     )]
     [IgnoreGraphicsTest(
         "007-BasicAPV",

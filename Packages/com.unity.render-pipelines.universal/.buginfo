@@ -18,3 +18,9 @@ Tools:
       - ^.*LightExplorer?.*$
       - ^.*MaterialUpgrader?.*$
   area: Graphics Tools
+
+post-processing-and-compositing:
+  when:
+    path:
+      - ^.*PostProcessPass?.*$
+  area: Post-processing and Compositing

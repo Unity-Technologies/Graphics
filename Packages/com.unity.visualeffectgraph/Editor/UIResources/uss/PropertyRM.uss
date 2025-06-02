@@ -107,9 +107,11 @@
 .propertyrm #spacebutton.None {
     background-image : url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_NoneSpace@2x.png");
 }
-.propertyrm VFXMatrix4x4Field Label {
-    width: 18px;
-    margin-left: 4px;
+
+.propertyrm #matrixContainer Label {
+    width: 20px;
+    margin-right: 2px;
+    -unity-text-align: middle-right;
 }
 
 .propertyrm #spacebutton:hover {
