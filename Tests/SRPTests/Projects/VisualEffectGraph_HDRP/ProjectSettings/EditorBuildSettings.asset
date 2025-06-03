@@ -332,5 +332,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/44_SDFBakerSlices/44_SDFBakerSlices.unity
     guid: a19f61b8cadc87a4ab6eb52ee1b093e7
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/45_CustomPassCulling/45_CustomPassCulling.unity
+    guid: e04b44761b7423d4ab0e2e30ff1bf682
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
