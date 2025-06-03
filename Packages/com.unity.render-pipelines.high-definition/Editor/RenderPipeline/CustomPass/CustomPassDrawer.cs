@@ -172,6 +172,16 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUI.PropertyField(rect, m_TargetDepthBuffer, Styles.targetDepthBuffer);
                 rect.y += Styles.defaultLineSpace;
+
+                CustomPass.TargetBuffer requestedDepth = m_TargetDepthBuffer.GetEnumValue<CustomPass.TargetBuffer>();
+                if (m_CustomPass.getConstrainedDepthBuffer() != requestedDepth)
+                {
+                    Rect helpBoxRect = rect;
+                    float helpBoxHeight = EditorGUIUtility.singleLineHeight * 2;
+                    helpBoxRect.height = helpBoxHeight;
+                    EditorGUI.HelpBox(helpBoxRect, "Camera depth isn't supported when dynamic scaling is on. We will automatically fall back to not doing depth-testing for this pass.", MessageType.Warning);
+                    rect.y += helpBoxHeight;
+                }
             }
 
             if ((commonPassUIFlags & PassUIFlag.ClearFlags) != 0)
@@ -264,6 +274,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 height += Styles.defaultLineSpace * lines;
+
+                // Add height for the help box if it will be shown
+                if ((commonPassUIFlags & PassUIFlag.TargetDepthBuffer) != 0 &&
+                    m_CustomPass.getConstrainedDepthBuffer() != m_TargetDepthBuffer.GetEnumValue<CustomPass.TargetBuffer>())
+                {
+                    height += EditorGUIUtility.singleLineHeight * 2; // Help box height
+                }
             }
 
             return height + GetPassHeight(property);
