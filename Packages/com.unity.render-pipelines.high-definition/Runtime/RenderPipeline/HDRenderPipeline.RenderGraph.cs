@@ -462,12 +462,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 commandBuffer = commandBuffer
             };
 
-            m_RenderGraph.BeginRecording(parameters);
-            RecordRenderGraph(
-                renderRequest, aovRequest, aovBuffers,
-                aovCustomPassBuffers, renderContext, commandBuffer);
-            m_RenderGraph.EndRecordingAndExecute();
-
+            try
+            {
+                m_RenderGraph.BeginRecording(parameters);
+                RecordRenderGraph(
+                    renderRequest, aovRequest, aovBuffers,
+                    aovCustomPassBuffers, renderContext, commandBuffer);
+                m_RenderGraph.EndRecordingAndExecute();
+            }
+            catch (Exception e)
+            {
+                if (m_RenderGraph.ResetGraphAndLogException(e))
+                    throw;
+            }
 
             if (aovRequest.isValid)
             {

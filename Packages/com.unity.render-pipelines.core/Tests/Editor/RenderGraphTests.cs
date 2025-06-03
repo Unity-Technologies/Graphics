@@ -108,6 +108,8 @@ namespace UnityEngine.Rendering.Tests
                         m_RenderGraph.BeginRecording(rgParams);
 
                         asset.recordRenderGraphBody?.Invoke(renderContext, camera, cmd);
+
+                        m_RenderGraph.EndRecordingAndExecute();
                     }
                     catch (Exception e)
                     {
@@ -115,8 +117,6 @@ namespace UnityEngine.Rendering.Tests
                             throw;
                         return;
                     }
-
-                    m_RenderGraph.EndRecordingAndExecute();
 
                     renderContext.ExecuteCommandBuffer(cmd);
 
@@ -1267,7 +1267,6 @@ namespace UnityEngine.Rendering.Tests
                 Assert.True(pixels[i+2] / 255.0f == Color.red.b);
                 Assert.True(pixels[i+3] / 255.0f == Color.red.a);
             }
-
             pixels.Dispose();
         }
 
@@ -1799,7 +1798,7 @@ namespace UnityEngine.Rendering.Tests
                     builder.SetRenderFunc((ErrorCastPassData data, RasterGraphContext context) =>
                     {
                         // We can safely cast into a RTHandle during the RG execution, resource has been created
-                        Assert.DoesNotThrow(() => 
+                        Assert.DoesNotThrow(() =>
                         {
                             RTHandle rtHandle = (RTHandle)data.outputHandle;
                         });

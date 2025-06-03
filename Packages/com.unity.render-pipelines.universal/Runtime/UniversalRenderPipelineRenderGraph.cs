@@ -20,14 +20,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderGraph.BeginRecording(rgParams);
                 renderer.RecordRenderGraph(renderGraph, context);
+                renderGraph.EndRecordingAndExecute();
             }
             catch (Exception e)
             {
                 if (renderGraph.ResetGraphAndLogException(e))
                     throw;
-                return;
             }
-            renderGraph.EndRecordingAndExecute();
         }
     }
 }
