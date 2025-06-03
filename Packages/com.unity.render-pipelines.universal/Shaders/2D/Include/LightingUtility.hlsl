@@ -59,12 +59,7 @@
     if(intensity < 1)\
     {\
         half4 shadowTex = SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, input.shadowUV); \
-        half  shadowFinalValue   = dot(half4(1,0,0,0), shadowTex.rgba);\
-        half  unshadowValue = dot(half4(0,1,0,0), shadowTex.rgba);\
-        half  unshadowGTEOne = unshadowValue > 1;\
-        half  spriteAlpha   = dot(half4(0,0,1,0), shadowTex.rgba);\
-        half  unshadowFinalValue = unshadowGTEOne * (unshadowValue - (1-spriteAlpha)) + (1-unshadowGTEOne) * (unshadowValue * spriteAlpha);\
-        half  shadowIntensity = 1-saturate(shadowFinalValue - unshadowFinalValue); \
+        half4 shadowIntensity = 1-max(shadowTex.r, shadowTex.g * 1-shadowTex.b);\
         color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity));\
      }
 
