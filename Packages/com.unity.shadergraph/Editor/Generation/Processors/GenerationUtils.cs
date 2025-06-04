@@ -562,6 +562,10 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv1,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv2,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
                 new ConditionalField(StructFields.VertexDescriptionInputs.uv3,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV3)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv4,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV4)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv5,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV5)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv6,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV6)),
+                new ConditionalField(StructFields.VertexDescriptionInputs.uv7,                                          requirements.requiresMeshUVs.Contains(UVChannel.UV7)),
 
                 new ConditionalField(GeneratorDerivativeUtils.uv0Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV0)),
                 new ConditionalField(GeneratorDerivativeUtils.uv0Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV0)),
@@ -571,6 +575,14 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(GeneratorDerivativeUtils.uv2Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV2)),
                 new ConditionalField(GeneratorDerivativeUtils.uv3Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV3)),
                 new ConditionalField(GeneratorDerivativeUtils.uv3Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV3)),
+                new ConditionalField(GeneratorDerivativeUtils.uv4Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV4)),
+                new ConditionalField(GeneratorDerivativeUtils.uv4Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV4)),
+                new ConditionalField(GeneratorDerivativeUtils.uv5Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV5)),
+                new ConditionalField(GeneratorDerivativeUtils.uv5Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV5)),
+                new ConditionalField(GeneratorDerivativeUtils.uv6Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV6)),
+                new ConditionalField(GeneratorDerivativeUtils.uv6Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV6)),
+                new ConditionalField(GeneratorDerivativeUtils.uv7Ddx,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV7)),
+                new ConditionalField(GeneratorDerivativeUtils.uv7Ddy,                                                   requirements.requiresMeshUVDerivatives.Contains(UVChannel.UV7)),
 
                 new ConditionalField(StructFields.VertexDescriptionInputs.TimeParameters,                               requirements.requiresTime),
 
@@ -631,6 +643,10 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv1,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV1)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv2,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV2)),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.uv3,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV3)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv4,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV4)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv5,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV5)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv6,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV6)),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.uv7,                                         requirements.requiresMeshUVs.Contains(UVChannel.UV7)),
 
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.TimeParameters,                              requirements.requiresTime),
 

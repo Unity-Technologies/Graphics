@@ -20,6 +20,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 "TEXCOORD2", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor uv3 = new FieldDescriptor(AttributesMesh.name, "uv3", "ATTRIBUTES_NEED_TEXCOORD3", ShaderValueType.Float4,
                 "TEXCOORD3", subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor uv4 = new FieldDescriptor(AttributesMesh.name, "uv4", "ATTRIBUTES_NEED_TEXCOORD4", ShaderValueType.Float4,
+                "TEXCOORD4", subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor uv5 = new FieldDescriptor(AttributesMesh.name, "uv5", "ATTRIBUTES_NEED_TEXCOORD5", ShaderValueType.Float4,
+                "TEXCOORD5", subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor uv6 = new FieldDescriptor(AttributesMesh.name, "uv6", "ATTRIBUTES_NEED_TEXCOORD6", ShaderValueType.Float4,
+                "TEXCOORD6", subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor uv7 = new FieldDescriptor(AttributesMesh.name, "uv7", "ATTRIBUTES_NEED_TEXCOORD7", ShaderValueType.Float4,
+                "TEXCOORD7", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor weights = new FieldDescriptor(AttributesMesh.name, "weights", "ATTRIBUTES_NEED_BLENDWEIGHTS", ShaderValueType.Float4,
                 "BLENDWEIGHTS", subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor indices = new FieldDescriptor(AttributesMesh.name, "indices", "ATTRIBUTES_NEED_BLENDINDICES", ShaderValueType.Uint4,
@@ -51,6 +59,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor texCoord2 = new FieldDescriptor(VaryingsMeshToPS.name, "texCoord2", "VARYINGS_NEED_TEXCOORD2", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor texCoord3 = new FieldDescriptor(VaryingsMeshToPS.name, "texCoord3", "VARYINGS_NEED_TEXCOORD3", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord4 = new FieldDescriptor(VaryingsMeshToPS.name, "texCoord4", "VARYINGS_NEED_TEXCOORD4", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord5 = new FieldDescriptor(VaryingsMeshToPS.name, "texCoord5", "VARYINGS_NEED_TEXCOORD5", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord6 = new FieldDescriptor(VaryingsMeshToPS.name, "texCoord6", "VARYINGS_NEED_TEXCOORD6", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord7 = new FieldDescriptor(VaryingsMeshToPS.name, "texCoord7", "VARYINGS_NEED_TEXCOORD7", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToPS.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
@@ -85,6 +101,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor texCoord3 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord3", "VARYINGS_DS_NEED_TEXCOORD3", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord4 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord4", "VARYINGS_DS_NEED_TEXCOORD4", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord5 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord5", "VARYINGS_DS_NEED_TEXCOORD5", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord6 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord6", "VARYINGS_DS_NEED_TEXCOORD6", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord7 = new FieldDescriptor(VaryingsMeshToDS.name, "texCoord7", "VARYINGS_DS_NEED_TEXCOORD7", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_DS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "VARYINGS_DS_NEED_INSTANCEID", ShaderValueType.Uint,
@@ -109,6 +133,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor texCoord2 = new FieldDescriptor(FragInputs.name, "texCoord2", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor texCoord3 = new FieldDescriptor(FragInputs.name, "texCoord3", "", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord4 = new FieldDescriptor(FragInputs.name, "texCoord4", "", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord5 = new FieldDescriptor(FragInputs.name, "texCoord5", "", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord6 = new FieldDescriptor(FragInputs.name, "texCoord6", "", ShaderValueType.Float4,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor texCoord7 = new FieldDescriptor(FragInputs.name, "texCoord7", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(FragInputs.name, "color", "", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);

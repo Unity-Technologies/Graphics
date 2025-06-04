@@ -36,6 +36,10 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
                 float4 texcoord1         : TEXCOORD1;
                 float4 texcoord2         : TEXCOORD2;
                 float4 texcoord3         : TEXCOORD3;
+                float4 texcoord4         : TEXCOORD4;
+                float4 texcoord5         : TEXCOORD5;
+                float4 texcoord6         : TEXCOORD6;
+                float4 texcoord7         : TEXCOORD7;
                 float4 color             : COLOR;
                 float4 normal            : NORMAL;
                 float4 tangent           : TANGENT;
@@ -49,6 +53,10 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
                 float4 texcoord1  : TEXCOORD1;
                 float4 texcoord2  : TEXCOORD2;
                 float4 texcoord3  : TEXCOORD3;
+                float4 texcoord4  : TEXCOORD4;
+                float4 texcoord5  : TEXCOORD5;
+                float4 texcoord6  : TEXCOORD6;
+                float4 texcoord7  : TEXCOORD7;
                 float4 color      : COLOR;
                 float4 normal     : NORMAL;
                 float4 tangent    : TANGENT;
@@ -62,6 +70,10 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
                 output.texcoord1 = input.texcoord1;
                 output.texcoord2 = input.texcoord2;
                 output.texcoord3 = input.texcoord3;
+                output.texcoord4 = input.texcoord4;
+                output.texcoord5 = input.texcoord5;
+                output.texcoord6 = input.texcoord6;
+                output.texcoord7 = input.texcoord7;
                 output.color     = input.color;
                 output.normal    = input.normal;
                 output.tangent   = input.tangent;
@@ -81,6 +93,14 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
                         return input.texcoord2;
                     case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD3:
                         return input.texcoord3;
+                    case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD4:
+                        return input.texcoord4;
+                    case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD5:
+                        return input.texcoord5;
+                    case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD6:
+                        return input.texcoord6;
+                    case DEBUGVERTEXATTRIBUTEMODE_TEXCOORD7:
+                        return input.texcoord7;
                     case DEBUGVERTEXATTRIBUTEMODE_COLOR:
                         return input.color;
                     case DEBUGVERTEXATTRIBUTEMODE_TANGENT:

@@ -245,6 +245,10 @@ namespace UnityEditor.VFX.URP
                 StructFields.Attributes.uv1,
                 StructFields.Attributes.uv2,
                 StructFields.Attributes.uv3,
+                StructFields.Attributes.uv4,
+                StructFields.Attributes.uv5,
+                StructFields.Attributes.uv6,
+                StructFields.Attributes.uv7,
                 StructFields.Attributes.color,
 
                 // InstanceID without the Preprocessor.

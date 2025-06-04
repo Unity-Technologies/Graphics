@@ -238,6 +238,18 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 #if defined(VARYINGS_NEED_TEXCOORD3) || defined(VARYINGS_DS_NEED_TEXCOORD3)
     output.texCoord3 = input.uv3;
 #endif
+#if defined(VARYINGS_NEED_TEXCOORD4) || defined(VARYINGS_DS_NEED_TEXCOORD4)
+    output.texCoord4 = input.uv4;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD5) || defined(VARYINGS_DS_NEED_TEXCOORD5)
+    output.texCoord5 = input.uv5;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD6) || defined(VARYINGS_DS_NEED_TEXCOORD6)
+    output.texCoord6 = input.uv6;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD7) || defined(VARYINGS_DS_NEED_TEXCOORD7)
+    output.texCoord7 = input.uv7;
+#endif
 #if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
     output.color = input.color;
 #endif
@@ -313,6 +325,18 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 #endif
 #ifdef VARYINGS_NEED_TEXCOORD3
     output.texCoord3 = input.texCoord3;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD4
+    output.texCoord4 = input.texCoord4;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD5
+    output.texCoord5 = input.texCoord5;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD6
+    output.texCoord6 = input.texCoord6;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD7
+    output.texCoord7 = input.texCoord7;
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.color = input.color;

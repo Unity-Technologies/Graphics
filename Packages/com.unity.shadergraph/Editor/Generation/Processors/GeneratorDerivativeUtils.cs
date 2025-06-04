@@ -33,6 +33,22 @@ namespace UnityEditor.ShaderGraph
             subscriptOptions: StructFieldOptions.Optional);
         public static FieldDescriptor uv3Ddy = new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, "uv3Ddy", "", ShaderValueType.Float4,
             subscriptOptions: StructFieldOptions.Optional);
+        public static FieldDescriptor uv4Ddx = new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, "uv4Ddx", "", ShaderValueType.Float4,
+            subscriptOptions: StructFieldOptions.Optional);
+        public static FieldDescriptor uv4Ddy = new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, "uv4Ddy", "", ShaderValueType.Float4,
+            subscriptOptions: StructFieldOptions.Optional);
+        public static FieldDescriptor uv5Ddx = new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, "uv5Ddx", "", ShaderValueType.Float4,
+            subscriptOptions: StructFieldOptions.Optional);
+        public static FieldDescriptor uv5Ddy = new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, "uv5Ddy", "", ShaderValueType.Float4,
+            subscriptOptions: StructFieldOptions.Optional);
+        public static FieldDescriptor uv6Ddx = new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, "uv6Ddx", "", ShaderValueType.Float4,
+            subscriptOptions: StructFieldOptions.Optional);
+        public static FieldDescriptor uv6Ddy = new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, "uv6Ddy", "", ShaderValueType.Float4,
+            subscriptOptions: StructFieldOptions.Optional);
+        public static FieldDescriptor uv7Ddx = new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, "uv7Ddx", "", ShaderValueType.Float4,
+            subscriptOptions: StructFieldOptions.Optional);
+        public static FieldDescriptor uv7Ddy = new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, "uv7Ddy", "", ShaderValueType.Float4,
+            subscriptOptions: StructFieldOptions.Optional);
 
         #region GeneratePassStructsAndInterpolators
         // This funcion is an exact copy of the lines in Generator.cs, except the the member value m_HumanReadable is replaced with the
@@ -257,7 +273,7 @@ namespace UnityEditor.ShaderGraph
             string primaryShaderFullName,
             ConcretePrecision graphDefaultConcretePrecision)
         {
-            bool[] neededUvDerivs = new bool[4];
+            bool[] neededUvDerivs = new bool[ShaderGeneratorNames.UVCount];
             // if we have any keywords per-node, then the generated code has #ifdefs and is unparsable
             bool isValidForDerivatives = (keywordCollector.keywords.Count == 0 && keywordCollector.permutations.Count == 0);
             if (isValidForDerivatives && pass.analyticDerivativesEnabled)

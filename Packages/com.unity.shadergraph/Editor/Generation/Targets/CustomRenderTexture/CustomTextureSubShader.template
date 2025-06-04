@@ -55,7 +55,7 @@ Pass
 	SurfaceDescriptionInputs ConvertV2FToSurfaceInputs( v2f_customrendertexture IN )
 	{
 		SurfaceDescriptionInputs o;
-		
+
 		o.uv0 = float4(IN.localTexcoord, 0);
 		o.uv1 = float4(IN.globalTexcoord, 0);
 		o.primitiveID = IN.primitiveID;
@@ -94,6 +94,10 @@ Pass
 		$SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement: #error 'AbsoluteWorldSpacePositionPredisplacement' is not available in Custom Render Textures.
 		$SurfaceDescriptionInputs.uv2: #error 'uv2' is not available in Custom Render Textures.
 		$SurfaceDescriptionInputs.uv3: #error 'uv3' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.uv4: #error 'uv4' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.uv5: #error 'uv5' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.uv6: #error 'uv6' is not available in Custom Render Textures.
+		$SurfaceDescriptionInputs.uv7: #error 'uv7' is not available in Custom Render Textures.
 		$SurfaceDescriptionInputs.VertexColor: #error 'VertexColor' is not available in Custom Render Textures.
 
 		// We can't fake the positions because we can't differentiate Cube and 2D custom render textures

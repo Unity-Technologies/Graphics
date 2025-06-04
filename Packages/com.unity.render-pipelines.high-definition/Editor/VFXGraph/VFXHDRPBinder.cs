@@ -158,6 +158,10 @@ namespace UnityEditor.VFX.HDRP
                 HDStructFields.AttributesMesh.uv1,
                 HDStructFields.AttributesMesh.uv2,
                 HDStructFields.AttributesMesh.uv3,
+                HDStructFields.AttributesMesh.uv4,
+                HDStructFields.AttributesMesh.uv5,
+                HDStructFields.AttributesMesh.uv6,
+                HDStructFields.AttributesMesh.uv7,
                 HDStructFields.AttributesMesh.color,
 
                 // InstanceID without the Preprocessor.

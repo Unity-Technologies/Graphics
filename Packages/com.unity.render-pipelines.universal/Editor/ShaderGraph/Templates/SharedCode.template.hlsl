@@ -71,6 +71,10 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.uv1:                                      output.uv1 = input.texCoord1;
     $SurfaceDescriptionInputs.uv2:                                      output.uv2 = input.texCoord2;
     $SurfaceDescriptionInputs.uv3:                                      output.uv3 = input.texCoord3;
+    $SurfaceDescriptionInputs.uv4:                                      output.uv4 = input.texCoord4;
+    $SurfaceDescriptionInputs.uv5:                                      output.uv5 = input.texCoord5;
+    $SurfaceDescriptionInputs.uv6:                                      output.uv6 = input.texCoord6;
+    $SurfaceDescriptionInputs.uv7:                                      output.uv7 = input.texCoord7;
     $SurfaceDescriptionInputs.VertexColor:                              output.VertexColor = input.color;
 #if UNITY_ANY_INSTANCING_ENABLED
     $SurfaceDescriptionInputs.InstanceID:                               output.InstanceID = unity_InstanceID;

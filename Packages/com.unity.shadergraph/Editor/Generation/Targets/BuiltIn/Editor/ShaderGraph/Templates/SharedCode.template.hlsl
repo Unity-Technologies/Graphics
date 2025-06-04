@@ -60,6 +60,10 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.uv1:                                      output.uv1 = input.texCoord1;
     $SurfaceDescriptionInputs.uv2:                                      output.uv2 = input.texCoord2;
     $SurfaceDescriptionInputs.uv3:                                      output.uv3 = input.texCoord3;
+    $SurfaceDescriptionInputs.uv4:                                      #error 'uv4' is not available on the Built-In target.
+    $SurfaceDescriptionInputs.uv5:                                      #error 'uv5' is not available on the Built-In target.
+    $SurfaceDescriptionInputs.uv6:                                      #error 'uv6' is not available on the Built-In target.
+    $SurfaceDescriptionInputs.uv7:                                      #error 'uv7' is not available on the Built-In target.
     $SurfaceDescriptionInputs.VertexColor:                              output.VertexColor = input.color;
 #if UNITY_ANY_INSTANCING_ENABLED
     $SurfaceDescriptionInputs.InstanceID:                               output.InstanceID = unity_InstanceID;
@@ -87,6 +91,10 @@ void BuildAppDataFull(Attributes attributes, VertexDescription vertexDescription
     $Attributes.uv1:             result.texcoord1  = attributes.uv1;
     $Attributes.uv2:             result.texcoord2  = attributes.uv2;
     $Attributes.uv3:             result.texcoord3  = attributes.uv3;
+    $Attributes.uv4:             result.texcoord4  = attributes.uv4;
+    $Attributes.uv5:             result.texcoord5  = attributes.uv5;
+    $Attributes.uv6:             result.texcoord6  = attributes.uv6;
+    $Attributes.uv7:             result.texcoord7  = attributes.uv7;
     $Attributes.color:           result.color      = attributes.color;
     $VertexDescription.Position: result.vertex     = float4(vertexDescription.Position, 1);
     $VertexDescription.Normal:   result.normal     = vertexDescription.Normal;

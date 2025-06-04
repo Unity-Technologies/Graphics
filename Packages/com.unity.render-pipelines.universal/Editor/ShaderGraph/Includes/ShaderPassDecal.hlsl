@@ -281,6 +281,18 @@ void Frag(PackedVaryings packedInput,
 #ifdef VARYINGS_NEED_TEXCOORD3
     input.texCoord3.xy = texCoord;
 #endif
+#ifdef VARYINGS_NEED_TEXCOORD4
+    input.texCoord4.xy = texCoord;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD5
+    input.texCoord5.xy = texCoord;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD6
+    input.texCoord6.xy = texCoord;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD7
+    input.texCoord7.xy = texCoord;
+#endif
 
 #ifdef DECAL_ANGLE_FADE
     // Check if this decal projector require angle fading

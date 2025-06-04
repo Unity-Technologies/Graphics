@@ -38,6 +38,10 @@ Pass
    $Attributes.uv1:                        #define ATTRIBUTES_NEED_TEXCOORD1
    $Attributes.uv2:                        #define ATTRIBUTES_NEED_TEXCOORD2
    $Attributes.uv3:                        #define ATTRIBUTES_NEED_TEXCOORD3
+   $Attributes.uv4:                        #define ATTRIBUTES_NEED_TEXCOORD4
+   $Attributes.uv5:                        #define ATTRIBUTES_NEED_TEXCOORD5
+   $Attributes.uv6:                        #define ATTRIBUTES_NEED_TEXCOORD6
+   $Attributes.uv7:                        #define ATTRIBUTES_NEED_TEXCOORD7
    $Attributes.color:                      #define ATTRIBUTES_NEED_COLOR
    $Attributes.vertexID:                   #define ATTRIBUTES_NEED_VERTEXID
    $Attributes.instanceID:                 #define ATTRIBUTES_NEED_INSTANCEID
@@ -49,6 +53,10 @@ Pass
    $Varyings.texCoord1:                    #define VARYINGS_NEED_TEXCOORD1
    $Varyings.texCoord2:                    #define VARYINGS_NEED_TEXCOORD2
    $Varyings.texCoord3:                    #define VARYINGS_NEED_TEXCOORD3
+   $Varyings.texCoord4:                    #define VARYINGS_NEED_TEXCOORD4
+   $Varyings.texCoord5:                    #define VARYINGS_NEED_TEXCOORD5
+   $Varyings.texCoord6:                    #define VARYINGS_NEED_TEXCOORD6
+   $Varyings.texCoord7:                    #define VARYINGS_NEED_TEXCOORD7
    $Varyings.color:                        #define VARYINGS_NEED_COLOR
    $Varyings.vertexID:                     #define VARYINGS_NEED_VERTEXID
    $Varyings.instanceID:                   #define VARYINGS_NEED_INSTANCEID

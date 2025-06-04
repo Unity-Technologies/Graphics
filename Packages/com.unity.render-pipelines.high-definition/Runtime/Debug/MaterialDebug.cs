@@ -25,6 +25,14 @@ namespace UnityEngine.Rendering.HighDefinition
             Texcoord2,
             /// <summary>Display texture coordinate 3.</summary>
             Texcoord3,
+            /// <summary>Display texture coordinate 4.</summary>
+            Texcoord4,
+            /// <summary>Display texture coordinate 5.</summary>
+            Texcoord5,
+            /// <summary>Display texture coordinate 6.</summary>
+            Texcoord6,
+            /// <summary>Display texture coordinate 7.</summary>
+            Texcoord7,
             /// <summary>Display tangent in world space.</summary>
             VertexTangentWS,
             /// <summary>Display bi-tangent in world space.</summary>

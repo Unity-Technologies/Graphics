@@ -668,7 +668,7 @@ namespace UnityEditor.ShaderGraph
             // Get active fields from upstream Node requirements
             Profiler.BeginSample("GetActiveFieldsFromUpstreamNodes");
             ShaderGraphRequirementsPerKeyword graphRequirements;
-            GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes, new bool[4] { false, false, false, false },
+            GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes, new bool[ShaderGeneratorNames.UVCount],
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
             Profiler.EndSample();
 
