@@ -7,7 +7,7 @@ Events define the inputs for a Visual Effect Graph's [**processing** workflow](G
 
 ## Creating Events
 
-![](Images/EventContexts.png)
+![Left: Two Events, one connected to the Start slot, and the other to the Stop slot, of a Spawn nod. Right:  An Event connected to the Start slot of another Spawn nod.](Images/EventContexts.png)
 
 In general, an Event is just a string that represents the Event's name. To receive an Event in the Visual Effect Graph, create an Event [Context](Contexts.md) and type the name of the Event you want to receive in the **Event Name** property. Event Contexts have no input flow ports and can only connect their output flow port to Spawn or Initialize Contexts.
 
@@ -61,4 +61,4 @@ These Blocks connect to a **GPUEvent** Context. This Context does not handle any
 
 To gather data from the parent particle, a child system must refer to [Source Attributes](Attributes.md) in its Initialize Context. To do this, a child system can use a **Get Source Attribute** Operator, or an **Inherit Attribute** Block. For a visual example, see the image below.
 
-![](Images/GPUEvent.png)*In this example, the child System inherits the source position of the particle that creates it. It also inherit roughly 50% of the parent particle's speed.*
+![An Initialize Particle node is connected to an Update Particle node, which is connected to a GPUEvent nove, itself connected to another Initialize Particle node.](Images/GPUEvent.png)*In this example, the child System inherits the source position of the particle that creates it. It also inherit roughly 50% of the parent particle's speed.*

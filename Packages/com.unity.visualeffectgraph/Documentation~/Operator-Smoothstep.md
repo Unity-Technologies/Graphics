@@ -12,7 +12,7 @@ This Operator returns a value between 0 and 1, depending on the value of **X**, 
 
 This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). The **X** and **Y** input are always of the same type. **S** changes to be the same type as **X** and **Y**.
 
-![](Images/Operator-SmoothstepDiagram.png)
+![The Smoothstep function, where the output value transitions smoothly from 0 to 1 between two input thresholds (Min and Max), forming an S-shaped curve.](Images/Operator-SmoothstepDiagram.png)
 
 ## Operator properties
 

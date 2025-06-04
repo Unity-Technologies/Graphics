@@ -19,4 +19,4 @@ The **Nor** Operator takes two inputs and outputs the result of a logical *nor* 
 
 This Operator provides the same result as the following graph :
 
-![](Images/Operator-NorComparisonGraph.png)
+![Two inputs connected to a central "Nor" operator, with the output flowing to the right.](Images/Operator-NorComparisonGraph.png)
