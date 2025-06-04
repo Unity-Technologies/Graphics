@@ -3394,7 +3394,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public void ReleasePersistentShadowAtlases()
         {
-            m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
+            m_ShadowManager.ReleasePersistentShadowAtlases(m_RenderGraph);
         }
 
         /// <summary>

@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_DirectionalLightCacheSize = atlasInitParams.width;
                 atlasInitParams.isShadowCache = true;
-                atlasInitParams.useSharedTexture = true;
+                atlasInitParams.usePersistentTexture = true;
                 directionalLightAtlas.InitAtlas(atlasInitParams);
             }
         }
@@ -292,14 +292,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateDirectionalCacheTexture(RenderGraph renderGraph)
         {
-            TextureHandle cacheHandle = directionalLightAtlas.GetOutputTexture(renderGraph);
-            var desiredDesc = directionalLightAtlas.GetAtlasDesc();
-            if (m_DirectionalLightCacheSize != desiredDesc.width)
-            {
-                renderGraph.RefreshSharedTextureDesc(cacheHandle, desiredDesc);
-                m_DirectionalLightCacheSize = desiredDesc.width;
-            }
+            // Updating output texture if persistent and having a different size than current atlas desc
+            directionalLightAtlas.CreateOrUpdateOutputTexture(renderGraph);
+
+            m_DirectionalLightCacheSize = directionalLightAtlas.GetAtlasDesc().width;
         }
+
         internal void RegisterLight(HDAdditionalLightData lightData)
         {
             if (!lightData.lightEntity.valid || lightData.legacyLight.bakingOutput.lightmapBakeType == LightmapBakeType.Baked)

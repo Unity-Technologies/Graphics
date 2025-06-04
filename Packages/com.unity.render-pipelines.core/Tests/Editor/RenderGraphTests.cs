@@ -1598,16 +1598,13 @@ namespace UnityEngine.Rendering.Tests
         void PopulateActiveGraphAPIActions()
         {
             var flagActions = RenderGraphState.Active;
-            var textureHandle = new TextureHandle();
             var activeGraphActions = new List<Action>
             {
                 () => m_RenderGraph.Cleanup(),
                 () => m_RenderGraph.RegisterDebug(),
                 () => m_RenderGraph.UnRegisterDebug(),
                 () => m_RenderGraph.EndFrame(),
-                () => m_RenderGraph.BeginRecording(new RenderGraphParameters()),
-                () => m_RenderGraph.CreateSharedTexture(new TextureDesc()),
-                () => m_RenderGraph.ReleaseSharedTexture(textureHandle)
+                () => m_RenderGraph.BeginRecording(new RenderGraphParameters())
             };
 
             m_GraphStateActions.Add(flagActions, activeGraphActions);

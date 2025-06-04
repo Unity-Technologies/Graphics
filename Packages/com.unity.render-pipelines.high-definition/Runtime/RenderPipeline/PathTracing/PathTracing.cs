@@ -254,10 +254,15 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_DebugMaterialOverrideHash = -1;
         bool m_RenderSky = true;
 
-        TextureHandle m_FrameTexture;       // Stores the per-pixel results of path tracing for one frame
-        TextureHandle m_SkyBGTexture;       // Stores the sky background as seem from the camera
-        TextureHandle m_SkyCDFTexture;      // Stores latlon sky data (CDF) for importance sampling
-        TextureHandle m_SkyMarginalTexture; // Stores latlon sky data (Marginal) for importance sampling
+        RTHandle m_FrameTextureRT;       // Stores the per-pixel results of path tracing for one frame
+        RTHandle m_SkyBGTextureRT;       // Stores the sky background as seem from the camera
+        RTHandle m_SkyCDFTextureRT;      // Stores latlon sky data (CDF) for importance sampling
+        RTHandle m_SkyMarginalTextureRT; // Stores latlon sky data (Marginal) for importance sampling
+
+        TextureHandle m_FrameTexture;
+        TextureHandle m_SkyBGTexture;
+        TextureHandle m_SkyCDFTexture;
+        TextureHandle m_SkyMarginalTexture;
 
         int m_skySamplingSize;     // value used for the latlon sky texture (width = 2*size, height = size)
 
@@ -271,36 +276,22 @@ namespace UnityEngine.Rendering.HighDefinition
             SceneView.duringSceneGui += OnSceneGui;
 #endif // UNITY_EDITOR
 
-            TextureDesc td = new TextureDesc(Vector2.one, true, true);
-            td.format = GraphicsFormat.R32G32B32A32_SFloat;
-            td.useMipMap = false;
-            td.autoGenerateMips = false;
-
             // Texture storing the result of one iteration (one per frame) of path tracing
-            td.name = "PathTracingFrameBuffer";
-            td.enableRandomWrite = true;
-            m_FrameTexture = m_RenderGraph.CreateSharedTexture(td);
+            m_FrameTextureRT = RTHandles.Alloc(Vector2.one, format: GraphicsFormat.R32G32B32A32_SFloat, slices: TextureXR.slices,
+                        dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: false, autoGenerateMips: false, name: "PathTracingFrameBuffer");
 
             // Texture storing the sky background, matching the rasterization one
-            td.name = "PathTracingSkyBackgroundBuffer";
-            td.enableRandomWrite = false;
-            m_SkyBGTexture = m_RenderGraph.CreateSharedTexture(td);
+            m_SkyBGTextureRT = RTHandles.Alloc(Vector2.one, format: GraphicsFormat.R32G32B32A32_SFloat, slices: TextureXR.slices,
+                        dimension: TextureXR.dimension, enableRandomWrite: false, useMipMap: false, autoGenerateMips: false, name: "PathTracingSkyBackgroundBuffer");
 
             // Textures used to importance sample the sky (aka environment sampling)
-            td.name = "PathTracingSkySamplingBuffer";
-            td.format = GraphicsFormat.R32_SFloat;
-            td.dimension = TextureDimension.Tex2D;
-            td.enableRandomWrite = true;
-            td.useDynamicScale = false;
-            td.slices = 1;
-            td.sizeMode = TextureSizeMode.Explicit;
             m_skySamplingSize = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize * 2;
-            td.width = m_skySamplingSize * 2;
-            td.height = m_skySamplingSize;
-            m_SkyCDFTexture = m_RenderGraph.CreateSharedTexture(td, true);
-            td.width = m_skySamplingSize;
-            td.height = 1;
-            m_SkyMarginalTexture = m_RenderGraph.CreateSharedTexture(td, true);
+
+            m_SkyCDFTextureRT = RTHandles.Alloc(m_skySamplingSize * 2, m_skySamplingSize, format: GraphicsFormat.R32_SFloat, slices: 1,
+                        dimension: TextureDimension.Tex2D, enableRandomWrite: true, useMipMap: false, autoGenerateMips: false, name: "PathTracingSkySamplingBuffer1");
+
+            m_SkyMarginalTextureRT = RTHandles.Alloc(m_skySamplingSize, 1, format: GraphicsFormat.R32_SFloat, slices: 1,
+                        dimension: TextureDimension.Tex2D, enableRandomWrite: true, useMipMap: false, autoGenerateMips: false, name: "PathTracingSkySamplingBuffer2");
 
             pathTracedAOVs = new List<Tuple<TextureHandle, HDCameraFrameHistoryType>>(3);
         }
@@ -313,8 +304,30 @@ namespace UnityEngine.Rendering.HighDefinition
             SceneView.duringSceneGui -= OnSceneGui;
 #endif // UNITY_EDITOR
 
-            m_RenderGraph.ReleaseSharedTexture(m_SkyCDFTexture);
-            m_RenderGraph.ReleaseSharedTexture(m_SkyMarginalTexture);
+            m_FrameTextureRT?.Release();
+            m_SkyBGTextureRT?.Release();
+            m_SkyCDFTextureRT?.Release();
+            m_SkyMarginalTextureRT?.Release();
+
+            m_FrameTexture = TextureHandle.nullHandle;
+            m_SkyBGTexture = TextureHandle.nullHandle;
+            m_SkyCDFTexture = TextureHandle.nullHandle;
+            m_SkyMarginalTexture = TextureHandle.nullHandle;
+        }
+
+        void ImportPathTracingTargetsToRenderGraph()
+        {
+            if (!m_FrameTexture.IsValid())
+                m_FrameTexture = m_RenderGraph.ImportTexture(m_FrameTextureRT);
+
+            if (!m_SkyBGTexture.IsValid())
+                m_SkyBGTexture = m_RenderGraph.ImportTexture(m_SkyBGTextureRT);
+
+            if (!m_SkyCDFTexture.IsValid())
+                m_SkyCDFTexture = m_RenderGraph.ImportTexture(m_SkyCDFTextureRT);
+
+            if (!m_SkyMarginalTexture.IsValid())
+                m_SkyMarginalTexture = m_RenderGraph.ImportTexture(m_SkyMarginalTextureRT);
         }
 
         /// <summary>
@@ -812,6 +825,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
+
+            ImportPathTracingTargetsToRenderGraph();
 
             // Set up the subframe manager for correct accumulation in case of multiframe accumulation
             // Check if the camera has a valid history buffer and if not reset the accumulation.

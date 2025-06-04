@@ -818,13 +818,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// This texture will be persistent across render graph executions.
         /// </summary>
         /// <remarks>
-        /// This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
+        /// This API should not be used with URP NRP Render Graph. This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
         /// </remarks>
         /// <param name="desc">Creation descriptor of the texture.</param>
         /// <param name="explicitRelease">Set to true if you want to manage the lifetime of the resource yourself. Otherwise the resource will be released automatically if unused for a time.</param>
         /// <returns>A new TextureHandle.</returns>
         public TextureHandle CreateSharedTexture(in TextureDesc desc, bool explicitRelease = false)
         {
+            CheckNotUsingNativeRenderPassCompiler();
             CheckNotUsedWhenActive();
 
             return m_Resources.CreateSharedTexture(desc, explicitRelease);
@@ -833,10 +834,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <summary>
         /// Refresh a shared texture with a new descriptor.
         /// </summary>
+        /// <remarks>
+        /// This API should not be used with URP NRP Render Graph.
+        /// </remarks>
         /// <param name="handle">Shared texture that needs to be updated.</param>
         /// <param name="desc">New Descriptor for the texture.</param>
         public void RefreshSharedTextureDesc(TextureHandle handle, in TextureDesc desc)
         {
+            CheckNotUsingNativeRenderPassCompiler();
+
             m_Resources.RefreshSharedTextureDesc(handle, desc);
         }
 
@@ -844,11 +850,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Release a Render Graph shared texture resource.
         /// </summary>
         /// <remarks>
-        /// This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
+        /// This API should not be used with URP NRP Render Graph. This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
         /// </remarks>
         /// <param name="texture">The handle to the texture that needs to be release.</param>
         public void ReleaseSharedTexture(TextureHandle texture)
         {
+            CheckNotUsingNativeRenderPassCompiler();
             CheckNotUsedWhenActive();
 
             m_Resources.ReleaseSharedTexture(texture);
