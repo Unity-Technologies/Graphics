@@ -770,7 +770,7 @@ namespace UnityEngine.Rendering
                 // Global volumes always have influence
                 if (volume.isGlobal)
                 {
-                    OverrideData(stack, volume, volume.weight);
+                    OverrideData(stack, volume, Mathf.Clamp01(volume.weight));
                     continue;
                 }
 
@@ -814,7 +814,7 @@ namespace UnityEngine.Rendering
                     interpFactor = 1f - (closestDistanceSqr / blendDistSqr);
 
                 // No need to clamp01 the interpolation factor or weight as both are always in [0;1[ range
-                OverrideData(stack, volume, interpFactor * volume.weight);
+                OverrideData(stack, volume, interpFactor * Mathf.Clamp01(volume.weight));
             }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
