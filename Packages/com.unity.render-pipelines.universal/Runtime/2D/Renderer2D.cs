@@ -101,10 +101,14 @@ namespace UnityEngine.Rendering.Universal
             ppParams.blitMaterial = m_BlitMaterial;
             ppParams.requestColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
 
-            if (UniversalRenderPipeline.useRenderGraph && data.postProcessData is not null)
+            if (UniversalRenderPipeline.useRenderGraph)
             {
-                m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, ppParams.requestColorFormat);
-                m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
+                if (data.postProcessData != null)
+                {
+                    m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, ppParams.requestColorFormat);
+                    m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
+                }
+                // No postProcessData in RG means no post processes
             }
             else
                 m_PostProcessPasses = new CompatibilityMode.PostProcessPasses(data.postProcessData, ref ppParams);

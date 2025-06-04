@@ -426,12 +426,15 @@ namespace UnityEngine.Rendering.Universal
                 if (asset)
                     postProcessParams.requestColorFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
 
-                if (UniversalRenderPipeline.useRenderGraph && data.postProcessData is not null)
+                if (UniversalRenderPipeline.useRenderGraph)
                 {
-                    m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, postProcessParams.requestColorFormat);
-                    m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
+                    if (data.postProcessData != null)
+                    {
+                        m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, postProcessParams.requestColorFormat);
+                        m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
+                    }
+                    // No postProcessData in RG means no post processes
                 }
-
                 else
                     m_PostProcessPasses = new CompatibilityMode.PostProcessPasses(data.postProcessData, ref postProcessParams);
             }
