@@ -10,7 +10,7 @@ There is a global state per user that stores if Unity displays **advanced proper
 Not every component or Volume Override includes advanced properties.
 If one does, it has a contextual menu to the right of each property section header that includes additional properties. To expose advanced properties for that section, open the contextual menu and click **Advanced Properties**.
 
-For an example, see the **Water Surface** component in [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest).
+For an example, refer to the **Water Surface** component in [High Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/settings-and-properties-related-to-the-water-system.html).
 
 By default only standard properties are shown.
 
