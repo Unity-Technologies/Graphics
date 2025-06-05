@@ -224,7 +224,7 @@ namespace UnityEditor.VFX.URP
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kOcclusionMap, new TooltipAttribute("Specifies the Occlusion Map for the particle - Ambient occlusion (G)")));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kOcclusionMap, new TooltipAttribute("Specifies the Occlusion Map for the particle - Ambient occlusion (G)")), (usesFlipbook ? null : VFXResources.defaultResources.maskTexture));
             }
         }
 
@@ -242,7 +242,7 @@ namespace UnityEditor.VFX.URP
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kMetallicMap, new TooltipAttribute("Specifies the Metallic Map for the particle - Metallic (R) - (Optional A) Smoothness")));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kMetallicMap, new TooltipAttribute("Specifies the Metallic Map for the particle - Metallic (R) - (Optional A) Smoothness")), (usesFlipbook ? null : VFXResources.defaultResources.maskTexture));
             }
         }
 
@@ -252,7 +252,7 @@ namespace UnityEditor.VFX.URP
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kNormalMap, new TooltipAttribute("Specifies the Normal map to obtain normals in tangent space for the particle.")));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), kNormalMap, new TooltipAttribute("Specifies the Normal map to obtain normals in tangent space for the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.normalTexture));
                 if(useNormalScale)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), kNormalScale, new TooltipAttribute("Sets the scale of the normals. Larger values increase the impact of the normals.")), 1.0f);
             }
@@ -309,8 +309,8 @@ namespace UnityEditor.VFX.URP
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "positiveAxesLightmap", new TooltipAttribute("Specifies the lightmap for the positive axes, Right (R), Up (G), Back (B), and the opacity (A).")));
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "negativeAxesLightmap", new TooltipAttribute("Specifies the lightmap for the Negative axes: Left (R), Bottom (G), Front (B), and the Emissive mask (A) for Single Channel emission mode.")));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "positiveAxesLightmap", new TooltipAttribute("Specifies the lightmap for the positive axes, Right (R), Up (G), Back (B), and the opacity (A).")), (usesFlipbook ? null : VFXResources.defaultResources.sixWayPositiveTexture));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "negativeAxesLightmap", new TooltipAttribute("Specifies the lightmap for the Negative axes: Left (R), Bottom (G), Front (B), and the Emissive mask (A) for Single Channel emission mode.")), (usesFlipbook ? null : VFXResources.defaultResources.sixWayNegativeTexture));
 
                 if (lightmapRemapRanges)
                 {

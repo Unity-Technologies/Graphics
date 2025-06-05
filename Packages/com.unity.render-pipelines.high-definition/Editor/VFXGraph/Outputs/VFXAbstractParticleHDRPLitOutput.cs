@@ -154,8 +154,8 @@ namespace UnityEditor.VFX.HDRP
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "positiveAxesLightmap", new TooltipAttribute("Specifies the lightmap for the positive axes, Right (R), Up (G), Back (B), and the opacity (A).")));
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "negativeAxesLightmap", new TooltipAttribute("Specifies the lightmap for the Negative axes: Left (R), Bottom (G), Front (B), and the Emissive mask (A) for Single Channel emission mode.")));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "positiveAxesLightmap", new TooltipAttribute("Specifies the lightmap for the positive axes, Right (R), Up (G), Back (B), and the opacity (A).")), (usesFlipbook ? null : VFXResources.defaultResources.sixWayPositiveTexture));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "negativeAxesLightmap", new TooltipAttribute("Specifies the lightmap for the Negative axes: Left (R), Bottom (G), Front (B), and the Emissive mask (A) for Single Channel emission mode.")), (usesFlipbook ? null : VFXResources.defaultResources.sixWayNegativeTexture));
 
                 if (lightmapRemapRanges)
                 {

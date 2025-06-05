@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
 {
@@ -85,18 +81,28 @@ namespace UnityEditor.VFX
                 }
             }
 
-            public Shader shader
+            public Shader StaticMeshShader
             {
                 get
                 {
                     LoadUserResourcesIfNeeded();
-                    if (s_Instance != null && s_Instance.shader != null)
-                        return s_Instance.shader;
+                    if (s_Instance != null && s_Instance.staticMeshShader != null)
+                        return s_Instance.staticMeshShader;
 
                     return defaultShader;
                 }
             }
+            public ShaderGraphVfxAsset shaderGraphVfx
+            {
+                get
+                {
+                    LoadUserResourcesIfNeeded();
+                    if (s_Instance != null && s_Instance.shaderGraphVfx != null)
+                        return s_Instance.shaderGraphVfx;
 
+                    return defaultShaderGraphVfx;
+                }
+            }
 
             public Texture2D particleTexture
             {
@@ -109,6 +115,28 @@ namespace UnityEditor.VFX
                 }
             }
 
+            public Texture2D normalTexture
+            {
+                get
+                {
+                    LoadUserResourcesIfNeeded();
+                    if (s_Instance != null && s_Instance.normalTexture != null)
+                        return s_Instance.normalTexture;
+                    return defaultNormalTexture;
+                }
+            }
+
+            public Texture2D maskTexture
+            {
+                get
+                {
+                    LoadUserResourcesIfNeeded();
+                    if (s_Instance != null && s_Instance.maskTexture != null)
+                        return s_Instance.maskTexture;
+                    return defaultMaskTexture;
+                }
+            }
+
             public Texture2D noiseTexture
             {
                 get
@@ -117,6 +145,28 @@ namespace UnityEditor.VFX
                     if (s_Instance != null && s_Instance.noiseTexture != null)
                         return s_Instance.noiseTexture;
                     return defaultNoiseTexture;
+                }
+            }
+
+            public Texture2D sixWayPositiveTexture
+            {
+                get
+                {
+                    LoadUserResourcesIfNeeded();
+                    if (s_Instance != null && s_Instance.sixWayPositiveTexture != null)
+                        return s_Instance.sixWayPositiveTexture;
+                    return defaultSixWayPositiveTexture;
+                }
+            }
+
+            public Texture2D sixWayNegativeTexture
+            {
+                get
+                {
+                    LoadUserResourcesIfNeeded();
+                    if (s_Instance != null && s_Instance.sixWayNegativeTexture != null)
+                        return s_Instance.sixWayNegativeTexture;
+                    return defaultSixWayNegativeTexture;
                 }
             }
             public Texture3D vectorField
@@ -170,7 +220,7 @@ namespace UnityEditor.VFX
         {
             s_Values = new Values();
 
-            defaultShader = Shader.Find("Shader Graphs/VFXDefault");
+            defaultShader = Shader.Find("Shader Graphs/VFXDefaultSingleMesh");
 
             defaultAnimationCurve = AnimationCurve.Linear(0.0f, 0.0f, 1.0f, 1.0f);
 
@@ -178,7 +228,7 @@ namespace UnityEditor.VFX
             defaultGradient.colorKeys = new GradientColorKey[]
             {
                 new GradientColorKey(Color.white, 0.0f),
-                new GradientColorKey(Color.gray, 1.0f),
+                new GradientColorKey(Color.white, 1.0f),
             };
             defaultGradient.alphaKeys = new GradientAlphaKey[]
             {
@@ -215,7 +265,26 @@ namespace UnityEditor.VFX
                 return m_DefaultParticleTexture;
             }
         }
-
+        static Texture2D m_DefaultNormalTexture;
+        public static Texture2D defaultNormalTexture
+        {
+            get
+            {
+                if (m_DefaultNormalTexture == null)
+                    m_DefaultNormalTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultNormal.png");
+                return m_DefaultNormalTexture;
+            }
+        }
+        static Texture2D m_DefaultMaskTexture;
+        public static Texture2D defaultMaskTexture
+        {
+            get
+            {
+                if (m_DefaultMaskTexture == null)
+                    m_DefaultMaskTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultMasks.png");
+                return m_DefaultMaskTexture;
+            }
+        }
         static Texture2D m_DefaultNoiseTexture;
         public static Texture2D defaultNoiseTexture
         {
@@ -224,6 +293,28 @@ namespace UnityEditor.VFX
                 if (m_DefaultNoiseTexture == null)
                     m_DefaultNoiseTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/Noise.tga");
                 return m_DefaultNoiseTexture;
+            }
+        }
+
+        static Texture2D m_DefaultSixWayPositiveTexture;
+        public static Texture2D defaultSixWayPositiveTexture
+        {
+            get
+            {
+                if (m_DefaultSixWayPositiveTexture == null)
+                    m_DefaultSixWayPositiveTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/Default6Way_P.png");
+                return m_DefaultSixWayPositiveTexture;
+            }
+        }
+
+        static Texture2D m_DefaultSixWayNegativeTexture;
+        public static Texture2D defaultSixWayNegativeTexture
+        {
+            get
+            {
+                if (m_DefaultSixWayNegativeTexture == null)
+                    m_DefaultSixWayNegativeTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/Default6Way_N.png");
+                return m_DefaultSixWayNegativeTexture;
             }
         }
 
@@ -315,6 +406,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        private static ShaderGraphVfxAsset m_DefaultShaderGraphVfx;
+        public static ShaderGraphVfxAsset defaultShaderGraphVfx
+        {
+            get
+            {
+                if (m_DefaultShaderGraphVfx == null)
+                    m_DefaultShaderGraphVfx = SafeLoadAssetAtPath<ShaderGraphVfxAsset>(defaultPath + "ShaderGraph/VFXDefault.shadergraph");
+                return m_DefaultShaderGraphVfx;
+            }
+        }
+
         [SerializeField]
         AnimationCurve animationCurve = null;
 
@@ -325,13 +427,22 @@ namespace UnityEditor.VFX
         Gradient gradientMapRamp = null;
 
         [SerializeField]
-        Shader shader = null;
-
-        [SerializeField]
         Texture2D particleTexture = null;
 
         [SerializeField]
+        Texture2D maskTexture = null;
+
+        [SerializeField]
+        Texture2D normalTexture = null;
+
+        [SerializeField]
         Texture2D noiseTexture = null;
+
+        [SerializeField]
+        Texture2D sixWayPositiveTexture = null;
+
+        [SerializeField]
+        Texture2D sixWayNegativeTexture = null;
 
         [SerializeField]
         Texture3D vectorField = null;
@@ -342,11 +453,17 @@ namespace UnityEditor.VFX
         [SerializeField]
         Mesh mesh = null;
 
+        [SerializeField]
+        ShaderGraphVfxAsset shaderGraphVfx = null;
+
+        [FormerlySerializedAs("shader"), SerializeField]
+        Shader staticMeshShader = null;
+
         static AnimationCurve defaultAnimationCurve;
         static Gradient defaultGradient;
         static Gradient defaultGradientMapRamp;
         static Shader defaultShader;
-        static ShaderGraphVfxAsset errorShaderFallback;
+
 
         public void SetDefaults()
         {
@@ -355,6 +472,17 @@ namespace UnityEditor.VFX
             animationCurve = defaultAnimationCurve;
             gradient = defaultGradient;
             gradientMapRamp = defaultGradientMapRamp;
+            staticMeshShader = defaultShader;
+            shaderGraphVfx = defaultShaderGraphVfx;
+            particleTexture = defaultParticleTexture;
+            normalTexture = defaultNormalTexture;
+            maskTexture = defaultMaskTexture;
+            noiseTexture = defaultNoiseTexture;
+            sixWayPositiveTexture = defaultSixWayPositiveTexture;
+            sixWayNegativeTexture = defaultSixWayNegativeTexture;
+            vectorField = defaultVectorField;
+            signedDistanceField = defaultSignedDistanceField;
+            mesh = defaultMesh;
         }
     }
 }

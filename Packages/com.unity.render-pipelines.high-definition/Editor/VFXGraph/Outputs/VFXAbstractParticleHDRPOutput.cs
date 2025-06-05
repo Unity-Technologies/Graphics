@@ -61,14 +61,14 @@ namespace UnityEditor.VFX.HDRP
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "maskMap", new TooltipAttribute("Specifies the Mask Map for the particle - Metallic (R), Ambient occlusion (G), and Smoothness (A).")), (usesFlipbook ? null : VFXResources.defaultResources.noiseTexture));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "maskMap", new TooltipAttribute("Specifies the Mask Map for the particle - Metallic (R), Ambient occlusion (G), and Smoothness (A).")), (usesFlipbook ? null : VFXResources.defaultResources.maskTexture));
             }
         }
         protected IEnumerable<VFXPropertyWithValue> normalMapsProperties
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "normalMap", new TooltipAttribute("Specifies the Normal map to obtain normals in tangent space for the particle.")));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetTextureType(), "normalMap", new TooltipAttribute("Specifies the Normal map to obtain normals in tangent space for the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.normalTexture));
                 if(useNormalScale)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "normalScale", new TooltipAttribute("Sets the scale of the normals. Larger values increase the impact of the normals.")), 1.0f);
             }

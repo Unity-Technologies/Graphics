@@ -31,6 +31,7 @@ namespace UnityEditor.VFX
         {
             var newInstance = base.CreateInstance();
             newInstance.SetSettingValue("m_Topology", createTopology());
+            newInstance.SetSettingValue("shaderGraph", VFXResources.defaultResources.shaderGraphVfx);
             return newInstance;
         }
 

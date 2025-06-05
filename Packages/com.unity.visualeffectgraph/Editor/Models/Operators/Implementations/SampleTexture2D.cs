@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             [Tooltip("Sets the texture to sample from.")]
-            public Texture2D texture = null;
+            public Texture2D texture = VFXResources.defaultResources.particleTexture;
             [Tooltip("Sets the texture coordinate used for the sampling.")]
             public Vector2 UV = Vector2.zero;
             [Min(0), Tooltip("Sets the mip level to sample from.")]
