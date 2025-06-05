@@ -29,47 +29,24 @@ namespace UnityEngine.Rendering
             }
         }
 
-        [Delayed, SerializeField, FormerlySerializedAs("priority")] 
-        float m_Priority = 0f;
-
         /// <summary>
         /// A value which determines which Volume is being used when Volumes have an equal amount of influence on the Scene. Volumes with a higher priority will override lower ones.
         /// </summary>
-        public float priority
-        {
-            get => m_Priority;
-            set
-            {
-                m_Priority = value;
-                m_PreviousPriority = m_Priority;
-                VolumeManager.instance.SetLayerDirty(cachedGameObject.layer);
-            }
-        }
-       
-        [SerializeField, FormerlySerializedAs("blendDistance")] 
-        float m_BlendDistance;
-        
+        [Delayed, FormerlySerializedAs("m_Priority")]
+        public float priority = 0f;
+
         /// <summary>
         /// The outer distance to start blending from. A value of 0 means no blending and Unity applies
         /// the Volume overrides immediately upon entry.
         /// </summary>
-        public float blendDistance
-        {
-            get => m_BlendDistance;
-            set => m_BlendDistance = Mathf.Max(value, 0f);
-        }
+        [FormerlySerializedAs("m_BlendDistance")]
+        public float blendDistance = 0f;
 
-        [Range(0f, 1f), SerializeField, FormerlySerializedAs("weight")]
-        float m_Weight = 1f;
-        
         /// <summary>
         /// The total weight of this volume in the Scene. 0 means no effect and 1 means full effect.
         /// </summary>
-        public float weight
-        {
-            get => m_Weight;
-            set => m_Weight = Mathf.Clamp01(value);
-        }
+        [Range(0f, 1f), FormerlySerializedAs("m_Weight")]
+        public float weight = 1f;
 
         /// <summary>
         /// The shared Profile that this Volume uses.
@@ -161,6 +138,7 @@ namespace UnityEngine.Rendering
         void Update()
         {
             UpdateLayer();
+            UpdatePriority();
 
 #if UNITY_EDITOR
             // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them
@@ -195,14 +173,22 @@ namespace UnityEngine.Rendering
             m_PreviousLayer = layer;
         }
 
+        internal void UpdatePriority()
+        {
+            if (!(Mathf.Abs(priority - m_PreviousPriority) > Mathf.Epsilon))
+                return;
+
+            // Same for priority. We could use a property instead, but it doesn't play nice with the
+            // serialization system. Using a custom Attribute/PropertyDrawer for a property is
+            // possible but it doesn't work with Undo/Redo in the editor, which makes it useless for
+            // our case.
+            VolumeManager.instance.SetLayerDirty(cachedGameObject.layer);
+            m_PreviousPriority = priority;
+        }
+
         void OnValidate()
         {
-            //Handle the Undo/Redo case for priority
-            if (Mathf.Abs(priority - m_PreviousPriority) > Mathf.Epsilon && cachedGameObject !=null)
-            {
-                VolumeManager.instance?.SetLayerDirty(cachedGameObject.layer);
-                m_PreviousPriority = priority;
-            }
+            blendDistance = Mathf.Max(blendDistance, 0f);
         }
     }
 }
