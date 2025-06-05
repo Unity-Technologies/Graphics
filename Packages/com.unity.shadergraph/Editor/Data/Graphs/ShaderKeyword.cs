@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     class ShaderKeyword : ShaderInput
     {
-        public const string kVariantLimitWarning = "Graph is generating too many variants. Either delete Keywords, reduce Keyword variants or increase the Shader Variant Limit in Preferences > Shader Graph.";
+        public const string kVariantLimitWarning = "Graph is generating too many variants. Either delete Keywords, reduce Keyword variants or increase the Shader Variant Limit in Preferences > Shader Graph or Project Settings > Shader Graph.";
 
         internal override bool canPromoteToFinalShader => true;
 

@@ -33,6 +33,7 @@ PropertySheet > #content > #header > Label{
     font-size: 15px;
     color: #a4a4a4;
     -unity-font-style: bold;
+    white-space: normal;
 }
 
 PropertySheet > #content > #foldout {
