@@ -28,9 +28,12 @@ namespace UnityEditor.VFX
                     yield return setting;
 
                 yield return "cullMode";
+                yield return "useBaseColorMap";
                 yield return "colorMapping";
             }
         }
+
+        protected override bool hasAnyMap => false;
 
         public override void OnEnable()
         {

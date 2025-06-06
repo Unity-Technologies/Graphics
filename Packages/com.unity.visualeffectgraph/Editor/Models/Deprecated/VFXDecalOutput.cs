@@ -40,6 +40,7 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
+                yield return "useBaseColorMap";
                 yield return "cullMode";
                 yield return "zWriteMode";
                 yield return "zTestMode";

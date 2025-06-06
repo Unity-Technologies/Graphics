@@ -66,7 +66,6 @@ namespace UnityEditor.VFX.HDRP
                 return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType);
             }
         }
-        public override bool supportsUV { get { return true; } }
 
         public override IEnumerable<string> additionalDefines
         {

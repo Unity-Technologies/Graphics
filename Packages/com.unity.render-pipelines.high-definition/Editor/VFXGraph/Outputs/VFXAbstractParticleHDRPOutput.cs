@@ -18,18 +18,6 @@ namespace UnityEditor.VFX.HDRP
             BaseColorAndEmissive = BaseColor | Emissive,
         }
 
-        [Flags]
-        public enum BaseColorMapMode
-        {
-            None = 0,
-            Color = 1 << 0,
-            Alpha = 1 << 1,
-            ColorAndAlpha = Color | Alpha
-        }
-
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what parts of the base color map is applied to the particles. Particles can receive color, alpha, color and alpha, or not receive any values from the base color map.")]
-        protected BaseColorMapMode useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
-
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the output will accept a Mask Map to control how the particle receives lighting.")]
         protected bool useMaskMap = false;
 

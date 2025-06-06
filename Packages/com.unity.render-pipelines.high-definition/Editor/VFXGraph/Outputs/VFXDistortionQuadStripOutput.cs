@@ -22,7 +22,6 @@ namespace UnityEditor.VFX.HDRP
         public override string name => "Output ParticleStrip".AppendLabel("HDRP Distortion", false) + "\nQuad";
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDistortionPlanarPrimitive"); } }
         public override VFXTaskType taskType => VFXTaskType.ParticleQuadOutput;
-        public override bool supportsUV { get { return true; } }
         public override bool implementsMotionVector { get { return true; } }
 
 

@@ -43,6 +43,15 @@ namespace UnityEditor.VFX
             GradientMapped
         }
 
+        [Flags]
+        public enum BaseColorMapMode
+        {
+            None = 0,
+            Color = 1 << 0,
+            Alpha = 1 << 1,
+            ColorAndAlpha = Color | Alpha
+        }
+
         public enum UVMode
         {
             Default,
@@ -76,6 +85,9 @@ namespace UnityEditor.VFX
             None,
             Custom,
         }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what parts of the base color map is applied to the particles. Particles can receive color, alpha, color and alpha, or not receive any values from the base color map.")]
+        protected BaseColorMapMode useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
 
         [VFXSetting, SerializeField, Tooltip("Specifies how particles are being colored in the pixel shader. They can either use the main texture, or their color and alpha can be remapped with a gradient based on the main texture values."), Header("Particle Options"), FormerlySerializedAs("colorMappingMode")]
         protected ColorMappingMode colorMapping;
@@ -269,7 +281,9 @@ namespace UnityEditor.VFX
 
         private bool hasSoftParticles => supportSoftParticles && useSoftParticle;
 
-        public bool usesFlipbook { get { return supportsUV && uvMode == UVMode.Flipbook; } }
+        protected virtual bool hasAnyMap { get { return useBaseColorMap != BaseColorMapMode.None; } }
+
+        public bool usesFlipbook { get { return supportsUV && uvMode == UVMode.Flipbook && hasAnyMap; } }
         public bool flipbookHasInterpolation { get { return usesFlipbook && flipbookBlendFrames; } }
         public bool flipbookHasMotionVectors { get { return flipbookHasInterpolation && flipbookMotionVectors; } }
 
@@ -329,7 +343,7 @@ namespace UnityEditor.VFX
                 yield return new VFXNamedExpression(invSoftParticleFade, "invSoftParticlesFadeDistance");
             }
 
-            if (supportsUV && uvMode != UVMode.Default)
+            if (supportsUV && uvMode != UVMode.Default && hasAnyMap)
             {
                 switch (uvMode)
                 {
@@ -416,7 +430,7 @@ namespace UnityEditor.VFX
                         yield return property;
                 }
 
-                if (supportsUV && uvMode != UVMode.Default)
+                if (supportsUV && uvMode != UVMode.Default && hasAnyMap)
                 {
                     switch (uvMode)
                     {
@@ -532,6 +546,13 @@ namespace UnityEditor.VFX
         {
             get
             {
+                if (useBaseColorMap != BaseColorMapMode.None)
+                    yield return "USE_BASE_COLOR_MAP";
+                if ((useBaseColorMap & BaseColorMapMode.Color) != 0)
+                    yield return "USE_BASE_COLOR_MAP_COLOR";
+                if ((useBaseColorMap & BaseColorMapMode.Alpha) != 0)
+                    yield return "USE_BASE_COLOR_MAP_ALPHA";
+
                 switch (colorMapping)
                 {
                     case ColorMappingMode.Default:
@@ -582,7 +603,7 @@ namespace UnityEditor.VFX
                 if (HasIndirectDraw())
                     yield return "VFX_HAS_INDIRECT_DRAW";
 
-                if (supportsUV && uvMode != UVMode.Default)
+                if (supportsUV && uvMode != UVMode.Default && hasAnyMap)
                 {
                     switch (uvMode)
                     {
@@ -633,7 +654,7 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                if (!supportsUV)
+                if (!supportsUV || !hasAnyMap)
                     yield return "uvMode";
 
                 if (!implementsMotionVector || !subOutput.supportsMotionVector)

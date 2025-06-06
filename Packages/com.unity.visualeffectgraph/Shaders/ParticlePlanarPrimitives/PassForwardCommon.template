@@ -3,6 +3,7 @@ ${VFXPassForwardAdditionalPragma}
 struct ps_input
 {
 	float4 pos : SV_POSITION;
+	#if USE_BASE_COLOR_MAP
 	#if USE_FLIPBOOK_INTERPOLATION
 	float4 uv : TEXCOORD0;
 	#else
@@ -10,6 +11,7 @@ struct ps_input
 	float3 uv : TEXCOORD0;
 	#else
 	float2 uv : TEXCOORD0;
+	#endif
 	#endif
 	#endif
 	#if VFX_NEEDS_COLOR_INTERPOLATOR
@@ -65,7 +67,9 @@ struct ps_output
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy
+#if USE_BASE_COLOR_MAP
 #define VFX_VARYING_UV uv
+#endif
 #if VFX_NEEDS_POSWS_INTERPOLATOR
 #define VFX_VARYING_POSWS posWS
 #endif
@@ -124,7 +128,14 @@ ps_output frag(ps_input i,
 	#endif
 #else
 
+#if USE_BASE_COLOR_MAP_COLOR && USE_BASE_COLOR_MAP_ALPHA
 	#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
+#elif USE_BASE_COLOR_MAP_COLOR
+	#define VFX_TEXTURE_COLOR float4(VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).rgb, 1.0f)
+#elif USE_BASE_COLOR_MAP_ALPHA
+	#define VFX_TEXTURE_COLOR float4(1.0f, 1.0f, 1.0f, VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a)
+#endif
+
 	${VFXApplyColor}
 	o.color = VFXApplyPreExposure(o.color, i);
 #endif

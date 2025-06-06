@@ -103,6 +103,17 @@ namespace UnityEditor.VFX.HDRP
             }
         }
 
+        protected sealed override bool hasAnyMap
+        {
+            get
+            {
+                return base.hasAnyMap
+                       || useMaskMap
+                       || useNormalMap
+                       || useEmissiveMap
+                       || materialType == MaterialType.SixWaySmokeLit;
+            }
+        }
 
         protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
 
