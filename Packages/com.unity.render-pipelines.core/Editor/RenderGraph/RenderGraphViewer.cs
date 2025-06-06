@@ -157,7 +157,11 @@ namespace UnityEditor.Rendering
             ResourceFilter.ImportedResources |  ResourceFilter.Textures |
             ResourceFilter.Buffers | ResourceFilter.AccelerationStructures;
 
-        ViewOptions m_ViewOptions = 0;
+        ViewOptions m_ViewOptions = ViewOptions.LoadStoreActions;
+
+        bool m_PassFilterEnabled = true;
+        bool m_ResourceFilterEnabled = true;
+        bool m_ViewOptionsEnabled = false;
 
         enum EmptyStateReason
         {
@@ -897,20 +901,25 @@ namespace UnityEditor.Rendering
                 UpdateCurrentDebugData();
         }
 
-        // Generic helper function to iterate through enum values and add them to a ToolbarMenu.
-        void BuildEnumFlagsMenu<T>(ToolbarMenu menu, T currentValue, string prefsKey, Action<T> setValue, bool includeNoneAllOptions = true) where T : Enum
+        // Helper method to check if an enum value has a specific flag.
+        bool HasFlag<T>(T value, T flag) where T : Enum
+        {
+            return (Convert.ToInt32(value) & Convert.ToInt32(flag)) == Convert.ToInt32(flag);
+        }
+
+        void BuildEnumFlagsToggleDropdown<T>(ToggleDropdown dropdown, T currentValue, string prefsKey, Action<T> setValue, bool defaultEnabled = true) where T : Enum
         {
             if (!HasValidDebugData)
             {
-                menu.style.display = DisplayStyle.None;
+                dropdown.style.display = DisplayStyle.None;
                 return;
             }
-            menu.style.display = DisplayStyle.Flex;
-            menu.menu.ClearItems();
+            dropdown.style.display = DisplayStyle.Flex;
 
             Array enumValues = Enum.GetValues(typeof(T));
+            List<string> optionNames = new List<string>();
             List<T> values = new List<T>();
-            int allFlagsValue = 0;
+
             for (int i = 0; i < enumValues.Length; i++)
             {
                 T value = (T)enumValues.GetValue(i);
@@ -918,78 +927,99 @@ namespace UnityEditor.Rendering
                 if (intValue != 0)
                 {
                     values.Add(value);
-                    allFlagsValue |= intValue;
+                    optionNames.Add(ObjectNames.NicifyVariableName(value.ToString()));
                 }
             }
-            T allFlags = (T)Enum.ToObject(typeof(T), allFlagsValue);
-            if (includeNoneAllOptions)
-            {
-                menu.menu.AppendAction(L10n.Tr("Nothing"), _ => {
-                    var newValue = (T)Enum.ToObject(typeof(T), 0);
-                    setValue(newValue);
-                    EditorPrefs.SetInt(prefsKey, 0);
-                    RebuildGraphViewerUI();
-                }, _ => {
-                    return Convert.ToInt32(currentValue) == 0 ? DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal;
-                });
-                menu.menu.AppendAction(L10n.Tr("Everything"), _ => {
-                    setValue(allFlags);
-                    EditorPrefs.SetInt(prefsKey, allFlagsValue);
-                    RebuildGraphViewerUI();
-                }, _ => {
-                    return Convert.ToInt32(currentValue) == allFlagsValue ?
-                        DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal;
-                });
-            }
 
+            dropdown.SetOptions(optionNames.ToArray());
+
+            var selectedIndices = new List<int>();
             for (int i = 0; i < values.Count; i++)
             {
-                T flag = values[i];
-                string name = ObjectNames.NicifyVariableName(flag.ToString());
-                menu.menu.AppendAction(name, _ => {
-                    int newValueInt = Convert.ToInt32(currentValue) ^ Convert.ToInt32(flag);
-                    var newValue = (T)Enum.ToObject(typeof(T), newValueInt);
-                    setValue(newValue);
-                    EditorPrefs.SetInt(prefsKey, newValueInt);
-                    RebuildGraphViewerUI();
-                }, _ => {
-                    return HasFlag(currentValue, flag) ?
-                        DropdownMenuAction.Status.Checked : DropdownMenuAction.Status.Normal;
-                });
+                if (HasFlag(currentValue, values[i]))
+                {
+                    selectedIndices.Add(i);
+                }
             }
+            dropdown.SetSelectedIndices(selectedIndices.ToArray());
+
+            bool isEnabled = GetFilterEnabledState(prefsKey, defaultEnabled);
+            dropdown.SetEnabled(isEnabled);
+            UpdateFilterEnabledState(prefsKey, isEnabled);
+
+            dropdown.toggleChanged += (enabled) => {
+                UpdateFilterEnabledState(prefsKey, enabled);
+                SaveFilterEnabledState(prefsKey, enabled);
+                RebuildGraphViewerUI();
+            };
+
+            dropdown.selectionChanged += (indices) => {
+                int newValueInt = 0;
+                foreach (int index in indices)
+                {
+                    if (index >= 0 && index < values.Count)
+                    {
+                        newValueInt |= Convert.ToInt32(values[index]);
+                    }
+                }
+
+                var newValue = (T)Enum.ToObject(typeof(T), newValueInt);
+                setValue(newValue);
+                EditorPrefs.SetInt(prefsKey, newValueInt);
+
+                if (dropdown.value)
+                {
+                    RebuildGraphViewerUI();
+                }
+            };
         }
 
-        // Helper method to check if an enum value has a specific flag.
-        bool HasFlag<T>(T value, T flag) where T : Enum
+        bool GetFilterEnabledState(string prefsKey, bool defaultValue)
         {
-            return (Convert.ToInt32(value) & Convert.ToInt32(flag)) == Convert.ToInt32(flag);
+            string enabledKey = prefsKey + "_Enabled";
+            return EditorPrefs.GetBool(enabledKey, defaultValue);
+        }
+
+        void SaveFilterEnabledState(string prefsKey, bool enabled)
+        {
+            string enabledKey = prefsKey + "_Enabled";
+            EditorPrefs.SetBool(enabledKey, enabled);
+        }
+
+        void UpdateFilterEnabledState(string prefsKey, bool enabled)
+        {
+            if (prefsKey == kPassFilterEditorPrefsKey || prefsKey == kPassFilterLegacyEditorPrefsKey)
+                m_PassFilterEnabled = enabled;
+            else if (prefsKey == kResourceFilterEditorPrefsKey)
+                m_ResourceFilterEnabled = enabled;
+            else if (prefsKey == kViewOptionsEditorPrefsKey)
+                m_ViewOptionsEnabled = enabled;
         }
 
         void RebuildViewOptionsUI()
         {
-            var viewOptions = rootVisualElement.Q<ToolbarMenu>(Names.kViewOptionsField);
-            BuildEnumFlagsMenu(viewOptions, m_ViewOptions, kViewOptionsEditorPrefsKey, val => m_ViewOptions = val, false);
+            var viewOptions = rootVisualElement.Q<ToggleDropdown>(Names.kViewOptionsField);
+            BuildEnumFlagsToggleDropdown(viewOptions, m_ViewOptions, kViewOptionsEditorPrefsKey, val => m_ViewOptions = val, false);
             viewOptions.text = L10n.Tr("View Options");
         }
 
         void RebuildResourceFilterUI()
         {
-            var resourceFilter = rootVisualElement.Q<ToolbarMenu>(Names.kResourceFilterField);
-            BuildEnumFlagsMenu(resourceFilter, m_ResourceFilter, kResourceFilterEditorPrefsKey, val => m_ResourceFilter = val);
+            var resourceFilter = rootVisualElement.Q<ToggleDropdown>(Names.kResourceFilterField);
+            BuildEnumFlagsToggleDropdown(resourceFilter, m_ResourceFilter, kResourceFilterEditorPrefsKey, val => m_ResourceFilter = val, true);
             resourceFilter.text = L10n.Tr("Resource Filter");
         }
 
         void RebuildPassFilterUI()
         {
-            var passFilter = rootVisualElement.Q<ToolbarMenu>(Names.kPassFilterField);
+            var passFilter = rootVisualElement.Q<ToggleDropdown>(Names.kPassFilterField);
             if (m_CurrentDebugData?.isNRPCompiler ?? false)
             {
-                BuildEnumFlagsMenu(passFilter, m_PassFilter, kPassFilterEditorPrefsKey, val => m_PassFilter = val);
+                BuildEnumFlagsToggleDropdown(passFilter, m_PassFilter, kPassFilterEditorPrefsKey, val => m_PassFilter = val, true);
             }
             else
             {
-                BuildEnumFlagsMenu(passFilter, m_PassFilterLegacy, kPassFilterLegacyEditorPrefsKey,
-                    val => m_PassFilterLegacy = val, false);
+                BuildEnumFlagsToggleDropdown(passFilter, m_PassFilterLegacy, kPassFilterLegacyEditorPrefsKey, val => m_PassFilterLegacy = val, true);
             }
             passFilter.text = L10n.Tr("Pass Filter");
         }
@@ -1128,6 +1158,9 @@ namespace UnityEditor.Rendering
             if (resource.releasePassIndex == -1 && resource.creationPassIndex == -1)
                 return false;
 
+            if (!m_ResourceFilterEnabled)
+                return true;
+            
             if (resource.imported && !m_ResourceFilter.HasFlag(ResourceFilter.ImportedResources))
                 return false;
             if (type == RenderGraphResourceType.Texture && !m_ResourceFilter.HasFlag(ResourceFilter.Textures))
@@ -1145,6 +1178,9 @@ namespace UnityEditor.Rendering
         {
             if (!pass.generateDebugData)
                 return false;
+
+            if (!m_PassFilterEnabled)
+                return true;
 
             if (m_CurrentDebugData.isNRPCompiler)
             {
@@ -1483,7 +1519,7 @@ namespace UnityEditor.Rendering
                     tooltip += "<br>- Memory usage is <b>memoryless</b>.";
             }
 
-            if (m_ViewOptions.HasFlag(ViewOptions.LoadStoreActions))
+            if (m_ViewOptionsEnabled && m_ViewOptions.HasFlag(ViewOptions.LoadStoreActions))
             {
                 if (block.load != ResourceRWBlock.LoadAction.None)
                 {
@@ -1999,6 +2035,10 @@ namespace UnityEditor.Rendering
                 m_ResourceFilter = (ResourceFilter)EditorPrefs.GetInt(kResourceFilterEditorPrefsKey);
             if (EditorPrefs.HasKey(kViewOptionsEditorPrefsKey))
                 m_ViewOptions = (ViewOptions)EditorPrefs.GetInt(kViewOptionsEditorPrefsKey);
+
+            m_PassFilterEnabled = GetFilterEnabledState(kPassFilterEditorPrefsKey, true);
+            m_ResourceFilterEnabled = GetFilterEnabledState(kResourceFilterEditorPrefsKey, true);
+            m_ViewOptionsEnabled = GetFilterEnabledState(kViewOptionsEditorPrefsKey, false);
 
             GraphicsToolLifetimeAnalytic.WindowOpened<RenderGraphViewer>();
 

@@ -48,9 +48,7 @@
 /* Header */
 #header-container {
     flex-direction: row;
-    border-width: 0px 0 1px 0;
     height: var(--header-container-height);
-    border-color: var(--unity-colors-inspector_titlebar-border);
 }
 #header-container > VisualElement {
     flex-direction: row;
@@ -70,7 +68,6 @@
 }
 
 #search-field {
-    margin-bottom: 4px;
     max-width: 200px;
 }
 
@@ -94,10 +91,9 @@
 
 #auto-pause-toggle {
     padding: 3px 6px 3px 6px;
-    flex-grow: 1;
+    flex-grow: 0;
     flex-shrink: 1;
     -unity-text-align: middle-center;
-    border-width: 0px 0px 0px 0px;
     min-width: 94px;
     height: var(--header-container-height);
 }
@@ -107,8 +103,9 @@
     margin-left: 7px;
 }
 
-#current-execution-dropdown {
+#current-execution-toolbar-menu {
     max-width: 300px;
+    min-width: 114px;
     height: var(--header-container-height);
 }
 

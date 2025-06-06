@@ -6,15 +6,14 @@
             <ui:DropdownField name="current-graph-dropdown" label="Graph" />
             <ui:IMGUIContainer name="connection-dropdown" tooltip="Target selection" />
             <uie:ToolbarMenu name="current-execution-toolbar-menu" text="Camera" />
-            <uie:ToolbarMenu name="pass-filter-field" />
-            <uie:ToolbarMenu name="resource-filter-field" />
-            <uie:ToolbarMenu name="view-options-field" />
+            <r:ToggleDropdown name="pass-filter-field" />
+            <r:ToggleDropdown name="resource-filter-field" />
+            <r:ToggleDropdown name="view-options-field" />
         </ui:VisualElement>
         <ui:VisualElement name="header-container-right">
             <uie:ToolbarSearchField name="search-field" class="panel-search-field"/>
         </ui:VisualElement>
     </ui:VisualElement>
-
     <ui:TwoPaneSplitView name="content-container" orientation="Horizontal">
         <ui:VisualElement name="main-container">
             <ui:ScrollView name="pass-list-scroll-view">
