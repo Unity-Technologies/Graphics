@@ -490,6 +490,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         bool m_ExecutionExceptionWasRaised;
         bool m_RendererListCulling;
         bool m_EnableCompilationCaching;
+        internal/*for tests*/ static bool? s_EnableCompilationCachingForTests;
         CompiledGraph m_DefaultCompiledGraph = new();
         CompiledGraph m_CurrentCompiledGraph;
         RenderGraphState m_RenderGraphState;
@@ -537,15 +538,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphGlobalSettings>(out var renderGraphGlobalSettings))
             {
                 m_EnableCompilationCaching = renderGraphGlobalSettings.enableCompilationCaching;
-                if (m_EnableCompilationCaching)
-                    m_CompilationCache = new RenderGraphCompilationCache();
-
                 enableValidityChecks = renderGraphGlobalSettings.enableValidityChecks;
             }
             else // No SRP pipeline is present/active, it can happen with unit tests
             {
                 enableValidityChecks = true;
             }
+
+            if (s_EnableCompilationCachingForTests.HasValue)
+                m_EnableCompilationCaching = s_EnableCompilationCachingForTests.Value;
+
+            if (m_EnableCompilationCaching)
+                m_CompilationCache = new RenderGraphCompilationCache();
 
             m_TempMRTArrays = new RenderTargetIdentifier[kMaxMRTCount][];
             for (int i = 0; i < kMaxMRTCount; ++i)
@@ -1574,6 +1578,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if (m_RenderGraphContext.cmd == null)
                     throw new InvalidOperationException("RenderGraph.BeginRecording was not called before executing the render graph.");
+
+                ClearCacheIfNewActiveDebugSession();
 #endif
             if (!m_DebugParameters.immediateMode)
             {
@@ -2770,6 +2776,21 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             var obj = Resources.EntityIdToObject(entityId);
             return obj != null ? obj.name : $"RenderGraphExecution ({entityId})";
+        }
+
+        static bool s_DebugSessionWasActive;
+
+        void ClearCacheIfNewActiveDebugSession()
+        {
+            if (RenderGraphDebugSession.hasActiveDebugSession && !s_DebugSessionWasActive)
+            {
+                // Invalidate cache whenever a debug session becomes active. This is because while the DebugSession is
+                // inactive, certain debug data (store/load/pass break audits) stored inside the compilation cache is
+                // not getting generated. Therefore we clear compilation cache to regenerate this debug data.
+                // This needs to be done before the compilation step.
+                m_CompilationCache?.Clear();
+            }
+            s_DebugSessionWasActive = RenderGraphDebugSession.hasActiveDebugSession;
         }
 
         void GenerateDebugData(int graphHash)
