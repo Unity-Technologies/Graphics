@@ -38,6 +38,9 @@ namespace UnityEditor.Rendering.PostProcessing
                     || t == BuildTarget.GameCoreXboxSeries
                     || t == BuildTarget.GameCoreXboxOne
 #endif
+#if UNITY_SWITCH2
+                    || t == BuildTarget.Switch2
+#endif
                     || t == BuildTarget.Switch;
             }
         }

@@ -23,6 +23,8 @@
     #include "API/Vulkan.hlsl"
 #elif defined(SHADER_API_SWITCH)
     #include "API/Switch.hlsl"
+#elif defined(SHADER_API_SWITCH2)
+    #include "API/Switch2.hlsl"
 #elif defined(SHADER_API_METAL)
     #include "API/Metal.hlsl"
 #elif defined(SHADER_API_PSP2)
@@ -33,7 +35,7 @@
     #include "API/OpenGL.hlsl"
 #endif
 
-#if defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_PSP2)
+#if defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2) || defined(SHADER_API_PSP2)
     #define SHADER_API_CONSOLE
 #endif
 
