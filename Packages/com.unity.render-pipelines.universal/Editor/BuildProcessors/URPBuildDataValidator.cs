@@ -51,6 +51,48 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
         }
+        
+#if !URP_COMPATIBILITY_MODE
+        private static void ValidateCompatibilityMode(UniversalRenderPipelineGlobalSettings globalSettingsInstance, StringBuilder failures)
+        {
+            if (globalSettingsInstance == null)
+                return; //error already covered in ValidateRenderPipelineGlobalSettings
+
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var settings))
+            {
+                failures.AppendLine($"- The {nameof(RenderGraphSettings)} of the project are missing. Is the {nameof(UniversalRenderPipelineGlobalSettings)} missing?");
+                return;
+            }
+
+            if (settings.GetSerializedCompatibilityModeForBuildCheck())
+            {
+                failures.AppendLine($"- Compatibility Mode is enabled in Project Settings, but this feature is deprecated from Unity 6.0, and the setting is hidden in Unity 6.3. To enable Compatibility Mode, go to Edit > Project Settings > Player and add URP_COMPATIBILITY_MODE to the Scripting Define Symbols.");
+
+                //It can be complicated to fix it manually:
+                // - Add the URP_COMPATIBILITY_MODE define
+                // - Change back the checkbox to false in Project Settings > Graphics
+                // - Remove the URP_COMPATIBILITY_MODE define
+                //So this helpbox propose to fix it for user wanting to adopt Render Graph
+                EditorApplication.delayCall += () => {
+                    EditorApplication.delayCall += () =>
+                    {
+                        int answear = EditorUtility.DisplayDialogComplex("Universal Render Pipeline's Compatibility Mode",
+                            "Unity can't build your project because Compatibility Mode (Render Graph disabled) is enabled. This feature is deprecated. Unity now uses the render graph system instead.\n\n" +
+                            "Select \"Use Render Graph\" (Recommended) to update your Project Settings to use the render graph system. You might need to manually update your scripts and assets.\n\n" +
+                            "Select \"Keep Compatibility Mode\" to add a URP_COMPATIBILITY_MODE define to the Scripting Define Symbols in Player Settings for your current build target. Warning: Compatibility Mode will be fully removed in a future release.",
+                            "Use Render Graph",
+                            "Cancel",
+                            "Keep Compatibility Mode");
+                        switch (answear)
+                        {
+                            case 0: settings.SetCompatibilityModeFromUpgrade(false); break;
+                            case 2: settings.AddCompatibilityModeDefineForCurrentPlateform(); break;
+                        };
+                    };
+                };
+            }
+        }
+#endif
 
         public static bool IsProjectValidForBuilding(BuildReport report, out string message)
         {
@@ -61,6 +103,9 @@ namespace UnityEditor.Rendering.Universal
                 ValidateRenderPipelineAssetsAreAtLastVersion(URPBuildData.instance.renderPipelineAssets, failures);
                 ValidateRenderPipelineGlobalSettings(UniversalRenderPipelineGlobalSettings.Ensure(), failures);
                 ValidateDynamicBatchingSettings(URPBuildData.instance.renderPipelineAssets);
+#if !URP_COMPATIBILITY_MODE
+                ValidateCompatibilityMode(UniversalRenderPipelineGlobalSettings.Ensure(), failures);
+#endif
 
                 string allFailures = failures.ToString();
 

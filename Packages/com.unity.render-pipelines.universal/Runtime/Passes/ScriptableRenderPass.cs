@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.Universal
     ///
     /// See [link] for more info on working with a <c>ScriptableRendererFeature</c> or [link] for more info on working with <c>ScriptableRenderer.EnqueuePass</c>.
     /// </remarks>
-    public abstract partial class ScriptableRenderPass: IRenderGraphRecorder
+    public abstract partial class ScriptableRenderPass : IRenderGraphRecorder
     {
         /// <summary>
         /// RTHandle alias for BuiltinRenderTextureType.CameraTarget which is the backbuffer.
@@ -297,7 +297,9 @@ namespace UnityEngine.Rendering.Universal
 
         private ProfilingSampler m_ProfingSampler;
         private string m_PassName;
+#if URP_COMPATIBILITY_MODE
         private RenderGraphSettings m_RenderGraphSettings;
+#endif
 
         /// <summary>
         /// A ProfilingSampler for the entire render pass. Used as a profiling name by <c>ScriptableRenderer</c> when executing the pass.
@@ -309,17 +311,23 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+#if URP_COMPATIBILITY_MODE
                 //We only need this in release (non-dev build) but putting it here to track it in more test automation.
                 if (m_RenderGraphSettings == null)
                 {
                     m_RenderGraphSettings = GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>();
                 }
+#endif
 
 #if (DEVELOPMENT_BUILD || UNITY_EDITOR)
                 return m_ProfingSampler;
-#else 
+#else
+    #if URP_COMPATIBILITY_MODE
                 //We only remove the sampler in release build when not in Compatibility Mode to avoid breaking user projects in the very unlikely scenario they would get the sampler.
                 return m_RenderGraphSettings.enableRenderCompatibilityMode ? m_ProfingSampler : null;
+    #else
+                return null;
+    #endif
 #endif
             }
             set

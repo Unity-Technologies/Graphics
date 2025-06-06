@@ -1004,8 +1004,6 @@ namespace UnityEngine.Rendering.Universal
         static public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, UniversalRenderingData renderingData,
             UniversalCameraData cameraData, UniversalLightData lightData, SortingCriteria sortingCriteria)
         {
-            bool renderGraphOn = !(GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) && renderGraphSettings.enableRenderCompatibilityMode);
-
             Camera camera = cameraData.camera;
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
             DrawingSettings settings = new DrawingSettings(shaderTagId, sortingSettings)
@@ -1017,7 +1015,11 @@ namespace UnityEngine.Rendering.Universal
                 // Disable instancing for preview cameras. This is consistent with the built-in forward renderer. Also fixes case 1127324.
                 enableInstancing = camera.cameraType == CameraType.Preview ? false : true,
                 // stencil-based LOD doesn't support native render pass for now.
-                lodCrossFadeStencilMask = renderGraphOn && renderingData.stencilLodCrossFadeEnabled ? (int)UniversalRendererStencilRef.CrossFadeStencilRef_All : 0,
+                lodCrossFadeStencilMask =
+#if URP_COMPATIBILITY_MODE
+                    !(GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) && renderGraphSettings.enableRenderCompatibilityMode) && 
+#endif
+                    renderingData.stencilLodCrossFadeEnabled ? (int)UniversalRendererStencilRef.CrossFadeStencilRef_All : 0,
             };
             return settings;
         }
