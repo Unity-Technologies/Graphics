@@ -96,10 +96,6 @@
       * [Linear Drag](Block-LinearDrag.md)
       * [Turbulence](Block-Turbulence.md)
       * [Vector Force Field](Block-VectorForceField.md)
-    * GPU Event
-      * [Trigger Event Always](Block-TriggerEventAlways.md)
-      * [Trigger Event On Die](Block-TriggerEventOnDie.md)
-      * [Trigger Event Rate](Block-TriggerEventRate.md)
     * HLSL
       * [Custom HLSL](Block-CustomHLSL.md)
     * Implicit
@@ -134,6 +130,7 @@
         * [Increment Strip Index On Start](Block-IncrementStripIndexOnStart.md)
         * [Set Spawn Time](Block-SetSpawnTime.md)
         * [Spawn Over Distance](Block-SpawnOverDistance.md)
+    * [Trigger Event Block reference](Block-Trigger-Event.md)
     * Velocity
       * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirectionAndSpeed(ChangeSpeed).md)
       * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirectionAndSpeed(NewDirection).md)
