@@ -4,11 +4,13 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [CustomEditor(typeof(ShaderGraphHeatmapValues))]
+    [CoreRPHelpURL("index", "com.unity.shadergraph")]
     class ShaderGraphHeatmapValuesEditor : Editor
     {
         const string k_TemplatePath = "Packages/com.unity.shadergraph/Editor/Resources/UXML/HeatmapValuesEditor.uxml";
