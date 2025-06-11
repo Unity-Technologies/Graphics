@@ -3,6 +3,7 @@
 
 name: postprocessing
 test_editors:
+  # This should start from the earliest supported stream (specified in the package.json file). Right now this is 2019.4.
   - 2019.4
   - 2020.3
   - 2021.3
