@@ -32,5 +32,5 @@ float4x4 BuildWorldToObjectMatrixFromLocalFogOBB()
 float3 TransformWorldToObjectFog(float3 positionRWS)
 {
     float3 posWS = GetAbsolutePositionWS(positionRWS);
-    return mul(BuildWorldToObjectMatrixFromLocalFogOBB(), float4(posWS, 1));
+    return mul(BuildWorldToObjectMatrixFromLocalFogOBB(), float4(posWS, 1)).xyz;
 }
