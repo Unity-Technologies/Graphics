@@ -114,6 +114,7 @@
     * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
     * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
     * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
+    * [Write depth only in a shader in URP](writing-shaders-urp-depth-only.md)
     * [Reconstruct the world space positions](writing-shaders-urp-reconstruct-world-position.md)
     * [Shader methods in URP](use-built-in-shader-methods.md)
       * [Import a file from the URP shader library](use-built-in-shader-methods-import.md)
