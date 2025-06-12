@@ -78,6 +78,18 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
+        /// <inheritdoc/>
+        protected internal override bool SupportsCameraOpaque()
+        {
+            return true;
+        }
+
+        /// <inheritdoc/>
+        protected internal override bool SupportsCameraNormals()
+        {
+            return true;
+        }
+
         // Rendering mode setup from UI. The final rendering mode used can be different. See renderingModeActual.
         internal RenderingMode renderingModeRequested => m_RenderingMode;
 
