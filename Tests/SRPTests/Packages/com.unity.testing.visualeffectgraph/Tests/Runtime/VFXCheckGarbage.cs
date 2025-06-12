@@ -92,6 +92,9 @@ Recorder m_gcAllocRecorder;
         }
 
         [UnityTest]
+#if UNITY_SWITCH
+        [Ignore("See UUM-108973")]
+#endif
         public IEnumerator Create_Garbage_Scenario([ValueSource(nameof(s_Scenarios))] string scenario, [ValueSource(nameof(s_CustomGarbageWrapperTest))] string garbageMode)
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(string.Format("Packages/com.unity.testing.visualeffectgraph/Scenes/{0}.unity", scenario));

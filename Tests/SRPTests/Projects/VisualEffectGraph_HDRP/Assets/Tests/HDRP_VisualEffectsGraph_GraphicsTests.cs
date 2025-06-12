@@ -28,6 +28,7 @@ namespace UnityEngine.VFX.Test
         [IgnoreGraphicsTest("36_SkinnedSDF", "See UUM-66822", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.GameCoreXboxOne })]
         [IgnoreGraphicsTest("39_SmokeLighting_APV", "Too many bindings when using APVs", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch })]
         [IgnoreGraphicsTest("102_ShadergraphShadow", "See UUM-96202", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch })]
+        [IgnoreGraphicsTest("015_FixedTime", "See UUM-109089", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Switch })]
         [IgnoreGraphicsTest("Repro_SampleGradient_Branch_Instancing", "Compute shader ([Repro_SampleGradient_Branch_Instancing] [Minimal] Update Particles): Property (Repro_SampleGradient_Branch_Instancing_Buffer) at kernel index (0) is not set")]
         [IgnoreGraphicsTest("Empty", "No reference images provided")]
         [IgnoreGraphicsTest("Empty_With_Camera", "No reference images provided")]
