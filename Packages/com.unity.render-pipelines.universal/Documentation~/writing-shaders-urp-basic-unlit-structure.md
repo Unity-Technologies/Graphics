@@ -4,7 +4,9 @@ This example shows a basic URP-compatible shader. This shader fills the mesh sha
 
 To see the shader in action, copy and paste the following ShaderLab code into the Shader asset.
 
-```c++
+**Note**: If you enable **Depth Priming Mode** in the [URP asset](universalrp-asset.md), this shader renders opaque objects as invisible. For more information, refer to [Write depth only in a shader](writing-shaders-urp-depth-only.md).
+
+``` lang-cpp
 // This shader fills the mesh shape with a color predefined in the code.
 Shader "Example/URPUnlitShaderBasic"
 {
@@ -143,8 +145,6 @@ This block contains the HLSL program code.
 
 > **NOTE**: HLSL language is the preferred language for URP shaders.
 
-> **NOTE**: URP supports the CG language. If you add the CGPROGRAM/ENDCGPROGRAM block in a shader, Unity includes shaders from the Built-in Render Pipeline library automatically. If you include shaders from the SRP shader library, some SRP shader macros and functions might conflict with the Built-in Render Pipeline shader functions. Shaders with the CGPROGRAM block are not SRP Batcher compatible.
-
 This block contains the `#include` declaration with the reference to the `Core.hlsl` file.
 
 ```c++
@@ -163,6 +163,8 @@ Varyings vert(Attributes IN)
     return OUT;
 }
 ```
+
+> **Note**: Don't import shader library files from both the Scriptable Render Pipeline (SRP) and the Built-In Render Pipeline in the same shader. Some SRP shader macros and functions might conflict with the Built-in Render Pipeline shader functions. For more information, refer to [Shader methods in URP](use-built-in-shader-methods) and [Import a file from the shader library in the Built-In Render Pipeline](../SL-BuiltinIncludes).
 
 The fragment shader in this basic HLSL code outputs the single color predefined in the code:
 
