@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [17.0.3] - 2025-02-13
 
-This version is compatible with Unity 6000.2.0a17.
+This version is compatible with Unity 6000.2.0a5.
 
 ### Added
 - `SetViewAndProjectionMatrices()` helper function is available within a RasterRenderPass in RenderGraph.

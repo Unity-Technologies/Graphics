@@ -22,7 +22,7 @@ This version is compatible with Unity 6000.2.0b2.
 
 ## [17.0.3] - 2025-02-13
 
-This version is compatible with Unity 6000.2.0a17.
+This version is compatible with Unity 6000.2.0a5.
 
 ### Added
 - Added Variable Rate Shading API support for (Raster)CommandBuffer(s), RenderGraph and RTHandles.
