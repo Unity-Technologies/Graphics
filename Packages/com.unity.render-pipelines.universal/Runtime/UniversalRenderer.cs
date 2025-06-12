@@ -120,10 +120,10 @@ namespace UnityEngine.Rendering.Universal
                         return deferredModeUnsupported ? RenderingMode.Forward : RenderingMode.Deferred;
 
                     case RenderingMode.DeferredPlus:
+#if URP_COMPATIBILITY_MODE
                         if (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
-                        {
                             return RenderingMode.ForwardPlus;
-                        }
+#endif
                         return deferredModeUnsupported ? RenderingMode.ForwardPlus : RenderingMode.DeferredPlus;
 
                     case RenderingMode.Forward:
@@ -279,15 +279,20 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
             m_IntermediateTextureMode = data.intermediateTextureMode;
+            
+#if URP_COMPATIBILITY_MODE
             if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings)
                 && !renderGraphSettings.enableRenderCompatibilityMode)
             {
+#endif
                 prepassLayerMask = data.prepassLayerMask;
+#if URP_COMPATIBILITY_MODE
             }
             else
             {
                 prepassLayerMask = data.opaqueLayerMask;
             }
+#endif
             opaqueLayerMask = data.opaqueLayerMask;
             transparentLayerMask = data.transparentLayerMask;
             shadowTransparentReceive = data.shadowTransparentReceive;
@@ -426,12 +431,15 @@ namespace UnityEngine.Rendering.Universal
                 if (asset)
                     postProcessParams.requestColorFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
 
-                if (UniversalRenderPipeline.useRenderGraph && data.postProcessData is not null)
+                if (UniversalRenderPipeline.useRenderGraph)
                 {
-                    m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, postProcessParams.requestColorFormat);
-                    m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
+                    if (data.postProcessData != null)
+                    {
+                        m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, postProcessParams.requestColorFormat);
+                        m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
+                    }
+                    // No postProcessData in RG means no post processes
                 }
-
                 else
                     m_PostProcessPasses = new CompatibilityMode.PostProcessPasses(data.postProcessData, ref postProcessParams);
             }

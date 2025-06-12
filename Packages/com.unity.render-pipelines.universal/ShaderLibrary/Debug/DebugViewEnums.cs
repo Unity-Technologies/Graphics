@@ -54,6 +54,14 @@ namespace UnityEngine.Rendering.Universal
         Texcoord2,
         /// <summary>Display texture coordinate 3.</summary>
         Texcoord3,
+        /// <summary>Display texture coordinate 4.</summary>
+        Texcoord4,
+        /// <summary>Display texture coordinate 5.</summary>
+        Texcoord5,
+        /// <summary>Display texture coordinate 6.</summary>
+        Texcoord6,
+        /// <summary>Display texture coordinate 7.</summary>
+        Texcoord7,
         /// <summary>Display vertex color.</summary>
         Color,
         /// <summary>Display tangent.</summary>

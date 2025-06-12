@@ -38,6 +38,10 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.uv1:                                       output.uv1 =                                        input.uv1;
     $VertexDescriptionInputs.uv2:                                       output.uv2 =                                        input.uv2;
     $VertexDescriptionInputs.uv3:                                       output.uv3 =                                        input.uv3;
+    $VertexDescriptionInputs.uv4:                                       output.uv4 =                                        input.uv4;
+    $VertexDescriptionInputs.uv5:                                       output.uv5 =                                        input.uv5;
+    $VertexDescriptionInputs.uv6:                                       output.uv6 =                                        input.uv6;
+    $VertexDescriptionInputs.uv7:                                       output.uv7 =                                        input.uv7;
     $VertexDescriptionInputs.VertexColor:                               output.VertexColor =                                input.color;
     $VertexDescriptionInputs.TimeParameters:                            output.TimeParameters =                             _TimeParameters.xyz; // Note: in case of animation this will be overwrite (allow to handle motion vector)
     $VertexDescriptionInputs.BoneWeights:                               output.BoneWeights =                                input.weights;
@@ -106,6 +110,10 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     $VertexDescription.uv1:      input.uv1 = vertexDescription.uv1;
     $VertexDescription.uv2:      input.uv2 = vertexDescription.uv2;
     $VertexDescription.uv3:      input.uv3 = vertexDescription.uv3;
+    $VertexDescription.uv4:      input.uv4 = vertexDescription.uv4;
+    $VertexDescription.uv5:      input.uv5 = vertexDescription.uv5;
+    $VertexDescription.uv6:      input.uv6 = vertexDescription.uv6;
+    $VertexDescription.uv7:      input.uv7 = vertexDescription.uv7;
 
     $splice(CustomInterpolatorVertMeshCustomInterpolation)
 
@@ -148,6 +156,10 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     $FragInputs.texCoord1:                      output.texCoord1 =                  input.texCoord1;
     $FragInputs.texCoord2:                      output.texCoord2 =                  input.texCoord2;
     $FragInputs.texCoord3:                      output.texCoord3 =                  input.texCoord3;
+    $FragInputs.texCoord4:                      output.texCoord4 =                  input.texCoord4;
+    $FragInputs.texCoord5:                      output.texCoord5 =                  input.texCoord5;
+    $FragInputs.texCoord6:                      output.texCoord6 =                  input.texCoord6;
+    $FragInputs.texCoord7:                      output.texCoord7 =                  input.texCoord7;
     $FragInputs.color:                          output.color =                      input.color;
     $FragInputs.diffuseGIData0:                 output.diffuseGIData[0] =           input.diffuseGIData0;
     $FragInputs.diffuseGIData1:                 output.diffuseGIData[1] =           input.diffuseGIData1;

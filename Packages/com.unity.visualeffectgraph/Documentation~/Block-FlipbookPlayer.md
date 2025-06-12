@@ -6,7 +6,10 @@ The **Flipbook Player** Block creates animated particles using flipbook textures
 
 Flipbook textures are texture sheets that consist of multiple smaller sub-images. To produce an animation, Unity steps through the sub-images in a particular order.
 
-![](Images/Block-FlipbookPlayerExampleLHS.png)![img](Images/Block-FlipbookPlayerExampleRHS.gif)
+![Cloud-shaped blocks representing stages in a sprite sheet.](Images/Block-FlipbookPlayerExampleLHS.png)<video src="Images/Block-FlipbookPlayerExampleRHS.mp4" Title="A translucent cloud gradually forms, swirls gently, and then dissipates into the background." width="320" height="auto" autoplay="true" loop="true" controls></video>
+
+A translucent cloud gradually forms, swirls gently, and then dissipates into the background.
+
 
 To generate a Flipbook, use external digital content creation tools.
 

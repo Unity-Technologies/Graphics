@@ -730,7 +730,24 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Android: URP_COMPATIBILITY_MODE
+    EmbeddedLinux: URP_COMPATIBILITY_MODE
+    GameCoreScarlett: URP_COMPATIBILITY_MODE
+    GameCoreXboxOne: URP_COMPATIBILITY_MODE
+    Kepler: URP_COMPATIBILITY_MODE
+    Nintendo Switch: URP_COMPATIBILITY_MODE
+    PS4: URP_COMPATIBILITY_MODE
+    PS5: URP_COMPATIBILITY_MODE
+    QNX: URP_COMPATIBILITY_MODE
+    ReservedCFE: URP_COMPATIBILITY_MODE
+    Standalone: URP_COMPATIBILITY_MODE
+    VisionOS: URP_COMPATIBILITY_MODE
+    WebGL: URP_COMPATIBILITY_MODE
+    Windows Store Apps: URP_COMPATIBILITY_MODE
+    XboxOne: URP_COMPATIBILITY_MODE
+    iPhone: URP_COMPATIBILITY_MODE
+    tvOS: URP_COMPATIBILITY_MODE
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

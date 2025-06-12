@@ -8,6 +8,10 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Internal targets.
+        private RTHandle m_LineColorBufferRT;
+        private RTHandle m_LineDepthBufferRT;
+        private RTHandle m_LineMVBufferRT;
+
         private TextureHandle m_LineColorBuffer;
         private TextureHandle m_LineDepthBuffer;
         private TextureHandle m_LineMVBuffer;
@@ -60,24 +64,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 gpuPrefixSum = m_PrefixSum
             });
 
-            TextureHandle CreateInternalTarget(GraphicsFormat format, Color clearValue, string name)
-            {
-                TextureDesc td = new TextureDesc(Vector2.one, true, true);
-                {
-                    td.format = format;
-                    td.useMipMap = false;
-                    td.clearBuffer = true;
-                    td.clearColor = clearValue;
-                    td.autoGenerateMips = false;
-                    td.name = name;
-                    td.enableRandomWrite = true;
-                }
-                return m_RenderGraph.CreateSharedTexture(td);
-            }
-
-            m_LineColorBuffer = CreateInternalTarget(GraphicsFormat.R32G32B32A32_SFloat, Color.black, "LineColorBuffer");
-            m_LineDepthBuffer = CreateInternalTarget(GraphicsFormat.R32_SFloat,          Color.black, "LineDepthBuffer");
-            m_LineMVBuffer    = CreateInternalTarget(Builtin.GetMotionVectorFormat(),    Color.clear, "LineMVBuffer");
+            m_LineColorBufferRT = RTHandles.Alloc(Vector2.one, format:GraphicsFormat.R32G32B32A32_SFloat, slices: TextureXR.slices, dimension: TextureXR.dimension,
+                useMipMap: false, autoGenerateMips: false, enableRandomWrite: true, useDynamicScale: true, name: "LineColorBuffer");
+            m_LineDepthBufferRT = RTHandles.Alloc(Vector2.one, format: GraphicsFormat.R32_SFloat, slices: TextureXR.slices, dimension: TextureXR.dimension,
+                useMipMap: false, autoGenerateMips: false, enableRandomWrite: true, useDynamicScale: true, name: "LineDepthBuffer");
+            m_LineMVBufferRT = RTHandles.Alloc(Vector2.one,  format: Builtin.GetMotionVectorFormat(), slices: TextureXR.slices, dimension: TextureXR.dimension,
+                useMipMap: false, autoGenerateMips: false, enableRandomWrite: true, useDynamicScale: true, name: "LineMVBuffer");
         }
 
         void CleanupLineRendering()
@@ -87,11 +79,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CoreUtils.Destroy(m_LineCompositePass);
 
-            m_RenderGraph.ReleaseSharedTexture(m_LineColorBuffer);
-            m_RenderGraph.ReleaseSharedTexture(m_LineDepthBuffer);
-            m_RenderGraph.ReleaseSharedTexture(m_LineMVBuffer);
+            m_LineColorBufferRT?.Release();
+            m_LineDepthBufferRT?.Release();
+            m_LineMVBufferRT?.Release();
+
+            m_LineColorBuffer = TextureHandle.nullHandle;
+            m_LineDepthBuffer = TextureHandle.nullHandle;
+            m_LineMVBuffer = TextureHandle.nullHandle;
 
             LineRendering.Instance.Cleanup();
+        }
+
+        void ImportLineRenderingTargetsToRenderGraphIfNeeded()
+        {
+            if (!m_LineColorBuffer.IsValid())
+                m_LineColorBuffer = m_RenderGraph.ImportTexture(m_LineColorBufferRT);
+
+            if (!m_LineDepthBuffer.IsValid())
+                m_LineDepthBuffer = m_RenderGraph.ImportTexture(m_LineDepthBufferRT);
+
+            if (!m_LineMVBuffer.IsValid())
+                m_LineMVBuffer = m_RenderGraph.ImportTexture(m_LineMVBufferRT);
         }
 
         class LineRendererSetupData
@@ -147,6 +155,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!LineRenderingIsEnabled(hdCamera, out var settings))
                 return;
+
+            ImportLineRenderingTargetsToRenderGraphIfNeeded();
 
             // Here we need to bind some SRP-specific buffers and clear the internal targets.
             using (var builder = renderGraph.AddRenderPass<LineRendererSetupData>("Setup Line Rendering", out var passData, ProfilingSampler.Get(HDProfileId.LineRenderingSetup)))
@@ -228,6 +238,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (compositionMode != -1 && compositionMode != (int)settings.compositionMode.value)
                 return;
 
+            ImportLineRenderingTargetsToRenderGraphIfNeeded();
+
             using (var builder = renderGraph.AddRenderPass<LineRendererCompositeData>("Composite Hair", out var passData, ProfilingSampler.Get(HDProfileId.LineRenderingComposite)))
             {
                 passData.compositePass   = m_LineCompositePass;
@@ -263,7 +275,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         HDUtils.DrawFullScreen(context.cmd, passData.compositePass, new RenderTargetIdentifier[] { passData.mainTargetColor, passData.mainTargetMV }, passData.mainTargetDepth, null, m_LineCompositePassAllIndex); //composite all
                     }
-
                 });
             }
         }

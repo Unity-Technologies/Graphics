@@ -1,4 +1,4 @@
-﻿
+
 ${VFXBegin:VFXGetColorRT}
     #if USE_FLIPBOOK
         ${VFXLoadParameter:{invFlipBookSize}}
@@ -14,7 +14,13 @@ ${VFXBegin:VFXGetColorRT}
 
     float4 color = float4(attributes.color, attributes.alpha);
     #if VFX_COLORMAPPING_DEFAULT
-	    color = color * SampleTexture(VFX_SAMPLER(mainTexture), uvData);
+    #if USE_BASE_COLOR_MAP_COLOR && USE_BASE_COLOR_MAP_ALPHA
+	    color *= SampleTexture(VFX_SAMPLER(mainTexture), uvData);
+    #elif USE_BASE_COLOR_MAP_COLOR
+        color.rgb *= SampleTexture(VFX_SAMPLER(mainTexture), uvData).rgb;
+    #elif USE_BASE_COLOR_MAP_ALPHA
+        color.a *= SampleTexture(VFX_SAMPLER(mainTexture), uvData).a;
+    #endif
     #endif
 
     #if VFX_COLORMAPPING_GRADIENTMAPPED

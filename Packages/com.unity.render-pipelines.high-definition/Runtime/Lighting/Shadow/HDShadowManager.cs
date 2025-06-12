@@ -748,7 +748,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var punctualAtlasInitParams = new HDShadowAtlas.HDShadowAtlasInitParameters(
                 renderPipeline,
                 renderGraph,
-                useSharedTexture: false,
+                usePersistentTexture: false,
                 initParams.punctualLightShadowAtlas.shadowAtlasResolution,
                 initParams.punctualLightShadowAtlas.shadowAtlasResolution,
                 m_ClearShadowMaterial,
@@ -767,7 +767,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowAtlas.BlurAlgorithm cascadeBlur = GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS ? HDShadowAtlas.BlurAlgorithm.IM : HDShadowAtlas.BlurAlgorithm.None;
 
             HDShadowAtlas.HDShadowAtlasInitParameters dirAtlasInitParams = punctualAtlasInitParams;
-            dirAtlasInitParams.useSharedTexture = true;
+            dirAtlasInitParams.usePersistentTexture = true;
             dirAtlasInitParams.width = 1;
             dirAtlasInitParams.height = 1;
             dirAtlasInitParams.blurAlgorithm = cascadeBlur;
@@ -782,7 +782,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowAtlas.HDShadowAtlasInitParameters areaAtlasInitParams = punctualAtlasInitParams;
             if (ShaderConfig.s_AreaLights == 1)
             {
-                areaAtlasInitParams.useSharedTexture = false;
+                areaAtlasInitParams.usePersistentTexture = false;
                 areaAtlasInitParams.width = initParams.areaLightShadowAtlas.shadowAtlasResolution;
                 areaAtlasInitParams.height = initParams.areaLightShadowAtlas.shadowAtlasResolution;
                 areaAtlasInitParams.blurAlgorithm = GetAreaLightShadowBlurAlgorithm();
@@ -801,7 +801,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             HDShadowAtlas.HDShadowAtlasInitParameters cachedPunctualAtlasInitParams = punctualAtlasInitParams;
-            cachedPunctualAtlasInitParams.useSharedTexture = true;
+            cachedPunctualAtlasInitParams.usePersistentTexture = true;
             cachedPunctualAtlasInitParams.width = initParams.cachedPunctualLightShadowAtlas;
             cachedPunctualAtlasInitParams.height = initParams.cachedPunctualLightShadowAtlas;
             cachedPunctualAtlasInitParams.name = "Cached Shadow Map Atlas";
@@ -811,7 +811,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1)
             {
                 HDShadowAtlas.HDShadowAtlasInitParameters cachedAreaAtlasInitParams = areaAtlasInitParams;
-                cachedAreaAtlasInitParams.useSharedTexture = true;
+                cachedAreaAtlasInitParams.usePersistentTexture = true;
                 cachedAreaAtlasInitParams.width = initParams.cachedAreaLightShadowAtlas;
                 cachedAreaAtlasInitParams.height = initParams.cachedAreaLightShadowAtlas;
                 cachedAreaAtlasInitParams.name = "Cached Area Light Shadow Map Atlas";
@@ -1359,7 +1359,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderShadows(RenderGraph renderGraph, in ShaderVariablesGlobal globalCB, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result)
         {
-            InvalidateAtlasOutputsIfNeeded();
+            InvalidateAtlasOutputs();
 
             // Avoid to do any commands if there is no shadow to draw
             if (m_ShadowRequestCount != 0 &&
@@ -1399,14 +1399,14 @@ namespace UnityEngine.Rendering.HighDefinition
             BindShadowGlobalResources(renderGraph, result);
         }
 
-        internal void ReleaseSharedShadowAtlases(RenderGraph renderGraph)
+        internal void ReleasePersistentShadowAtlases(RenderGraph renderGraph)
         {
             if (cachedShadowManager.DirectionalHasCachedAtlas())
-                cachedShadowManager.directionalLightAtlas.CleanupRenderGraphOutput(renderGraph);
+                cachedShadowManager.directionalLightAtlas.CleanupPersistentTexture(renderGraph);
 
-            cachedShadowManager.punctualShadowAtlas.CleanupRenderGraphOutput(renderGraph);
+            cachedShadowManager.punctualShadowAtlas.CleanupPersistentTexture(renderGraph);
             if (ShaderConfig.s_AreaLights == 1)
-                cachedShadowManager.areaShadowAtlas.CleanupRenderGraphOutput(renderGraph);
+                cachedShadowManager.areaShadowAtlas.CleanupPersistentTexture(renderGraph);
 
             cachedShadowManager.DefragAtlas(LightType.Point);
             cachedShadowManager.DefragAtlas(LightType.Spot);
@@ -1414,19 +1414,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 cachedShadowManager.DefragAtlas(LightType.Rectangle);
         }
 
-        void InvalidateAtlasOutputsIfNeeded()
+        void InvalidateAtlasOutputs()
         {
-            cachedShadowManager.punctualShadowAtlas.InvalidateOutputIfNeeded();
-            m_Atlas.InvalidateOutputIfNeeded();
-            m_CascadeAtlas.InvalidateOutputIfNeeded();
+            cachedShadowManager.punctualShadowAtlas.InvalidateOutput();
+            m_Atlas.InvalidateOutput();
+            m_CascadeAtlas.InvalidateOutput();
             if (cachedShadowManager.DirectionalHasCachedAtlas())
             {
-                cachedShadowManager.directionalLightAtlas.InvalidateOutputIfNeeded();
+                cachedShadowManager.directionalLightAtlas.InvalidateOutput();
             }
             if (ShaderConfig.s_AreaLights == 1)
             {
-                cachedShadowManager.areaShadowAtlas.InvalidateOutputIfNeeded();
-                m_AreaLightShadowAtlas.InvalidateOutputIfNeeded();
+                cachedShadowManager.areaShadowAtlas.InvalidateOutput();
+                m_AreaLightShadowAtlas.InvalidateOutput();
             }
         }
 

@@ -9,6 +9,8 @@ The multi-frame rendering API internally changes the `Time.timeScale` of the Sce
 - You can't have different accumulation motion blur parameters per camera.
 - Projects that already modify this parameter per frame aren't be compatible with this feature.
 
+- The API internally reduces the value of the `Time.fixedDeltaTime` parameter, which controls the interval of physics computations. The smaller timestep makes the physics solver more accurate and stable. As a result, the physics behavior with the API may appear slightly different.
+
 ## Multiframe rendering API calls
 
 The multiframe rendering API contains the following calls:

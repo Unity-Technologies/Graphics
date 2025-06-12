@@ -490,6 +490,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         bool m_ExecutionExceptionWasRaised;
         bool m_RendererListCulling;
         bool m_EnableCompilationCaching;
+        internal/*for tests*/ static bool? s_EnableCompilationCachingForTests;
         CompiledGraph m_DefaultCompiledGraph = new();
         CompiledGraph m_CurrentCompiledGraph;
         RenderGraphState m_RenderGraphState;
@@ -537,9 +538,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphGlobalSettings>(out var renderGraphGlobalSettings))
             {
                 m_EnableCompilationCaching = renderGraphGlobalSettings.enableCompilationCaching;
-                if (m_EnableCompilationCaching)
-                    m_CompilationCache = new RenderGraphCompilationCache();
-
                 enableValidityChecks = renderGraphGlobalSettings.enableValidityChecks;
             }
             else // No SRP pipeline is present/active, it can happen with unit tests
@@ -547,13 +545,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 enableValidityChecks = true;
             }
 
+            if (s_EnableCompilationCachingForTests.HasValue)
+                m_EnableCompilationCaching = s_EnableCompilationCachingForTests.Value;
+
+            if (m_EnableCompilationCaching)
+                m_CompilationCache = new RenderGraphCompilationCache();
+
             m_TempMRTArrays = new RenderTargetIdentifier[kMaxMRTCount][];
             for (int i = 0; i < kMaxMRTCount; ++i)
                 m_TempMRTArrays[i] = new RenderTargetIdentifier[i + 1];
 
             m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_FrameInformationLogger);
-            s_RegisteredExecutions.Add(this, new List<DebugExecutionItem>());
-            onGraphRegistered?.Invoke(this.name);
+            RegisterGraph();
 
             m_RenderGraphState = RenderGraphState.Idle;
 
@@ -571,7 +574,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <remarks>
         /// This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
         /// </remarks>
-        public void Cleanup()
+        void CleanupResourcesAndGraph()
         {
             CheckNotUsedWhenActive();
 
@@ -590,15 +593,19 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
             m_RenderGraphPool.Cleanup();
-
-            s_RegisteredExecutions.Remove(this);
-            onGraphUnregistered?.Invoke(name);
-
             nativeCompiler?.Cleanup();
-
             m_CompilationCache?.Clear();
 
             DelegateHashCodeUtils.ClearCache();
+        }
+
+        /// <summary>
+        /// Free up all resources used internally by the Render Graph instance, and unregister it so it won't be visible in the Render Graph Viewer.
+        /// </summary>
+        public void Cleanup()
+        {
+            CleanupResourcesAndGraph();
+            UnregisterGraph();
         }
 
         internal RenderGraphDebugParams debugParams => m_DebugParameters;
@@ -815,13 +822,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// This texture will be persistent across render graph executions.
         /// </summary>
         /// <remarks>
-        /// This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
+        /// This API should not be used with URP NRP Render Graph. This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
         /// </remarks>
         /// <param name="desc">Creation descriptor of the texture.</param>
         /// <param name="explicitRelease">Set to true if you want to manage the lifetime of the resource yourself. Otherwise the resource will be released automatically if unused for a time.</param>
         /// <returns>A new TextureHandle.</returns>
         public TextureHandle CreateSharedTexture(in TextureDesc desc, bool explicitRelease = false)
         {
+            CheckNotUsingNativeRenderPassCompiler();
             CheckNotUsedWhenActive();
 
             return m_Resources.CreateSharedTexture(desc, explicitRelease);
@@ -830,10 +838,15 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <summary>
         /// Refresh a shared texture with a new descriptor.
         /// </summary>
+        /// <remarks>
+        /// This API should not be used with URP NRP Render Graph.
+        /// </remarks>
         /// <param name="handle">Shared texture that needs to be updated.</param>
         /// <param name="desc">New Descriptor for the texture.</param>
         public void RefreshSharedTextureDesc(TextureHandle handle, in TextureDesc desc)
         {
+            CheckNotUsingNativeRenderPassCompiler();
+
             m_Resources.RefreshSharedTextureDesc(handle, desc);
         }
 
@@ -841,11 +854,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Release a Render Graph shared texture resource.
         /// </summary>
         /// <remarks>
-        /// This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
+        /// This API should not be used with URP NRP Render Graph. This API cannot be called when Render Graph is active, please call it outside of RecordRenderGraph().
         /// </remarks>
         /// <param name="texture">The handle to the texture that needs to be release.</param>
         public void ReleaseSharedTexture(TextureHandle texture)
         {
+            CheckNotUsingNativeRenderPassCompiler();
             CheckNotUsedWhenActive();
 
             m_Resources.ReleaseSharedTexture(texture);
@@ -864,6 +878,27 @@ namespace UnityEngine.Rendering.RenderGraphModule
             CheckNotUsedWhenExecuting();
 
             return m_Resources.CreateTexture(m_Resources.GetTextureResourceDesc(texture.handle));
+        }
+
+        /// <summary>
+        /// Create a new Render Graph Texture resource using the descriptor from another texture.
+        /// </summary>
+        /// <remarks>
+        /// This API cannot be called during the Render Graph execution, please call it outside of SetRenderFunc().
+        /// </remarks>
+        /// <param name="texture">Texture from which the descriptor should be used.</param>
+        /// <param name="name">The destination texture name.</param>
+        /// <param name="clear">Texture needs to be cleared on first use.</param>
+        /// <returns>A new TextureHandle.</returns>
+        public TextureHandle CreateTexture(TextureHandle texture, string name, bool clear = false)
+        {
+            CheckNotUsedWhenExecuting();
+
+            var destinationDesc = GetTextureDesc(texture);
+            destinationDesc.name = name;
+            destinationDesc.clearBuffer = clear;
+
+            return m_Resources.CreateTexture(destinationDesc);
         }
 
         /// <summary>
@@ -1494,6 +1529,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
             CheckNotUsedWhenRecordPassOrExecute();
 
             Execute();
+
+            // Cleanup RenderGraph resources and clear compiled graph after execution
+            if (m_DebugParameters.immediateMode)
+                ReleaseImmediateModeResources();
+
+            ClearCompiledGraph(m_CurrentCompiledGraph, m_EnableCompilationCaching);
+
+            m_Resources.EndExecute();
+
+            InvalidateContext();
+
+            m_RenderGraphState = RenderGraphState.Idle;
         }
 
         /// <summary>
@@ -1514,6 +1561,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     Debug.LogException(e);
                 m_ExecutionExceptionWasRaised = true;
             }
+
+            CleanupResourcesAndGraph();
+
             return m_RenderGraphContext.contextlessTesting;
         }
 
@@ -1525,57 +1575,38 @@ namespace UnityEngine.Rendering.RenderGraphModule
             m_ExecutionExceptionWasRaised = false;
             m_RenderGraphState = RenderGraphState.Executing;
 
-            try
-            {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if (m_RenderGraphContext.cmd == null)
                     throw new InvalidOperationException("RenderGraph.BeginRecording was not called before executing the render graph.");
+
+                ClearCacheIfNewActiveDebugSession();
 #endif
-                if (!m_DebugParameters.immediateMode)
-                {
-                    LogFrameInformation();
+            if (!m_DebugParameters.immediateMode)
+            {
+                LogFrameInformation();
 
-                    int graphHash = 0;
-                    if (m_EnableCompilationCaching)
-                        graphHash = ComputeGraphHash();
+                int graphHash = 0;
+                if (m_EnableCompilationCaching)
+                    graphHash = ComputeGraphHash();
 
-                    if (nativeRenderPassesEnabled)
-                        CompileNativeRenderGraph(graphHash);
-                    else
-                        CompileRenderGraph(graphHash);
+                if (nativeRenderPassesEnabled)
+                    CompileNativeRenderGraph(graphHash);
+                else
+                    CompileRenderGraph(graphHash);
 
-                    m_Resources.BeginExecute(m_CurrentFrameIndex);
+                m_Resources.BeginExecute(m_CurrentFrameIndex);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                     // Feeding Render Graph Viewer before resource deallocation at pass execution
                     GenerateDebugData(graphHash);
 #endif
-                    if (nativeRenderPassesEnabled)
-                        ExecuteNativeRenderGraph();
-                    else
-                        ExecuteRenderGraph();
+                if (nativeRenderPassesEnabled)
+                    ExecuteNativeRenderGraph();
+                else
+                    ExecuteRenderGraph();
 
-                    // Clear the shader bindings for all global textures to make sure bindings don't leak outside the graph
-                    ClearGlobalBindings();
-                }
-            }
-            catch (Exception e)
-            {
-                if (ResetGraphAndLogException(e))
-                    throw;
-            }
-            finally
-            {
-                if (m_DebugParameters.immediateMode)
-                    ReleaseImmediateModeResources();
-
-                ClearCompiledGraph(m_CurrentCompiledGraph, m_EnableCompilationCaching);
-
-                m_Resources.EndExecute();
-
-                InvalidateContext();
-
-                m_RenderGraphState = RenderGraphState.Idle;
+                // Clear the shader bindings for all global textures to make sure bindings don't leak outside the graph
+                ClearGlobalBindings();
             }
         }
 
@@ -2722,11 +2753,44 @@ namespace UnityEngine.Rendering.RenderGraphModule
             }
         }
 
+        // Register the graph in the RenderGraph Viewer.
+        // Registered once on graph creation, indicates to the viewer that this render graph exists.
+        void RegisterGraph()
+        {
+            s_RegisteredExecutions.Add(this, new List<DebugExecutionItem>());
+            onGraphRegistered?.Invoke(this.name);
+        }
+
+        // Unregister the graph from the render graph viewer.
+        // Should only be unregistered when it is destroyed, not before.
+        // Should not be called when an error happens because the existence of the graph doesn't depend on its state
+        // or whether it's been cleaned.
+        void UnregisterGraph()
+        {
+            s_RegisteredExecutions.Remove(this);
+            onGraphUnregistered?.Invoke(name);
+        }
+
         // Note: obj.name allocates so make sure you only call this when debug tools / options are active
         static string GetExecutionNameAllocates(EntityId entityId)
         {
             var obj = Resources.EntityIdToObject(entityId);
             return obj != null ? obj.name : $"RenderGraphExecution ({entityId})";
+        }
+
+        static bool s_DebugSessionWasActive;
+
+        void ClearCacheIfNewActiveDebugSession()
+        {
+            if (RenderGraphDebugSession.hasActiveDebugSession && !s_DebugSessionWasActive)
+            {
+                // Invalidate cache whenever a debug session becomes active. This is because while the DebugSession is
+                // inactive, certain debug data (store/load/pass break audits) stored inside the compilation cache is
+                // not getting generated. Therefore we clear compilation cache to regenerate this debug data.
+                // This needs to be done before the compilation step.
+                m_CompilationCache?.Clear();
+            }
+            s_DebugSessionWasActive = RenderGraphDebugSession.hasActiveDebugSession;
         }
 
         void GenerateDebugData(int graphHash)

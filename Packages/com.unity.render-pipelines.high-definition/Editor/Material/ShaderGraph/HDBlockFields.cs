@@ -29,6 +29,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new Vector4Control(Vector4.zero), ShaderStage.Vertex);
             public static BlockFieldDescriptor UV3 = new BlockFieldDescriptor(VertexDescription.name, "uv3", "VERTEXDESCRIPTION_UV3",
                 new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV4 = new BlockFieldDescriptor(VertexDescription.name, "uv4", "VERTEXDESCRIPTION_UV4",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV5 = new BlockFieldDescriptor(VertexDescription.name, "uv5", "VERTEXDESCRIPTION_UV5",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV6 = new BlockFieldDescriptor(VertexDescription.name, "uv6", "VERTEXDESCRIPTION_UV6",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV7 = new BlockFieldDescriptor(VertexDescription.name, "uv7", "VERTEXDESCRIPTION_UV7",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
         }
 
         [GenerateBlocks("High Definition Render Pipeline")]

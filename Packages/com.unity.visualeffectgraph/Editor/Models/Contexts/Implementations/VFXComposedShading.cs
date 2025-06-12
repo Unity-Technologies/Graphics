@@ -76,6 +76,7 @@ namespace UnityEditor.VFX
             "useExposureWeight",
             "alphaThreshold",
             "normalBending",
+            "useBaseColorMap",
             "colorMapping",
             "useAlphaClipping",
             "useSoftParticle"

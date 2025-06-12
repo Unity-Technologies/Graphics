@@ -179,6 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float shapeHeightVal = lightRenderData.shapeHeight;
 
                 if (lightData.lightType == GPULightType.Tube) shapeHeightVal = 0;
+                if (lightData.lightType == GPULightType.Disc) shapeHeightVal = shapeWidthVal;
 
                 lightData.color = GetLightColor(light);
                 lightData.forward = visibleLightAxisAndPosition.Forward;

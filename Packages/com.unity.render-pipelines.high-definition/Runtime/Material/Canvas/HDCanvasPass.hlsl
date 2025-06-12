@@ -104,6 +104,22 @@ Varyings BuildVaryings(Attributes input)
         output.texCoord3 = input.uv3;
     #endif
 
+    #if defined(VARYINGS_NEED_TEXCOORD4)
+        output.texCoord4 = input.uv4;
+    #endif
+
+    #if defined(VARYINGS_NEED_TEXCOORD5)
+        output.texCoord5 = input.uv5;
+    #endif
+
+    #if defined(VARYINGS_NEED_TEXCOORD6)
+        output.texCoord6 = input.uv6;
+    #endif
+
+    #if defined(VARYINGS_NEED_TEXCOORD7)
+        output.texCoord7 = input.uv7;
+    #endif
+
     #if defined(VARYINGS_NEED_COLOR)
         output.color = input.color;
     #endif

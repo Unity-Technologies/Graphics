@@ -102,6 +102,10 @@ namespace UnityEditor.ShaderGraph
             MeshUV1,
             MeshUV2,
             MeshUV3,
+            MeshUV4,
+            MeshUV5,
+            MeshUV6,
+            MeshUV7,
             ScreenPosition,
             ObjectSpaceViewDirection,
             ViewSpaceViewDirection,
@@ -335,6 +339,14 @@ namespace UnityEditor.ShaderGraph
                     return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV2, shaderStageCapability, hidden);
                 case Binding.MeshUV3:
                     return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV3, shaderStageCapability, hidden);
+                case Binding.MeshUV4:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV4, shaderStageCapability, hidden);
+                case Binding.MeshUV5:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV5, shaderStageCapability, hidden);
+                case Binding.MeshUV6:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV6, shaderStageCapability, hidden);
+                case Binding.MeshUV7:
+                    return new UVMaterialSlot(slotId, displayName, shaderOutputName, UVChannel.UV7, shaderStageCapability, hidden);
                 case Binding.ScreenPosition:
                     return new ScreenPositionMaterialSlot(slotId, displayName, shaderOutputName, ScreenSpaceType.Default, shaderStageCapability, hidden);
                 case Binding.ObjectSpaceViewDirection:

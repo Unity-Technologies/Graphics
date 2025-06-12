@@ -34,6 +34,10 @@ $AttributesMesh.uv0:                                #define ATTRIBUTES_NEED_TEXC
 $AttributesMesh.uv1:                                #define ATTRIBUTES_NEED_TEXCOORD1
 $AttributesMesh.uv2:                                #define ATTRIBUTES_NEED_TEXCOORD2
 $AttributesMesh.uv3:                                #define ATTRIBUTES_NEED_TEXCOORD3
+$AttributesMesh.uv4:                                #define ATTRIBUTES_NEED_TEXCOORD4
+$AttributesMesh.uv5:                                #define ATTRIBUTES_NEED_TEXCOORD5
+$AttributesMesh.uv6:                                #define ATTRIBUTES_NEED_TEXCOORD6
+$AttributesMesh.uv7:                                #define ATTRIBUTES_NEED_TEXCOORD7
 $AttributesMesh.color:                              #define ATTRIBUTES_NEED_COLOR
 $AttributesMesh.vertexID:                           #define ATTRIBUTES_NEED_VERTEXID
 $AttributesMesh.instanceID:                         #define ATTRIBUTES_NEED_INSTANCEID
@@ -44,6 +48,10 @@ $VaryingsMeshToPS.texCoord0:                        #define VARYINGS_NEED_TEXCOO
 $VaryingsMeshToPS.texCoord1:                        #define VARYINGS_NEED_TEXCOORD1
 $VaryingsMeshToPS.texCoord2:                        #define VARYINGS_NEED_TEXCOORD2
 $VaryingsMeshToPS.texCoord3:                        #define VARYINGS_NEED_TEXCOORD3
+$VaryingsMeshToPS.texCoord4:                        #define VARYINGS_NEED_TEXCOORD4
+$VaryingsMeshToPS.texCoord5:                        #define VARYINGS_NEED_TEXCOORD5
+$VaryingsMeshToPS.texCoord6:                        #define VARYINGS_NEED_TEXCOORD6
+$VaryingsMeshToPS.texCoord7:                        #define VARYINGS_NEED_TEXCOORD7
 $VaryingsMeshToPS.color:                            #define VARYINGS_NEED_COLOR
 $VaryingsMeshToPS.elementToWorld0:                  #define VARYINGS_NEED_ELEMENT_TO_WORLD
 $VaryingsMeshToPS.worldToElement0:                  #define VARYINGS_NEED_WORLD_TO_ELEMENT
@@ -222,6 +230,18 @@ VaryingsMeshType SimpleVertMesh(AttributesMesh input, out float screenSpaceWidth
 #endif
 #if defined(VARYINGS_NEED_TEXCOORD3) || defined(VARYINGS_DS_NEED_TEXCOORD3)
     output.texCoord3 = input.uv3;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD4) || defined(VARYINGS_DS_NEED_TEXCOORD4)
+    output.texCoord4 = input.uv4;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD5) || defined(VARYINGS_DS_NEED_TEXCOORD5)
+    output.texCoord5 = input.uv5;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD6) || defined(VARYINGS_DS_NEED_TEXCOORD6)
+    output.texCoord6 = input.uv6;
+#endif
+#if defined(VARYINGS_NEED_TEXCOORD7) || defined(VARYINGS_DS_NEED_TEXCOORD7)
+    output.texCoord7 = input.uv7;
 #endif
 #if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
     output.color = input.color;

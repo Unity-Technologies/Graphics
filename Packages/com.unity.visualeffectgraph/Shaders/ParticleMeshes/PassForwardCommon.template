@@ -133,7 +133,13 @@ ps_output frag(ps_input i)
 			o.color.a = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
 		#endif
 	#else
-		#define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
+    #if USE_BASE_COLOR_MAP_COLOR && USE_BASE_COLOR_MAP_ALPHA
+	    #define VFX_TEXTURE_COLOR VFXGetTextureColor(VFX_SAMPLER(mainTexture),i)
+    #elif USE_BASE_COLOR_MAP_COLOR
+	    #define VFX_TEXTURE_COLOR float4(VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).rgb, 1.0f)
+    #elif USE_BASE_COLOR_MAP_ALPHA
+	    #define VFX_TEXTURE_COLOR float4(1.0f, 1.0f, 1.0f, VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a)
+    #endif
 		${VFXApplyColor}
 		o.color = VFXApplyPreExposure(o.color, i);
 	#endif

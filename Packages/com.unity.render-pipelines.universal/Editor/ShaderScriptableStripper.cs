@@ -1173,7 +1173,12 @@ namespace UnityEditor.Rendering.Universal
                 stripUnusedPostProcessingVariants = ShaderBuildPreprocessor.s_StripUnusedPostProcessingVariants,
                 stripUnusedXRVariants = ShaderBuildPreprocessor.s_StripXRVariants,
                 IsHDRDisplaySupportEnabled = PlayerSettings.allowHDRDisplaySupport,
-                IsRenderCompatibilityMode = GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) && renderGraphSettings.enableRenderCompatibilityMode,
+                IsRenderCompatibilityMode =
+#if URP_COMPATIBILITY_MODE
+                    GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) && renderGraphSettings.enableRenderCompatibilityMode,
+#else
+                    false,
+#endif
                 shader = shader,
                 passData = passData,
                 variantData = variantData

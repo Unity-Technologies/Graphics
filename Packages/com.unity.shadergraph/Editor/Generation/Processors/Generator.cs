@@ -258,6 +258,9 @@ namespace UnityEditor.ShaderGraph
             var variantLimit = this.m_Mode == GenerationMode.Preview
                 ? Mathf.Min(ShaderGraphPreferences.previewVariantLimit, ShaderGraphProjectSettings.instance.shaderVariantLimit)
                 : ShaderGraphProjectSettings.instance.shaderVariantLimit;
+            if (!ShaderGraphProjectSettings.instance.overrideShaderVariantLimit)
+                variantLimit = ShaderGraphProjectSettings.defaultVariantLimit;
+
             // Send an action about our current variant usage. This will either add or clear a warning if it exists
             var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, variantLimit);
             m_GraphData.owner?.graphDataStore?.Dispatch(action);
@@ -668,7 +671,7 @@ namespace UnityEditor.ShaderGraph
             // Get active fields from upstream Node requirements
             Profiler.BeginSample("GetActiveFieldsFromUpstreamNodes");
             ShaderGraphRequirementsPerKeyword graphRequirements;
-            GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes, new bool[4] { false, false, false, false },
+            GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes, new bool[ShaderGeneratorNames.UVCount],
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
             Profiler.EndSample();
 

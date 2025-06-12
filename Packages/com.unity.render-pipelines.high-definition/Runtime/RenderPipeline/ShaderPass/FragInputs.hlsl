@@ -10,6 +10,10 @@
     #define FRAG_INPUTS_USE_TEXCOORD1
     #define FRAG_INPUTS_USE_TEXCOORD2
     #define FRAG_INPUTS_USE_TEXCOORD3
+    #define FRAG_INPUTS_USE_TEXCOORD4
+    #define FRAG_INPUTS_USE_TEXCOORD5
+    #define FRAG_INPUTS_USE_TEXCOORD6
+    #define FRAG_INPUTS_USE_TEXCOORD7
 #endif
 
 struct FragInputs
@@ -36,6 +40,22 @@ struct FragInputs
 
     #ifdef FRAG_INPUTS_USE_TEXCOORD3
         float4 texCoord3;
+    #endif
+
+    #ifdef FRAG_INPUTS_USE_TEXCOORD4
+        float4 texCoord4;
+    #endif
+
+    #ifdef FRAG_INPUTS_USE_TEXCOORD5
+        float4 texCoord5;
+    #endif
+
+    #ifdef FRAG_INPUTS_USE_TEXCOORD6
+        float4 texCoord6;
+    #endif
+
+    #ifdef FRAG_INPUTS_USE_TEXCOORD7
+        float4 texCoord7;
     #endif
 
     #ifdef FRAG_INPUTS_USE_INSTANCEID
@@ -94,6 +114,26 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
     #ifdef FRAG_INPUTS_USE_TEXCOORD3
         case DEBUGVIEWVARYING_TEXCOORD3:
             result = input.texCoord3.xyz;
+            break;
+    #endif
+    #ifdef FRAG_INPUTS_USE_TEXCOORD4
+        case DEBUGVIEWVARYING_TEXCOORD4:
+            result = input.texCoord4.xyz;
+            break;
+    #endif
+    #ifdef FRAG_INPUTS_USE_TEXCOORD5
+        case DEBUGVIEWVARYING_TEXCOORD5:
+            result = input.texCoord5.xyz;
+            break;
+    #endif
+    #ifdef FRAG_INPUTS_USE_TEXCOORD6
+        case DEBUGVIEWVARYING_TEXCOORD6:
+            result = input.texCoord6.xyz;
+            break;
+    #endif
+    #ifdef FRAG_INPUTS_USE_TEXCOORD7
+        case DEBUGVIEWVARYING_TEXCOORD7:
+            result = input.texCoord7.xyz;
             break;
     #endif
     case DEBUGVIEWVARYING_VERTEX_TANGENT_WS:

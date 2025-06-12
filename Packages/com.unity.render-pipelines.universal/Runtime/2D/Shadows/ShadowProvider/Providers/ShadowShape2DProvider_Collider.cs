@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Fetch collider space.
             var attachedBody = collider.attachedRigidbody;
-            var colliderSpace = attachedBody ? attachedBody.transform.localToWorldMatrix : Matrix4x4.identity;
+            var colliderSpace = attachedBody ? attachedBody.localToWorldMatrix : Matrix4x4.identity;
 
             // If the shape hash has changed, grab a new potential visible geometry group.
             var shapeHash = collider.GetShapeHash();

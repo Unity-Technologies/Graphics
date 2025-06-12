@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
             }
             else if (type == typeof(Shader))
             {
-                return VFXResources.defaultResources.shader;
+                return VFXResources.defaultResources.StaticMeshShader;
             }
             else if (type == typeof(Texture2D))
             {

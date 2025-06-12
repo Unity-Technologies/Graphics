@@ -5,8 +5,8 @@ namespace UnityEditor.ShaderGraph
 {
     static class ShaderGeneratorNames
     {
-        private static string[] UV = { "uv0", "uv1", "uv2", "uv3" };
-        public static int UVCount = 4;
+        static string[] UV = { "uv0", "uv1", "uv2", "uv3", "uv4", "uv5", "uv6", "uv7" };
+        public static readonly int UVCount = UV.Length;
 
         public const string ScreenPosition = "ScreenPosition";
         public const string NDCPosition = "NDCPosition";        // normalized device coordinates, [0,1] across view, origin in lower left

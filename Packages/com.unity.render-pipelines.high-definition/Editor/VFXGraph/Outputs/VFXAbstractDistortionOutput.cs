@@ -24,10 +24,14 @@ namespace UnityEditor.VFX.HDRP
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.Default), Tooltip("Whether Distortion scales with the distance")]
         protected bool scaleByDistance = true;
 
-        public override sealed bool CanBeCompiled()
+        public sealed override bool CanBeCompiled()
         {
             return (VFXLibrary.currentSRPBinder is VFXHDRPBinder) && base.CanBeCompiled();
         }
+
+        public sealed override bool supportsUV => true;
+
+        protected sealed override bool hasAnyMap => true;
 
         protected override IEnumerable<string> filteredOutSettings
         {
@@ -36,6 +40,7 @@ namespace UnityEditor.VFX.HDRP
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
+                yield return "useBaseColorMap";
                 yield return "colorMapping";
                 yield return "blendMode";
                 yield return "castShadows";

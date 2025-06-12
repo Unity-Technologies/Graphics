@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering
             if (!profile.TryGet(selectedComponentType, out VolumeComponent component)) return 0;
             if (!component.active) return 0;
 
-            float weight = volume.weight;
+            float weight = Mathf.Clamp01(volume.weight);
             if (!volume.isGlobal)
             {
                 var colliders = volume.colliders;

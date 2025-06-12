@@ -108,6 +108,8 @@ namespace UnityEngine.Rendering.Tests
                         m_RenderGraph.BeginRecording(rgParams);
 
                         asset.recordRenderGraphBody?.Invoke(renderContext, camera, cmd);
+
+                        m_RenderGraph.EndRecordingAndExecute();
                     }
                     catch (Exception e)
                     {
@@ -115,8 +117,6 @@ namespace UnityEngine.Rendering.Tests
                             throw;
                         return;
                     }
-
-                    m_RenderGraph.EndRecordingAndExecute();
 
                     renderContext.ExecuteCommandBuffer(cmd);
 
@@ -1267,7 +1267,6 @@ namespace UnityEngine.Rendering.Tests
                 Assert.True(pixels[i+2] / 255.0f == Color.red.b);
                 Assert.True(pixels[i+3] / 255.0f == Color.red.a);
             }
-
             pixels.Dispose();
         }
 
@@ -1599,16 +1598,13 @@ namespace UnityEngine.Rendering.Tests
         void PopulateActiveGraphAPIActions()
         {
             var flagActions = RenderGraphState.Active;
-            var textureHandle = new TextureHandle();
             var activeGraphActions = new List<Action>
             {
                 () => m_RenderGraph.Cleanup(),
                 () => m_RenderGraph.RegisterDebug(),
                 () => m_RenderGraph.UnRegisterDebug(),
                 () => m_RenderGraph.EndFrame(),
-                () => m_RenderGraph.BeginRecording(new RenderGraphParameters()),
-                () => m_RenderGraph.CreateSharedTexture(new TextureDesc()),
-                () => m_RenderGraph.ReleaseSharedTexture(textureHandle)
+                () => m_RenderGraph.BeginRecording(new RenderGraphParameters())
             };
 
             m_GraphStateActions.Add(flagActions, activeGraphActions);
@@ -1799,7 +1795,7 @@ namespace UnityEngine.Rendering.Tests
                     builder.SetRenderFunc((ErrorCastPassData data, RasterGraphContext context) =>
                     {
                         // We can safely cast into a RTHandle during the RG execution, resource has been created
-                        Assert.DoesNotThrow(() => 
+                        Assert.DoesNotThrow(() =>
                         {
                             RTHandle rtHandle = (RTHandle)data.outputHandle;
                         });

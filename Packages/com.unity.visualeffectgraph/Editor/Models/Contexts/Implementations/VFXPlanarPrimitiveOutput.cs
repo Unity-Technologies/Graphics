@@ -85,7 +85,8 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+                if (useBaseColorMap != BaseColorMapMode.None)
+                    yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
             }
         }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -106,7 +107,8 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
-            if (GetOrRefreshShaderGraphObject() == null)
+
+            if (GetOrRefreshShaderGraphObject() == null && useBaseColorMap != BaseColorMapMode.None)
             {
                 yield return slotExpressions.First(o => o.name == "mainTexture");
             }

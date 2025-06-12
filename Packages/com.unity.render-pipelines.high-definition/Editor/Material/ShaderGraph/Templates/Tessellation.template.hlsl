@@ -43,6 +43,18 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
 #ifdef VARYINGS_DS_NEED_TEXCOORD3
     TESSELLATION_INTERPOLATE_BARY(texCoord3, baryCoords);
 #endif
+#ifdef VARYINGS_DS_NEED_TEXCOORD4
+    TESSELLATION_INTERPOLATE_BARY(texCoord4, baryCoords);
+#endif
+#ifdef VARYINGS_DS_NEED_TEXCOORD5
+    TESSELLATION_INTERPOLATE_BARY(texCoord5, baryCoords);
+#endif
+#ifdef VARYINGS_DS_NEED_TEXCOORD6
+    TESSELLATION_INTERPOLATE_BARY(texCoord6, baryCoords);
+#endif
+#ifdef VARYINGS_DS_NEED_TEXCOORD7
+    TESSELLATION_INTERPOLATE_BARY(texCoord7, baryCoords);
+#endif
 #ifdef VARYINGS_DS_NEED_COLOR
     TESSELLATION_INTERPOLATE_BARY(color, baryCoords);
 #endif
@@ -95,6 +107,10 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
     $VertexDescriptionInputs.uv1:                                       output.uv1 = input.texCoord1;
     $VertexDescriptionInputs.uv2:                                       output.uv2 = input.texCoord2;
     $VertexDescriptionInputs.uv3:                                       output.uv3 = input.texCoord3;
+    $VertexDescriptionInputs.uv4:                                       output.uv4 = input.texCoord4;
+    $VertexDescriptionInputs.uv5:                                       output.uv5 = input.texCoord5;
+    $VertexDescriptionInputs.uv6:                                       output.uv6 = input.texCoord6;
+    $VertexDescriptionInputs.uv7:                                       output.uv7 = input.texCoord7;
     $VertexDescriptionInputs.VertexColor:                               output.VertexColor = input.color;
     $VertexDescriptionInputs.TimeParameters:                            output.TimeParameters = _TimeParameters.xyz; // Note: in case of animation this will be overwrite (allow to handle motion vector)
     //$VertexDescriptionInputs.BoneWeights:                             output.BoneWeights = input.weights; // undefined for Hull shader

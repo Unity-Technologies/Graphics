@@ -1,8 +1,8 @@
 Pass
-{ 
+{
     $splice(PassName)
-    Tags 
-    { 
+    Tags
+    {
         $splice(LightMode)
     }
 
@@ -35,6 +35,10 @@ Pass
     $Attributes.uv1:                    #define ATTRIBUTES_NEED_TEXCOORD1
     $Attributes.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
     $Attributes.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
+    $Attributes.uv4:                    #define ATTRIBUTES_NEED_TEXCOORD4
+    $Attributes.uv5:                    #define ATTRIBUTES_NEED_TEXCOORD5
+    $Attributes.uv6:                    #define ATTRIBUTES_NEED_TEXCOORD6
+    $Attributes.uv7:                    #define ATTRIBUTES_NEED_TEXCOORD7
     $Attributes.color:                  #define ATTRIBUTES_NEED_COLOR
     $Varyings.positionWS:               #define VARYINGS_NEED_POSITION_WS
     $Varyings.normalWS:                 #define VARYINGS_NEED_NORMAL_WS
@@ -44,13 +48,17 @@ Pass
     $Varyings.texCoord1:                #define VARYINGS_NEED_TEXCOORD1
     $Varyings.texCoord2:                #define VARYINGS_NEED_TEXCOORD2
     $Varyings.texCoord3:                #define VARYINGS_NEED_TEXCOORD3
+    $Varyings.texCoord4:                #define VARYINGS_NEED_TEXCOORD4
+    $Varyings.texCoord5:                #define VARYINGS_NEED_TEXCOORD5
+    $Varyings.texCoord6:                #define VARYINGS_NEED_TEXCOORD6
+    $Varyings.texCoord7:                #define VARYINGS_NEED_TEXCOORD7
     $Varyings.color:                    #define VARYINGS_NEED_COLOR
     $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     $Varyings.sh:                       #define VARYINGS_NEED_SH
     $Varyings.staticLightmapUV:         #define VARYINGS_NEED_STATIC_LIGHTMAP_UV
     $Varyings.dynamicLightmapUV:        #define VARYINGS_NEED_DYNAMIC_LIGHTMAP_UV
     $Varyings.shadowCoord:              #define VARYINGS_NEED_SHADOW_COORD
-    
+
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
 
     $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
@@ -93,7 +101,7 @@ Pass
 
     // Graph Vertex
     $splice(GraphVertex)
-    
+
     // Graph Pixel
     $splice(GraphPixel)
 
@@ -118,6 +126,10 @@ Pass
             $Varyings.texCoord1: input.texCoord1.xy = input.texCoord1.xy * scale + offset;
             $Varyings.texCoord2: input.texCoord2.xy = input.texCoord2.xy * scale + offset;
             $Varyings.texCoord3: input.texCoord3.xy = input.texCoord3.xy * scale + offset;
+            $Varyings.texCoord4: input.texCoord4.xy = input.texCoord4.xy * scale + offset;
+            $Varyings.texCoord5: input.texCoord5.xy = input.texCoord5.xy * scale + offset;
+            $Varyings.texCoord6: input.texCoord6.xy = input.texCoord6.xy * scale + offset;
+            $Varyings.texCoord7: input.texCoord7.xy = input.texCoord7.xy * scale + offset;
             half3 normalWS = TransformObjectToWorldDir(half3(0, 1, 0));
             half3 tangentWS = TransformObjectToWorldDir(half3(1, 0, 0));
             half3 bitangentWS = TransformObjectToWorldDir(half3(0, 0, 1));

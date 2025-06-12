@@ -132,6 +132,7 @@ namespace UnityEditor.VFX
                 if (sg != null || m_IsShaderGraphMissing)
                 {
                     yield return "colorMapping";
+                    yield return "useBaseColorMap";
                     yield return "useAlphaClipping";
 
                     if (m_IsShaderGraphMissing)

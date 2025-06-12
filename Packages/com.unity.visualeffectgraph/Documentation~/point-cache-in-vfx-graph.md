@@ -18,13 +18,11 @@ A Point Cache stores data in attribute maps. An attribute map is a list of value
 
 Unity imports and stores Point Caches as an asset. Point Cache assets follow the open-source [Point Cache](https://github.com/peeweek/pcache/blob/master/README.md) specification and use the `.pCache` file extension. They have no public properties to edit in the Inspector, but they do display read-only information such as the number of particles and the textures that represent the particle properties. For more information about Point Cache assets and a description of the properties they display in the Inspector, see [Point Cache asset](point-cache-asset.md).
 
-![](Images/PointCacheImporter.png)
-
 ## Using Point Caches
 
 The [Point Cache Operator](Operator-PointCache.md) enables you to use Point Caches in visual effects. This Operator extracts the number of particles and their attributes from the Point Cache asset and exposes them as output ports in the Operator. You can then connect the ports to other Nodes, such as the [Set \<attribute> from Map](Block-SetAttributeFromMap.md) Block.
 
-![](Images/PointCacheOperator.png)
+![The Point Cache Operator extracting particle counts and attributes from a Point Cache asset, then outputting them as ports to be connected to other nodes.](Images/PointCacheOperator.png)
 
 ## Generating Point Caches
 

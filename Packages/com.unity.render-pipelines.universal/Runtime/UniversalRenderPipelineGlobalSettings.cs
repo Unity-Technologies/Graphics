@@ -200,7 +200,7 @@ namespace UnityEngine.Rendering.Universal
             var rgSettings = GetOrCreateGraphicsSettings<RenderGraphSettings>(data);
 
 #pragma warning disable 618 // Type or member is obsolete
-            rgSettings.enableRenderCompatibilityMode = !data.m_EnableRenderGraph;
+            rgSettings.SetCompatibilityModeFromUpgrade(!data.m_EnableRenderGraph);
 #pragma warning restore 618
         }
 

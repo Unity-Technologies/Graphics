@@ -31,7 +31,8 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+                if (useBaseColorMap != BaseColorMapMode.None)
+                    yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
             }
         }
 
@@ -59,7 +60,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (GetOrRefreshShaderGraphObject() == null)
+            if (GetOrRefreshShaderGraphObject() == null && useBaseColorMap != BaseColorMapMode.None)
                 yield return slotExpressions.First(o => o.name == "mainTexture");
             if (tilingMode == StripTilingMode.Custom)
                 yield return slotExpressions.First(o => o.name == "texCoord");
@@ -106,6 +107,20 @@ namespace UnityEditor.VFX
                     yield return "VFX_STRIPS_SWAP_UV";
 
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(VFXPrimitiveType.Quad);
+            }
+        }
+
+        protected sealed override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var settings in base.filteredOutSettings)
+                {
+                    yield return settings;
+                }
+
+                if (GetOrRefreshShaderGraphObject() == null && useBaseColorMap == BaseColorMapMode.None)
+                    yield return nameof(swapUV);
             }
         }
 

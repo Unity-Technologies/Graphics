@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             internal HDRenderPipeline renderPipeline;
             internal RenderGraph renderGraph;
-            internal bool useSharedTexture;
+            internal bool usePersistentTexture;
             internal int width;
             internal int height;
             internal int maxShadowRequests;
@@ -29,12 +29,12 @@ namespace UnityEngine.Rendering.HighDefinition
             internal RenderTextureFormat format;
             internal ConstantBuffer<ShaderVariablesGlobal> cb;
 
-            internal HDShadowAtlasInitParameters(HDRenderPipeline renderPipeline, RenderGraph renderGraph, bool useSharedTexture, int width, int height,
+            internal HDShadowAtlasInitParameters(HDRenderPipeline renderPipeline, RenderGraph renderGraph, bool usePersistentTexture, int width, int height,
                                                  Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, ConstantBuffer<ShaderVariablesGlobal> cb)
             {
                 this.renderPipeline = renderPipeline;
                 this.renderGraph = renderGraph;
-                this.useSharedTexture = useSharedTexture;
+                this.usePersistentTexture = usePersistentTexture;
                 this.width = width;
                 this.height = height;
                 this.clearMaterial = clearMaterial;
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
             IM // Improved Moment shadow maps
         }
 
-        internal NativeList<HDShadowRequestHandle>             m_ShadowRequests  = new NativeList<HDShadowRequestHandle>(Allocator.Persistent); // Lifetime handled by HDShadowManager
+        internal NativeList<HDShadowRequestHandle> m_ShadowRequests  = new NativeList<HDShadowRequestHandle>(Allocator.Persistent); // Lifetime handled by HDShadowManager
         internal bool HasShadowRequests()
         {
             return m_ShadowRequests.Length > 0;
@@ -92,8 +92,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // if false we filter only for dynamic)
         protected bool m_IsACacheForShadows;
 
-        // In case of using shared persistent render graph textures.
-        bool m_UseSharedTexture;
+        // In case of using persistent textures imported in Render Graph
+        bool m_UsePersistentTexture;
+        protected RTHandle m_PersistentTexture;
+        // m_Output is either pointing to m_PersistentTexture once imported to Render Graph or to a Render Graph-owned texture
         protected TextureHandle m_Output;
         protected TextureHandle m_ShadowMapOutput;
 
@@ -130,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_GlobalConstantBuffer = initParams.cb;
 
-            InitializeRenderGraphOutput(initParams.renderGraph, initParams.useSharedTexture);
+            AllocPersistentTextureIfNeeded(initParams.renderGraph, initParams.usePersistentTexture);
         }
 
         public HDShadowAtlas(HDShadowAtlasInitParameters initParams)
@@ -165,6 +167,37 @@ namespace UnityEngine.Rendering.HighDefinition
             return default;
         }
 
+        internal RTHandleAllocInfo GetAtlasRTInfo()
+        {
+            var desc = GetAtlasDesc();
+
+            RTHandleAllocInfo rtAllocInfo = new RTHandleAllocInfo(desc.name)
+            {
+                slices = desc.slices,
+                format = desc.format,
+                filterMode = desc.filterMode,
+                wrapModeU = desc.wrapMode,
+                wrapModeV = desc.wrapMode,
+                wrapModeW = desc.wrapMode,
+                dimension = desc.dimension,
+                enableRandomWrite = desc.enableRandomWrite,
+                useMipMap = desc.useMipMap,
+                autoGenerateMips = desc.autoGenerateMips,
+                anisoLevel = desc.anisoLevel,
+                mipMapBias = desc.mipMapBias,
+                isShadowMap = desc.isShadowMap,
+                msaaSamples = (MSAASamples)desc.msaaSamples,
+                bindTextureMS = desc.bindTextureMS,
+                useDynamicScale = desc.useDynamicScale,
+                useDynamicScaleExplicit = desc.useDynamicScaleExplicit,
+                memoryless = desc.memoryless,
+                vrUsage = desc.vrUsage,
+                enableShadingRate = desc.enableShadingRate,
+            };
+
+            return rtAllocInfo;
+        }
+
         public void UpdateSize(Vector2Int size)
         {
             width = size.x;
@@ -192,39 +225,44 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightingDebugSettings = lightingDebugSettings;
         }
 
-        public void InvalidateOutputIfNeeded()
+        public void InvalidateOutput()
         {
-            // Since we now store the output TextureHandle (because we only want to create the texture once depending on the control flow and because of shared textures),
-            // we need to be careful not to keep a "valid" handle when it's not a shared resource.
-            // Indeed, if for example we don't render with the atlas for a few frames, this handle will "look" valid (with a valid index internally) but its index will not match any valid resource.
-            // To avoid that, we invalidate it explicitly at the start of every frame if it's not a shared resource.
-            if (!m_UseSharedTexture)
+            // Since we now store the output TextureHandle (because we only want to create the texture once depending on the control flow),
+            // we need to be careful not to keep a "valid" handle when not desired.
+            // Note: this seems to be redundant, m_Output.IsValid() should be enough but keeping this to avoid regressions
+            m_Output = TextureHandle.nullHandle;
+        }
+
+        public void CreateOrUpdateOutputTexture(RenderGraph renderGraph)
+        {
+            if (m_UsePersistentTexture)
             {
-                m_Output = TextureHandle.nullHandle;
+                var requestedDesc = GetAtlasDesc();
+                var currSize = m_PersistentTexture?.GetScaledSize() ?? new Vector2Int();
+                // We check if we need to refresh the desc. It is needed for directional lights.
+                if (currSize.x != requestedDesc.width ||
+                    currSize.y != requestedDesc.height)
+                {
+                    m_PersistentTexture?.Release();
+                    RTHandleAllocInfo rtInfo = GetAtlasRTInfo();
+                    m_PersistentTexture = RTHandles.Alloc(requestedDesc.width, requestedDesc.height, rtInfo);
+                    m_Output = TextureHandle.nullHandle;
+                }
+
+                // Import it only once per RG execution
+                if (!m_Output.IsValid())
+                    m_Output = renderGraph.ImportTexture(m_PersistentTexture);
+            }
+            else
+            {
+                renderGraph.CreateTextureIfInvalid(GetAtlasDesc(), ref m_Output);
             }
         }
 
         public TextureHandle GetOutputTexture(RenderGraph renderGraph)
         {
-            if (m_UseSharedTexture)
-            {
-                Debug.Assert(m_Output.IsValid());
-                var requestedDesc = GetAtlasDesc();
-                // We check if we need to refresh the desc. It is needed for directional lights.
-                var outputDesc = renderGraph.GetTextureDesc(m_Output);
-                if (outputDesc.width != requestedDesc.width ||
-                    outputDesc.height != requestedDesc.height)
-                {
-                    renderGraph.RefreshSharedTextureDesc(m_Output, requestedDesc);
-                }
-
-                return m_Output; // Should always be valid.
-            }
-            else
-            {
-                renderGraph.CreateTextureIfInvalid(GetAtlasDesc(), ref m_Output);
-                return m_Output;
-            }
+            CreateOrUpdateOutputTexture(renderGraph);
+            return m_Output;
         }
 
         public TextureHandle GetShadowMapDepthTexture(RenderGraph renderGraph)
@@ -237,27 +275,30 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShadowMapOutput;
         }
 
-        protected void InitializeRenderGraphOutput(RenderGraph renderGraph, bool useSharedTexture)
+        protected void AllocPersistentTextureIfNeeded(RenderGraph renderGraph, bool usePersistentTexture)
         {
             // First release if not needed anymore.
-            if (m_UseSharedTexture)
+            if (m_UsePersistentTexture)
             {
-                Debug.Assert(useSharedTexture, "Shadow atlas can't go from shared to non-shared texture");
+                Debug.Assert(usePersistentTexture, "Shadow atlas can't go from imported texture to texture created by Render Graph");
             }
 
-            m_UseSharedTexture = useSharedTexture;
-            // Else it's created on the fly like a regular render graph texture.
-            // Also when using shared texture (for static shadows) we want to manage lifetime manually. Otherwise this would break static shadow caching.
-            if (m_UseSharedTexture)
-                m_Output = renderGraph.CreateSharedTexture(GetAtlasDesc(), explicitRelease: true);
+            m_UsePersistentTexture = usePersistentTexture;
+            // When we want to manage lifetime manually (for static shadows), we import a texture into Render Graph. Not doing it would break static shadow caching.
+            // Otherwise it's created on the fly like a regular render graph texture.
+            if (m_UsePersistentTexture)
+            {
+                var requestedDesc = GetAtlasDesc();
+                m_PersistentTexture = RTHandles.Alloc(requestedDesc.width, requestedDesc.height, GetAtlasRTInfo());
+            }
         }
 
-        internal void CleanupRenderGraphOutput(RenderGraph renderGraph)
+        internal void CleanupPersistentTexture(RenderGraph renderGraph)
         {
-            if (m_UseSharedTexture && renderGraph != null && m_Output.IsValid())
+            if (m_UsePersistentTexture)
             {
-                renderGraph.ReleaseSharedTexture(m_Output);
-                m_UseSharedTexture = false;
+                m_UsePersistentTexture = false;
+                m_PersistentTexture?.Release();
                 m_Output = TextureHandle.nullHandle;
             }
         }
@@ -752,7 +793,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Release(RenderGraph renderGraph)
         {
-            CleanupRenderGraphOutput(renderGraph);
+            CleanupPersistentTexture(renderGraph);
         }
 
         internal virtual void DisposeNativeCollections()

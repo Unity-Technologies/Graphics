@@ -163,11 +163,11 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.LabelField(Styles.FilteringSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
+#if URP_COMPATIBILITY_MODE
             if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings)
                 && !renderGraphSettings.enableRenderCompatibilityMode)
-            {
+#endif
                 EditorGUILayout.PropertyField(m_PrepassLayerMask, Styles.PrepassMask);
-            }
             EditorGUILayout.PropertyField(m_OpaqueLayerMask, Styles.OpaqueMask);
             EditorGUILayout.PropertyField(m_TransparentLayerMask, Styles.TransparentMask);
             EditorGUI.indentLevel--;
@@ -187,12 +187,14 @@ namespace UnityEditor.Rendering.Universal
                 depthFormatIndex = GetDepthFormatIndex((DepthFormat)m_DepthAttachmentFormat.intValue, m_RenderingMode.intValue);
             }
 
+#if URP_COMPATIBILITY_MODE
             if (m_RenderingMode.intValue == (int)RenderingMode.DeferredPlus && GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.HelpBox(Styles.deferredPlusIncompatibleWarning.text, MessageType.Warning);
                 EditorGUI.indentLevel--;
             }
+#endif
 
             if (m_RenderingMode.intValue == (int)RenderingMode.Deferred || m_RenderingMode.intValue == (int)RenderingMode.DeferredPlus)
             {
@@ -228,8 +230,9 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.PropertyField(m_DepthTextureFormat, Styles.DepthTextureFormat);
 
-
             EditorGUI.indentLevel--;
+
+#if URP_COMPATIBILITY_MODE
             if (renderGraphSettings != null && renderGraphSettings.enableRenderCompatibilityMode)
             {
                 EditorGUILayout.Space();
@@ -238,6 +241,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_UseNativeRenderPass, Styles.RenderPassLabel);
                 EditorGUI.indentLevel--;
             }
+#endif
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.ShadowsSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;

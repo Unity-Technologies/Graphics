@@ -487,6 +487,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661617116}
   - {fileID: 8926484042661617856}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -1177,6 +1178,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661617372}
   - {fileID: 8926484042661617857}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0

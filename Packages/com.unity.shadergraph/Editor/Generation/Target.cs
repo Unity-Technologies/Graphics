@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
@@ -44,7 +45,7 @@ namespace UnityEditor.ShaderGraph
         {
             dstGraphFunctions = "";
             dstGraphPixel = "";
-            adjustedUvDerivs = new bool[4];
+            adjustedUvDerivs = new bool[Enum.GetValues(typeof(UVChannel)).Length];
             return false;
         }
 

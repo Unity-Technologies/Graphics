@@ -99,11 +99,19 @@ class RenderGraphCompilationCache
     public void Clear()
     {
         for (int i = 0; i < m_HashEntries.size; ++i)
+        {
+            var compiledGraph = m_HashEntries[i].compiledGraph;
+            compiledGraph.Clear();
             m_CompiledGraphPool.Push(m_HashEntries[i].compiledGraph);
+        }
         m_HashEntries.Clear();
 
         for (int i = 0; i < m_NativeHashEntries.size; ++i)
-            m_NativeCompiledGraphPool.Push(m_NativeHashEntries[i].compiledGraph);
+        {
+            var compiledGraph = m_NativeHashEntries[i].compiledGraph;
+            compiledGraph.Clear();
+            m_NativeCompiledGraphPool.Push(compiledGraph);
+        }
         m_NativeHashEntries.Clear();
     }
 }

@@ -703,7 +703,7 @@ namespace UnityEngine.Rendering
 
             Profiler.BeginSample("GPUResidentDrawer.FindRenderersFromMaterialsOrMeshes");
 
-            var (renderersWithChangedMaterials, renderersWithChangeMeshes) = FindRenderersFromMaterialsOrMeshes(sortedExcludedRenderers, filteredMaterials, changedMeshes, Allocator.TempJob);
+            var (renderersWithChangedMaterials, renderersWithChangedMeshes) = FindRenderersFromMaterialsOrMeshes(sortedExcludedRenderers, filteredMaterials, changedMeshes, Allocator.TempJob);
             filteredMaterials.Dispose();
 
             Profiler.EndSample();
@@ -711,33 +711,36 @@ namespace UnityEngine.Rendering
             sortedExcludedRenderers.Dispose();
             updatePackedMaterialCacheJob.Complete();
 
-            if (renderersWithChangedMaterials.Length == 0 && renderersWithChangeMeshes.Length == 0)
+            if (renderersWithChangedMaterials.Length == 0 && renderersWithChangedMeshes.Length == 0)
             {
                 renderersWithChangedMaterials.Dispose();
-                renderersWithChangeMeshes.Dispose();
+                renderersWithChangedMeshes.Dispose();
                 return;
             }
 
             Profiler.BeginSample("GPUResidentDrawer.UpdateRenderers");
             {
                 var changedMaterialsCount = renderersWithChangedMaterials.Length;
-                var changedMeshesCount = renderersWithChangeMeshes.Length;
+                var changedMeshesCount = renderersWithChangedMeshes.Length;
                 var totalCount = changedMaterialsCount + changedMeshesCount;
 
                 var changedInstances = new NativeArray<InstanceHandle>(totalCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var changedRenderers = new NativeArray<int>(totalCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
                 NativeArray<int>.Copy(renderersWithChangedMaterials.AsArray(), changedRenderers, changedMaterialsCount);
-                NativeArray<int>.Copy(renderersWithChangeMeshes.AsArray(), changedRenderers.GetSubArray(changedMaterialsCount, changedMeshesCount), changedMeshesCount);
+                NativeArray<int>.Copy(renderersWithChangedMeshes.AsArray(), changedRenderers.GetSubArray(changedMaterialsCount, changedMeshesCount), changedMeshesCount);
 
                 ScheduleQueryRendererGroupInstancesJob(changedRenderers, changedInstances).Complete();
 
                 m_Batcher.DestroyDrawInstances(changedInstances);
                 m_Batcher.UpdateRenderers(renderersWithChangedMaterials.AsArray(), true);
-                m_Batcher.UpdateRenderers(renderersWithChangeMeshes.AsArray(), false);
+                m_Batcher.UpdateRenderers(renderersWithChangedMeshes.AsArray(), false);
+
+                changedInstances.Dispose();
+                changedRenderers.Dispose();
 
                 renderersWithChangedMaterials.Dispose();
-                renderersWithChangeMeshes.Dispose();
+                renderersWithChangedMeshes.Dispose();
             }
             Profiler.EndSample();
         }

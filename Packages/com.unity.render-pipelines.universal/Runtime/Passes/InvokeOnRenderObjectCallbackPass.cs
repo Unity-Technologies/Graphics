@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowPassCulling(false);
                 builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>
                 {
+                    context.cmd.SetRenderTarget(data.colorTarget, data.depthTarget);
                     context.cmd.InvokeOnRenderObjectCallbacks();
                 });
             }

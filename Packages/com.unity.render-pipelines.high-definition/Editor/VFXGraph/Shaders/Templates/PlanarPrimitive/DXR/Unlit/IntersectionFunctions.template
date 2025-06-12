@@ -20,7 +20,12 @@
             #endif
             #if USE_ALPHA_TEST
                 ${VFXLoadParameter:{alphaThreshold}}
-                return attributes.alpha * SampleTexture(VFX_SAMPLER(mainTexture), uv, 0).a > alphaThreshold;
+
+                float textureAlpha = 1.0f;
+                #if USE_BASE_COLOR_MAP_ALPHA
+                    textureAlpha = SampleTexture(VFX_SAMPLER(mainTexture), uv, 0).a;
+                #endif
+                return attributes.alpha * textureAlpha > alphaThreshold;
             #else
                 return true;
             #endif

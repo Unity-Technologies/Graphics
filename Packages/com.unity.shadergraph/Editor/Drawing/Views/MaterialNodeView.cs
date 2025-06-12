@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 contents.Add(dropdownContainer);
             }
 
-            if (node.hasPreview)
+            if (node.hasPreview && IsPreviewable(node))
             {
                 // Add actual preview which floats on top of the node
                 m_PreviewContainer = new VisualElement
@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 contents.Add(m_PreviewFiller);
 
-                UpdatePreviewExpandedState(node.previewExpanded);
+                UpdatePreviewExpandedState(IsPreviewable(node) ? node.previewExpanded : false);
             }
 
             base.expanded = node.drawState.expanded;
@@ -592,7 +592,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateTitle();
             SetActive(node.isActive);
             if (node.hasPreview)
-                UpdatePreviewExpandedState(node.previewExpanded);
+                UpdatePreviewExpandedState(IsPreviewable(node) ? node.previewExpanded : false);
 
             base.expanded = node.drawState.expanded;
 

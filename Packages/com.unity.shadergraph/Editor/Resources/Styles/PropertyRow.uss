@@ -42,12 +42,12 @@ PropertyRow > #container > #label > Label.modified {
     -unity-font-style: bold;
 }
 
-PropertyRow > #container > #content{
+PropertyRow > #container > #content {
     flex-grow: 10;
     flex-basis: 0;
     height: auto;
     -unity-font-style: bold;
-    min-width: 64px;
+    min-width: 36px;
     width: 100px;
     justify-content: center;
 }
