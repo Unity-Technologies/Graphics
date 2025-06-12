@@ -34,12 +34,15 @@ namespace UnityEditor.Rendering.Tests
         {
             var volumeManager = new VolumeManager();
             volumeManager.LoadBaseTypes(renderPipelineAssetType);
+            volumeManager.InitializeInternal();
 
             foreach (var expectedType in expectedTypes)
                 Assert.That(() => volumeManager.baseComponentTypeArray.First(t => t == expectedType), Throws.Nothing);
 
             foreach (var notExpectedType in notExpectedTypes)
                 Assert.That(() => volumeManager.baseComponentTypeArray.First(t => t == notExpectedType), Throws.InvalidOperationException);
+
+            volumeManager.Deinitialize();
         }
     }
 }
