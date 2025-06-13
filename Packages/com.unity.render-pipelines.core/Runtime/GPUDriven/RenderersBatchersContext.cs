@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering
 
         public void Dispose()
         {
-            NativeArray<int>.ReadOnly rendererGroupIDs = m_InstanceDataSystem.sharedInstanceData.rendererGroupIDs;
+            NativeArray<EntityId>.ReadOnly rendererGroupIDs = m_InstanceDataSystem.sharedInstanceData.rendererGroupIDs;
 
             if (rendererGroupIDs.Length > 0)
                 m_GPUDrivenProcessor.DisableGPUDrivenRendering(rendererGroupIDs);
@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering
             Profiler.EndSample();
         }
 
-        public void DestroyLODGroups(NativeArray<int> destroyed)
+        public void DestroyLODGroups(NativeArray<EntityId> destroyed)
         {
             if (destroyed.Length == 0)
                 return;
@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering
             m_LODGroupDataPool.FreeLODGroupData(destroyed);
         }
 
-        public void UpdateLODGroups(NativeArray<int> changedID)
+        public void UpdateLODGroups(NativeArray<EntityId> changedID)
         {
             if (changedID.Length == 0)
                 return;
@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering
             return m_InstanceDataSystem.ScheduleUpdateInstanceDataJob(instances, rendererData, m_LODGroupDataPool.lodGroupDataHash);
         }
 
-        public void FreeRendererGroupInstances(NativeArray<int> rendererGroupsID)
+        public void FreeRendererGroupInstances(NativeArray<EntityId> rendererGroupsID)
         {
             m_InstanceDataSystem.FreeRendererGroupInstances(rendererGroupsID);
         }
@@ -249,22 +249,22 @@ namespace UnityEngine.Rendering
             m_InstanceDataSystem.FreeInstances(instances);
         }
 
-        public JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeArray<InstanceHandle> instances)
+        public JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<EntityId> rendererGroupIDs, NativeArray<InstanceHandle> instances)
         {
             return m_InstanceDataSystem.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
         }
 
-        public JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeList<InstanceHandle> instances)
+        public JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<EntityId> rendererGroupIDs, NativeList<InstanceHandle> instances)
         {
             return m_InstanceDataSystem.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
         }
 
-        public JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeArray<int> instancesOffset, NativeArray<int> instancesCount, NativeList<InstanceHandle> instances)
+        public JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<EntityId> rendererGroupIDs, NativeArray<int> instancesOffset, NativeArray<int> instancesCount, NativeList<InstanceHandle> instances)
         {
             return m_InstanceDataSystem.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instancesOffset, instancesCount, instances);
         }
 
-        public JobHandle ScheduleQueryMeshInstancesJob(NativeArray<int> sortedMeshIDs, NativeList<InstanceHandle> instances)
+        public JobHandle ScheduleQueryMeshInstancesJob(NativeArray<EntityId> sortedMeshIDs, NativeList<InstanceHandle> instances)
         {
             return m_InstanceDataSystem.ScheduleQuerySortedMeshInstancesJob(sortedMeshIDs, instances);
         }
@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering
             ChangeInstanceBufferVersion();
         }
 
-        public void TransformLODGroups(NativeArray<int> lodGroupsID)
+        public void TransformLODGroups(NativeArray<EntityId> lodGroupsID)
         {
             if (lodGroupsID.Length == 0)
                 return;
@@ -353,9 +353,9 @@ namespace UnityEngine.Rendering
             return m_InstanceDataSystem.ScheduleCollectInstancesLODGroupAndMasksJob(instances, lodGroupAndMasks);
         }
 
-        public InstanceHandle GetRendererInstanceHandle(int rendererID)
+        public InstanceHandle GetRendererInstanceHandle(EntityId rendererID)
         {
-            var rendererIDs = new NativeArray<int>(1, Allocator.TempJob);
+            var rendererIDs = new NativeArray<EntityId>(1, Allocator.TempJob);
             var instances = new NativeArray<InstanceHandle>(1, Allocator.TempJob);
 
             rendererIDs[0] = rendererID;
@@ -388,12 +388,12 @@ namespace UnityEngine.Rendering
                 m_OcclusionCullingCommon.UpdateOccluderStats(m_DebugStats);
         }
 
-        public void FreePerCameraInstanceData(NativeArray<int> cameraIDs)
+        public void FreePerCameraInstanceData(NativeArray<EntityId> cameraIDs)
         {
             m_InstanceDataSystem.DeallocatePerCameraInstanceData(cameraIDs);
         }
 
-        public void UpdateCameras(NativeArray<int> cameraIDs)
+        public void UpdateCameras(NativeArray<EntityId> cameraIDs)
         {
             m_InstanceDataSystem.AllocatePerCameraInstanceData(cameraIDs);
         }

@@ -367,7 +367,7 @@ namespace UnityEngine.Rendering
             instancesLength = 0;
         }
 
-        public void DeallocateCameras(NativeArray<int> cameraIDs)
+        public void DeallocateCameras(NativeArray<EntityId> cameraIDs)
         {
             foreach (var cameraID in cameraIDs)
             {
@@ -379,7 +379,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void AllocateCameras(NativeArray<int> cameraIDs)
+        public void AllocateCameras(NativeArray<EntityId> cameraIDs)
         {
             foreach (var cameraID in cameraIDs)
             {
@@ -453,12 +453,12 @@ namespace UnityEngine.Rendering
 
         //@ Need to figure out the way to share the code with CPUInstanceData. Both structures are almost identical.
         public NativeArray<SharedInstanceHandle> instances;
-        public NativeArray<int> rendererGroupIDs;
+        public NativeArray<EntityId> rendererGroupIDs;
 
         // For now we just use nested collections since materialIDs are only parsed rarely. E.g. when an unsupported material is detected.
-        public NativeArray<SmallIntegerArray> materialIDArrays;
-        
-        public NativeArray<int> meshIDs;
+        public NativeArray<SmallEntityIdArray> materialIDArrays;
+
+        public NativeArray<EntityId> meshIDs;
         public NativeArray<AABB> localAABBs;
         public NativeArray<CPUSharedInstanceFlags> flags;
         public NativeArray<uint> lodGroupAndMasks;
@@ -477,9 +477,9 @@ namespace UnityEngine.Rendering
             m_InstanceIndices = new NativeList<int>(Allocator.Persistent);
             instances = new NativeArray<SharedInstanceHandle>(instancesCapacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             instances.FillArray(SharedInstanceHandle.Invalid);
-            rendererGroupIDs = new NativeArray<int>(instancesCapacity, Allocator.Persistent);
-            materialIDArrays = new NativeArray<SmallIntegerArray>(instancesCapacity, Allocator.Persistent);
-            meshIDs = new NativeArray<int>(instancesCapacity, Allocator.Persistent);
+            rendererGroupIDs = new NativeArray<EntityId>(instancesCapacity, Allocator.Persistent);
+            materialIDArrays = new NativeArray<SmallEntityIdArray>(instancesCapacity, Allocator.Persistent);
+            meshIDs = new NativeArray<EntityId>(instancesCapacity, Allocator.Persistent);
             localAABBs = new NativeArray<AABB>(instancesCapacity, Allocator.Persistent);
             flags = new NativeArray<CPUSharedInstanceFlags>(instancesCapacity, Allocator.Persistent);
             lodGroupAndMasks = new NativeArray<uint>(instancesCapacity, Allocator.Persistent);
@@ -660,7 +660,7 @@ namespace UnityEngine.Rendering
         public uint Get_LODGroupAndMask(SharedInstanceHandle instance) { return lodGroupAndMasks[SharedInstanceToIndex(instance)]; }
         public int Get_GameObjectLayer(SharedInstanceHandle instance) { return gameObjectLayers[SharedInstanceToIndex(instance)]; }
         public int Get_RefCount(SharedInstanceHandle instance) { return refCounts[SharedInstanceToIndex(instance)]; }
-        public unsafe ref SmallIntegerArray Get_MaterialIDs(SharedInstanceHandle instance) { return ref UnsafeUtility.ArrayElementAsRef<SmallIntegerArray>(materialIDArrays.GetUnsafePtr(), SharedInstanceToIndex(instance)); }
+        public unsafe ref SmallEntityIdArray Get_MaterialIDs(SharedInstanceHandle instance) { return ref UnsafeUtility.ArrayElementAsRef<SmallEntityIdArray>(materialIDArrays.GetUnsafePtr(), SharedInstanceToIndex(instance)); }
 
         public void Set_RendererGroupID(SharedInstanceHandle instance, int rendererGroupID) { rendererGroupIDs[SharedInstanceToIndex(instance)] = rendererGroupID; }
         public void Set_MeshID(SharedInstanceHandle instance, int meshID) { meshIDs[SharedInstanceToIndex(instance)] = meshID; }
@@ -669,14 +669,14 @@ namespace UnityEngine.Rendering
         public void Set_LODGroupAndMask(SharedInstanceHandle instance, uint lodGroupAndMask) { lodGroupAndMasks[SharedInstanceToIndex(instance)] = lodGroupAndMask; }
         public void Set_GameObjectLayer(SharedInstanceHandle instance, int gameObjectLayer) { gameObjectLayers[SharedInstanceToIndex(instance)] = gameObjectLayer; }
         public void Set_RefCount(SharedInstanceHandle instance, int refCount) { refCounts[SharedInstanceToIndex(instance)] = refCount; }
-        public void Set_MaterialIDs(SharedInstanceHandle instance, in SmallIntegerArray materialIDs)
+        public void Set_MaterialIDs(SharedInstanceHandle instance, in SmallEntityIdArray materialIDs)
         {
             int index = SharedInstanceToIndex(instance);
             materialIDArrays[index].Dispose();
             materialIDArrays[index] = materialIDs;
         }
 
-        public void Set(SharedInstanceHandle instance, int rendererGroupID, in SmallIntegerArray materialIDs, int meshID, in AABB localAABB, TransformUpdateFlags transformUpdateFlags,
+        public void Set(SharedInstanceHandle instance, EntityId rendererGroupID, in SmallEntityIdArray materialIDs, int meshID, in AABB localAABB, TransformUpdateFlags transformUpdateFlags,
             InstanceFlags instanceFlags, uint lodGroupAndMask, GPUDrivenMeshLodInfo meshLodInfo, int gameObjectLayer, int refCount)
         {
             int index = SharedInstanceToIndex(instance);
@@ -695,7 +695,7 @@ namespace UnityEngine.Rendering
 
         public void SetDefault(SharedInstanceHandle instance)
         {
-            Set(instance, 0, default, 0, new AABB(), TransformUpdateFlags.None, InstanceFlags.None, k_InvalidLODGroupAndMask, new GPUDrivenMeshLodInfo(), 0, 0);
+            Set(instance, EntityId.None, default, 0, new AABB(), TransformUpdateFlags.None, InstanceFlags.None, k_InvalidLODGroupAndMask, new GPUDrivenMeshLodInfo(), 0, 0);
         }
 
         public ReadOnly AsReadOnly()
@@ -707,9 +707,9 @@ namespace UnityEngine.Rendering
         {
             public readonly NativeArray<int>.ReadOnly instanceIndices;
             public readonly NativeArray<SharedInstanceHandle>.ReadOnly instances;
-            public readonly NativeArray<int>.ReadOnly rendererGroupIDs;
-            public readonly NativeArray<SmallIntegerArray>.ReadOnly materialIDArrays;
-            public readonly NativeArray<int>.ReadOnly meshIDs;
+            public readonly NativeArray<EntityId>.ReadOnly rendererGroupIDs;
+            public readonly NativeArray<SmallEntityIdArray>.ReadOnly materialIDArrays;
+            public readonly NativeArray<EntityId>.ReadOnly meshIDs;
             public readonly NativeArray<AABB>.ReadOnly localAABBs;
             public readonly NativeArray<CPUSharedInstanceFlags>.ReadOnly flags;
             public readonly NativeArray<uint>.ReadOnly lodGroupAndMasks;
@@ -776,16 +776,16 @@ namespace UnityEngine.Rendering
         }
     }
 
-    internal unsafe struct SmallIntegerArray : IDisposable
+    internal unsafe struct SmallEntityIdArray : IDisposable
     {
-        private FixedList32Bytes<int> m_FixedArray;
-        private UnsafeList<int> m_List;
+        private FixedList32Bytes<EntityId> m_FixedArray;
+        private UnsafeList<EntityId> m_List;
         private readonly bool m_IsEmbedded;
 
         public bool Valid { get; private set; }
         public readonly int Length;
 
-        public SmallIntegerArray(int length, Allocator allocator)
+        public SmallEntityIdArray(int length, Allocator allocator)
         {
             m_FixedArray = default;
             m_List = default;
@@ -794,19 +794,19 @@ namespace UnityEngine.Rendering
 
             if (Length <= m_FixedArray.Capacity)
             {
-                m_FixedArray = new FixedList32Bytes<int>();
+                m_FixedArray = new FixedList32Bytes<EntityId>();
                 m_FixedArray.Length = Length;
                 m_IsEmbedded = true;
             }
             else
             {
-                m_List = new UnsafeList<int>(Length, allocator, NativeArrayOptions.UninitializedMemory);
+                m_List = new UnsafeList<EntityId>(Length, allocator, NativeArrayOptions.UninitializedMemory);
                 m_List.Resize(Length);
                 m_IsEmbedded = false;
             }
         }
 
-        public int this[int index]
+        public EntityId this[int index]
         {
             get
             {

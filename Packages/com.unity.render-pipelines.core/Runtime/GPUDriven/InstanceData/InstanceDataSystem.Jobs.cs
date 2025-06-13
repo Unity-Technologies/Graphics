@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering
             [ReadOnly] public CPUInstanceData instanceData;
             [ReadOnly] public CPUSharedInstanceData sharedInstanceData;
             [ReadOnly] public NativeParallelMultiHashMap<int, InstanceHandle> rendererGroupInstanceMultiHash;
-            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> rendererGroupIDs;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<EntityId> rendererGroupIDs;
 
             [NativeDisableContainerSafetyRestriction, NoAlias][WriteOnly] public NativeArray<int> instancesCount;
 
@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering
             public const int k_BatchSize = 128;
 
             [ReadOnly] public NativeParallelMultiHashMap<int, InstanceHandle> rendererGroupInstanceMultiHash;
-            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> rendererGroupIDs;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<EntityId> rendererGroupIDs;
 
             [NativeDisableContainerSafetyRestriction, NoAlias][WriteOnly] public NativeArray<InstanceHandle> instances;
             [NativeDisableUnsafePtrRestriction] public UnsafeAtomicCounter32 atomicNonFoundInstancesCount;
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering
             public const int k_BatchSize = 128;
 
             [ReadOnly] public NativeParallelMultiHashMap<int, InstanceHandle> rendererGroupInstanceMultiHash;
-            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> rendererGroupIDs;
+            [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<EntityId> rendererGroupIDs;
             [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> instancesOffsets;
             [NativeDisableContainerSafetyRestriction, NoAlias][ReadOnly] public NativeArray<int> instancesCounts;
 
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering
 
             [ReadOnly] public CPUInstanceData instanceData;
             [ReadOnly] public CPUSharedInstanceData sharedInstanceData;
-            [ReadOnly] public NativeArray<int> sortedMeshID;
+            [ReadOnly] public NativeArray<EntityId> sortedMeshID;
 
             [NativeDisableParallelForRestriction][WriteOnly] public NativeList<InstanceHandle> instances;
 
@@ -584,11 +584,11 @@ namespace UnityEngine.Rendering
                     SharedInstanceHandle sharedInstance = instanceData.Get_SharedInstance(instance);
                     Assert.IsTrue(sharedInstance.valid);
 
-                    var materialIDs = new SmallIntegerArray(materialCount, Allocator.Persistent);
+                    var materialIDs = new SmallEntityIdArray(materialCount, Allocator.Persistent);
                     for (int i = 0; i < materialCount; i++)
                     {
                         int matIndex = rendererData.materialIndex[materialOffset + i];
-                        int materialInstanceID = rendererData.materialID[matIndex];
+                        EntityId materialInstanceID = rendererData.materialID[matIndex];
                         materialIDs[i] = materialInstanceID;
                     }
 

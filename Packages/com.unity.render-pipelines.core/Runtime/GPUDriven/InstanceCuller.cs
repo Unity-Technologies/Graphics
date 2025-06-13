@@ -1280,7 +1280,7 @@ namespace UnityEngine.Rendering
         [ReadOnly] public NativeArray<int> drawBatchIndices;
 
         [ReadOnly] public NativeArray<bool> filteringResults;
-        [ReadOnly] public NativeArray<int> excludedRenderers;
+        [ReadOnly] public NativeArray<EntityId> excludedRenderers;
 
         [ReadOnly] public FilteringJobMode mode;
 
@@ -2160,7 +2160,7 @@ namespace UnityEngine.Rendering
         {
             NativeArray<bool> filteredRenderers = new NativeArray<bool>(sharedInstanceData.rendererGroupIDs.Length, Allocator.TempJob);
             EditorCameraUtils.GetRenderersFilteringResults(sharedInstanceData.rendererGroupIDs, filteredRenderers);
-            var dummyExcludedRenderers = new NativeArray<int>(0, Allocator.TempJob);
+            var dummyExcludedRenderers = new NativeArray<EntityId>(0, Allocator.TempJob);
 
             var drawOutputJob = new DrawCommandOutputFiltering
             {
@@ -2201,8 +2201,8 @@ namespace UnityEngine.Rendering
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
                 return cullingJobHandle;
 
-            var pickingIDs = HandleUtility.GetPickingIncludeExcludeList(Allocator.TempJob);
-            var excludedRenderers = pickingIDs.ExcludeRenderers.IsCreated ? pickingIDs.ExcludeRenderers : new NativeArray<int>(0, Allocator.TempJob);
+            var pickingIDs = HandleUtility.GetPickingIncludeExcludeEntityIdList(Allocator.TempJob);
+            var excludedRenderers = pickingIDs.ExcludeRenderers.IsCreated ? pickingIDs.ExcludeRenderers : new NativeArray<EntityId>(0, Allocator.TempJob);
             var dummyFilteringResults = new NativeArray<bool>(0, Allocator.TempJob);
 
             var drawOutputJob = new DrawCommandOutputFiltering

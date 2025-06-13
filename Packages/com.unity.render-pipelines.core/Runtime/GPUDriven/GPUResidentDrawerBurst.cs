@@ -8,10 +8,10 @@ namespace UnityEngine.Rendering
     internal static class GPUResidentDrawerBurst
     {
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        public static void ClassifyMaterials(in NativeArray<int> materialIDs, in NativeParallelHashMap<int, BatchMaterialID>.ReadOnly batchMaterialHash,
-                                             ref NativeList<int> supportedMaterialIDs, ref NativeList<int> unsupportedMaterialIDs, ref NativeList<GPUDrivenPackedMaterialData> supportedPackedMaterialDatas)
+        public static void ClassifyMaterials(in NativeArray<EntityId> materialIDs, in NativeParallelHashMap<EntityId, BatchMaterialID>.ReadOnly batchMaterialHash,
+                                             ref NativeList<EntityId> supportedMaterialIDs, ref NativeList<EntityId> unsupportedMaterialIDs, ref NativeList<GPUDrivenPackedMaterialData> supportedPackedMaterialDatas)
         {
-            var usedMaterialIDs = new NativeList<int>(4, Allocator.Temp);
+            var usedMaterialIDs = new NativeList<EntityId>(4, Allocator.Temp);
 
             foreach (var materialID in materialIDs)
             {
@@ -39,17 +39,17 @@ namespace UnityEngine.Rendering
         }
 
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        public static void FindUnsupportedRenderers(in NativeArray<int> unsupportedMaterials, in NativeArray<SmallIntegerArray>.ReadOnly materialIDArrays, in NativeArray<int>.ReadOnly rendererGroups,
-                                                    ref NativeList<int> unsupportedRenderers)
+        public static void FindUnsupportedRenderers(in NativeArray<EntityId> unsupportedMaterials, in NativeArray<SmallEntityIdArray>.ReadOnly materialIDArrays, in NativeArray<EntityId>.ReadOnly rendererGroups,
+                                                    ref NativeList<EntityId> unsupportedRenderers)
         {
             for (int arrayIndex = 0; arrayIndex < materialIDArrays.Length; arrayIndex++)
             {
                 var materialIDs = materialIDArrays[arrayIndex];
-                int rendererID = rendererGroups[arrayIndex];
+                EntityId rendererID = rendererGroups[arrayIndex];
 
                 for (int i = 0; i < materialIDs.Length; i++)
                 {
-                    int materialID = materialIDs[i];
+                    EntityId materialID = materialIDs[i];
 
                     if (unsupportedMaterials.Contains(materialID))
                     {
@@ -61,8 +61,8 @@ namespace UnityEngine.Rendering
         }
 
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        public static void GetMaterialsWithChangedPackedMaterial(in NativeArray<int> materialIDs, in NativeArray<GPUDrivenPackedMaterialData> packedMaterialDatas,
-            in NativeParallelHashMap<int, GPUDrivenPackedMaterialData>.ReadOnly packedMaterialHash, ref NativeHashSet<int> filteredMaterials)
+        public static void GetMaterialsWithChangedPackedMaterial(in NativeArray<EntityId> materialIDs, in NativeArray<GPUDrivenPackedMaterialData> packedMaterialDatas,
+            in NativeParallelHashMap<EntityId, GPUDrivenPackedMaterialData>.ReadOnly packedMaterialHash, ref NativeHashSet<EntityId> filteredMaterials)
         {
             for (int index = 0; index < materialIDs.Length ; index++)
             {
