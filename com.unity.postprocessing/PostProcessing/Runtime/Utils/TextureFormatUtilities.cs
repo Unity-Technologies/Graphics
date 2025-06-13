@@ -45,10 +45,12 @@ namespace UnityEngine.Rendering.PostProcessing
                 { (int)TextureFormat.DXT1Crunched, RenderTextureFormat.ARGB32 },
                 { (int)TextureFormat.DXT5Crunched, RenderTextureFormat.ARGB32 },
             #endif
+            #if !UNITY_6000_1_OR_NEWER
                 { (int)TextureFormat.PVRTC_RGB2, RenderTextureFormat.ARGB32 },
                 { (int)TextureFormat.PVRTC_RGBA2, RenderTextureFormat.ARGB32 },
                 { (int)TextureFormat.PVRTC_RGB4, RenderTextureFormat.ARGB32 },
                 { (int)TextureFormat.PVRTC_RGBA4, RenderTextureFormat.ARGB32 },
+            #endif
             #if !UNITY_2018_1_OR_NEWER
                 { (int)TextureFormat.ATC_RGB4, RenderTextureFormat.ARGB32 },
                 { (int)TextureFormat.ATC_RGBA8, RenderTextureFormat.ARGB32 },

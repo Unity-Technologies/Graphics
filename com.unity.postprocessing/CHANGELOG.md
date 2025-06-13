@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Switch2 platform support
 
 ### Fixed
-- 
+- Remove support for PVRTC format in Unity 6.1 or newer
 
 ## [3.4.0] - 2023-12-11
 
