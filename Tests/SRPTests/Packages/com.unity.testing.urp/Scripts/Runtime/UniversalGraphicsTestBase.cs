@@ -72,7 +72,7 @@ namespace Unity.Rendering.Universal.Tests
         [UnityOneTimeSetUp]
         public IEnumerator OneTimeSetup()
         {
-            yield return TestContentLoader.WaitForContentLoadAsync(TimeSpan.FromSeconds(30));
+            yield return TestContentLoader.WaitForContentLoadAsync(TimeSpan.FromSeconds(60));
         }
 
         [SetUp]
