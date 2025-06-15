@@ -547,7 +547,7 @@ namespace UnityEngine.Rendering.Universal
         {
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618
-
+#if URP_COMPATIBILITY_MODE //temporary for m_DepthTexture
             if (renderer.cameraColorTargetHandle == null)
                 return;
 
@@ -582,7 +582,8 @@ namespace UnityEngine.Rendering.Universal
                 // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
                 m_GBufferRenderPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
             }
-            #pragma warning restore CS0618
+#endif
+        #pragma warning restore CS0618
         }
 
         /// <inheritdoc />

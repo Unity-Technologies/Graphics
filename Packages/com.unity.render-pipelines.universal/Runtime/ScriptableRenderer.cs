@@ -848,7 +848,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRenderPass"/>
         /// <seealso cref="ScriptableRendererFeature"/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
-        public abstract void Setup(ScriptableRenderContext context, ref RenderingData renderingData);
+        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData) { }
 
         /// <summary>
         /// Override this method to implement the lighting setup for the renderer. You can use this to
