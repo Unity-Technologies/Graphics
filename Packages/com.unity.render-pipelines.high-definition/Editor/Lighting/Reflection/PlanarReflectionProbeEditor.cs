@@ -368,21 +368,9 @@ namespace UnityEditor.Rendering.HighDefinition
         };
 
         Type HDProbeUI.IProbeUISettingsProvider.customTextureType => typeof(Texture2D);
-        static readonly HDProbeUI.ToolBar[] k_Toolbars =
-        {
-            HDProbeUI.ToolBar.InfluenceShape | HDProbeUI.ToolBar.Blend,
-            HDProbeUI.ToolBar.MirrorPosition | HDProbeUI.ToolBar.MirrorRotation,
-            HDProbeUI.ToolBar.ShowChromeGizmo
-        };
-        HDProbeUI.ToolBar[] HDProbeUI.IProbeUISettingsProvider.toolbars => k_Toolbars;
 
-        static Dictionary<KeyCode, HDProbeUI.ToolBar> k_ToolbarShortCutKey = new Dictionary<KeyCode, HDProbeUI.ToolBar>
-        {
-            { KeyCode.Alpha1, HDProbeUI.ToolBar.InfluenceShape },
-            { KeyCode.Alpha2, HDProbeUI.ToolBar.Blend },
-            { KeyCode.Alpha3, HDProbeUI.ToolBar.MirrorPosition },
-            { KeyCode.Alpha4, HDProbeUI.ToolBar.MirrorRotation }
-        };
-        Dictionary<KeyCode, HDProbeUI.ToolBar> HDProbeUI.IProbeUISettingsProvider.shortcuts => k_ToolbarShortCutKey;
+        HDProbeUI.ToolBar[] HDProbeUI.IProbeUISettingsProvider.toolbars => new HDProbeUI.ToolBar[] { };
+
+        Dictionary<KeyCode, HDProbeUI.ToolBar> HDProbeUI.IProbeUISettingsProvider.shortcuts => new() { };
     }
 }
