@@ -442,6 +442,7 @@ class VFXSlotContainerEditor : Editor
             { VFXValueType.Int32, new Color32(125, 110, 191, 255) },
             { VFXValueType.Matrix4x4, new Color32(118, 118, 118, 255) },
             { VFXValueType.Mesh, new Color32(130, 223, 226, 255) },
+            { VFXValueType.SkinnedMeshRenderer, new Color32(130, 223, 226, 255) },
             { VFXValueType.None, new Color32(118, 118, 118, 255) },
             { VFXValueType.Spline, new Color32(130, 223, 226, 255) },
             { VFXValueType.Texture2D, new Color32(250, 137, 137, 255) },
