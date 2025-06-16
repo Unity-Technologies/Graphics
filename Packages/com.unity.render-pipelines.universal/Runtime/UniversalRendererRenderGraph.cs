@@ -1560,7 +1560,7 @@ namespace UnityEngine.Rendering.Universal
         /// to ensure that the pipeline will actually do depth priming. 
         /// When this is true then we are sure that after RenderPassEvent.AfterRenderingPrePasses the currentCameraDepth has been primed.
         /// </summary>
-        bool IsDepthPrimingEnabledRenderGraph(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, DepthPrimingMode depthPrimingMode, bool requireDepthTexture, bool requirePrepassForTextures, bool usesDeferredLighting)
+        static bool IsDepthPrimingEnabledRenderGraph(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, DepthPrimingMode depthPrimingMode, bool requireDepthTexture, bool requirePrepassForTextures, bool usesDeferredLighting)
         {
 #if UNITY_EDITOR
             // We need to disable depth-priming for DrawCameraMode.Wireframe, since depth-priming forces ZTest to Equal
@@ -1576,7 +1576,7 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (DebugHandler is { IsDepthPrimingCompatible: false })
+            if (cameraData.renderer.DebugHandler is { IsDepthPrimingCompatible: false })
                 return false;
 #endif
 
