@@ -13,7 +13,7 @@ validate_-_postprocessing_-_2019_4_-_macos:
   - command: 7z x -aoa wrench-localapv.zip
   - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
   - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u 2019.4/staging -c Editor --fast
+  - command: unity-downloader-cli -u 2019.4 -c Editor --fast
     timeout: 10
     retries: 3
   - command: upm-pvp create-test-project test-postprocessing --packages "upm-ci~/packages/*.tgz" --unity .Editor
@@ -77,7 +77,7 @@ validate_-_postprocessing_-_2019_4_-_ubuntu:
   - command: 7z x -aoa wrench-localapv.zip
   - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
   - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u 2019.4/staging -c Editor --fast
+  - command: unity-downloader-cli -u 2019.4 -c Editor --fast
     timeout: 10
     retries: 3
   - command: upm-pvp create-test-project test-postprocessing --packages "upm-ci~/packages/*.tgz" --unity .Editor
@@ -141,7 +141,7 @@ validate_-_postprocessing_-_2019_4_-_windows:
   - command: 7z x -aoa wrench-localapv.zip
   - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
   - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u 2019.4/staging -c Editor --fast
+  - command: unity-downloader-cli -u 2019.4 -c Editor --fast
     timeout: 10
     retries: 3
   - command: upm-pvp create-test-project test-postprocessing --packages "upm-ci~/packages/*.tgz" --unity .Editor
