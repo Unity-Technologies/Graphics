@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering
 {
@@ -159,7 +160,28 @@ namespace UnityEditor.Rendering
         }
     }
 
+    public abstract partial class DefaultVolumeProfileSettingsPropertyDrawer
+    {        
+        /// <summary>
+        /// Context menu implementation for Default Volume Profile.
+        /// </summary>
+        /// <typeparam name="TSetting">Default Volume Profile Settings type</typeparam>
+        /// <typeparam name="TRenderPipeline">Render Pipeline type</typeparam>
+        [Obsolete("Use DefaultVolumeProfileSettingsPropertyDrawer<T>.DefaultVolumeProfileSettingsContextMenu2<TSetting, TRenderPipeline> instead #from(6000.0)")]
+        public abstract class DefaultVolumeProfileSettingsContextMenu<TSetting, TRenderPipeline> : IRenderPipelineGraphicsSettingsContextMenu<TSetting>
+            where TSetting : class, IDefaultVolumeProfileSettings
+            where TRenderPipeline : RenderPipeline
+        {
+            /// <summary>
+            /// Path where new Default Volume Profile will be created.
+            /// </summary>
+            [Obsolete("Not used anymore. #from(6000.0)")]
+            protected abstract string defaultVolumeProfilePath { get; }
 
+            [Obsolete("Not used anymore. #from(6000.0)")]
+            void IRenderPipelineGraphicsSettingsContextMenu<TSetting>.PopulateContextMenu(TSetting setting, PropertyDrawer property, ref GenericMenu menu){ }
+        }
+    }
 
     /// <summary>
     /// Builtin Drawer for Maskfield Debug Items.
