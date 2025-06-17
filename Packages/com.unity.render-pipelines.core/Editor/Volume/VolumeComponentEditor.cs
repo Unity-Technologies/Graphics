@@ -743,8 +743,22 @@ namespace UnityEditor.Rendering
         /// <param name="property">The property to draw the override checkbox for</param>
         protected void DrawOverrideCheckbox(SerializedDataParameter property)
         {
+            DrawOverrideCheckbox(property, null);
+        }
+
+        /// <summary>
+        /// Draws the override checkbox used by a property in the editor.
+        /// </summary>
+        /// <param name="property">The property to draw the override checkbox for</param>
+        /// <param name="drawer">The <see cref="VolumeParameterDrawer"/> instance responsible for
+        /// drawing the <paramref name="property"/>. This is used to get the correct element height
+        /// via <see cref="VolumeParameterDrawer.GetElementHeight(SerializedDataParameter)"/>. Can be <c>null</c>, in which
+        /// case the default property height is used.</param>
+        protected void DrawOverrideCheckbox(SerializedDataParameter property, VolumeParameterDrawer drawer)
+        {
             // Create a rect the height + vspacing of the property that is being overriden
-            float height = EditorGUI.GetPropertyHeight(property.value) + EditorGUIUtility.standardVerticalSpacing;
+            float elementHeight = drawer?.GetElementHeight(property) ?? EditorGUI.GetPropertyHeight(property.value);
+            float height = elementHeight + EditorGUIUtility.standardVerticalSpacing;
             var overrideRect = GUILayoutUtility.GetRect(Styles.k_AllText, CoreEditorStyles.miniLabelButton, GUILayout.Height(height),
                 GUILayout.Width(Styles.overrideCheckboxWidth + Styles.overrideCheckboxOffset), GUILayout.ExpandWidth(false));
 
@@ -855,7 +869,7 @@ namespace UnityEditor.Rendering
                     {
                         EditorGUILayout.BeginHorizontal();
                         if (editor.enableOverrides)
-                            editor.DrawOverrideCheckbox(property);
+                            editor.DrawOverrideCheckbox(property, drawer);
 
                         disabledScope = new EditorGUI.DisabledScope(!property.overrideState.boolValue);
                     }
