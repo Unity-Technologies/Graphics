@@ -53,17 +53,13 @@ namespace UnityEditor.Rendering.PostProcessing
                 {
                     EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support which is not available on this platform.", MessageType.Error);
                 }
+                if (EditorUtilities.isTargetingOpenGLES)
+                {
+                    EditorGUILayout.HelpBox("\"Multi-scale volumetric obscurance requires compute shader support which is not available for OpenGLES.", MessageType.Warning);
+                }
                 else if (EditorUtilities.isTargetingWebGL)
                 {
                     EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support (WebGPU) when running on Web.", MessageType.Warning);
-                }
-                else if(EditorUtilities.isTargetingAndroid)
-                {
-                    EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support (Vulkan) when running on Android.", MessageType.Warning);
-                }
-                else if(EditorUtilities.isTargetingQNX)
-                {
-                    EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support when running on QNX.", MessageType.Warning);
                 }
 
                 PropertyField(m_ThicknessModifier);

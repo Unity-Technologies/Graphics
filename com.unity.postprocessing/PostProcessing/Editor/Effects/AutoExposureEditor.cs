@@ -35,17 +35,13 @@ namespace UnityEditor.Rendering.PostProcessing
             {
                 EditorGUILayout.HelpBox("Auto exposure requires compute shader support which is not available on this platform.", MessageType.Error);
             }
+            if (EditorUtilities.isTargetingOpenGLES)
+            {
+                EditorGUILayout.HelpBox("Auto exposure requires compute shader support which is not available for OpenGLES.", MessageType.Warning);
+            }
             else if (EditorUtilities.isTargetingWebGL)
             {
                 EditorGUILayout.HelpBox("Auto exposure requires compute shader support (WebGPU) when running on Web.", MessageType.Warning);
-            }
-            else if (EditorUtilities.isTargetingAndroid)
-            {
-                EditorGUILayout.HelpBox("Auto exposure requires compute shader support (Vulkan) when running on Android.", MessageType.Warning);
-            }
-            else if (EditorUtilities.isTargetingQNX)
-            {
-                EditorGUILayout.HelpBox("Auto exposure requires compute shader support when running on QNX.", MessageType.Warning);
             }
 
             EditorUtilities.DrawHeaderLabel("Exposure");

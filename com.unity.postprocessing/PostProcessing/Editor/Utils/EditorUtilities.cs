@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
@@ -80,14 +81,27 @@ namespace UnityEditor.Rendering.PostProcessing
         }
 
         /// <summary>
-        /// Returns <c>true</c> if the current target is QNX, <c>false</c> otherwise.
+        /// Returns <c>true</c> if the current build targets OpenGLES, <c>false</c> otherwise.
         /// </summary>
-        public static bool isTargetingQNX
+        public static bool isTargetingOpenGLES
         {
             get
             {
-                var t = EditorUserBuildSettings.activeBuildTarget;
-                return t == BuildTarget.QNX;
+                var buildTargetAPIs = PlayerSettings.GetGraphicsAPIs(EditorUserBuildSettings.activeBuildTarget);
+
+                foreach (var api in buildTargetAPIs)
+                {
+                    if (api == GraphicsDeviceType.OpenGLES3
+#if !UNITY_2023_1_OR_NEWER
+                        || api == GraphicsDeviceType.OpenGLES2
+#endif
+                        )
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 
