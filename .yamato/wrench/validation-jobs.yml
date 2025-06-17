@@ -69,7 +69,7 @@ validate_-_postprocessing_-_2019_4_-_macos:
 validate_-_postprocessing_-_2019_4_-_ubuntu:
   name: Validate - postprocessing - 2019.4 - ubuntu
   agent:
-    image: package-ci/ubuntu-20.04:default
+    image: package-ci/ubuntu-18.04:default
     type: Unity::VM
     flavor: b1.large
   commands:
