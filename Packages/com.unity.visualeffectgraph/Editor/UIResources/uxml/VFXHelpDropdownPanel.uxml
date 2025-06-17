@@ -4,7 +4,7 @@
         <ui:Label text="Install Additional Samples" class="category" />
         <ui:Button name="installSamples" text="VFX Graph Additions" tooltip="Installs pre built VFX examples" class="indented" />
         <ui:Button name="graphAddition" text="Output Event Helpers" tooltip="Installs helper scripts to add behaviors on VFX events" class="indented" />
-        <ui:Button name="learningSamples" text="Learning Samples" tooltip="Installs learning VFX templates" class="indented" />
+        <ui:Button name="learningSamples" text="Learning Templates" tooltip="Installs VFX Learning Templates" class="indented" />
     </ui:Box>
     <ui:Box class="section alternate">
         <ui:Label text="Documentation" class="category" />
