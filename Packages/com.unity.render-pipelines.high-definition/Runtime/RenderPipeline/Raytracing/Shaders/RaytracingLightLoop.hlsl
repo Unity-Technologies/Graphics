@@ -24,7 +24,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 {
     // Init LightLoop output structure
     ZERO_INITIALIZE(LightLoopOutput, lightLoopOutput);
-
+    ApplyCameraRelativeXR(posInput.positionWS);
+    
     LightLoopContext context;
     context.contactShadow    = 1.0;
     context.shadowContext    = InitShadowContext();
