@@ -80,6 +80,18 @@ namespace UnityEditor.Rendering.PostProcessing
         }
 
         /// <summary>
+        /// Returns <c>true</c> if the current target is QNX, <c>false</c> otherwise.
+        /// </summary>
+        public static bool isTargetingQNX
+        {
+            get
+            {
+                var t = EditorUserBuildSettings.activeBuildTarget;
+                return t == BuildTarget.QNX;
+            }
+        }
+
+        /// <summary>
         /// Returns <c>true</c> if the current target is WebGL, <c>false</c> otherwise.
         /// </summary>
         public static bool isTargetingWebGL

@@ -61,6 +61,10 @@ namespace UnityEditor.Rendering.PostProcessing
                 {
                     EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support (Vulkan) when running on Android.", MessageType.Warning);
                 }
+                else if(EditorUtilities.isTargetingQNX)
+                {
+                    EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support when running on QNX.", MessageType.Warning);
+                }
 
                 PropertyField(m_ThicknessModifier);
                 PropertyField(m_ZBias);

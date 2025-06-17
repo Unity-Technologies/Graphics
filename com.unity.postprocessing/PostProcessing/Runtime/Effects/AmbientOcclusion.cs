@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 }
 
                 state &= SystemInfo.supportsComputeShaders
-                    && !RuntimeUtilities.isAndroidOpenGL
+                    && !RuntimeUtilities.isOpenGLNoCompute
                     && !RuntimeUtilities.isWebNonWebGPU
 #if UNITY_2023_2_OR_NEWER
                     && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, GraphicsFormatUsage.Render)

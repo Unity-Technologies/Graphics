@@ -43,6 +43,10 @@ namespace UnityEditor.Rendering.PostProcessing
             {
                 EditorGUILayout.HelpBox("Auto exposure requires compute shader support (Vulkan) when running on Android.", MessageType.Warning);
             }
+            else if (EditorUtilities.isTargetingQNX)
+            {
+                EditorGUILayout.HelpBox("Auto exposure requires compute shader support when running on QNX.", MessageType.Warning);
+            }
 
             EditorUtilities.DrawHeaderLabel("Exposure");
 
