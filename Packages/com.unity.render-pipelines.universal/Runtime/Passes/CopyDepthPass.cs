@@ -15,9 +15,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class CopyDepthPass : ScriptableRenderPass
     {
-        private RTHandle source { get; set; }
-        private RTHandle destination { get; set; }
-
         // TODO RENDERGRAPH: The Render method overwrites this property with -1 before doing anything else. It should only be used in Compatibility Mode!
         internal int MsaaSamples { get; set; }
         // In some cases (Scene view, XR and etc.) we actually want to output to depth buffer
@@ -30,8 +27,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_CopyDepthMaterial;
 
         internal bool m_CopyResolvedDepth;
+
+#if URP_COMPATIBILITY_MODE
+        private RTHandle source { get; set; }
+        private RTHandle destination { get; set; }
+
         internal bool m_ShouldClear;
         private PassData m_PassData;
+#endif
 
         /// <summary>
         /// Shader resource ids used to communicate with the shader implementation
@@ -56,14 +59,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         public CopyDepthPass(RenderPassEvent evt, Shader copyDepthShader, bool shouldClear = false, bool copyToDepth = false, bool copyResolvedDepth = false, string customPassName = null)
         {
             profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : ProfilingSampler.Get(URPProfileId.CopyDepth);
-            m_PassData = new PassData();
             CopyToDepth = copyToDepth;
             m_CopyDepthMaterial = copyDepthShader != null ? CoreUtils.CreateEngineMaterial(copyDepthShader) : null;
             renderPassEvent = evt;
             m_CopyResolvedDepth = copyResolvedDepth;
-            m_ShouldClear = shouldClear;
             CopyToDepthXR = false;
             CopyToBackbuffer = false;
+
+#if URP_COMPATIBILITY_MODE
+            m_PassData = new PassData();
+            m_ShouldClear = shouldClear;
+#endif
         }
 
         /// <summary>
@@ -73,8 +79,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="destination">Destination Render Target</param>
         public void Setup(RTHandle source, RTHandle destination)
         {
+#if URP_COMPATIBILITY_MODE
             this.source = source;
             this.destination = destination;
+#endif
             this.MsaaSamples = -1;
         }
 
@@ -86,6 +94,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.Destroy(m_CopyDepthMaterial);
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -106,6 +115,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             #pragma warning restore CS0618
         }
+#endif
 
         private class PassData
         {
@@ -118,6 +128,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal bool isDstBackbuffer;
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -142,6 +153,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, this.source);
         }
+#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source)
         {
@@ -218,7 +230,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Blitter.BlitTexture(cmd, source, scaleBias, copyDepthMaterial, 0);
             }
         }
-
+        
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
@@ -230,6 +243,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             destination = k_CameraTarget;
             #pragma warning restore CS0618
         }
+#endif
 
         /// <summary>
         /// Sets up the Copy Depth pass for RenderGraph execution
@@ -262,7 +276,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // TODO RENDERGRAPH: should call the equivalent of Setup() to initialise everything correctly
             MsaaSamples = -1;
 
-            // Having a different pass name than profilingSampler.name is bad practice but this method was public before we cleaned up this naming 
+            // Having a different pass name than profilingSampler.name is bad practice but this method was public before we cleaned up this naming
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.copyDepthMaterial = m_CopyDepthMaterial;

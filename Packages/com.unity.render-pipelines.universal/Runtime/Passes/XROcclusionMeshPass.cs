@@ -10,19 +10,27 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class XROcclusionMeshPass : ScriptableRenderPass
     {
-        PassData m_PassData;
-
         /// <summary>
         /// Used to indicate if the active target of the pass is the back buffer
         /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
+
+#if URP_COMPATIBILITY_MODE
+        PassData m_PassData;
+#endif
 
         public XROcclusionMeshPass(RenderPassEvent evt)
         {
             profilingSampler = new ProfilingSampler("Draw XR Occlusion Mesh");
             renderPassEvent = evt;
-            m_PassData = new PassData();
+            
+#if URP_COMPATIBILITY_MODE
+#pragma warning disable CS0618
             m_IsActiveTargetBackBuffer = false;
+#pragma warning restore CS0618
+            m_PassData = new PassData();
+#endif
         }
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData data)
@@ -36,6 +44,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -44,12 +53,11 @@ namespace UnityEngine.Rendering.Universal
             m_PassData.isActiveTargetBackBuffer = m_IsActiveTargetBackBuffer;
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData);
         }
+#endif
 
         private class PassData
         {
             internal XRPass xr;
-            internal TextureHandle cameraColorAttachment;
-            internal TextureHandle cameraDepthAttachment;
             internal bool isActiveTargetBackBuffer;
         }
 
@@ -61,9 +69,7 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.xr = cameraData.xr;
-				passData.cameraColorAttachment = cameraColorAttachment;
                 builder.SetRenderAttachment(cameraColorAttachment, 0);
-                passData.cameraDepthAttachment = cameraDepthAttachment;
                 builder.SetRenderAttachmentDepth(cameraDepthAttachment, AccessFlags.Write);
 
                 passData.isActiveTargetBackBuffer = resourceData.isActiveTargetBackBuffer;

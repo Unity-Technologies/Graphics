@@ -13,10 +13,12 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class FinalBlitPass : ScriptableRenderPass
     {
+        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+
+#if URP_COMPATIBILITY_MODE
         RTHandle m_Source;
         private PassData m_PassData;
-
-        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+#endif
 
         // Use specialed URP fragment shader pass for debug draw support and color space conversion/encoding support.
         // See CoreBlit.shader and BlitHDROverlay.shader
@@ -53,7 +55,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             profilingSampler = ProfilingSampler.Get(URPProfileId.BlitFinalToBackBuffer);
             base.useNativeRenderPass = false;
+#if URP_COMPATIBILITY_MODE
             m_PassData = new PassData();
+#endif
             renderPassEvent = evt;
 
             // Find sampler passes by name
@@ -72,7 +76,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public void Dispose()
         {
-
         }
 
         /// <summary>
@@ -93,7 +96,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="colorHandle"></param>
         public void Setup(RenderTextureDescriptor baseDescriptor, RTHandle colorHandle)
         {
+#if URP_COMPATIBILITY_MODE
             m_Source = colorHandle;
+#endif
         }
 
         static void SetupHDROutput(ColorGamut hdrDisplayColorGamut, Material material, HDROutputUtils.Operation hdrOperation, Vector4 hdrOutputParameters, bool rendersOverlayUI)
@@ -103,6 +108,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.SetKeyword(material, ShaderKeywordStrings.HDROverlay, rendersOverlayUI);
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -218,6 +224,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
         }
+#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle source, RTHandle destination, UniversalCameraData cameraData)
         {

@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private int renderTargetHeight;
         private bool m_CreateEmptyShadowmap;
         private bool m_SetKeywordForEmptyShadowmap;
-        private bool m_EmptyShadowmapNeedsClear;
         private bool m_IssuedMessageAboutShadowSlicesTooMany;
         private bool m_IssuedMessageAboutShadowMapsRescale;
         private bool m_IssuedMessageAboutShadowMapsTooBig;
@@ -28,8 +27,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private readonly bool m_UseStructuredBuffer;
         private float m_MaxShadowDistanceSq;
         private float m_CascadeBorder;
-        private PassData m_PassData;
-        private RTHandle m_EmptyAdditionalLightShadowmapTexture;
         private bool[] m_VisibleLightIndexToIsCastingShadows;                          // maps a "global" visible light index (index to lightData.visibleLights) to a shadow casting state (Is the light casting shadows or not?)
         private short[] m_VisibleLightIndexToAdditionalLightIndex;                     // maps a "global" visible light index (index to lightData.visibleLights) to an "additional light index" (index to arrays _AdditionalLightsPosition, _AdditionalShadowParams, ...), or -1 if it is not an additional light (i.e if it is the main light)
         private short[] m_AdditionalLightIndexToVisibleLightIndex;                     // maps additional light index (index to arrays _AdditionalLightsPosition, _AdditionalShadowParams, ...) to its "global" visible light index (index to lightData.visibleLights)
@@ -44,19 +41,25 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Constants and Statics
         private const int k_ShadowmapBufferBits = 16;
-        private const int k_EmptyShadowMapDimensions = 1;
         // Magic numbers used to identify light type when rendering shadow receiver.
         // Keep in sync with AdditionalLightRealtimeShadow code in com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl
         private const float k_LightTypeIdentifierInShadowParams_Spot = 0;
         private const float k_LightTypeIdentifierInShadowParams_Point = 1;
         private const string k_AdditionalLightShadowMapTextureName = "_AdditionalLightsShadowmapTexture";
-        private const string k_EmptyAdditionalLightShadowMapTextureName = "_EmptyAdditionalLightShadowmapTexture";
         // x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights.
         // w is perLightFirstShadowSliceIndex, used in Lighting shader to find if Additional light casts shadows.
         private static readonly Vector4 c_DefaultShadowParams = new (0, 0, 0, -1);
         private static Vector4 s_EmptyAdditionalShadowFadeParams;
         private static Vector4[] s_EmptyAdditionalLightIndexToShadowParams;
         private static bool isAdditionalShadowParamsDirty;
+
+#if URP_COMPATIBILITY_MODE
+        private const int k_EmptyShadowMapDimensions = 1;
+        private bool m_EmptyShadowmapNeedsClear;
+        private const string k_EmptyAdditionalLightShadowMapTextureName = "_EmptyAdditionalLightShadowmapTexture";
+        private RTHandle m_EmptyAdditionalLightShadowmapTexture;
+        private PassData m_PassData;
+#endif
 
         // Classes
         private static class AdditionalShadowsConstantBuffer
@@ -99,7 +102,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             profilingSampler = new ProfilingSampler("Draw Additional Lights Shadowmap");
             renderPassEvent = evt;
 
-            m_PassData = new PassData();
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
 
             // Pre-allocated a fixed size. CommandBuffer.SetGlobal* does allow this data to grow.
@@ -124,7 +126,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!m_UseStructuredBuffer)
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[maxVisibleAdditionalLights];
 
+#if URP_COMPATIBILITY_MODE
             m_EmptyShadowmapNeedsClear = true;
+            m_PassData = new PassData();
+#endif
         }
 
         /// <summary>
@@ -133,7 +138,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Dispose()
         {
             m_AdditionalLightsShadowmapHandle?.Release();
+#if URP_COMPATIBILITY_MODE
             m_EmptyAdditionalLightShadowmapTexture?.Release();
+#endif
         }
 
         // Returns the guard angle that must be added to a frustum angle covering a projection map of resolution sliceResolutionInTexels,
@@ -744,6 +751,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             return true;
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -804,6 +812,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderAdditionalShadowmapAtlas(rasterCommandBuffer, ref m_PassData, false);
             universalRenderingData.commandBuffer.SetGlobalTexture(AdditionalShadowsConstantBuffer._AdditionalLightsShadowmapID, m_AdditionalLightsShadowmapHandle.nameID);
         }
+#endif
 
         /// <summary>
         /// Gets the additional light index from the global visible light index, which is used to index arrays _AdditionalLightsPosition, _AdditionalShadowParams, etc.

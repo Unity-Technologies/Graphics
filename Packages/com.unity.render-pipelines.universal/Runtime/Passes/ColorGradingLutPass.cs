@@ -15,8 +15,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         readonly Material m_LutBuilderHdr;
         internal readonly GraphicsFormat m_HdrLutFormat;
         internal readonly GraphicsFormat m_LdrLutFormat;
-        PassData m_PassData;
+
+#if URP_COMPATIBILITY_MODE
         RTHandle m_InternalLut;
+        PassData m_PassData;
+#endif
 
         bool m_AllowColorGradingACESHDR = true;
 
@@ -70,7 +73,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3 && Graphics.minOpenGLESVersion <= OpenGLESVersion.OpenGLES30 && SystemInfo.graphicsDeviceName.StartsWith("Adreno (TM) 3"))
                 m_AllowColorGradingACESHDR = false;
 
+#if URP_COMPATIBILITY_MODE
             m_PassData = new PassData();
+#endif
         }
 
         /// <summary>
@@ -80,7 +85,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RTHandle"/>
         public void Setup(in RTHandle internalLut)
         {
+#if URP_COMPATIBILITY_MODE
             m_InternalLut = internalLut;
+#endif
         }
 
         /// <summary>
@@ -112,6 +119,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             filterMode = FilterMode.Bilinear;
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -135,6 +143,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.SetRenderTarget(renderingData.commandBuffer, m_InternalLut, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_InternalLut);
         }
+#endif
 
         private class PassData
         {

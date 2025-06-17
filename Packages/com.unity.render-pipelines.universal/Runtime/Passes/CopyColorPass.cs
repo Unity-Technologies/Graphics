@@ -19,11 +19,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         Downsampling m_DownsamplingMethod;
         Material m_CopyColorMaterial;
 
+#if URP_COMPATIBILITY_MODE
         private RTHandle source { get; set; }
-
         private RTHandle destination { get; set; }
-
         private PassData m_PassData;
+#endif
 
         /// <summary>
         /// Creates a new <c>CopyColorPass</c> instance.
@@ -38,7 +38,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             profilingSampler = customPassName != null ? new ProfilingSampler(customPassName) : ProfilingSampler.Get(URPProfileId.CopyColor);
 
-            m_PassData = new PassData();
 
             m_SamplingMaterial = samplingMaterial;
             m_CopyColorMaterial = copyColorMaterial;
@@ -46,6 +45,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
             base.useNativeRenderPass = false;
+
+#if URP_COMPATIBILITY_MODE
+            m_PassData = new PassData();
+#endif
         }
 
         /// <summary>
@@ -95,11 +98,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="downsampling">The downsampling method to use.</param>
         public void Setup(RTHandle source, RTHandle destination, Downsampling downsampling)
         {
+#if URP_COMPATIBILITY_MODE
             this.source = source;
             this.destination = destination;
+#endif
             m_DownsamplingMethod = downsampling;
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -132,6 +138,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), m_PassData, source, renderingData.cameraData.xr.enabled);
         }
+#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RTHandle source, bool useDrawProceduralBlit)
         {
@@ -174,7 +181,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private class PassData
         {
             internal TextureHandle source;
-            internal TextureHandle destination;
             // internal RenderingData renderingData;
             internal bool useProceduralBlit;
             internal Material samplingMaterial;
@@ -232,7 +238,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
-                passData.destination = destination;
                 builder.SetRenderAttachment(destination, 0, AccessFlags.WriteAll);
                 passData.source = source;
                 builder.UseTexture(source, AccessFlags.Read);
