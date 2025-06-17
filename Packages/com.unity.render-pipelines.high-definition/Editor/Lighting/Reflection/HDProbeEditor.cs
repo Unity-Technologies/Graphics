@@ -104,8 +104,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected virtual void Draw(TSerialized serialized, Editor owner)
         {
-            HDProbeUI.Drawer<TProvider>.DrawToolbars(serialized, owner);
-
             HDProbeUI.Drawer<TProvider>.DrawPrimarySettings(serialized, owner);
 
             //note: cannot use 'using CED = something' due to templated type passed.
@@ -147,7 +145,6 @@ namespace UnityEditor.Rendering.HighDefinition
             soo.Update();
             HDProbeUI.DrawHandles(soo, this);
 
-            HDProbeUI.Drawer<TProvider>.DoToolbarShortcutKey(this);
             DrawHandles(soo, this);
             if (EditorGUI.EndChangeCheck())
                 soo.Apply();

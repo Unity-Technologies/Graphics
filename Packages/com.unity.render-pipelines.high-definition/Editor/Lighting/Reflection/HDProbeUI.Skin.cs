@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -25,17 +24,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static readonly GUIContent k_TimeSlicingContent = EditorGUIUtility.TrTextContent("Time Slicing",
             "Enable time slicing to distribute realtime updates over 7 frames (one for each cubemap face then one to process the result) instead of fully updating in a single frame.");
         internal static readonly GUIContent k_CustomTextureContent = EditorGUIUtility.TrTextContent("Texture");
-
-        static readonly Dictionary<ToolBar, GUIContent> k_ToolbarContents = new Dictionary<ToolBar, GUIContent>
-        {
-            { ToolBar.InfluenceShape,  EditorGUIUtility.TrIconContent("EditShape", "Modify the base shape.") },
-            { ToolBar.Blend,  EditorGUIUtility.TrIconContent("BlendDistance", "Modify the influence volume blend distance.") },
-            { ToolBar.NormalBlend,  EditorGUIUtility.TrIconContent("NormalBlendDistance", "Modify the influence volume normal blend distance.") },
-            { ToolBar.CapturePosition,  EditorGUIUtility.TrIconContent("CapturePosition", "Change the capture position.") },
-            { ToolBar.MirrorPosition,  EditorGUIUtility.TrIconContent("MoveTool", "Change the mirror position.") },
-            { ToolBar.MirrorRotation,  EditorGUIUtility.TrIconContent("RotateTool", "Change the mirror rotation.") },
-            { ToolBar.ShowChromeGizmo,  EditorGUIUtility.TrIconContent(IconReflectionProbeGizmoId, "Display the chrome gizmo.") },
-        };
 
         const string IconReflectionProbeGizmoId =
 #if UNITY_2019_3_OR_NEWER

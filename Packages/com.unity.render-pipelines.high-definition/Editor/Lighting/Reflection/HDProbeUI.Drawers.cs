@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditorInternal;
 using System.Reflection;
@@ -22,8 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             NormalBlend = 1 << 2,
             CapturePosition = 1 << 3,
             MirrorPosition = 1 << 4,
-            MirrorRotation = 1 << 5,
-            ShowChromeGizmo = 1 << 6, //not really an edit mode. Should be move later to contextual tool overlay
+            MirrorRotation = 1 << 5
         }
 
         internal interface IProbeUISettingsProvider
@@ -32,8 +30,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ProbeSettingsOverride displayedAdvancedCaptureSettings { get; }
             ProbeSettingsOverride displayedCustomSettings { get; }
             Type customTextureType { get; }
-            ToolBar[] toolbars { get; }
-            Dictionary<KeyCode, ToolBar> shortcuts { get; }
         }
 
         // Constants
@@ -46,8 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition
         //Note: EditMode.SceneViewEditMode.ReflectionProbeOrigin is still used
         //by legacy reflection probe and have its own mecanism that we don't want
 
-        static readonly Dictionary<ToolBar, EditMode.SceneViewEditMode> k_ToolbarMode = new() { };
-
         // Probe Setting Mode cache
         static readonly GUIContent[] k_ModeContents = { new GUIContent("Baked"), new GUIContent("Custom"), new GUIContent("Realtime") };
         static readonly int[] k_ModeValues = { (int)ProbeSettings.Mode.Baked, (int)ProbeSettings.Mode.Custom, (int)ProbeSettings.Mode.Realtime };
@@ -55,95 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal struct Drawer<TProvider>
             where TProvider : struct, IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
         {
-            // Toolbar content cache
-            static readonly EditMode.SceneViewEditMode[][] k_ListModes;
-            static readonly GUIContent[][] k_ListContent;
-
-            static Drawer()
-            {
-                var provider = new TProvider();
-
-                // Build toolbar content cache
-                var toolbars = provider.toolbars;
-                k_ListContent = new GUIContent[toolbars.Length][];
-                k_ListModes = new EditMode.SceneViewEditMode[toolbars.Length][];
-
-                var listMode = new List<EditMode.SceneViewEditMode>();
-                var listContent = new List<GUIContent>();
-                for (int i = 0; i < toolbars.Length; ++i)
-                {
-                    listMode.Clear();
-                    listContent.Clear();
-
-                    var toolBar = toolbars[i];
-                    for (int j = 0; j < sizeof(int) * 8; ++j)
-                    {
-                        var toolbarJ = (ToolBar)(1 << j);
-                        if ((toolBar & toolbarJ) > 0)
-                        {
-                            if (toolBar == ToolBar.ShowChromeGizmo)
-                            {
-                                listContent.Add(k_ToolbarContents[toolbarJ]);
-                            }
-                            else
-                            {
-                                listMode.Add(k_ToolbarMode[toolbarJ]);
-                                listContent.Add(k_ToolbarContents[toolbarJ]);
-                            }
-                        }
-                    }
-                    k_ListContent[i] = listContent.ToArray();
-                    k_ListModes[i] = listMode.ToArray();
-                }
-            }
-
-            // Tool bars
-            public static void DrawToolbars(SerializedHDProbe serialized, Editor owner)
-            {
-                var provider = new TProvider();
-
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                GUI.changed = false;
-
-                for (int i = 0; i < k_ListModes.Length - 1; ++i)
-                    EditMode.DoInspectorToolbar(k_ListModes[i], k_ListContent[i], HDEditorUtils.GetBoundsGetter(owner), owner);
-
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-            }
-
-            public static void DoToolbarShortcutKey(Editor owner)
-            {
-                var provider = new TProvider();
-                var toolbars = provider.toolbars;
-                var shortcuts = provider.shortcuts;
-
-                var evt = Event.current;
-                if (evt.type != EventType.KeyDown || !evt.shift)
-                    return;
-
-                if (shortcuts.TryGetValue(evt.keyCode, out ToolBar toolbar))
-                {
-                    bool used = false;
-                    foreach (ToolBar t in toolbars)
-                    {
-                        if ((t & toolbar) > 0)
-                        {
-                            used = true;
-                            break;
-                        }
-                    }
-                    if (!used)
-                        return;
-
-                    var targetMode = k_ToolbarMode[toolbar];
-                    var mode = EditMode.editMode == targetMode ? EditMode.SceneViewEditMode.None : targetMode;
-                    EditorApplication.delayCall += () => EditMode.ChangeEditMode(mode, HDEditorUtils.GetBoundsGetter(owner)(), owner);
-                    evt.Use();
-                }
-            }
-
             // Drawers
             public static void DrawPrimarySettings(SerializedHDProbe serialized, Editor owner)
             {
@@ -531,12 +436,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return highestTierInCurrent;
         }
-
-        static internal void Drawer_ToolBarButton(
-            ToolBar button, Editor owner,
-            params GUILayoutOption[] options
-        )
-            => HDEditorUtils.DrawToolBarButton(button, owner, k_ToolbarMode, k_ToolbarContents, options);
     }
 
     [EditorTool(Description, typeof(PlanarReflectionProbe), null, (int)Mode, null)]

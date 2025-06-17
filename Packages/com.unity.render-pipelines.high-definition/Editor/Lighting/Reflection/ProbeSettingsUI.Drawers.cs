@@ -79,7 +79,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     (p, l) =>
                     {
                         EditorGUILayout.PropertyField(p, l);
-                        HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.MirrorPosition, owner, GUILayout.Width(28f), GUILayout.MinHeight(22f));
                     }
                 );
             }
