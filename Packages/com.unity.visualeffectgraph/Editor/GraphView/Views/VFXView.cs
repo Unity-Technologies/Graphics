@@ -2657,7 +2657,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        bool canGroupSelection
+        public bool canGroupSelection
         {
             get
             {
@@ -2739,7 +2739,9 @@ namespace UnityEditor.VFX.UI
         {
             if (canGroupSelection)
             {
-                controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller).ToArray());
+                controller.GroupNodes(
+                    selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller).ToArray(),
+                    selection.OfType<VFXStickyNote>().Select(x => x.controller).ToArray());
             }
         }
 
@@ -2786,10 +2788,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void AddStickyNote(Vector2 position, VFXGroupNode group = null)
+        public void AddStickyNote(Vector2 position)
         {
+            var group = selection.OfType<VFXGroupNode>().FirstOrDefault();
             position = contentViewContainer.WorldToLocal(position);
-            controller.AddStickyNote(position, group != null ? group.controller : null);
+            controller.AddStickyNote(position, group?.controller);
         }
 
         void AddGroupNode(Vector2 position)

@@ -481,7 +481,8 @@ namespace UnityEditor.VFX
         // 16: Add a collection of custom attributes (to be listed in blackboard)
         // 17: New Flipbook player and split the different Flipbook modes in UVMode into separate variables
         // 18: Change ProbabilitySampling m_IntegratedRandomDeprecated changed to m_Mode
-        public static readonly int CurrentVersion = 18;
+        // 19: Change sticky notes theme serialization
+        public static readonly int CurrentVersion = 19;
 
         public override void OnSRPChanged()
         {
