@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Remove support for PVRTC format in Unity 6.1 or newer
+- Fixed compute based effects not supported on some OpenGL platforms
 - Documentation updates
 
 ## [3.4.0] - 2023-12-11
