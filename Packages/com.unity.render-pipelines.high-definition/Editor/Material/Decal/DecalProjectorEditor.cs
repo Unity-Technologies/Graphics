@@ -630,9 +630,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_SizeValues[axe].floatValue = newSize;
         }
 
-        internal void MinMaxSliderWithFields(GUIContent label, ref float minValue, ref float maxValue, float minLimit, float maxLimit)
+        internal void MinMaxSliderWithFields(Rect rect, GUIContent label, ref float minValue, ref float maxValue, float minLimit, float maxLimit)
         {
-            var rect = EditorGUILayout.GetControlRect();
+            // Reserve label space and push the slider rect to the right
             rect = EditorGUI.PrefixLabel(rect, label);
 
             const float fieldWidth = 40, padding = 4;
@@ -660,6 +660,45 @@ namespace UnityEditor.Rendering.HighDefinition
                 tmpRect.xMax = rect.xMax - (fieldWidth + padding);
                 EditorGUI.MinMaxSlider(tmpRect, ref minValue, ref maxValue, minLimit, maxLimit);
             }
+        }
+
+        void DoRenderingLayerMask()
+        {
+            Rect rect = EditorGUILayout.GetControlRect(true, 18f);
+            EditorGUI.BeginProperty(rect, k_DecalLayerMaskContent, m_DecalLayerMask);
+
+            var mask = m_DecalLayerMask.uintValue;
+            EditorGUI.BeginChangeCheck();
+            mask = EditorGUI.RenderingLayerMaskField(rect, k_DecalLayerMaskContent, (RenderingLayerMask)mask, EditorStyles.layerMaskField);
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_DecalLayerMask.intValue = unchecked((int) mask);
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.EndProperty();
+        }
+
+        void DoAngleFade()
+        {
+            // The slider edits 2 different properties. Both can be overridden separately.
+            var rect = EditorGUILayout.GetControlRect();
+            EditorGUI.BeginProperty(rect, k_AngleFadeContent, m_StartAngleFadeProperty);
+            EditorGUI.BeginProperty(rect, k_AngleFadeContent, m_EndAngleFadeProperty);
+
+            float angleFadeMinValue = m_StartAngleFadeProperty.floatValue;
+            float angleFadeMaxValue = m_EndAngleFadeProperty.floatValue;
+            EditorGUI.BeginChangeCheck();
+            MinMaxSliderWithFields(rect,k_AngleFadeContent, ref angleFadeMinValue, ref angleFadeMaxValue, 0.0f, 180.0f);
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_StartAngleFadeProperty.floatValue = angleFadeMinValue;
+                m_EndAngleFadeProperty.floatValue = angleFadeMaxValue;
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            EditorGUI.EndProperty();
+            EditorGUI.EndProperty();
         }
 
         public override void OnInspectorGUI()
@@ -735,14 +774,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     decalLayerEnabled = supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers;
                     using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                     {
-                        var mask = m_DecalLayerMask.uintValue;
-                        EditorGUI.BeginChangeCheck();
-                        mask = EditorGUILayout.RenderingLayerMaskField(k_DecalLayerMaskContent, mask);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            m_DecalLayerMask.intValue = unchecked((int) mask);
-                            EditorUtility.SetDirty(m_DecalLayerMask.serializedObject.targetObject);
-                        }
+                        DoRenderingLayerMask();
                     }
                 }
 
@@ -758,15 +790,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
                 using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                 {
-                    float angleFadeMinValue = m_StartAngleFadeProperty.floatValue;
-                    float angleFadeMaxValue = m_EndAngleFadeProperty.floatValue;
-                    EditorGUI.BeginChangeCheck();
-                    MinMaxSliderWithFields(k_AngleFadeContent, ref angleFadeMinValue, ref angleFadeMaxValue, 0.0f, 180.0f);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        m_StartAngleFadeProperty.floatValue = angleFadeMinValue;
-                        m_EndAngleFadeProperty.floatValue = angleFadeMaxValue;
-                    }
+                    DoAngleFade();
                 }
 
                 if (!decalLayerEnabled)
@@ -985,7 +1009,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if (shader != null)
-            { 
+            {
                 var material = new Material(shader);
                 AssetDatabase.CreateAsset(material, materialName);
                 ProjectWindowUtil.ShowCreatedAsset(material);
