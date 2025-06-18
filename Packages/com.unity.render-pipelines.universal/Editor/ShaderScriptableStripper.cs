@@ -129,6 +129,8 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string kPassNameForwardLit = "ForwardLit";
         public static readonly string kPassNameDepthNormals = "DepthNormals";
         public static readonly string kPassNameXRMotionVectors = "XRMotionVectors";
+        public static readonly string kPassNameXRUberPost = "UberPostXR";
+        public static readonly string kPassNameXRFinalPost = "FinalPostXR";
 
         // Keywords
         LocalKeyword m_MainLightShadows;
@@ -1080,6 +1082,22 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        internal bool StripUnusedPass_XRUberPost(ref IShaderScriptableStrippingData strippingData)
+        {
+            // Strip XR UberPost Passes if there is no XR
+            if (strippingData.passName == kPassNameXRUberPost && strippingData.stripUnusedXRVariants)
+                return true;
+            return false;
+        }
+
+        internal bool StripUnusedPass_XRFinalPost(ref IShaderScriptableStrippingData strippingData)
+        {
+            // Strip XR FinalPost Passes if there is no XR
+            if (strippingData.passName == kPassNameXRFinalPost && strippingData.stripUnusedXRVariants)
+                return true;
+            return false;
+        }
+
         internal bool StripUnusedPass(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripUnusedPass_2D(ref strippingData))
@@ -1097,6 +1115,11 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedPass_XRMotionVectors(ref strippingData))
                 return true;
 
+            if (StripUnusedPass_XRUberPost(ref strippingData))
+                return true;
+
+            if (StripUnusedPass_XRFinalPost(ref strippingData))
+                return true;
             return false;
         }
 
