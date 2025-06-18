@@ -27,16 +27,16 @@ public class GraphicsSettings : AnnotatedSettingsBase
     {
         {
             SystemType.Windows,
-            new Platform(new Agent("package-ci/win10:default", FlavorType.BuildLarge, ResourceType.Vm), SystemType.Windows)
+            new Platform(new Agent("package-ci/win10:v4", FlavorType.BuildLarge, ResourceType.Vm), SystemType.Windows)
         },
         {
             SystemType.MacOS,
-            new Platform(new Agent("package-ci/macos-13:default", FlavorType.BuildExtraLarge, ResourceType.VmOsx),
+            new Platform(new Agent("package-ci/macos-13:v4", FlavorType.BuildExtraLarge, ResourceType.VmOsx),
                 SystemType.MacOS)
         },
         {
             SystemType.Ubuntu,
-            new Platform(new Agent("package-ci/ubuntu-18.04:default", FlavorType.BuildLarge, ResourceType.Vm),
+            new Platform(new Agent("package-ci/ubuntu-18.04:v4", FlavorType.BuildLarge, ResourceType.Vm),
                 SystemType.Ubuntu)
         }
     };

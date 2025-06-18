@@ -9,7 +9,7 @@ all_api_validation_jobs:
 api_validation_-_postprocessing_-_2019_4_-_windows:
   name: API Validation - postprocessing - 2019.4 - windows
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
     flavor: b1.large
   commands:

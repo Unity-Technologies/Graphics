@@ -5,7 +5,7 @@
 package_pack_-_postprocessing:
   name: Package Pack - postprocessing
   agent:
-    image: package-ci/ubuntu-18.04:default
+    image: package-ci/ubuntu-18.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
