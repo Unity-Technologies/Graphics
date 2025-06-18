@@ -24,5 +24,5 @@ package_pack_-_postprocessing:
     UPMCI_ACK_LARGE_PACKAGE: 1
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.11.0.0
+    Wrench: 0.12.0.0
 

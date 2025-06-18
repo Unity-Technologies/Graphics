@@ -20,7 +20,7 @@ api_validation_-_postprocessing_-_2019_4_-_windows:
   - command: npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     timeout: 20
     retries: 10
-  - command: unity-downloader-cli -u 2019.4/staging -c Editor --fast
+  - command: unity-downloader-cli -u 2019.4 -c editor --path .Editor --fast
     timeout: 10
     retries: 3
   - command: python PythonScripts/PackageJsonCondersor.py
@@ -51,8 +51,8 @@ api_validation_-_postprocessing_-_2019_4_-_windows:
   dependencies:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
-    UPMPVP_CONTEXT_WRENCH: 0.11.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.11.0.0
+    Wrench: 0.12.0.0
 

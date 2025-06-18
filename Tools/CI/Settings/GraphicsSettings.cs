@@ -17,7 +17,7 @@ public class GraphicsSettings : AnnotatedSettingsBase
     {
         {
             s_PackageName,
-            new PackageOptions() { ReleaseOptions = new ReleaseOptions() { IsReleasing = true } },
+            new PackageOptions() { ReleaseOptions = new ReleaseOptions() { IsReleasing = true } }
         }
     };
 
@@ -48,10 +48,6 @@ public class GraphicsSettings : AnnotatedSettingsBase
             PackageOptions
         );
 
-        Wrench.Packages[s_PackageName].AdditionalEditorVersions =
-        [
-            "2019.4",
-        ];
         Wrench.Packages[s_PackageName].EditorPlatforms = ImageOverrides;
     }
 
