@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.Universal
@@ -9,11 +6,14 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Uses a compute shader to capture the depth and normal of the pixel under the cursor.
     /// </summary>
-    internal partial class ProbeVolumeDebugPass : ScriptableRenderPass
+    internal class ProbeVolumeDebugPass : ScriptableRenderPass
     {
         ComputeShader m_ComputeShader;
+
+#if URP_COMPATIBILITY_MODE
         RTHandle m_DepthTexture;
         RTHandle m_NormalTexture;
+#endif
 
         /// <summary>
         /// Creates a new <c>ProbeVolumeDebugPass</c> instance.
@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal
             m_ComputeShader = computeShader;
         }
 
+#if URP_COMPATIBILITY_MODE
         public void Setup(RTHandle depthBuffer, RTHandle normalBuffer)
         {
             m_DepthTexture = depthBuffer;
@@ -51,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DispatchCompute(m_ComputeShader, kernel, 1, 1, 1);
             }
         }
-
+#endif
 
         class WriteApvData
         {
@@ -66,7 +67,7 @@ namespace UnityEngine.Rendering.Universal
         /// Render graph entry point
         /// </summary>
         /// <param name="renderGraph"></param>
-        /// <param name="renderingData"></param>
+        /// <param name="frameData"></param>
         /// <param name="depthPyramidBuffer"></param>
         /// <param name="normalBuffer"></param>
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle depthPyramidBuffer, TextureHandle normalBuffer)

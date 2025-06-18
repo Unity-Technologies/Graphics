@@ -12,7 +12,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class CapturePass : ScriptableRenderPass
     {
+#if URP_COMPATIBILITY_MODE
         RTHandle m_CameraColorHandle;
+#endif
 
         public CapturePass(RenderPassEvent evt)
         {
@@ -20,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -36,6 +39,7 @@ namespace UnityEngine.Rendering.Universal
                     captureActions.Current(colorAttachmentIdentifier, renderingData.commandBuffer);
             }
         }
+#endif
 
         private class UnsafePassData
         {

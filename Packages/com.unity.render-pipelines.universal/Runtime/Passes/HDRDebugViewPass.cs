@@ -15,11 +15,14 @@ namespace UnityEngine.Rendering.Universal
             DebugViewPass = 1
         }
 
-        PassDataCIExy m_PassDataCIExy;
-        PassDataDebugView m_PassDataDebugView;
-        RTHandle m_CIExyTarget;     // xyBuffer;
         RTHandle m_PassthroughRT;
         Material m_material;
+
+#if URP_COMPATIBILITY_MODE
+        PassDataCIExy m_PassDataCIExy;
+        RTHandle m_CIExyTarget;     // xyBuffer;
+        PassDataDebugView m_PassDataDebugView;
+#endif
 
         /// <summary>
         /// Creates a new <c>HDRDebugViewPass</c> instance.
@@ -30,8 +33,10 @@ namespace UnityEngine.Rendering.Universal
         {
             profilingSampler = new ProfilingSampler("Blit HDR Debug Data");
             renderPassEvent = RenderPassEvent.AfterRendering + 3;
+#if URP_COMPATIBILITY_MODE
             m_PassDataCIExy = new PassDataCIExy() { material = mat };
             m_PassDataDebugView = new PassDataDebugView() { material = mat };
+#endif
             m_material = mat;
 
             // Disabling native render passes (for non-RG) because it renders to 2 different render targets
@@ -54,7 +59,6 @@ namespace UnityEngine.Rendering.Universal
             internal HDRDebugMode hdrDebugMode;
             internal UniversalCameraData cameraData;
             internal Vector4 luminanceParameters;
-            internal TextureHandle overlayUITexture;
             internal TextureHandle xyBuffer;
             internal TextureHandle srcColor;
             internal TextureHandle dstColor;
@@ -137,7 +141,9 @@ namespace UnityEngine.Rendering.Universal
         // Non-RenderGraph path
         public void Dispose()
         {
+#if URP_COMPATIBILITY_MODE
             m_CIExyTarget?.Release();
+#endif
             m_PassthroughRT?.Release();
         }
 
@@ -148,17 +154,22 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="hdrdebugMode">Active DebugMode for HDR.</param>
         public void Setup(UniversalCameraData cameraData, HDRDebugMode hdrdebugMode)
         {
+#if URP_COMPATIBILITY_MODE
             m_PassDataDebugView.hdrDebugMode = hdrdebugMode;
+#endif
 
             RenderTextureDescriptor descriptor = cameraData.cameraTargetDescriptor;
             DebugHandler.ConfigureColorDescriptorForDebugScreen(ref descriptor, cameraData.pixelWidth, cameraData.pixelHeight);
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_PassthroughRT, descriptor, name: "_HDRDebugDummyRT");
-
+            
+#if URP_COMPATIBILITY_MODE
             RenderTextureDescriptor descriptorCIE = cameraData.cameraTargetDescriptor;
             HDRDebugViewPass.ConfigureDescriptorForCIEPrepass(ref descriptorCIE);
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_CIExyTarget, descriptorCIE, name: "_xyBuffer");
+#endif
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -210,6 +221,7 @@ namespace UnityEngine.Rendering.Universal
             dataDebugView.cameraData.renderer.ConfigureCameraTarget(destTexture, destTexture);
             #pragma warning restore CS0618
         }
+#endif
 
         //RenderGraph path
         internal void RenderHDRDebug(RenderGraph renderGraph, UniversalCameraData cameraData, TextureHandle srcColor, TextureHandle overlayUITexture, TextureHandle dstColor, HDRDebugMode hdrDebugMode)
@@ -269,7 +281,6 @@ namespace UnityEngine.Rendering.Universal
 
                 if (overlayUITexture.IsValid())
                 {
-                    passData.overlayUITexture = overlayUITexture;
                     builder.UseTexture(overlayUITexture);
                 }
 

@@ -79,7 +79,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+#if URP_COMPATIBILITY_MODE
             m_SSShadowsPass?.Dispose();
+#endif
             m_SSShadowsPass = null;
             CoreUtils.Destroy(m_Material);
         }
@@ -110,22 +112,30 @@ namespace UnityEngine.Rendering.Universal
             // Private Variables
             private Material m_Material;
             private ScreenSpaceShadowsSettings m_CurrentSettings;
-            private RTHandle m_RenderTarget;
             private int m_ScreenSpaceShadowmapTextureID;
+
+#if URP_COMPATIBILITY_MODE
             private PassData m_PassData;
+            private RTHandle m_RenderTarget;
+#endif
 
             internal ScreenSpaceShadowsPass()
             {
                 profilingSampler = new ProfilingSampler("Blit Screen Space Shadows");
                 m_CurrentSettings = new ScreenSpaceShadowsSettings();
                 m_ScreenSpaceShadowmapTextureID = Shader.PropertyToID("_ScreenSpaceShadowmapTexture");
+
+#if URP_COMPATIBILITY_MODE
                 m_PassData = new PassData();
+#endif
             }
 
+#if URP_COMPATIBILITY_MODE
             public void Dispose()
             {
                 m_RenderTarget?.Release();
             }
+#endif
 
             internal bool Setup(ScreenSpaceShadowsSettings featureSettings, Material material)
             {
@@ -136,6 +146,8 @@ namespace UnityEngine.Rendering.Universal
                 return m_Material != null;
             }
 
+
+#if URP_COMPATIBILITY_MODE
             /// <inheritdoc/>
             [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -158,12 +170,12 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureClear(ClearFlag.None, Color.white);
                 #pragma warning restore CS0618
             }
+#endif
 
             private class PassData
             {
                 internal TextureHandle target;
                 internal Material material;
-                internal int shadowmapID;
             }
 
             /// <summary>
@@ -173,7 +185,6 @@ namespace UnityEngine.Rendering.Universal
             private void InitPassData(ref PassData passData)
             {
                 passData.material = m_Material;
-                passData.shadowmapID = m_ScreenSpaceShadowmapTextureID;
             }
 
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -218,6 +229,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+#if URP_COMPATIBILITY_MODE
             private static void ExecutePass(RasterCommandBuffer cmd, PassData data, RTHandle target)
             {
                 Blitter.BlitTexture(cmd, target, Vector2.one, data.material, 0);
@@ -225,6 +237,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, false);
                 cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowScreen, true);
             }
+#endif
 
             private static void ExecutePass(UnsafeCommandBuffer cmd, PassData data, RTHandle target)
             {
@@ -234,6 +247,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowScreen, true);
             }
 
+#if URP_COMPATIBILITY_MODE
             /// <inheritdoc/>
             [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -251,17 +265,21 @@ namespace UnityEngine.Rendering.Universal
                     ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_RenderTarget);
                 }
             }
+#endif
         }
 
         private class ScreenSpaceShadowsPostPass : ScriptableRenderPass
         {
+#if URP_COMPATIBILITY_MODE
             private static readonly RTHandle k_CurrentActive = RTHandles.Alloc(BuiltinRenderTextureType.CurrentActive);
+#endif
 
             internal ScreenSpaceShadowsPostPass()
             {
                 profilingSampler = new ProfilingSampler("Set Screen Space Shadow Keywords");
             }
 
+#if URP_COMPATIBILITY_MODE
             [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
             public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
             {
@@ -270,6 +288,7 @@ namespace UnityEngine.Rendering.Universal
                 ConfigureTarget(k_CurrentActive);
                 #pragma warning restore CS0618
             }
+#endif
 
             private static void ExecutePass(RasterCommandBuffer cmd, UniversalShadowData shadowData)
             {
@@ -286,6 +305,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, receiveShadowsCascades);
             }
 
+#if URP_COMPATIBILITY_MODE
             [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
@@ -297,12 +317,13 @@ namespace UnityEngine.Rendering.Universal
                     ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), shadowData);
                 }
             }
+#endif
 
             internal class PassData
             {
-                internal ScreenSpaceShadowsPostPass pass;
                 internal UniversalShadowData shadowData;
             }
+
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
@@ -312,7 +333,6 @@ namespace UnityEngine.Rendering.Universal
                     TextureHandle color = resourceData.activeColorTexture;
                     builder.SetRenderAttachment(color, 0, AccessFlags.Write);
                     passData.shadowData = frameData.Get<UniversalShadowData>();
-                    passData.pass = this;
 
                     builder.AllowGlobalStateModification(true);
 

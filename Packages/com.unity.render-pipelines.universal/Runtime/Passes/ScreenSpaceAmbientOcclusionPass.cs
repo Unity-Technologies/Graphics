@@ -11,17 +11,14 @@ namespace UnityEngine.Rendering.Universal
         private readonly bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
         private int m_BlueNoiseTextureIndex = 0;
         private Material m_Material;
-        private SSAOPassData m_PassData;
         private Texture2D[] m_BlueNoiseTextures;
         private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
         private Vector4[] m_CameraXExtent = new Vector4[2];
         private Vector4[] m_CameraYExtent = new Vector4[2];
         private Vector4[] m_CameraZExtent = new Vector4[2];
-        private RTHandle[] m_SSAOTextures = new RTHandle[4];
         private BlurTypes m_BlurType = BlurTypes.Bilateral;
         private Matrix4x4[] m_CameraViewProjections = new Matrix4x4[2];
         private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.SSAO);
-        private ScriptableRenderer m_Renderer = null;
         private RenderTextureDescriptor m_AOPassDescriptor;
         private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
 
@@ -41,8 +38,13 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int s_ProjectionParams2ID = Shader.PropertyToID("_ProjectionParams2");
         private static readonly int s_CameraViewProjectionsID = Shader.PropertyToID("_CameraViewProjections");
         private static readonly int s_CameraViewTopLeftCornerID = Shader.PropertyToID("_CameraViewTopLeftCorner");
-        private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
         private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID("_CameraNormalsTexture");
+
+#if URP_COMPATIBILITY_MODE
+        private RTHandle[] m_SSAOTextures = new RTHandle[4];
+
+        private SSAOPassData m_PassData;
+        private ScriptableRenderer m_Renderer = null;
 
         private static readonly int[] m_BilateralTexturesIndices            = { 0, 1, 2, 3 };
         private static readonly ShaderPasses[] m_BilateralPasses            = { ShaderPasses.BilateralBlurHorizontal, ShaderPasses.BilateralBlurVertical, ShaderPasses.BilateralBlurFinal };
@@ -55,6 +57,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int[] m_KawaseTexturesIndices               = { 0, 3 };
         private static readonly ShaderPasses[] m_KawasePasses               = { ShaderPasses.KawaseBlur };
         private static readonly ShaderPasses[] m_KawaseAfterOpaquePasses    = { ShaderPasses.KawaseAfterOpaque };
+#endif
 
         // Enums
         private enum BlurTypes
@@ -139,15 +142,19 @@ namespace UnityEngine.Rendering.Universal
         internal ScreenSpaceAmbientOcclusionPass()
         {
             m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
+#if URP_COMPATIBILITY_MODE
             m_PassData = new SSAOPassData();
+#endif
         }
 
         internal bool Setup(ref ScreenSpaceAmbientOcclusionSettings featureSettings, ref ScriptableRenderer renderer, ref Material material, ref Texture2D[] blueNoiseTextures)
         {
             m_BlueNoiseTextures = blueNoiseTextures;
             m_Material = material;
-            m_Renderer = renderer;
             m_CurrentSettings = featureSettings;
+#if URP_COMPATIBILITY_MODE
+            m_Renderer = renderer;
+#endif
 
             // RenderPass Event + Source Settings (Depth / Depth&Normals
             if (renderer is UniversalRenderer { usesDeferredLighting: true })
@@ -199,12 +206,15 @@ namespace UnityEngine.Rendering.Universal
                    && m_CurrentSettings.Falloff > 0.0f;
         }
 
+#if URP_COMPATIBILITY_MODE
         private static bool IsAfterOpaquePass(ref ShaderPasses pass)
         {
             return pass == ShaderPasses.BilateralAfterOpaque
                    || pass == ShaderPasses.GaussianAfterOpaque
                    || pass == ShaderPasses.KawaseAfterOpaque;
         }
+
+#endif
 
         private void SetupKeywordsAndParameters(ref ScreenSpaceAmbientOcclusionSettings settings, ref UniversalCameraData cameraData)
         {
@@ -458,6 +468,7 @@ namespace UnityEngine.Rendering.Universal
          ------------------------------------------------------------- RENDER-GRAPH --------------------------------------------------------------
          ----------------------------------------------------------------------------------------------------------------------------------------*/
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -616,6 +627,7 @@ namespace UnityEngine.Rendering.Universal
                     throw new ArgumentOutOfRangeException();
             }
         }
+#endif
 
         /// <inheritdoc/>
         public override void OnCameraCleanup(CommandBuffer cmd)
@@ -629,10 +641,12 @@ namespace UnityEngine.Rendering.Universal
 
         public void Dispose()
         {
+#if URP_COMPATIBILITY_MODE
             m_SSAOTextures[0]?.Release();
             m_SSAOTextures[1]?.Release();
             m_SSAOTextures[2]?.Release();
             m_SSAOTextures[3]?.Release();
+#endif
             m_SSAOParamsPrev = default;
         }
     }

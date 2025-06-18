@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal
             return !m_shouldReceiveShadows;
         }
 
+#if URP_COMPATIBILITY_MODE
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -34,6 +35,7 @@ namespace UnityEngine.Rendering.Universal
                 ExecutePass(rasterCommandBuffer);
             }
         }
+#endif
 
         public static void ExecutePass(RasterCommandBuffer rasterCommandBuffer)
         {
