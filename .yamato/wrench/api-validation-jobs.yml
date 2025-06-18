@@ -51,8 +51,8 @@ api_validation_-_postprocessing_-_2019_4_-_windows:
   dependencies:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
 

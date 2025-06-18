@@ -31,7 +31,7 @@
   },
   "publishing_job": ".yamato/wrench/promotion-jobs.yml#publish_postprocessing",
   "branch_pattern": "ReleaseSlash",
-  "wrench_version": "0.12.0.0",
+  "wrench_version": "0.12.1.0",
   "pvp_exemption_path": ".yamato/wrench/pvp-exemptions.json",
   "cs_project_path": "Tools/CI/Graphics.Cookbook.csproj"
 }

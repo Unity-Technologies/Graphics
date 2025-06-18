@@ -248,10 +248,10 @@ publish_dry_run_postprocessing:
         ignore_artifact: true
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
 
 # Publish  for postprocessing to https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-npm
 publish_postprocessing:
@@ -500,8 +500,8 @@ publish_postprocessing:
         ignore_artifact: true
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
 

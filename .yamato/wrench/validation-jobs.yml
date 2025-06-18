@@ -5,7 +5,7 @@
 validate_-_postprocessing_-_2019_4_-_macos:
   name: Validate - postprocessing - 2019.4 - macos
   agent:
-    image: package-ci/macos-13:default
+    image: package-ci/macos-13:v4
     type: Unity::VM::osx
     flavor: b1.xlarge
   commands:
@@ -58,10 +58,10 @@ validate_-_postprocessing_-_2019_4_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -69,7 +69,7 @@ validate_-_postprocessing_-_2019_4_-_macos:
 validate_-_postprocessing_-_2019_4_-_ubuntu:
   name: Validate - postprocessing - 2019.4 - ubuntu
   agent:
-    image: package-ci/ubuntu-18.04:default
+    image: package-ci/ubuntu-18.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -122,10 +122,10 @@ validate_-_postprocessing_-_2019_4_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -133,7 +133,7 @@ validate_-_postprocessing_-_2019_4_-_ubuntu:
 validate_-_postprocessing_-_2019_4_-_windows:
   name: Validate - postprocessing - 2019.4 - windows
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -186,10 +186,10 @@ validate_-_postprocessing_-_2019_4_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -197,7 +197,7 @@ validate_-_postprocessing_-_2019_4_-_windows:
 validate_-_postprocessing_-_2019_4_19f1_-_windows:
   name: Validate - postprocessing - 2019.4.19f1 - windows
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -250,10 +250,10 @@ validate_-_postprocessing_-_2019_4_19f1_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -261,7 +261,7 @@ validate_-_postprocessing_-_2019_4_19f1_-_windows:
 validate_-_postprocessing_-_2021_3_-_macos:
   name: Validate - postprocessing - 2021.3 - macos
   agent:
-    image: package-ci/macos-13:default
+    image: package-ci/macos-13:v4
     type: Unity::VM::osx
     flavor: b1.xlarge
   commands:
@@ -314,10 +314,10 @@ validate_-_postprocessing_-_2021_3_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -325,7 +325,7 @@ validate_-_postprocessing_-_2021_3_-_macos:
 validate_-_postprocessing_-_2021_3_-_ubuntu:
   name: Validate - postprocessing - 2021.3 - ubuntu
   agent:
-    image: package-ci/ubuntu-18.04:default
+    image: package-ci/ubuntu-18.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -378,10 +378,10 @@ validate_-_postprocessing_-_2021_3_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -389,7 +389,7 @@ validate_-_postprocessing_-_2021_3_-_ubuntu:
 validate_-_postprocessing_-_2021_3_-_windows:
   name: Validate - postprocessing - 2021.3 - windows
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -442,10 +442,10 @@ validate_-_postprocessing_-_2021_3_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -453,7 +453,7 @@ validate_-_postprocessing_-_2021_3_-_windows:
 validate_-_postprocessing_-_2022_3_-_macos:
   name: Validate - postprocessing - 2022.3 - macos
   agent:
-    image: package-ci/macos-13:default
+    image: package-ci/macos-13:v4
     type: Unity::VM::osx
     flavor: b1.xlarge
   commands:
@@ -506,10 +506,10 @@ validate_-_postprocessing_-_2022_3_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -517,7 +517,7 @@ validate_-_postprocessing_-_2022_3_-_macos:
 validate_-_postprocessing_-_2022_3_-_ubuntu:
   name: Validate - postprocessing - 2022.3 - ubuntu
   agent:
-    image: package-ci/ubuntu-18.04:default
+    image: package-ci/ubuntu-18.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -570,10 +570,10 @@ validate_-_postprocessing_-_2022_3_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -581,7 +581,7 @@ validate_-_postprocessing_-_2022_3_-_ubuntu:
 validate_-_postprocessing_-_2022_3_-_windows:
   name: Validate - postprocessing - 2022.3 - windows
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -634,10 +634,10 @@ validate_-_postprocessing_-_2022_3_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -645,7 +645,7 @@ validate_-_postprocessing_-_2022_3_-_windows:
 validate_-_postprocessing_-_6000_0_-_macos:
   name: Validate - postprocessing - 6000.0 - macos
   agent:
-    image: package-ci/macos-13:default
+    image: package-ci/macos-13:v4
     type: Unity::VM::osx
     flavor: b1.xlarge
   commands:
@@ -698,10 +698,10 @@ validate_-_postprocessing_-_6000_0_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -709,7 +709,7 @@ validate_-_postprocessing_-_6000_0_-_macos:
 validate_-_postprocessing_-_6000_0_-_ubuntu:
   name: Validate - postprocessing - 6000.0 - ubuntu
   agent:
-    image: package-ci/ubuntu-18.04:default
+    image: package-ci/ubuntu-18.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -762,10 +762,10 @@ validate_-_postprocessing_-_6000_0_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -773,7 +773,7 @@ validate_-_postprocessing_-_6000_0_-_ubuntu:
 validate_-_postprocessing_-_6000_0_-_windows:
   name: Validate - postprocessing - 6000.0 - windows
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -826,10 +826,10 @@ validate_-_postprocessing_-_6000_0_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -837,7 +837,7 @@ validate_-_postprocessing_-_6000_0_-_windows:
 validate_-_postprocessing_-_6000_1_-_macos:
   name: Validate - postprocessing - 6000.1 - macos
   agent:
-    image: package-ci/macos-13:default
+    image: package-ci/macos-13:v4
     type: Unity::VM::osx
     flavor: b1.xlarge
   commands:
@@ -890,10 +890,10 @@ validate_-_postprocessing_-_6000_1_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -901,7 +901,7 @@ validate_-_postprocessing_-_6000_1_-_macos:
 validate_-_postprocessing_-_6000_1_-_ubuntu:
   name: Validate - postprocessing - 6000.1 - ubuntu
   agent:
-    image: package-ci/ubuntu-18.04:default
+    image: package-ci/ubuntu-18.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -954,10 +954,10 @@ validate_-_postprocessing_-_6000_1_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -965,7 +965,7 @@ validate_-_postprocessing_-_6000_1_-_ubuntu:
 validate_-_postprocessing_-_6000_1_-_windows:
   name: Validate - postprocessing - 6000.1 - windows
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -1018,10 +1018,10 @@ validate_-_postprocessing_-_6000_1_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -1029,7 +1029,7 @@ validate_-_postprocessing_-_6000_1_-_windows:
 validate_-_postprocessing_-_6000_2_-_macos:
   name: Validate - postprocessing - 6000.2 - macos
   agent:
-    image: package-ci/macos-13:default
+    image: package-ci/macos-13:v4
     type: Unity::VM::osx
     flavor: b1.xlarge
   commands:
@@ -1082,10 +1082,10 @@ validate_-_postprocessing_-_6000_2_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -1093,7 +1093,7 @@ validate_-_postprocessing_-_6000_2_-_macos:
 validate_-_postprocessing_-_6000_2_-_ubuntu:
   name: Validate - postprocessing - 6000.2 - ubuntu
   agent:
-    image: package-ci/ubuntu-18.04:default
+    image: package-ci/ubuntu-18.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -1146,10 +1146,10 @@ validate_-_postprocessing_-_6000_2_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -1157,7 +1157,7 @@ validate_-_postprocessing_-_6000_2_-_ubuntu:
 validate_-_postprocessing_-_6000_2_-_windows:
   name: Validate - postprocessing - 6000.2 - windows
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -1210,10 +1210,10 @@ validate_-_postprocessing_-_6000_2_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -1221,7 +1221,7 @@ validate_-_postprocessing_-_6000_2_-_windows:
 validate_-_postprocessing_-_6000_3_-_macos:
   name: Validate - postprocessing - 6000.3 - macos
   agent:
-    image: package-ci/macos-13:default
+    image: package-ci/macos-13:v4
     type: Unity::VM::osx
     flavor: b1.xlarge
   commands:
@@ -1274,10 +1274,10 @@ validate_-_postprocessing_-_6000_3_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -1285,7 +1285,7 @@ validate_-_postprocessing_-_6000_3_-_macos:
 validate_-_postprocessing_-_6000_3_-_ubuntu:
   name: Validate - postprocessing - 6000.3 - ubuntu
   agent:
-    image: package-ci/ubuntu-18.04:default
+    image: package-ci/ubuntu-18.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -1338,10 +1338,10 @@ validate_-_postprocessing_-_6000_3_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
@@ -1349,7 +1349,7 @@ validate_-_postprocessing_-_6000_3_-_ubuntu:
 validate_-_postprocessing_-_6000_3_-_windows:
   name: Validate - postprocessing - 6000.3 - windows
   agent:
-    image: package-ci/win10:default
+    image: package-ci/win10:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -1402,10 +1402,10 @@ validate_-_postprocessing_-_6000_3_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_postprocessing
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.0.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.0.0
+    Wrench: 0.12.1.0
   labels:
   - Packages:postprocessing
 
