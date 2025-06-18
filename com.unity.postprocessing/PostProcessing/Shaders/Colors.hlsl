@@ -597,7 +597,7 @@ float3 LiftGammaGainHDR(float3 c, float3 lift, float3 invgamma, float3 gain)
 
     // ACEScg will output negative values, as clamping to 0 will lose precious information we'll
     // mirror the gamma function instead
-    return FastSign(c) * pow(abs(c), invgamma);
+    return sign(c) * pow(abs(c), invgamma);
 }
 
 //

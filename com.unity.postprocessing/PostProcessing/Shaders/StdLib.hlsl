@@ -116,6 +116,7 @@ float4 Max3(float4 a, float4 b, float4 c)
 
 // https://twitter.com/SebAaltonen/status/878250919879639040
 // madd_sat + madd
+// Incorrect result on WebGL/Safari with A17 or M3 processors.
 float FastSign(float x)
 {
     return saturate(x * FLT_MAX + 0.5) * 2.0 - 1.0;
