@@ -33,14 +33,12 @@ public class DocChecker : EditorWindow
         get => EditorPrefs.GetString($"{key} outputFolder", "");
         set => EditorPrefs.SetString($"{key} outputFolder", value);
     }
-    [SerializeField]
     bool excludeTests
     {
         get => EditorPrefs.GetBool($"{key} excludeTests", true);
         set => EditorPrefs.SetBool($"{key} excludeTests", value);
     }
 
-    [SerializeField]
     bool showOnOutput
     {
         get => EditorPrefs.GetBool($"{key} showOnOutput", true);
