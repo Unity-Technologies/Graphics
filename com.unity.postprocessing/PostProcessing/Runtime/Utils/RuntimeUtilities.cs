@@ -850,12 +850,16 @@ namespace UnityEngine.Rendering.PostProcessing
         }
 
         /// <summary>
-        /// Returns <c>true</c> if the target platform is Android and the selected API is OpenGL,
+        /// Returns <c>true</c> if the target platform is does not support compute and the selected API is OpenGL,
         /// <c>false</c> otherwise.
         /// </summary>
-        public static bool isAndroidOpenGL
+        public static bool isOpenGLES
         {
-            get { return Application.platform == RuntimePlatform.Android && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan; }
+            get { return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3
+#if !UNITY_2023_1_OR_NEWER
+                          || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
+#endif
+                          ); }
         }
 
         /// <summary>
