@@ -21,3 +21,11 @@
     margin-left: -31px;
     margin-right: -6px;
 }
+
+.unity-imgui-container.unity-list-view__item--selected, .unity-imgui-container.unity-list-view__item:checked{
+    background-color: transparent;
+}
+
+.unity-imgui-container.unity-list-view__item:hover {
+    background-color: var(--unity-colors-highlight-background-hover);
+}

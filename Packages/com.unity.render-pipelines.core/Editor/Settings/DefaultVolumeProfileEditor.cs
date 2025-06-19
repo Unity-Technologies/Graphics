@@ -130,6 +130,8 @@ namespace UnityEditor.Rendering
                 };
 
                 ListView listView = new ListView(filteredCategoryEditors, -1, makeItem, bindItem);
+                listView.selectionType = SelectionType.None;
+                listView.reorderable = false;
                 listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
                 componentListElement.Add(listView);
 
