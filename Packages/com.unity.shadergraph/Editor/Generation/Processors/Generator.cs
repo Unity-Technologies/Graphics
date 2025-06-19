@@ -89,12 +89,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string primaryShaderName, Target[] targets = null, AssetCollection assetCollection = null, bool humanReadable = false)
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string primaryShaderName, Target[] targets = null, AssetCollection assetCollection = null, bool humanReadable = false, bool hidden = false)
         {
             m_GraphData = graphData;
             m_OutputNode = outputNode;
             m_Mode = mode;
-            if (!string.IsNullOrEmpty(graphData.path))
+            if (hidden)
+            {
+                m_PrimaryShaderFullName = $"Hidden/{graphData.path}/{primaryShaderName}";
+            }
+            else if (!string.IsNullOrEmpty(graphData.path))
                 m_PrimaryShaderFullName = graphData.path + "/" + primaryShaderName;
             else
                 m_PrimaryShaderFullName = primaryShaderName;

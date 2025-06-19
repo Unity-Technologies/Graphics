@@ -1,0 +1,28 @@
+fileFormatVersion: 2
+guid: a7f336b6762fcb2459bf1efd4d8b9b64
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: VFX Six Way Lit
+    category: VFX Graph
+    description: 'A six-way lit shader that uses two lightmaps to give a volumetric
+      feel. It''s useful to create smoke effects that can take the contribution of
+      both direct and indirect lighting.
+
+
+      <i>Supported Pipeline(s): HDRP &
+      URP
+
+      Active Target: Six-way Smoke Lit Transparent
+
+      VFX Graph Support:
+      enabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 7fb812ee31f43e042ad21b921907d23a, type: 3}

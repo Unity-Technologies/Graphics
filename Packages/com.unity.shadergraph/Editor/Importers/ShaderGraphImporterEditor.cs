@@ -62,6 +62,7 @@ namespace UnityEditor.ShaderGraph
                 Debug.Assert(importer != null, "importer != null");
                 ShowGraphEditWindow(importer.assetPath);
             }
+
             using (var horizontalScope = new GUILayout.HorizontalScope("box"))
             {
                 AssetImporter importer = target as AssetImporter;
@@ -115,7 +116,25 @@ namespace UnityEditor.ShaderGraph
                 GUIUtility.systemCopyBuffer = generator.generatedShader;
             }
 
+            EditorGUILayout.Space();            
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.UseAsTemplateFieldName));
+            bool needsReimport = false;
+            using (new EditorGUI.IndentLevelScope(1))
+            using (new EditorGUI.DisabledScope(!(target as ShaderGraphImporter)?.UseAsTemplate ?? true))
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.ExposeTemplateAsShaderFieldName), new GUIContent("Expose as Shader", "Toggle whether or not the template shader should be exposed in shader dropdowns."));
+                needsReimport = EditorGUI.EndChangeCheck();
+
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.TemplateFieldName));
+            }
+
             ApplyRevertGUI();
+            if (needsReimport)
+            {
+                AssetImporter importer = target as AssetImporter;
+                AssetDatabase.ImportAsset(importer.assetPath);
+            }
 
             if (materialEditor)
             {

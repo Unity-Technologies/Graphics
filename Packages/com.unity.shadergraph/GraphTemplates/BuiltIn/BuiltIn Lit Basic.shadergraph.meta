@@ -1,0 +1,31 @@
+fileFormatVersion: 2
+guid: 2019d78ad3d1c5c4a8d309a857ca449f
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Built-In Lit Basic
+    category: Basics
+    description: 'A Built-In renderer template that includes a basic set of texture
+      parameters - Base Map, Normal Map, Mask Map, and several parameters for adjusting
+      the results.
+
+
+      This template should only be used if URP and HDRP are
+      not present in your project and you''re just using the Built-In render pipeline.
+
+
+      <i>Supported
+      Pipeline(s): Built-in
+
+      Active Target: Lit
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 325e807a2af3f5f4691c7d9da76963f6, type: 3}

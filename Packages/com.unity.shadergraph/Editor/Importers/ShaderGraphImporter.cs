@@ -24,6 +24,10 @@ namespace UnityEditor.ShaderGraph
         public const string LegacyExtension = "ShaderGraph";
         const string IconBasePath = "Packages/com.unity.shadergraph/Editor/Resources/Icons/sg_graph_icon.png";
 
+        internal static readonly string TemplateFieldName = nameof(m_Template);
+        internal static readonly string UseAsTemplateFieldName = nameof(m_UseAsTemplate);
+        internal static readonly string ExposeTemplateAsShaderFieldName = nameof(m_ExposeTemplateAsShader);
+
         public const string k_ErrorShader = @"
 Shader ""Hidden/GraphErrorShader2""
 {
@@ -65,6 +69,33 @@ Shader ""Hidden/GraphErrorShader2""
     }
     Fallback Off
 }";
+
+        [SerializeField]
+        bool m_UseAsTemplate;
+
+        [SerializeField]
+        bool m_ExposeTemplateAsShader;
+
+        public bool UseAsTemplate
+        {
+            get => m_UseAsTemplate;
+            set => m_UseAsTemplate = value;
+        }
+
+        public bool ExposeTemplateAsShader
+        {
+            get => m_ExposeTemplateAsShader;
+            set => m_ExposeTemplateAsShader = value;
+        }
+
+        [SerializeField]
+        ShaderGraphTemplate m_Template;
+
+        public ShaderGraphTemplate Template
+        {
+            get => m_Template;
+            set => m_Template = value;
+        }
 
         public static Texture2D GetIcon() => EditorGUIUtility.IconContent(IconBasePath)?.image as Texture2D;
 
@@ -115,7 +146,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 // this will also add Target dependencies into the asset collection
                 Generator generator;
-                generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, primaryShaderName, assetCollection: allImportAssetDependencies);
+                generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, primaryShaderName, assetCollection: allImportAssetDependencies, hidden: m_UseAsTemplate && !m_ExposeTemplateAsShader);
 
                 bool first = true;
                 foreach (var generatedShader in generator.allGeneratedShaders)

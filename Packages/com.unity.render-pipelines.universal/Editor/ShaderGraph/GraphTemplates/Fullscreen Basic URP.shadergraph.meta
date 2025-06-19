@@ -1,0 +1,40 @@
+fileFormatVersion: 2
+guid: df41eefe8c13d444ca890dddbbc61f8d
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Fullscreen Basic - URP
+    category: Image Processing
+    description: 'A URP Shader Graph template that does simple fullscreen image adjustments
+      including tinting, saturation, and contrast.
+
+
+      Fullscreen shaders are
+      intended to be used to apply image adjustments for applications like post-process
+      filters. They are not intended to be applied to individual meshes.
+
+
+      To
+      apply a fullscreen shader as a post-process filter, select URP''s renderer
+      data asset and click the Add Renderer Feature button at the bottom of the Inspector.
+      Choose Full Screen Pass Renderer Feature. Then create a material from your
+      fullscreen shader and apply it to the Pass Material slot of the Full Screen
+      Pass Renderer Feature.
+
+
+
+      Supported Pipeline(s): URP
+
+      Active Target:
+      Fullscreen
+
+      VFX Graph Support: disabled'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 9410f8b043e30fe4da99295d950c470f, type: 3}

@@ -8,3 +8,17 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 1
+  template:
+    name: Fog Volume
+    category: Environment and Materials
+    description: "Use the Fog Volume shader graph to create localized <b>Volumetric
+      Fog</b>. \nHDRP includes an example scene that demonstrates different <b>Volumetric
+      Fog</b> effects in the Volumetric Sample scene accessible through the Package
+      Manager.\n\nThis is a basic volume fog shader that samples a 3D texture to
+      control the density of the fog. You can create your own 3D textures, or choose
+      one of a small set of them available in the HDRP package.\n\n<i>Supported Pipeline(s):
+      HDRP\nActive Target: Fog Volume\nVFX Graph Support: disabled</i>"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 53a4c85f379d6d54eadd0ba332fbfc7a, type: 3}

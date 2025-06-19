@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: HairApproximate_SaltAndPepper_Variant
-  m_Shader: {fileID: -6465566751694194690, guid: 452117e708c72f24fa9b5793b2f47e43, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 5157fd56faac718409d4a88bf286b3f5, type: 3}
   m_Parent: {fileID: 2100000, guid: 7d18221572a2b3947a581831cae3f026, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -36,10 +36,19 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _Alpha_Depth:
+        m_Texture: {fileID: 2800000, guid: c37c14d1e9c5d314788efba830e1ecd4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Masks:
+        m_Texture: {fileID: 2800000, guid: a496d29547e56734899f08b3c8d7a21e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Going_Grey: 0.55
+    - _Grey_Hair_Amount: 0.55
     - _Specular: 0.3
     - _Tip_Distance: 0.463
     - _Tip_Fade: 1
@@ -47,6 +56,7 @@ Material:
     - _RimTransmittanceColor: {r: 1, g: 1, b: 1, a: 0}
     - _Tip_Color: {r: 0.6509434, g: 0.5910224, b: 0.55678177, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &3321183110787642855
 MonoBehaviour:
   m_ObjectHideFlags: 11

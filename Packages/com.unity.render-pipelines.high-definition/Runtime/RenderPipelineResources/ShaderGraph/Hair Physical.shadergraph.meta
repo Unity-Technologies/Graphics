@@ -1,0 +1,38 @@
+fileFormatVersion: 2
+guid: 30af33a36f3369842aa8e5b6ff6e0e73
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 1
+  template:
+    name: Hair Physical
+    category: Environment and Materials
+    description: 'You can use the Hair template as a starting point for rendering
+      hair and fur in the High Definition Render Pipeline (HDRP). The hair shaders
+      also work with the <b>High Quality Line Renderer</b>, which is a line segment
+      software rasterizer designed for fast, high quality transparency and anti-aliasing.
+
+
+      The
+      Physical Material Type automatically creates physically correct results in
+      any light environment. It accurately accounts for the amount of incident light
+      to scatter within a hair fiber (known as an energy-conserving hair model).
+      This means the Physical model works correctly in any lighting environment.
+
+
+
+      <i>Supported
+      Pipeline(s): HDRP
+
+      Active Target: Hair / Approximate
+
+      VFX Graph
+      Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: bc729cf8d5fa7014caede28489368ef6, type: 3}

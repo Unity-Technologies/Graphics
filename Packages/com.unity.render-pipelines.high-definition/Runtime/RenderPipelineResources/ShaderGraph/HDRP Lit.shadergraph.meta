@@ -1,0 +1,36 @@
+fileFormatVersion: 2
+guid: 1eebcbb5efcf21a43929e15197fca4bf
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: HDRP Lit
+    category: Basics
+    description: 'Creates a Shader Graph asset that behaves the same as the HDRP
+      Lit shader that is written in code. This can be used as a replacement for the
+      code version and is a good stating place if you want to alter the Lit shader''s
+      features.
+
+
+      This template uses the same Custom Editor GUI as HDRP''s
+      Lit shader. This means that the material GUI is dependent on the specific set
+      of parameters it''s using. If you''re planning to remove or change parameters
+      in the Blackboard, you may want to also remove the reference to the Custom
+      Editor GUI so that parameters will appear and work as intended.
+
+
+      <i>Supported
+      Pipeline(s): HDRP
+
+      Active Target: Lit / Standard
+
+      VFX Graph Support:
+      disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 735f538caff1db74f943ce9ea87633e9, type: 3}

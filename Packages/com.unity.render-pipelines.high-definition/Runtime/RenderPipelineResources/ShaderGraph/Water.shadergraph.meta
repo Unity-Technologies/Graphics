@@ -8,3 +8,19 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 1
+  template:
+    name: Water
+    category: Environment and Materials
+    description: "Use the Water Master Stack to render custom physically based water
+      Material in the High Definition Render Pipeline (HDRP). The Water Master Stack
+      approximately models a volumetric water medium, and includes properties to
+      render effects such as caustics, scattering, and refraction.\r\n\r\nThis is
+      the template used for the default Water Surface in HDRP. This material is to
+      be used exclusively as a custom material using HDRP <b>Water System</b>, not
+      on custom geometry. \r\nUse it as a starting point to create your own modifications
+      such as: adding custom foam, altering caustics, etc.\r\n\r\n<i>Supported Pipeline(s):
+      HDRP\r\nActive Target: Water\r\nVFX Graph Support: disabled</i>"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 35a7532d6fdb9a24999b0cac0e93bc4a, type: 3}

@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 137d4a6f53750e948a2ec724b8986a02
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: VFX Lit
+    category: VFX Graph
+    description: 'A simple Lit shader that includes texture map parameters for Base
+      Map, Normal Map, and Mask Map. Several properties were exposed to control them
+      directly within the VFX graph.
+
+
+      <i>Supported Pipeline(s): HDRP & URP
+
+      Active
+      Target: Lit Transparent
+
+      VFX Graph Support: enabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: cc32b9d4a1831c14e86f7dd70091f3ef, type: 3}

@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: a2407126e3372f64cacb75ed466a5621
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Lit Basic
+    category: Basics
+    description: 'A simple Lit shader that includes texture map parameters for Base
+      Map, Normal Map, and Mask Map and also includes a few other parameters for
+      adjusting the texture values.
+
+
+      <i>Supported Pipeline(s): HDRP & URP
+
+      Active
+      Target: Lit
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: e079a17a0b2b93647a84cebdde8f3c21, type: 3}

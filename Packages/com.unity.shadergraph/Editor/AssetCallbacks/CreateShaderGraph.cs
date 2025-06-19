@@ -1,3 +1,4 @@
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -9,6 +10,12 @@ namespace UnityEditor.ShaderGraph
         public static void CreateBlankShaderGraph()
         {
             GraphUtil.CreateNewGraph();
+        }
+
+        [MenuItem("Assets/Create/Shader Graph/From Template...")]
+        public static void CreateFromTemplate()
+        {
+            GraphViewTemplateWindow.ShowCreateFromTemplate(new ShaderGraphTemplateHelper(), GraphUtil.CreateAndRenameGraphFromTemplate, showSaveDialog: false);
         }
     }
 }

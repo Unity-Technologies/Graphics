@@ -1,0 +1,40 @@
+fileFormatVersion: 2
+guid: 1716ff8c1e51af14280cc97fbcba3b11
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Decal Material Volume
+    category: Decals
+    description: 'A decal template that projects a material from the top, side, and
+      front using triplanar projection. Works great for blending terrain materials
+      onto other objects. Angle fade is not enabled in this shader because it projects
+      correctly at any angle.
+
+
+      In order to use decals in URP, you''ll need
+      to add the Decal Renderer Feature to URP''s Renderer Data asset. In HDRP, decals
+      work automatically so no settings changes are required.
+
+
+      In both render
+      pipelines, you can add a decal to your scene by right-clicking in your scene''s
+      Hierarchy panel and selecting Rendering->HDRP (or URP) Decal Projector. Then
+      select the new Decal Projector and assign it a material that uses your Shader
+      Graph asset.
+
+
+      <i>Supported Pipeline(s): HDRP & URP
+
+      Active Target:
+      Decal
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 5616b96dbeb625c498fdfe9517c1552b, type: 3}

@@ -39,7 +39,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_EyeSG 3
-  m_Shader: {fileID: -6465566751694194690, guid: 144c83fb9066da94ca2be7e4cb41665f, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: bcebc9ce27c38914ab465c3189313b56, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -63,19 +63,19 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - Texture2D_4DB28C10:
-        m_Texture: {fileID: 2800000, guid: 13df4a8f5d6adda4a81258ff001e6f6a, type: 3}
+        m_Texture: {fileID: 2800000, guid: 019996410faad7e45800910df34e835a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - Texture2D_5F873FC1:
-        m_Texture: {fileID: 2800000, guid: 659b5c317f255db418b896da96111835, type: 3}
+        m_Texture: {fileID: 2800000, guid: f2387d94dc918b84b83eff64e9c75e60, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - Texture2D_B9F5688C:
-        m_Texture: {fileID: 2800000, guid: 43c93a36222076f43939fcfb7c4b7d35, type: 3}
+        m_Texture: {fileID: 2800000, guid: c8e586adc077db1459ed287751b99aec, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - Texture2D_D8BF6575:
-        m_Texture: {fileID: 2800000, guid: abbe4b55afa508b4d804986d01886d60, type: 3}
+        m_Texture: {fileID: 2800000, guid: e6cadcb8d8bf826479f6756cfdb84e1e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AnisotropyMap:
@@ -246,6 +246,7 @@ Material:
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 1
     - _DstBlend: 0
+    - _DstBlend2: 0
     - _EmissiveColorMode: 1
     - _EmissiveExposureWeight: 1
     - _EmissiveIntensity: 1
@@ -254,6 +255,7 @@ Material:
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
     - _EnergyConservingSpecularColor: 1
+    - _ExcludeFromTUAndAA: 0
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -283,6 +285,7 @@ Material:
     - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
+    - _PerPixelSorting: 0
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
@@ -354,3 +357,4 @@ Material:
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

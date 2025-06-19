@@ -1,0 +1,40 @@
+fileFormatVersion: 2
+guid: 39144937a5efe954dac51acbbe54157e
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Decal Simple
+    category: Decals
+    description: 'A simple decal template that projects a color image along the Y
+      axis of the decal. This simple decal does not modify the smoothness, normals,
+      metallic, or ambient occlusion properties of the material. If you want to change
+      those, you''ll need to add additional features to the shader.
+
+
+      In order
+      to use decals in URP, you''ll need to add the Decal Renderer Feature to URP''s
+      Renderer Data asset. In HDRP, decals work automatically so no settings changes
+      are required.
+
+
+      In both render pipelines, you can add a decal to your
+      scene by right-clicking in your scene''s Hierarchy panel and selecting Rendering->HDRP
+      (or URP) Decal Projector. Then select the new Decal Projector and assign it
+      a material that uses your Shader Graph asset.
+
+
+      <i>Supported Pipeline(s):
+      HDRP & URP
+
+      Active Target: Decal
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 73df811908489f1408d1bec44aab3a80, type: 3}

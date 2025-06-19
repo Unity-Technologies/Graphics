@@ -1,0 +1,26 @@
+fileFormatVersion: 2
+guid: 7ef2cf71ad164fe479662ae612dff99e
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Custom Render Texture Empty
+    category: Image Processing
+    description: 'A simple shader for sampling a Custom Render Texture.
+
+
+      <i>Supported
+      Pipeline(s): Custom Render Texture
+
+      Active Target: Custom Render Texture
+
+      VFX
+      Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: e079a17a0b2b93647a84cebdde8f3c21, type: 3}

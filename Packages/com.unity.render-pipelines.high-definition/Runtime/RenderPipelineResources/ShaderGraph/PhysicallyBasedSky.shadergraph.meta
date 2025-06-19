@@ -8,3 +8,19 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 1
+  template:
+    name: PBR Sky
+    category: Environment and Materials
+    description: "The <b>Physically Based Sky</b> simulates a spherical planet with
+      a two-part atmosphere that has an exponentially decreasing density based on
+      its altitude. This means that the higher you go above sea level, the less dense
+      the atmosphere is. Additionally, the model includes an ozone layer following
+      a tent distribution based on altitude.\r\n\r\nThis is a template for customizing
+      sky with stars, nebula, ground textures and more complex effect like aurora
+      borealis.\r\nYou can then assign this material in the material rendering mode
+      field in the Physically Base Sky override. \r\n\r\n<i>Supported Pipeline(s):
+      HDRP\r\nActive Target: Physically Based Sky\r\nVFX Graph Support: disabled</i>"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 946a0e87fb01d8f49bb30221dd8f2971, type: 3}

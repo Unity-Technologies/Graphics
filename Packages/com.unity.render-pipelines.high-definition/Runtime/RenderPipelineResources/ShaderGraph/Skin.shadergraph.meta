@@ -1,0 +1,34 @@
+fileFormatVersion: 2
+guid: 6d41ec8c4abfe3647b63eb9c5b1c8a3d
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Skin
+    category: Environment and Materials
+    description: '<b>Subsurface Scattering</b> handles light that penetrates and
+      moves within the area under a surface. Use it to make organic materials, like
+      skin, look smooth and natural rather than rough and plastic-like. HDRP implements
+      subsurface scattering using a screen-space blur technique.
+
+
+      This is
+      a template for creating a Skin shader using <b>Subsurface Scattering</b> and
+      a detail map as a base to generate tiny bumps and the variable roughness of
+      the human skin.
+
+
+      <i>Supported Pipeline(s): HDRP
+
+      Active Target:
+      Lit
+
+      VFX Graph Support: enabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: deca39b665f3697488ba45116d9b52a8, type: 3}

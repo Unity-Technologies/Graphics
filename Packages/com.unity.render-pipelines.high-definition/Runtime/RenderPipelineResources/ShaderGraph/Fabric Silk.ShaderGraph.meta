@@ -1,0 +1,35 @@
+fileFormatVersion: 2
+guid: bc94c50a74daa04489c96618e0dfab75
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 1
+  template:
+    name: Fabric Silk
+    category: Environment and Materials
+    description: 'The Silk shader is your starting point for rendering anisotropic
+      fabrics in the High Definition Render Pipeline (HDRP). You can use the Silk
+      shader to create fabrics like silk, satin, nylon, and polyester.
+
+
+      Silk
+      and other synthetic fibers are usually smoother than natural fibres because
+      they''re produced as a single smooth filament. When these fibres are woven
+      together, it produces a fabric with anisotropic specular highlights.
+
+
+      <i>Supported
+      Pipeline(s): HDRP
+
+      Active Target: Fabric / Silk
+
+      VFX Graph Support:
+      disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: b5b2556ba5d1533458c10020c00d80c4, type: 3}

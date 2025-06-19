@@ -1,0 +1,32 @@
+fileFormatVersion: 2
+guid: 2476a2d151e824143af40dce1fc93a12
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Unlit Simple
+    category: Basics
+    description: 'A simple unlit template that uses a single base color texture multiplied
+      by a color parameter.
+
+
+      Unlit shaders are very cheap to render because
+      they skip all of the complexity of calculating lighting. If you don''t need
+      lighting for your material, you can save a lot of performance by using an Unlit
+      shader like this one.
+
+
+      <i>Supported Pipeline(s): HDRP & URP
+
+      Active
+      Target: Unlit
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: c21eaaec4c8575e47a9b342ce260b9ed, type: 3}
