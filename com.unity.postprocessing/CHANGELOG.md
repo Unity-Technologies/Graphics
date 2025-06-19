@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Remove support for PVRTC format in Unity 6.1 or newer
-- Fixed issue with FastSign on WebGL/Safari (IN-71005)
 - Fixed compute based effects not supported on OpenGLES
+- Fixed issue with FastSign on WebGL/Safari (IN-71005)
 - Documentation updates
 
 ## [3.4.0] - 2023-12-11

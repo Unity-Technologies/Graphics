@@ -850,8 +850,15 @@ namespace UnityEngine.Rendering.PostProcessing
         }
 
         /// <summary>
-        /// Returns <c>true</c> if the target platform is does not support compute and the selected API is OpenGL,
-        /// <c>false</c> otherwise.
+        /// Returns <c>true</c> if the target platform is Android and the selected API is OpenGL, <c>false</c> otherwise.
+        /// </summary>
+        public static bool isAndroidOpenGL
+        {
+            get { return Application.platform == RuntimePlatform.Android && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan; }
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if the selected API is OpenGLES, <c>false</c> otherwise.
         /// </summary>
         public static bool isOpenGLES
         {
@@ -863,8 +870,7 @@ namespace UnityEngine.Rendering.PostProcessing
         }
 
         /// <summary>
-        /// Returns <c>true</c> if the target platform is WebGL,
-        /// <c>false</c> otherwise.
+        /// Returns <c>true</c> if the target platform is WebGL, <c>false</c> otherwise.
         /// </summary>
         public static bool isWebNonWebGPU
         {
