@@ -204,8 +204,15 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
         )]
         [IgnoreGraphicsTest(
-            "4089_DRS-DLSS-Software$",
+            "4088_DRS-DLSS-Hardware$",
             "Instability https://jira.unity3d.com/browse/UUM-75549",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Vulkan },
+            runtimePlatforms: new[] { RuntimePlatform.WindowsEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "4089_DRS-DLSS-Software$",
+            "Instability https://jira.unity3d.com/browse/UUM-109632",
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
         )]
         [IgnoreGraphicsTest(
