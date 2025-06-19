@@ -143,7 +143,7 @@ Shader "HDRP/ShaderParserError"
     SubShader
     {
         // Uncomment this to trigger a shader parser error
-        INTENTIONAL_SHADER_PARSER_ERROR
+        // INTENTIONAL_SHADER_PARSER_ERROR
 
         // This tags allow to use the shader replacement features
         Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDUnlitShader" }

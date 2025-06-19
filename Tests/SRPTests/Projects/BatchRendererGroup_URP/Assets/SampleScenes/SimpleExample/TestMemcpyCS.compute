@@ -2,7 +2,7 @@
 #pragma kernel CSMain
 
 ByteAddressBuffer src;
-RWByteAddressBuffer dst;
+RWByteAddressBuffer dest;
 
 uniform uint dstOffset;
 uniform uint dstSize;
@@ -15,5 +15,5 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     uint offset = tid * 4;
 
     if (offset < dstSize)
-        dst.Store(dstOffset + offset, src.Load(offset));
+        dest.Store(dstOffset + offset, src.Load(offset));
 }

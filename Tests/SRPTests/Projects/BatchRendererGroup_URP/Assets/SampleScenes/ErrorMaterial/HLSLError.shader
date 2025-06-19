@@ -29,7 +29,7 @@ Shader "Universal Render Pipeline/HLSLError"
 
     HLSLINCLUDE
 
-    #define TRIGGER_HLSL_ERROR 1
+    #define TRIGGER_HLSL_ERROR 0
 
     ENDHLSL
 

@@ -12,23 +12,19 @@ using UnityEngine.SceneManagement;
 
 public class GraphicsTests
 {
-#if UNITY_ANDROID
-        static bool wasFirstSceneRan = false;
-        const int firstSceneAdditionalFrames = 3;
-#endif
     public const string path = "Assets/ReferenceImages";
 
     [UnityTest, Category("GraphicsTest")]
-    [PrebuildSetup("SetupGraphicsTestCases")]
-    [UseGraphicsTestCases(path)]
-    public IEnumerator Run(GraphicsTestCase testCase)
+    [SceneGraphicsTest("Assets/SampleScenes")]
+    [IgnoreGraphicsTest("ErrorMaterial", "Ignoring this specially designed test that fails to build the build", isInclusive: true, runtimePlatforms: new[] { RuntimePlatform.WindowsEditor, RuntimePlatform.OSXEditor, RuntimePlatform.LinuxEditor })]
+    public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
         if (testCase.ScenePath.Contains("ErrorMaterial"))
         {
             LogAssert.ignoreFailingMessages = true;
         }
 
-		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
+        GraphicsTestLogger.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImage.LoadMessage}.");
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load
@@ -63,27 +59,12 @@ public class GraphicsTests
             yield return new WaitForEndOfFrame();
 
 
-#if UNITY_ANDROID
-        // On Android first scene often needs a bit more frames to load all the assets
-        // otherwise the screenshot is just a black screen
-        if (!wasFirstSceneRan)
-        {
-            for(int i = 0; i < firstSceneAdditionalFrames; i++)
-            {
-                yield return null;
-            }
-            wasFirstSceneRan = true;
-        }
-#endif
-        ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImagePathLog);
+        ImageAssert.AreEqual(testCase.ReferenceImage.Image, cameras.Where(x => x != null), settings.ImageComparisonSettings, testCase.ReferenceImage.LoadMessage);
     }
 
     [TearDown]
     public void DumpImagesInEditor()
     {
-#if UNITY_EDITOR
-        UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
-#endif
 
         XRGraphicsAutomatedTests.running = false;
     }
