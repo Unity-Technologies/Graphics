@@ -215,6 +215,7 @@ namespace UnityEngine.Rendering.Universal
         // GBuffer
         private DecalGBufferRenderPass m_GBufferRenderPass;
         private DecalDrawGBufferSystem m_DrawGBufferSystem;
+
         private DeferredLights m_DeferredLights;
 
         // Internal / Constants
@@ -416,9 +417,7 @@ namespace UnityEngine.Rendering.Universal
                     break;
 
                 case DecalTechnique.GBuffer:
-
                     m_DeferredLights = universalRenderer.deferredLights;
-
                     m_DrawGBufferSystem = new DecalDrawGBufferSystem(m_DecalEntityManager);
                     m_GBufferRenderPass = new DecalGBufferRenderPass(m_ScreenSpaceSettings,
                         intermediateRendering ? m_DrawGBufferSystem : null, m_Settings.decalLayers);
@@ -541,13 +540,13 @@ namespace UnityEngine.Rendering.Universal
             return m_Technique == DecalTechnique.GBuffer || m_Technique == DecalTechnique.ScreenSpace;
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
         {
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618
-#if URP_COMPATIBILITY_MODE //temporary for m_DepthTexture
             if (renderer.cameraColorTargetHandle == null)
                 return;
 
@@ -582,14 +581,16 @@ namespace UnityEngine.Rendering.Universal
                 // Need to call Configure for both of these passes to setup input attachments as first frame otherwise will raise errors
                 m_GBufferRenderPass.Configure(null, renderingData.cameraData.cameraTargetDescriptor);
             }
-#endif
         #pragma warning restore CS0618
         }
+#endif
 
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
+#if URP_COMPATIBILITY_MODE
             m_DBufferRenderPass?.Dispose();
+#endif
             m_CopyDepthPass?.Dispose();
 
             CoreUtils.Destroy(m_DBufferClearMaterial);

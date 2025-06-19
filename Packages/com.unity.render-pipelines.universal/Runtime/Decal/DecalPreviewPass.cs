@@ -11,7 +11,9 @@ namespace UnityEngine.Rendering.Universal
         private List<ShaderTagId> m_ShaderTagIdList;
         private ProfilingSampler m_ProfilingSampler;
 
+#if URP_COMPATIBILITY_MODE
         private PassData m_PassData;
+#endif
 
         public DecalPreviewPass()
         {
@@ -24,9 +26,12 @@ namespace UnityEngine.Rendering.Universal
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceMesh));
 
+#if URP_COMPATIBILITY_MODE
             m_PassData = new PassData();
+#endif
         }
 
+#if URP_COMPATIBILITY_MODE
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -44,6 +49,7 @@ namespace UnityEngine.Rendering.Universal
                 ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(universalRenderingData.commandBuffer), m_PassData, rendererList);
             }
         }
+#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
         {
