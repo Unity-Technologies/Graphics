@@ -20,7 +20,7 @@ float4 inTangent = float4(o.VFX_VARYING_TANGENT, -1.0f);
 #else
 float4 inTangent = o.VFX_VARYING_TANGENT;
 #endif
-    GatherDiffuseGIData(o.VFX_VARYING_NORMAL, inTangent, o.VFX_VARYING_POSWS,
+    GatherDiffuseGIData(o.VFX_VARYING_NORMAL, inTangent, VFXGetPositionRWS(o.VFX_VARYING_POSWS),
                                                           o.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0],
                                                           o.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[1],
                                                           o.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[2]);
