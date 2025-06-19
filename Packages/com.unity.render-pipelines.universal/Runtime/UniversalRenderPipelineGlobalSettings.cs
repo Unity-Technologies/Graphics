@@ -36,9 +36,9 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore CS0414
 
 #if UNITY_EDITOR
-        public static void UpgradeAsset(int assetInstanceID)
+        public static void UpgradeAsset(EntityId assetInstanceID)
         {
-            if (EditorUtility.InstanceIDToObject(assetInstanceID) is not UniversalRenderPipelineGlobalSettings asset)
+            if (EditorUtility.EntityIdToObject(assetInstanceID) is not UniversalRenderPipelineGlobalSettings asset)
                 return;
 
             int assetVersionBeforeUpgrade = asset.m_AssetVersion;
@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (currentInstance != null && !currentInstance.IsAtLastVersion())
                 {
-                    UpgradeAsset(currentInstance.GetInstanceID());
+                    UpgradeAsset(currentInstance.GetEntityId());
                     AssetDatabase.SaveAssetIfDirty(currentInstance);
                 }
 

@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
                 else
                 {
                     if (m_Subgraph == null && !object.ReferenceEquals(m_Subgraph, null))
-                        m_Subgraph = EditorUtility.InstanceIDToObject(m_Subgraph.GetInstanceID()) as VisualEffectSubgraphBlock;
+                        m_Subgraph = EditorUtility.EntityIdToObject(m_Subgraph.GetEntityId()) as VisualEffectSubgraphBlock;
                     if (m_SubChildren == null && subgraph != null) // if the subasset exists but the subchildren has not been recreated yet, return the existing slots
                         RecreateCopy();
 

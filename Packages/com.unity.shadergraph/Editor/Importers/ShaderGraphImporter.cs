@@ -169,12 +169,12 @@ Shader ""Hidden/GraphErrorShader2""
                         EditorMaterialUtility.SetShaderDefaults(
                             shader,
                             generatedShader.assignedTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
-                            generatedShader.assignedTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+                            generatedShader.assignedTextures.Where(x => x.modifiable).Select(x => EditorUtility.EntityIdToObject(x.textureId) as Texture).ToArray());
 
                         EditorMaterialUtility.SetShaderNonModifiableDefaults(
                             shader,
                             generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
-                            generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+                            generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => EditorUtility.EntityIdToObject(x.textureId) as Texture).ToArray());
                     }
                     if (first)
                     {

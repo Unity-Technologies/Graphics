@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.UI
             UpdateIcon(resource);
         }
 
-        VisualEffect GetVisualEffectFromID(int id) => EditorUtility.InstanceIDToObject(id) as VisualEffect;
+        VisualEffect GetVisualEffectFromID(EntityId id) => EditorUtility.EntityIdToObject(id) as VisualEffect;
 
         internal void AttachTo(VisualEffect visualEffect)
         {
