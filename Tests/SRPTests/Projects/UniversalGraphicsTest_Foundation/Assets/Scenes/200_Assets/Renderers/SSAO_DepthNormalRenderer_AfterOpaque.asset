@@ -16,14 +16,14 @@ MonoBehaviour:
   m_Settings:
     AOMethod: 0
     Downsample: 0
-    AfterOpaque: 0
+    AfterOpaque: 1
     Source: 1
     NormalSamples: 0
     Intensity: 10
     DirectLightingStrength: 1
     Radius: 0.4
     Samples: 0
-    BlurQuality: 2
+    BlurQuality: 1
     Falloff: 1000
     SampleCount: -1
   m_BlueNoise256Textures:
@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
-  m_Name: SSAO_DepthNormalRenderer_Backbuffer
+  m_Name: SSAO_DepthNormalRenderer_AfterOpaque
   m_EditorClassIdentifier: 
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
@@ -85,5 +85,7 @@ MonoBehaviour:
   m_RenderingMode: 0
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 1
+  m_DepthAttachmentFormat: 0
+  m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
-  m_IntermediateTextureMode: 1
+  m_IntermediateTextureMode: 0

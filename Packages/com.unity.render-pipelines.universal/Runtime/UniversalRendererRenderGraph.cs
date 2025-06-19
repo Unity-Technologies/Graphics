@@ -1055,7 +1055,21 @@ namespace UnityEngine.Rendering.Universal
                     bool setGlobalTextures = isLastPass && hasFullPrepass;
 
                     if (isDepthNormalPrepass)
+                    {
+                        // We set camera properties once per execution of the URP render graph, y-flip status is determined based on whether we are rendering to the backbuffer or not.
+                        // DepthNormal prepass always renders to an intermediate render target which is assumed to be y-flipped by all other logic in our codebase.
+                        // Therefore we need to set the camera properties for the DepthNormal to be consistent with rendering to an intermediate render target.
+                        if (resourceData.isActiveTargetBackBuffer)
+                        {
+                            SetupRenderGraphCameraProperties(renderGraph, false);
+                        }
                         DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, setGlobalDepth, setGlobalTextures);
+                        // Restore camera properties for the rest of the render graph execution.
+                        if (resourceData.isActiveTargetBackBuffer)
+                        {
+                            SetupRenderGraphCameraProperties(renderGraph, true);
+                        }
+                    }
                     else
                         m_DepthPrepass.Render(renderGraph, frameData, ref depthTarget, batchLayerMask, setGlobalDepth);
 
