@@ -261,9 +261,33 @@ namespace ShaderStrippingAndPrefiltering
             helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
 
             helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripUnusedXRVariants = false;
+            helper.data.passName = ShaderScriptableStripper.kPassNameXRUberPost;
+            helper.IsFalse(helper.stripper.StripUnusedPass_XRUberPost(ref helper.data));
+            helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripUnusedXRVariants = false;
+            helper.data.passName = ShaderScriptableStripper.kPassNameXRFinalPost;
+            helper.IsFalse(helper.stripper.StripUnusedPass_XRFinalPost(ref helper.data));
+            helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
             helper.data.stripUnusedXRVariants = true;
             helper.data.passName = ShaderScriptableStripper.kPassNameXRMotionVectors;
             helper.IsTrue(helper.stripper.StripUnusedPass_XRMotionVectors(ref helper.data));
+            helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripUnusedXRVariants = true;
+            helper.data.passName = ShaderScriptableStripper.kPassNameXRUberPost;
+            helper.IsTrue(helper.stripper.StripUnusedPass_XRUberPost(ref helper.data));
+            helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripUnusedXRVariants = true;
+            helper.data.passName = ShaderScriptableStripper.kPassNameXRFinalPost;
+            helper.IsTrue(helper.stripper.StripUnusedPass_XRFinalPost(ref helper.data));
             helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
         }
 
