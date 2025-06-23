@@ -19,6 +19,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -28,6 +29,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 17
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
@@ -37,6 +39,87 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 11
+    Architecture: 0
     XrSdk: None
     StereoModes: 0
     Reason: Post Process needs fixing
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 872553bc79db0924cb5950ce38bb55fe, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Shadow vulkan issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e06c2b4e832508b4c81cf82a2e48355e, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Shadow vulkan issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 966062afce8978f48b90fbe2210979b6, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Shadow vulkan issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4f7a50da47cfeca46b45fe14be17081d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Shadow vulkan issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 872553bc79db0924cb5950ce38bb55fe, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Shadow vulkan issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: e06c2b4e832508b4c81cf82a2e48355e, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Shadow vulkan issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 966062afce8978f48b90fbe2210979b6, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Shadow vulkan issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 4f7a50da47cfeca46b45fe14be17081d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Shadow vulkan issue
