@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.Experimental.GraphView;
@@ -302,8 +303,9 @@ namespace UnityEditor.VFX.UI
                             {
                                 if (typeof(UnityObject).IsAssignableFrom(storageType))
                                 {
-                                    int instanceID = (int)evaluatedValue;
-                                    return VFXConverter.ConvertTo(EditorUtility.InstanceIDToObject(instanceID), storageType);
+                                    Debug.Assert(UnsafeUtility.SizeOf<EntityId>()==sizeof(int), "EntityId size is not the same as int, this will cause issues in VFXDataAnchorController");
+                                    EntityId entityId = (int)evaluatedValue;
+                                    return VFXConverter.ConvertTo(EditorUtility.EntityIdToObject(entityId), storageType);
                                 }
                                 else
                                     return VFXConverter.ConvertTo(evaluatedValue, storageType);

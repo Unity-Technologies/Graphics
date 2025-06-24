@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System;
+using Common;
 using UnityEditor;
 using UnityEditor.Rendering;
 using UnityEngine;
@@ -111,8 +112,8 @@ namespace MultipleSRP.EditMode
 
             EditorGraphicsSettings.SetRenderPipelineGlobalSettingsAsset(m_RenderPipelineType, null);
             Assert.IsFalse(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var _));
-
-            Camera.main.Render();
+            
+            RenderPipelineScope.ForceInitialization();
 
             Assert.IsTrue(GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(out var settings));
             Assert.AreEqual(m_RenderPipelineGlobalSettingsType, settings.GetType());

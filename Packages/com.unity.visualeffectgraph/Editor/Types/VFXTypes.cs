@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -340,12 +341,14 @@ namespace UnityEditor.VFX
 
         public static implicit operator int(CameraBuffer cameraBuffer)
         {
-            return cameraBuffer.texture?.GetInstanceID() ?? 0;
+            Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int), "EntityId size is not equal to int size, this will cause issues, update to EntityId instead");
+            return cameraBuffer.texture?.GetEntityId() ?? EntityId.None;
         }
 
         public static implicit operator CameraBuffer(int id)
         {
-            return new CameraBuffer((Texture)EditorUtility.InstanceIDToObject(id));
+            Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int), "EntityId size is not equal to int size, this will cause issues, update to EntityId instead");
+            return new CameraBuffer((Texture)EditorUtility.EntityIdToObject(id));
         }
     }
 

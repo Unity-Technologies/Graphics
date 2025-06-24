@@ -11,23 +11,27 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class DepthNormalOnlyPass : ScriptableRenderPass
     {
         internal List<ShaderTagId> shaderTagIds { get; set; }
-
-        private RTHandle depthHandle { get; set; }
-        private RTHandle normalHandle { get; set; }
-        private RTHandle renderingLayersHandle { get; set; }
         internal bool enableRenderingLayers { get; set; } = false;
         internal RenderingLayerUtils.MaskSize renderingLayersMaskSize { get; set; }
         private FilteringSettings m_FilteringSettings;
-        private PassData m_PassData;
 
         // Statics
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
-        private static readonly RTHandle[] k_ColorAttachment1 = new RTHandle[1];
-        private static readonly RTHandle[] k_ColorAttachment2 = new RTHandle[2];
         internal static readonly string k_CameraNormalsTextureName = "_CameraNormalsTexture";
         private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
         private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID(k_CameraNormalsTextureName);
         private static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
+
+#if URP_COMPATIBILITY_MODE
+        private RTHandle depthHandle { get; set; }
+        private RTHandle normalHandle { get; set; }
+        private RTHandle renderingLayersHandle { get; set; }
+
+        private PassData m_PassData;
+
+        private static readonly RTHandle[] k_ColorAttachment1 = new RTHandle[1];
+        private static readonly RTHandle[] k_ColorAttachment2 = new RTHandle[2];
+#endif
 
         /// <summary>
         /// Creates a new <c>DepthNormalOnlyPass</c> instance.
@@ -41,11 +45,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         public DepthNormalOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
             profilingSampler = ProfilingSampler.Get(URPProfileId.DrawDepthNormalPrepass);
-            m_PassData = new PassData();
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
             useNativeRenderPass = false;
             this.shaderTagIds = k_DepthNormals;
+
+#if URP_COMPATIBILITY_MODE
+            m_PassData = new PassData();
+#endif
         }
 
         /// <summary>
@@ -70,8 +77,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <seealso cref="RTHandle"/>
         public void Setup(RTHandle depthHandle, RTHandle normalHandle)
         {
+#if URP_COMPATIBILITY_MODE
             this.depthHandle = depthHandle;
             this.normalHandle = normalHandle;
+#endif
             enableRenderingLayers = false;
         }
 
@@ -84,11 +93,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RTHandle depthHandle, RTHandle normalHandle, RTHandle decalLayerHandle)
         {
             Setup(depthHandle, normalHandle);
+#if URP_COMPATIBILITY_MODE
             renderingLayersHandle = decalLayerHandle;
+#endif
             enableRenderingLayers = true;
         }
 
-
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -116,9 +127,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             ConfigureClear(ClearFlag.All, Color.black);
             #pragma warning restore CS0618
         }
+#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, PassData passData, RendererList rendererList)
-        {            
+        {
             // Enable Rendering Layers
             if (passData.enableRenderingLayers)
                 cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
@@ -128,9 +140,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Clean up
             if (passData.enableRenderingLayers)
-                cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);            
+                cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -151,6 +164,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ExecutePass(cmd, m_PassData, rendererList);
             }
         }
+#endif
 
         /// <inheritdoc/>
         public override void OnCameraCleanup(CommandBuffer cmd)
@@ -159,9 +173,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 throw new ArgumentNullException("cmd");
             }
+
+#if URP_COMPATIBILITY_MODE
             normalHandle = null;
             depthHandle = null;
             renderingLayersHandle = null;
+#endif
 
             // This needs to be reset as the renderer might change this in runtime (UUM-36069)
             shaderTagIds = k_DepthNormals;
@@ -172,8 +189,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         private class PassData
         {
-            internal TextureHandle cameraDepthTexture;
-            internal TextureHandle cameraNormalsTexture;
             internal bool enableRenderingLayers;
             internal RenderingLayerUtils.MaskSize maskSize;
             internal RendererListHandle rendererList;
@@ -195,9 +210,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
-                passData.cameraNormalsTexture = cameraNormalsTexture;
                 builder.SetRenderAttachment(cameraNormalsTexture, 0, AccessFlags.Write);
-                passData.cameraDepthTexture = cameraDepthTexture;
                 builder.SetRenderAttachmentDepth(cameraDepthTexture, AccessFlags.Write);
 
                 passData.enableRenderingLayers = enableRenderingLayers;

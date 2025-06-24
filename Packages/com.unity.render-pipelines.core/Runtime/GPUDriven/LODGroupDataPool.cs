@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering
         public const int k_BatchSize = 256;
 
         [ReadOnly] public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash;
-        [ReadOnly] public NativeArray<int> lodGroupIDs;
+        [ReadOnly] public NativeArray<EntityId> lodGroupIDs;
         [ReadOnly] public NativeArray<Vector3> worldSpaceReferencePoints;
         [ReadOnly] public NativeArray<float> worldSpaceSizes;
         [ReadOnly] public bool requiresGPUUpload;
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering
             lodGroupInstances.Dispose();
         }
 
-        public void FreeLODGroupData(NativeArray<int> destroyedLODGroupsID)
+        public void FreeLODGroupData(NativeArray<EntityId> destroyedLODGroupsID)
         {
             if (destroyedLODGroupsID.Length == 0)
                 return;

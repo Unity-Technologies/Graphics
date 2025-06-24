@@ -153,7 +153,7 @@ namespace UnityEditor.VFX.UI
 
         public float GetPreferredLabelWidth()
         {
-            if (hasLabel && this.Q<Label>() is { } label && (label.resolvedStyle.unityFontDefinition.fontAsset != null || label.resolvedStyle.unityFontDefinition.font != null))
+            if (panel != null && hasLabel && this.Q<Label>() is { } label && (label.resolvedStyle.unityFontDefinition.fontAsset != null || label.resolvedStyle.unityFontDefinition.font != null))
             {
                 return label.MeasureTextSize(label.text, -1, MeasureMode.Undefined, 11, MeasureMode.Exactly).x
                        + m_Provider.depth * depthOffset

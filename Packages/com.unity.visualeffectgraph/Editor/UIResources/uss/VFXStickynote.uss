@@ -1,7 +1,0 @@
-VFXStickyNote .resizableElement > #right > #top-right-resize,
-VFXStickyNote .resizableElement > #left >  #top-left-resize,
-VFXStickyNote .resizableElement > #right >  #bottom-right-resize,
-VFXStickyNote .resizableElement > #left >  #bottom-left-resize {
-    width: 12px;
-    height: 12px
-}

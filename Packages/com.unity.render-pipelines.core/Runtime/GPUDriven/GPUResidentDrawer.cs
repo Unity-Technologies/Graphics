@@ -529,7 +529,7 @@ namespace UnityEngine.Rendering
 
             Object[] renderers = Selection.GetFiltered(typeof(MeshRenderer), SelectionMode.Deep);
 
-            var rendererIDs = new NativeArray<int>(renderers.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var rendererIDs = new NativeArray<EntityId>(renderers.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
             for (int i = 0; i < renderers.Length; ++i)
                 rendererIDs[i] = renderers[i] ? renderers[i].GetInstanceID() : 0;
@@ -578,13 +578,13 @@ namespace UnityEngine.Rendering
             Profiler.EndSample();
 
             Profiler.BeginSample("GPUResidentDrawer.ClassifyMaterials");
-            ClassifyMaterials(materialData.changedID, out NativeList<int> unsupportedChangedMaterials,
-                out NativeList<int> supportedChangedMaterials,
+            ClassifyMaterials(materialData.changedID, out NativeList<EntityId> unsupportedChangedMaterials,
+                out NativeList<EntityId> supportedChangedMaterials,
                 out NativeList<GPUDrivenPackedMaterialData> supportedChangedPackedMaterialDatas, Allocator.TempJob);
             Profiler.EndSample();
 
             Profiler.BeginSample("GPUResidentDrawer.FindUnsupportedRenderers");
-            NativeList<int> unsupportedRenderers = FindUnsupportedRenderers(unsupportedChangedMaterials.AsArray());
+            NativeList<EntityId> unsupportedRenderers = FindUnsupportedRenderers(unsupportedChangedMaterials.AsArray());
             Profiler.EndSample();
 
             Profiler.BeginSample("GPUResidentDrawer.ProcessMaterials");
@@ -636,7 +636,7 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        private void ProcessMaterials(NativeArray<int> destroyedID, NativeArray<int> unsupportedMaterials)
+        private void ProcessMaterials(NativeArray<EntityId> destroyedID, NativeArray<EntityId> unsupportedMaterials)
         {
             if (destroyedID.Length > 0)
                 m_Batcher.DestroyMaterials(destroyedID);
@@ -645,13 +645,13 @@ namespace UnityEngine.Rendering
                 m_Batcher.DestroyMaterials(unsupportedMaterials);
         }
 
-        private void ProcessCameras(NativeArray<int> changedIDs, NativeArray<int> destroyedIDs)
+        private void ProcessCameras(NativeArray<EntityId> changedIDs, NativeArray<EntityId> destroyedIDs)
         {
             m_BatchersContext.UpdateCameras(changedIDs);
             m_BatchersContext.FreePerCameraInstanceData(destroyedIDs);
         }
 
-        private void ProcessMeshes(NativeArray<int> destroyedID)
+        private void ProcessMeshes(NativeArray<EntityId> destroyedID)
         {
             if (destroyedID.Length == 0)
                 return;
@@ -665,14 +665,14 @@ namespace UnityEngine.Rendering
             m_Batcher.DestroyMeshes(destroyedID);
         }
 
-        private void ProcessLODGroups(NativeArray<int> changedID, NativeArray<int> destroyed, NativeArray<int> transformedID)
+        private void ProcessLODGroups(NativeArray<EntityId> changedID, NativeArray<EntityId> destroyed, NativeArray<EntityId> transformedID)
         {
             m_BatchersContext.DestroyLODGroups(destroyed);
             m_BatchersContext.UpdateLODGroups(changedID);
             m_BatchersContext.TransformLODGroups(transformedID);
         }
 
-        private void ProcessRendererMaterialAndMeshChanges(NativeArray<int> excludedRenderers, NativeArray<int> changedMaterials, NativeArray<GPUDrivenPackedMaterialData> changedPackedMaterialDatas, NativeArray<int> changedMeshes)
+        private void ProcessRendererMaterialAndMeshChanges(NativeArray<EntityId> excludedRenderers, NativeArray<EntityId> changedMaterials, NativeArray<GPUDrivenPackedMaterialData> changedPackedMaterialDatas, NativeArray<EntityId> changedMeshes)
         {
             if (changedMaterials.Length == 0 && changedMeshes.Length == 0)
                 return;
@@ -693,11 +693,11 @@ namespace UnityEngine.Rendering
                 return;
             }
 
-            var sortedExcludedRenderers = new NativeArray<int>(excludedRenderers, Allocator.TempJob);
+            var sortedExcludedRenderers = new NativeArray<EntityId>(excludedRenderers, Allocator.TempJob);
             if (sortedExcludedRenderers.Length > 0)
             {
                 Profiler.BeginSample("ProcessRendererMaterialAndMeshChanges.Sort");
-                sortedExcludedRenderers.ParallelSort().Complete();
+                sortedExcludedRenderers.SortJob().Schedule().Complete();
                 Profiler.EndSample();
             }
 
@@ -725,10 +725,10 @@ namespace UnityEngine.Rendering
                 var totalCount = changedMaterialsCount + changedMeshesCount;
 
                 var changedInstances = new NativeArray<InstanceHandle>(totalCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                var changedRenderers = new NativeArray<int>(totalCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                var changedRenderers = new NativeArray<EntityId>(totalCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-                NativeArray<int>.Copy(renderersWithChangedMaterials.AsArray(), changedRenderers, changedMaterialsCount);
-                NativeArray<int>.Copy(renderersWithChangedMeshes.AsArray(), changedRenderers.GetSubArray(changedMaterialsCount, changedMeshesCount), changedMeshesCount);
+                NativeArray<EntityId>.Copy(renderersWithChangedMaterials.AsArray(), changedRenderers, changedMaterialsCount);
+                NativeArray<EntityId>.Copy(renderersWithChangedMeshes.AsArray(), changedRenderers.GetSubArray(changedMaterialsCount, changedMeshesCount), changedMeshesCount);
 
                 ScheduleQueryRendererGroupInstancesJob(changedRenderers, changedInstances).Complete();
 
@@ -745,7 +745,7 @@ namespace UnityEngine.Rendering
             Profiler.EndSample();
         }
 
-        private void ProcessRenderers(TypeDispatchData rendererChanges, NativeArray<int> unsupportedRenderers)
+        private void ProcessRenderers(TypeDispatchData rendererChanges, NativeArray<EntityId> unsupportedRenderers)
         {
             Profiler.BeginSample("GPUResidentDrawer.ProcessRenderers");
 
@@ -792,7 +792,7 @@ namespace UnityEngine.Rendering
             Profiler.EndSample();
         }
 
-        private void FreeRendererGroupInstances(NativeArray<int> rendererGroupIDs, NativeArray<int> unsupportedRendererGroupIDs)
+        private void FreeRendererGroupInstances(NativeArray<EntityId> rendererGroupIDs, NativeArray<EntityId> unsupportedRendererGroupIDs)
         {
             Profiler.BeginSample("GPUResidentDrawer.FreeRendererGroupInstances");
 
@@ -816,31 +816,31 @@ namespace UnityEngine.Rendering
         //@ Additionally we need to implement the way to tie external transforms (not Transform components) with instances.
         //@ So that an individual instance could be transformed externally and then updated in the drawer.
 
-        private JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeArray<InstanceHandle> instances)
+        private JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<EntityId> rendererGroupIDs, NativeArray<InstanceHandle> instances)
         {
             return m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
         }
 
-        private JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeList<InstanceHandle> instances)
+        private JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<EntityId> rendererGroupIDs, NativeList<InstanceHandle> instances)
         {
             return m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instances);
         }
 
-        private JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<int> rendererGroupIDs, NativeArray<int> instancesOffset, NativeArray<int> instancesCount, NativeList<InstanceHandle> instances)
+        private JobHandle ScheduleQueryRendererGroupInstancesJob(NativeArray<EntityId> rendererGroupIDs, NativeArray<int> instancesOffset, NativeArray<int> instancesCount, NativeList<InstanceHandle> instances)
         {
             return m_BatchersContext.ScheduleQueryRendererGroupInstancesJob(rendererGroupIDs, instancesOffset, instancesCount, instances);
         }
 
-        private JobHandle ScheduleQueryMeshInstancesJob(NativeArray<int> sortedMeshIDs, NativeList<InstanceHandle> instances)
+        private JobHandle ScheduleQueryMeshInstancesJob(NativeArray<EntityId> sortedMeshIDs, NativeList<InstanceHandle> instances)
         {
             return m_BatchersContext.ScheduleQueryMeshInstancesJob(sortedMeshIDs, instances);
         }
 
-        private void ClassifyMaterials(NativeArray<int> materials, out NativeList<int> unsupportedMaterials,
-            out NativeList<int> supportedMaterials, out NativeList<GPUDrivenPackedMaterialData> supportedPackedMaterialDatas, Allocator allocator)
+        private void ClassifyMaterials(NativeArray<EntityId> materials, out NativeList<EntityId> unsupportedMaterials,
+            out NativeList<EntityId> supportedMaterials, out NativeList<GPUDrivenPackedMaterialData> supportedPackedMaterialDatas, Allocator allocator)
         {
-            supportedMaterials = new NativeList<int>(materials.Length, allocator);
-            unsupportedMaterials = new NativeList<int>(materials.Length, allocator);
+            supportedMaterials = new NativeList<EntityId>(materials.Length, allocator);
+            unsupportedMaterials = new NativeList<EntityId>(materials.Length, allocator);
             supportedPackedMaterialDatas = new NativeList<GPUDrivenPackedMaterialData>(materials.Length, allocator);
 
             if (materials.Length > 0)
@@ -850,9 +850,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private NativeList<int> FindUnsupportedRenderers(NativeArray<int> unsupportedMaterials)
+        private NativeList<EntityId> FindUnsupportedRenderers(NativeArray<EntityId> unsupportedMaterials)
         {
-            NativeList<int> unsupportedRenderers = new NativeList<int>(Allocator.TempJob);
+            NativeList<EntityId> unsupportedRenderers = new NativeList<EntityId>(Allocator.TempJob);
 
             if (unsupportedMaterials.Length > 0)
             {
@@ -863,9 +863,9 @@ namespace UnityEngine.Rendering
             return unsupportedRenderers;
         }
 
-        private NativeHashSet<int> GetMaterialsWithChangedPackedMaterial(NativeArray<int> materials, NativeArray<GPUDrivenPackedMaterialData> packedMaterialDatas, Allocator allocator)
+        private NativeHashSet<EntityId> GetMaterialsWithChangedPackedMaterial(NativeArray<EntityId> materials, NativeArray<GPUDrivenPackedMaterialData> packedMaterialDatas, Allocator allocator)
         {
-            NativeHashSet<int> filteredMaterials = new NativeHashSet<int>(materials.Length, allocator);
+            NativeHashSet<EntityId> filteredMaterials = new NativeHashSet<EntityId>(materials.Length, allocator);
 
             GPUResidentDrawerBurst.GetMaterialsWithChangedPackedMaterial(materials, packedMaterialDatas,
                 batcher.instanceCullingBatcher.packedMaterialHash.AsReadOnly(), ref filteredMaterials);
@@ -873,11 +873,11 @@ namespace UnityEngine.Rendering
             return filteredMaterials;
         }
 
-        private (NativeList<int> renderersWithMaterials, NativeList<int> renderersWithMeshes) FindRenderersFromMaterialsOrMeshes(NativeArray<int> sortedExcludeRenderers, NativeHashSet<int> materials, NativeArray<int> meshes, Allocator rendererListAllocator)
+        private (NativeList<EntityId> renderersWithMaterials, NativeList<EntityId> renderersWithMeshes) FindRenderersFromMaterialsOrMeshes(NativeArray<EntityId> sortedExcludeRenderers, NativeHashSet<EntityId> materials, NativeArray<EntityId> meshes, Allocator rendererListAllocator)
         {
             var sharedInstanceData = m_BatchersContext.sharedInstanceData;
-            NativeList<int> renderersWithMaterials = new NativeList<int>(sharedInstanceData.rendererGroupIDs.Length, rendererListAllocator);
-            NativeList<int> renderersWithMeshes = new NativeList<int>(sharedInstanceData.rendererGroupIDs.Length, rendererListAllocator);
+            var renderersWithMaterials = new NativeList<EntityId>(sharedInstanceData.rendererGroupIDs.Length, rendererListAllocator);
+            var renderersWithMeshes = new NativeList<EntityId>(sharedInstanceData.rendererGroupIDs.Length, rendererListAllocator);
 
             var jobHandle = new FindRenderersFromMaterialOrMeshJob
             {
@@ -900,15 +900,15 @@ namespace UnityEngine.Rendering
         {
             public const int k_BatchSize = 128;
 
-            [ReadOnly] public NativeHashSet<int>.ReadOnly materialIDs;
-            [ReadOnly] public NativeArray<SmallIntegerArray>.ReadOnly materialIDArrays;
-            [ReadOnly] public NativeArray<int>.ReadOnly meshIDs;
-            [ReadOnly] public NativeArray<int>.ReadOnly meshIDArray;
-            [ReadOnly] public NativeArray<int>.ReadOnly rendererGroupIDs;
-            [ReadOnly] public NativeArray<int>.ReadOnly sortedExcludeRendererIDs;
+            [ReadOnly] public NativeHashSet<EntityId>.ReadOnly materialIDs;
+            [ReadOnly] public NativeArray<SmallEntityIdArray>.ReadOnly materialIDArrays;
+            [ReadOnly] public NativeArray<EntityId>.ReadOnly meshIDs;
+            [ReadOnly] public NativeArray<EntityId>.ReadOnly meshIDArray;
+            [ReadOnly] public NativeArray<EntityId>.ReadOnly rendererGroupIDs;
+            [ReadOnly] public NativeArray<EntityId>.ReadOnly sortedExcludeRendererIDs;
 
-            [WriteOnly] public NativeList<int>.ParallelWriter selectedRenderGroupsForMaterials;
-            [WriteOnly] public NativeList<int>.ParallelWriter selectedRenderGroupsForMeshes;
+            [WriteOnly] public NativeList<EntityId>.ParallelWriter selectedRenderGroupsForMaterials;
+            [WriteOnly] public NativeList<EntityId>.ParallelWriter selectedRenderGroupsForMeshes;
 
             public void Execute(int startIndex, int count)
             {

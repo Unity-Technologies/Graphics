@@ -384,10 +384,10 @@ EditorBuildSettings:
     path: Assets/Scenes/204_SSAO_Deferred_Transparent.unity
     guid: fb387644a13c2e24fa78a278d02aaad2
   - enabled: 1
-    path: Assets/Scenes/205_SSAO_BackBuffer.unity
+    path: Assets/Scenes/205_SSAO_DepthNormal_BackBuffer_AfterOpaque.unity
     guid: 72491ed40bf654eec9fef43f455e3916
   - enabled: 1
-    path: Assets/Scenes/205_SSAO_BackBuffer_AfterOpaque.unity
+    path: Assets/Scenes/205_SSAO_Depth_BackBuffer_AfterOpaque.unity
     guid: f1e2273404277234a8497f4bc0f9f229
   - enabled: 1
     path: Assets/Scenes/206_Motion_Vectors.unity

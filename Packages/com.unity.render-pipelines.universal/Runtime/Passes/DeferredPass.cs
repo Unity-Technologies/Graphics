@@ -1,9 +1,5 @@
 using System;
-using UnityEngine.Experimental.GlobalIllumination;
-using UnityEngine.Profiling;
-using Unity.Collections;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Experimental.Rendering;
 
 // cleanup code
 // listMinDepth and maxDepth should be stored in a different uniform block?
@@ -26,6 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DeferredLights = deferredLights;
         }
 
+#if URP_COMPATIBILITY_MODE
         // ScriptableRenderPass
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
@@ -59,6 +56,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_DeferredLights.ExecuteDeferredPass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), cameraData, lightData, shadowData);
         }
+#endif
 
         private class PassData
         {
@@ -66,15 +64,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal UniversalLightData lightData;
             internal UniversalShadowData shadowData;
 
-            internal TextureHandle color;
-            internal TextureHandle depth;
             internal TextureHandle[] gbuffer;
             internal DeferredLights deferredLights;
         }
 
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle color, TextureHandle depth, TextureHandle[] gbuffer)
         {
-            UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
             UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
@@ -85,9 +80,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.lightData = lightData;
                 passData.shadowData = shadowData;
 
-                passData.color = color;
                 builder.SetRenderAttachment(color, 0, AccessFlags.Write);
-                passData.depth = depth;
                 builder.SetRenderAttachmentDepth(depth, AccessFlags.Write);
                 passData.deferredLights = m_DeferredLights;
 

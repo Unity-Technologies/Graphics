@@ -1,0 +1,37 @@
+fileFormatVersion: 2
+guid: 5a4a765e921b8554eb959f7cf697b3be
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Canvas Basic
+    category: UGUI
+    description: 'A basic template that can be assigned to UGUI canvas objects for
+      creating user interface shaders.
+
+
+      User interface shaders can be used
+      to create interactable elements such as buttons or sliders. They can also be
+      used for indicators or background elements in the user interface.
+
+
+      For
+      more detailed examples of UGUI shaders, import the UGUI Shaders Sample from
+      the Shader Graph package in Package Manager.
+
+
+      <i>Supported Pipeline(s):
+      HDRP, URP, & Built-In
+
+      Active Target: Canvas
+
+      VFX Graph Support:
+      disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: e079a17a0b2b93647a84cebdde8f3c21, type: 3}

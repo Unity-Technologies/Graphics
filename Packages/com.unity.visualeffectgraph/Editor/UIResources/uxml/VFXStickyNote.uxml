@@ -1,0 +1,25 @@
+﻿<UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    xmlns:gv="UnityEditor.Experimental.GraphView">
+    <ui:VisualElement name="swatches">
+        <ui:Button name="swatch1" class="swatch" />
+        <ui:Button name="swatch2" class="swatch" />
+        <ui:Button name="swatch3" class="swatch" />
+        <!--<ui:DropdownField name="moreColors" />-->
+        <ui:DropdownField name="fontSize" class="text-font" />
+        <ui:Button name="fitToText" class="text-modifier" />
+    </ui:VisualElement>
+    <ui:VisualElement name="node-border" pickingMode="Ignore" >
+        <ui:VisualElement name="title-bar">
+            <ui:Label name="title" />
+            <ui:TextField name="title-field" />
+        </ui:VisualElement>
+        <ui:VisualElement name="content-holder">
+            <ui:Label name="contents" />
+            <ui:TextField name="contents-field" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="selection-border" pickingMode="Ignore" />
+    <gv:ResizableElement pickingMode="Ignore" />
+</UXML>

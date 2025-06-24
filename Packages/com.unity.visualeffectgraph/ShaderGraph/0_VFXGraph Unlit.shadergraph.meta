@@ -1,0 +1,28 @@
+fileFormatVersion: 2
+guid: f45b588b55a08354ab2b8693324cbf04
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: VFX Unlit
+    category: VFX Graph
+    description: 'A simple shader that lets you control the color and alpha as well
+      as a base color map directly within VFX Graph. It''s a good starting point
+      for a VFX unlit shader that can be easily customized.
+
+
+      <i>Supported
+      Pipeline(s): HDRP & URP
+
+      Active Target: Unlit Transparent
+
+      VFX
+      Graph Support: enabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 1885ac09b170b9a4387c8b35f13bd480, type: 3}

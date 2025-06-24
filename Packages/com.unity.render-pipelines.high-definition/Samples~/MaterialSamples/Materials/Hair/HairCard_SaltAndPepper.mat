@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: HairCard_SaltAndPepper
-  m_Shader: {fileID: -6465566751694194690, guid: e11d5421cda40b14dae6c72e99f321bd, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 30af33a36f3369842aa8e5b6ff6e0e73, type: 3}
   m_Parent: {fileID: 2100000, guid: 0a4a65f8ea3828441b0acdb1fcf30f07, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -40,6 +40,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Going_Grey: 0.44
+    - _Grey_Hair_Amount: 0.293
     - _Per_Strand_Smoothness_Variation: 0.338
     - _RECALCULATE_CARD_NORMALS: 1
     - _Tip_Distance: 0.544
@@ -49,6 +50,7 @@ Material:
     - _Length_Color: {r: 0.16037738, g: 0.090601645, b: 0.061528422, a: 1}
     - _Tip_Color: {r: 0.5, g: 0.4661345, b: 0.45597482, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &8334656494340994553
 MonoBehaviour:
   m_ObjectHideFlags: 11

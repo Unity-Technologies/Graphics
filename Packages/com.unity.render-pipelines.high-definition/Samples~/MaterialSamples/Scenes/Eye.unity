@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.5429955, g: 0.5429955, b: 0.5429955, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -520,6 +520,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 1953521930}
     m_Modifications:
     - target: {fileID: 2555450688815898346, guid: fd1c2074ecba2854891106669ac7fc91, type: 3}
+      propertyPath: m_Version
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 2555450688815898346, guid: fd1c2074ecba2854891106669ac7fc91, type: 3}
       propertyPath: m_Intensity
       value: 4.964466
       objectReference: {fileID: 0}
@@ -643,9 +647,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IsGlobal: 1
-  priority: 0
-  blendDistance: 0
-  weight: 1
+  m_Priority: 0
+  m_BlendDistance: 0
+  m_Weight: 1
   sharedProfile: {fileID: 11400000, guid: a79c1bd9213eea244b6395bda5ae8960, type: 2}
 --- !u!4 &957152974
 Transform:
@@ -785,6 +789,14 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: abdf229c6a9368c4c8988d8ea2e33773, type: 2}
+    - target: {fileID: 7680531136927468679, guid: 8f5a8fbc4e871354682ab0994bbc31fe, type: 3}
+      propertyPath: m_HDProbeVersion
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7680531136927468679, guid: 8f5a8fbc4e871354682ab0994bbc31fe, type: 3}
+      propertyPath: m_ReflectionProbeVersion
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 9011686751222352949, guid: 8f5a8fbc4e871354682ab0994bbc31fe, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -921,6 +933,7 @@ MonoBehaviour:
   m_StaticLightingSkyUniqueID: 3
   m_StaticLightingCloudsUniqueID: 0
   m_StaticLightingVolumetricClouds: 0
+  bounces: 1
 --- !u!4 &1728193973
 Transform:
   m_ObjectHideFlags: 1
@@ -1057,6 +1070,10 @@ PrefabInstance:
     - target: {fileID: 4143302112860216674, guid: aeee657e48a483143b51801a678d4933, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: -146.76
+      objectReference: {fileID: 0}
+    - target: {fileID: 4529563913972098093, guid: aeee657e48a483143b51801a678d4933, type: 3}
+      propertyPath: m_Version
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 4529563913972098093, guid: aeee657e48a483143b51801a678d4933, type: 3}
       propertyPath: m_Intensity

@@ -56,7 +56,7 @@
     },
     {
       "displayName": "Lens Flare Samples",
-      "description": "Adds Lens Flare Samples to your project. Open the LensFlareSamples scene to view and interact with the flares.",
+      "description": "Adds a set of Lens Flare Samples to your project. Open the LensFlareSamples scene to view and interact with the flares.",
       "path": "Samples~/LensFlareSamples",
       "dependencies": [
         "com.unity.render-pipelines.high-definition/Samples~/Common",
@@ -65,7 +65,7 @@
     },
     {
       "displayName": "Volumetric Samples",
-      "description": "Adds a set of 3D texture, procedural noises and Fog Volume Shadergraph to your project. A collection of prefabs shows how to use them with the Local Volumetric Fog.",
+      "description": "Adds a set of 3D textures, procedural noises and Fog Volume Shadergraphs to your project. A collection of prefabs shows how to use them with the Local Volumetric Fog.",
       "path": "Samples~/VolumetricSamples",
       "dependencies": [
         "com.unity.render-pipelines.high-definition/Samples~/Common",
@@ -74,7 +74,7 @@
     },
     {
       "displayName": "Fullscreen Samples",
-      "description": "Add a set of examples using the Fullscreen Shadergraph to create Custom Pass, Custom Post Process or Custom Render Target.",
+      "description": "Adds a set of examples using the Fullscreen Shadergraph to create Custom Pass, Custom Post Process or Custom Render Target.",
       "path": "Samples~/FullscreenSamples",
       "dependencies": [
         "com.unity.render-pipelines.high-definition/Samples~/Common",
@@ -83,7 +83,7 @@
     },
     {
       "displayName": "Water Samples",
-      "description": "Add a set of examples using the Water System, showcasing various environments using all the features of the system.",
+      "description": "Adds a set of examples using the Water System, showcasing various environments using all features of the system.",
       "path": "Samples~/WaterSamples",
       "dependencies": [
         "com.unity.render-pipelines.high-definition/Samples~/Common",
@@ -92,7 +92,7 @@
     },
     {
       "displayName": "Environment Samples",
-      "description": "Add a set of examples using environment features such as Physically Based Sky, Fog, Volumetric Clouds and Cloud Layer.",
+      "description": "Adds a set of examples using environment features such as Physically Based Sky, Fog, Volumetric Clouds and Cloud Layer.",
       "path": "Samples~/Environment Samples",
       "dependencies": [
         "com.unity.render-pipelines.high-definition/Samples~/Common",

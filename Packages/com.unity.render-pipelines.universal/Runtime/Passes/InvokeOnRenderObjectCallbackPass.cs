@@ -18,12 +18,15 @@ namespace UnityEngine.Rendering.Universal
             useNativeRenderPass = false;
         }
 
+
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             renderingData.commandBuffer.InvokeOnRenderObjectCallbacks();
         }
+#endif
 
         private class PassData
         {
@@ -35,9 +38,7 @@ namespace UnityEngine.Rendering.Universal
         {
             using (var builder = renderGraph.AddUnsafePass<PassData>(passName, out var passData, profilingSampler))
             {
-                passData.colorTarget = colorTarget;
                 builder.UseTexture(colorTarget, AccessFlags.Write);
-                passData.depthTarget = depthTarget;
                 builder.UseTexture(depthTarget, AccessFlags.Write);
                 builder.AllowPassCulling(false);
                 builder.SetRenderFunc((PassData data, UnsafeGraphContext context) =>

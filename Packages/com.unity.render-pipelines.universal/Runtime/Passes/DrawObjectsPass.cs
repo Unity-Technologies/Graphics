@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Used to indicate if the active target of the pass is the back buffer
         /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
 
         /// <summary>
@@ -30,9 +31,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public bool m_ShouldTransparentsReceiveShadows;
 
-        PassData m_PassData;
-
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
+
+#if URP_COMPATIBILITY_MODE
+        PassData m_PassData;
+#endif
 
         /// <summary>
         /// Creates a new <c>DrawObjectsPass</c> instance.
@@ -87,7 +90,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (shaderTagIds == null)
                 shaderTagIds = new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly") };
 
-            m_PassData = new PassData();
             foreach (ShaderTagId sid in shaderTagIds)
                 m_ShaderTagIdList.Add(sid);
             renderPassEvent = evt;
@@ -95,7 +97,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_IsOpaque = opaque;
             m_ShouldTransparentsReceiveShadows = false;
-            m_IsActiveTargetBackBuffer = false;
 
             if (stencilState.enabled)
             {
@@ -103,8 +104,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
             }
+
+#if URP_COMPATIBILITY_MODE
+#pragma warning disable CS0618
+            m_IsActiveTargetBackBuffer = false;
+#pragma warning restore CS0618
+            m_PassData = new PassData();
+#endif
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -122,6 +131,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, m_PassData.rendererList, m_PassData.objectsWithErrorRendererList, m_PassData.cameraData.IsCameraProjectionMatrixFlipped());
             }
         }
+#endif
 
         internal static void ExecutePass(RasterCommandBuffer cmd, PassData data, RendererList rendererList, RendererList objectsWithErrorRendererList, bool yFlip)
         {
@@ -329,8 +339,10 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     internal class DrawObjectsWithRenderingLayersPass : DrawObjectsPass
     {
+#if URP_COMPATIBILITY_MODE
         RTHandle[] m_ColorTargetIndentifiers;
         RTHandle m_DepthTargetIndentifiers;
+#endif
 
         /// <summary>
         /// Creates a new <c>DrawObjectsWithRenderingLayersPass</c> instance.
@@ -345,9 +357,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         public DrawObjectsWithRenderingLayersPass(URPProfileId profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference) :
             base(profilerTag, opaque, evt, renderQueueRange, layerMask, stencilState, stencilReference)
         {
+#if URP_COMPATIBILITY_MODE
             m_ColorTargetIndentifiers = new RTHandle[2];
+#endif
         }
-
+        
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Sets up the pass.
         /// </summary>
@@ -394,6 +409,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Clean up
             cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, false);
         }
+#endif
 
         private class RenderingLayersPassData
         {

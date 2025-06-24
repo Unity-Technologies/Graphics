@@ -19,9 +19,12 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawGBufferSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
         private DeferredLights m_DeferredLights;
-        private RTHandle[] m_GbufferAttachments;
         private bool m_DecalLayers;
+
+#if URP_COMPATIBILITY_MODE
+        private RTHandle[] m_GbufferAttachments;
         private PassData m_PassData;
+#endif
 
         public DecalGBufferRenderPass(DecalScreenSpaceSettings settings, DecalDrawGBufferSystem drawSystem, bool decalLayers)
         {
@@ -39,8 +42,10 @@ namespace UnityEngine.Rendering.Universal
             else
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferMesh));
 
+#if URP_COMPATIBILITY_MODE
             m_PassData = new PassData();
             m_GbufferAttachments = new RTHandle[4];
+#endif
         }
 
         internal void Setup(DeferredLights deferredLights)
@@ -48,6 +53,7 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredLights = deferredLights;
         }
 
+#if URP_COMPATIBILITY_MODE
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
@@ -124,6 +130,7 @@ namespace UnityEngine.Rendering.Universal
                 ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
             }
         }
+#endif
 
         private class PassData
         {

@@ -50,7 +50,7 @@ namespace UnityEditor.VFX.Operator
                 if (!object.ReferenceEquals(asset, null))
                 {
                     if (asset == null)
-                        asset = EditorUtility.InstanceIDToObject(asset.GetInstanceID()) as PointCacheAsset;
+                        asset = EditorUtility.EntityIdToObject(asset.GetEntityId()) as PointCacheAsset;
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "Point Count"));
                     foreach (var surface in asset.surfaces)
                         yield return new VFXPropertyWithValue(new VFXProperty(GetOutputType(surface), surface.name));

@@ -42,9 +42,9 @@ namespace UnityEditor.VFX.SDF
 
 
         [OnOpenAsset]
-        internal static bool OpenBakeTool(int instanceID, int line)
+        internal static bool OpenBakeTool(EntityId entityId, int line)
         {
-            SdfBakerSettings settings = EditorUtility.InstanceIDToObject(instanceID) as SdfBakerSettings;
+            SdfBakerSettings settings = EditorUtility.EntityIdToObject(entityId) as SdfBakerSettings;
             if (settings != null)
             {
                 SDFBakeTool window = EditorWindow.GetWindow<SDFBakeTool>();

@@ -1,0 +1,32 @@
+{
+    "introduction":
+"""All the Shader Graph materials in this scene use the <b>Stacklist Master Stack</b> Shader.
+
+The StackLit Master Stack can render materials that are more complex than the Lit Master Stack. It includes all the features available in the Lit shader and, sometimes, provides more advanced or higher quality versions. For example, it uses a more advanced form of specular occlusion and also calculates anisotropic reflections for area lights in the same way the Lit shader does for other light types. It also takes into account light interactions between two vertically stacked physical layers, along with a more complex looking general base layer.
+     
+The <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/stacklit-material.html">Stacklit material</a> allows you to stack multiple material core feature like : Anisotropy, Coat and Coat Normal, Dual Specular Lobe, Translucent, Iridescence, Subsurface Scaterring and Transmission. 
+
+This scene only focuses on some example materials that needs multiple material core features to be rendered accurately.""",
+    "samples": [
+        {
+            "title": "Car Paint",
+            "prefabName": "Car Paint",
+            "description": 
+"""This <link="CoatedCarPaint_Stacklit.mat">Car Paint material</link> uses a <b>Dual Specular Lobe</b> to allow two specular highlights to simulate hazy materials on the flaky base layer. On top of that, it also uses <b>Coating</b> to have one more layer of smooth specular reflection."""
+        },
+        {
+            "title": "Coated Carbon Fiber",
+            "prefabName": "Coated Carbon Fiber",
+            "description": 
+"""This <link="CoatedCarbonFiber_Stacklit.mat">Coated Carbon Fiber material</link> uses both <b>Anisotropy</b> feature and <b>Coating</b> in to have a bumpy layer of carbon fiber underneath a smooth coating of fiberglass."""
+        },
+        {
+            "title": "Used Leather",
+            "prefabName": "Used Leather",
+            "description": 
+"""This <link="Leather_Stacklit.mat">Leather material</link> uses a combination of Subsurface Scattering and Iridescence to replicate accurately leather materials. 
+The Subsurface Scattering replicates how light spreads beneath the surface of the leather and the Iridescence is stacked on top to simulate the thin oily layer by altering the specular color depending on the view direction."""
+        }
+    ]	
+}
+

@@ -24,23 +24,22 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Water
-  m_Shader: {fileID: -6465566751694194690, guid: 5863fe7081398894eb32a9fcb48c7def,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 5863fe7081398894eb32a9fcb48c7def, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
+  m_ValidKeywords: []
+  m_InvalidKeywords:
   - _DISABLE_DECALS
   - _DISABLE_SSR_TRANSPARENT
+  - _EMISSION
   - _ENABLE_FOG_ON_TRANSPARENT
   - _SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords: []
-  m_LightmapFlags: 0
+  m_LightmapFlags: 2
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: 2950
   stringTagMap:
     MotionVector: User
-    RenderType: Transparent
   disabledShaderPasses:
   - MOTIONVECTORS
   - TransparentDepthPrepass
@@ -69,6 +68,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MotionChaos_1f4d3cb1f0a344089fd3c6febd16558e_Texture2D_136265602_Texture2D:
         m_Texture: {fileID: 2800000, guid: e220c46188701b44eb4a84306d3e6e05, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MotionChaos_7f07fb75828f49ea852ffda569df28ee_Texture2D_2817692635_Texture2D:
+        m_Texture: {fileID: 2800000, guid: cd93c6b740bc9f349889cec601c6f7f0, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_065ee1f11d4c46aaa975350c9eb06afd_Texture_1:
@@ -199,4 +202,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 10

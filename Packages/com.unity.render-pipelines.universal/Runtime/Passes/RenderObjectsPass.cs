@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.Universal
         FilteringSettings m_FilteringSettings;
         RenderObjects.CustomCameraSettings m_CameraSettings;
 
-
         /// <summary>
         /// The override material to use.
         /// </summary>
@@ -138,6 +137,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraSettings = cameraSettings;
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.Universal
                 ExecutePass(m_PassData, cmd , m_PassData.rendererList, renderingData.cameraData.IsCameraProjectionMatrixFlipped());
             }
         }
+#endif
 
         private static void ExecutePass(PassData passData, RasterCommandBuffer cmd, RendererList rendererList, bool isYFlipped)
         {

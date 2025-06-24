@@ -1,0 +1,26 @@
+fileFormatVersion: 2
+guid: bfad0aba0faa90547b68abd10bb6be86
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: 2D Sprite Custom Lit
+    category: Basics
+    description: 'A sprite shader that allows you to customize the way that the lighting
+      works.
+
+
+      Supported Pipeline(s): URP
+
+      Active Target: Sprite Custom
+      Lit
+
+      VFX Graph Support: disabled'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 494ba6900e1d9f34da743bb68ff82ddb, type: 3}

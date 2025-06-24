@@ -23,7 +23,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SampleScenes/DifferentDrawCommandTypes/DifferentDrawCommandTypes.unity
     guid: 99a956db9dac45e4cb5e7a7c3a6082c1
-  - enabled: 1
+  - enabled: 0
     path: Assets/SampleScenes/ErrorMaterial/ErrorMaterial.unity
     guid: 64494ea26b88021489851fa2b1297e9a
   - enabled: 1
@@ -35,5 +35,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SampleScenes/BRGGameObjects/GRDLightMaps1.unity
     guid: 2659201df91754a4a94b8b9b694b52df
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 20e925b8abdd424429b17f709e9d00f8,
+      type: 2}
   m_UseUCBPForAssetBundles: 0

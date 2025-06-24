@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor.Inspector.GraphicsSettingsInspectors;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.UIElements;
@@ -154,25 +153,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel = i;
 
                 EditorGUILayout.EndHorizontal();
-            }
-        }
-
-        internal static void DrawToolBarButton<TEnum>(
-            TEnum button, Editor owner,
-            Dictionary<TEnum, EditMode.SceneViewEditMode> toolbarMode,
-            Dictionary<TEnum, GUIContent> toolbarContent,
-            params GUILayoutOption[] options
-        )
-            where TEnum : struct, IConvertible
-        {
-            var intButton = (int)(object)button;
-            bool enabled = toolbarMode[button] == EditMode.editMode;
-            EditorGUI.BeginChangeCheck();
-            enabled = GUILayout.Toggle(enabled, toolbarContent[button], EditorStyles.miniButton, options);
-            if (EditorGUI.EndChangeCheck())
-            {
-                EditMode.SceneViewEditMode targetMode = EditMode.editMode == toolbarMode[button] ? EditMode.SceneViewEditMode.None : toolbarMode[button];
-                EditMode.ChangeEditMode(targetMode, GetBoundsGetter(owner)(), owner);
             }
         }
 

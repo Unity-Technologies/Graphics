@@ -169,7 +169,7 @@ public class SimpleBRGExample : MonoBehaviour
 
         int dstSize = m_CopySrc.count * m_CopySrc.stride;
         memcpy.SetBuffer(0, "src", m_CopySrc);
-        memcpy.SetBuffer(0, "dst", m_InstanceData);
+        memcpy.SetBuffer(0, "dest", m_InstanceData);
         memcpy.SetInt("dstOffset", BufferOffset);
         memcpy.SetInt("dstSize", dstSize);
         memcpy.Dispatch(0, dstSize / (64 * 4) + 1, 1, 1);

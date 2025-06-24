@@ -1079,7 +1079,7 @@ namespace UnityEngine.Rendering
         /// Adds in a <see cref="CommandBuffer"/> a command to copy a camera related texture identified by
         /// its <see cref="RTHandle"/> into a destination render target, using a user material, specific shader pass and specific load / store actions.
         /// </summary>
-        /// <remarks>
+		/// <remarks>
         /// Camera related textures are created with the <see cref="RenderGraphModule.RenderGraph.CreateTexture"/>
         /// method using <see cref="RenderGraphModule.TextureDesc.TextureDesc(Vector2,bool,bool)"/> or
         /// <see cref="RenderGraphModule.TextureDesc.TextureDesc(ScaleFunc,bool,bool)"/> to
@@ -1093,6 +1093,7 @@ namespace UnityEngine.Rendering
         /// <param name="cmd">Command Buffer used for recording the action.</param>
         /// <param name="source">RTHandle of the source texture to copy from.</param>
         /// <param name="destination">RTHandle of the destination render target to copy to.</param>
+        /// <param name="scaleBias">Scale and bias used to sample the input RTHandle.</param>
         /// <param name="loadAction">Load action to perform on the destination render target prior to the copying.</param>
         /// <param name="storeAction">Store action to perform on the destination render target after the copying.</param>
         /// <param name="material">The material to use for writing to the destination target.</param>
@@ -1108,12 +1109,29 @@ namespace UnityEngine.Rendering
         /// Blitter.BlitCameraTexture(cmd, source, dest, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, blitMaterial, 0);
         /// ]]></code>
         /// </example>
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBias, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, Material material, int pass)
+        {
+            // Will set the correct camera viewport as well.
+            CoreUtils.SetRenderTarget(cmd, destination, loadAction, storeAction, ClearFlag.None, Color.clear);
+            BlitTexture(cmd, source, scaleBias, material, pass);
+        }
+
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// This overloads allows the user to override the default blit shader
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="loadAction">Load action to perform on the destination render target prior to the copying.</param>
+        /// <param name="storeAction">Store action to perform on the destination render target after the copying.</param>
+        /// <param name="material">The material to use for writing to the destination target.</param>
+        /// <param name="pass">The index of the pass to use in the material's shader.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, Material material, int pass)
         {
             Vector2 viewportScale = source.useScaling ? new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y) : Vector2.one;
-            // Will set the correct camera viewport as well.
-            CoreUtils.SetRenderTarget(cmd, destination, loadAction, storeAction, ClearFlag.None, Color.clear);
-            BlitTexture(cmd, source, viewportScale, material, pass);
+            BlitCameraTexture(cmd, source, destination, viewportScale, loadAction, storeAction, material, pass);
         }
 
         /// <summary>

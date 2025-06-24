@@ -131,6 +131,30 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
+    class NewGraphFromTemplateAction : EndNameEditAction
+    {
+        string m_TemplatePath;
+        public string TemplatePath { get; set; }
+
+        public override void Action(int instanceId, string pathName, string resourceFile)
+        {
+            var templateFullPath = Path.GetFullPath(TemplatePath);
+            if (File.Exists(templateFullPath))
+            {
+                // Copy the file manually because we do not want any of the template metadata.
+                var templateString = File.ReadAllText(templateFullPath);
+                File.WriteAllText(pathName, templateString);
+            }
+            else
+            {
+                Debug.LogError($"Could not find template at '{templateFullPath}'");
+                return;
+            }
+
+            AssetDatabase.ImportAsset(pathName);
+        }
+    }
+
     static class GraphUtil
     {
         internal static bool CheckForRecursiveDependencyOnPendingSave(string saveFilePath, IEnumerable<SubGraphNode> subGraphNodes, string context = null)
@@ -183,6 +207,8 @@ namespace UnityEditor.ShaderGraph
             return newText.ToString();
         }
 
+        static string GetDefaultNewAssetName() => $"New Shader Graph.{ShaderGraphImporter.Extension}";
+
         public static void CreateNewGraph()
         {
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
@@ -198,6 +224,30 @@ namespace UnityEditor.ShaderGraph
             graphItem.blocks = blockDescriptors;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), ShaderGraphImporter.GetIcon(), null);
+        }
+
+        public static void CreateAndRenameGraphFromTemplate(string templatePath, string assetPath)
+        {
+            if (templatePath == null) // Template creation canceled
+            {
+                return;
+            }
+
+            if (templatePath == string.Empty) // Template browser's "empty template" used
+            {
+                CreateNewGraph();
+                return;
+            }
+
+            var action = ScriptableObject.CreateInstance<NewGraphFromTemplateAction>();
+            action.TemplatePath = templatePath;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
+                0,
+                action,
+                GetDefaultNewAssetName(),
+                ShaderGraphImporter.GetIcon(),
+                null
+            );
         }
 
         public static bool TryGetMetadataOfType<T>(this Shader shader, out T obj) where T : ScriptableObject

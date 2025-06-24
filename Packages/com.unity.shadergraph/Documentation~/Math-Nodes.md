@@ -2,7 +2,7 @@
 
 ## Advanced
 
-| [Absolute](Absolute-Node.md) | [Exponential](Absolute-Node.md) |
+| [Absolute](Absolute-Node.md) | [Exponential](Exponential-Node.md) |
 | :------- | :------ |
 | ![Image](images/AbsoluteNodeThumb.png) | ![Image](images/ExponentialNodeThumb.png) |
 | Returns the absolute value of input In. | Returns the exponential value of input In. |
@@ -157,8 +157,3 @@
 | [**Matrix Split**](Matrix-Split-Node.md)                     | [**Matrix Transpose**](Matrix-Transpose-Node.md)                  |
 | ![Image](images/MatrixSplitNodeThumb.png)                    | ![Image](images/MatrixTransposeNodeThumb.png)                |
 | Splits a square matrix defined by input In into vectors.     | Returns the transposed value of the matrix defined by input In. |
-
-Noise Sine Wave
-Sawtooth Wave
-Square Wavve
-Triangle Wave

@@ -1,0 +1,31 @@
+fileFormatVersion: 2
+guid: 9d4e8ca8c5046914c87ca6ccef140dac
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Canvas Meter
+    category: UGUI
+    description: 'A template that can be assigned to UGUI canvas objects for creating
+      a meter or progress bar.
+
+
+      For more detailed examples of UGUI shaders,
+      import the UGUI Shaders Sample from the Shader Graph package in Package Manager.
+
+
+      <i>Supported
+      Pipeline(s): HDRP, URP, & Built-In
+
+      Active Target: Canvas
+
+      VFX
+      Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: e079a17a0b2b93647a84cebdde8f3c21, type: 3}

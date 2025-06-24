@@ -73,7 +73,7 @@ public class SortingPositionsSplit : MonoBehaviour
 
         int dstSize = m_copySrc.count * m_copySrc.stride;
         memcpy.SetBuffer(0, "src", m_copySrc);
-        memcpy.SetBuffer(0, "dst", m_instanceData);
+        memcpy.SetBuffer(0, "dest", m_instanceData);
         memcpy.SetInt("dstOffset", 0);
         memcpy.SetInt("dstSize", dstSize);
         memcpy.Dispatch(0,dstSize/ (64*4) +1, 1, 1);

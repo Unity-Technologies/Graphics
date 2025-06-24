@@ -1,0 +1,34 @@
+fileFormatVersion: 2
+guid: 26cbd8da5db8c7242ae64afd9e28a7be
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 1
+  template:
+    name: Fabric Cotton Wool
+    category: Environment and Materials
+    description: 'The Cotton/Wool shader is your starting point for rendering diffuse
+      fabrics in the High Definition Render Pipeline (HDRP). You can use the Cotton/Wool
+      shader to create fabrics like cotton, wool, linen, or velvet.
+
+
+      The type
+      of fibers that make up the fabric, as well as the fabric''s knit or weave,
+      influence the appearance of the fabric. Natural fibers are typically rougher
+      so they diffuse light.
+
+
+      <i>Supported Pipeline(s): HDRP
+
+      Active
+      Target: Fabric / Cotton Wool
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: e0d32bc1c0abff14896873158546df12, type: 3}

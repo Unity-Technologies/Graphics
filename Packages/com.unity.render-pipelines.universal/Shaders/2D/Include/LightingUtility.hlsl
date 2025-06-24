@@ -60,7 +60,7 @@
     {\
         half4 shadowTex = SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, input.shadowUV); \
         half4 shadowIntensity = 1-max(shadowTex.r, shadowTex.g * 1-shadowTex.b);\
-        color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity));\
+        color.rgb = (color.rgb * shadowIntensity.rgb) + (color.rgb * intensity*(1 - shadowIntensity.rgb));\
      }
 
 #define TRANSFER_SHADOWS(output)\

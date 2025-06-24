@@ -1,0 +1,31 @@
+fileFormatVersion: 2
+guid: 9618d41bb71f74048bb6cace8785b93d
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Built-In Unlit Basic
+    category: Basics
+    description: 'An Unlit Built-In renderer template that includes a Base Map and
+      Color multiplier.
+
+
+      This template should only be used if URP and HDRP
+      are not present in your project and you''re just using the Built-In render
+      pipeline.
+
+
+      <i>Supported Pipeline(s): Built-in
+
+      Active Target:
+      Unlit
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: e6831b07772f59844b5c282e8a4aa736, type: 3}

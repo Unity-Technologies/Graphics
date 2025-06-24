@@ -1,12 +1,10 @@
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEngine.Serialization;
 
-using Object = UnityEngine.Object;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.VFX
 {
@@ -72,6 +70,7 @@ namespace UnityEditor.VFX
             public string contents;
             public string theme;
             public string textSize;
+            public int colorTheme;
 
             public StickyNoteInfo()
             {
@@ -82,6 +81,7 @@ namespace UnityEditor.VFX
                 contents = other.contents;
                 theme = other.theme;
                 textSize = other.textSize;
+                colorTheme = other.colorTheme;
             }
         }
 
@@ -118,6 +118,23 @@ namespace UnityEditor.VFX
                         groupInfo.contents = groupInfo.contents.Where(t => (t.isStickyNote && t.id < stickyNoteInfos.Length) || graph.children.Contains(t.model)).ToArray();
                     }
                 }
+
+            // Sticky note theme serialization has changed, before it was a string "Light" or "Dark" now it's an integer 1, 2 or 3. (2 being equivalent to "Dark")
+            // And groups now have color choice two
+            if (graph.version <= 18)
+            {
+                if (stickyNoteInfos != null)
+                {
+                    foreach (var stickyNote in stickyNoteInfos)
+                    {
+                        if (stickyNote.colorTheme == 0)
+                        {
+                            stickyNote.colorTheme = string.Compare(stickyNote.theme, StickyNoteTheme.Classic.ToString(), StringComparison.OrdinalIgnoreCase) == 0 ? 1 : 2;
+                            stickyNote.theme = null;
+                        }
+                    }
+                }
+            }
         }
     }
 }

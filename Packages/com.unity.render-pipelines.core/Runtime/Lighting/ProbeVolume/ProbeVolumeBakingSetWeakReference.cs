@@ -36,13 +36,13 @@ namespace UnityEngine.Rendering
         // Get the referenced baking set, loading it into memory if necessary.
         public ProbeVolumeBakingSet Get()
         {
-            return Resources.InstanceIDToObject(m_InstanceID) as ProbeVolumeBakingSet;
+            return Resources.EntityIdToObject(m_InstanceID) as ProbeVolumeBakingSet;
         }
 
         // Is the referenced baking set in memory?
         public bool IsLoaded()
         {
-            return Resources.InstanceIDIsValid(m_InstanceID);
+            return Resources.EntityIdIsValid(m_InstanceID);
         }
 
         // Force the referenced baking set to be unloaded from memory.

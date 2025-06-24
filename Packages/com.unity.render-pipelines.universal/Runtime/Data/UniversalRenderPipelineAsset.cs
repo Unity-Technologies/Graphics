@@ -1847,15 +1847,15 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
-                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
+                EditorApplication.delayCall += () => UpgradeAsset(this.GetEntityId());
             }
 #endif
         }
 
 #if UNITY_EDITOR
-        static void UpgradeAsset(int assetInstanceID)
+        static void UpgradeAsset(EntityId assetInstanceID)
         {
-            UniversalRenderPipelineAsset asset = EditorUtility.InstanceIDToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+            UniversalRenderPipelineAsset asset = EditorUtility.EntityIdToObject(assetInstanceID) as UniversalRenderPipelineAsset;
 
             if (asset.k_AssetPreviousVersion < 5)
             {

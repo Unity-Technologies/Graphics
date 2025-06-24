@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -43,7 +44,6 @@ namespace UnityEngine.Rendering.Universal
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), cameraData.xr, skyRendererList);
         }
 
-        // For non-RG path
         private RendererList CreateSkyboxRendererList(ScriptableRenderContext context, UniversalCameraData cameraData)
         {
             var skyRendererList = new RendererList();
@@ -71,8 +71,8 @@ namespace UnityEngine.Rendering.Universal
 
             return skyRendererList;
         }
+#endif
 
-        // For RG path
         private RendererListHandle CreateSkyBoxRendererList(RenderGraph renderGraph, UniversalCameraData cameraData)
         {
             var skyRendererListHandle = new RendererListHandle();
@@ -115,7 +115,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        // All the rest below is Render Graph specific
         private class PassData
         {
             internal XRPass xr;

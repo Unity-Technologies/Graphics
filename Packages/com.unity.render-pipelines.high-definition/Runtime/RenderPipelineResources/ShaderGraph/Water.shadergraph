@@ -552,8 +552,8 @@
     ],
     "m_VertexContext": {
         "m_Position": {
-            "x": 1395.9998779296875,
-            "y": -215.0
+            "x": 1416.0,
+            "y": -213.3333282470703
         },
         "m_Blocks": [
             {
@@ -572,8 +572,8 @@
     },
     "m_FragmentContext": {
         "m_Position": {
-            "x": 1396.0,
-            "y": 145.3333282470703
+            "x": 1416.0,
+            "y": 146.6667022705078
         },
         "m_Blocks": [
             {
@@ -609,7 +609,7 @@
         },
         "preventRotation": false
     },
-    "m_Path": "Shader Graphs",
+    "m_Path": "HDRP/Water",
     "m_GraphPrecision": 1,
     "m_PreviewMode": 2,
     "m_OutputNode": {
@@ -826,7 +826,7 @@
             "m_Id": "9f090de569c04ba5b1951f6001764a9f"
         },
         {
-            "m_Id": "9ee2fe967e994d73853da38c447218e1"
+            "m_Id": "930c73abd31f432486dc8c2bdb6dba07"
         }
     ],
     "synonyms": [],
@@ -1073,7 +1073,7 @@
             "m_Id": "b29d922251b24596a7a85feacee40f86"
         },
         {
-            "m_Id": "cb5f16119cff43c48d5b10538d45e25f"
+            "m_Id": "45cdf55b86874df0997fb2d5ef3d0431"
         }
     ],
     "synonyms": [],
@@ -1092,8 +1092,8 @@
     "m_ObjectId": "2a0fd82c3d524d158f64f319b0dbb868",
     "m_Title": "Read From Simulation",
     "m_Position": {
-        "x": -556.0,
-        "y": 88.99996185302735
+        "x": -556.6666259765625,
+        "y": 89.33332824707031
     }
 }
 
@@ -1294,6 +1294,29 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "45cdf55b86874df0997fb2d5ef3d0431",
+    "m_Id": 1,
+    "m_DisplayName": "Displacement",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Displacement",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
     "m_Labels": []
 }
 
@@ -1643,10 +1666,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 975.0000610351563,
-            "y": -127.00000762939453,
-            "width": 268.99993896484377,
-            "height": 101.0
+            "x": 949.333251953125,
+            "y": -121.99996185302735,
+            "width": 276.6666259765625,
+            "height": 102.66664123535156
         }
     },
     "m_Slots": [
@@ -1903,7 +1926,7 @@
             "m_Id": "cfe7d0cdd1e4470d964056ea56a10bd9"
         },
         {
-            "m_Id": "955ac9e330c24fb7b8ee80d9187e9b6b"
+            "m_Id": "e30ca2afe55240c1970d00c8cd1343ec"
         },
         {
             "m_Id": "6436c8e76b3a41f3883a2f8a6a743eb7"
@@ -2054,6 +2077,29 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "930c73abd31f432486dc8c2bdb6dba07",
+    "m_Id": 1,
+    "m_DisplayName": "Displacement",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Displacement",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "939f28f09944483da77071c67716c60e",
     "m_Id": 1,
@@ -2074,21 +2120,6 @@
         "z": 0.0,
         "w": 0.0
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "955ac9e330c24fb7b8ee80d9187e9b6b",
-    "m_Id": 2,
-    "m_DisplayName": "HorizontalDisplacement",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "HorizontalDisplacement",
-    "m_StageCapability": 2,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
 }
 
 {
@@ -2175,21 +2206,6 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "9ee2fe967e994d73853da38c447218e1",
-    "m_Id": 1,
-    "m_DisplayName": "HorizontalDisplacement",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "HorizontalDisplacement",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "9f090de569c04ba5b1951f6001764a9f",
     "m_Id": 0,
     "m_DisplayName": "LowFrequencyHeight",
@@ -2257,8 +2273,8 @@
     "m_ObjectId": "ab0657960ce64c418f090acef9b10025",
     "m_Title": "Read From Simulation",
     "m_Position": {
-        "x": 950.4500122070313,
-        "y": -185.89999389648438
+        "x": 924.0001220703125,
+        "y": -180.6666717529297
     }
 }
 
@@ -2703,21 +2719,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "cb5f16119cff43c48d5b10538d45e25f",
-    "m_Id": 1,
-    "m_DisplayName": "HorizontalDisplacement",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "HorizontalDisplacement",
-    "m_StageCapability": 3,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "ce9c431beb2e4c019e7dcf2ce8e7e030",
     "m_Id": 0,
@@ -3010,6 +3011,29 @@
         "z": 0.0,
         "w": 0.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
+    "m_ObjectId": "e30ca2afe55240c1970d00c8cd1343ec",
+    "m_Id": 2,
+    "m_DisplayName": "Displacement",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Displacement",
+    "m_StageCapability": 2,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": []
 }
 
 {

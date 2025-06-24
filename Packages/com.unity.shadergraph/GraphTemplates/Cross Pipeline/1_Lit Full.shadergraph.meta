@@ -1,0 +1,44 @@
+fileFormatVersion: 2
+guid: aee84ce0dab81b049bb88017d78a63cd
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Lit Full
+    category: Basics
+    description: 'A complex shader that closely mimics the functionality of URP''s
+      Lit shader (the code version). Any material using URP''s Lit shader can easily
+      swap to this Shader Graph version and all of the parameters will remain the
+      same. Then you can make modifications to the functionality of this shader in
+      Shader Graph as needed.
+
+
+      If you like the URP Lit shader but just want
+      to add one thing, or you wish you could remove some things to make it faster,
+      this template is a great place to start.
+
+
+
+      This template uses the same
+      Custom Editor GUI as URP''s Lit shader. This means that the material GUI is
+      dependent on the specific set of parameters it''s using. If you''re planning
+      to remove or change parameters in the Blackboard, you may want to also remove
+      the reference to the Custom Editor GUI so that parameters will appear and work
+      as intended.
+
+
+
+      <i>Supported Pipeline(s): HDRP & URP
+
+      Active Target:
+      Lit
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: e079a17a0b2b93647a84cebdde8f3c21, type: 3}

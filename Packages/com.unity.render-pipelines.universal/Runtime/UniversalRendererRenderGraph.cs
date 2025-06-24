@@ -285,8 +285,8 @@ namespace UnityEngine.Rendering.Universal
 
         bool RequiresIntermediateAttachments(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, bool requireCopyFromDepth, bool applyPostProcessing)
         {
-            var requireColorTexture = HasActiveRenderFeatures() && m_IntermediateTextureMode == IntermediateTextureMode.Always;
-            requireColorTexture |= HasPassesRequiringIntermediateTexture();
+            var requireColorTexture = HasActiveRenderFeatures(rendererFeatures) && m_IntermediateTextureMode == IntermediateTextureMode.Always;
+            requireColorTexture |= HasPassesRequiringIntermediateTexture(activeRenderPassQueue);
             requireColorTexture |= Application.isEditor && usesClusterLightLoop;
             requireColorTexture |= RequiresIntermediateColorTexture(cameraData, in renderPassInputs, usesDeferredLighting, applyPostProcessing);
 
@@ -596,7 +596,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool isCameraTargetOffscreenDepth = cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth;
 
-            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera, m_RenderingLayerProvidesByDepthNormalPass);
+            RenderPassInputSummary renderPassInputs = GetRenderPassInputs(cameraData.IsTemporalAAEnabled(), postProcessingData.isEnabled, cameraData.isSceneViewCamera, m_RenderingLayerProvidesByDepthNormalPass, activeRenderPassQueue, m_MotionVectorPass);
 
             bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPassRenderGraph != null;
             bool requireDepthTexture = RequireDepthTexture(cameraData, in renderPassInputs, applyPostProcessing);
@@ -1055,7 +1055,21 @@ namespace UnityEngine.Rendering.Universal
                     bool setGlobalTextures = isLastPass && hasFullPrepass;
 
                     if (isDepthNormalPrepass)
+                    {
+                        // We set camera properties once per execution of the URP render graph, y-flip status is determined based on whether we are rendering to the backbuffer or not.
+                        // DepthNormal prepass always renders to an intermediate render target which is assumed to be y-flipped by all other logic in our codebase.
+                        // Therefore we need to set the camera properties for the DepthNormal to be consistent with rendering to an intermediate render target.
+                        if (resourceData.isActiveTargetBackBuffer)
+                        {
+                            SetupRenderGraphCameraProperties(renderGraph, false);
+                        }
                         DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, setGlobalDepth, setGlobalTextures);
+                        // Restore camera properties for the rest of the render graph execution.
+                        if (resourceData.isActiveTargetBackBuffer)
+                        {
+                            SetupRenderGraphCameraProperties(renderGraph, true);
+                        }
+                    }
                     else
                         m_DepthPrepass.Render(renderGraph, frameData, ref depthTarget, batchLayerMask, setGlobalDepth);
 
@@ -1564,7 +1578,7 @@ namespace UnityEngine.Rendering.Universal
         /// to ensure that the pipeline will actually do depth priming.
         /// When this is true then we are sure that after RenderPassEvent.AfterRenderingPrePasses the currentCameraDepth has been primed.
         /// </summary>
-        bool IsDepthPrimingEnabledRenderGraph(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, DepthPrimingMode depthPrimingMode, bool requireDepthTexture, bool requirePrepassForTextures, bool usesDeferredLighting)
+        static bool IsDepthPrimingEnabledRenderGraph(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, DepthPrimingMode depthPrimingMode, bool requireDepthTexture, bool requirePrepassForTextures, bool usesDeferredLighting)
         {
 #if UNITY_EDITOR
             // We need to disable depth-priming for DrawCameraMode.Wireframe, since depth-priming forces ZTest to Equal
@@ -1580,7 +1594,7 @@ namespace UnityEngine.Rendering.Universal
             }
 #endif
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (DebugHandler is { IsDepthPrimingCompatible: false })
+            if (cameraData.renderer.DebugHandler is { IsDepthPrimingCompatible: false })
                 return false;
 #endif
 
@@ -1727,6 +1741,8 @@ namespace UnityEngine.Rendering.Universal
                     importInfo.volumeDepth = cameraData.xr.renderTargetDesc.volumeDepth;
                     importInfo.msaaSamples = cameraData.xr.renderTargetDesc.msaaSamples;
                     importInfo.format = cameraData.xr.renderTargetDesc.graphicsFormat;
+                    if (!PlatformRequiresExplicitMsaaResolve())
+                        importInfo.bindMS = importInfo.msaaSamples > 1;
 
                     importInfoDepth = importInfo;
                     importInfoDepth.format = cameraData.xr.renderTargetDesc.depthStencilFormat;

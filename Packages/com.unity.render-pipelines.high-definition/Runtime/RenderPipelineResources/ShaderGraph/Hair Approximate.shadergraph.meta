@@ -1,0 +1,29 @@
+fileFormatVersion: 2
+guid: 5157fd56faac718409d4a88bf286b3f5
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 1
+  template:
+    name: Hair Approximate
+    category: Environment and Materials
+    description: "You can use the Hair template as a starting point for rendering
+      hair and fur in the High Definition Render Pipeline (HDRP). To create a realistic
+      looking hair effect, the Hair Shader Graph uses layers called hair cards. Each
+      hair card represents a different section of hair. If you use semi-transparent
+      hair cards, you must manually sort them so that they're in back-to-front order
+      from every viewing direction.\r\n\r\nThe Approximate Material Type mimics the
+      characteristics of human hair. It is based on the Kajiya-Kay hair shading model.
+      This model doesn\u2019t automatically look realistic in every lighting setup.
+      This means you need to adjust the blocks in the Fragment context to suit the
+      lighting environment in your scene. It is best for darker hair tones. \r\n\r\n<i>Supported
+      Pipeline(s): HDRP\r\nActive Target: Hair / Approximate\r\nVFX Graph Support:
+      disabled</i>"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: a0a9042b1c4d96f4fa5f6b85e6a6a89b, type: 3}

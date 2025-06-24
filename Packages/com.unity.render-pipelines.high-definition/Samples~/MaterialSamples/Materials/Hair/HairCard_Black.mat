@@ -24,7 +24,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: HairCard_Black
-  m_Shader: {fileID: -6465566751694194690, guid: e11d5421cda40b14dae6c72e99f321bd, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 30af33a36f3369842aa8e5b6ff6e0e73, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -62,11 +62,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Alpha_Depth:
-        m_Texture: {fileID: 2800000, guid: e793cee1081509742aeccad4b3f20023, type: 3}
+        m_Texture: {fileID: 2800000, guid: c37c14d1e9c5d314788efba830e1ecd4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Masks:
-        m_Texture: {fileID: 2800000, guid: 90f9510c5abe671408314d014b0924cc, type: 3}
+        m_Texture: {fileID: 2800000, guid: a496d29547e56734899f08b3c8d7a21e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_4adae90930c444c9a4e1cdcce51a7545_Texture_1:
@@ -121,8 +121,10 @@ Material:
     - _DstBlend2: 10
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
+    - _ExcludeFromTUAndAA: 0
     - _Float: 1
     - _Going_Grey: 0
+    - _Grey_Hair_Amount: 0
     - _Length_Smoothness: 0.7
     - _MaxRadius: 0.006
     - _MaxSmoothness: 0.75

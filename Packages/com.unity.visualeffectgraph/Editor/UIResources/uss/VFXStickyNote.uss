@@ -1,0 +1,266 @@
+﻿VFXStickyNote.sticky-note {
+    min-width: 115px;
+    min-height: 100px;
+    background-color: transparent;
+    overflow: visible;
+}
+
+VFXStickyNote > #node-border {
+    border-radius: 2px;
+    border-width: 1px;
+    padding: 1px 4px;
+    flex-shrink: 1;
+}
+
+VFXStickyNote #title-bar {
+    flex-direction: row;
+    padding-right: 12px;
+}
+
+VFXStickyNote #title {
+    margin: 0;
+    border-width: 1px;
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+VFXStickyNote #title-field {
+    margin: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    position: relative;
+    background-color: transparent;
+}
+
+VFXStickyNote.size-medium #title-field TextInput {
+    font-size: 40px;
+}
+
+VFXStickyNote.size-large #title-field TextInput {
+    font-size: 60px;
+}
+
+VFXStickyNote.size-huge #title-field TextInput {
+    font-size: 80px;
+}
+VFXStickyNote #title-field TextInput {
+    border-width: 1px;
+    border-radius: 1px;
+    border-color: var(--unity-colors-input_field-border-focus);
+    background-color: transparent;
+}
+
+VFXStickyNote TextElement {
+    flex-shrink: 1;
+}
+
+VFXStickyNote:checked #swatches {
+    display: flex;
+}
+
+VFXStickyNote #swatches {
+    display: none;
+    background-color: #0A0A0A;
+    border-radius: 2px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-direction: row;
+    padding: 3px 4px;
+    align-self: flex-start;
+    justify-content: flex-end;
+    position: absolute;
+    top: -22px;
+}
+
+VFXStickyNote .swatch {
+    align-self: center;
+    width: 10px;
+    height: 10px;
+    border-width: 1px;
+    border-radius: 1px;
+    padding: 0;
+    margin: 0 1px 0 0;
+}
+
+VFXStickyNote #swatch1 {
+    background-color: #fcd76e;
+    border-color: #89792C;
+}
+
+VFXStickyNote #swatch2 {
+    background-color: #1D2535;
+    border-color: #5890C6;
+}
+
+VFXStickyNote #swatch3 {
+    background-color: #441A1F;
+    border-color: #A16969;
+}
+
+VFXStickyNote Button:hover,
+VFXStickyNote #swatch1:hover,
+VFXStickyNote #swatch2:hover,
+VFXStickyNote #swatch3:hover {
+    border-color: var(--unity-colors-input_field-border-focus);
+}
+
+VFXStickyNote.color-theme-1 > #node-border {
+    background-color: #fcd76e;
+    border-color: #635733;
+}
+
+VFXStickyNote.color-theme-1 Label, VFXStickyNote.color-theme-1 TextElement {
+    color: #635733;
+}
+
+VFXStickyNote.color-theme-2 > #node-border {
+    background-color: #1D2535;
+    border-color: #5890c6;
+}
+
+VFXStickyNote.color-theme-2 Label, VFXStickyNote.color-theme-2 TextElement {
+    color: #5890c6;
+}
+
+VFXStickyNote.color-theme-3 > #node-border {
+    background-color: #63242B;
+    border-color: #CD96A2;
+}
+
+VFXStickyNote.color-theme-3 Label, VFXStickyNote.color-theme-3 TextElement {
+    color: #CD96A2;
+}
+
+VFXStickyNote #content-holder {
+    flex-grow: 1;
+    margin-right: 6px;
+}
+
+VFXStickyNote #contents {
+    margin-left: 0;
+    padding: 0 2px;
+}
+
+VFXStickyNote #content-holder * {
+    background-color: transparent;
+}
+
+VFXStickyNote #contents-field {
+    position: relative;
+    white-space: normal;
+    flex-grow: 1;
+    margin: 0 6px 0 0;
+    border-width: 1px;
+    border-radius: 1px;
+    border-color: var(--unity-colors-input_field-border-focus);
+}
+
+VFXStickyNote.size-small #contents-field * {
+    font-size: 11px;
+}
+
+VFXStickyNote.size-medium #contents-field * {
+    font-size: 24px;
+}
+
+VFXStickyNote.size-large #contents-field * {
+    font-size: 36px;
+}
+
+VFXStickyNote.size-huge #contents-field * {
+    font-size: 56px;
+}
+
+VFXStickyNote.sticky-note Label,
+VFXStickyNote.sticky-note TextField {
+    -unity-paragraph-spacing: -8px;
+}
+
+VFXStickyNote #spacer {
+    width: 2px;
+}
+
+VFXStickyNote .text-modifier {
+    align-self: center;
+    width: 10px;
+    height: 10px;
+    border-width: 0px;
+    border-radius: 1px;
+    padding: 0;
+    margin: 0 1px 0 0;
+
+    background-color: #585858;
+    border-color: #808080;
+}
+
+VFXStickyNote .text-modifier:hover {
+    background-color: #808080;
+    border-color: #585858;
+}
+
+VFXStickyNote .text-font {
+    height: 10px;
+    width: 26px;
+}
+
+VFXStickyNote .text-font > VisualElement {
+    border-width: 0;
+    border-radius: 2px;
+    padding-left: 12px;
+    background-position: 2px -1px;
+    background-size: 12px 12px;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/d_Font@64.png");
+    min-width: auto;
+}
+
+VFXStickyNote .text-font > VisualElement:hover {
+    background-color: #808080;
+}
+
+VFXStickyNote .text-font PopupTextElement {
+    display: none;
+}
+
+VFXStickyNote .text-font > VisualElement > VisualElement {
+    background-image: resource("UIPackageResources/Images/d_dropdown@2x.png");
+    position: absolute;
+    right: 0;
+}
+
+VFXStickyNote #fitToText {
+    margin-left: 1px;
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/fit-to-size_d.png");
+    background-size: 70% 70%;
+    background-position: 1.5px 1.5px;
+}
+
+VFXStickyNote ColorSwatchDropdown {
+    display: none;
+    align-self: center;
+    padding: 0;
+    margin: 0 1px 0 0;
+    width: 16px;
+    height: 10px;
+    border-width: 1px;
+    border-radius: 1px;
+    border-color: transparent;
+    background-image: var(--unity-icons-dropdown);
+    background-size: 8px 8px;
+    background-position: right;
+}
+
+.dropdown-swatch {
+    align-self: flex-start;
+    flex-grow: 0;
+    flex-shrink: 1;
+    width: 20px;
+    height: 20px;
+    border-width: 1px;
+    border-radius: 1px;
+    margin: 2px 0 2px 4px;
+}
+
+.selected-swatch {
+    width: 8px;
+    height: 8px;
+}

@@ -1553,7 +1553,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set => this.SetValueAndNotify(ref m_WaterFoamCS, value);
         }
 
-        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/ShaderGraph/Sample Water Decal.shadergraph")]
+        [SerializeField][ResourcePath("Runtime/RenderPipelineResources/ShaderGraph/Water Decal Sample.shadergraph")]
         private Shader m_WaterDecalMigrationShader;
         public Shader waterDecalMigrationShader
         {

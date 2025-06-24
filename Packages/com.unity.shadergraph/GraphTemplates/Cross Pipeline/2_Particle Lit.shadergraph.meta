@@ -1,0 +1,28 @@
+fileFormatVersion: 2
+guid: a680d9a9f8b66514abbfd3ae1c8f77f7
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Particle Lit
+    category: Particle
+    description: 'A simple Lit shader that includes texture map parameters for Base
+      Map, Normal Map, and Mask Map. It''s a good starting point to create a custom
+      lit particle shader.
+
+
+
+      <i>Supported Pipeline(s): HDRP & URP
+
+      Active
+      Target: Lit
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 0f0c228bd0a3835428c403a8d1568ef5, type: 3}

@@ -29,7 +29,8 @@ Shader "Universal Render Pipeline/ShaderParserError"
 
     SubShader
     {
-        INTENTIONAL_SHADER_PARSER_ERROR
+        // Uncomment this to trigger a shader parser error
+        //INTENTIONAL_SHADER_PARSER_ERROR
 
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="4.5"}
         LOD 100

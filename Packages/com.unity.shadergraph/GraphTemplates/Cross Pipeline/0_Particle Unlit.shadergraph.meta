@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: af66091e0eca0c04a9c3584ae867418a
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Particle Unlit
+    category: Particle
+    description: 'A simple shader that lets you control the color and alpha directly
+      within the particle editor. It''s a good starting point for a particle unlit
+      shader that can be easily customized.
+
+
+      <i>Supported Pipeline(s): HDRP
+      & URP
+
+      Active Target: Unlit
+
+      VFX Graph Support: disabled<i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 70e6da54cdf71264da5954a5fe327e3a, type: 3}

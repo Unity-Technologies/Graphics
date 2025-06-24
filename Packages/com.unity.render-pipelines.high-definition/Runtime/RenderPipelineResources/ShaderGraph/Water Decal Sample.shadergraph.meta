@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 9f1661ed5b4d6ee4685ad5683b09a903
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 1
+  template:
+    name: Water Decal Sample Shapes
+    category: Environment and Materials
+    description: "To create foam, deformation, or water currents, you can use a water
+      decal. Water decals add localized water effects to a specific region in a 3D
+      scene. This region is anchored in world space to a GameObject transform or,
+      by default, to the camera. Use water decals to easily replicate effects across
+      multiple regions, such as around islands or shorelines, without re-authoring
+      textures.\r\n\r\nThis is a simple template allowing you to alter the water
+      surface with predefined shapes. \r\nThis Water Decal contains Box, Bow Wave,
+      Shore Waves and Texture shape already setup with deformation, surface foam
+      and deep foam. \r\n\r\n<i>Supported Pipeline(s): HDRP\r\nActive Target: Water
+      Decal\r\nVFX Graph Support: disabled</i>"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: bb54041e52aef8048b9448c458c89525, type: 3}

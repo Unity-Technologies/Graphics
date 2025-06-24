@@ -73,15 +73,12 @@ namespace Common
 
         public static void ForceInitialization()
         {
-            if (Camera.main != null)
-                Camera.main.Render();
-            else
-            {
-                var gameObject = new GameObject();
-                var camera = gameObject.AddComponent<Camera>();
-                camera.Render();
-                Object.DestroyImmediate(camera);
-            }
+            var camera = new GameObject("Camera").AddComponent<Camera>();
+            var rt = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGB32);
+            var request = new RenderPipeline.StandardRequest { destination = rt };
+            RenderPipeline.SubmitRenderRequest(camera, request);
+            Object.DestroyImmediate(camera.gameObject);
+            Object.DestroyImmediate(rt);
         }
 
         public void Dispose()

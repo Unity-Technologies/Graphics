@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering.Universal.Test
 
             testCase.SetUp(m_Instance, m_Asset);
 
-            UniversalRenderPipelineGlobalSettings.UpgradeAsset(m_Instance.GetInstanceID());
+            UniversalRenderPipelineGlobalSettings.UpgradeAsset(m_Instance.GetEntityId());
             bool migrationIsPerformed = m_Instance.m_AssetVersion == UniversalRenderPipelineGlobalSettings.k_LastVersion;
             bool migrationIsCorrect = false;
             string errorMessage = string.Empty;
@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.Universal.Test
 
             testCase.SetUp(m_Instance, m_Asset);
 
-            UniversalRenderPipelineGlobalSettings.UpgradeAsset(m_Instance.GetInstanceID());
+            UniversalRenderPipelineGlobalSettings.UpgradeAsset(m_Instance.GetEntityId());
             bool migrationIsPerformed = m_Instance.m_AssetVersion == UniversalRenderPipelineGlobalSettings.k_LastVersion;
             bool migrationIsCorrect = false;
             string errorMessage = string.Empty;

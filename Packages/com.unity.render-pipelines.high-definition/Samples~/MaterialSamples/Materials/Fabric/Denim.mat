@@ -27,9 +27,11 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _BASE_UV_CHANNEL_UV0
   - _DISABLE_SSR
   - _DISABLE_SSR_TRANSPARENT
   - _DOUBLESIDED_ON
+  - _THREADS_UV_CHANNEL_UV0
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -131,7 +133,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ThreadMap:
-        m_Texture: {fileID: 2800000, guid: 54efaa4cf9d96f6418d9e93e608a965f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 2b8123f2e2572644eadbb7f7ddd0ed48, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TransmittanceColorMap:
@@ -167,6 +169,7 @@ Material:
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
     - _Anisotropy: 0
+    - _BASE_UV_CHANNEL: 0
     - _BlendMode: 0
     - _CoatMask: 0
     - _ConservativeDepthOffsetEnable: 0
@@ -179,6 +182,7 @@ Material:
     - _DetailSmoothnessScale: 1
     - _DiffusionProfile: 0
     - _DiffusionProfileHash: 3.5426073
+    - _Diffusion_Profile: 3.4884546
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
@@ -213,6 +217,7 @@ Material:
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
+    - _ExcludeFromTUAndAA: 0
     - _FuzzMapUVScale: 0.1
     - _FuzzStrength: 0.313
     - _HdrpVersion: 2
@@ -273,6 +278,7 @@ Material:
     - _SubsurfaceMask: 1
     - _SupportDecals: 1
     - _SurfaceType: 0
+    - _THREADS_UV_CHANNEL: 0
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
@@ -305,6 +311,7 @@ Material:
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0.3182033, g: 0.480115, b: 0.5849056, a: 1}
     - _DiffusionProfileAsset: {r: -8.851371e-34, g: 1.2241986e+22, b: -2.5962676e-29, a: -2.918011e-34}
+    - _Diffusion_Profile_Asset: {r: 1.1126425e+27, g: -0.00000014547754, b: 8.520118e-30, a: 7.708028e-15}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}

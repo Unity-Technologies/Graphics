@@ -1,0 +1,35 @@
+fileFormatVersion: 2
+guid: 6ff4f509ce480634087475d2de35eba4
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  template:
+    name: Car Paint
+    category: Environment and Materials
+    description: 'The StackLit Master Stack can render materials that are more complex
+      than the Lit Master Stack. It includes all the features available in the Lit
+      shader and, sometimes, provides more advanced or higher quality versions. All
+      of those features can be stacked together on the same shader.
+
+
+      This
+      is a template for creating a Car Paint material using a <b>Dual Specular Lobe</b>,
+      allowing two specular highlights to simulate hazy materials on the flaky base
+      layer. On top of that, it also uses <b>Coating</b> to have one more layer of
+      smooth specular reflection.
+
+
+      <i>Supported Pipeline(s): HDRP
+
+      Active
+      Target: StackLit
+
+      VFX Graph Support: disabled</i>'
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 6c72d58f0e0a2904cb63258a45be1d7d, type: 3}

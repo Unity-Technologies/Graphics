@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal void SetTextureInfos(IList<PropertyCollector.TextureInfo> textures)
         {
-            m_TextureInfos = textures.Select(t => new TextureInfo(t.name, EditorUtility.InstanceIDToObject(t.textureId) as Texture, t.dimension)).ToArray();
+            m_TextureInfos = textures.Select(t => new TextureInfo(t.name, EditorUtility.EntityIdToObject(t.textureId) as Texture, t.dimension)).ToArray();
         }
 
         internal void SetOutputs(OutputMetadata[] outputs)

@@ -1,7 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -10,15 +9,15 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     internal class DrawScreenSpaceUIPass : ScriptableRenderPass
     {
-        PassData m_PassData;
         RTHandle m_ColorTarget;
         RTHandle m_DepthTarget;
 
         // Whether to render on an offscreen render texture or on the current active render target
         bool m_RenderOffscreen;
 
-        static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
-        static readonly int s_CameraOpaqueTextureID = Shader.PropertyToID("_CameraOpaqueTexture");
+#if URP_COMPATIBILITY_MODE
+        PassData m_PassData;
+#endif
 
         /// <summary>
         /// Creates a new <c>DrawScreenSpaceUIPass</c> instance.
@@ -31,7 +30,10 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
             useNativeRenderPass = false;
             m_RenderOffscreen = renderOffscreen;
+
+#if URP_COMPATIBILITY_MODE
             m_PassData = new PassData();
+#endif
         }
 
         /// <summary>
@@ -102,6 +104,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -153,6 +156,7 @@ namespace UnityEngine.Rendering.Universal
                 ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData, rendererList);
             }
         }
+#endif
 
         //RenderGraph path
         private class PassData

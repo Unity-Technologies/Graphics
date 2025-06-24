@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.UI
 
         public void AssetMoved()
         {
-            m_PropertyRM.UpdateGUI(true);
+            m_PropertyRM?.UpdateGUI(true);
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -86,24 +86,22 @@ namespace UnityEditor.VFX.UI
 
         public float GetPreferredLabelWidth()
         {
-            if (m_PropertyRM == null) return 0;
-            return m_PropertyRM.GetPreferredLabelWidth();
+            return m_PropertyRM?.GetPreferredLabelWidth() ?? 0;
         }
 
         public float GetPreferredControlWidth()
         {
-            if (m_PropertyRM == null) return 0;
-            return m_PropertyRM.GetPreferredControlWidth();
+            return m_PropertyRM?.GetPreferredControlWidth() ?? 0;
         }
 
         public void SetLabelWidth(float label)
         {
-            m_PropertyRM.SetLabelWidth(label);
+            m_PropertyRM?.SetLabelWidth(label);
         }
 
         public void ForceUpdate()
         {
-            m_PropertyRM.ForceUpdate();
+            m_PropertyRM?.ForceUpdate();
         }
 
         void BuildProperty()

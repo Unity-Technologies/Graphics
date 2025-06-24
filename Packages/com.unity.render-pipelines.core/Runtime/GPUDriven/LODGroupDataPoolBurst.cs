@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     internal static class LODGroupDataPoolBurst
     {
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        public static int FreeLODGroupData(in NativeArray<int> destroyedLODGroupsID, ref NativeList<LODGroupData> lodGroupsData,
+        public static int FreeLODGroupData(in NativeArray<EntityId> destroyedLODGroupsID, ref NativeList<LODGroupData> lodGroupsData,
             ref NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash, ref NativeList<GPUInstanceIndex> freeLODGroupDataHandles)
         {
             int removedRendererCount = 0;
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering
         }
 
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        public static int AllocateOrGetLODGroupDataInstances(in NativeArray<int> lodGroupsID, ref NativeList<LODGroupData> lodGroupsData, ref NativeList<LODGroupCullingData> lodGroupCullingData,
+        public static int AllocateOrGetLODGroupDataInstances(in NativeArray<EntityId> lodGroupsID, ref NativeList<LODGroupData> lodGroupsData, ref NativeList<LODGroupCullingData> lodGroupCullingData,
             ref NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash, ref NativeList<GPUInstanceIndex> freeLODGroupDataHandles, ref NativeArray<GPUInstanceIndex> lodGroupInstances)
         {
             int freeHandlesCount = freeLODGroupDataHandles.Length;

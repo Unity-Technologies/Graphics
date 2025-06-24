@@ -497,6 +497,99 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull(vfx.GetGradient(commonExposedName));
         }
 
+        [UnityTest, Description("Cover UUM-108512")]
+        public IEnumerator CreateComponent_Change_Asset_Content_Keep_Override()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var parameterUintDesc = VFXLibrary.GetParameters().First(o => o.modelType == typeof(uint));
+            var parameterTextureDesc = VFXLibrary.GetParameters().First(o => o.modelType == typeof(Texture2D));
+
+            var uintExposedName = "myExposeUInt";
+            var parameterUint = parameterUintDesc.CreateInstance();
+            parameterUint.SetSettingValue("m_ExposedName", uintExposedName);
+            parameterUint.SetSettingValue("m_Exposed", true);
+            parameterUint.value = 1u;
+
+            var textureExposedName = "myExposeTexture";
+            var parameterTexture = parameterTextureDesc.CreateInstance();
+            parameterTexture.SetSettingValue("m_ExposedName", textureExposedName);
+            parameterTexture.SetSettingValue("m_Exposed", true);
+            parameterTexture.value = m_texture2D_A;
+
+            graph.AddChild(parameterUint);
+            graph.AddChild(parameterTexture);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            yield return null;
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            Assert.IsTrue(vfx.HasUInt(uintExposedName));
+            Assert.AreEqual(1u, vfx.GetUInt(uintExposedName));
+            Assert.IsTrue(vfx.HasTexture(textureExposedName));
+            Assert.AreEqual(m_texture2D_A, vfx.GetTexture(textureExposedName));
+            vfx.SetUInt(uintExposedName, 2u);
+            Assert.AreEqual(2u, vfx.GetUInt(uintExposedName));
+            vfx.SetTexture(textureExposedName, m_texture2D_B);
+            Assert.AreEqual(m_texture2D_B, vfx.GetTexture(textureExposedName));
+
+            yield return null;
+
+            parameterUint.value = 3u;
+            graph.SetExpressionValueDirty();
+            Assert.IsFalse(graph.IsExpressionGraphDirty());
+            
+            graph.RecompileIfNeeded(); //Expecting an invocation of compiledData.UpdateValues();
+
+            Assert.AreEqual(2u, vfx.GetUInt(uintExposedName));
+            Assert.AreEqual(m_texture2D_B, vfx.GetTexture(textureExposedName));
+        }
+
+        [UnityTest, Description("Cover UUM-108512 (ResetOverride case)")]
+        public IEnumerator CreateComponent_ResetOverride_Dont_Grow_Anything()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var parameterTextureDesc = VFXLibrary.GetParameters().First(o => o.modelType == typeof(Texture2D));
+
+            var textureExposedName = "myExposeTexture";
+            var parameterTexture = parameterTextureDesc.CreateInstance();
+            parameterTexture.SetSettingValue("m_ExposedName", textureExposedName);
+            parameterTexture.SetSettingValue("m_Exposed", true);
+            parameterTexture.value = m_texture2D_A;
+
+            graph.AddChild(parameterTexture);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            yield return null;
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            Assert.IsTrue(vfx.HasTexture(textureExposedName));
+            Assert.AreEqual(m_texture2D_A, vfx.GetTexture(textureExposedName));
+            vfx.SetTexture(textureExposedName, m_texture2D_B);
+            Assert.AreEqual(m_texture2D_B, vfx.GetTexture(textureExposedName));
+
+            var initialMemory = Profiler.GetRuntimeMemorySizeLong(vfx);
+            for (int step = 0; step < 8; step++)
+            {
+                vfx.ResetOverride(textureExposedName);
+
+                Assert.AreEqual(m_texture2D_A, vfx.GetTexture(textureExposedName));
+                vfx.SetTexture(textureExposedName, m_texture2D_B);
+                Assert.AreEqual(m_texture2D_B, vfx.GetTexture(textureExposedName));
+
+                yield return null;
+
+                Assert.AreEqual(initialMemory, Profiler.GetRuntimeMemorySizeLong(vfx), "Unexpected growing allocated memory for this VFX, it might be something wrong internally.");
+            }
+        }
+
 #pragma warning disable 0414
         private static bool[] trueOrFalse = { true, false };
 #pragma warning restore 0414
