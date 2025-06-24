@@ -28,7 +28,7 @@ To enable STP in the High Definition Render Pipeline (HDRP), do the following:
 
 2. In the Inspector, go to **Rendering** > **Dynamic Resolution** and select **Enable**.
 
-2. In the list **Advanced Upsaclers by Priority**, click the **+** button and select **STP** to add it to the list.
+2. In the list **Advanced Upscalers by Priority**, click the **+** button and select **STP** to add it to the list.
 
 3. Set **Dynamic Resolution Type** to **Hardware**.
 
