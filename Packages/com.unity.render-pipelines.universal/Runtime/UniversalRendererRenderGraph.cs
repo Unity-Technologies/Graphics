@@ -522,6 +522,8 @@ namespace UnityEngine.Rendering.Universal
                     importInfo.volumeDepth = cameraData.xr.renderTargetDesc.volumeDepth;
                     importInfo.msaaSamples = cameraData.xr.renderTargetDesc.msaaSamples;
                     importInfo.format = cameraData.xr.renderTargetDesc.graphicsFormat;
+                    if (!PlatformRequiresExplicitMsaaResolve())
+                        importInfo.bindMS = importInfo.msaaSamples > 1;
 
                     importInfoDepth = importInfo;
                     importInfoDepth.format = cameraData.xr.renderTargetDesc.depthStencilFormat;
