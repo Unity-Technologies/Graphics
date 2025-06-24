@@ -11,11 +11,14 @@ using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using Object = System.Object;
+using UnityEngine.Rendering.ShaderGraph;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
     [ScriptedImporter(131, Extension, -902)]
+    [CoreRPHelpURL("Shader-Graph-Asset", "com.unity.shadergraph")]    
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";

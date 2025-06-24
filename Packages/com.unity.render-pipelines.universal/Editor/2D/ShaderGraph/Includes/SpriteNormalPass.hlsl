@@ -1,3 +1,5 @@
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Core2D.hlsl"
+
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
