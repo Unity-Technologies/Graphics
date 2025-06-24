@@ -3,6 +3,8 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
+float _SpaceWarpNDCModifier;
+
 // 6000.0 Deprecated. This is for backwards compatibility. Remove in the future.
 void ApplyMotionVectorZBias(inout float4 positionCS)
 {
@@ -62,6 +64,10 @@ float3 CalcAswNdcMotionVectorFromCsPositions(float4 posCS, float4 prevPosCS)
     float3 velocity;
     // Calculate forward velocity
     velocity = (posNDC.xyz - prevPosNDC.xyz);
+
+    #if UNITY_UV_STARTS_AT_TOP
+    velocity.y = velocity.y * _SpaceWarpNDCModifier;
+    #endif
 
     return velocity;
 }
