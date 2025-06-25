@@ -16,7 +16,15 @@ If you view the source files for pre-built HDRP Shaders, the view and view-proje
 
 Camera-relative rendering is enabled by default in the ShaderConfig.cs file (in your Project window go to **Packages > High Definition RP Config > Runtime > ShaderLibrary** and click on **ShaderConfig.cs**). To disable this feature, set `CameraRelativeRendering` to `0`, and then generate Shader includes to update the ShaderConfig.cs.hlsl file (menu: **Edit > Render Pipeline** and click **Generate Shader Includes)**.
 
-## **Examples**
+To disable camera-relative rendering:
+
+1. In the Project window, go to **Packages** > **High Definition Render Pipeline Config** > **Runtime**.
+
+1. Open the `ShaderConfig.cs` file, then set `CameraRelativeRendering` to `0`.
+
+1. From the main menu, select **Edit** > **Render Pipeline** > **Generate Shader Includes** to generate shader includes and update the `ShaderConfig.cs.hlsl` file
+
+## Examples
 
 If you enable Camera-relative rendering:
 
