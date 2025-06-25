@@ -4,8 +4,6 @@
 
 Shader Graph can display colors on nodes in your graph to improve readability. This feature uses **Color Modes** to change which colors to display in the graph. Use the **Color Mode:** drop-down menu in the top right corner of the [Shader Graph Window](Shader-Graph-Window.md) to change the **Color Modes**.
 
-![](images/Shader-Graph-Toolbar.png)
-
 ## Modes
 
 | Name         | Description |
@@ -20,19 +18,19 @@ Shader Graph can display colors on nodes in your graph to improve readability. T
 
 This mode displays colors on the nodes based on their category. See the [Node Library](Node-Library.md) to learn about the different categories available.
 
-![](images/Color-Mode-Category.png)
+![A screenshot of Unity's Shader Graph in Category Color Mode, where each node is color-coded based on its function. Artistic nodes appear in orange, #DB773B, channel-related nodes in green, #97D13D, input nodes in red, #CB3022, math operations in blue, #4B92F3, procedural elements in purple, #9C4FFF, utility nodes in gray, #AEAEAE, and UV-related nodes in teal, #08D78B.](images/Color-Mode-Category.png)
 
 The table below lists current categories and their corresponding colors.
 
-| Name       | Color                                                    | Hex Value |
-|:-----------|:---------------------------------------------------------|:----------|
-| Artistic   | ![#DB773B](https://placehold.it/15/DB773B/000000?text=+) | #DB773B   |
-| Channel    | ![#97D13D](https://placehold.it/15/97D13D/000000?text=+) | #97D13D   |
-| Input      | ![#CB3022](https://placehold.it/15/CB3022/000000?text=+) | #CB3022   |
-| Math       | ![#4B92F3](https://placehold.it/15/4B92F3/000000?text=+) | #4B92F3   |
-| Procedural | ![#9C4FFF](https://placehold.it/15/9C4FFF/000000?text=+) | #9C4FFF   |
-| Utility    | ![#AEAEAE](https://placehold.it/15/AEAEAE/000000?text=+) | #AEAEAE   |
-| UV         | ![#08D78B](https://placehold.it/15/08D78B/000000?text=+) | #08D78B   |
+| Name       | Color Hex Value |
+|:-----------|:----------------|
+| Artistic   | #DB773B         |
+| Channel    | #97D13D         |
+| Input      | #CB3022         |
+| Math       | #4B92F3         |
+| Procedural | #9C4FFF         |
+| Utility    | #AEAEAE         |
+| UV         | #08D78B         |
 
 **Note:** [Sub Graph](Sub-Graph.md) nodes in a main [Shader Graph](index.md) fall in the Utility category. If you select **Category** mode, all Sub Graphs use the Utility color.
 
@@ -51,7 +49,6 @@ To set a custom color for a node, right-click on the target node to bring up the
 | Change... |Brings up a color picker menu and lets you set your own custom color on the node. |
 | Reset     | Removes the currently selected color and sets it to the default gray. |
 
-![](images/Color-Mode-User-Defined.png)
 
 ## Overriding Default Colors
 
