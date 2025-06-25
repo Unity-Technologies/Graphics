@@ -146,7 +146,8 @@ namespace UnityEditor.VFX
 
                 var taskDesc = new VFXEditorTaskDesc()
                 {
-                    externalProcessor = shader,
+                    processor = shader,
+                    shaderSourceIndex = -1,
                     values = mappings.ToArray(),
                     type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output,
                     model = context

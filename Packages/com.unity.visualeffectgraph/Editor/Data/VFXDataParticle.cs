@@ -1475,7 +1475,8 @@ namespace UnityEditor.VFX
                         {
                             VFXEditorTaskDesc sortTaskDesc = new VFXEditorTaskDesc();
                             sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerOutputSort;
-                            sortTaskDesc.externalProcessor = null;
+                            sortTaskDesc.processor = null;
+                            sortTaskDesc.shaderSourceIndex = -1;
                             sortTaskDesc.model = context;
 
                             sortTaskDesc.buffers = new VFXMapping[3];

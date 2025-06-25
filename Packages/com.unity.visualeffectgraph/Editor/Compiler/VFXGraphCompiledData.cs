@@ -79,12 +79,6 @@ namespace UnityEditor.VFX
         public Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData;
     }
 
-    enum VFXCompilationMode
-    {
-        Edition,
-        Runtime,
-    }
-
     class VFXDependentBuffersData
     {
         public Dictionary<VFXData, int> attributeBuffers = new Dictionary<VFXData, int>();
@@ -600,10 +594,11 @@ namespace UnityEditor.VFX
                     var preProcessTask = new VFXEditorTaskDesc
                     {
                         type = UnityEngine.VFX.VFXTaskType.EvaluateExpressionsSpawner,
-                        buffers = new VFXMapping[0],
+                        buffers = Array.Empty<VFXMapping>(),
                         values = mappingPreProcess,
                         parameters = taskData.parameters,
-                        externalProcessor = null
+                        processor = null,
+                        shaderSourceIndex = -1
                     };
                     taskDescList.Add(preProcessTask);
                 }
@@ -615,10 +610,11 @@ namespace UnityEditor.VFX
                 taskDescList.Add(new VFXEditorTaskDesc
                 {
                     type = (UnityEngine.VFX.VFXTaskType)spawnerBlock.spawnerType,
-                    buffers = new VFXMapping[0],
+                    buffers = Array.Empty<VFXMapping>(),
                     values = GetSortedUniformValues(mappingList),
                     parameters = taskData.parameters,
-                    externalProcessor = processor
+                    processor = processor,
+                    shaderSourceIndex = -1
                 });
                 index++;
             }
@@ -1331,7 +1327,7 @@ namespace UnityEditor.VFX
 
                 VFXInstancingDisabledReason instancingDisabledReason = ValidateInstancing(compilableContexts);
 
-                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), vfxEventDesc, bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode, instancingDisabledReason, compiledVersion);
+                resource.SetRuntimeData(expressionSheet,systemDescs.ToArray(), vfxEventDesc, bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode, instancingDisabledReason, compilationMode, compiledVersion);
                 m_ExpressionValues = expressionSheet.values;
 
                 foreach (var dep in sourceDependencies)
@@ -1400,7 +1396,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            m_Graph.visualEffectResource.SetValueSheet(m_ExpressionValues);
+            VisualEffectAssetUtility.SetValueSheet(m_Graph.visualEffectResource.asset, m_ExpressionValues);
         }
 
         public VFXInstancingDisabledReason ValidateInstancing(IEnumerable<VFXContext> compilableContexts)
