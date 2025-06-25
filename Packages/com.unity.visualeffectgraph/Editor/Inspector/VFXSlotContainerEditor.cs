@@ -187,6 +187,14 @@ class VFXSlotContainerEditor : Editor
         static bool s_HasGizmos;
         static int currentIndex;
 
+        public static void ClearGizmos()
+        {
+            s_AllGizmosInfo.Clear();
+            s_Entries = null;
+            s_HasGizmos = false;
+            currentIndex = 0;
+        }
+
         public static void UpdateFromVFXView(VFXView vfxView, List<IGizmoController> controllers)
         {
             Profiler.BeginSample("SceneViewVFXSlotContainerOverlay.UpdateFromVFXView");
@@ -203,21 +211,32 @@ class VFXSlotContainerEditor : Editor
 
                 if (controllers != null)
                 {
+                    var currentGizmoInfo = s_AllGizmosInfo.ElementAtOrDefault(currentIndex);
+
                     var index = s_AllGizmosInfo.TakeWhile(x => x.view != vfxView).Count();
+                    bool sortNeeded = false;
                     foreach (var controller in controllers)
                     {
                         controller.CollectGizmos();
                         if (s_AllGizmosInfo.All(x => x.view != vfxView || x.controller != controller))
                         {
                             s_AllGizmosInfo.AddRange(controller.gizmoables.Select(x => new GizmoInfo(vfxView, controller, x)));
+                            sortNeeded = true;
                         }
 
                         var currentGizmo = controller.gizmoables.ElementAtOrDefault(currentIndex - index);
-                        if (currentGizmo != null)
+                        if (currentGizmo != null && currentGizmoInfo.controller != null)
                         {
+                            currentGizmoInfo.controller.currentGizmoable = currentGizmoInfo.gizmo;
                             controller.DrawGizmos(vfxView.attachedComponent);
                         }
                         index += controller.gizmoables.Count;
+                    }
+
+                    if (sortNeeded)
+                    {
+                        s_AllGizmosInfo.Sort();
+                        currentIndex = s_AllGizmosInfo.FindIndex(x => x.gizmo == currentGizmoInfo.gizmo && x.controller == currentGizmoInfo.controller);
                     }
                 }
 
@@ -238,7 +257,6 @@ class VFXSlotContainerEditor : Editor
             {
                 if (s_AllGizmosInfo.Count > 0)
                 {
-                    s_AllGizmosInfo.Sort();
                     GUILayout.BeginHorizontal();
                     try
                     {

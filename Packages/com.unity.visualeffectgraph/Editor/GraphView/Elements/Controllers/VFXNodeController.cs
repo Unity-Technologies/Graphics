@@ -86,6 +86,7 @@ namespace UnityEditor.VFX.UI
             foreach (var anchorController in m_InputPorts.Except(newAnchors))
             {
                 anchorController.OnDisable();
+                changed = true;
             }
             m_InputPorts = newAnchors;
 
@@ -96,13 +97,17 @@ namespace UnityEditor.VFX.UI
             foreach (var anchorController in m_OutputPorts.Except(newAnchors))
             {
                 anchorController.OnDisable();
+                changed = true;
             }
             m_OutputPorts = newAnchors;
             m_SyncingSlots = false;
 
             // Call after base.ModelChanged which ensure the ui has been refreshed before we try to create potiential new edges.
             if (changed)
+            {
                 viewController.DataEdgesMightHaveChanged();
+                VFXSlotContainerEditor.SceneViewVFXSlotContainerOverlay.ClearGizmos();
+            }
 
             NotifyChange(AnyThing);
         }
