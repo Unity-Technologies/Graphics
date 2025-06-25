@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering
         internal int cullingPassId;
         internal bool copyDepth;
         internal bool hasMotionVectorPass;
+        internal bool spaceWarpRightHandedNDC;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal UnityEngine.XR.XRDisplaySubsystem.XRRenderPass xrSdkRenderPass;
@@ -104,6 +105,22 @@ namespace UnityEngine.Experimental.Rendering
         ///  If true, the render pipeline is expected to generate motion data and output to the motionVectorRenderTarget.
         /// </summary>
         public bool hasMotionVectorPass { get; private set; }
+
+        /// <summary>
+        /// Reports which NDC convention the render pipeline should use when calculating motion vectors.
+        /// if <c>true</c>, motion vector data must use the right-handed NDC space. If <c>false</c> motion vector data 
+        /// must use the left-handed NDC space.
+        /// </summary>
+        /// <remarks>
+        /// The render pipeline must write motion vector data to the <see cref="UnityEngine.XR.XRDisplaySubsystem.XRRenderPass.motionVectorRenderTarget"/>.
+        ///
+        /// > [!NOTE]
+        /// > The OpenXR specification doesn't specify which coordinate space convention to use for the
+        /// > motion vector data. Unity only supports SpaceWarp when using the Vulkan graphics API, which uses the right-handed convention for normalized device coordinates, but
+        /// > devices still can choose either convention for motion data when the
+        /// > application is using the Vulkan graphics API.
+        /// </remarks>
+        public bool spaceWarpRightHandedNDC { get; private set; }
 
         /// <summary>
         /// If true, is the first pass of a xr camera
@@ -480,6 +497,7 @@ namespace UnityEngine.Experimental.Rendering
             motionVectorRenderTarget = new RenderTargetIdentifier(createInfo.motionVectorRenderTarget, 0, CubemapFace.Unknown, -1);
             motionVectorRenderTargetDesc = createInfo.motionVectorRenderTargetDesc;
             hasMotionVectorPass = createInfo.hasMotionVectorPass;
+            spaceWarpRightHandedNDC = createInfo.spaceWarpRightHandedNDC;
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
             occlusionMeshScale = createInfo.occlusionMeshScale;
             foveatedRenderingInfo = createInfo.foveatedRenderingInfo;

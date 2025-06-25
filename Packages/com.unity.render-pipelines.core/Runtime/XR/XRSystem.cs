@@ -533,6 +533,7 @@ namespace UnityEngine.Experimental.Rendering
                 multipassId             = layout.GetActivePasses().Count,
                 cullingPassId           = xrRenderPass.cullingPassIndex,
                 copyDepth               = xrRenderPass.shouldFillOutDepth,
+                spaceWarpRightHandedNDC = xrRenderPass.spaceWarpRightHandedNDC,
                 xrSdkRenderPass         = xrRenderPass
             };
 
