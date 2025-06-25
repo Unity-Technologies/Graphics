@@ -217,14 +217,16 @@ namespace UnityEngine.Rendering
                     var matIndices = GetMaterialIndices(renderer.component);
                     var perSubMeshMask = new uint[subMeshCount];
                     Array.Fill(perSubMeshMask, GetInstanceMask(renderer.component.shadowCastingMode));
+                    Span<bool> perSubMeshOpaqueness = stackalloc bool[subMeshCount];
+                    perSubMeshOpaqueness.Fill(true);
 
-                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, perSubMeshMask, matIndices, 1);
+                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, perSubMeshMask, matIndices, perSubMeshOpaqueness, 1);
                 }
 
                 foreach (var terrain in contributors.terrains)
                 {
                     uint mask = GetInstanceMask(terrain.component.shadowCastingMode);
-                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { mask }, new uint[1] { 0 }, 1);
+                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { mask }, new uint[1] { 0 }, new bool[1] { true }, 1);
                 }
 
                 return accelStruct;

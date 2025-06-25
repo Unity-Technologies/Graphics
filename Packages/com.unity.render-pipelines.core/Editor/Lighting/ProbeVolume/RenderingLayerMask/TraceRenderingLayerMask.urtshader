@@ -5,7 +5,7 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ShaderVariablesProbeVolumes.cs.hlsl"
 
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
-#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRay.hlsl"
+#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 
 #define QRNG_METHOD_SOBOL
 #define SAMPLE_COUNT 32

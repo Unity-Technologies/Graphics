@@ -3,7 +3,7 @@
 #define UNIFIED_RT_GROUP_SIZE_Y 1
 
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
-#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRay.hlsl"
+#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Common.hlsl"
 
 #define QRNG_METHOD_SOBOL
