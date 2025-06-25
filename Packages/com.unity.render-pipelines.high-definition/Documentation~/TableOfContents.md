@@ -112,6 +112,7 @@
       * [Path tracing limitations](path-tracing-limitations.md)
     * [Ray Tracing Settings](Ray-Tracing-Settings.md)
     * [Ray tracing hardware requirements](raytracing-requirements.md)
+    * [Troubleshoot ray tracing issues](raytracing-troubleshooting.md)
   * [Volumetric lighting](lighting-volumetric.md)
     * [Enable and configure volumtetric lights](Volumetric-Lighting.md)
     * [Screen space lens flare](shared/lens-flare/Override-Screen-Space-Lens-Flare.md)
