@@ -1,6 +1,6 @@
 # Visual Effect (Component)
 
-The Visual Effect Component creates an instance of a Visual Effect in the scene, based on a Visual Effect Graph Asset. It controls how the effect plays, renders and let the user customize the instance by editing [Exposed Properties](Blackboard.md#creating-properties).
+The Visual Effect Component creates an instance of a Visual Effect in the scene, based on a Visual Effect Graph Asset. It controls how the effect plays, renders and let the user customize the instance by editing [Exposed Properties](Blackboard.md).
 
 ## How to create a Visual Effect
 
