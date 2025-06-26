@@ -774,6 +774,11 @@ namespace UnityEngine.Rendering.Universal
             if (useRenderPassEnabled || useDepthPriming)
                 createColorTexture |= createDepthTexture;
 
+			// If gfxAPI yflips intermediate texture, we can't mix-use backbuffer(not flipped) and render texture(flipped) due to different flip state/clipspace y.
+			// This introduces the final blit pass.
+			if(SystemInfo.graphicsUVStartsAtTop)
+				createColorTexture |= createDepthTexture;
+			
             //Set rt descriptors so preview camera's have access should it be needed
             var colorDescriptor = cameraTargetDescriptor;
             colorDescriptor.useMipMap = false;
