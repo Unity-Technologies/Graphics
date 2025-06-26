@@ -151,8 +151,15 @@ namespace UnityEngine.Rendering.Universal
                         builder.UseTexture(passData.lightTextures[i]);
                 }
 
+                if (rendererData.useCameraSortingLayerTexture)
+                    builder.UseTexture(universal2DResourceData.cameraSortingLayerTexture);
+
+                // Set color and depth attachments
                 builder.SetRenderAttachment(commonResourceData.activeColorTexture, 0);
-                builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture);
+
+                if (rendererData.useDepthStencilBuffer)
+                    builder.SetRenderAttachmentDepth(commonResourceData.activeDepthTexture);
+
                 builder.AllowGlobalStateModification(true);
 
                 // Post set global light textures for next renderer pass 
