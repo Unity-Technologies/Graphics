@@ -1275,7 +1275,7 @@ namespace UnityEngine.Rendering.Universal
             internal int downsample;
         }
 
-        public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, Camera camera, in TextureHandle destination, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture, bool enableXR)
+        public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, Camera camera, in TextureHandle destination, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture, bool enableXR, bool sameInputOutputTex)
         {
             var downsample = (int) m_LensFlareScreenSpace.resolution.value;
 
@@ -1300,7 +1300,8 @@ namespace UnityEngine.Rendering.Universal
                 passData.screenSpaceLensFlareBloomMipTexture = screenSpaceLensFlareBloomMipTexture;
                 builder.UseTexture(screenSpaceLensFlareBloomMipTexture, AccessFlags.ReadWrite);
                 passData.originalBloomTexture = originalBloomTexture;
-                builder.UseTexture(originalBloomTexture, AccessFlags.ReadWrite);
+                if(!sameInputOutputTex)
+                    builder.UseTexture(originalBloomTexture, AccessFlags.ReadWrite);
                 passData.sourceDescriptor = m_Descriptor;
                 passData.camera = camera;
                 passData.material = m_Materials.lensFlareScreenSpace;
@@ -2090,7 +2091,8 @@ namespace UnityEngine.Rendering.Universal
                     if (useLensFlareScreenSpace)
                     {
                         int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
-                        BloomTexture = RenderLensFlareScreenSpace(renderGraph, cameraData.camera, in currentSource, _BloomMipUp[0], _BloomMipUp[maxBloomMip], cameraData.xr.enabled);
+                        bool sameInputOutputTex = maxBloomMip == 0;
+                        BloomTexture = RenderLensFlareScreenSpace(renderGraph, cameraData.camera, in currentSource, _BloomMipUp[0], _BloomMipUp[maxBloomMip], cameraData.xr.enabled, sameInputOutputTex);
                     }
 
                     UberPostSetupBloomPass(renderGraph, in BloomTexture, m_Materials.uber);
