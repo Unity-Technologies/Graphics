@@ -8,8 +8,6 @@ If you receive a texture sampling error while using this node in a graph that in
 
 When you assign the same Texture2D to a POM node and a Sample Texture 2D node, you need to avoid transforming the UV coordinates twice. To prevent this, connect the Split Texture Transform node’s **Texture Only** port to the Sample Texture 2D Node’s **UV** port.
 
-![](images/ParallaxOcclusionMappingThumb.png)
-
 ## Ports
 
 | Name | **Direction** | Type | Description |
