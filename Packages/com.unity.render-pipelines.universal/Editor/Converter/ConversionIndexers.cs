@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using UnityEditor.Search;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -6,14 +8,35 @@ namespace UnityEditor.Rendering.Universal
 {
     static class ConversionIndexers
     {
-        private const int k_Version = 8;
+        private const int k_Version = 9;
 
-        [CustomObjectIndexer(typeof(Object), version = k_Version)]
+        [CustomObjectIndexer(typeof(Component), version = k_Version)]
+        internal static void ComponentConversionIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
+        {
+            ConversionIndexer(context, indexer);
+        }
+
+        [CustomObjectIndexer(typeof(ScriptableObject), version = k_Version)]
+        internal static void ScriptableObjectConversionIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
+        {
+            ConversionIndexer(context, indexer);
+        }
+
         internal static void ConversionIndexer(CustomObjectIndexerTarget context, ObjectIndexer indexer)
         {
+            var path = AssetDatabase.GetAssetPath(context.target);
+            if (path.StartsWith("Packages"))
+                return;
+            
             //Custom finding of all default Material properties on every single object type including custom types
             if (MaterialReferenceBuilder.MaterialReferenceLookup.TryGetValue(context.targetType, out var methods))
             {
+                if (!string.IsNullOrEmpty(path) &&
+                    !path.EndsWith(".asset", StringComparison.InvariantCultureIgnoreCase) &&
+                    !path.EndsWith(".prefab", StringComparison.InvariantCultureIgnoreCase) &&
+                    !path.EndsWith(".unity", StringComparison.InvariantCultureIgnoreCase))
+                    return;
+
                 foreach (var method in methods)
                 {
                     if (method == null) continue;
