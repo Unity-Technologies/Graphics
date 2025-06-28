@@ -37,10 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float shadowDimmer;
         public float shadowFadeDistance;
         public float volumetricShadowDimmer;
-        public float shapeWidth;
-        public float shapeHeight;
-        public float aspectRatio;
-        public float innerSpotPercent;
         public float spotIESCutoffPercent;
         public float shapeRadius;
         public float barnDoorLength;
@@ -64,9 +60,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float shadowNearPlane;
         public float normalBias;
-        public float shapeHeight;
-        public float aspectRatio;
-        public float shapeWidth;
         public float areaLightShadowCone;
         public float softnessScale;
         public float angularDiameter;
@@ -139,9 +132,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             shadowNearPlane = additionalLightData.shadowNearPlane;
             normalBias = additionalLightData.normalBias;
-            shapeHeight = additionalLightData.shapeHeight;
-            aspectRatio = additionalLightData.aspectRatio;
-            shapeWidth = additionalLightData.shapeWidth;
             areaLightShadowCone = additionalLightData.areaLightShadowCone;
             softnessScale = additionalLightData.softnessScale;
             angularDiameter = additionalLightData.angularDiameter;
@@ -256,26 +246,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetShapeWidth(in HDLightRenderEntity entity, float shapeWidth)
-        {
-            if (!entity.valid)
-                return;
-
-            EditLightDataAsRef(entity).shapeWidth = shapeWidth;
-            EditAdditionalLightUpdateDataAsRef(entity).shapeWidth = shapeWidth;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetShapeHeight(in HDLightRenderEntity entity, float shapeHeight)
-        {
-            if (!entity.valid)
-                return;
-
-            EditLightDataAsRef(entity).shapeHeight = shapeHeight;
-            EditAdditionalLightUpdateDataAsRef(entity).shapeHeight = shapeHeight;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetShapeRadius(in HDLightRenderEntity entity, float shapeRadius)
         {
             if (!entity.valid)
@@ -283,16 +253,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             EditLightDataAsRef(entity).shapeRadius = shapeRadius;
             EditAdditionalLightUpdateDataAsRef(entity).shapeRadius = shapeRadius;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAspectRatio(in HDLightRenderEntity entity, float aspectRatio)
-        {
-            if (!entity.valid)
-                return;
-
-            EditLightDataAsRef(entity).aspectRatio = aspectRatio;
-            EditAdditionalLightUpdateDataAsRef(entity).aspectRatio = aspectRatio;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

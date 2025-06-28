@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
             EnableApplyRangeAttenuationOnBoxLight,
             UpdateLightShapeToCore,
             UpdateLightUnitsToCore,
+            UpdateSpotLightParamsToCore,
         }
 
         /// <summary>
@@ -237,8 +238,74 @@ namespace UnityEngine.Rendering.HighDefinition
                     // This is a temporary solution until we break out areaSize into multiple fields
                     light.areaSize = new Vector2(data.aspectRatio, light.areaSize.y);
                 }
+            }),
+            MigrationStep.New(Version.UpdateSpotLightParamsToCore, (HDAdditionalLightData data) =>
+            {
+                // Copy data from the HDRP's HDAdditionalLight component to the Unity's Light component
+                // Assign -1.0f (invalid value) to the deprecated variables to detect if they are animated. (See MigrateFromTimeline)
+
+                var light = data.GetComponent<Light>();
+                if (light.type == LightType.Pyramid)
+                {
+                    light.innerSpotAngle = 360f / Mathf.PI * Mathf.Atan(data.m_AspectRatio * Mathf.Tan(light.spotAngle * Mathf.PI / 360f));
+                    data.m_AspectRatio = -1.0f;
+                }
+                else
+                {
+                    light.innerSpotAngle = data.m_InnerSpotPercent * light.spotAngle / 100f;
+                    data.m_InnerSpotPercent = -1.0f;
+                }
+
+                if (light.type == LightType.Directional)
+                {
+                    light.cookieSize2D = new Vector2(data.m_ShapeWidth, data.m_ShapeHeight);
+                    data.m_ShapeWidth = data.m_ShapeHeight = -1.0f;
+                }
+                else if (light.type == LightType.Disc)
+                {
+                    // Disc lights already store their size in Light.areaSize. Don't overwrite it.
+                }
+                else
+                {
+                    light.areaSize = new Vector2(data.m_ShapeWidth, data.m_ShapeHeight);
+                    data.m_ShapeWidth = data.m_ShapeHeight = -1.0f;
+                }
             })
             );
+
+        /// <summary>
+        /// Migrate deprecated variables if they are animated
+        /// </summary>
+        void MigrateFromTimeline()
+        {
+            var lightType = legacyLight.type;
+
+            if (lightType == LightType.Pyramid)
+            {
+                if (m_AspectRatio != -1.0f)
+                    legacyLight.innerSpotAngle = 360f / Mathf.PI * Mathf.Atan(m_AspectRatio * Mathf.Tan(legacyLight.spotAngle * Mathf.PI / 360f));
+            }
+            else
+            {
+                if (m_InnerSpotPercent != -1.0f)
+                    legacyLight.innerSpotAngle = m_InnerSpotPercent * legacyLight.spotAngle / 100f;
+            }
+
+            if (lightType == LightType.Directional)
+            {
+                if (m_ShapeWidth != -1.0f || m_ShapeHeight != -1.0f)
+                    legacyLight.cookieSize2D = new Vector2(m_ShapeWidth, m_ShapeHeight);
+            }
+            else if (lightType == LightType.Disc)
+            {
+                // nop
+            }
+            else
+            {
+                if (m_ShapeWidth != -1.0f || m_ShapeHeight != -1.0f)
+                    legacyLight.areaSize = new Vector2(m_ShapeWidth, m_ShapeHeight);
+            }
+        }
 #pragma warning restore 0618, 0612
 
         void Migrate()

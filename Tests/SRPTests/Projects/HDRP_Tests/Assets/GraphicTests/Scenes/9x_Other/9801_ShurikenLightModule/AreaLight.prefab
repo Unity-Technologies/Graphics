@@ -35,6 +35,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2997601937897835841, guid: 83ae364135d2e8a42a20211bed1ca55a,
         type: 3}
+      propertyPath: m_AreaSize.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2997601937897835841, guid: 83ae364135d2e8a42a20211bed1ca55a,
+        type: 3}
+      propertyPath: m_AreaSize.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2997601937897835841, guid: 83ae364135d2e8a42a20211bed1ca55a,
+        type: 3}
       propertyPath: m_BoundingSphereOverride.w
       value: 1.4
       objectReference: {fileID: 0}

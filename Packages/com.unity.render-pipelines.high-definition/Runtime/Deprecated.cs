@@ -577,6 +577,148 @@ namespace UnityEngine.Rendering.HighDefinition
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
+
+        [Obsolete("This property has been deprecated. Use Light.innerSpotAngle.", false)]
+        [Range(k_MinSpotInnerPercent, k_MaxSpotInnerPercent)]
+        [SerializeField]
+        float m_InnerSpotPercent = -1.0f;
+
+        /// <summary>
+        /// Get/Set the inner spot radius in percent.
+        /// </summary>
+        [Obsolete("This property has been deprecated. Use Light.innerSpotAngle.", false)]
+        public float innerSpotPercent
+        {
+            get => legacyLight.innerSpotAngle / legacyLight.spotAngle * 100f;
+            set => legacyLight.innerSpotAngle = value * legacyLight.spotAngle / 100f;
+        }
+
+        /// <summary>
+        /// Get the inner spot radius between 0 and 1.
+        /// </summary>
+        [Obsolete("This property has been deprecated. Use Light.innerSpotAngle.", false)]
+        public float innerSpotPercent01 => legacyLight.innerSpotAngle / legacyLight.spotAngle;
+
+        /// <summary>
+        /// Set the spot light angle and inner spot percent. We don't use Light.innerSpotAngle.
+        /// </summary>
+        /// <param name="angle">inner spot angle in degree</param>
+        /// <param name="innerSpotPercent">inner spot angle in percent</param>
+        [Obsolete("This function has been deprecated. Directly set Light.spotAngle and Light.innerSpotAngle instead.", false)]
+        public void SetSpotAngle(float angle, float innerSpotPercent = 0)
+        {
+            legacyLight.spotAngle = angle;
+            legacyLight.innerSpotAngle = innerSpotPercent * angle / 100f;
+        }
+
+        /// Control the width of an area, a box spot light or a directional light cookie.
+        [Obsolete("This property has been deprecated.", false)]
+        [SerializeField, FormerlySerializedAs("shapeWidth")]
+        float m_ShapeWidth = -1.0f;
+
+        /// <summary>
+        /// Control the width of an area, a box spot light or a directional light cookie.
+        /// </summary>
+        [Obsolete("This property has been deprecated. For directional lights, use Light.cookieSize2D.x instead. For other lights, use Light.areaSize.x.", false)]
+        public float shapeWidth
+        {
+            get
+            {
+                if (legacyLight.type == LightType.Directional)
+                {
+                    return legacyLight.cookieSize2D.x;
+                }
+                return legacyLight.areaSize.x;
+            }
+            set
+            {
+                if (legacyLight.type == LightType.Directional)
+                {
+                    legacyLight.cookieSize2D = new Vector2(value, legacyLight.cookieSize2D.y);
+                }
+                else
+                {
+                    legacyLight.areaSize = new Vector2(value, legacyLight.areaSize.y);
+                    UpdateAllLightValues();
+                }
+            }
+        }
+
+        [Obsolete("This property has been deprecated.", false)]
+        [SerializeField, FormerlySerializedAs("shapeHeight")]
+        float m_ShapeHeight = -1.0f;
+
+        /// <summary>
+        /// Control the height of an area, a box spot light or a directional light cookie.
+        /// </summary>
+        [Obsolete("This property has been deprecated. For directional lights, use Light.cookieSize2D.y instead. For other lights, use Light.areaSize.y.", false)]
+        public float shapeHeight
+        {
+            get
+            {
+                if (legacyLight.type == LightType.Directional)
+                {
+                    return legacyLight.cookieSize2D.y;
+                }
+                return legacyLight.areaSize.y;
+            }
+            set
+            {
+                if (legacyLight.type == LightType.Directional)
+                {
+                    legacyLight.cookieSize2D = new Vector2(legacyLight.cookieSize2D.x, value);
+                }
+                else
+                {
+                    legacyLight.areaSize = new Vector2(legacyLight.areaSize.x, value);
+                    UpdateAllLightValues();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set the area light size.
+        /// </summary>
+        /// <param name="size"></param>
+        [Obsolete("This method has been deprecated. Set Light.areaSize instead.", false)]
+        public void SetAreaLightSize(Vector2 size)
+        {
+            if (legacyLight.type.IsArea())
+            {
+                legacyLight.areaSize = size;
+            }
+        }
+
+        /// <summary>
+        /// Set the box spot light size.
+        /// </summary>
+        /// <param name="size"></param>
+        [Obsolete("This method has been deprecated. Set Light.areaSize instead.", false)]
+        public void SetBoxSpotSize(Vector2 size)
+        {
+            if (legacyLight.type == LightType.Box)
+            {
+                legacyLight.areaSize = size;
+            }
+        }
+
+        [Obsolete("This property has been deprecated. Use Light.spotAngles instead.", false)]
+        [SerializeField, FormerlySerializedAs("aspectRatio")]
+        float m_AspectRatio = -1.0f;
+
+        /// <summary>
+        /// Get/Set the aspect ratio of a pyramid light
+        /// </summary>
+        [Obsolete("This property has been deprecated. Use Light.innerSpotAngle and Light.spotAngle instead.", false)]
+        public float aspectRatio
+        {
+            get => Mathf.Tan(legacyLight.innerSpotAngle * Mathf.PI / 360f) / Mathf.Tan(legacyLight.spotAngle * Mathf.PI / 360f);
+            set
+            {
+                legacyLight.innerSpotAngle = 360f / Mathf.PI * Mathf.Atan(value * Mathf.Tan(legacyLight.spotAngle * Mathf.PI / 360f));
+                UpdateAllLightValues();
+            }
+        }
     }
 
     public static partial class GameObjectExtension
@@ -624,7 +766,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return AddHDLight(gameObject, type);
         }
     }
-  
+
     partial class HDRenderPipelineGlobalSettings
     {
         #region Custom Post Processes Injections

@@ -175,8 +175,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightData.rangeAttenuationBias = hugeValue;
                 }
 
-                float shapeWidthVal = lightRenderData.shapeWidth;
-                float shapeHeightVal = lightRenderData.shapeHeight;
+                float shapeWidthVal = light.areaSize.x;
+                float shapeHeightVal = light.areaSize.y;
 
                 if (lightData.lightType == GPULightType.Tube) shapeHeightVal = 0;
                 if (lightData.lightType == GPULightType.Disc) shapeHeightVal = shapeWidthVal;
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Get width and height for the current frustum
                     var spotAngle = light.spotAngle;
-                    float aspectRatioValue = lightRenderData.aspectRatio;
+                    float aspectRatioValue = Mathf.Tan(light.innerSpotAngle * Mathf.PI / 360f) / Mathf.Tan(light.spotAngle * Mathf.PI / 360f);
 
                     float frustumWidth, frustumHeight;
 
@@ -230,10 +230,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var spotAngle = light.spotAngle;
 
-                    var innerConePercent = lightRenderData.innerSpotPercent / 100.0f;
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
                     var sinSpotOuterHalfAngle = Mathf.Sqrt(1.0f - cosSpotOuterHalfAngle * cosSpotOuterHalfAngle);
-                    var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
+                    var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(light.innerSpotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
 
                     var val = Mathf.Max(0.0001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
                     lightData.angleScale = 1.0f / val;
@@ -583,8 +582,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.isRayTracedContactShadow = 0.0f;
 
                 // Rescale for cookies and windowing.
-                lightData.right = light.GetRight() * 2 / Mathf.Max(lightRenderData.shapeWidth, 0.001f);
-                lightData.up = light.GetUp() * 2 / Mathf.Max(lightRenderData.shapeHeight, 0.001f);
+                lightData.right = light.GetRight() * 2 / Mathf.Max(light.areaSize.x, 0.001f);
+                lightData.up = light.GetUp() * 2 / Mathf.Max(light.areaSize.y, 0.001f);
                 lightData.positionRWS = light.GetPosition();
                 lightData.shadowDimmer = lightRenderData.shadowDimmer;
 

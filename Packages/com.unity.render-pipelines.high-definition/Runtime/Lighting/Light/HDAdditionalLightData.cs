@@ -147,33 +147,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [Range(k_MinSpotInnerPercent, k_MaxSpotInnerPercent)]
         [SerializeField]
-        float m_InnerSpotPercent; // To display this field in the UI this need to be public
-        /// <summary>
-        /// Get/Set the inner spot radius in percent.
-        /// </summary>
-        public float innerSpotPercent
-        {
-            get => m_InnerSpotPercent;
-            set
-            {
-                if (m_InnerSpotPercent == value)
-                    return;
-
-                m_InnerSpotPercent = Mathf.Clamp(value, k_MinSpotInnerPercent, k_MaxSpotInnerPercent);
-
-                if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).innerSpotPercent = m_InnerSpotPercent;
-            }
-        }
-
-        /// <summary>
-        /// Get the inner spot radius between 0 and 1.
-        /// </summary>
-        public float innerSpotPercent01 => innerSpotPercent / 100f;
-
-
-        [Range(k_MinSpotInnerPercent, k_MaxSpotInnerPercent)]
-        [SerializeField]
         float m_SpotIESCutoffPercent = 100.0f; // To display this field in the UI this need to be public
         /// <summary>
         /// Get/Set the spot ies cutoff.
@@ -338,73 +311,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (lightEntity.valid)
                     HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).useRayTracedShadows = m_UseRayTracedShadows && !m_NonLightmappedOnly;
 
-            }
-        }
-
-        // Only for Rectangle/Line/box projector lights.
-        [SerializeField, FormerlySerializedAs("shapeWidth")]
-        float m_ShapeWidth = 0.5f;
-        /// <summary>
-        /// Control the width of an area, a box spot light or a directional light cookie.
-        /// </summary>
-        public float shapeWidth
-        {
-            get => m_ShapeWidth;
-            set
-            {
-                if (m_ShapeWidth == value)
-                    return;
-
-                var lightType = legacyLight.type;
-                if (lightType.IsArea())
-                    m_ShapeWidth = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
-                else
-                    m_ShapeWidth = Mathf.Clamp(value, 0, float.MaxValue);
-                UpdateAllLightValues();
-                HDLightRenderDatabase.instance.SetShapeWidth(lightEntity, m_ShapeWidth);
-            }
-        }
-
-        // Only for Rectangle/box projector and rectangle area lights
-        [SerializeField, FormerlySerializedAs("shapeHeight")]
-        float m_ShapeHeight = 0.5f;
-        /// <summary>
-        /// Control the height of an area, a box spot light or a directional light cookie.
-        /// </summary>
-        public float shapeHeight
-        {
-            get => m_ShapeHeight;
-            set
-            {
-                if (m_ShapeHeight == value)
-                    return;
-
-                if (legacyLight.type.IsArea())
-                    m_ShapeHeight = Mathf.Clamp(value, k_MinAreaWidth, float.MaxValue);
-                else
-                    m_ShapeHeight = Mathf.Clamp(value, 0, float.MaxValue);
-                UpdateAllLightValues();
-                HDLightRenderDatabase.instance.SetShapeHeight(lightEntity, m_ShapeHeight);
-            }
-        }
-
-        // Only for pyramid projector
-        [SerializeField, FormerlySerializedAs("aspectRatio")]
-        float m_AspectRatio = 1.0f;
-        /// <summary>
-        /// Get/Set the aspect ratio of a pyramid light
-        /// </summary>
-        public float aspectRatio
-        {
-            get => m_AspectRatio;
-            set
-            {
-                if (m_AspectRatio == value)
-                    return;
-
-                m_AspectRatio = Mathf.Clamp(value, k_MinAspectRatio, k_MaxAspectRatio);
-                UpdateAllLightValues();
-                HDLightRenderDatabase.instance.SetAspectRatio(lightEntity, m_AspectRatio);
             }
         }
 
@@ -2844,12 +2750,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                         else // Pyramid
                         {
+                            float aspectRatio = Mathf.Tan(lightData.legacyLight.innerSpotAngle * Mathf.PI / 360f) / Mathf.Tan(lightData.legacyLight.spotAngle * Mathf.PI / 360f);
                             oldSolidAngle = LightUnitUtils.GetSolidAngleFromPyramidLight(
                                 lightData.timelineWorkaround.oldSpotAngle,
-                                lightData.aspectRatio);
+                                aspectRatio);
                             newSolidAngle = LightUnitUtils.GetSolidAngleFromPyramidLight(
                                 lightData.legacyLight.spotAngle,
-                                lightData.aspectRatio);
+                                aspectRatio);
                         }
 
                         float oldLumen = LightUnitUtils.CandelaToLumen(lightData.legacyLight.intensity, oldSolidAngle);
@@ -2885,7 +2792,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="data">Destination component</param>
         public void CopyTo(HDAdditionalLightData data)
         {
-            data.m_InnerSpotPercent = m_InnerSpotPercent;
             data.m_SpotIESCutoffPercent = m_SpotIESCutoffPercent;
             data.m_LightDimmer = m_LightDimmer;
             data.m_VolumetricDimmer = m_VolumetricDimmer;
@@ -2894,9 +2800,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_AffectDiffuse = m_AffectDiffuse;
             data.m_AffectSpecular = m_AffectSpecular;
             data.m_NonLightmappedOnly = m_NonLightmappedOnly;
-            data.m_ShapeWidth = m_ShapeWidth;
-            data.m_ShapeHeight = m_ShapeHeight;
-            data.m_AspectRatio = m_AspectRatio;
             data.m_ShapeRadius = m_ShapeRadius;
             data.m_SoftnessScale = m_SoftnessScale;
             data.m_UseCustomSpotLightShadowCone = m_UseCustomSpotLightShadowCone;
@@ -3055,9 +2958,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RefreshCachedShadow();
 
-            // Light size must be non-zero, else we get NaNs.
-            shapeWidth = Mathf.Max(shapeWidth, k_MinLightSize);
-            shapeHeight = Mathf.Max(shapeHeight, k_MinLightSize);
             shapeRadius = Mathf.Max(shapeRadius, 0.0f);
 
 #if UNITY_EDITOR
@@ -3143,35 +3043,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Update light area size with clamping
-            Vector3 lightSize = new Vector3(m_ShapeWidth, m_ShapeHeight, 0);
+            Vector3 lightSize = new Vector3(legacyLight.areaSize.x, legacyLight.areaSize.y, 0);
             if (lightType == LightType.Tube)
                 lightSize.y = 0;
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
-
-            switch (lightType)
-            {
-                case LightType.Rectangle:
-                    m_ShapeWidth = lightSize.x;
-                    m_ShapeHeight = lightSize.y;
-                    break;
-                case LightType.Tube:
-                    m_ShapeWidth = lightSize.x;
-                    break;
-                case LightType.Disc:
-                    m_ShapeWidth = lightSize.x;
-                    m_ShapeHeight = lightSize.x;
-                    break;
-                default:
-                    break;
-            }
-
-            if (lightEntity.valid)
-            {
-                ref HDLightRenderData lightRenderData = ref HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity);
-                lightRenderData.shapeWidth = m_ShapeWidth;
-                lightRenderData.shapeHeight = m_ShapeHeight;
-            }
-
             legacyLight.areaSize = lightSize;
 
             // Update child emissive mesh scale
@@ -3230,9 +3105,7 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyLight.useShadowMatrixOverride = false;
             // TODO: Don't use bounding sphere overrides. Support this properly in Unity native instead.
             legacyLight.useBoundingSphereOverride = true;
-            float halfWidth = m_ShapeWidth * 0.5f;
-            float halfHeight = m_ShapeHeight * 0.5f;
-            float diag = Mathf.Sqrt(halfWidth * halfWidth + halfHeight * halfHeight);
+            float diag = 0.5f * legacyLight.areaSize.magnitude;
             legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, range + diag);
         }
 
@@ -3241,7 +3114,7 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyLight.useShadowMatrixOverride = false;
             // TODO: Don't use bounding sphere overrides. Support this properly in Unity native instead.
             legacyLight.useBoundingSphereOverride = true;
-            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, range + m_ShapeWidth);
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, range + legacyLight.areaSize.x);
         }
 
         void UpdateTubeLightBounds()
@@ -3249,7 +3122,7 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyLight.useShadowMatrixOverride = false;
             // TODO: Don't use bounding sphere overrides. Support this properly in Unity native instead.
             legacyLight.useBoundingSphereOverride = true;
-            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, range + m_ShapeWidth * 0.5f);
+            legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, range + legacyLight.areaSize.x * 0.5f);
         }
 
         void UpdateBoxLightBounds()
@@ -3260,10 +3133,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Need to inverse scale because culling != rendering convention apparently
             Matrix4x4 scaleMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f));
-            legacyLight.shadowMatrixOverride = HDShadowUtils.ExtractBoxLightProjectionMatrix(legacyLight.range, shapeWidth, m_ShapeHeight, shadowNearPlane) * scaleMatrix;
+            legacyLight.shadowMatrixOverride = HDShadowUtils.ExtractBoxLightProjectionMatrix(legacyLight.range, legacyLight.areaSize.x, legacyLight.areaSize.y, shadowNearPlane) * scaleMatrix;
 
             // Very conservative bounding sphere taking the diagonal of the shape as the radius
-            float diag = new Vector3(shapeWidth * 0.5f, m_ShapeHeight * 0.5f, legacyLight.range * 0.5f).magnitude;
+            float diag = 0.5f * new Vector3(legacyLight.areaSize.x, legacyLight.areaSize.y, legacyLight.range).magnitude;
             legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, legacyLight.range * 0.5f, diag);
         }
 
@@ -3275,7 +3148,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Need to inverse scale because culling != rendering convention apparently
             Matrix4x4 scaleMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f));
-            legacyLight.shadowMatrixOverride = HDShadowUtils.ExtractSpotLightProjectionMatrix(legacyLight.range, legacyLight.spotAngle, shadowNearPlane, aspectRatio, 0.0f) * scaleMatrix;
+            float aspect = Mathf.Tan(legacyLight.innerSpotAngle * Mathf.PI / 360f) / Mathf.Tan(legacyLight.spotAngle * Mathf.PI / 360f);
+            legacyLight.shadowMatrixOverride = HDShadowUtils.ExtractSpotLightProjectionMatrix(legacyLight.range, legacyLight.spotAngle, shadowNearPlane, aspect, 0.0f) * scaleMatrix;
             legacyLight.boundingSphereOverride = new Vector4(0.0f, 0.0f, 0.0f, legacyLight.range);
         }
 
@@ -3309,24 +3183,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void UpdateShapeSize()
-        {
-            // Force to clamp the shape if we changed the type of the light
-            shapeWidth = m_ShapeWidth;
-            shapeHeight = m_ShapeHeight;
-
-            if (legacyLight.type == LightType.Pyramid)
-            {
-                // Pyramid lights use areaSize.x for aspect ratio.
-                legacyLight.areaSize = new Vector2(aspectRatio, 0);
-            }
-            else if (legacyLight.type != LightType.Disc)
-            {
-                // We don't want to update the disc area since their shape is largely handled by builtin.
-                legacyLight.areaSize = new Vector2(shapeWidth, shapeHeight);
-            }
-        }
-
         /// <summary>
         /// Synchronize all the HD Additional Light values with the Light component.
         /// </summary>
@@ -3337,10 +3193,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void UpdateAllLightValues(bool fromTimeLine)
         {
-            UpdateShapeSize();
-
             // Patch bounds
             UpdateBounds();
+
+            if (fromTimeLine)
+            {
+                MigrateFromTimeline();
+            }
 
             UpdateAreaLightEmissiveMesh(fromTimeLine: fromTimeLine);
         }
@@ -3415,8 +3274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 if (lightType == LightType.Directional)
                 {
-                    shapeWidth = directionalLightCookieSize.x;
-                    shapeHeight = directionalLightCookieSize.y;
+                    legacyLight.cookieSize2D = directionalLightCookieSize;
                 }
                 legacyLight.cookie = cookie;
             }
@@ -3427,17 +3285,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cookie">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
         public void SetCookie(Texture cookie) => SetCookie(cookie, Vector2.zero);
-
-        /// <summary>
-        /// Set the spot light angle and inner spot percent. We don't use Light.innerSpotAngle.
-        /// </summary>
-        /// <param name="angle">inner spot angle in degree</param>
-        /// <param name="innerSpotPercent">inner spot angle in percent</param>
-        public void SetSpotAngle(float angle, float innerSpotPercent = 0)
-        {
-            this.legacyLight.spotAngle = angle;
-            this.innerSpotPercent = innerSpotPercent;
-        }
 
         /// <summary>
         /// Set the dimmer for light and volumetric light.
@@ -3592,35 +3439,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         public float[] SetLayerShadowCullDistances(float[] layerShadowCullDistances) => legacyLight.layerShadowCullDistances = layerShadowCullDistances;
 
-        /// <summary>
-        /// Set the area light size.
-        /// </summary>
-        /// <param name="size"></param>
-        public void SetAreaLightSize(Vector2 size)
-        {
-            if (legacyLight.type.IsArea())
-            {
-                m_ShapeWidth = size.x;
-                m_ShapeHeight = size.y;
-                HDLightRenderDatabase.instance.SetShapeWidth(lightEntity, m_ShapeWidth);
-                HDLightRenderDatabase.instance.SetShapeHeight(lightEntity, m_ShapeHeight);
-                UpdateAllLightValues();
-            }
-        }
-
-        /// <summary>
-        /// Set the box spot light size.
-        /// </summary>
-        /// <param name="size"></param>
-        public void SetBoxSpotSize(Vector2 size)
-        {
-            if (legacyLight.type == LightType.Box)
-            {
-                shapeWidth = size.x;
-                shapeHeight = size.y;
-            }
-        }
-
 #if UNITY_EDITOR
         /// <summary> [Editor Only] Set the lightmap bake type. </summary>
         public LightmapBakeType lightmapBakeType
@@ -3719,10 +3537,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.shadowDimmer = m_ShadowDimmer;
             lightRenderData.shadowFadeDistance = m_ShadowFadeDistance;
             lightRenderData.volumetricShadowDimmer = m_VolumetricShadowDimmer;
-            lightRenderData.shapeWidth = m_ShapeWidth;
-            lightRenderData.shapeHeight = m_ShapeHeight;
-            lightRenderData.aspectRatio = m_AspectRatio;
-            lightRenderData.innerSpotPercent = m_InnerSpotPercent;
             lightRenderData.spotIESCutoffPercent = m_SpotIESCutoffPercent;
             lightRenderData.shapeRadius = m_ShapeRadius;
             lightRenderData.barnDoorLength = m_BarnDoorLength;

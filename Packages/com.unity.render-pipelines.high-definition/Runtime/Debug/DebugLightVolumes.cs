@@ -220,14 +220,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case LightType.Box:
                     mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
-                    mpb.SetVector(_RangeShaderID, new Vector3(currentHDRLight.shapeWidth, currentHDRLight.shapeHeight, currentLegacyLight.range));
+                    mpb.SetVector(_RangeShaderID, new Vector3(currentLegacyLight.areaSize.x, currentLegacyLight.areaSize.y, currentLegacyLight.range));
                     mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, currentLegacyLight.range / 2.0f));
                     cmd.DrawMesh(DebugShapes.instance.RequestBoxMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, debugLightVolumeMaterial, 0, 0, mpb);
                     break;
                 case LightType.Pyramid:
-                    float bottomWidth = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * currentLegacyLight.range;
+                    float bottomX = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * currentLegacyLight.range;
+                    float bottomY = Mathf.Tan(currentLegacyLight.innerSpotAngle * Mathf.PI / 360.0f) * currentLegacyLight.range;
                     mpb.SetColor(_ColorShaderID, new Color(1.0f, 0.5f, 0.0f, 1.0f));
-                    mpb.SetVector(_RangeShaderID, new Vector3(currentHDRLight.aspectRatio * bottomWidth * 2, bottomWidth * 2, currentLegacyLight.range));
+                    mpb.SetVector(_RangeShaderID, new Vector3(bottomY * 2, bottomX * 2, currentLegacyLight.range));
                     mpb.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
                     cmd.DrawMesh(DebugShapes.instance.RequestPyramidMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, debugLightVolumeMaterial, 0, 0, mpb);
                     break;

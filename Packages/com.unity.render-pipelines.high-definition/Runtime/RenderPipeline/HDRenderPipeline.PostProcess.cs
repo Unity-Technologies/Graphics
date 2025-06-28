@@ -3828,7 +3828,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Do nothing point are omnidirectional for the Lens Flare
                         return LensFlareCommonSRP.ShapeAttenuationPointLight();
                     case LightType.Spot:
-                        return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(hdLightData.transform.forward, wo, light.spotAngle, hdLightData.innerSpotPercent01);
+                        return LensFlareCommonSRP.ShapeAttenuationSpotConeLight(hdLightData.transform.forward, wo, light.spotAngle, light.innerSpotAngle / light.spotAngle);
                     case LightType.Pyramid:
                         return LensFlareCommonSRP.ShapeAttenuationSpotPyramidLight(hdLightData.transform.forward, wo);
                     case LightType.Box:
@@ -3836,7 +3836,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     case LightType.Rectangle:
                         return LensFlareCommonSRP.ShapeAttenuationAreaRectangleLight(hdLightData.transform.forward, wo);
                     case LightType.Tube:
-                        return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(hdLightData.transform.position, hdLightData.transform.right, hdLightData.shapeWidth, cam);
+                        return LensFlareCommonSRP.ShapeAttenuationAreaTubeLight(hdLightData.transform.position, hdLightData.transform.right, light.areaSize.x, cam);
                     case LightType.Disc:
                         return LensFlareCommonSRP.ShapeAttenuationAreaDiscLight(hdLightData.transform.forward, wo);
                     default: throw new Exception($"GetLensFlareLightAttenuation HDLightType Unknown {typeof(LightType)}: {hdLightData.legacyLight.type}");

@@ -144,17 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (lightType == LightType.Disc)
             {
-                EditorGUI.BeginChangeCheck();
-
                 base.OnSceneGUI();
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    // Necessary since the built-in disk light logic doesn't update the HDRP property when
-                    // changing the radius through the disk's gizmo in the scene view.
-                    m_SerializedHDLight.shapeWidth.floatValue = targetAdditionalData.legacyLight.areaSize.x;
-                    m_SerializedHDLight.Apply();
-                }
             }
             else
                 HDLightUI.DrawHandles(targetAdditionalData, this);

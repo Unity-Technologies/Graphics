@@ -143,37 +143,35 @@ namespace UnityEngine.Rendering.HighDefinition
             props.lightRadius = additionalLightData.shapeRadius;
             props.lightPosition = additionalLightData.transform.position;
             props.kernelSize = additionalLightData.filterSizeTraced;
-            props.lightConeAngle = additionalLightData.legacyLight.spotAngle * (float)Math.PI / 180.0f;
+            props.lightConeAngle = additionalLightData.legacyLight.spotAngle * Mathf.PI / 180.0f;
             props.distanceBasedDenoiser = additionalLightData.distanceBasedFiltering;
 
             switch (lightData.lightType)
             {
                 case (GPULightType.ProjectorPyramid):
                 {
-                    float spotHalfAngleRadians = 0.5f * props.lightConeAngle;
-
                     // Scale up one of the pyramind light angles based on aspect ratio
                     // We reuse _RaytracingLightSizeX and _RaytracingLightSizeY for the pyramid angles here
-                    if (additionalLightData.aspectRatio < 1.0f)
+                    if (additionalLightData.legacyLight.innerSpotAngle < additionalLightData.legacyLight.spotAngle)
                     {
-                        float scaledLightAngle = 2.0f * Mathf.Atan(Mathf.Tan(spotHalfAngleRadians) / additionalLightData.aspectRatio);
+                        float tanInnerSpotAngle = Mathf.Tan(additionalLightData.legacyLight.innerSpotAngle * Mathf.PI / 360f);
+                        float tanSpotAngle = Mathf.Tan(additionalLightData.legacyLight.spotAngle * Mathf.PI / 360f);
+                        float aspectRatio = tanInnerSpotAngle / tanSpotAngle;
 
                         props.lightSizeX = props.lightConeAngle;
-                        props.lightSizeY = scaledLightAngle;
+                        props.lightSizeY = 2.0f * Mathf.Atan(tanSpotAngle / aspectRatio);
                     }
                     else
                     {
-                        float scaledLightAngle = 2.0f * Mathf.Atan(Mathf.Tan(spotHalfAngleRadians) * additionalLightData.aspectRatio);
-
-                        props.lightSizeX = scaledLightAngle;
+                        props.lightSizeX = additionalLightData.legacyLight.innerSpotAngle * Mathf.Deg2Rad;
                         props.lightSizeY = props.lightConeAngle;
                     }
                 }
                 break;
                 default:
                 {
-                    props.lightSizeX = additionalLightData.shapeWidth;
-                    props.lightSizeY = additionalLightData.shapeHeight;
+                    props.lightSizeX = additionalLightData.legacyLight.areaSize.x;
+                    props.lightSizeY = additionalLightData.legacyLight.areaSize.y;
                 }
                 break;
             }

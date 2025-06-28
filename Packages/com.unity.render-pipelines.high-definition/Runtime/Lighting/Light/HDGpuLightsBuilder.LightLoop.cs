@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CookieParameters cookieParams = new CookieParameters()
             {
                 texture = lightComponent?.cookie,
-                size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight),
+                size = lightComponent.cookieSize2D,
                 position = light.GetPosition()
             };
 

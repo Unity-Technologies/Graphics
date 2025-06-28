@@ -273,8 +273,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         break;
                     case LightArchetype.Area:
                         serialized.settings.lightType.SetEnumValue(LightType.Rectangle);
-                        serialized.shapeWidth.floatValue = Mathf.Max(serialized.shapeWidth.floatValue, HDAdditionalLightData.k_MinLightSize);
-                        serialized.shapeHeight.floatValue = Mathf.Max(serialized.shapeHeight.floatValue, HDAdditionalLightData.k_MinLightSize);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -425,8 +423,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     else if (lightType == LightType.Box)
                     {
                         // Box directional light.
-                        EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthBox);
-                        EditorGUILayout.PropertyField(serialized.shapeHeight, s_Styles.shapeHeightBox);
+                        EditorGUILayout.PropertyField(serialized.settings.areaSizeX, s_Styles.shapeWidthBox);
+                        EditorGUILayout.PropertyField(serialized.settings.areaSizeY, s_Styles.shapeHeightBox);
                     }
                     else if (lightType == LightType.Spot)
                     {
@@ -443,7 +441,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         float spacing = EditorGUIUtility.pixelsPerPoint * 2f;
 
                         float max = oldSpotAngle;
-                        float min = (serialized.spotInnerPercent.floatValue / 100f) * max;
+                        float min = serialized.settings.innerSpotAngle.floatValue;
 
                         Rect position = EditorGUILayout.GetControlRect();
 
@@ -468,7 +466,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             serialized.customSpotLightShadowCone.floatValue = Math.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
                             min = Mathf.Clamp(min, HDAdditionalLightData.k_MinSpotAngle, max);
-                            serialized.spotInnerPercent.floatValue = min / max * 100f;
+                            serialized.settings.innerSpotAngle.floatValue = min;
                         }
 
                         EditorGUI.BeginChangeCheck();
@@ -476,7 +474,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (EditorGUI.EndChangeCheck())
                         {
                             min = Mathf.Clamp(min, HDAdditionalLightData.k_MinSpotAngle, max);
-                            serialized.spotInnerPercent.floatValue = min / max * 100f;
+                            serialized.settings.innerSpotAngle.floatValue = min;
                             serialized.settings.spotAngle.floatValue = max;
                             serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
                             needsReflectedIntensityRecalc = (max != oldSpotAngle);
@@ -517,19 +515,28 @@ namespace UnityEditor.Rendering.HighDefinition
                         bool isReflectorRelevant = serialized.settings.enableSpotReflector.boolValue && serialized.settings.lightUnit.GetEnumValue<LightUnit>() == LightUnit.Lumen;
                         bool needsReflectedIntensityRecalc = false;
                         float oldSpotAngle = serialized.settings.spotAngle.floatValue;
-                        float oldAspectRatio = serialized.aspectRatio.floatValue;
+                        float oldAspectRatio = serialized.settings.areaSizeX.floatValue;
                         EditorGUI.BeginChangeCheck();
                         serialized.settings.DrawSpotAngle();
                         if (EditorGUI.EndChangeCheck())
                         {
                             serialized.customSpotLightShadowCone.floatValue = Math.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
                             needsReflectedIntensityRecalc = true;
+                            // Change the innerSpotAngle to keep the same aspect ratio.
+                            float aspect =
+                                Mathf.Tan(serialized.settings.innerSpotAngle.floatValue * Mathf.PI / 360f)
+                                / Mathf.Tan(oldSpotAngle * Mathf.PI / 360f);
+                            float innerAngle = 360f / Mathf.PI *
+                                               Mathf.Atan(aspect * Mathf.Tan(serialized.settings.spotAngle.floatValue * Mathf.PI / 360f));
+                            serialized.settings.innerSpotAngle.floatValue = innerAngle;
                         }
                         EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.Slider(serialized.aspectRatio, HDAdditionalLightData.k_MinAspectRatio, HDAdditionalLightData.k_MaxAspectRatio, s_Styles.aspectRatioPyramid);
+                        float aspectRatio = Mathf.Tan(serialized.settings.innerSpotAngle.floatValue * Mathf.PI / 360f) / Mathf.Tan(serialized.settings.spotAngle.floatValue * Mathf.PI / 360f);
+                        float newAspectRatio = EditorGUILayout.Slider(s_Styles.aspectRatioPyramid, aspectRatio, 0.05f, 20f);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            serialized.settings.areaSizeX.floatValue = serialized.aspectRatio.floatValue;
+                            float newInnerSpotAngle = 360f / Mathf.PI * Mathf.Atan(newAspectRatio * Mathf.Tan(serialized.settings.spotAngle.floatValue * Mathf.PI / 360f));
+                            serialized.settings.innerSpotAngle.floatValue = newInnerSpotAngle;
                             needsReflectedIntensityRecalc = true;
                         }
 
@@ -539,7 +546,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             // recalculate candela so lumen value remains constant
                             float oldSolidAngle = LightUnitUtils.GetSolidAngleFromPyramidLight(oldSpotAngle, oldAspectRatio);
                             float oldLumen = LightUnitUtils.CandelaToLumen(serialized.settings.intensity.floatValue, oldSolidAngle);
-                            float newSolidAngle = LightUnitUtils.GetSolidAngleFromPyramidLight(serialized.settings.spotAngle.floatValue, serialized.aspectRatio.floatValue);
+                            float newSolidAngle = LightUnitUtils.GetSolidAngleFromPyramidLight(serialized.settings.spotAngle.floatValue, serialized.settings.areaSizeX.floatValue);
                             float newCandela = LightUnitUtils.LumenToCandela(oldLumen, newSolidAngle);
                             serialized.settings.intensity.floatValue = newCandela;
                         }
@@ -603,12 +610,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (lightType == LightType.Rectangle)
                     {
                         EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthRect);
-                        EditorGUILayout.PropertyField(serialized.shapeHeight, s_Styles.shapeHeightRect);
+                        EditorGUILayout.PropertyField(serialized.settings.areaSizeX, s_Styles.shapeWidthRect);
+                        EditorGUILayout.PropertyField(serialized.settings.areaSizeY, s_Styles.shapeHeightRect);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            serialized.shapeWidth.floatValue = Mathf.Max(HDAdditionalLightData.k_MinAreaWidth, serialized.shapeWidth.floatValue);
-                            serialized.shapeHeight.floatValue = Mathf.Max(HDAdditionalLightData.k_MinAreaWidth, serialized.shapeHeight.floatValue);
+                            serialized.settings.areaSizeX.floatValue = Mathf.Max(HDAdditionalLightData.k_MinAreaWidth, serialized.settings.areaSizeX.floatValue);
+                            serialized.settings.areaSizeY.floatValue = Mathf.Max(HDAdditionalLightData.k_MinAreaWidth, serialized.settings.areaSizeY.floatValue);
                             // If light intensity is currently displayed as Lumen,
                             // recalculate native (Nits) intensity so displayed Lumen value remains constant
                             if (serialized.settings.lightUnit.GetEnumValue<LightUnit>() == LightUnit.Lumen)
@@ -617,14 +624,12 @@ namespace UnityEditor.Rendering.HighDefinition
                                 float oldArea = LightUnitUtils.GetAreaFromRectangleLight(oldSize);
                                 float oldLumen = LightUnitUtils.NitsToLumen(serialized.settings.intensity.floatValue, oldArea);
 
-                                Vector2 newSize = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
+                                Vector2 newSize = new Vector2(serialized.settings.areaSizeX.floatValue, serialized.settings.areaSizeY.floatValue);
                                 float newArea = LightUnitUtils.GetAreaFromRectangleLight(newSize);
                                 float newNits = LightUnitUtils.LumenToNits(oldLumen, newArea);
 
                                 serialized.settings.intensity.floatValue = newNits;
                             }
-                            serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
-                            serialized.settings.areaSizeY.floatValue = serialized.shapeHeight.floatValue;
                         }
                         if (ShaderConfig.s_BarnDoor == 1)
                         {
@@ -666,10 +671,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     else if (lightType == LightType.Tube)
                     {
                         EditorGUI.BeginChangeCheck();
-                        EditorGUILayout.PropertyField(serialized.shapeWidth, s_Styles.shapeWidthTube);
+                        EditorGUILayout.PropertyField(serialized.settings.areaSizeX, s_Styles.shapeWidthTube);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            serialized.shapeWidth.floatValue = Mathf.Max(HDAdditionalLightData.k_MinLightSize, serialized.shapeWidth.floatValue);
+                            serialized.settings.areaSizeX.floatValue = Mathf.Max(HDAdditionalLightData.k_MinLightSize, serialized.settings.areaSizeX.floatValue);
                             // If light intensity is currently displayed as Lumen,
                             // recalculate native (Nits) intensity so displayed Lumen value remains constant
                             if (serialized.settings.lightUnit.GetEnumValue<LightUnit>() == LightUnit.Lumen)
@@ -678,14 +683,14 @@ namespace UnityEditor.Rendering.HighDefinition
                                 float oldArea = LightUnitUtils.GetAreaFromTubeLight(oldLineWidth);
                                 float oldLumen = LightUnitUtils.NitsToLumen(serialized.settings.intensity.floatValue, oldArea);
 
-                                float newLineWidth = serialized.shapeWidth.floatValue;
+                                float newLineWidth = serialized.settings.areaSizeX.floatValue;
                                 float newArea = LightUnitUtils.GetAreaFromTubeLight(newLineWidth);
                                 float newNits = LightUnitUtils.LumenToNits(oldLumen, newArea);
 
                                 serialized.settings.intensity.floatValue = newNits;
                             }
                             // Fake line with a small rectangle in vanilla unity for GI
-                            serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
+                            serialized.settings.areaSizeX.floatValue = serialized.settings.areaSizeX.floatValue;
                             serialized.settings.areaSizeY.floatValue = HDAdditionalLightData.k_MinLightSize;
                         }
                         // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
@@ -875,12 +880,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         EditorGUI.indentLevel++;
                         EditorGUI.BeginChangeCheck();
-                        var size = new Vector2(serialized.shapeWidth.floatValue, serialized.shapeHeight.floatValue);
+                        var size = serialized.settings.cookieSize2D.vector2Value;
                         size = EditorGUILayout.Vector2Field(s_Styles.cookieSize, size);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            serialized.shapeWidth.floatValue = size.x;
-                            serialized.shapeHeight.floatValue = size.y;
+                            serialized.settings.cookieSize2D.vector2Value = size;
                         }
                         EditorGUI.indentLevel--;
                     }
