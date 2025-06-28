@@ -1,4 +1,3 @@
-using NUnit.Framework;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering
