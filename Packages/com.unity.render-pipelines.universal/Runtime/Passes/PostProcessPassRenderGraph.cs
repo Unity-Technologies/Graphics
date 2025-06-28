@@ -2740,7 +2740,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
                         TextureHandle bloomMipFlareSource = _BloomMipUp[maxBloomMip];
-                        bool sameBloomInputOutputTex = false;
+                        bool sameBloomInputOutputTex = maxBloomMip == 0;
 
                         // Kawase blur does not use the mip pyramid.
                         // It is safe to pass the same texture to both input/output.
