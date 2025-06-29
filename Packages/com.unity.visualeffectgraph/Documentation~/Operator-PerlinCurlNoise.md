@@ -28,4 +28,4 @@ A good use case for Curl Noise is emulating fluid or gas simulation, without hav
 
 | **Output** | **Type** | **Description**                                |
 | ---------- | -------- | ---------------------------------------------- |
-| **Noise**  | Float    | The noise value at the coordinate you specify. |
+| **Noise**  | Float, Vector2, or Vector3 | The noise value at the coordinate you specify. |
