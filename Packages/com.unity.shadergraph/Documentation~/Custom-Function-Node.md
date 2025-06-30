@@ -18,7 +18,7 @@ In the [Graph Inspector](Internal-Inspector.md), open the **Node Settings** to a
 | Menu Item | Description |
 |:----------|:------------|
 | Inputs | A [Custom Port Menu](Custom-Port-Menu.md) that defines the node's input ports. |
-| Outputs | A [Custom Port Menu](Custom-Port-Menu.md) that defines the node's input ports. |
+| Outputs | A [Custom Port Menu](Custom-Port-Menu.md) that defines the node's output ports. |
 | Type | A function type selector. Choose File to reference an external file or string to directly input functions to the node. |
 | Name | Part of the name this custom function has in the final generated code. Suffixed by the function type ` _half ` or ` _float `. |
 | Source | An asset field to reference the external HLSL include file with the `.hlsl` extension. **Available only in `File` mode**. |
@@ -58,7 +58,7 @@ void MyFunction_float(float3 A, float B, out float3 Out)
 #endif //MYHLSLINCLUDE_INCLUDED
 ```
 
-`File` mode allows for more flexbility with custom functions in a graph. You can define uniform variables outside of the function scope, as shown here with a matrix.
+`File` mode allows for more flexibility with custom functions in a graph. You can define uniform variables outside the function scope, as shown here with a matrix.
 
 ```
 //UNITY_SHADER_NO_UPGRADE
