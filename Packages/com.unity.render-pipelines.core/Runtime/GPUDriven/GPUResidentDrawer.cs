@@ -530,7 +530,7 @@ namespace UnityEngine.Rendering
                 rendererIDs[i] = renderers[i] ? renderers[i].GetInstanceID() : 0;
 
             m_Batcher.UpdateSelectedRenderers(rendererIDs);
-            
+
             rendererIDs.Dispose();
 
             Profiler.EndSample();
@@ -620,7 +620,7 @@ namespace UnityEngine.Rendering
                 UpdateSelection();
                 m_IsSelectionDirty = false;
             }
-            
+
             m_FrameUpdateNeeded = false;
 #endif
         }
@@ -827,14 +827,8 @@ namespace UnityEngine.Rendering
 
             if (materials.Length > 0)
             {
-                new ClassifyMaterialsJob
-                {
-                    materialIDs = materials.AsReadOnly(),
-                    batchMaterialHash = m_Batcher.instanceCullingBatcher.batchMaterialHash.AsReadOnly(),
-                    unsupportedMaterialIDs = unsupportedMaterials,
-                    supportedMaterialIDs = supportedMaterials,
-                    supportedPackedMaterialDatas = supportedPackedMaterialDatas
-                }.Run();
+                GPUResidentDrawerBurst.ClassifyMaterials(materials, m_Batcher.instanceCullingBatcher.batchMaterialHash.AsReadOnly(),
+                                                         ref supportedMaterials, ref unsupportedMaterials, ref supportedPackedMaterialDatas);
             }
         }
 
@@ -844,13 +838,8 @@ namespace UnityEngine.Rendering
 
             if (unsupportedMaterials.Length > 0)
             {
-                new FindUnsupportedRenderersJob
-                {
-                    unsupportedMaterials = unsupportedMaterials.AsReadOnly(),
-                    materialIDArrays = m_BatchersContext.sharedInstanceData.materialIDArrays,
-                    rendererGroups = m_BatchersContext.sharedInstanceData.rendererGroupIDs,
-                    unsupportedRenderers = unsupportedRenderers,
-                }.Run();
+                GPUResidentDrawerBurst.FindUnsupportedRenderers(unsupportedMaterials, m_BatchersContext.sharedInstanceData.materialIDArrays,
+                    m_BatchersContext.sharedInstanceData.rendererGroupIDs, ref unsupportedRenderers);
             }
 
             return unsupportedRenderers;
@@ -860,13 +849,8 @@ namespace UnityEngine.Rendering
         {
             NativeHashSet<int> filteredMaterials = new NativeHashSet<int>(materials.Length, allocator);
 
-            new GetMaterialsWithChangedPackedMaterialJob
-            {
-                materialIDs = materials.AsReadOnly(),
-                packedMaterialDatas = packedMaterialDatas.AsReadOnly(),
-                packedMaterialHash = batcher.instanceCullingBatcher.packedMaterialHash.AsReadOnly(),
-                filteredMaterials = filteredMaterials
-            }.Run();
+            GPUResidentDrawerBurst.GetMaterialsWithChangedPackedMaterial(materials, packedMaterialDatas,
+                batcher.instanceCullingBatcher.packedMaterialHash.AsReadOnly(), ref filteredMaterials);
 
             return filteredMaterials;
         }
@@ -891,79 +875,6 @@ namespace UnityEngine.Rendering
             jobHandle.Complete();
 
             return (renderersWithMaterials, renderersWithMeshes);
-        }
-
-        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        private struct ClassifyMaterialsJob : IJob
-        {
-            [ReadOnly] public NativeParallelHashMap<int, BatchMaterialID>.ReadOnly  batchMaterialHash;
-            [ReadOnly] public NativeArray<int>.ReadOnly  materialIDs;
-
-            public NativeList<int> supportedMaterialIDs;
-            public NativeList<int> unsupportedMaterialIDs;
-            public NativeList<GPUDrivenPackedMaterialData> supportedPackedMaterialDatas;
-
-            public void Execute()
-            {
-                var usedMaterialIDs = new NativeList<int>(4, Allocator.TempJob);
-
-                foreach (var materialID in materialIDs)
-                {
-                    if (batchMaterialHash.ContainsKey(materialID))
-                        usedMaterialIDs.Add(materialID);
-                }
-
-                if (usedMaterialIDs.IsEmpty)
-                {
-                    usedMaterialIDs.Dispose();
-                    return;
-                }
-
-                unsupportedMaterialIDs.Resize(usedMaterialIDs.Length, NativeArrayOptions.UninitializedMemory);
-                supportedMaterialIDs.Resize(usedMaterialIDs.Length, NativeArrayOptions.UninitializedMemory);
-                supportedPackedMaterialDatas.Resize(usedMaterialIDs.Length, NativeArrayOptions.UninitializedMemory);
-
-                int unsupportedMaterialCount = GPUDrivenProcessor.ClassifyMaterials(usedMaterialIDs.AsArray(), unsupportedMaterialIDs.AsArray(), supportedMaterialIDs.AsArray(), supportedPackedMaterialDatas.AsArray());
-
-                unsupportedMaterialIDs.Resize(unsupportedMaterialCount, NativeArrayOptions.ClearMemory);
-                supportedMaterialIDs.Resize(usedMaterialIDs.Length - unsupportedMaterialCount, NativeArrayOptions.ClearMemory);
-                supportedPackedMaterialDatas.Resize(supportedMaterialIDs.Length, NativeArrayOptions.ClearMemory);
-
-                usedMaterialIDs.Dispose();
-            }
-        }
-
-        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        private struct FindUnsupportedRenderersJob : IJob
-        {
-            [ReadOnly] public NativeArray<int>.ReadOnly unsupportedMaterials;
-            [ReadOnly] public NativeArray<SmallIntegerArray>.ReadOnly materialIDArrays;
-            [ReadOnly] public NativeArray<int>.ReadOnly rendererGroups;
-
-            public NativeList<int> unsupportedRenderers;
-
-            public unsafe void Execute()
-            {
-                if (unsupportedMaterials.Length == 0)
-                    return;
-
-                for (int arrayIndex = 0; arrayIndex < materialIDArrays.Length; arrayIndex++)
-                {
-                    var materialIDs = materialIDArrays[arrayIndex];
-                    int rendererID = rendererGroups[arrayIndex];
-
-                    for (int i = 0; i < materialIDs.Length; i++)
-                    {
-                        int materialID = materialIDs[i];
-
-                        if (unsupportedMaterials.Contains(materialID))
-                        {
-                            unsupportedRenderers.Add(rendererID);
-                            break;
-                        }
-                    }
-                }
-            }
         }
 
         [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
@@ -1012,7 +923,7 @@ namespace UnityEngine.Rendering
                     }
                     {
                         var rendererMaterials = materialIDArrays[rendererIndex];
-                        
+
                         for (int materialIndex = 0; materialIndex < rendererMaterials.Length; materialIndex++)
                         {
                             var materialID = rendererMaterials[materialIndex];
@@ -1027,31 +938,6 @@ namespace UnityEngine.Rendering
 
                 selectedRenderGroupsForMaterials.AddRangeNoResize(renderersToAddForMaterialsPtr, renderersToAddForMaterials.Length);
                 selectedRenderGroupsForMeshes.AddRangeNoResize(renderersToAddForMeshesPtr, renderersToAddForMeshes.Length);
-            }
-        }
-
-        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        private struct GetMaterialsWithChangedPackedMaterialJob : IJob
-        {
-            [ReadOnly] public NativeArray<int>.ReadOnly materialIDs;
-            [ReadOnly] public NativeArray<GPUDrivenPackedMaterialData>.ReadOnly packedMaterialDatas;
-            [ReadOnly] public NativeParallelHashMap<int, GPUDrivenPackedMaterialData>.ReadOnly packedMaterialHash;
-
-            [WriteOnly] public NativeHashSet<int> filteredMaterials;
-
-            public void Execute()
-            {
-                for (int index = 0; index < materialIDs.Length ; index++)
-                {
-                    var materialID = materialIDs[index];
-                    var newPackedMaterialData = packedMaterialDatas[index];
-
-                    // Has its packed material changed? If the material isn't in the packed material cache, consider the material has changed.
-                    if (packedMaterialHash.TryGetValue(materialID, out var packedMaterial) && packedMaterial.Equals(newPackedMaterialData))
-                        continue;
-
-                    filteredMaterials.Add(materialID);
-                }
             }
         }
     }
