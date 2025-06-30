@@ -1108,13 +1108,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (colorPyramidRT == null)
                     return renderGraph.defaultResources.blackTextureXR;
 
+                bool usePBRAlgo = !transparent && settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
+                TextureHandle ssrAccum = TextureHandle.nullHandle;
+                TextureHandle ssrAccumPrev = TextureHandle.nullHandle;
+
                 using (var builder = renderGraph.AddRenderPass<RenderSSRPassData>("Render SSR", out var passData))
                 {
                     // We disable async for transparent SSR as it would cause direct sync to the graphics pipe and would compete with other heavy passes for GPU resource.
                     bool useAsync = hdCamera.frameSettings.SSRRunsAsync() && !transparent;
                     builder.EnableAsyncCompute(useAsync);
 
-                    bool usePBRAlgo = !transparent && settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
                     var colorPyramid = renderGraph.ImportTexture(colorPyramidRT);
                     var volumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
@@ -1194,8 +1197,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (usePBRAlgo)
                     {
-                        passData.ssrAccum = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation)));
-                        passData.ssrAccumPrev = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation)));
+                        ssrAccum = passData.ssrAccum = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation)));
+                        ssrAccumPrev = passData.ssrAccumPrev = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation)));
                     }
                     else
                     {
@@ -1361,16 +1364,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         });
 
-                    if (usePBRAlgo)
-                    {
-                        PushFullScreenDebugTexture(renderGraph, passData.ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionsAccum);
-                        PushFullScreenDebugTexture(renderGraph, passData.ssrAccumPrev, FullScreenDebugMode.ScreenSpaceReflectionsPrev);
-                    }
-
-                    PushFullScreenDebugTexture(renderGraph, passData.ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection);
-
                     result = passData.ssrAccum;
+
                 }
+
+                if (usePBRAlgo)
+                {
+                    PushFullScreenDebugTexture(renderGraph, ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionsAccum);
+                    PushFullScreenDebugTexture(renderGraph, ssrAccumPrev, FullScreenDebugMode.ScreenSpaceReflectionsPrev);
+                }
+
+                if (ssrAccum.IsValid())
+                    PushFullScreenDebugTexture(renderGraph, ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionSpeedRejection);
 
                 if (!hdCamera.colorPyramidHistoryIsValid)
                 {
