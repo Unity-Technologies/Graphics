@@ -1531,25 +1531,6 @@ namespace UnityEngine.Rendering
             m_CommandBuffer.name = "EnsureValidOcclusionTestResults";
         }
 
-        [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-        private unsafe struct SetupCullingJobInput : IJob
-        {
-            public float lodBias;
-            [NativeDisableUnsafePtrRestriction] public BatchCullingContext* context;
-            [NativeDisableUnsafePtrRestriction] public ReceiverPlanes* receiverPlanes;
-            [NativeDisableUnsafePtrRestriction] public ReceiverSphereCuller* receiverSphereCuller;
-            [NativeDisableUnsafePtrRestriction] public FrustumPlaneCuller* frustumPlaneCuller;
-            [NativeDisableUnsafePtrRestriction] public float* screenRelativeMetric;
-
-            public void Execute()
-            {
-                *receiverPlanes = ReceiverPlanes.Create(*context, Allocator.TempJob);
-                *receiverSphereCuller = ReceiverSphereCuller.Create(*context, Allocator.TempJob);
-                *frustumPlaneCuller = FrustumPlaneCuller.Create(*context, receiverPlanes->planes.AsArray(), *receiverSphereCuller, Allocator.TempJob);
-                *screenRelativeMetric = LODGroupRenderingUtils.CalculateScreenRelativeMetric(context->lodParameters, lodBias); 
-            }
-        }
-
         private unsafe JobHandle CreateFrustumCullingJob(
             in BatchCullingContext cc,
             in CPUInstanceData.ReadOnly instanceData,
@@ -1561,7 +1542,7 @@ namespace UnityEngine.Rendering
             NativeArray<byte> rendererVisibilityMasks,
             NativeArray<byte> rendererCrossFadeValues)
         {
-            Assert.IsTrue(cc.cullingSplits.Length <= 6, "InstanceCullingBatcher supports up to 6 culling splits.");
+            Assert.IsTrue(cc.cullingSplits.Length <= 6, "InstanceCuller supports up to 6 culling splits.");
 
             ReceiverPlanes receiverPlanes;
             ReceiverSphereCuller receiverSphereCuller;
@@ -1570,16 +1551,8 @@ namespace UnityEngine.Rendering
 
             fixed (BatchCullingContext* contextPtr = &cc)
             {
-                new SetupCullingJobInput()
-                {
-                    lodBias = QualitySettings.lodBias,
-                    context = contextPtr,
-                    frustumPlaneCuller = &frustumPlaneCuller,
-                    receiverPlanes = &receiverPlanes,
-                    receiverSphereCuller = &receiverSphereCuller,
-                    screenRelativeMetric = &screenRelativeMetric,
-
-                }.Run();
+                InstanceCullerBurst.SetupCullingJobInput(QualitySettings.lodBias, contextPtr, &receiverPlanes, &receiverSphereCuller,
+                                                         &frustumPlaneCuller, &screenRelativeMetric);
             }
 
             if (occlusionCullingCommon != null)
