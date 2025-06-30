@@ -178,15 +178,20 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Indicates this pass will read a texture on the current fragment position but not unnecessarily modify it. Although not explicitly visible in shader code
         /// Reading may happen depending on the rasterization state, e.g. Blending (read and write) or Z-Testing (read only) may read the buffer.
         ///
-        /// Note: The rendergraph does not know what content will be rendered in the bound texture. By default it assumes only partial data
-        /// is written (e.g. a small rectangle is drawn on the screen) so it will preserve the existing rendertarget content (e.g. behind/around the triangle)
-        /// if you know you will write the full screen the AccessFlags.WriteAll should be used instead as it will give better performance.
         /// </summary>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture.</param>
         /// <param name="flags">How this pass will access the texture. </param>
         /// <param name="mipLevel">Selects which mip map to used.</param>
         /// <param name="depthSlice">Used to index into a texture array. Use -1 to use bind all slices.</param>
+        ///
+        /// <remarks>
+        /// Note: The rendergraph does not know what content will be rendered in the bound texture. By default it assumes only partial data
+        /// is written (e.g. a small rectangle is drawn on the screen) so it will preserve the existing rendertarget content (e.g. behind/around the triangle)
+        /// if you know you will write the full screen the AccessFlags.WriteAll should be used instead as it will give better performance.
+        ///
+        /// Note: Using same texture handle with different depth slices at different rendertarget indices is not supported.
+        /// </remarks>
         void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice);
 
         /// <summary>
@@ -220,6 +225,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="flags">How this pass will access the texture.</param>
         /// <param name="mipLevel">Selects which mip map to used.</param>
         /// <param name="depthSlice">Used to index into a texture array. Use -1 to use bind all slices.</param>
+        ///
+        /// <remarks>
+        /// Using same texture handle with different depth slices at different rendertarget indices is not supported.
+        /// </remarks>
         void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags, int mipLevel, int depthSlice);
 
         /// <summary>
@@ -336,6 +345,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="flags">How this pass will access the texture. Writing is currently not supported on any platform. </param>
         /// <param name="mipLevel">Selects which mip map to used.</param>
         /// <param name="depthSlice">Used to index into a texture array. Use -1 to use bind all slices.</param>
+        ///
+        /// <remarks>
+        /// Using same texture handle with different depth slices at different rendertarget indices is not supported.
+        /// </remarks>
         void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice);
 
         /// <summary>
