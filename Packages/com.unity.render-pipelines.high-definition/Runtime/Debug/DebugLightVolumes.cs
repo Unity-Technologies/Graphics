@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderLightVolumes(RenderGraph renderGraph, LightingDebugSettings lightingDebugSettings, TextureHandle destination, TextureHandle depthBuffer, CullingResults cullResults, HDCamera hdCamera)
         {
-            using (var builder = renderGraph.AddRenderPass<RenderLightVolumesPassData>("LightVolumes", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<RenderLightVolumesPassData>("LightVolumes", out var passData))
             {
                 bool lightOverlapEnabled = CoreUtils.IsLightOverlapDebugEnabled(hdCamera.camera);
                 bool useColorAndEdge = lightingDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.ColorAndEdge || lightOverlapEnabled;
@@ -94,12 +94,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 { format = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeColorAccumulation" });
                 passData.debugLightVolumesTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                 { format = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.black, enableRandomWrite = true, name = "LightVolumeDebugLightVolumesTexture" });
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.destination = builder.WriteTexture(destination);
+                passData.depthBuffer = depthBuffer;
+                builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+                passData.destination = destination;
+                builder.UseTexture(passData.destination, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (RenderLightVolumesPassData data, RenderGraphContext ctx) =>
+                    (RenderLightVolumesPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         RenderTargetIdentifier[] mrt = ctx.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
                         mrt[0] = data.lightCountBuffer;
@@ -108,18 +111,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.lightOverlapEnabled)
                         {
                             // We only need the accumulation buffer, not the color (we only display the outline of the light shape in this mode).
-                            CoreUtils.SetRenderTarget(ctx.cmd, mrt[0], depthBuffer);
+                            CoreUtils.SetRenderTarget(natCmd, mrt[0], depthBuffer);
 
                             // The cull result doesn't contains overlapping lights so we use a custom list
                             foreach (var overlappingHDLight in HDAdditionalLightData.s_overlappingHDLights)
                             {
-                                RenderLightVolume(ctx.cmd, data.debugLightVolumeMaterial, overlappingHDLight, overlappingHDLight.legacyLight, mpb);
+                                RenderLightVolume(natCmd, data.debugLightVolumeMaterial, overlappingHDLight, overlappingHDLight.legacyLight, mpb);
                             }
                         }
                         else
                         {
                             // Set the render target array
-                            CoreUtils.SetRenderTarget(ctx.cmd, mrt, depthBuffer);
+                            CoreUtils.SetRenderTarget(natCmd, mrt, depthBuffer);
 
                             // First of all let's do the regions for the light sources (we only support Punctual and Area)
                             int numLights = data.cullResults.visibleLights.Length;
@@ -130,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 if (currentLegacyLight == null) continue;
                                 if (!currentLegacyLight.TryGetComponent<HDAdditionalLightData>(out var currentHDRLight)) continue;
 
-                                RenderLightVolume(ctx.cmd, data.debugLightVolumeMaterial, currentHDRLight, currentLegacyLight, mpb);
+                                RenderLightVolume(natCmd, data.debugLightVolumeMaterial, currentHDRLight, currentLegacyLight, mpb);
                             }
 
                             // When we enable the light overlap mode we hide probes as they can't be baked in shadow masks
@@ -163,18 +166,18 @@ namespace UnityEngine.Rendering.HighDefinition
                                     m_MaterialProperty.SetColor(_ColorShaderID, new Color(1.0f, 1.0f, 0.0f, 1.0f));
                                     m_MaterialProperty.SetVector(_OffsetShaderID, new Vector3(0, 0, 0));
                                     Matrix4x4 positionMat = Matrix4x4.Translate(currentLegacyProbe.transform.position);
-                                    ctx.cmd.DrawMesh(targetMesh, positionMat, data.debugLightVolumeMaterial, 0, 0, m_MaterialProperty);
+                                    natCmd.DrawMesh(targetMesh, positionMat, data.debugLightVolumeMaterial, 0, 0, m_MaterialProperty);
                                 }
                             }
                         }
 
                         // Set the input params for the compute
-                        ctx.cmd.SetComputeTextureParam(data.debugLightVolumeCS, data.debugLightVolumeKernel, _DebugLightCountBufferShaderID, data.lightCountBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.debugLightVolumeCS, data.debugLightVolumeKernel, _DebugColorAccumulationBufferShaderID, data.colorAccumulationBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.debugLightVolumeCS, data.debugLightVolumeKernel, _DebugLightVolumesTextureShaderID, data.debugLightVolumesTexture);
-                        ctx.cmd.SetComputeTextureParam(data.debugLightVolumeCS, data.debugLightVolumeKernel, _ColorGradientTextureShaderID, data.colorGradientTexture);
-                        ctx.cmd.SetComputeIntParam(data.debugLightVolumeCS, _MaxDebugLightCountShaderID, data.maxDebugLightCount);
-                        ctx.cmd.SetComputeFloatParam(data.debugLightVolumeCS, _BorderRadiusShaderID, data.borderRadius);
+                        natCmd.SetComputeTextureParam(data.debugLightVolumeCS, data.debugLightVolumeKernel, _DebugLightCountBufferShaderID, data.lightCountBuffer);
+                        natCmd.SetComputeTextureParam(data.debugLightVolumeCS, data.debugLightVolumeKernel, _DebugColorAccumulationBufferShaderID, data.colorAccumulationBuffer);
+                        natCmd.SetComputeTextureParam(data.debugLightVolumeCS, data.debugLightVolumeKernel, _DebugLightVolumesTextureShaderID, data.debugLightVolumesTexture);
+                        natCmd.SetComputeTextureParam(data.debugLightVolumeCS, data.debugLightVolumeKernel, _ColorGradientTextureShaderID, data.colorGradientTexture);
+                        natCmd.SetComputeIntParam(data.debugLightVolumeCS, _MaxDebugLightCountShaderID, data.maxDebugLightCount);
+                        natCmd.SetComputeFloatParam(data.debugLightVolumeCS, _BorderRadiusShaderID, data.borderRadius);
 
                         // Texture dimensions
                         int texWidth = data.hdCamera.actualWidth;
@@ -184,12 +187,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         int lightVolumesTileSize = 8;
                         int numTilesX = (texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
                         int numTilesY = (texHeight + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
-                        ctx.cmd.DispatchCompute(data.debugLightVolumeCS, data.debugLightVolumeKernel, numTilesX, numTilesY, data.hdCamera.viewCount);
+                        natCmd.DispatchCompute(data.debugLightVolumeCS, data.debugLightVolumeKernel, numTilesX, numTilesY, data.hdCamera.viewCount);
 
                         // Blit this into the camera target
-                        CoreUtils.SetRenderTarget(ctx.cmd, destination);
+                        CoreUtils.SetRenderTarget(natCmd, destination);
                         mpb.SetTexture(HDShaderIDs._BlitTexture, data.debugLightVolumesTexture);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugLightVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
+                        natCmd.DrawProcedural(Matrix4x4.identity, data.debugLightVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, mpb);
                     });
             }
         }

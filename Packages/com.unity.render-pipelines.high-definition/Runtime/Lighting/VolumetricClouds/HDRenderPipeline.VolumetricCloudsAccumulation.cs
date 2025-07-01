@@ -197,9 +197,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         VolumetricCloudsOutput RenderVolumetricClouds_Accumulation(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType, TextureHandle colorBuffer, TextureHandle depthPyramid)
         {
-            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsAccumulationData>("Volumetric Clouds", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
+            using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsAccumulationData>("Volumetric Clouds", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {
-                builder.EnableAsyncCompute(false);
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
                 // When DRS scale is lower than threshold, trace in half res instead of quarter res
@@ -223,9 +222,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareVolumetricCloudsParameters_Accumulation(hdCamera, settings, cameraType, historyValidity, downscaling);
 
                 // Input buffers
-                passData.colorBuffer = builder.ReadTexture(colorBuffer);
-                passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(m_CloudsDynamicProbeBuffer));
+                passData.colorBuffer = colorBuffer;
+                builder.UseTexture(passData.colorBuffer, AccessFlags.Read);
+                passData.depthPyramid = depthPyramid;
+                builder.UseTexture(passData.depthPyramid, AccessFlags.Read);
+                passData.ambientProbeBuffer = renderGraph.ImportBuffer(m_CloudsDynamicProbeBuffer);
+                builder.UseBuffer(passData.ambientProbeBuffer, AccessFlags.Read);
 
                 // History and pass output
                 hdCamera.intermediateDownscaling = downscaling;
@@ -238,9 +240,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CreateOutputTextures(renderGraph, builder, settings, out passData.cloudsLighting, out passData.cloudsDepth);
 
                 builder.SetRenderFunc(
-                    (VolumetricCloudsAccumulationData data, RenderGraphContext ctx) =>
+                    (VolumetricCloudsAccumulationData data, UnsafeGraphContext ctx) =>
                     {
-                        TraceVolumetricClouds_Accumulation(ctx.cmd, data.parameters,
+                        TraceVolumetricClouds_Accumulation(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.parameters,
                             data.ambientProbeBuffer, data.colorBuffer, data.depthPyramid,
                             data.tracedCloudsLighting, data.tracedCloudsDepth,
                             data.currentHistoryBuffer0, data.previousHistoryBuffer0,

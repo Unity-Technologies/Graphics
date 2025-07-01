@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
             };
 
             var renderCtx = ctx.renderContext;
-            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, renderCtx.CreateRendererList(result));
+            CoreUtils.DrawRendererList(ctx.cmd, renderCtx.CreateRendererList(result));
         }
 
         /// <summary>

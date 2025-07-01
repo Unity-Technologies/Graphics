@@ -259,10 +259,9 @@ namespace UnityEngine.Rendering.HighDefinition
             };
 
             Object.DestroyImmediate(overrideShaderMaterial);
-            var renderCtx = ctx.renderContext;
-            var rendererList = renderCtx.CreateRendererList(result);
+            var rendererList = ctx.renderContext.CreateRendererList(result);
             bool opaque = renderQueueType == RenderQueueType.AllOpaque || renderQueueType == RenderQueueType.OpaqueAlphaTest || renderQueueType == RenderQueueType.OpaqueNoAlphaTest;
-            HDRenderPipeline.RenderForwardRendererList(ctx.hdCamera.frameSettings, rendererList, opaque, ctx.renderContext, ctx.cmd);
+            HDRenderPipeline.RenderForwardRendererList(ctx.hdCamera.frameSettings, rendererList, opaque, ctx.cmd);
         }
 
         /// <summary>

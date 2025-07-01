@@ -206,9 +206,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public CullingResults cameraCullingResult;
             public HDCamera hdCamera;
             public ShaderVariablesGlobal shaderVariablesGlobal;
+            public ScriptableRenderContext renderContext;
         }
 
-        RenderTargets ReadRenderTargets(in RenderGraphBuilder builder, in RenderTargets targets, HDCamera hdCamera)
+        RenderTargets ReadRenderTargets(in IUnsafeRenderGraphBuilder builder, in RenderTargets targets, HDCamera hdCamera)
         {
             RenderTargets output = new RenderTargets();
 
@@ -222,73 +223,105 @@ namespace UnityEngine.Rendering.HighDefinition
             // Problem with that is that it will extend the lifetime of any of those textures to the last custom pass that is executed...
             // Also, we test validity of all handles because depending on where the custom pass is executed, they may not always be.
             if (targets.colorBufferRG.IsValid())
-                output.colorBufferRG = builder.ReadWriteTexture(targets.colorBufferRG);
+            {
+                output.colorBufferRG = targets.colorBufferRG;
+                builder.UseTexture(output.colorBufferRG, AccessFlags.ReadWrite);
+            }
             if (targets.nonMSAAColorBufferRG.IsValid())
-                output.nonMSAAColorBufferRG = builder.ReadWriteTexture(targets.nonMSAAColorBufferRG);
+            {
+                output.nonMSAAColorBufferRG = targets.nonMSAAColorBufferRG;
+                builder.UseTexture(output.nonMSAAColorBufferRG, AccessFlags.ReadWrite);
+            }
             if (targets.depthBufferRG.IsValid())
-                output.depthBufferRG = builder.ReadWriteTexture(targets.depthBufferRG);
+            {
+                output.depthBufferRG = targets.depthBufferRG;
+                builder.UseTexture(output.depthBufferRG, AccessFlags.ReadWrite);
+            }
             if (targets.normalBufferRG.IsValid())
-                output.normalBufferRG = builder.ReadWriteTexture(targets.normalBufferRG);
+            {
+                output.normalBufferRG = targets.normalBufferRG;
+                builder.UseTexture(output.normalBufferRG, AccessFlags.ReadWrite);
+            }
             if (targets.motionVectorBufferRG.IsValid())
-                output.motionVectorBufferRG = builder.ReadWriteTexture(targets.motionVectorBufferRG);
+            {
+                output.motionVectorBufferRG = targets.motionVectorBufferRG;
+                builder.UseTexture(output.motionVectorBufferRG, AccessFlags.ReadWrite);
+            }
             // The rendering layer mask buffer is only accessible through the SG node we expose, and we don't allow writing to it
             if (targets.renderingLayerMaskRG.IsValid())
-                output.renderingLayerMaskRG = builder.ReadTexture(targets.renderingLayerMaskRG);
+            {
+                output.renderingLayerMaskRG = targets.renderingLayerMaskRG;
+                builder.UseTexture(output.renderingLayerMaskRG, AccessFlags.Read);
+            }
             if (targets.waterLineRG.IsValid())
-                output.waterLineRG = builder.ReadBuffer(targets.waterLineRG);
+            {
+                output.waterLineRG = targets.waterLineRG;
+                builder.UseBuffer(output.waterLineRG, AccessFlags.Read);
+            }
             if (targets.shadingRateImageRG.IsValid() && hdCamera.vrsEnabled)
-                output.shadingRateImageRG = builder.ReadTexture(targets.shadingRateImageRG);
+            {
+                output.shadingRateImageRG = targets.shadingRateImageRG;
+                builder.UseTexture(output.shadingRateImageRG, AccessFlags.Read);
+            }
             if (targets.sssBuffer.IsValid())
-                output.sssBuffer = builder.ReadWriteTexture(targets.sssBuffer);
+            {
+                output.sssBuffer = targets.sssBuffer;
+                builder.UseTexture(output.sssBuffer, AccessFlags.ReadWrite);
+            }
             if (targets.diffuseLightingBuffer.IsValid())
-                output.diffuseLightingBuffer = builder.ReadWriteTexture(targets.diffuseLightingBuffer);
+            {
+                output.diffuseLightingBuffer = targets.diffuseLightingBuffer;
+                builder.UseTexture(output.diffuseLightingBuffer, AccessFlags.ReadWrite);
+            }
 
             return output;
         }
 
-        virtual internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
+        virtual internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, ScriptableRenderContext renderContext, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
             this.currentRenderTarget = targets;
             this.currentHDCamera = hdCamera;
 
-            using (var builder = renderGraph.AddRenderPass<ExecutePassData>(name, out ExecutePassData passData, profilingSampler))
+            using (var builder = renderGraph.AddUnsafePass<ExecutePassData>(name, out ExecutePassData passData, profilingSampler))
             {
                 passData.customPass = this;
                 passData.cullingResult = cullingResult;
                 passData.cameraCullingResult = cameraCullingResult;
                 passData.hdCamera = hdCamera;
                 passData.shaderVariablesGlobal = HDRenderPipeline.currentPipeline.GetShaderVariablesGlobalCB();
+                passData.renderContext = renderContext;
 
                 this.currentRenderTarget = ReadRenderTargets(builder, targets, hdCamera);
 
                 builder.SetRenderFunc(
-                    static (ExecutePassData data, RenderGraphContext ctx) =>
+                    static (ExecutePassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         var customPass = data.customPass;
 
-                        ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
+                        natCmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
                         if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
                         {
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
+                            natCmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
                         }
 
                         if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering))
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
+                            natCmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
 
                         if (customPass.currentRenderTarget.renderingLayerMaskRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering)
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._RenderingLayerMaskTexture, customPass.currentRenderTarget.renderingLayerMaskRG);
+                            natCmd.SetGlobalTexture(HDShaderIDs._RenderingLayerMaskTexture, customPass.currentRenderTarget.renderingLayerMaskRG);
 
                         if (customPass.currentRenderTarget.waterLineRG.IsValid() && customPass.injectionPoint >= CustomPassInjectionPoint.BeforePostProcess)
-                            ctx.cmd.SetGlobalBuffer(HDShaderIDs._WaterLineBuffer, customPass.currentRenderTarget.waterLineRG);
+                            natCmd.SetGlobalBuffer(HDShaderIDs._WaterLineBuffer, customPass.currentRenderTarget.waterLineRG);
 
                         if (customPass.currentRenderTarget.normalBufferRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, customPass.currentRenderTarget.normalBufferRG);
+                            natCmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, customPass.currentRenderTarget.normalBufferRG);
 
                         if (customPass.currentRenderTarget.customColorBuffer.IsValueCreated)
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, customPass.currentRenderTarget.customColorBuffer.Value);
+                            natCmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, customPass.currentRenderTarget.customColorBuffer.Value);
                         if (customPass.currentRenderTarget.customDepthBuffer.IsValueCreated)
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, customPass.currentRenderTarget.customDepthBuffer.Value);
+                            natCmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, customPass.currentRenderTarget.customDepthBuffer.Value);
 
                         // Imported and allocated in Prepass.
                         RTHandle sriHandle = data.hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Vrs);
@@ -297,24 +330,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (customPass.enableVariableRateShading && sriHandle != null)
                         {
                             // NOTE: VRS must be set before setting the target. Vulkan VRS is part of a sub-pass which is created on setting the target.
-                            CoreUtils.SetShadingRateImage(ctx.cmd, sriHandle);
-                            CoreUtils.SetShadingRateCombiner(ctx.cmd, ShadingRateCombinerStage.Fragment, ShadingRateCombiner.Override);
+                            CoreUtils.SetShadingRateImage(natCmd, sriHandle);
+                            CoreUtils.SetShadingRateCombiner(natCmd, ShadingRateCombinerStage.Fragment, ShadingRateCombiner.Override);
                             applyVrs = true;
                         }
 
                         if (!customPass.isSetup)
                         {
-                            customPass.Setup(ctx.renderContext, ctx.cmd);
+                            customPass.Setup(data.renderContext, natCmd);
                             customPass.isSetup = true;
                         }
 
-                        customPass.SetCustomPassTarget(ctx.cmd);
+                        customPass.SetCustomPassTarget(natCmd);
 
                         var outputColorBuffer = customPass.currentRenderTarget.colorBufferRG;
 
                         // Create the custom pass context:
                         CustomPassContext customPassCtx = new CustomPassContext(
-                            ctx.renderContext, ctx.cmd, data.hdCamera,
+                            data.renderContext, natCmd, data.hdCamera,
                             data.cullingResult, data.cameraCullingResult,
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
@@ -337,13 +370,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Set back default variable shading rate states
                             // NOTE: VRS must be set before setting the target.
-                            CoreUtils.SetShadingRateImage(ctx.cmd, RenderTargetIdentifier.Invalid);
-                            CoreUtils.SetShadingRateCombiner(ctx.cmd, ShadingRateCombinerStage.Fragment, ShadingRateCombiner.Keep);
+                            CoreUtils.SetShadingRateImage(natCmd, RenderTargetIdentifier.Invalid);
+                            CoreUtils.SetShadingRateCombiner(natCmd, ShadingRateCombinerStage.Fragment, ShadingRateCombiner.Keep);
                         }
 
                         // Set back the camera color buffer if we were using a custom buffer as target
                         if (customPass.getConstrainedDepthBuffer() != TargetBuffer.Camera)
-                            CoreUtils.SetRenderTarget(ctx.cmd, outputColorBuffer);
+                            CoreUtils.SetRenderTarget(natCmd, outputColorBuffer);
                     });
             }
         }

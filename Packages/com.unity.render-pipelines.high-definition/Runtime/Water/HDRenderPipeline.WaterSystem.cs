@@ -839,7 +839,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthPyramid;
         }
 
-        void PrepareWaterGBufferData(RenderGraphBuilder builder, HDCamera hdCamera, TextureHandle normalBuffer, TextureHandle depthPyramid,
+        void PrepareWaterGBufferData(IUnsafeRenderGraphBuilder builder, HDCamera hdCamera, TextureHandle normalBuffer, TextureHandle depthPyramid,
             in HDRenderPipeline.BuildGPULightListOutput lightLists, ref WaterGBuffer gbuffer, WaterGBufferData passData)
         {
             WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
@@ -847,13 +847,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Buffers
             passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
-            passData.layeredOffsetsBuffer = builder.ReadBuffer(lightLists.perVoxelOffset);
-            passData.logBaseBuffer = builder.ReadBuffer(lightLists.perTileLogBaseTweak);
+            passData.layeredOffsetsBuffer = lightLists.perVoxelOffset;
+            builder.UseBuffer(passData.layeredOffsetsBuffer, AccessFlags.Read);
+            passData.logBaseBuffer = lightLists.perTileLogBaseTweak;
+            builder.UseBuffer(passData.logBaseBuffer, AccessFlags.Read);
 
-            passData.normalBuffer = builder.ReadTexture(normalBuffer);
-            passData.depthPyramid = builder.ReadTexture(depthPyramid);
+            passData.normalBuffer = normalBuffer;
+            builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
+            passData.depthPyramid = depthPyramid;
+            builder.UseTexture(passData.depthPyramid, AccessFlags.Read);
 
-            builder.WriteBuffer(gbuffer.cameraHeight);
+            builder.UseBuffer(gbuffer.cameraHeight, AccessFlags.Write);
 
             // Grab all the water surfaces in the scene
             var waterSurfaces = WaterSurface.instancesAsArray;
@@ -1035,40 +1039,43 @@ namespace UnityEngine.Rendering.HighDefinition
                 tileBuffer = renderGraph.CreateBuffer(new BufferDesc((WaterConsts.k_NumWaterVariants + 1) * numTiles * hdCamera.viewCount, sizeof(uint)) { name = "Water Deferred Tiles" })
             };
 
-            using (var builder = renderGraph.AddRenderPass<WaterGBufferData>("Render Water GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.WaterGBuffer)))
+            using (var builder = renderGraph.AddUnsafePass<WaterGBufferData>("Render Water GBuffer", out var passData, ProfilingSampler.Get(HDProfileId.WaterGBuffer)))
             {
                 // Prepare data
                 PrepareWaterGBufferData(builder, hdCamera, normalBuffer, depthPyramid, in lightLists, ref outputGBuffer, passData);
 
                 // Request the output textures
-                builder.UseColorBuffer(outputGBuffer.waterGBuffer0, 0);
-                builder.UseColorBuffer(outputGBuffer.waterGBuffer1, 1);
-                builder.UseColorBuffer(outputGBuffer.waterGBuffer2, 2);
-                builder.UseColorBuffer(outputGBuffer.waterGBuffer3, 3);
-                builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                builder.SetRenderAttachment(outputGBuffer.waterGBuffer0, 0);
+                builder.SetRenderAttachment(outputGBuffer.waterGBuffer1, 1);
+                builder.SetRenderAttachment(outputGBuffer.waterGBuffer2, 2);
+                builder.SetRenderAttachment(outputGBuffer.waterGBuffer3, 3);
+                builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (WaterGBufferData data, RenderGraphContext ctx) =>
+                    (WaterGBufferData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         if (data.decalsEnabled)
-                            DecalSystem.instance.SetAtlas(ctx.cmd);
+                            DecalSystem.instance.SetAtlas(natCmd);
 
                         if (data.layeredOffsetsBuffer.IsValid())
-                            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.layeredOffsetsBuffer);
+                            natCmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.layeredOffsetsBuffer);
                         if (data.logBaseBuffer.IsValid())
-                            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, data.logBaseBuffer);
+                            natCmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, data.logBaseBuffer);
 
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                        natCmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        natCmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
 
-                        data.BindGlobal(ctx.cmd);
+                        data.BindGlobal(natCmd);
 
                         for (int surfaceIdx = 0; surfaceIdx < data.numSurfaces; ++surfaceIdx)
                         {
                             ref var surfaceData = ref data.surfaces[surfaceIdx];
 
                             if (surfaceData.render)
-                                RenderWaterSurface(ctx.cmd, data, ref surfaceData);
+                            {
+                                RenderWaterSurface(natCmd, data, ref surfaceData);
+                            }
                         }
                     });
             }
@@ -1153,7 +1160,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PrepareWaterLighting(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, in HDRenderPipeline.BuildGPULightListOutput lightLists, ref WaterGBuffer gbuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<WaterPrepareLightingData>("Prepare water for lighting", out var passData, ProfilingSampler.Get(HDProfileId.WaterPrepareLighting)))
+            using (var builder = renderGraph.AddUnsafePass<WaterPrepareLightingData>("Prepare water for lighting", out var passData, ProfilingSampler.Get(HDProfileId.WaterPrepareLighting)))
             {
                 // Camera parameters
                 passData.width = hdCamera.actualWidth;
@@ -1171,44 +1178,53 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.classifyTilesKernel = m_WaterClassifyTilesKernel;
 
                 // Input resources
-                passData.gbuffer1 = builder.ReadTexture(gbuffer.waterGBuffer1);
-                passData.gbuffer3 = builder.ReadTexture(gbuffer.waterGBuffer3);
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
-                passData.perVoxelOffset = builder.ReadBuffer(lightLists.perVoxelOffset);
-                passData.perTileLogBaseTweak = builder.ReadBuffer(lightLists.perTileLogBaseTweak);
+                passData.gbuffer1 = gbuffer.waterGBuffer1;
+                builder.UseTexture(passData.gbuffer1, AccessFlags.Read);
+                passData.gbuffer3 = gbuffer.waterGBuffer3;
+                builder.UseTexture(passData.gbuffer3, AccessFlags.Read);
+                passData.depthBuffer = depthBuffer;
+                builder.UseTexture(depthBuffer, AccessFlags.Read);
+                passData.perVoxelOffset = lightLists.perVoxelOffset;
+                builder.UseBuffer(passData.perVoxelOffset, AccessFlags.Read);
+                passData.perTileLogBaseTweak = lightLists.perTileLogBaseTweak;
+                builder.UseBuffer(passData.perTileLogBaseTweak, AccessFlags.Read);
 
                 // Output resources
-                passData.normalBuffer = builder.WriteTexture(normalBuffer);
-                passData.indirectBuffer = builder.WriteBuffer(gbuffer.indirectBuffer);
-                passData.tileBuffer = builder.WriteBuffer(gbuffer.tileBuffer);
+                passData.normalBuffer = normalBuffer;
+                builder.UseTexture(passData.normalBuffer, AccessFlags.Write);
+                passData.indirectBuffer = gbuffer.indirectBuffer;
+                builder.UseBuffer(passData.indirectBuffer, AccessFlags.Write);
+                passData.tileBuffer = gbuffer.tileBuffer;
+                builder.UseBuffer(passData.tileBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (WaterPrepareLightingData data, RenderGraphContext ctx) =>
+                    (WaterPrepareLightingData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Clear indirect args
-                        ctx.cmd.SetComputeBufferParam(data.waterLighting, data.clearIndirectKernel, HDShaderIDs._WaterDispatchIndirectBuffer, data.indirectBuffer);
-                        ctx.cmd.DispatchCompute(data.waterLighting, data.clearIndirectKernel, 1, 1, 1);
+                        natCmd.SetComputeBufferParam(data.waterLighting, data.clearIndirectKernel, HDShaderIDs._WaterDispatchIndirectBuffer, data.indirectBuffer);
+                        natCmd.DispatchCompute(data.waterLighting, data.clearIndirectKernel, 1, 1, 1);
 
                         // Bind the input gbuffer data
                         int kernel = data.classifyTilesKernel;
-                        ctx.cmd.SetComputeIntParam(data.waterLighting, HDShaderIDs._WaterNumTiles, data.numTiles);
-                        ctx.cmd.SetComputeBufferParam(data.waterLighting, kernel, HDShaderIDs._WaterDispatchIndirectBuffer, data.indirectBuffer);
-                        ctx.cmd.SetComputeBufferParam(data.waterLighting, kernel, HDShaderIDs._WaterTileBufferRW, data.tileBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.waterLighting, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.waterLighting, kernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeBufferParam(data.waterLighting, kernel, HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
-                        ctx.cmd.SetComputeBufferParam(data.waterLighting, kernel, HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
-                        ctx.cmd.DispatchCompute(data.waterLighting, kernel, data.tileX, data.tileY, data.viewCount);
+                        natCmd.SetComputeIntParam(data.waterLighting, HDShaderIDs._WaterNumTiles, data.numTiles);
+                        natCmd.SetComputeBufferParam(data.waterLighting, kernel, HDShaderIDs._WaterDispatchIndirectBuffer, data.indirectBuffer);
+                        natCmd.SetComputeBufferParam(data.waterLighting, kernel, HDShaderIDs._WaterTileBufferRW, data.tileBuffer);
+                        natCmd.SetComputeTextureParam(data.waterLighting, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        natCmd.SetComputeTextureParam(data.waterLighting, kernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
+                        natCmd.SetComputeBufferParam(data.waterLighting, kernel, HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
+                        natCmd.SetComputeBufferParam(data.waterLighting, kernel, HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
+                        natCmd.DispatchCompute(data.waterLighting, kernel, data.tileX, data.tileY, data.viewCount);
 
                         if (data.transparentSSR)
                         {
                             // Prepare the normal buffer for SSR
-                            ctx.cmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterGBufferTexture1, data.gbuffer1);
-                            ctx.cmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterGBufferTexture3, data.gbuffer3);
-                            ctx.cmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
-                            ctx.cmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._NormalBufferRW, data.normalBuffer);
-                            ctx.cmd.SetComputeBufferParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterTileBuffer, data.tileBuffer);
-                            ctx.cmd.DispatchCompute(data.waterLighting, data.prepareSSRKernel, data.indirectBuffer, (uint)WaterConsts.k_NumWaterVariants * 3 * sizeof(uint));
+                            natCmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterGBufferTexture1, data.gbuffer1);
+                            natCmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterGBufferTexture3, data.gbuffer3);
+                            natCmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
+                            natCmd.SetComputeTextureParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._NormalBufferRW, data.normalBuffer);
+                            natCmd.SetComputeBufferParam(data.waterLighting, data.prepareSSRKernel, HDShaderIDs._WaterTileBuffer, data.tileBuffer);
+                            natCmd.DispatchCompute(data.waterLighting, data.prepareSSRKernel, data.indirectBuffer, (uint)WaterConsts.k_NumWaterVariants * 3 * sizeof(uint));
                         }
                     });
             }
@@ -1283,14 +1299,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Execute the unique lighting pass
-            using (var builder = renderGraph.AddRenderPass<WaterRenderingDeferredData>("Water Deferred Lighting", out var passData, ProfilingSampler.Get(HDProfileId.WaterDeferredLighting)))
+            using (var builder = renderGraph.AddUnsafePass<WaterRenderingDeferredData>("Water Deferred Lighting", out var passData, ProfilingSampler.Get(HDProfileId.WaterDeferredLighting)))
             {
                 bool needFogTransmittance = LensFlareCommonSRP.IsCloudLayerOpacityNeeded(hdCamera.camera) || Fog.IsMultipleScatteringEnabled(hdCamera, out _);
                 if (needFogTransmittance)
                 {
                     if (!opticalFogTransmittance.IsValid())
                         opticalFogTransmittance = renderGraph.CreateTexture(HDRenderPipeline.GetOpticalFogTransmittanceDesc(hdCamera));
-                    passData.transmittanceBuffer = builder.ReadWriteTexture(opticalFogTransmittance);
+                    passData.transmittanceBuffer = opticalFogTransmittance;
+                    builder.UseTexture(passData.transmittanceBuffer, AccessFlags.ReadWrite);
                 }
 
                 // Prepare all the internal parameters
@@ -1298,73 +1315,89 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.pbrSkyActive = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyType.value == (int)SkyType.PhysicallyBased;
 
                 // GBuffer data
-                passData.indirectBuffer = builder.ReadBuffer(prepassOutput.waterGBuffer.indirectBuffer);
-                passData.tileBuffer = builder.ReadBuffer(prepassOutput.waterGBuffer.tileBuffer);
-                passData.gbuffer0 = builder.ReadTexture(prepassOutput.waterGBuffer.waterGBuffer0);
-                passData.gbuffer1 = builder.ReadTexture(prepassOutput.waterGBuffer.waterGBuffer1);
-                passData.gbuffer2 = builder.ReadTexture(prepassOutput.waterGBuffer.waterGBuffer2);
-                passData.gbuffer3 = builder.ReadTexture(prepassOutput.waterGBuffer.waterGBuffer3);
+                passData.indirectBuffer = prepassOutput.waterGBuffer.indirectBuffer;
+                builder.UseBuffer(passData.indirectBuffer, AccessFlags.Read);
+                passData.tileBuffer = prepassOutput.waterGBuffer.tileBuffer;
+                builder.UseBuffer(passData.tileBuffer, AccessFlags.Read);
+                passData.gbuffer0 = prepassOutput.waterGBuffer.waterGBuffer0;
+                builder.UseTexture(passData.gbuffer0, AccessFlags.Read);
+                passData.gbuffer1 = prepassOutput.waterGBuffer.waterGBuffer1;
+                builder.UseTexture(passData.gbuffer1, AccessFlags.Read);
+                passData.gbuffer2 = prepassOutput.waterGBuffer.waterGBuffer2;
+                builder.UseTexture(passData.gbuffer2, AccessFlags.Read);
+                passData.gbuffer3 = prepassOutput.waterGBuffer.waterGBuffer3;
+                builder.UseTexture(passData.gbuffer3, AccessFlags.Read);
 
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
-                passData.depthPyramid = builder.ReadTexture(depthPyramid);
-                passData.volumetricLightingTexture = builder.ReadTexture(volumetricLightingTexture);
-                passData.transparentSSRLighting = builder.ReadTexture(ssrLighting);
-                passData.perVoxelOffset = builder.ReadBuffer(lightLists.perVoxelOffset);
-                passData.perTileLogBaseTweak = builder.ReadBuffer(lightLists.perTileLogBaseTweak);
-                passData.cameraHeightBuffer = builder.ReadBuffer(prepassOutput.waterGBuffer.cameraHeight);
-                passData.waterLine = builder.ReadBuffer(prepassOutput.waterLine);
+                passData.depthBuffer = depthBuffer;
+                builder.UseTexture(depthBuffer, AccessFlags.Read);
+                passData.depthPyramid = depthPyramid;
+                builder.UseTexture(passData.depthPyramid, AccessFlags.Read);
+                passData.volumetricLightingTexture = volumetricLightingTexture;
+                builder.UseTexture(passData.volumetricLightingTexture, AccessFlags.Read);
+                passData.transparentSSRLighting = ssrLighting;
+                builder.UseTexture(passData.transparentSSRLighting, AccessFlags.Read);
+                passData.perVoxelOffset = lightLists.perVoxelOffset;
+                builder.UseBuffer(passData.perVoxelOffset, AccessFlags.Read);
+                passData.perTileLogBaseTweak = lightLists.perTileLogBaseTweak;
+                builder.UseBuffer(passData.perTileLogBaseTweak, AccessFlags.Read);
+                passData.cameraHeightBuffer = prepassOutput.waterGBuffer.cameraHeight;
+                builder.UseBuffer(passData.cameraHeightBuffer, AccessFlags.Read);
+                passData.waterLine = prepassOutput.waterLine;
+                builder.UseBuffer(passData.waterLine, AccessFlags.Read);
 
                 // Request the output textures
                 passData.waterLightingBuffer = builder.CreateTransientTexture(colorBuffer);
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                passData.colorBuffer = colorBuffer;
+                builder.UseTexture(passData.colorBuffer, AccessFlags.Write);
 
                 // Run the deferred lighting
                 builder.SetRenderFunc(
-                    (WaterRenderingDeferredData data, RenderGraphContext ctx) =>
+                    (WaterRenderingDeferredData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int variantIdx = 0; variantIdx < data.parameters.numVariants; ++variantIdx)
                         {
                             // Kernel to be used for the target variant
                             int kernel = data.parameters.indirectLightingKernels[variantIdx];
 
                             // Bind the input gbuffer data
-                            ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterTileBuffer, data.tileBuffer);
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture0, data.gbuffer0);
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture1, data.gbuffer1);
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture2, data.gbuffer2);
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture3, data.gbuffer3);
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
-                            ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
-                            ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._ColorPyramidTexture, data.colorBuffer); // caution, this is not a pyramid, we can't access LODs
+                            natCmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterTileBuffer, data.tileBuffer);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture0, data.gbuffer0);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture1, data.gbuffer1);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture2, data.gbuffer2);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._WaterGBufferTexture3, data.gbuffer3);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
+                            natCmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
+                            natCmd.SetComputeBufferParam(data.parameters.waterLighting, kernel, HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._ColorPyramidTexture, data.colorBuffer); // caution, this is not a pyramid, we can't access LODs
 
                             // Bind the output texture
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraColorTextureRW, data.waterLightingBuffer);
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, kernel, HDShaderIDs._CameraColorTextureRW, data.waterLightingBuffer);
 
                             // Run the lighting
-                            ctx.cmd.DispatchCompute(data.parameters.waterLighting, kernel, data.indirectBuffer, (uint)variantIdx * 3 * sizeof(uint));
+                            natCmd.DispatchCompute(data.parameters.waterLighting, kernel, data.indirectBuffer, (uint)variantIdx * 3 * sizeof(uint));
                         }
 
                         if (!data.pbrSkyActive)
-                            PhysicallyBasedSkyRenderer.SetDefaultGlobalSkyData(ctx.cmd);
+                            PhysicallyBasedSkyRenderer.SetDefaultGlobalSkyData(natCmd);
 
                         // Evaluate the fog
                         int fogKernel = data.parameters.waterFogKernel;
-                        ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
-                        ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterTileBuffer, data.tileBuffer);
-                        ctx.cmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterGBufferTexture3, data.gbuffer3);
-                        ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._VBufferLighting, data.volumetricLightingTexture);
-                        ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._CameraColorTexture, data.waterLightingBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._CameraColorTextureRW, data.colorBuffer);
+                        natCmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterLineBuffer, data.waterLine);
+                        natCmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterTileBuffer, data.tileBuffer);
+                        natCmd.SetComputeBufferParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
+                        natCmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._WaterGBufferTexture3, data.gbuffer3);
+                        natCmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._VBufferLighting, data.volumetricLightingTexture);
+                        natCmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        natCmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);
+                        natCmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._CameraColorTexture, data.waterLightingBuffer);
+                        natCmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._CameraColorTextureRW, data.colorBuffer);
                         if (data.transmittanceBuffer.IsValid())
-                            ctx.cmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._TransmittanceBufferRW, data.transmittanceBuffer);
-                        ctx.cmd.DispatchCompute(data.parameters.waterLighting, fogKernel, data.indirectBuffer, (uint)WaterConsts.k_NumWaterVariants * 3 * sizeof(uint));
+                            natCmd.SetComputeTextureParam(data.parameters.waterLighting, fogKernel, HDShaderIDs._TransmittanceBufferRW, data.transmittanceBuffer);
+                        natCmd.DispatchCompute(data.parameters.waterLighting, fogKernel, data.indirectBuffer, (uint)WaterConsts.k_NumWaterVariants * 3 * sizeof(uint));
                     });
             }
         }
@@ -1375,7 +1408,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public FrameSettings frameSettings;
             public TextureHandle depthBuffer;
-            public RendererListHandle opaqueRenderList;
+            public RendererListHandle opaqueRendererList;
         }
 
         void WaterRejectionTag(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, TextureHandle depthBuffer)
@@ -1383,7 +1416,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.WaterExclusion))
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<WaterExclusionPassData>("Water Exclusion", out var passData, ProfilingSampler.Get(HDProfileId.WaterExclusion)))
+            using (var builder = renderGraph.AddUnsafePass<WaterExclusionPassData>("Water Exclusion", out var passData, ProfilingSampler.Get(HDProfileId.WaterExclusion)))
             {
                 var depthStateNoWrite = new RenderStateBlock
                 {
@@ -1392,15 +1425,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 };
 
                 passData.frameSettings = hdCamera.frameSettings;
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.opaqueRenderList = builder.UseRendererList(renderGraph.CreateRendererList(HDRenderPipeline.CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_WaterStencilTagName, stateBlock: depthStateNoWrite)));
+                passData.depthBuffer = depthBuffer;
+                builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+
+                passData.opaqueRendererList = renderGraph.CreateRendererList(HDRenderPipeline.CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_WaterStencilTagName, stateBlock: depthStateNoWrite));
+                builder.UseRendererList(passData.opaqueRendererList);
 
                 builder.SetRenderFunc(
-                    (WaterExclusionPassData data, RenderGraphContext ctx) =>
+                    (WaterExclusionPassData data, UnsafeGraphContext ctx) =>
                     {
                         ctx.cmd.SetGlobalInteger(HDShaderIDs._StencilWriteMaskStencilTag, (int)StencilUsage.WaterExclusion);
                         ctx.cmd.SetGlobalInteger(HDShaderIDs._StencilRefMaskStencilTag, (int)StencilUsage.WaterExclusion);
-                        CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.opaqueRenderList);
+                        ctx.cmd.DrawRendererList(data.opaqueRendererList);
                     });
             }
         }

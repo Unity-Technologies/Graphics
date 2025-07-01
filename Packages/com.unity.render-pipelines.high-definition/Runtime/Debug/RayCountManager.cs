@@ -120,11 +120,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Queue<AsyncGPUReadbackRequest> rayCountReadbacks;
         }
 
-        void PrepareEvaluateRayCountPassData(in RenderGraphBuilder builder, EvaluateRayCountPassData data, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle rayCountTexture)
+        void PrepareEvaluateRayCountPassData(in IUnsafeRenderGraphBuilder builder, EvaluateRayCountPassData data, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle rayCountTexture)
         {
-            data.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
-            data.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-            data.rayCountTexture = builder.ReadTexture(rayCountTexture);
+            data.colorBuffer = colorBuffer;
+            builder.SetRenderAttachment(colorBuffer, 0);
+            data.depthBuffer = depthBuffer;
+            builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
+            data.rayCountTexture = rayCountTexture;
+            builder.UseTexture(data.rayCountTexture, AccessFlags.Read);
 
             data.reducedRayCountBuffer0 = builder.CreateTransientBuffer(new BufferDesc((int)RayCountValues.Count * 256 * 256, sizeof(uint)));
             data.reducedRayCountBuffer1 = builder.CreateTransientBuffer(new BufferDesc((int)RayCountValues.Count * 32 * 32, sizeof(uint)));
@@ -143,12 +146,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_IsActive)
             {
-                using (var builder = renderGraph.AddRenderPass<EvaluateRayCountPassData>("RenderRayCountOverlay", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay)))
+                using (var builder = renderGraph.AddUnsafePass<EvaluateRayCountPassData>("RenderRayCountOverlay", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay)))
                 {
                     PrepareEvaluateRayCountPassData(builder, passData, hdCamera, colorBuffer, depthBuffer, rayCountTexture);
 
                     builder.SetRenderFunc(
-                        (EvaluateRayCountPassData data, RenderGraphContext ctx) =>
+                        (EvaluateRayCountPassData data, UnsafeGraphContext ctx) =>
                         {
                             // Get the size of the viewport to process
                             int currentWidth = data.width;

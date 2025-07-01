@@ -1753,7 +1753,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_RecorderCaptureActions == null || !m_RecorderCaptureActions.MoveNext())
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<ExecuteCaptureActionsPassData>("Execute Capture Actions", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<ExecuteCaptureActionsPassData>("Execute Capture Actions", out var passData))
             {
                 var inputDesc = renderGraph.GetTextureDesc(input);
                 var targetSize = RTHandles.rtHandleProperties.currentRenderTargetSize;
@@ -1762,26 +1762,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.blitMaterial = HDUtils.GetBlitMaterial(inputDesc.dimension);
                 passData.recorderCaptureActions = m_RecorderCaptureActions;
-                passData.input = builder.ReadTexture(input);
+                passData.input = input;
+                builder.UseTexture(passData.input, AccessFlags.Read);
                 passData.viewportSize = finalViewport;
                 // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
                 // Since recorder does not know about this, we need to send a texture of the right size.
                 passData.tempTexture = builder.CreateTransientTexture(new TextureDesc((int)finalViewport.width, (int)finalViewport.height)
                 { format = inputDesc.format, name = "TempCaptureActions" });
 
+                builder.AllowPassCulling(false);
+
                 builder.SetRenderFunc(
-                    (ExecuteCaptureActionsPassData data, RenderGraphContext ctx) =>
+                    (ExecuteCaptureActionsPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         mpb.SetTexture(HDShaderIDs._BlitTexture, data.input);
                         mpb.SetVector(HDShaderIDs._BlitScaleBias, data.viewportScale);
                         mpb.SetFloat(HDShaderIDs._BlitMipLevel, 0);
-                        ctx.cmd.SetRenderTarget(data.tempTexture);
-                        ctx.cmd.SetViewport(data.viewportSize);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.blitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
+                        natCmd.SetRenderTarget(data.tempTexture);
+                        natCmd.SetViewport(data.viewportSize);
+                        natCmd.DrawProcedural(Matrix4x4.identity, data.blitMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
 
                         for (data.recorderCaptureActions.Reset(); data.recorderCaptureActions.MoveNext();)
-                            data.recorderCaptureActions.Current(data.tempTexture, ctx.cmd);
+                            data.recorderCaptureActions.Current(data.tempTexture, natCmd);
                     });
             }
         }

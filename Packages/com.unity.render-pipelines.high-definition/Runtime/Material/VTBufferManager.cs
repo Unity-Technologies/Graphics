@@ -106,7 +106,7 @@ namespace  UnityEngine.Rendering.HighDefinition
                     m_DownsampleKernelMSAA = m_DownSampleCS.FindKernel("KMainMSAA");
                 }
 
-                using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
+                using (var builder = renderGraph.AddUnsafePass<ResolveVTData>("Resolve VT", out var passData, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
                 {
                     // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
                     builder.AllowPassCulling(false);
@@ -121,12 +121,15 @@ namespace  UnityEngine.Rendering.HighDefinition
                     passData.downsampleCS = m_DownSampleCS;
                     passData.downsampleKernel = msaa ? m_DownsampleKernelMSAA : m_DownsampleKernel;
 
-                    passData.input = builder.ReadTexture(input);
-                    passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
+                    passData.input = input;
+                    builder.UseTexture(passData.input, AccessFlags.Read);
+                    passData.lowres = renderGraph.ImportTexture(m_LowresResolver);
+                    builder.UseTexture(passData.lowres, AccessFlags.Write);
 
                     builder.SetRenderFunc(
-                        (ResolveVTData data, RenderGraphContext ctx) =>
+                        (ResolveVTData data, UnsafeGraphContext ctx) =>
                         {
+                            var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                             RTHandle lowresBuffer = data.lowres;
                             RTHandle buffer = data.input;
 
@@ -135,17 +138,17 @@ namespace  UnityEngine.Rendering.HighDefinition
 
                             int inputID = (buffer.isMSAAEnabled) ? HDShaderIDs._InputTextureMSAA : HDShaderIDs._InputTexture;
 
-                            ctx.cmd.SetComputeTextureParam(data.downsampleCS, data.downsampleKernel, inputID, buffer);
-                            ctx.cmd.SetComputeTextureParam(data.downsampleCS, data.downsampleKernel, HDShaderIDs._OutputTexture, lowresBuffer);
+                            natCmd.SetComputeTextureParam(data.downsampleCS, data.downsampleKernel, inputID, buffer);
+                            natCmd.SetComputeTextureParam(data.downsampleCS, data.downsampleKernel, HDShaderIDs._OutputTexture, lowresBuffer);
                             var resolveCounter = 0;
                             var startOffsetX = (resolveCounter % kResolveScaleFactor);
                             var startOffsetY = (resolveCounter / kResolveScaleFactor) % kResolveScaleFactor;
-                            ctx.cmd.SetComputeVectorParam(data.downsampleCS, HDShaderIDs._Params, new Vector4(kResolveScaleFactor, startOffsetX, startOffsetY, /*unused*/ -1));
-                            ctx.cmd.SetComputeVectorParam(data.downsampleCS, HDShaderIDs._Params1, new Vector4(data.width, data.height, data.lowresWidth, data.lowresHeight));
+                            natCmd.SetComputeVectorParam(data.downsampleCS, HDShaderIDs._Params, new Vector4(kResolveScaleFactor, startOffsetX, startOffsetY, /*unused*/ -1));
+                            natCmd.SetComputeVectorParam(data.downsampleCS, HDShaderIDs._Params1, new Vector4(data.width, data.height, data.lowresWidth, data.lowresHeight));
                             var TGSize = 8; //Match shader
-                            ctx.cmd.DispatchCompute(data.downsampleCS, data.downsampleKernel, ((int)data.lowresWidth + (TGSize - 1)) / TGSize, ((int)data.lowresHeight + (TGSize - 1)) / TGSize, 1);
+                            natCmd.DispatchCompute(data.downsampleCS, data.downsampleKernel, ((int)data.lowresWidth + (TGSize - 1)) / TGSize, ((int)data.lowresHeight + (TGSize - 1)) / TGSize, 1);
 
-                            data.resolver.Process(ctx.cmd, lowresBuffer, 0, data.lowresWidth, 0, data.lowresHeight, 0, 0);
+                            data.resolver.Process(natCmd, lowresBuffer, 0, data.lowresWidth, 0, data.lowresHeight, 0, 0);
 
                             VirtualTexturing.System.Update();
                         });

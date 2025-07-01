@@ -240,10 +240,8 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle lightingTexture, TextureHandle distanceTexture,
             RTHandle mainHistory, RTHandle accumulationHistory, RTHandle stabilizationHistory)
         {
-            using (var builder = renderGraph.AddRenderPass<ReblurIndirectSpecularPassData>("ReBlur Indirect Specular", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter)))
+            using (var builder = renderGraph.AddUnsafePass<ReblurIndirectSpecularPassData>("ReBlur Indirect Specular", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter)))
             {
-                builder.EnableAsyncCompute(false);
-
                 // Camera parameters
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
@@ -293,17 +291,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.temporalStabilizationKernel = m_TemporalStabilizationKernel;
 
                 // Input resources
-                passData.lightingTexture = builder.ReadTexture(lightingTexture);
-                passData.distanceTexture = builder.ReadTexture(distanceTexture);
-                passData.depthBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
-                passData.depthPyramidBuffer = builder.ReadTexture(prepassOutput.depthPyramidTexture);
-                passData.stencilBuffer = builder.ReadTexture(prepassOutput.stencilBuffer);
-                passData.normalBuffer = builder.ReadTexture(prepassOutput.normalBuffer);
-                passData.motionVectorBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
-                passData.clearCoatTexture = builder.ReadTexture(clearCoatTexture);
-                passData.historyValidation = builder.ReadTexture(historyValidation);
+                passData.lightingTexture = lightingTexture;
+                builder.UseTexture(passData.lightingTexture, AccessFlags.Read);
+                passData.distanceTexture = distanceTexture;
+                builder.UseTexture(passData.distanceTexture, AccessFlags.Read);
+                passData.depthBuffer = prepassOutput.depthBuffer;
+                builder.UseTexture(passData.depthBuffer, AccessFlags.Read);
+                passData.depthPyramidBuffer = prepassOutput.depthPyramidTexture;
+                builder.UseTexture(passData.depthPyramidBuffer, AccessFlags.Read);
+                passData.stencilBuffer = prepassOutput.stencilBuffer;
+                builder.UseTexture(passData.stencilBuffer, AccessFlags.Read);
+                passData.normalBuffer = prepassOutput.normalBuffer;
+                builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
+                passData.motionVectorBuffer = prepassOutput.resolvedMotionVectorsBuffer;
+                builder.UseTexture(passData.motionVectorBuffer, AccessFlags.Read);
+                passData.clearCoatTexture = clearCoatTexture;
+                builder.UseTexture(passData.clearCoatTexture, AccessFlags.Read);
+                passData.historyValidation = historyValidation;
+                builder.UseTexture(passData.historyValidation, AccessFlags.Read);
                 var historyDepth = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
-                passData.historyDepth = historyDepth != null ? builder.ReadTexture(renderGraph.ImportTexture(historyDepth)) : renderGraph.defaultResources.blackTextureXR;
+                if (historyDepth != null)
+                    passData.historyDepth = renderGraph.ImportTexture(historyDepth);
+                else
+                    passData.historyDepth = renderGraph.defaultResources.blackTextureXR;
+                builder.UseTexture(passData.historyDepth, AccessFlags.Read);
+
 
                 // Temporary textures
                 passData.accTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
@@ -314,12 +326,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, useMipMap = true, autoGenerateMips = false, name = "ReBlur Color Pyramid Bis" });
 
                 // Output resources
-                passData.mainHistory = builder.ReadWriteTexture(renderGraph.ImportTexture(mainHistory));
-                passData.accumulationHistory = builder.ReadWriteTexture(renderGraph.ImportTexture(accumulationHistory));
-                passData.stabilizationHistory = builder.ReadWriteTexture(renderGraph.ImportTexture(stabilizationHistory));
+                passData.mainHistory = renderGraph.ImportTexture(mainHistory);
+                builder.UseTexture(passData.mainHistory, AccessFlags.ReadWrite);
+                passData.accumulationHistory = renderGraph.ImportTexture(accumulationHistory);
+                builder.UseTexture(passData.accumulationHistory, AccessFlags.ReadWrite);
+                passData.stabilizationHistory = renderGraph.ImportTexture(stabilizationHistory);
+                builder.UseTexture(passData.stabilizationHistory, AccessFlags.ReadWrite);
 
-                builder.SetRenderFunc((ReblurIndirectSpecularPassData data, RenderGraphContext ctx) =>
+                builder.SetRenderFunc((ReblurIndirectSpecularPassData data, UnsafeGraphContext ctx) =>
                 {
+                    var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+
                     // Evaluate the dispatch parameters
                     int tileSize = 8;
 
@@ -330,159 +347,159 @@ namespace UnityEngine.Rendering.HighDefinition
                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.ReBlurPreBlur)))
                     {
                         // Set the half res keyword
-                        CoreUtils.SetKeyword(ctx.cmd, "HALF_RESOLUTION", !data.fullResolution);
+                        CoreUtils.SetKeyword(natCmd, "HALF_RESOLUTION", !data.fullResolution);
 
                         // Input data
-                        ConstantBuffer.Push(ctx.cmd, data.reblurCB, data.preBlurCS, _ShaderVariablesReBlur);
-                        ctx.cmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._LightingInputTexture, data.lightingTexture);
-                        ctx.cmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._DistanceInputTexture, data.distanceTexture);
-                        ctx.cmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._ClearCoatMaskTexture, data.clearCoatTexture);
+                        ConstantBuffer.Push(natCmd, data.reblurCB, data.preBlurCS, _ShaderVariablesReBlur);
+                        natCmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._LightingInputTexture, data.lightingTexture);
+                        natCmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._DistanceInputTexture, data.distanceTexture);
+                        natCmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        natCmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
+                        natCmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        natCmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, HDShaderIDs._ClearCoatMaskTexture, data.clearCoatTexture);
 
                         // Output texture
-                        ctx.cmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, _LightingDistanceTextureRW, data.tmpTexture);
+                        natCmd.SetComputeTextureParam(data.preBlurCS, data.preBlurKernel, _LightingDistanceTextureRW, data.tmpTexture);
 
                         // Dispatch
-                        ctx.cmd.DispatchCompute(data.preBlurCS, data.preBlurKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.DispatchCompute(data.preBlurCS, data.preBlurKernel, numTilesX, numTilesY, data.viewCount);
 
                         // Reset the half res keyword
-                        CoreUtils.SetKeyword(ctx.cmd, "HALF_RESOLUTION", false);
+                        CoreUtils.SetKeyword(natCmd, "HALF_RESOLUTION", false);
                     }
 
                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.ReBlurTemporalAccumulation)))
                     {
                         // Input CB
-                        ConstantBuffer.Push(ctx.cmd, data.reblurCB, data.temporalAccumulationCS, _ShaderVariablesReBlur);
+                        ConstantBuffer.Push(natCmd, data.reblurCB, data.temporalAccumulationCS, _ShaderVariablesReBlur);
 
                         // Simplified GBuffer + History
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._ClearCoatMaskTexture, data.clearCoatTexture);
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._HistoryDepthTexture, data.historyDepth);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._ClearCoatMaskTexture, data.clearCoatTexture);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorBuffer);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._HistoryDepthTexture, data.historyDepth);
 
                         // Input Data
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _LightingDistanceTexture, data.tmpTexture);
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._ValidationBuffer, data.historyValidation);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _LightingDistanceTexture, data.tmpTexture);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, HDShaderIDs._ValidationBuffer, data.historyValidation);
 
                         // History buffer
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _LightingDistanceHistoryBuffer, data.mainHistory);
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _AccumulationHistoryBuffer, data.accumulationHistory);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _LightingDistanceHistoryBuffer, data.mainHistory);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _AccumulationHistoryBuffer, data.accumulationHistory);
 
                         // Output texture
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _LightingDistanceTextureRW, data.lightingTexture);
-                        ctx.cmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _AccumulationTextureRW, data.accTexture);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _LightingDistanceTextureRW, data.lightingTexture);
+                        natCmd.SetComputeTextureParam(data.temporalAccumulationCS, data.temporalAccumulationKernel, _AccumulationTextureRW, data.accTexture);
 
                         // Dispatch
-                        ctx.cmd.DispatchCompute(data.temporalAccumulationCS, data.temporalAccumulationKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.DispatchCompute(data.temporalAccumulationCS, data.temporalAccumulationKernel, numTilesX, numTilesY, data.viewCount);
                     }
 
                     // Generate the mip levels required for the history fix.
-                    GenerateMipLevels(ctx.cmd, data);
+                    GenerateMipLevels(natCmd, data);
 
                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.ReBlurMipHistoryFix)))
                     {
                         // Mini GBuffer
-                        ctx.cmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, _ReBlurMipChain, data.mipTexture);
+                        natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, _ReBlurMipChain, data.mipTexture);
 
                         // Input Data
-                        ctx.cmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, _LightingDistanceTexture, data.lightingTexture);
-                        ctx.cmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, _AccumulationTexture, data.accTexture);
+                        natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, _LightingDistanceTexture, data.lightingTexture);
+                        natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, _AccumulationTexture, data.accTexture);
 
                         // Output texture
-                        ctx.cmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, _LightingDistanceTextureRW, data.tmpTexture);
+                        natCmd.SetComputeTextureParam(data.historyFixCS, data.historyFixKernel, _LightingDistanceTextureRW, data.tmpTexture);
 
                         // Dispatch
-                        ctx.cmd.DispatchCompute(data.historyFixCS, data.historyFixKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.DispatchCompute(data.historyFixCS, data.historyFixKernel, numTilesX, numTilesY, data.viewCount);
                     }
 
                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.ReBlurBlur)))
                     {
-                        ConstantBuffer.Push(ctx.cmd, data.reblurCB, data.blurCS, _ShaderVariablesReBlur);
+                        ConstantBuffer.Push(natCmd, data.reblurCB, data.blurCS, _ShaderVariablesReBlur);
 
                         // Mini GBuffer
-                        ctx.cmd.SetComputeTextureParam(data.blurCS, data.blurKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.blurCS, data.blurKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.blurCS, data.blurKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeTextureParam(data.blurCS, data.blurKernel, HDShaderIDs._ClearCoatMaskTexture, data.clearCoatTexture);
+                        natCmd.SetComputeTextureParam(data.blurCS, data.blurKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        natCmd.SetComputeTextureParam(data.blurCS, data.blurKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        natCmd.SetComputeTextureParam(data.blurCS, data.blurKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
+                        natCmd.SetComputeTextureParam(data.blurCS, data.blurKernel, HDShaderIDs._ClearCoatMaskTexture, data.clearCoatTexture);
 
                         // Input Data
-                        ctx.cmd.SetComputeTextureParam(data.blurCS, data.blurKernel, _LightingDistanceTexture, data.tmpTexture);
-                        ctx.cmd.SetComputeTextureParam(data.blurCS, data.blurKernel, _AccumulationTexture, data.accTexture);
+                        natCmd.SetComputeTextureParam(data.blurCS, data.blurKernel, _LightingDistanceTexture, data.tmpTexture);
+                        natCmd.SetComputeTextureParam(data.blurCS, data.blurKernel, _AccumulationTexture, data.accTexture);
 
                         // Output Data
-                        ctx.cmd.SetComputeTextureParam(data.blurCS, data.blurKernel, _LightingDistanceTextureRW, data.lightingTexture);
+                        natCmd.SetComputeTextureParam(data.blurCS, data.blurKernel, _LightingDistanceTextureRW, data.lightingTexture);
 
                         // Dispatch
-                        ctx.cmd.DispatchCompute(data.blurCS, data.blurKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.DispatchCompute(data.blurCS, data.blurKernel, numTilesX, numTilesY, data.viewCount);
                     }
 
                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.ReBlurCopyHistory)))
                     {
                         // Current Data
-                        ctx.cmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryAccumulationKernel, _LightingDistanceTexture, data.lightingTexture);
-                        ctx.cmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryAccumulationKernel, _AccumulationTexture, data.accTexture);
+                        natCmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryAccumulationKernel, _LightingDistanceTexture, data.lightingTexture);
+                        natCmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryAccumulationKernel, _AccumulationTexture, data.accTexture);
 
                         // History buffers
-                        ctx.cmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryAccumulationKernel, _LightingDistanceTextureRW, data.mainHistory);
-                        ctx.cmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryAccumulationKernel, _AccumulationTextureRW, data.accumulationHistory);
+                        natCmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryAccumulationKernel, _LightingDistanceTextureRW, data.mainHistory);
+                        natCmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryAccumulationKernel, _AccumulationTextureRW, data.accumulationHistory);
 
                         // Dispatch
-                        ctx.cmd.DispatchCompute(data.copyHistoryCS, data.copyHistoryAccumulationKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.DispatchCompute(data.copyHistoryCS, data.copyHistoryAccumulationKernel, numTilesX, numTilesY, data.viewCount);
                     }
 
                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.ReBlurTemporalStabilization)))
                     {
-                        ConstantBuffer.Push(ctx.cmd, data.reblurCB, data.temporalStabilizationCS, _ShaderVariablesReBlur);
+                        ConstantBuffer.Push(natCmd, data.reblurCB, data.temporalStabilizationCS, _ShaderVariablesReBlur);
 
                         // Mini GBuffer
-                        ctx.cmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._ValidationBuffer, data.historyValidation);
-                        ctx.cmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
+                        natCmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        natCmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        natCmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorBuffer);
+                        natCmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._ValidationBuffer, data.historyValidation);
+                        natCmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
 
                         // Input
-                        ctx.cmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._DenoiseInputTexture, data.lightingTexture);
-                        ctx.cmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, _StabilizationHistoryBuffer, data.stabilizationHistory);
+                        natCmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._DenoiseInputTexture, data.lightingTexture);
+                        natCmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, _StabilizationHistoryBuffer, data.stabilizationHistory);
 
                         // Output
-                        ctx.cmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._DenoiseOutputTextureRW, data.tmpTexture);
+                        natCmd.SetComputeTextureParam(data.temporalStabilizationCS, data.temporalStabilizationKernel, HDShaderIDs._DenoiseOutputTextureRW, data.tmpTexture);
 
                         // Dispatch
-                        ctx.cmd.DispatchCompute(data.temporalStabilizationCS, data.temporalStabilizationKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.DispatchCompute(data.temporalStabilizationCS, data.temporalStabilizationKernel, numTilesX, numTilesY, data.viewCount);
                     }
 
                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.ReBlurCopyHistoryStab)))
                     {
-                        ctx.cmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryKernel, _LightingDistanceTexture, data.tmpTexture);
-                        ctx.cmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryKernel, _LightingDistanceTextureRW, data.stabilizationHistory);
-                        ctx.cmd.DispatchCompute(data.copyHistoryCS, data.copyHistoryKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryKernel, _LightingDistanceTexture, data.tmpTexture);
+                        natCmd.SetComputeTextureParam(data.copyHistoryCS, data.copyHistoryKernel, _LightingDistanceTextureRW, data.stabilizationHistory);
+                        natCmd.DispatchCompute(data.copyHistoryCS, data.copyHistoryKernel, numTilesX, numTilesY, data.viewCount);
                     }
 
                     using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.ReBlurPostBlur)))
                     {
-                        ConstantBuffer.Push(ctx.cmd, data.reblurCB, data.postBlurCS, _ShaderVariablesReBlur);
+                        ConstantBuffer.Push(natCmd, data.reblurCB, data.postBlurCS, _ShaderVariablesReBlur);
 
                         // Mini GBuffer
-                        ctx.cmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                        ctx.cmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
-                        ctx.cmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, HDShaderIDs._ClearCoatMaskTexture, data.clearCoatTexture);
+                        natCmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        natCmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        natCmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
+                        natCmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, HDShaderIDs._ClearCoatMaskTexture, data.clearCoatTexture);
 
                         // Input Data
-                        ctx.cmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, _LightingDistanceTexture, data.tmpTexture);
-                        ctx.cmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, _AccumulationTexture, data.accTexture);
+                        natCmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, _LightingDistanceTexture, data.tmpTexture);
+                        natCmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, _AccumulationTexture, data.accTexture);
 
                         // Output buffer
-                        ctx.cmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, _LightingDistanceTextureRW, data.lightingTexture);
+                        natCmd.SetComputeTextureParam(data.postBlurCS, data.postBlurKernel, _LightingDistanceTextureRW, data.lightingTexture);
 
                         // Dispatch
-                        ctx.cmd.DispatchCompute(data.postBlurCS, data.postBlurKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.DispatchCompute(data.postBlurCS, data.postBlurKernel, numTilesX, numTilesY, data.viewCount);
                     }
                 });
 

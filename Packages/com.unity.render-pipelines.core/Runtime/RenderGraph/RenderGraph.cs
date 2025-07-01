@@ -1631,14 +1631,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (sampler == null)
                 return;
 
-            using (var builder = AddRenderPass<ProfilingScopePassData>(k_BeginProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
+            using (var builder = AddUnsafePass<ProfilingScopePassData>(k_BeginProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
                 builder.GenerateDebugData(false);
-                builder.SetRenderFunc((ProfilingScopePassData data, RenderGraphContext ctx) =>
+                builder.SetRenderFunc((ProfilingScopePassData data, UnsafeGraphContext ctx) =>
                 {
-                    data.sampler.Begin(ctx.cmd);
+                    data.sampler.Begin(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd));
                 });
             }
         }
@@ -1656,14 +1656,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (sampler == null)
                 return;
 
-            using (var builder = AddRenderPass<ProfilingScopePassData>(k_EndProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
+            using (var builder = AddUnsafePass<ProfilingScopePassData>(k_EndProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
                 builder.GenerateDebugData(false);
-                builder.SetRenderFunc((ProfilingScopePassData data, RenderGraphContext ctx) =>
+                builder.SetRenderFunc((ProfilingScopePassData data, UnsafeGraphContext ctx) =>
                 {
-                    data.sampler.End(ctx.cmd);
+                    data.sampler.End(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd));
                 });
             }
         }

@@ -827,24 +827,28 @@ namespace UnityEngine.Rendering
             if (!m_ProbeReferenceVolumeInit || !probeVolumeDebug.displayIndexFragmentation)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<RenderFragmentationOverlayPassData>("APVFragmentationOverlay", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<RenderFragmentationOverlayPassData>("APVFragmentationOverlay", out var passData))
             {
                 passData.debugOverlay = debugOverlay;
                 passData.debugFragmentationMaterial = m_DebugFragmentationMaterial;
-                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                passData.colorBuffer = colorBuffer;
+                builder.SetRenderAttachment(colorBuffer, 0);
+                passData.depthBuffer = depthBuffer;
+                builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
                 passData.debugFragmentationData = m_Index.GetDebugFragmentationBuffer();
                 passData.chunkCount = passData.debugFragmentationData.count;
 
                 builder.SetRenderFunc(
-                    (RenderFragmentationOverlayPassData data, RenderGraphContext ctx) =>
+                    (RenderFragmentationOverlayPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
-                        data.debugOverlay.SetViewport(ctx.cmd);
+                        data.debugOverlay.SetViewport(natCmd);
                         mpb.SetInt("_ChunkCount", data.chunkCount);
                         mpb.SetBuffer("_DebugFragmentation", data.debugFragmentationData);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugFragmentationMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
+                        natCmd.DrawProcedural(Matrix4x4.identity, data.debugFragmentationMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
                         data.debugOverlay.Next();
                     });
             }

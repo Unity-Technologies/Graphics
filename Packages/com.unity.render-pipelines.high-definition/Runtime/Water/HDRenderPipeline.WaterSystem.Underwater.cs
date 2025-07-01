@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // or find values for _BoundsSS & co to make sure the function always returns a negative value
 
             // Execute the unique lighting pass
-            using (var builder = renderGraph.AddRenderPass<WaterLineRenderingData>("Render Water Line", out var passData, ProfilingSampler.Get(HDProfileId.WaterLineRendering)))
+            using (var builder = renderGraph.AddUnsafePass<WaterLineRenderingData>("Render Water Line", out var passData, ProfilingSampler.Get(HDProfileId.WaterLineRendering)))
             {
                 // Fetch the water surface we will be using
                 WaterSurface waterSurface = WaterSurface.instancesAsArray[m_UnderWaterSurfaceIndex];
@@ -254,17 +254,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.boundsPropagationKernel = m_WaterLineBoundsPropagation;
 
                 // All the required textures
-                passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                passData.cameraHeightBuffer = builder.ReadBuffer(refractionOutput.waterGBuffer.cameraHeight);
+                passData.depthBuffer = depthBuffer;
+                builder.UseTexture(passData.depthBuffer, AccessFlags.Read);
+                passData.cameraHeightBuffer = refractionOutput.waterGBuffer.cameraHeight;
+                builder.UseBuffer(passData.cameraHeightBuffer, AccessFlags.Read);
 
                 // Water line data
-                passData.waterLine = builder.WriteBuffer(refractionOutput.waterLine);
+                passData.waterLine = refractionOutput.waterLine;
+                builder.UseBuffer(passData.waterLine, AccessFlags.Write);
 
                 passData.waterLineBufferWidth = m_WaterLineBufferSize;
                 passData.reductionSize = m_ReductionSize;
 
                 builder.SetRenderFunc(
-                    (WaterLineRenderingData data, RenderGraphContext ctx) =>
+                    (WaterLineRenderingData data, UnsafeGraphContext ctx) =>
                     {
                         // Clear water line buffer
                         ctx.cmd.SetComputeBufferParam(data.underWaterCS, data.clearKernel, HDShaderIDs._WaterLineBufferRW, data.waterLine);

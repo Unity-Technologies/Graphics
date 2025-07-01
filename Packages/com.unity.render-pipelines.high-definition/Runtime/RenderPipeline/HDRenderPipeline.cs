@@ -3287,20 +3287,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        static void DrawOpaqueRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
+        static void DrawOpaqueRendererList(CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
         {
             if (!frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return;
 
-            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
+            CoreUtils.DrawRendererList(cmd, rendererList);
         }
 
-        static void DrawTransparentRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
+        static void DrawTransparentRendererList(CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
         {
             if (!frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
                 return;
 
-            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
+            CoreUtils.DrawRendererList(cmd, rendererList);
         }
 
         void UpdateShaderVariablesGlobalDecal(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
@@ -3338,11 +3338,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_WaterSystem.RenderWaterAsWireFrame(cmd, hdCamera);
 
                 var rendererListOpaque = renderContext.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames));
-                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListOpaque);
+                DrawOpaqueRendererList(cmd, hdCamera.frameSettings, rendererListOpaque);
 
                 // Render forward transparent
                 var rendererListTransparent = renderContext.CreateRendererList(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames));
-                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
+                DrawTransparentRendererList(cmd, hdCamera.frameSettings, rendererListTransparent);
 
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

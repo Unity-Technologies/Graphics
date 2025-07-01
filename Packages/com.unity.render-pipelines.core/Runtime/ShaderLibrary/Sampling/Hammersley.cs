@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering
 {
     /// <summary>
@@ -457,6 +459,21 @@ namespace UnityEngine.Rendering
             ConstantBuffer.Set<Hammersley2dSeq32>(cmd, cs, s_hammersley2DSeq32Id);
             ConstantBuffer.Set<Hammersley2dSeq64>(cmd, cs, s_hammersley2DSeq64Id);
             ConstantBuffer.Set<Hammersley2dSeq256>(cmd, cs, s_hammersley2DSeq256Id);
+        }
+
+        /// <summary>
+        /// Bind the constant buffer to a compute shader via a command buffer using Hammersley constants.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
+        public static void BindConstants(IComputeCommandBuffer cmd, ComputeShader cs)
+        {
+            if (cmd is BaseCommandBuffer baseCmd)
+                BindConstants(baseCmd.m_WrappedCommandBuffer, cs);
+#if UNITY_EDITOR
+            else
+                throw new ArgumentException("Command buffer must inherit from BaseCommandBuffer.");
+#endif
         }
     }
 }

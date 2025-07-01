@@ -365,10 +365,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             CheckHandleValidity(res);
             var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].version;
-            if (IsRenderGraphResourceShared(res))
-            {
-                ver -= m_ExecutionCount; //TODO(ddebaets) is this a good solution ?
-            }
             return new ResourceHandle(res, ver);
         }
 
@@ -376,10 +372,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             CheckHandleValidity(res);
             var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].version;
-            if (IsRenderGraphResourceShared(res))
-            {
-                ver -= m_ExecutionCount;//TODO(ddebaets) is this a good solution ?
-            }
             return ver;
         }
 
@@ -393,10 +385,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             CheckHandleValidity(res);
             var ver = m_RenderGraphResources[res.iType].resourceArray[res.index].NewVersion();
-            if (IsRenderGraphResourceShared(res))
-            {
-                ver -= m_ExecutionCount;//TODO(ddebaets) is this a good solution ?
-            }
             return new ResourceHandle(res, ver);
         }
 

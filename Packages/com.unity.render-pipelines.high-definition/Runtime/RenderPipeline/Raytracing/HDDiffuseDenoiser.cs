@@ -86,11 +86,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, DiffuseDenoiserParameters denoiserParams,
             TextureHandle noisyBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle outputBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<DiffuseDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
+            using (var builder = renderGraph.AddUnsafePass<DiffuseDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
-                // Cannot run in async
-                builder.EnableAsyncCompute(false);
-
                 // Initialization data
                 passData.needInit = !m_DenoiserInitialized;
                 m_DenoiserInitialized = true;
@@ -116,15 +113,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Other parameters
                 passData.diffuseDenoiserCS = m_DiffuseDenoiser;
 
-                passData.pointDistribution = builder.ReadBuffer(renderGraph.ImportBuffer(m_PointDistribution));
-                passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
-                passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
+                passData.pointDistribution = renderGraph.ImportBuffer(m_PointDistribution);
+                builder.UseBuffer(passData.pointDistribution, AccessFlags.Read);
+                passData.depthStencilBuffer = depthBuffer;
+                builder.UseTexture(passData.depthStencilBuffer, AccessFlags.Read);
+                passData.normalBuffer = normalBuffer;
+                builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
+                passData.noisyBuffer = noisyBuffer;
+                builder.UseTexture(passData.noisyBuffer, AccessFlags.Read);
                 passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { format = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "DiffuseDenoiserIntermediate" });
-                passData.outputBuffer = builder.WriteTexture(outputBuffer);
+                passData.outputBuffer = outputBuffer;
+                builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (DiffuseDenoiserPassData data, RenderGraphContext ctx) =>
+                    (DiffuseDenoiserPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Generate the point distribution if needed (this is only ran once)
                         if (data.needInit)

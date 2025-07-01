@@ -748,10 +748,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RTASDebugPassData passData;
 
-            using (var builder = renderGraph.AddRenderPass<RTASDebugPassData>("Debug view of the RTAS", out passData, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructureDebug)))
+            using (var builder = renderGraph.AddUnsafePass<RTASDebugPassData>("Debug view of the RTAS", out passData, ProfilingSampler.Get(HDProfileId.RaytracingBuildAccelerationStructureDebug)))
             {
-                builder.EnableAsyncCompute(false);
-
                 // Camera data
                 passData.actualWidth = hdCamera.actualWidth;
                 passData.actualHeight = hdCamera.actualHeight;
@@ -767,11 +765,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayTracingAccelerationStructure = RequestAccelerationStructure(hdCamera);
 
                 // Depending of if we will have to denoise (or not), we need to allocate the final format, or a bigger texture
-                passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "RTAS Debug" }));
+                passData.outputTexture = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "RTAS Debug" });
+                builder.UseTexture(passData.outputTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (RTASDebugPassData data, RenderGraphContext ctx) =>
+                    (RTASDebugPassData data, UnsafeGraphContext ctx) =>
                     {
                         // Define the shader pass to use for the reflection pass
                         ctx.cmd.SetRayTracingShaderPass(data.debugRTASRT, "DebugDXR");
@@ -788,7 +787,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingTextureParam(data.debugRTASRT, "_OutputDebugBuffer", data.outputTexture);
 
                         // Evaluate the debug view
-                        ctx.cmd.DispatchRays(data.debugRTASRT, m_RTASDebugRTKernel, (uint)data.actualWidth, (uint)data.actualHeight, (uint)data.viewCount);
+                        ctx.cmd.DispatchRays(data.debugRTASRT, m_RTASDebugRTKernel, (uint)data.actualWidth, (uint)data.actualHeight, (uint)data.viewCount, null);
                     });
             }
 

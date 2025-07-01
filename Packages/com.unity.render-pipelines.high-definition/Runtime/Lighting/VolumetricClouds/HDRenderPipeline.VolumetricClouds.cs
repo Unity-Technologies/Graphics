@@ -564,7 +564,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!transparentPrepass.clouds.valid)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsCombineOpaqueData>("Volumetric Clouds Combine", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsCombine)))
+            using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsCombineOpaqueData>("Volumetric Clouds Combine", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsCombine)))
             {
                 // Parameters
                 passData.cloudsCombineMaterial = m_CloudCombinePass;
@@ -572,28 +572,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.pixelCoordToViewDir = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
 
                 // Input buffers
-                passData.volumetricCloudsLightingTexture = builder.ReadTexture(transparentPrepass.clouds.lightingBuffer);
-                passData.volumetricCloudsDepthTexture = builder.ReadTexture(transparentPrepass.clouds.depthBuffer);
+                passData.volumetricCloudsLightingTexture = transparentPrepass.clouds.lightingBuffer;
+                builder.UseTexture(passData.volumetricCloudsLightingTexture, AccessFlags.Read);
+                passData.volumetricCloudsDepthTexture = transparentPrepass.clouds.depthBuffer;
+                builder.UseTexture(passData.volumetricCloudsDepthTexture, AccessFlags.Read);
 
                 if (passData.perPixelSorting)
                 {
-                    passData.depthAndStencil = builder.ReadTexture(resolvedDepthBuffer);
+                    passData.depthAndStencil = resolvedDepthBuffer;
+                    builder.UseTexture(passData.depthAndStencil, AccessFlags.Read);
 
-                    passData.waterLine = builder.ReadBuffer(transparentPrepass.waterLine);
-                    passData.cameraHeightBuffer = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
-                    passData.waterSurfaceProfiles = builder.ReadBuffer(transparentPrepass.waterSurfaceProfiles);
-                    passData.waterGBuffer3 = builder.ReadTexture(transparentPrepass.waterGBuffer.waterGBuffer3);
+                    passData.waterLine = transparentPrepass.waterLine;
+                    builder.UseBuffer(passData.waterLine, AccessFlags.Read);
+                    passData.cameraHeightBuffer = transparentPrepass.waterGBuffer.cameraHeight;
+                    builder.UseBuffer(passData.cameraHeightBuffer, AccessFlags.Read);
+                    passData.waterSurfaceProfiles = transparentPrepass.waterSurfaceProfiles;
+                    builder.UseBuffer(passData.waterSurfaceProfiles, AccessFlags.Read);
+                    passData.waterGBuffer3 = transparentPrepass.waterGBuffer.waterGBuffer3;
+                    builder.UseTexture(passData.waterGBuffer3, AccessFlags.Read);
                 }
 
                 // Output buffers
-                builder.UseColorBuffer(colorBuffer, 0);
+                builder.SetRenderAttachment(colorBuffer, 0);
+
                 int opticalFogBufferIndex = 1;
 
                 if (passData.perPixelSorting)
                 {
-                    builder.UseDepthBuffer(transparentPrepass.depthBufferPreRefraction, DepthAccess.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
-                    builder.UseColorBuffer(transparentPrepass.beforeRefraction, 1);
-                    builder.UseColorBuffer(transparentPrepass.beforeRefractionAlpha, 2);
+                    builder.SetRenderAttachmentDepth(transparentPrepass.depthBufferPreRefraction, AccessFlags.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
+                    builder.SetRenderAttachment(transparentPrepass.beforeRefraction, 1);
+                    builder.SetRenderAttachment(transparentPrepass.beforeRefractionAlpha, 2);
                     opticalFogBufferIndex = 3;
                 }
 
@@ -604,13 +612,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!opticalFogTransmittance.IsValid())
                         opticalFogTransmittance = renderGraph.CreateTexture(HDRenderPipeline.GetOpticalFogTransmittanceDesc(hdCamera));
-                    builder.UseDepthBuffer(transparentPrepass.depthBufferPreRefraction, DepthAccess.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
-                    builder.UseColorBuffer(opticalFogTransmittance, opticalFogBufferIndex);
+                    builder.SetRenderAttachmentDepth(transparentPrepass.depthBufferPreRefraction, AccessFlags.Read); // Dummy buffer to avoid 'Setting MRT without a depth buffer is not supported'
+                    builder.SetRenderAttachment(opticalFogTransmittance, opticalFogBufferIndex);
                 }
 
                 builder.SetRenderFunc(
-                    (VolumetricCloudsCombineOpaqueData data, RenderGraphContext ctx) =>
+                    (VolumetricCloudsCombineOpaqueData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsLightingTexture, data.volumetricCloudsLightingTexture);
                         data.cloudsCombineMaterial.SetTexture(HDShaderIDs._VolumetricCloudsDepthTexture, data.volumetricCloudsDepthTexture);
                         data.cloudsCombineMaterial.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDir);
@@ -625,9 +634,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.cloudsCombineMaterial.SetBuffer(HDShaderIDs._WaterLineBuffer, data.waterLine);
                         }
 
-                        ctx.cmd.SetKeyword(data.cloudsCombineMaterial, data.outputFogTransmittanceKeyword, data.needOpticalFogTransmittance);
+                        natCmd.SetKeyword(data.cloudsCombineMaterial, data.outputFogTransmittanceKeyword, data.needOpticalFogTransmittance);
 
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.cloudsCombineMaterial, data.perPixelSorting ? 7 : 0, MeshTopology.Triangles, 3);
+                        natCmd.DrawProcedural(Matrix4x4.identity, data.cloudsCombineMaterial, data.perPixelSorting ? 7 : 0, MeshTopology.Triangles, 3);
                     });
             }
         }
@@ -708,7 +717,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (GraphicsFormat)m_RenderPipeline.asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
         }
 
-        void CreateTracingTextures(RenderGraph renderGraph, RenderGraphBuilder builder, VolumetricClouds settings, float scale, out TextureHandle cloudsLighting, out TextureHandle cloudsDepth)
+        void CreateTracingTextures(RenderGraph renderGraph, IUnsafeRenderGraphBuilder builder, VolumetricClouds settings, float scale, out TextureHandle cloudsLighting, out TextureHandle cloudsDepth)
         {
             cloudsLighting = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scale, true, true)
             { format = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Traced Clouds Lighting" });
@@ -717,7 +726,7 @@ namespace UnityEngine.Rendering.HighDefinition
             { format = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Traced Clouds Depth" });
         }
 
-        void CreateIntermediateTextures(RenderGraph renderGraph, RenderGraphBuilder builder, VolumetricClouds settings, out TextureHandle intermediate1, out TextureHandle intermediate2)
+        void CreateIntermediateTextures(RenderGraph renderGraph, IUnsafeRenderGraphBuilder builder, VolumetricClouds settings, out TextureHandle intermediate1, out TextureHandle intermediate2)
         {
             intermediate1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.5f, true, true)
             { format = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 1" });
@@ -726,13 +735,15 @@ namespace UnityEngine.Rendering.HighDefinition
             { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Temporary Clouds Lighting Buffer 2" });
         }
 
-        void CreateOutputTextures(RenderGraph renderGraph, RenderGraphBuilder builder, VolumetricClouds settings, out TextureHandle cloudsLighting, out TextureHandle cloudsDepth)
+        void CreateOutputTextures(RenderGraph renderGraph, IUnsafeRenderGraphBuilder builder, VolumetricClouds settings, out TextureHandle cloudsLighting, out TextureHandle cloudsDepth)
         {
-            cloudsLighting = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { format = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Volumetric Clouds Lighting Texture" }));
+            cloudsLighting = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            { format = GetCloudsColorFormat(settings, false), enableRandomWrite = true, name = "Volumetric Clouds Lighting Texture" });
+            builder.UseTexture(cloudsLighting, AccessFlags.Write);
 
-            cloudsDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { format = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Depth Texture" }));
+            cloudsDepth = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            { format = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Depth Texture" });
+            builder.UseTexture(cloudsDepth, AccessFlags.Write);
         }
 
         static void DoVolumetricCloudsTrace(CommandBuffer cmd, int traceTX, int traceTY, int viewCount, in VolumetricCloudCommonData commonData,

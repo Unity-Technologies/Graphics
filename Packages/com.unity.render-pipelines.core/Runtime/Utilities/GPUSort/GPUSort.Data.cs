@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering
@@ -40,6 +41,7 @@ namespace UnityEngine.Rendering
             /// <param name="renderGraph">Render Graph</param>
             /// <param name="builder">Render Graph Builder</param>
             /// <returns>An initialized RenderGraphResources object containing the created sort buffers.</returns>
+            [Obsolete("This Create signature is deprecated and will be removed in the future. Please use Create(IBaseRenderGraphBuilder) instead", false)]
             public static RenderGraphResources Create(int count, RenderGraph renderGraph, RenderGraphBuilder builder)
             {
                 var targets = GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.CopyDestination;
@@ -47,6 +49,26 @@ namespace UnityEngine.Rendering
                 var resources = new RenderGraphResources
                 {
                     sortBufferKeys   = builder.CreateTransientBuffer(new BufferDesc(count, 4, targets) { name = "Keys" }),
+                    sortBufferValues = builder.CreateTransientBuffer(new BufferDesc(count, 4, targets) { name = "Values" })
+                };
+
+                return resources;
+            }
+
+            /// <summary>
+            /// Creates the render graph buffer resources from an input count.
+            /// </summary>
+            /// <param name="count">The number of (key, value) elements.</param>
+            /// <param name="renderGraph">Render Graph</param>
+            /// <param name="builder">Render Graph Builder</param>
+            /// <returns>An initialized RenderGraphResources object containing the created sort buffers.</returns>
+            public static RenderGraphResources Create(int count, RenderGraph renderGraph, IBaseRenderGraphBuilder builder)
+            {
+                var targets = GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.CopyDestination;
+
+                var resources = new RenderGraphResources
+                {
+                    sortBufferKeys = builder.CreateTransientBuffer(new BufferDesc(count, 4, targets) { name = "Keys" }),
                     sortBufferValues = builder.CreateTransientBuffer(new BufferDesc(count, 4, targets) { name = "Values" })
                 };
 

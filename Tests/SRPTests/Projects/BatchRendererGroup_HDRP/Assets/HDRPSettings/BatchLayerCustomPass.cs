@@ -55,7 +55,7 @@ class BatchLayerCustomPass : CustomPass
 
         var renderCtx = ctx.renderContext;
         var rendererList = renderCtx.CreateRendererList(result);
-        CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, rendererList);
+        CoreUtils.DrawRendererList(ctx.cmd, rendererList);
     }
 
     protected override void Cleanup()

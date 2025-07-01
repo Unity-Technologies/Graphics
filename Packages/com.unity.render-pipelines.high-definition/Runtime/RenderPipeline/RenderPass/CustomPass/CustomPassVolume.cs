@@ -355,7 +355,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        bool Execute(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in CustomPass.RenderTargets targets)
+        bool Execute(RenderGraph renderGraph, HDCamera hdCamera, ScriptableRenderContext renderContext, CullingResults cullingResult, CullingResults cameraCullingResult, in CustomPass.RenderTargets targets)
         {
             bool executed = false;
 
@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (pass != null && pass.WillBeExecuted(hdCamera))
                 {
-                    pass.ExecuteInternal(renderGraph, hdCamera, cullingResult, cameraCullingResult, targets, this);
+                    pass.ExecuteInternal(renderGraph, hdCamera, renderContext, cullingResult, cameraCullingResult, targets, this);
                     executed = true;
                 }
             }
@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return executed;
         }
 
-        internal static bool ExecuteAllCustomPasses(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResults, CullingResults cameraCullingResults, CustomPassInjectionPoint injectionPoint, in CustomPass.RenderTargets customPassTargets)
+        internal static bool ExecuteAllCustomPasses(RenderGraph renderGraph, HDCamera hdCamera, ScriptableRenderContext renderContext, CullingResults cullingResults, CullingResults cameraCullingResults, CustomPassInjectionPoint injectionPoint, in CustomPass.RenderTargets customPassTargets)
         {
             bool executed = false;
 
@@ -384,7 +384,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (customPass == null || !customPass.WillBeExecuted(hdCamera))
                     continue;
                 executed = true;
-                customPass.ExecuteInternal(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets, null);
+                customPass.ExecuteInternal(renderGraph, hdCamera, renderContext, cullingResults, cameraCullingResults, customPassTargets, null);
             }
 
             GetActivePassVolumes(injectionPoint, m_CurrentInjectionPointList);
@@ -392,7 +392,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (customPass == null)
                     return false;
-                executed |= customPass.Execute(renderGraph, hdCamera, cullingResults, cameraCullingResults, customPassTargets);
+                executed |= customPass.Execute(renderGraph, hdCamera, renderContext, cullingResults, cameraCullingResults, customPassTargets);
             }
 
             return executed;

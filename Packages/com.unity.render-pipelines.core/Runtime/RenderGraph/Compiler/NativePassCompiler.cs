@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         RenderGraphCompilationCache m_CompilationCache;
 
+        RenderTargetIdentifier[][] m_TempMRTArrays = null;
+
         internal const int k_EstimatedPassCount = 100;
         internal const int k_MaxSubpass = 8; // Needs to match with RenderPassSetup.h
 
@@ -38,6 +40,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             m_CompilationCache = cache;
             defaultContextData = new CompilerContextData();
             toVisitPassIds = new Stack<int>(k_EstimatedPassCount);
+
+            m_TempMRTArrays = new RenderTargetIdentifier[RenderGraph.kMaxMRTCount][];
+            for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
+                m_TempMRTArrays[i] = new RenderTargetIdentifier[i + 1];
         }
 
         // IDisposable implementation
@@ -1410,28 +1416,27 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         private void ExecuteSetRenderTargets(RenderGraphPass pass, InternalRenderGraphContext rgContext)
         {
-            if (pass.depthAccess.textureHandle.IsValid() || pass.colorBufferMaxIndex != -1)
+            var depthBufferIsValid = pass.depthAccess.textureHandle.IsValid();
+            if (depthBufferIsValid || pass.colorBufferMaxIndex != -1)
             {
-                var m_Resources = graph.m_ResourcesForDebugOnly;
-
-                var mrtArray = rgContext.renderGraphPool.GetTempArray<RenderTargetIdentifier>(pass.colorBufferMaxIndex + 1);
-                var colorBuffers = pass.colorBufferAccess;
-
+                var resources = graph.m_ResourcesForDebugOnly;
+                var colorBufferAccess = pass.colorBufferAccess;
                 if (pass.colorBufferMaxIndex > 0)
                 {
+                    var mrtArray = m_TempMRTArrays[pass.colorBufferMaxIndex];
+
                     for (int i = 0; i <= pass.colorBufferMaxIndex; ++i)
                     {
-                        if (!colorBuffers[i].textureHandle.IsValid())
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                        if (!colorBufferAccess[i].textureHandle.IsValid())
                             throw new InvalidOperationException("MRT setup is invalid. Some indices are not used.");
-
-                        mrtArray[i] = m_Resources.GetTexture(colorBuffers[i].textureHandle);
+#endif
+                        mrtArray[i] = resources.GetTexture(colorBufferAccess[i].textureHandle);
                     }
 
-                    CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(colorBuffers[0].textureHandle));
-
-                    if (pass.depthAccess.textureHandle.IsValid())
+                    if (depthBufferIsValid)
                     {
-                        CoreUtils.SetRenderTarget(rgContext.cmd, mrtArray, m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                        CoreUtils.SetRenderTarget(rgContext.cmd, mrtArray, resources.GetTexture(pass.depthAccess.textureHandle));
                     }
                     else
                     {
@@ -1440,31 +1445,26 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
                 else
                 {
-                    if (pass.depthAccess.textureHandle.IsValid())
+                    if (depthBufferIsValid)
                     {
                         if (pass.colorBufferMaxIndex > -1)
                         {
-                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle),
-                                m_Resources.GetTexture(pass.depthAccess.textureHandle));
-                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
+                            CoreUtils.SetRenderTarget(rgContext.cmd, resources.GetTexture(pass.colorBufferAccess[0].textureHandle),
+                                resources.GetTexture(pass.depthAccess.textureHandle));
                         }
                         else
                         {
-                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.depthAccess.textureHandle));
-                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.depthAccess.textureHandle));
+                            CoreUtils.SetRenderTarget(rgContext.cmd, resources.GetTexture(pass.depthAccess.textureHandle));
                         }
                     }
                     else
                     {
                         if (pass.colorBufferAccess[0].textureHandle.IsValid())
                         {
-                            CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
-                            CoreUtils.SetViewport(rgContext.cmd, m_Resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
+                            CoreUtils.SetRenderTarget(rgContext.cmd, resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
                         }
                         else
-                        {
-                            throw new InvalidOperationException("Neither depth nor color render targets are correctly setup at pass " + pass.name + ".");
-                        }
+                            throw new InvalidOperationException("Neither Depth nor color render targets are correctly setup at pass " + pass.name + ".");
                     }
                 }
             }

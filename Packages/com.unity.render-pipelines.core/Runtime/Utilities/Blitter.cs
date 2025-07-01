@@ -537,6 +537,7 @@ namespace UnityEngine.Rendering
         /// Blitter.BlitTexture2D(cmd, source, new Vector4(1, 0.5, 0, 0.5), 4, false);
         /// ]]></code>
         /// </example>
+        
         public static void BlitTexture2D(RasterCommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             BlitTexture2D(cmd.m_WrappedCommandBuffer, source, scaleBias, mipLevel, bilinear);
@@ -1021,7 +1022,7 @@ namespace UnityEngine.Rendering
         /// RTHandle source = renderGraph.CreateTexture(texDesc);
         /// // Do a full copy of the texture's first mip level to a destination render target
         /// // scaling with bilinear filtering to the destination render target's full rect.
-        /// Blitter.BlitCameraTexture(cmd, source, destination, 0, true);
+        /// Blitter.BlitCameraTexture2D(cmd, source, destination, 0, true);
         /// ]]></code>
         /// </example>
         public static void BlitCameraTexture2D(CommandBuffer cmd, RTHandle source, RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)

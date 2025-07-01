@@ -86,6 +86,21 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="cmd">Command buffer for recording the sorting commands.</param>
         /// <param name="args">Runtime arguments for the sorting.</param>
+        public void Dispatch(IComputeCommandBuffer cmd, Args args)
+        {
+            if (cmd is BaseCommandBuffer baseCmd)
+                Dispatch(baseCmd.m_WrappedCommandBuffer, args);
+#if UNITY_EDITOR
+            else
+                throw new ArgumentException("Command buffer must inherit from BaseCommandBuffer.");
+#endif
+        }
+
+        /// <summary>
+        /// Sorts a list of (key, value) pairs.
+        /// </summary>
+        /// <param name="cmd">Command buffer for recording the sorting commands.</param>
+        /// <param name="args">Runtime arguments for the sorting.</param>
         public void Dispatch(CommandBuffer cmd, Args args)
         {
             var n = args.count;

@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
-                using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
                 {
                     //TODO: move the entire vbuffer to hardware DRS mode. When Hardware DRS is enabled we will save performance
                     // on these buffers, however the final vbuffer will be wasting resolution. This requires a bit of more work to optimize.
@@ -573,16 +573,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.viewCount = hdCamera.viewCount;
 
-                    passData.depthTexture = builder.ReadTexture(depthTexture);
+                    passData.depthTexture = depthTexture;
+                    builder.UseTexture(passData.depthTexture, AccessFlags.Read);
                     passData.maxZ8xBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
                     { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask 8x" });
                     passData.maxZBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
                     { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask" });
-                    passData.dilatedMaxZBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one / 16.0f, true, true)
-                    { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Dilated MaxZ mask" }));
+                    passData.dilatedMaxZBuffer = renderGraph.CreateTexture(new TextureDesc(Vector2.one / 16.0f, true, true)
+                    { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Dilated MaxZ mask" });
+                    builder.UseTexture(passData.dilatedMaxZBuffer, AccessFlags.ReadWrite);
 
                     builder.SetRenderFunc(
-                        (GenerateMaxZMaskPassData data, RenderGraphContext ctx) =>
+                        (GenerateMaxZMaskPassData data, UnsafeGraphContext ctx) =>
                         {
                             // Downsample 8x8 with max operator
 
@@ -1069,7 +1071,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var currIdx = (frameIndex + 0) & 1;
                 var currParams = hdCamera.vBufferParams[currIdx];
 
-                using (var builder = renderGraph.AddRenderPass<HeightFogVoxelizationPassData>("Clear and Height Fog Voxelization", out var passData))
+                using (var builder = renderGraph.AddComputePass<HeightFogVoxelizationPassData>("Clear and Height Fog Voxelization", out var passData))
                 {
                     passData.viewCount = hdCamera.viewCount;
 
@@ -1083,24 +1085,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, passData.resolution, maxSliceCount, true);
                     passData.volumetricCB = m_ShaderVariablesVolumetricCB;
 
-                    passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                    { slices = s_CurrentVolumetricBufferSize.z, format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" }));
+                    passData.densityBuffer = renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
+                    { slices = s_CurrentVolumetricBufferSize.z, format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" });
+                    builder.UseTexture(passData.densityBuffer, AccessFlags.Write);
 
                     passData.volumetricAmbientProbeBuffer = m_SkyManager.GetVolumetricAmbientProbeBuffer(hdCamera);
 
                     passData.water = transparentPrepass.waterGBuffer.valid && transparentPrepass.underWaterSurface != null;
                     if (passData.water)
                     {
-                        passData.waterLine = builder.ReadBuffer(transparentPrepass.waterLine);
-                        passData.waterCameraHeight = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
-                        passData.waterStencil = builder.ReadTexture(depthBuffer);
+                        passData.waterLine = transparentPrepass.waterLine;
+                        builder.UseBuffer(passData.waterLine, AccessFlags.Read);
+                        passData.waterCameraHeight = transparentPrepass.waterGBuffer.cameraHeight;
+                        builder.UseBuffer(passData.waterCameraHeight, AccessFlags.Read);
+                        passData.waterStencil = depthBuffer;
+                        builder.UseTexture(passData.waterStencil, AccessFlags.Read);
                     }
 
                     CoreUtils.SetKeyword(passData.voxelizationCS, "SUPPORT_WATER_ABSORPTION", passData.water);
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync() && !passData.water);
 
                     builder.SetRenderFunc(
-                        (HeightFogVoxelizationPassData data, RenderGraphContext ctx) =>
+                        (HeightFogVoxelizationPassData data, ComputeGraphContext ctx) =>
                         {
                             ctx.cmd.SetComputeTextureParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VBufferDensity, data.densityBuffer);
                             ctx.cmd.SetComputeBufferParam(data.voxelizationCS, data.voxelizationKernel, HDShaderIDs._VolumeAmbientProbeBuffer, data.volumetricAmbientProbeBuffer);
@@ -1160,7 +1166,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             clearBuffer = true, clearColor = Color.black
                         });
 
-                using (var builder = renderGraph.AddRenderPass<VolumetricFogVoxelizationPassData>("Fog Volume And VFX Voxelization", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<VolumetricFogVoxelizationPassData>("Fog Volume And VFX Voxelization", out var passData))
                 {
                     builder.AllowPassCulling(true);
 
@@ -1172,8 +1178,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         excludeObjectMotionVectors = false
                     };
 
-                    passData.vfxRendererList = builder.UseRendererList(renderGraph.CreateRendererList(vfxFogVolumeRendererListDesc));
-                    passData.densityBuffer = builder.WriteTexture(densityBuffer);
+                    passData.vfxRendererList = renderGraph.CreateRendererList(vfxFogVolumeRendererListDesc);
+                    builder.UseRendererList(passData.vfxRendererList);
+
+                    passData.densityBuffer = densityBuffer;
+                    builder.UseTexture(passData.densityBuffer, AccessFlags.Write);
+
                     passData.viewportSize = currParams.viewportSize;
                     var cvp = currParams.viewportSize;
                     var res = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);;
@@ -1181,7 +1191,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.volumetricCB = m_ShaderVariablesVolumetricCB;
                     passData.fogOverdrawDebugEnabled = fogOverdrawDebugEnabled;
                     if (fogOverdrawDebugEnabled)
-                        passData.fogOverdrawOutput = debugOverdrawTexture = builder.UseColorBuffer(debugOverdrawTexture, 0);
+                    {
+                        passData.fogOverdrawOutput = debugOverdrawTexture;
+                        builder.SetRenderAttachment(debugOverdrawTexture, 0);
+                    }
 
                     if (fogOverdrawDebugEnabled)
                     {
@@ -1193,7 +1206,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             excludeObjectMotionVectors = false
                         };
 
-                        passData.vfxDebugRendererList = builder.UseRendererList(renderGraph.CreateRendererList(vfxDebugFogRenderListDesc));
+                        passData.vfxDebugRendererList = renderGraph.CreateRendererList(vfxDebugFogRenderListDesc);
+                        builder.UseRendererList(passData.vfxDebugRendererList);
                     }
                     passData.volumetricMaterialCS = runtimeShaders.volumetricMaterialCS;
                     passData.computeRenderingParametersKernel = passData.volumetricMaterialCS.FindKernel("ComputeVolumetricMaterialRenderingParameters");
@@ -1207,35 +1221,37 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.visibleVolumeGlobalIndices = m_VisibleVolumeGlobalIndices;
 
                     builder.SetRenderFunc(
-                        (VolumetricFogVoxelizationPassData data, RenderGraphContext ctx) =>
+                        (VolumetricFogVoxelizationPassData data, UnsafeGraphContext ctx) =>
                         {
+                            var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+
                             // Prepare draw indirect command for the draw
                             int volumeCount = data.volumetricFogs.Count;
 
                             // Compute the indirect arguments to render volumetric materials
-                            ctx.cmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumeBounds, data.visibleVolumeBoundsBuffer);
-                            ctx.cmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricGlobalIndirectArgsBuffer, data.globalIndirectBuffer);
-                            ctx.cmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricGlobalIndirectionBuffer, data.globalIndirectionBuffer);
-                            ctx.cmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricVisibleGlobalIndicesBuffer, data.visibleVolumeGlobalIndices);
-                            ctx.cmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricMaterialData, data.materialDataBuffer);
-                            ctx.cmd.SetComputeIntParam(data.volumetricMaterialCS, HDShaderIDs._VolumeCount, volumeCount);
-                            ctx.cmd.SetComputeIntParam(data.volumetricMaterialCS, HDShaderIDs._MaxSliceCount, data.maxSliceCount);
-                            ctx.cmd.SetComputeIntParam(data.volumetricMaterialCS, HDShaderIDs._VolumetricViewCount, data.hdCamera.viewCount);
-                            ConstantBuffer.PushGlobal(ctx.cmd, data.volumetricCB, HDShaderIDs._ShaderVariablesVolumetric);
+                            natCmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumeBounds, data.visibleVolumeBoundsBuffer);
+                            natCmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricGlobalIndirectArgsBuffer, data.globalIndirectBuffer);
+                            natCmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricGlobalIndirectionBuffer, data.globalIndirectionBuffer);
+                            natCmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricVisibleGlobalIndicesBuffer, data.visibleVolumeGlobalIndices);
+                            natCmd.SetComputeBufferParam(data.volumetricMaterialCS, data.computeRenderingParametersKernel, HDShaderIDs._VolumetricMaterialData, data.materialDataBuffer);
+                            natCmd.SetComputeIntParam(data.volumetricMaterialCS, HDShaderIDs._VolumeCount, volumeCount);
+                            natCmd.SetComputeIntParam(data.volumetricMaterialCS, HDShaderIDs._MaxSliceCount, data.maxSliceCount);
+                            natCmd.SetComputeIntParam(data.volumetricMaterialCS, HDShaderIDs._VolumetricViewCount, data.hdCamera.viewCount);
+                            ConstantBuffer.PushGlobal(natCmd, data.volumetricCB, HDShaderIDs._ShaderVariablesVolumetric);
 
                             int dispatchXCount = Mathf.Max(1, Mathf.CeilToInt((float)(volumeCount * data.hdCamera.viewCount) / 32.0f));
-                            ctx.cmd.DispatchCompute(data.volumetricMaterialCS, data.computeRenderingParametersKernel, dispatchXCount, 1, 1);
+                            natCmd.DispatchCompute(data.volumetricMaterialCS, data.computeRenderingParametersKernel, dispatchXCount, 1, 1);
 
-                            ctx.cmd.SetGlobalBuffer(HDShaderIDs._VolumetricGlobalIndirectionBuffer, data.globalIndirectionBuffer);
+                            natCmd.SetGlobalBuffer(HDShaderIDs._VolumetricGlobalIndirectionBuffer, data.globalIndirectionBuffer);
 
-                            CoreUtils.SetRenderTarget(ctx.cmd, data.densityBuffer);
-                            ctx.cmd.SetViewport(new Rect(0, 0, data.viewportSize.x, data.viewportSize.y));
-                            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.vfxRendererList);
+                            CoreUtils.SetRenderTarget(natCmd, data.densityBuffer);
+                            natCmd.SetViewport(new Rect(0, 0, data.viewportSize.x, data.viewportSize.y));
+                            natCmd.DrawRendererList(data.vfxRendererList);
 
                             if (data.fogOverdrawDebugEnabled)
                             {
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.fogOverdrawOutput);
-                                CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.vfxDebugRendererList);
+                                CoreUtils.SetRenderTarget(natCmd, data.fogOverdrawOutput);
+                                natCmd.DrawRendererList(data.vfxDebugRendererList);
                             }
                         });
                 }
@@ -1322,7 +1338,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
-                using (var builder = renderGraph.AddRenderPass<VolumetricLightingPassData>("Volumetric Lighting", out var passData))
+                using (var builder = renderGraph.AddUnsafePass<VolumetricLightingPassData>("Volumetric Lighting", out var passData))
                 {
                     int frameIndex = (int)VolumetricFrameIndex(hdCamera);
                     var currIdx = (frameIndex + 0) & 1;
@@ -1372,25 +1388,35 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.lightListCB = m_ShaderVariablesLightListCB;
 
                     if (passData.tiledLighting)
-                        passData.bigTileVolumetricLightListBuffer = builder.ReadBuffer(bigTileVolumetricLightListBuffer);
-                    passData.densityBuffer = builder.ReadTexture(densityBuffer);
-                    passData.depthTexture = builder.ReadTexture(depthTexture);
-                    passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
-                    passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                    { slices = s_CurrentVolumetricBufferSize.z, format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLighting" }));
+                    {
+                        passData.bigTileVolumetricLightListBuffer = bigTileVolumetricLightListBuffer;
+                        builder.UseBuffer(passData.bigTileVolumetricLightListBuffer, AccessFlags.Read);
+                    }
+                    passData.densityBuffer = densityBuffer;
+                    builder.UseTexture(passData.densityBuffer, AccessFlags.Read);
+                    passData.depthTexture = depthTexture;
+                    builder.UseTexture(passData.depthTexture, AccessFlags.Read);
+                    passData.maxZBuffer = maxZBuffer;
+                    builder.UseTexture(passData.maxZBuffer, AccessFlags.Read);
+                    passData.lightingBuffer = renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
+                    { slices = s_CurrentVolumetricBufferSize.z, format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLighting" });
+                    builder.UseTexture(passData.lightingBuffer, AccessFlags.Write);
 
                     if (passData.filterVolume && passData.filteringNeedsExtraBuffer)
                     {
-                        passData.filteringOutputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
-                        { slices = s_CurrentVolumetricBufferSize.z, format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLightingFiltered" }));
+                        passData.filteringOutputBuffer = renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
+                        { slices = s_CurrentVolumetricBufferSize.z, format = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLightingFiltered" });
+                        builder.UseTexture(passData.filteringOutputBuffer, AccessFlags.Write);
 
                         CoreUtils.SetKeyword(passData.volumetricLightingFilteringCS, "NEED_SEPARATE_OUTPUT", passData.filteringNeedsExtraBuffer);
                     }
 
                     if (passData.enableReprojection)
                     {
-                        passData.feedbackBuffer = builder.WriteTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[currIdx]));
-                        passData.historyBuffer = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[prevIdx]));
+                        passData.feedbackBuffer = renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[currIdx]);
+                        builder.UseTexture(passData.feedbackBuffer, AccessFlags.Write);
+                        passData.historyBuffer = renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[prevIdx]);
+                        builder.UseTexture(passData.historyBuffer, AccessFlags.Read);
                     }
 
                     passData.volumetricAmbientProbeBuffer = m_SkyManager.GetVolumetricAmbientProbeBuffer(hdCamera);
@@ -1398,9 +1424,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Water stuff
                     if (passData.water)
                     {
-                        passData.waterLine = builder.ReadBuffer(transparentPrepass.waterLine);
-                        passData.waterCameraHeight = builder.ReadBuffer(transparentPrepass.waterGBuffer.cameraHeight);
-                        passData.waterStencil = builder.ReadTexture(depthBuffer);
+                        passData.waterLine = transparentPrepass.waterLine;
+                        builder.UseBuffer(passData.waterLine, AccessFlags.Read);
+                        passData.waterCameraHeight = transparentPrepass.waterGBuffer.cameraHeight;
+                        builder.UseBuffer(passData.waterCameraHeight, AccessFlags.Read);
+                        passData.waterStencil = depthBuffer;
+                        builder.UseTexture(passData.waterStencil, AccessFlags.Read);
                         if (transparentPrepass.underWaterSurface.caustics)
                             passData.causticsBuffer = waterSystem.GetUnderWaterSurfaceCaustics();
                     }
@@ -1408,7 +1437,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDShadowManager.ReadShadowResult(shadowResult, builder);
 
                     builder.SetRenderFunc(
-                        (VolumetricLightingPassData data, RenderGraphContext ctx) =>
+                        (VolumetricLightingPassData data, UnsafeGraphContext ctx) =>
                         {
                             if (data.tiledLighting)
                                 ctx.cmd.SetComputeBufferParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, data.bigTileVolumetricLightListBuffer);

@@ -217,15 +217,18 @@ namespace UnityEngine.Rendering.HighDefinition
             if (index == -1)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<PushCameraTexturePassData>("Push AOV Camera Texture", out var passData, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
+            using (var builder = renderGraph.AddUnsafePass<PushCameraTexturePassData>("Push AOV Camera Texture", out var passData, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
             {
-                passData.source = builder.ReadTexture(source);
+                passData.source = source;
                 passData.target = targets[index];
 
+                builder.UseTexture(passData.source, AccessFlags.Read);
+                builder.AllowPassCulling(false);
+
                 builder.SetRenderFunc(
-                    (PushCameraTexturePassData data, RenderGraphContext ctx) =>
+                    (PushCameraTexturePassData data, UnsafeGraphContext ctx) =>
                     {
-                        HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
+                        Blitter.BlitCameraTexture(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.source, data.target);
                     });
             }
         }
@@ -264,11 +267,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (index == -1)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<PushCustomPassTexturePassData>("Push Custom Pass Texture", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<PushCustomPassTexturePassData>("Push Custom Pass Texture", out var passData))
             {
                 if (m_CustomPassAOVBuffers[index].outputType == CustomPassAOVBuffers.OutputType.Camera)
                 {
-                    passData.source = builder.ReadTexture(cameraSource);
+                    passData.source = cameraSource;
+                    builder.UseTexture(passData.source, AccessFlags.Read);
                     passData.customPassSource = null;
                 }
                 else
@@ -277,13 +281,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 passData.target = targets[index];
 
+                builder.AllowPassCulling(false);
+
                 builder.SetRenderFunc(
-                    (PushCustomPassTexturePassData data, RenderGraphContext ctx) =>
+                    (PushCustomPassTexturePassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         if (data.customPassSource != null)
-                            HDUtils.BlitCameraTexture(ctx.cmd, data.customPassSource, data.target);
+                            Blitter.BlitCameraTexture(natCmd, data.customPassSource, data.target);
                         else
-                            HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
+                            Blitter.BlitCameraTexture(natCmd, data.source, data.target);
                     });
             }
         }

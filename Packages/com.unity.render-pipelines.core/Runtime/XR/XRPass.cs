@@ -417,7 +417,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="renderIntoTexture">Set to true when rendering into a render texture. Used for handling Unity yflip.</param>
         public void RenderOcclusionMesh(CommandBuffer cmd, bool renderIntoTexture = false)
         {
-            if(occlusionMeshScale > 0)
+            if (occlusionMeshScale > 0)
                 m_OcclusionMesh.RenderOcclusionMesh(cmd, occlusionMeshScale, renderIntoTexture);
         }
 

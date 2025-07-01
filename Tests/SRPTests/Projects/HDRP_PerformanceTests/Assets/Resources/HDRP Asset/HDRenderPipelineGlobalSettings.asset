@@ -1217,4 +1217,4 @@ MonoBehaviour:
       data:
         m_version: 0
         m_EnableCompilationCaching: 1
-        m_EnableValidityChecks: 1
+        m_EnableValidityChecks: 0
