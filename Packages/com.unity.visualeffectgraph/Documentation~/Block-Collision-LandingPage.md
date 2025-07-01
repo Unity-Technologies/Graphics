@@ -6,6 +6,7 @@ Explore the properties of Collision Blocks to configure how particles collide wi
 |-|-|
 | [Collision Shape](Block-CollisionShape.md) | Explore the properties of the Collision Shape Block. |
 | [Collision Depth Buffer](Block-CollideWithDepthBuffer.md) | Explore the properties of the Collision Depth Buffer Block. |
+| [Kill Shape](Block-KillShape.md) | Explore the properties of the Kill Shape Block. |
 
 ## Additional resources
 
