@@ -126,6 +126,7 @@ namespace UnityEditor.Rendering.Universal
         public static bool s_StripUnusedPostProcessingVariants;
         public static bool s_StripScreenCoordOverrideVariants;
         public static bool s_StripBicubicLightmapSamplingVariants;
+        public static bool s_StripReflectionProbeRotationVariants;
         public static bool s_Strip2DPasses;
         public static bool s_UseSoftShadowQualityLevelKeywords;
         public static bool s_StripXRVariants;
@@ -287,6 +288,11 @@ namespace UnityEditor.Rendering.Universal
                 s_StripBicubicLightmapSamplingVariants = !lightmapSamplingSettings.useBicubicLightmapSampling;
             else
                 s_StripBicubicLightmapSamplingVariants = true;
+
+            if (GraphicsSettings.TryGetRenderPipelineSettings<URPReflectionProbeSettings>(out var reflectionProbeSettings))
+                s_StripReflectionProbeRotationVariants = !reflectionProbeSettings.UseReflectionProbeRotation;
+            else
+                s_StripReflectionProbeRotationVariants = true;
 
             PlatformBuildTimeDetect platformBuildTimeDetect = PlatformBuildTimeDetect.GetInstance();
             bool isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
@@ -464,6 +470,7 @@ namespace UnityEditor.Rendering.Universal
                     s_StripDebugDisplayShaders,
                     s_StripScreenCoordOverrideVariants,
                     s_StripBicubicLightmapSamplingVariants,
+                    s_StripReflectionProbeRotationVariants,
                     s_StripUnusedVariants,
                     ref ssaoRendererFeatures
                     );
@@ -931,6 +938,7 @@ namespace UnityEditor.Rendering.Universal
             bool stripDebug,
             bool stripScreenCoord,
             bool stripBicubicLightmap,
+            bool stripReflectionProbeRotation,
             bool stripUnusedVariants,
             ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures
             )
@@ -949,6 +957,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripDebugDisplay = stripDebug;
             spd.stripScreenCoordOverride = stripScreenCoord;
             spd.stripBicubicLightmapSampling = stripBicubicLightmap;
+            spd.stripReflectionProbeRotation = stripReflectionProbeRotation;
 
             // Rendering Modes
             // Check if only Deferred is being used

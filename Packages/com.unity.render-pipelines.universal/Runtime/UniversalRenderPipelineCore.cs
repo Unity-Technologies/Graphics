@@ -952,6 +952,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword ReflectionProbeBoxProjection;
         public static GlobalKeyword ReflectionProbeBlending;
         public static GlobalKeyword ReflectionProbeAtlas;
+        public static GlobalKeyword ReflectionProbeRotation;
         public static GlobalKeyword SoftShadows;
         public static GlobalKeyword SoftShadowsLow;
         public static GlobalKeyword SoftShadowsMedium;
@@ -1064,6 +1065,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.ReflectionProbeBoxProjection = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeBoxProjection);
             ShaderGlobalKeywords.ReflectionProbeBlending = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeBlending);
             ShaderGlobalKeywords.ReflectionProbeAtlas = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeAtlas);
+            ShaderGlobalKeywords.ReflectionProbeRotation = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeRotation);
             ShaderGlobalKeywords.SoftShadows = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadows);
             ShaderGlobalKeywords.SoftShadowsLow = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsLow);
             ShaderGlobalKeywords.SoftShadowsMedium = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsMedium);
@@ -1173,6 +1175,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Reflection probe atlas. </summary>
         public const string ReflectionProbeAtlas = "_REFLECTION_PROBE_ATLAS";
+
+        /// <summary> Keyword used for ReflectionProbe rotation. </summary>
+        public const string ReflectionProbeRotation = "REFLECTION_PROBE_ROTATION";
 
         /// <summary> Keyword used for soft shadows. </summary>
         public const string SoftShadows = "_SHADOWS_SOFT";

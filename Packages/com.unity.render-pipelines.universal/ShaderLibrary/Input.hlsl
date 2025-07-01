@@ -199,6 +199,7 @@ float4 urp_ReflProbes_BoxMax[MAX_REFLECTION_PROBES];          // w contains the 
 float4 urp_ReflProbes_BoxMin[MAX_REFLECTION_PROBES];          // w contains the importance
 float4 urp_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive for box projection, |w| is max mip level
 float4 urp_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
+float4 urp_ReflProbes_Rotation[MAX_REFLECTION_PROBES];
 #ifndef LIGHT_SHADOWS_NO_CBUFFER
 CBUFFER_END
 #endif

@@ -51,10 +51,11 @@ static const float2x4 unity_LightIndices = float2x4(0,0,0,0, 0,0,0,0);
 static const float4 unity_SpecCube0_BoxMax = float4(1,1,1,1);
 static const float4 unity_SpecCube0_BoxMin = float4(0,0,0,0);
 static const float4 unity_SpecCube0_ProbePosition = float4(0,0,0,0);
-
+static const float4 unity_SpecCube0_Rotation = float4(0,0,0,0);
 static const float4 unity_SpecCube1_BoxMax = float4(1,1,1,1);
 static const float4 unity_SpecCube1_BoxMin = float4(0,0,0,0);
 static const float4 unity_SpecCube1_ProbePosition = float4(0,0,0,0);
+static const float4 unity_SpecCube1_Rotation = float4(0,0,0,0);
 static const float4 unity_SpecCube1_HDR = float4(0,0,0,0);
 
 // Set up by BRG picking/selection code

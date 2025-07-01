@@ -188,6 +188,11 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.LIGHTMAP_BICUBIC_SAMPLING)]
         [SerializeField] private bool m_PrefilterBicubicLightmapSampling = false;
 
+        // ReflectionProbe rotation
+        [ShaderKeywordFilter.RemoveIf(true,  keywordNames: ShaderKeywordStrings.ReflectionProbeRotation)]
+        [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.ReflectionProbeRotation)]
+        [SerializeField] private bool m_PrefilterReflectionProbeRotation = false;
+
         /// <summary>
         /// Data used for Shader Prefiltering. Gathered after going through the URP Assets,
         /// Renderers and Renderer Features in OnPreprocessBuild() inside ShaderPreprocessor.cs.
@@ -227,6 +232,7 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSSAOSampleCountHigh;
 
             public bool stripBicubicLightmapSampling;
+            public bool stripReflectionProbeRotation;
 
             public static ShaderPrefilteringData GetDefault()
             {
@@ -283,6 +289,7 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterSSAOSampleCountHigh           = prefilteringData.stripSSAOSampleCountHigh;
 
             m_PrefilterBicubicLightmapSampling       = prefilteringData.stripBicubicLightmapSampling;
+            m_PrefilterReflectionProbeRotation       = prefilteringData.stripReflectionProbeRotation;
         }
     }
 }

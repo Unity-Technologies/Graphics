@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 8;
+        internal const int k_LastVersion = 9;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -151,6 +151,21 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 asset.m_AssetVersion = 8;
+            }
+
+            // URPReflectionProbeSetings is introduced set the values for older projects.
+            if (asset.m_AssetVersion < 9)
+            {
+                if (GraphicsSettings.TryGetRenderPipelineSettings<URPReflectionProbeSettings>(out var reflectionProbeSettings))
+                {
+                    reflectionProbeSettings.UseReflectionProbeRotation = false;
+                }
+                else
+                {
+                    Debug.LogError("Failed to upgrade global settings for URPReflectionProbeSettings since it doesn't exists.");
+                }
+
+                asset.m_AssetVersion = 9;
             }
 
             // If the asset version has changed, means that a migration step has been executed

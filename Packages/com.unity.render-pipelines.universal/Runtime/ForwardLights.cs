@@ -283,10 +283,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Innerloop batch count of 32 is not special, just a handwavy amount to not have too much scheduling overhead nor too little parallelism.
             var lightMinMaxZHandle = lightMinMaxZJob.ScheduleParallel(localLightCount * viewCount, 32, new JobHandle());
 
+            var reflectionProbeRotation = GraphicsSettings.TryGetRenderPipelineSettings<URPReflectionProbeSettings>(out var reflectionProbeSettings) ? reflectionProbeSettings.UseReflectionProbeRotation : true;
+
             var reflectionProbeMinMaxZJob = new ReflectionProbeMinMaxZJob
             {
                 worldToViews = worldToViews,
                 reflectionProbes = probes,
+                reflectionProbeRotation = reflectionProbeRotation,
                 minMaxZs = minMaxZs.GetSubArray(localLightCount * viewCount, reflectionProbeCount * viewCount)
             };
             var reflectionProbeMinMaxZHandle = reflectionProbeMinMaxZJob.ScheduleParallel(reflectionProbeCount * viewCount, 32, lightMinMaxZHandle);
@@ -321,6 +324,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 lights = localLights,
                 reflectionProbes = probes,
+                reflectionProbeRotation = reflectionProbeRotation,
                 tileRanges = tileRanges,
                 itemsPerTile = itemsPerTile,
                 rangesPerItem = rangesPerItem,
@@ -507,7 +511,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetKeyword(ShaderGlobalKeywords.LightmapShadowMixing, isSubtractive || isShadowMaskAlways);
                 cmd.SetKeyword(ShaderGlobalKeywords.ShadowsShadowMask, isShadowMask);
                 cmd.SetKeyword(ShaderGlobalKeywords.MixedLightingSubtractive, isSubtractive); // Backward compatibility
-
                 cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBlending, lightData.reflectionProbeBlending);
                 cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeBoxProjection, lightData.reflectionProbeBoxProjection);
                 cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeAtlas, lightData.reflectionProbeAtlas);
@@ -552,6 +555,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetKeyword(ShaderGlobalKeywords.LIGHTMAP_BICUBIC_SAMPLING, lightmapSamplingSettings.useBicubicLightmapSampling);
                 else
                     cmd.SetKeyword(ShaderGlobalKeywords.LIGHTMAP_BICUBIC_SAMPLING, false);
+
+                if (GraphicsSettings.TryGetRenderPipelineSettings<URPReflectionProbeSettings>(out var reflectionProbeSettings))
+                    cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeRotation, reflectionProbeSettings.UseReflectionProbeRotation);
+                else
+                    cmd.SetKeyword(ShaderGlobalKeywords.ReflectionProbeRotation, false);
             }
         }
 

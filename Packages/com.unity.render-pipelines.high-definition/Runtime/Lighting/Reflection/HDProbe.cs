@@ -2,9 +2,11 @@ using System;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
+using static UnityEditor.SceneView;
 #endif
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -291,7 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RemainingRenderSteps = ProbeRenderStepsExt.FromProbeType(type);
                 m_HasPendingRenderRequest = false;
             }
-            
+
             if (type == ProbeSettings.ProbeType.ReflectionProbe)
             {
                 // pick one bit or all remaining bits
@@ -452,6 +454,103 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The texture used during lighting for this probe.
         /// </summary>
         public Texture texture => GetTexture(mode);
+
+        /// <summary>
+        /// Allocates a texture for the probe based on its type and resolution.
+        /// </summary>
+        /// <param name="probeFormat">The graphics format to use for the allocated texture.</param>
+        /// <remarks>
+        /// This method handles the allocation of textures for both reflection probes and planar probes.
+        /// For reflection probes, it ensures the texture matches the desired resolution and format.
+        /// For planar probes, it creates a texture based on the resolution or a placeholder texture if the probe is turned off.
+        /// </remarks>
+        internal void AllocTexture(GraphicsFormat probeFormat)
+        {
+            switch (type)
+            {
+                case ProbeSettings.ProbeType.ReflectionProbe:
+                    int desiredProbeSize = (int)cubeResolution;
+
+                    var desiredProbeFormat = ((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
+
+                    if (realtimeTextureRTH == null || realtimeTextureRTH.rt.width != desiredProbeSize ||
+                        realtimeTextureRTH.rt.graphicsFormat != probeFormat)
+                    {
+                        SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreateReflectionProbeRenderTarget(desiredProbeSize, probeFormat));
+                    }
+                    break;
+                case ProbeSettings.ProbeType.PlanarProbe:
+
+                    if (IsTurnedOff())
+                    {
+                        RenderTexture rt = new RenderTexture(1, 1, 1, probeFormat)
+                        {
+                            dimension = TextureDimension.Tex2D,
+                            enableRandomWrite = false,
+                            useMipMap = true,
+                            autoGenerateMips = false,
+                            depth = 0
+                        };
+                        rt.Create();
+                        SetTexture(ProbeSettings.Mode.Realtime, rt);
+                    }
+                    else
+                    {
+
+                        int desiredPlanarProbeSize = (int)resolution;
+
+                        if (realtimeTextureRTH == null ||
+                            realtimeTextureRTH.rt.width != desiredPlanarProbeSize ||
+                            realtimeTextureRTH.rt.graphicsFormat != probeFormat)
+                        {
+                            SetTexture(ProbeSettings.Mode.Realtime,
+                                HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize, probeFormat));
+                        }
+
+                        if (realtimeDepthTextureRTH == null ||
+                            realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
+                        {
+                            SetDepthTexture(ProbeSettings.Mode.Realtime,
+                                HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
+                        }
+
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Sets the camera anchor for planar probes based on the viewer's transform.
+        /// </summary>
+        /// <param name="cameraSettings">A list of camera settings to update.</param>
+        /// <param name="viewerTransform">The transform of the viewer to use as the camera anchor.</param>
+        /// <remarks>
+        /// This method updates the camera settings for planar probes to use the viewer's transform as the anchor.
+        /// Reflection probes are ignored as they do not require camera anchors.
+        /// </remarks>
+        public void SetCameraAnchor(List<CameraSettings> cameraSettings, Transform viewerTransform)
+        {
+            switch (type)
+            {
+                case ProbeSettings.ProbeType.ReflectionProbe: return;
+                case ProbeSettings.ProbeType.PlanarProbe:
+                    if (!IsTurnedOff())
+                    {
+                        // Set the viewer's camera as the default camera anchor
+                        for (var i = 0; i < cameraSettings.Count; ++i)
+                        {
+                            var v = cameraSettings[i];
+                            if (v.volumes.anchorOverride == null)
+                            {
+                                v.volumes.anchorOverride = viewerTransform;
+                                cameraSettings[i] = v;
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+
         /// <summary>
         /// Get the texture for a specific mode.
         /// </summary>
@@ -791,7 +890,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void TryUpdateLuminanceSHL2ForNormalization()
         {
 #if UNITY_EDITOR
-            const float kValidSHThresh = 0.33f; // This threshold is used to make the code below functionally equivalent to the obsolete RetrieveProbeSH. 
+            const float kValidSHThresh = 0.33f; // This threshold is used to make the code below functionally equivalent to the obsolete RetrieveProbeSH.
             m_HasValidSHForNormalization = AdditionalGIBakeRequestsManager.instance.RetrieveProbe(GetEntityId(), out m_SHValidForCapturePosition, out m_SHForNormalization, out float validity);
             m_HasValidSHForNormalization = m_HasValidSHForNormalization && validity < kValidSHThresh;
             if (m_HasValidSHForNormalization)

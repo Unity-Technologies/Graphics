@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
         Vector4[] m_BoxMin;
         Vector4[] m_ProbePosition;
         Vector4[] m_MipScaleOffset;
+        Vector4[] m_Rotations;
 
         // There is a global max of 7 mips in Unity.
         const int k_MaxMipCount = 7;
@@ -49,6 +50,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int MipScaleOffset = Shader.PropertyToID("urp_ReflProbes_MipScaleOffset");
             public static readonly int Count = Shader.PropertyToID("urp_ReflProbes_Count");
             public static readonly int Atlas = Shader.PropertyToID("urp_ReflProbes_Atlas");
+            public static readonly int Rotation = Shader.PropertyToID("urp_ReflProbes_Rotation");
         }
 
         public RenderTexture atlasRT => m_AtlasTexture0;
@@ -102,6 +104,7 @@ namespace UnityEngine.Rendering.Universal
             m_BoxMin = new Vector4[maxProbes];
             m_ProbePosition = new Vector4[maxProbes];
             m_MipScaleOffset = new Vector4[maxProbes * 7];
+            m_Rotations = new Vector4[maxProbes];
         }
 
         public unsafe void UpdateGpuData(CommandBuffer cmd, ref CullingResults cullResults)
@@ -271,6 +274,8 @@ namespace UnityEngine.Rendering.Universal
                 m_BoxMin[dataIndex] = new Vector4(probe.bounds.min.x, probe.bounds.min.y, probe.bounds.min.z, probe.importance);
                 m_ProbePosition[dataIndex] = new Vector4(probe.localToWorldMatrix.m03, probe.localToWorldMatrix.m13, probe.localToWorldMatrix.m23, (probe.isBoxProjection ? 1 : -1) * (cachedProbe.mipCount));
                 for (var i = 0; i < cachedProbe.mipCount; i++) m_MipScaleOffset[dataIndex * k_MaxMipCount + i] = GetScaleOffset(cachedProbe.levels[i], cachedProbe.dataIndices[i], false, false);
+                var rot = Quaternion.Inverse(probe.reflectionProbe.transform.rotation);
+                m_Rotations[dataIndex] = new Vector4(rot.x, rot.y, rot.z, rot.w);
             }
 
             if (showFullWarning)
@@ -301,6 +306,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalVectorArray(ShaderProperties.BoxMax, m_BoxMax);
                 cmd.SetGlobalVectorArray(ShaderProperties.ProbePosition, m_ProbePosition);
                 cmd.SetGlobalVectorArray(ShaderProperties.MipScaleOffset, m_MipScaleOffset);
+                cmd.SetGlobalVectorArray(ShaderProperties.Rotation, m_Rotations);
                 cmd.SetGlobalFloat(ShaderProperties.Count, probeCount - skipCount);
                 cmd.SetGlobalTexture(ShaderProperties.Atlas, m_AtlasTexture0);
             }

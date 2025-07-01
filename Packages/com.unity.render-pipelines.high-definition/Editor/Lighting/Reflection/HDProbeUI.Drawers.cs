@@ -269,9 +269,16 @@ namespace UnityEditor.Rendering.HighDefinition
                                     },
                                     GUILayout.ExpandWidth(true)))
                             {
-                                HDBakedReflectionSystem.BakeProbes(serialized.serializedObject.targetObjects
+                                if (HDBakedReflectionSystem.AreAllOpenedSceneSaved())
+                                {
+                                    HDBakedReflectionSystem.BakeProbes(serialized.serializedObject.targetObjects
                                     .OfType<HDProbe>().ToArray());
-                                GUIUtility.ExitGUI();
+                                    GUIUtility.ExitGUI();
+                                }
+                                else
+                                {
+                                    Debug.LogError($"Opened scenes are not saved. Please save before baking.");
+                                }
                             }
 
                             GUI.enabled = true;
