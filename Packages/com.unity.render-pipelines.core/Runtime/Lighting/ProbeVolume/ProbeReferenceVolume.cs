@@ -1685,6 +1685,9 @@ namespace UnityEngine.Rendering
             //Ensure that all currently loaded scenes belong to the same set.
             foreach (var data in perSceneDataList)
             {
+                if (UnityEditor.SceneManagement.EditorSceneManager.IsPreviewScene(data.gameObject.scene))
+                    continue; // Ignore preview scenes - they are needed to make closed subscenes work
+
                 var set = ProbeVolumeBakingSet.GetBakingSetForScene(data.gameObject.scene);
                 if (set != bakingSet)
                     return false;
