@@ -99,22 +99,17 @@ namespace UnityEngine.Rendering
             {
                 if (value)
                 {
-                    if (GraphicsSettings.TryGetRenderPipelineSettings<RenderingDebuggerRuntimeResources>(
-                            out var runtimeUIResources))
-                    {
-                        m_Root = UnityObject.Instantiate(runtimeUIResources.debugUIHandlerCanvasPrefab).gameObject;
-                        m_Root.name = "[Debug Canvas]";
-                        m_Root.transform.localPosition = Vector3.zero;
-                        m_RootUICanvas = m_Root.GetComponent<DebugUIHandlerCanvas>();
+                    m_Root = UnityObject.Instantiate(Resources.Load<Transform>("DebugUICanvas")).gameObject;
+                    m_Root.name = "[Debug Canvas]";
+                    m_Root.transform.localPosition = Vector3.zero;
+                    m_RootUICanvas = m_Root.GetComponent<DebugUIHandlerCanvas>();
 
 #if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH
                     var canvasScaler = m_Root.GetComponent<CanvasScaler>();
                     canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
 #endif
 
-                        m_Root.SetActive(true);
-                    }
-
+                    m_Root.SetActive(true);
                 }
                 else
                 {
