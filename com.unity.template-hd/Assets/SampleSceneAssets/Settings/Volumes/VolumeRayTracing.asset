@@ -40,6 +40,9 @@ MonoBehaviour:
   cullingDistance:
     m_OverrideState: 0
     m_Value: 1000
+  minSolidAngle:
+    m_OverrideState: 0
+    m_Value: 4
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -98,6 +101,12 @@ MonoBehaviour:
   tilingParameters:
     m_OverrideState: 0
     m_Value: {x: 1, y: 1, z: 0, w: 0}
+  seedMode:
+    m_OverrideState: 0
+    m_Value: 0
+  customSeed:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &3641022199399448222
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -293,7 +302,7 @@ MonoBehaviour:
     m_Value: 1
   m_DenoiserRadius:
     m_OverrideState: 1
-    m_Value: 8
+    m_Value: 1
   m_DenoiserAntiFlickeringStrength:
     m_OverrideState: 0
     m_Value: 1
@@ -337,6 +346,11 @@ MonoBehaviour:
   rayMiss:
     m_OverrideState: 1
     m_Value: 3
+  adaptiveProbeVolumesLayerMask:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 0
+      m_Bits: 1
   depthBufferThickness:
     m_OverrideState: 0
     m_Value: 0.1

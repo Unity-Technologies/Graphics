@@ -1166,33 +1166,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 7.2090693
-    'sh[ 1]': -3.8494647
-    'sh[ 2]': -1.9732292
-    'sh[ 3]': 0.7340613
-    'sh[ 4]': -0.19184889
-    'sh[ 5]': 0.43174806
-    'sh[ 6]': -0.1476242
-    'sh[ 7]': -0.058226343
-    'sh[ 8]': -0.30114445
-    'sh[ 9]': 3.615746
-    'sh[10]': -1.6214082
-    'sh[11]': -1.4486343
-    'sh[12]': 0.2698571
-    'sh[13]': -0.06710889
-    'sh[14]': 0.26862845
-    'sh[15]': -0.011359551
-    'sh[16]': -0.035072364
-    'sh[17]': -0.12926894
-    'sh[18]': 1.8827649
-    'sh[19]': -0.57955307
-    'sh[20]': -1.0345719
-    'sh[21]': 0.071549095
-    'sh[22]': -0.025745574
-    'sh[23]': 0.11923973
-    'sh[24]': 0.04154918
-    'sh[25]': -0.021026898
-    'sh[26]': -0.04507491
+    'sh[ 0]': 7.330568
+    'sh[ 1]': -4.701334
+    'sh[ 2]': -2.3007157
+    'sh[ 3]': 1.0065061
+    'sh[ 4]': -0.35675958
+    'sh[ 5]': 0.7364778
+    'sh[ 6]': -0.28813756
+    'sh[ 7]': -0.14622195
+    'sh[ 8]': -0.5572096
+    'sh[ 9]': 3.6570182
+    'sh[10]': -1.9619021
+    'sh[11]': -1.6520659
+    'sh[12]': 0.39871523
+    'sh[13]': -0.092122
+    'sh[14]': 0.48400235
+    'sh[15]': -0.027912555
+    'sh[16]': -0.09187097
+    'sh[17]': -0.23765662
+    'sh[18]': 1.9077364
+    'sh[19]': -0.7050836
+    'sh[20]': -1.146938
+    'sh[21]': 0.14119253
+    'sh[22]': -0.007533348
+    'sh[23]': 0.2250738
+    'sh[24]': 0.071391396
+    'sh[25]': -0.0576161
+    'sh[26]': -0.084791645
   m_SHValidForCapturePosition: {x: 57.385612, y: 4.015636, z: 2.559598}
   m_SHValidForSourcePosition: {x: 57.711205, y: 4.1310596, z: 2.215231}
   m_HDProbeVersion: 9
@@ -2934,19 +2934,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 6
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 15.332
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 8.4059
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 1.759
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_UseViewFrustumForShadowCasterCull
@@ -3232,19 +3232,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 3.94e-42
+      value: 2.7932759e+20
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: NaN
+      value: 7.555077e+31
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: NaN
+      value: 1.5050019e+25
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: 1.1317447e+21
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3633,33 +3633,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 293.5573
-    'sh[ 1]': 145.4782
-    'sh[ 2]': 21.774544
-    'sh[ 3]': -116.302025
-    'sh[ 4]': -52.09172
-    'sh[ 5]': 6.7122555
-    'sh[ 6]': -6.5242043
-    'sh[ 7]': -11.920971
-    'sh[ 8]': 9.464161
-    'sh[ 9]': 328.3716
-    'sh[10]': 180.43044
-    'sh[11]': 17.052052
-    'sh[12]': -153.55911
-    'sh[13]': -69.54607
-    'sh[14]': 4.9862523
-    'sh[15]': -8.261652
-    'sh[16]': -9.259058
-    'sh[17]': 4.165773
-    'sh[18]': 468.50867
-    'sh[19]': 281.48712
-    'sh[20]': 13.767032
-    'sh[21]': -237.57576
-    'sh[22]': -115.08614
-    'sh[23]': 3.5833218
-    'sh[24]': -13.200234
-    'sh[25]': -7.142744
-    'sh[26]': -3.732427
+    'sh[ 0]': 286.5152
+    'sh[ 1]': 139.54633
+    'sh[ 2]': 22.636591
+    'sh[ 3]': -106.10952
+    'sh[ 4]': -46.62034
+    'sh[ 5]': 5.6176677
+    'sh[ 6]': -5.9971805
+    'sh[ 7]': -11.987267
+    'sh[ 8]': 8.034381
+    'sh[ 9]': 322.35672
+    'sh[10]': 176.12769
+    'sh[11]': 17.327808
+    'sh[12]': -143.01955
+    'sh[13]': -63.586422
+    'sh[14]': 3.8876042
+    'sh[15]': -7.823184
+    'sh[16]': -9.625435
+    'sh[17]': 3.1283247
+    'sh[18]': 462.27075
+    'sh[19]': 278.5726
+    'sh[20]': 13.186147
+    'sh[21]': -225.44603
+    'sh[22]': -107.29323
+    'sh[23]': 2.1989894
+    'sh[24]': -12.828955
+    'sh[25]': -7.972725
+    'sh[26]': -4.447724
   m_SHValidForCapturePosition: {x: 13.337921, y: 3.3920114, z: 0.061256886}
   m_SHValidForSourcePosition: {x: 13.51, y: 3, z: 0}
   m_HDProbeVersion: 9
@@ -4157,33 +4157,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 102.40914
-    'sh[ 1]': 26.217432
-    'sh[ 2]': 6.0096254
-    'sh[ 3]': 18.594782
-    'sh[ 4]': -14.105192
-    'sh[ 5]': 3.8339791
-    'sh[ 6]': -3.9369164
-    'sh[ 7]': 0.9463165
-    'sh[ 8]': 13.651844
-    'sh[ 9]': 73.84193
-    'sh[10]': 21.4267
-    'sh[11]': 4.230651
-    'sh[12]': 4.6651917
-    'sh[13]': -11.366017
-    'sh[14]': 2.8884826
-    'sh[15]': -2.7365894
-    'sh[16]': -0.11002387
-    'sh[17]': 9.49393
-    'sh[18]': 57.041943
-    'sh[19]': 19.28482
-    'sh[20]': 2.5231643
-    'sh[21]': -5.619407
-    'sh[22]': -9.725585
-    'sh[23]': 2.2073605
-    'sh[24]': -1.9717416
-    'sh[25]': -0.7979109
-    'sh[26]': 6.886134
+    'sh[ 0]': 167.07443
+    'sh[ 1]': 57.949387
+    'sh[ 2]': 2.8324816
+    'sh[ 3]': -11.166676
+    'sh[ 4]': -30.215237
+    'sh[ 5]': 1.6712323
+    'sh[ 6]': -7.5269785
+    'sh[ 7]': -1.2320781
+    'sh[ 8]': 17.44587
+    'sh[ 9]': 174.31363
+    'sh[10]': 77.28119
+    'sh[11]': 1.1134981
+    'sh[12]': -51.412052
+    'sh[13]': -39.145718
+    'sh[14]': 1.6862422
+    'sh[15]': -8.106356
+    'sh[16]': -3.0710301
+    'sh[17]': 15.299896
+    'sh[18]': 242.22835
+    'sh[19]': 127.72356
+    'sh[20]': -1.1852841
+    'sh[21]': -115.706024
+    'sh[22]': -64.66095
+    'sh[23]': 2.2820365
+    'sh[24]': -11.523392
+    'sh[25]': -5.785516
+    'sh[26]': 16.96573
   m_SHValidForCapturePosition: {x: 17.781761, y: 2.4042897, z: -0.30428267}
   m_SHValidForSourcePosition: {x: 18.497435, y: 5.2739725, z: -0.5539999}
   m_HDProbeVersion: 9
@@ -4703,33 +4703,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 490.3677
-    'sh[ 1]': -194.81358
-    'sh[ 2]': 299.51587
-    'sh[ 3]': -93.63946
-    'sh[ 4]': 13.967356
-    'sh[ 5]': -62.660484
-    'sh[ 6]': 15.682205
-    'sh[ 7]': -17.630945
-    'sh[ 8]': 3.0994036
-    'sh[ 9]': 347.0087
-    'sh[10]': -140.77118
-    'sh[11]': 200.11714
-    'sh[12]': -57.041145
-    'sh[13]': 7.7391224
-    'sh[14]': -42.07075
-    'sh[15]': 10.233651
-    'sh[16]': -12.295073
-    'sh[17]': 1.1179785
-    'sh[18]': 206.43369
-    'sh[19]': -85.98697
-    'sh[20]': 129.10036
-    'sh[21]': -39.852844
-    'sh[22]': 5.4414835
-    'sh[23]': -26.769173
-    'sh[24]': 6.754922
-    'sh[25]': -7.7263474
-    'sh[26]': 1.0454968
+    'sh[ 0]': 497.74866
+    'sh[ 1]': -163.59558
+    'sh[ 2]': 321.16248
+    'sh[ 3]': -90.651024
+    'sh[ 4]': 20.636824
+    'sh[ 5]': -87.12623
+    'sh[ 6]': 21.064754
+    'sh[ 7]': -24.019068
+    'sh[ 8]': -2.3215344
+    'sh[ 9]': 356.2102
+    'sh[10]': -88.31715
+    'sh[11]': 199.12842
+    'sh[12]': -53.969234
+    'sh[13]': 10.953332
+    'sh[14]': -54.10529
+    'sh[15]': 11.567255
+    'sh[16]': -16.007282
+    'sh[17]': -5.863585
+    'sh[18]': 242.24931
+    'sh[19]': 5.408441
+    'sh[20]': 112.743546
+    'sh[21]': -35.41792
+    'sh[22]': 8.02919
+    'sh[23]': -29.558153
+    'sh[24]': 4.376372
+    'sh[25]': -9.365051
+    'sh[26]': -9.57194
   m_SHValidForCapturePosition: {x: 31.786108, y: 1.4851315, z: -1.6713877}
   m_SHValidForSourcePosition: {x: 31.970001, y: 2.6825378, z: -2.08}
   m_HDProbeVersion: 9
@@ -5443,15 +5443,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -5659,7 +5659,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: -208
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_UseViewFrustumForShadowCasterCull
@@ -6164,33 +6164,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 106.38576
-    'sh[ 1]': 25.449936
-    'sh[ 2]': 21.999643
-    'sh[ 3]': -29.377579
-    'sh[ 4]': -6.4333544
-    'sh[ 5]': -10.722024
-    'sh[ 6]': 3.6926954
-    'sh[ 7]': -0.75680166
-    'sh[ 8]': 3.4885705
-    'sh[ 9]': 74.91648
-    'sh[10]': 17.534954
-    'sh[11]': 20.81432
-    'sh[12]': -18.36876
-    'sh[13]': -5.0522904
-    'sh[14]': -8.974652
-    'sh[15]': 3.89175
-    'sh[16]': -0.10163144
-    'sh[17]': 1.8186575
-    'sh[18]': 41.78312
-    'sh[19]': 10.880356
-    'sh[20]': 10.667595
-    'sh[21]': -12.900898
-    'sh[22]': -3.7300203
-    'sh[23]': -5.3004603
-    'sh[24]': 1.9795473
-    'sh[25]': -0.19642003
-    'sh[26]': 1.4720646
+    'sh[ 0]': 170.49835
+    'sh[ 1]': 73.305756
+    'sh[ 2]': 21.47946
+    'sh[ 3]': -17.232666
+    'sh[ 4]': 5.059357
+    'sh[ 5]': 2.0865405
+    'sh[ 6]': -1.4526064
+    'sh[ 7]': -1.1798583
+    'sh[ 8]': -10.082035
+    'sh[ 9]': 154.62901
+    'sh[10]': 85.381
+    'sh[11]': 22.122337
+    'sh[12]': -4.628507
+    'sh[13]': 7.305004
+    'sh[14]': 7.956315
+    'sh[15]': -2.5883772
+    'sh[16]': 0.88896513
+    'sh[17]': -15.436785
+    'sh[18]': 175.27148
+    'sh[19]': 131.34221
+    'sh[20]': 17.97075
+    'sh[21]': 6.696277
+    'sh[22]': 12.984602
+    'sh[23]': 22.267454
+    'sh[24]': -7.1268563
+    'sh[25]': 2.2818303
+    'sh[26]': -26.381529
   m_SHValidForCapturePosition: {x: 31.584293, y: 1.155014, z: -4.942467}
   m_SHValidForSourcePosition: {x: 28.675222, y: 3.0450335, z: -4.5544806}
   m_HDProbeVersion: 9
@@ -7478,7 +7478,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 8.97e-43
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -8237,7 +8237,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 3.3961514e+38
+      value: -60
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.y
@@ -8245,7 +8245,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: 1.414e-42
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11264,7 +11264,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: NaN
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.y
@@ -11600,15 +11600,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: -1.19441085e+30
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 6.07e-43
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 4.9e-44
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -12114,33 +12114,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 3087.6792
-    'sh[ 1]': -634.5471
-    'sh[ 2]': -40.07012
-    'sh[ 3]': -231.33937
-    'sh[ 4]': 170.59248
-    'sh[ 5]': -16.816898
-    'sh[ 6]': 339.30014
-    'sh[ 7]': -44.35576
-    'sh[ 8]': 433.98663
-    'sh[ 9]': 3117.2048
-    'sh[10]': 62.508
-    'sh[11]': -55.604145
-    'sh[12]': -311.14746
-    'sh[13]': 116.238815
-    'sh[14]': -36.488052
-    'sh[15]': 393.6386
-    'sh[16]': -40.59457
-    'sh[17]': 467.8821
-    'sh[18]': 3582.1772
-    'sh[19]': 996.874
-    'sh[20]': -86.528015
-    'sh[21]': -394.70367
-    'sh[22]': 48.12113
-    'sh[23]': -70.30137
-    'sh[24]': 407.60522
-    'sh[25]': -40.19163
-    'sh[26]': 438.83954
+    'sh[ 0]': 3092.7522
+    'sh[ 1]': -571.83307
+    'sh[ 2]': -72.992485
+    'sh[ 3]': -197.00479
+    'sh[ 4]': 206.51778
+    'sh[ 5]': -62.70295
+    'sh[ 6]': 320.13483
+    'sh[ 7]': -48.114056
+    'sh[ 8]': 385.7155
+    'sh[ 9]': 3124.0435
+    'sh[10]': 112.867096
+    'sh[11]': -81.512886
+    'sh[12]': -285.56116
+    'sh[13]': 145.0789
+    'sh[14]': -72.30107
+    'sh[15]': 379.34528
+    'sh[16]': -43.428173
+    'sh[17]': 431.43115
+    'sh[18]': 3591.529
+    'sh[19]': 1036.2524
+    'sh[20]': -106.24931
+    'sh[21]': -377.7047
+    'sh[22]': 70.29032
+    'sh[23]': -97.60193
+    'sh[24]': 397.7147
+    'sh[25]': -43.382874
+    'sh[26]': 412.263
   m_SHValidForCapturePosition: {x: -29.6, y: 4, z: 0}
   m_SHValidForSourcePosition: {x: -29.6, y: 4, z: 0}
   m_HDProbeVersion: 9
@@ -12607,15 +12607,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 106757439849694504, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: -9.327969e+29
       objectReference: {fileID: 0}
     - target: {fileID: 106757439849694504, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0.7071166
+      value: 6.07e-43
       objectReference: {fileID: 0}
     - target: {fileID: 106757439849694504, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 4.9e-44
       objectReference: {fileID: 0}
     - target: {fileID: 106757439849694504, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -12679,11 +12679,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 722160609750540142, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 3e-45
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 722160609750540142, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 8.98e-43
+      value: 3.159e-42
       objectReference: {fileID: 0}
     - target: {fileID: 722160609750540142, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.y
@@ -12739,19 +12739,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: 5.42e-43
       objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 6e-45
       objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 1.5795575e+19
       objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: 6.04e-43
       objectReference: {fileID: 0}
     - target: {fileID: 2042504202900068614, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_IsActive
@@ -12839,19 +12839,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7684608501753378189, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: 1.5322426e+31
       objectReference: {fileID: 0}
     - target: {fileID: 7684608501753378189, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 1.782867e+23
+      value: 7.5355626e+11
       objectReference: {fileID: 0}
     - target: {fileID: 7684608501753378189, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 1.1626349e+27
       objectReference: {fileID: 0}
     - target: {fileID: 7684608501753378189, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: 6.709472e+22
       objectReference: {fileID: 0}
     - target: {fileID: 7894593947293963941, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_Intensity
@@ -13988,7 +13988,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: -1.6460395e+31
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
@@ -13996,7 +13996,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 6.3e-43
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -14338,33 +14338,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 1207.5015
-    'sh[ 1]': -695.2152
-    'sh[ 2]': -329.06082
-    'sh[ 3]': -249.069
-    'sh[ 4]': 133.5185
-    'sh[ 5]': 258.2693
-    'sh[ 6]': -109.02305
-    'sh[ 7]': 16.679646
-    'sh[ 8]': -176.62578
-    'sh[ 9]': 1071.0717
-    'sh[10]': -428.67242
-    'sh[11]': -317.76044
-    'sh[12]': -199.3495
-    'sh[13]': 106.95415
-    'sh[14]': 101.38506
-    'sh[15]': -80.45814
-    'sh[16]': 16.377651
-    'sh[17]': -157.54796
-    'sh[18]': 1095.4316
-    'sh[19]': -89.93807
-    'sh[20]': -366.47638
-    'sh[21]': -159.32072
-    'sh[22]': 83.37998
-    'sh[23]': -120.44217
-    'sh[24]': -53.534668
-    'sh[25]': 16.613708
-    'sh[26]': -162.99272
+    'sh[ 0]': 1234.4679
+    'sh[ 1]': -662.40686
+    'sh[ 2]': -355.0196
+    'sh[ 3]': -250.30069
+    'sh[ 4]': 147.01913
+    'sh[ 5]': 223.98499
+    'sh[ 6]': -111.73716
+    'sh[ 7]': 7.0354505
+    'sh[ 8]': -192.4465
+    'sh[ 9]': 1091.808
+    'sh[10]': -401.13455
+    'sh[11]': -340.1999
+    'sh[12]': -201.30833
+    'sh[13]': 116.75017
+    'sh[14]': 74.26008
+    'sh[15]': -82.67293
+    'sh[16]': 9.463561
+    'sh[17]': -169.70197
+    'sh[18]': 1111.6665
+    'sh[19]': -65.84718
+    'sh[20]': -386.61423
+    'sh[21]': -163.1391
+    'sh[22]': 88.87894
+    'sh[23]': -140.99583
+    'sh[24]': -55.12831
+    'sh[25]': 12.161864
+    'sh[26]': -171.88216
   m_SHValidForCapturePosition: {x: -0.48997402, y: 3.9496117, z: 14.368998}
   m_SHValidForSourcePosition: {x: 3.5, y: 4, z: 6.17}
   m_HDProbeVersion: 9
@@ -15113,33 +15113,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 1190.055
-    'sh[ 1]': -371.75485
-    'sh[ 2]': 161.17987
-    'sh[ 3]': -174.8429
-    'sh[ 4]': 1.1562355
-    'sh[ 5]': 35.860065
-    'sh[ 6]': -60.925594
-    'sh[ 7]': -11.388034
-    'sh[ 8]': -118.996956
-    'sh[ 9]': 1138.41
-    'sh[10]': -42.011707
-    'sh[11]': 120.43064
-    'sh[12]': -154.04951
-    'sh[13]': 1.9642278
-    'sh[14]': 18.268385
-    'sh[15]': -69.20034
-    'sh[16]': -9.389696
-    'sh[17]': -146.38736
-    'sh[18]': 1306.0206
-    'sh[19]': 501.27887
-    'sh[20]': 84.47245
-    'sh[21]': -140.23462
-    'sh[22]': -1.1184559
-    'sh[23]': -1.3098062
-    'sh[24]': -96.325806
-    'sh[25]': -8.929598
-    'sh[26]': -231.39636
+    'sh[ 0]': 1242.5471
+    'sh[ 1]': -293.8258
+    'sh[ 2]': 142.63904
+    'sh[ 3]': -153.35555
+    'sh[ 4]': 21.696484
+    'sh[ 5]': -5.5878644
+    'sh[ 6]': -69.288475
+    'sh[ 7]': -19.182451
+    'sh[ 8]': -152.92194
+    'sh[ 9]': 1180.05
+    'sh[10]': 19.964949
+    'sh[11]': 106.657616
+    'sh[12]': -136.65727
+    'sh[13]': 18.73328
+    'sh[14]': -13.5893755
+    'sh[15]': -75.76963
+    'sh[16]': -15.933438
+    'sh[17]': -172.98943
+    'sh[18]': 1338.8741
+    'sh[19]': 549.6632
+    'sh[20]': 75.970665
+    'sh[21]': -125.744064
+    'sh[22]': 11.972015
+    'sh[23]': -24.50545
+    'sh[24]': -101.44549
+    'sh[25]': -14.413729
+    'sh[26]': -251.90143
   m_SHValidForCapturePosition: {x: 0, y: 6.29, z: 0}
   m_SHValidForSourcePosition: {x: -4.02, y: 4, z: 0.34537315}
   m_HDProbeVersion: 9
@@ -16257,7 +16257,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.x
@@ -16265,7 +16265,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -18206,19 +18206,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 6.07e-43
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: 6.07e-43
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18986,19 +18986,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: 1.5322426e+31
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 7.5355626e+11
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 1.1626349e+27
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: 6.709472e+22
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_UseViewFrustumForShadowCasterCull
@@ -20213,7 +20213,7 @@ MonoBehaviour:
     e10: 0
     e11: 1
     e12: 0
-    e13: -7.7721205
+    e13: -7.772129
     e20: 0
     e21: 0
     e22: 1
@@ -20222,7 +20222,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: -1240719037
+  cachedHashCode: -1086246805
   fillEmptySpaces: 0
   version: 2
   globalVolume: 0
@@ -20718,7 +20718,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: 6.4850974e+32
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
@@ -20730,7 +20730,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: -272
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_UseViewFrustumForShadowCasterCull
@@ -21303,7 +21303,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -10.129859, z: -0}
+    textureOffset: {x: -0, y: -55.660603, z: -0}
     falloffMode: 0
     maskMode: 0
     materialMask: {fileID: 0}
@@ -21390,7 +21390,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 1.85e-43
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
@@ -22434,33 +22434,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 7.6032104
-    'sh[ 1]': 1.545633
-    'sh[ 2]': 4.3853445
-    'sh[ 3]': -1.0046139
-    'sh[ 4]': -0.14084083
-    'sh[ 5]': 0.4898678
-    'sh[ 6]': 0.058505293
-    'sh[ 7]': -0.406462
-    'sh[ 8]': -0.35622412
-    'sh[ 9]': 4.533999
-    'sh[10]': 1.0041044
-    'sh[11]': 2.695084
-    'sh[12]': -0.37338594
-    'sh[13]': -0.14773045
-    'sh[14]': 0.33407268
-    'sh[15]': 0.020179465
-    'sh[16]': -0.19322418
-    'sh[17]': -0.23588477
-    'sh[18]': 2.4620135
-    'sh[19]': 0.77759546
-    'sh[20]': 1.5159128
-    'sh[21]': -0.25207675
-    'sh[22]': -0.10312755
-    'sh[23]': 0.2571478
-    'sh[24]': 0.0077681565
-    'sh[25]': -0.10358165
-    'sh[26]': -0.1338906
+    'sh[ 0]': 11.6044445
+    'sh[ 1]': 2.202169
+    'sh[ 2]': 4.902289
+    'sh[ 3]': -1.5331068
+    'sh[ 4]': -0.50970685
+    'sh[ 5]': 1.5061744
+    'sh[ 6]': 0.27441266
+    'sh[ 7]': -0.41194466
+    'sh[ 8]': -0.36898676
+    'sh[ 9]': 7.340645
+    'sh[10]': 1.7582603
+    'sh[11]': 4.176757
+    'sh[12]': -1.337325
+    'sh[13]': -0.3388465
+    'sh[14]': 0.9830614
+    'sh[15]': 0.20683795
+    'sh[16]': -0.51159143
+    'sh[17]': -0.20135957
+    'sh[18]': 5.5277934
+    'sh[19]': 1.5026107
+    'sh[20]': 3.8388946
+    'sh[21]': -1.188398
+    'sh[22]': -0.20252022
+    'sh[23]': 0.71266204
+    'sh[24]': 0.19928567
+    'sh[25]': -0.49032277
+    'sh[26]': -0.11729395
   m_SHValidForCapturePosition: {x: 41.349174, y: 0.85263014, z: -0.5740106}
   m_SHValidForSourcePosition: {x: 42.338097, y: 4.6271276, z: 0.46876335}
   m_HDProbeVersion: 9
@@ -23370,19 +23370,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0.7071166
+      value: 1.5322426e+31
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0.707097
+      value: 7.5355626e+11
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: NaN
+      value: 1.1626349e+27
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: -0
+      value: 6.709472e+22
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_UseViewFrustumForShadowCasterCull
@@ -23747,33 +23747,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 356.00375
-    'sh[ 1]': 188.66891
-    'sh[ 2]': 109.91856
-    'sh[ 3]': -18.311642
-    'sh[ 4]': 5.536338
-    'sh[ 5]': 64.788605
-    'sh[ 6]': 9.112551
-    'sh[ 7]': -10.295437
-    'sh[ 8]': -7.410159
-    'sh[ 9]': 397.83102
-    'sh[10]': 224.75081
-    'sh[11]': 128.16719
-    'sh[12]': -14.385494
-    'sh[13]': 8.718425
-    'sh[14]': 85.70282
-    'sh[15]': 8.538386
-    'sh[16]': -7.4272723
-    'sh[17]': -13.1388855
-    'sh[18]': 557.1203
-    'sh[19]': 338.83408
-    'sh[20]': 185.80122
-    'sh[21]': -7.9851503
-    'sh[22]': 14.997119
-    'sh[23]': 138.83362
-    'sh[24]': 9.195545
-    'sh[25]': -3.138521
-    'sh[26]': -26.100193
+    'sh[ 0]': 349.07364
+    'sh[ 1]': 182.45084
+    'sh[ 2]': 107.26156
+    'sh[ 3]': -22.375889
+    'sh[ 4]': 2.3888242
+    'sh[ 5]': 64.761925
+    'sh[ 6]': 9.863414
+    'sh[ 7]': -7.946968
+    'sh[ 8]': -6.9672995
+    'sh[ 9]': 392.15097
+    'sh[10]': 218.70064
+    'sh[11]': 125.369446
+    'sh[12]': -18.44096
+    'sh[13]': 5.713931
+    'sh[14]': 85.78287
+    'sh[15]': 9.170347
+    'sh[16]': -5.8224015
+    'sh[17]': -12.496313
+    'sh[18]': 552.13043
+    'sh[19]': 332.58594
+    'sh[20]': 182.40747
+    'sh[21]': -12.330722
+    'sh[22]': 11.710826
+    'sh[23]': 138.94559
+    'sh[24]': 9.842863
+    'sh[25]': -2.3120735
+    'sh[26]': -25.159191
   m_SHValidForCapturePosition: {x: -1.8986883, y: 3.9233816, z: -14.111639}
   m_SHValidForSourcePosition: {x: 3.5, y: 4, z: -7.5}
   m_HDProbeVersion: 9
@@ -24222,33 +24222,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 125.83833
-    'sh[ 1]': 4.9440274
-    'sh[ 2]': 43.737385
-    'sh[ 3]': -58.93053
-    'sh[ 4]': 4.6883073
-    'sh[ 5]': -0.44074172
-    'sh[ 6]': 0.043991245
-    'sh[ 7]': -14.033308
-    'sh[ 8]': 4.0755873
-    'sh[ 9]': 78.91324
-    'sh[10]': 2.3315263
-    'sh[11]': 29.899569
-    'sh[12]': -47.418312
-    'sh[13]': 2.357676
-    'sh[14]': -0.5637118
-    'sh[15]': 0.07553499
-    'sh[16]': -9.581839
-    'sh[17]': 3.2390175
-    'sh[18]': 44.956432
-    'sh[19]': 1.9506952
-    'sh[20]': 19.25558
-    'sh[21]': -28.54774
-    'sh[22]': 1.130707
-    'sh[23]': -0.32143617
-    'sh[24]': 0.18661986
-    'sh[25]': -6.1495776
-    'sh[26]': 1.7985666
+    'sh[ 0]': 177.54282
+    'sh[ 1]': 29.360815
+    'sh[ 2]': 49.943314
+    'sh[ 3]': -82.956184
+    'sh[ 4]': -4.1067767
+    'sh[ 5]': -2.474095
+    'sh[ 6]': -1.6496115
+    'sh[ 7]': -18.211723
+    'sh[ 8]': 0.08935431
+    'sh[ 9]': 149.65541
+    'sh[10]': 45.894978
+    'sh[11]': 30.731476
+    'sh[12]': -80.42475
+    'sh[13]': -14.57422
+    'sh[14]': -2.0667326
+    'sh[15]': -2.8997612
+    'sh[16]': -11.46699
+    'sh[17]': -3.300241
+    'sh[18]': 166.58943
+    'sh[19]': 89.80427
+    'sh[20]': 16.186108
+    'sh[21]': -86.96914
+    'sh[22]': -32.556625
+    'sh[23]': -2.2245066
+    'sh[24]': -5.62351
+    'sh[25]': -5.074096
+    'sh[26]': -11.02804
   m_SHValidForCapturePosition: {x: 36.617508, y: 1.1994085, z: -2.3254933}
   m_SHValidForSourcePosition: {x: 35.55, y: 4.63, z: -2.256535}
   m_HDProbeVersion: 9
@@ -24470,15 +24470,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: -1.4267592e+32
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 6.07e-43
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 4.9e-44
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -25059,33 +25059,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 8.815164
-    'sh[ 1]': -2.5512908
-    'sh[ 2]': -4.092818
-    'sh[ 3]': 0.37112385
-    'sh[ 4]': -0.0632836
-    'sh[ 5]': 0.87250054
-    'sh[ 6]': 0.018830765
-    'sh[ 7]': -0.028439501
-    'sh[ 8]': -0.036141478
-    'sh[ 9]': 5.0434055
-    'sh[10]': -1.6061043
-    'sh[11]': -2.6020138
-    'sh[12]': 0.23299037
-    'sh[13]': -0.041914176
-    'sh[14]': 0.43803194
-    'sh[15]': 0.038603462
-    'sh[16]': -0.014711466
-    'sh[17]': -0.009325158
-    'sh[18]': 2.6761518
-    'sh[19]': -0.70824826
-    'sh[20]': -1.5026004
-    'sh[21]': 0.1460247
-    'sh[22]': -0.037674896
-    'sh[23]': 0.11914128
-    'sh[24]': 0.040843148
-    'sh[25]': -0.0067380206
-    'sh[26]': -0.003608633
+    'sh[ 0]': 8.556024
+    'sh[ 1]': -2.2113795
+    'sh[ 2]': -4.0715194
+    'sh[ 3]': -0.12122433
+    'sh[ 4]': 0.042419784
+    'sh[ 5]': 0.83743393
+    'sh[ 6]': 0.047732417
+    'sh[ 7]': 0.043437846
+    'sh[ 8]': -0.08402218
+    'sh[ 9]': 4.903834
+    'sh[10]': -1.3946724
+    'sh[11]': -2.6224623
+    'sh[12]': -0.077533714
+    'sh[13]': 0.023306621
+    'sh[14]': 0.4085885
+    'sh[15]': 0.059146013
+    'sh[16]': 0.034371577
+    'sh[17]': -0.0385404
+    'sh[18]': 2.6652086
+    'sh[19]': -0.5582499
+    'sh[20]': -1.5656111
+    'sh[21]': -0.032795813
+    'sh[22]': 0.0044726795
+    'sh[23]': 0.09532152
+    'sh[24]': 0.05575917
+    'sh[25]': 0.019757472
+    'sh[26]': -0.017745445
   m_SHValidForCapturePosition: {x: 57.696465, y: 2.5544112, z: 2.596468}
   m_SHValidForSourcePosition: {x: 57.342613, y: 2.4917622, z: 2.215231}
   m_HDProbeVersion: 9
@@ -25751,33 +25751,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 3.6996398
-    'sh[ 1]': -2.333895
-    'sh[ 2]': -0.056253634
-    'sh[ 3]': -0.15448089
-    'sh[ 4]': 0.26647413
-    'sh[ 5]': -0.08047187
-    'sh[ 6]': -0.39719412
-    'sh[ 7]': -0.009608732
-    'sh[ 8]': -1.2165991
-    'sh[ 9]': 1.7466718
-    'sh[10]': -1.1437914
-    'sh[11]': -0.06139854
-    'sh[12]': -0.11750036
-    'sh[13]': 0.19902363
-    'sh[14]': -0.03667469
-    'sh[15]': -0.18763544
-    'sh[16]': 0.0071255486
-    'sh[17]': -0.5706963
-    'sh[18]': 0.69658124
-    'sh[19]': -0.4214741
-    'sh[20]': -0.06619162
-    'sh[21]': -0.085810326
-    'sh[22]': 0.14881048
-    'sh[23]': -0.014412312
-    'sh[24]': -0.0692122
-    'sh[25]': 0.0131865395
-    'sh[26]': -0.21015649
+    'sh[ 0]': 3.820832
+    'sh[ 1]': -2.814257
+    'sh[ 2]': 0.0482596
+    'sh[ 3]': -0.10557292
+    'sh[ 4]': 0.11656284
+    'sh[ 5]': -0.06518607
+    'sh[ 6]': -0.52182615
+    'sh[ 7]': -0.014010613
+    'sh[ 8]': -1.489797
+    'sh[ 9]': 1.8291758
+    'sh[10]': -1.4112724
+    'sh[11]': -0.02082162
+    'sh[12]': -0.05833117
+    'sh[13]': 0.10091419
+    'sh[14]': 0.04911881
+    'sh[15]': -0.25909474
+    'sh[16]': -0.008031466
+    'sh[17]': -0.70118666
+    'sh[18]': 0.74971753
+    'sh[19]': -0.5652725
+    'sh[20]': -0.0602163
+    'sh[21]': -0.03048034
+    'sh[22]': 0.07509874
+    'sh[23]': 0.1096128
+    'sh[24]': -0.109577954
+    'sh[25]': -0.004288548
+    'sh[26]': -0.25606504
   m_SHValidForCapturePosition: {x: 63.38092, y: 6.6842666, z: -0.22000003}
   m_SHValidForSourcePosition: {x: 63.339996, y: 5.6865034, z: -0.22000003}
   m_HDProbeVersion: 9
@@ -26204,19 +26204,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: 7.185382e+22
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 2.9388239e+29
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 7.212841e+22
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: 2.077349e-10
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_UseViewFrustumForShadowCasterCull
@@ -28110,33 +28110,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 5.237145
-    'sh[ 1]': -2.9754663
-    'sh[ 2]': 0.32435223
-    'sh[ 3]': -1.3077539
-    'sh[ 4]': 0.35525694
-    'sh[ 5]': -0.23749697
-    'sh[ 6]': -0.13743903
-    'sh[ 7]': 0.07414832
-    'sh[ 8]': -0.08181638
-    'sh[ 9]': 2.6216545
-    'sh[10]': -1.3021892
-    'sh[11]': 0.1155138
-    'sh[12]': -0.6326208
-    'sh[13]': 0.17866047
-    'sh[14]': -0.0889148
-    'sh[15]': -0.06647212
-    'sh[16]': 0.030048965
-    'sh[17]': -0.0025568511
-    'sh[18]': 1.2373683
-    'sh[19]': -0.46521652
-    'sh[20]': 0.031527516
-    'sh[21]': -0.2792042
-    'sh[22]': 0.09007758
-    'sh[23]': -0.021569595
-    'sh[24]': -0.03277953
-    'sh[25]': 0.002469128
-    'sh[26]': 0.031498868
+    'sh[ 0]': 4.288502
+    'sh[ 1]': -2.46492
+    'sh[ 2]': 0.6096452
+    'sh[ 3]': -0.74501187
+    'sh[ 4]': 0.25198448
+    'sh[ 5]': -0.2680272
+    'sh[ 6]': -0.13466376
+    'sh[ 7]': 0.0107520195
+    'sh[ 8]': -0.056835007
+    'sh[ 9]': 2.1556363
+    'sh[10]': -1.0557734
+    'sh[11]': 0.33941776
+    'sh[12]': -0.32889327
+    'sh[13]': 0.10862129
+    'sh[14]': -0.11468465
+    'sh[15]': -0.06279477
+    'sh[16]': -0.061208114
+    'sh[17]': 0.0018415572
+    'sh[18]': 1.2311012
+    'sh[19]': -0.42050186
+    'sh[20]': 0.21057685
+    'sh[21]': -0.34273967
+    'sh[22]': 0.07420048
+    'sh[23]': -0.039570376
+    'sh[24]': -0.039217625
+    'sh[25]': -0.10183681
+    'sh[26]': 0.057927307
   m_SHValidForCapturePosition: {x: 49.978077, y: 2.9098535, z: -0.8799891}
   m_SHValidForSourcePosition: {x: 48.703957, y: 2.761774, z: 0.0028426647}
   m_HDProbeVersion: 9
@@ -28449,7 +28449,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: 3.013331e-34
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.x
@@ -28457,11 +28457,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -28555,19 +28555,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: -1.4851653e+29
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: -5.96542e+29
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 1.323e-42
+      value: -1.4851411e+29
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: -3.6973785e+28
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_UseViewFrustumForShadowCasterCull
@@ -28983,11 +28983,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 3e-45
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 8.98e-43
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.y
@@ -29211,19 +29211,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 1e-45
+      value: 3e-45
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_UseViewFrustumForShadowCasterCull
@@ -29732,6 +29732,79 @@ MonoBehaviour:
   m_Size: {x: 8, y: 8, z: 2}
   m_FadeFactor: 0.18
   m_Version: 3
+--- !u!1001 &1903496273
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.75
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -14.67
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 12.47
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.6754799
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.20910999
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.6754799
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.20910999
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 34.402
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2d17ebb7fe958ff4898d2c0cd1dddce9, type: 2}
+    - target: {fileID: 919132149155446097, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+      propertyPath: m_Name
+      value: Unity_Logo
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
 --- !u!1 &1909621619
 GameObject:
   m_ObjectHideFlags: 0
@@ -30041,33 +30114,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 183.57086
-    'sh[ 1]': -75.90344
-    'sh[ 2]': 3.783233
-    'sh[ 3]': 73.934715
-    'sh[ 4]': -59.155647
-    'sh[ 5]': -3.1683512
-    'sh[ 6]': -13.576094
-    'sh[ 7]': 3.3396645
-    'sh[ 8]': 23.14756
-    'sh[ 9]': 125.62872
-    'sh[10]': -52.04249
-    'sh[11]': 1.5978464
-    'sh[12]': 40.97977
-    'sh[13]': -37.012093
-    'sh[14]': -2.0489132
-    'sh[15]': -9.533892
-    'sh[16]': 2.218774
-    'sh[17]': 17.143957
-    'sh[18]': 88.47715
-    'sh[19]': -34.548443
-    'sh[20]': 0.9275531
-    'sh[21]': 17.02956
-    'sh[22]': -21.189774
-    'sh[23]': -1.965915
-    'sh[24]': -6.746309
-    'sh[25]': 2.3297842
-    'sh[26]': 13.050011
+    'sh[ 0]': 208.73586
+    'sh[ 1]': -72.72703
+    'sh[ 2]': -1.0082997
+    'sh[ 3]': 56.155994
+    'sh[ 4]': -56.040596
+    'sh[ 5]': -3.766386
+    'sh[ 6]': -15.465409
+    'sh[ 7]': 3.8174932
+    'sh[ 8]': 26.783497
+    'sh[ 9]': 145.98373
+    'sh[10]': -50.45221
+    'sh[11]': -0.96970654
+    'sh[12]': 17.81757
+    'sh[13]': -31.955418
+    'sh[14]': -2.386118
+    'sh[15]': -10.889597
+    'sh[16]': 2.7626803
+    'sh[17]': 20.26238
+    'sh[18]': 113.18182
+    'sh[19]': -37.112217
+    'sh[20]': -1.1484014
+    'sh[21]': -10.35569
+    'sh[22]': -14.529409
+    'sh[23]': -2.1071515
+    'sh[24]': -8.030717
+    'sh[25]': 2.4909449
+    'sh[26]': 16.2344
   m_SHValidForCapturePosition: {x: 20.1278, y: 7.67794, z: 0.66314065}
   m_SHValidForSourcePosition: {x: 21.66, y: 7.75, z: -0.91}
   m_HDProbeVersion: 9
@@ -31204,11 +31277,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: -32
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 1.202e-42
       objectReference: {fileID: 0}
     - target: {fileID: 8339836715165150865, guid: ac309c43e63ab9c489ca158a0025b6e9, type: 3}
       propertyPath: m_BoundingSphereOverride.y
@@ -31314,7 +31387,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 7.1e-43
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.x
@@ -31322,11 +31395,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: -4.1953776e+24
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 9.02e-43
+      value: -0.019999936
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_UseViewFrustumForShadowCasterCull
@@ -31458,19 +31531,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 106757439849694504, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0.0033480523
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 106757439849694504, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 5.369681e-25
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 106757439849694504, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 5.369555e-25
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 106757439849694504, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0.0033480523
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 241953713371403933, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_RootOrder
@@ -31654,19 +31727,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 5.369555e-25
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 2.1737723e-24
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 5.401993e-25
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1875769977270881270, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 5.369681e-25
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2042504202900068614, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_IsActive
@@ -31834,19 +31907,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7684608501753378189, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 1.377729e-39
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7684608501753378189, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: NaN
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7684608501753378189, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: -7.2614464e-20
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7684608501753378189, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 2.7210917e-20
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7815742732066940026, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -32488,33 +32561,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 60.970093
-    'sh[ 1]': 4.3061624
-    'sh[ 2]': -5.1317573
-    'sh[ 3]': -45.02176
-    'sh[ 4]': -1.7611394
-    'sh[ 5]': 0.38516194
-    'sh[ 6]': -2.2788255
-    'sh[ 7]': 2.6880705
-    'sh[ 8]': 4.3941274
-    'sh[ 9]': 39.29933
-    'sh[10]': 3.8859365
-    'sh[11]': -2.0306194
-    'sh[12]': -29.140678
-    'sh[13]': -1.2821164
-    'sh[14]': 0.34660053
-    'sh[15]': -1.4951813
-    'sh[16]': 1.7362242
-    'sh[17]': 2.9228144
-    'sh[18]': 24.5665
-    'sh[19]': 3.2422676
-    'sh[20]': -1.260878
-    'sh[21]': -19.05374
-    'sh[22]': -0.8714648
-    'sh[23]': 0.22176185
-    'sh[24]': -0.96820945
-    'sh[25]': 1.1242758
-    'sh[26]': 1.9260222
+    'sh[ 0]': 70.81356
+    'sh[ 1]': 5.797835
+    'sh[ 2]': -4.0334215
+    'sh[ 3]': -49.37672
+    'sh[ 4]': -2.547636
+    'sh[ 5]': 1.1028899
+    'sh[ 6]': -2.2475734
+    'sh[ 7]': 3.1154137
+    'sh[ 8]': 3.9580715
+    'sh[ 9]': 54.792027
+    'sh[10]': 8.511212
+    'sh[11]': -2.0388358
+    'sh[12]': -38.656948
+    'sh[13]': -3.4030068
+    'sh[14]': -0.25399563
+    'sh[15]': -1.5843562
+    'sh[16]': 2.7115328
+    'sh[17]': 2.8808415
+    'sh[18]': 54.562496
+    'sh[19]': 14.7283325
+    'sh[20]': -3.0232222
+    'sh[21]': -38.55654
+    'sh[22]': -5.8768325
+    'sh[23]': -1.9214396
+    'sh[24]': -1.4317492
+    'sh[25]': 3.2989852
+    'sh[26]': 2.303271
   m_SHValidForCapturePosition: {x: 41.28018, y: 1.2773557, z: 3.4870224}
   m_SHValidForSourcePosition: {x: 37.984707, y: 4.7781773, z: 4.356434}
   m_HDProbeVersion: 9
@@ -33444,7 +33517,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 5500
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 4.351e-42, y: 2.524355e-29, z: 0, w: 6.573344e+28}
+  m_BoundingSphereOverride: {x: 2.6716e-41, y: 2.524355e-29, z: 0, w: 1.561203e-39}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -34172,33 +34245,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 3649.153
-    'sh[ 1]': -1196.0222
-    'sh[ 2]': -56.783344
-    'sh[ 3]': -370.7399
-    'sh[ 4]': 334.93726
-    'sh[ 5]': -11.464971
-    'sh[ 6]': 309.46658
-    'sh[ 7]': -63.193317
-    'sh[ 8]': 356.86838
-    'sh[ 9]': 3785.8892
-    'sh[10]': -660.4415
-    'sh[11]': -67.851006
-    'sh[12]': -455.21518
-    'sh[13]': 263.1567
-    'sh[14]': -30.149527
-    'sh[15]': 355.3999
-    'sh[16]': -54.511726
-    'sh[17]': 381.24176
-    'sh[18]': 4257.3887
-    'sh[19]': 231.33824
-    'sh[20]': -95.177246
-    'sh[21]': -513.30646
-    'sh[22]': 172.1377
-    'sh[23]': -61.092777
-    'sh[24]': 365.4973
-    'sh[25]': -50.14661
-    'sh[26]': 359.96927
+    'sh[ 0]': 3650.101
+    'sh[ 1]': -1168.7408
+    'sh[ 2]': -90.95232
+    'sh[ 3]': -348.19342
+    'sh[ 4]': 409.26297
+    'sh[ 5]': -58.08147
+    'sh[ 6]': 324.8194
+    'sh[ 7]': -76.76286
+    'sh[ 8]': 346.95453
+    'sh[ 9]': 3789.0364
+    'sh[10]': -628.2899
+    'sh[11]': -95.310036
+    'sh[12]': -443.90637
+    'sh[13]': 322.1488
+    'sh[14]': -68.53062
+    'sh[15]': 380.55313
+    'sh[16]': -66.04912
+    'sh[17]': 386.31104
+    'sh[18]': 4263.6606
+    'sh[19]': 281.17056
+    'sh[20]': -116.902275
+    'sh[21]': -512.34717
+    'sh[22]': 214.02138
+    'sh[23]': -94.19486
+    'sh[24]': 395.98474
+    'sh[25]': -60.74044
+    'sh[26]': 372.77463
   m_SHValidForCapturePosition: {x: -26, y: 7, z: 0}
   m_SHValidForSourcePosition: {x: -6, y: 7, z: 0}
   m_HDProbeVersion: 9
@@ -34572,15 +34645,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3508600948370743324, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: -9.2416915e+30
       objectReference: {fileID: 0}
     - target: {fileID: 3508600948370743324, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 6.07e-43
       objectReference: {fileID: 0}
     - target: {fileID: 3508600948370743324, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 3.59e-43
+      value: 4.9e-44
       objectReference: {fileID: 0}
     - target: {fileID: 3508600948370743324, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -34600,15 +34673,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4869889032728308073, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: NaN
       objectReference: {fileID: 0}
     - target: {fileID: 4869889032728308073, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 6.07e-43
       objectReference: {fileID: 0}
     - target: {fileID: 4869889032728308073, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 4.9e-44
       objectReference: {fileID: 0}
     - target: {fileID: 4869889032728308073, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -34648,19 +34721,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7888398759032545584, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.w
-      value: 0
+      value: 2.87e-42
       objectReference: {fileID: 0}
     - target: {fileID: 7888398759032545584, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.x
-      value: 0
+      value: 5.381e-42
       objectReference: {fileID: 0}
     - target: {fileID: 7888398759032545584, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 4.305e-42
       objectReference: {fileID: 0}
     - target: {fileID: 7888398759032545584, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_BoundingSphereOverride.z
-      value: 0
+      value: 3.587e-42
       objectReference: {fileID: 0}
     - target: {fileID: 8707388281747785984, guid: 76336da601705b24888cb14d8af76073, type: 3}
       propertyPath: m_RootOrder
@@ -34811,7 +34884,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.y
-      value: 0
+      value: 6.4e-44
       objectReference: {fileID: 0}
     - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_BoundingSphereOverride.z
@@ -35780,33 +35853,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 324.39148
-    'sh[ 1]': -8.711335
-    'sh[ 2]': -6.5572634
-    'sh[ 3]': 239.62372
-    'sh[ 4]': -55.130836
-    'sh[ 5]': 3.6793125
-    'sh[ 6]': -16.21785
-    'sh[ 7]': -7.0783343
-    'sh[ 8]': 42.357918
-    'sh[ 9]': 209.15414
-    'sh[10]': -0.12785916
-    'sh[11]': -1.5473312
-    'sh[12]': 154.39905
-    'sh[13]': -35.817223
-    'sh[14]': 3.681895
-    'sh[15]': -10.436692
-    'sh[16]': -4.144448
-    'sh[17]': 28.45588
-    'sh[18]': 133.36415
-    'sh[19]': 3.623438
-    'sh[20]': -0.47022834
-    'sh[21]': 95.87797
-    'sh[22]': -23.476263
-    'sh[23]': 2.5958679
-    'sh[24]': -6.922821
-    'sh[25]': -2.0902917
-    'sh[26]': 18.632118
+    'sh[ 0]': 358.7155
+    'sh[ 1]': 1.3699815
+    'sh[ 2]': -32.92319
+    'sh[ 3]': 241.65475
+    'sh[ 4]': -50.600277
+    'sh[ 5]': -2.171251
+    'sh[ 6]': -20.093596
+    'sh[ 7]': -17.149958
+    'sh[ 8]': 45.31929
+    'sh[ 9]': 261.96423
+    'sh[10]': 25.691906
+    'sh[11]': -28.106565
+    'sh[12]': 151.61234
+    'sh[13]': -23.816341
+    'sh[14]': -7.3441744
+    'sh[15]': -14.309017
+    'sh[16]': -15.101227
+    'sh[17]': 30.929605
+    'sh[18]': 230.99814
+    'sh[19]': 61.515793
+    'sh[20]': -37.246887
+    'sh[21]': 94.87429
+    'sh[22]': 0.55606663
+    'sh[23]': -16.553541
+    'sh[24]': -12.846574
+    'sh[25]': -19.191397
+    'sh[26]': 22.52153
   m_SHValidForCapturePosition: {x: 24.927107, y: 1.2945688, z: 1.4105322}
   m_SHValidForSourcePosition: {x: 28.941973, y: 4.7752485, z: 1.9656034}
   m_HDProbeVersion: 9
@@ -36746,33 +36819,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 1246.2751
-    'sh[ 1]': -426.50662
-    'sh[ 2]': 136.42448
-    'sh[ 3]': -154.52283
-    'sh[ 4]': -21.57648
-    'sh[ 5]': 53.632374
-    'sh[ 6]': -47.45826
-    'sh[ 7]': -14.373576
-    'sh[ 8]': -98.59794
-    'sh[ 9]': 1166.3054
-    'sh[10]': -104.47362
-    'sh[11]': 102.20707
-    'sh[12]': -142.61041
-    'sh[13]': -18.844753
-    'sh[14]': 33.132706
-    'sh[15]': -58.492348
-    'sh[16]': -11.516877
-    'sh[17]': -128.24658
-    'sh[18]': 1292.6406
-    'sh[19]': 413.27374
-    'sh[20]': 73.09631
-    'sh[21]': -138.58807
-    'sh[22]': -22.531199
-    'sh[23]': 11.938746
-    'sh[24]': -87.248955
-    'sh[25]': -10.057548
-    'sh[26]': -213.91609
+    'sh[ 0]': 1286.4379
+    'sh[ 1]': -355.23184
+    'sh[ 2]': 112.83185
+    'sh[ 3]': -136.8396
+    'sh[ 4]': -1.0000452
+    'sh[ 5]': 14.38018
+    'sh[ 6]': -60.67459
+    'sh[ 7]': -26.538633
+    'sh[ 8]': -133.86362
+    'sh[ 9]': 1197.0447
+    'sh[10]': -48.645214
+    'sh[11]': 83.65119
+    'sh[12]': -127.74786
+    'sh[13]': -1.7523493
+    'sh[14]': 2.8806667
+    'sh[15]': -69.27702
+    'sh[16]': -21.260294
+    'sh[17]': -155.89888
+    'sh[18]': 1314.8773
+    'sh[19]': 456.02338
+    'sh[20]': 59.003094
+    'sh[21]': -125.49686
+    'sh[22]': -7.826738
+    'sh[23]': -9.528147
+    'sh[24]': -96.463745
+    'sh[25]': -17.728266
+    'sh[26]': -234.89502
   m_SHValidForCapturePosition: {x: 0, y: 5.26732, z: 0}
   m_SHValidForSourcePosition: {x: 0, y: 5.5, z: 0}
   m_HDProbeVersion: 9
@@ -37155,33 +37228,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    'sh[ 0]': 9.02889
-    'sh[ 1]': -1.9555633
-    'sh[ 2]': -0.36502433
-    'sh[ 3]': -0.4017002
-    'sh[ 4]': 0.1443485
-    'sh[ 5]': -1.1504555
-    'sh[ 6]': 0.015982922
-    'sh[ 7]': -0.12032666
-    'sh[ 8]': -0.14922641
-    'sh[ 9]': 6.4771733
-    'sh[10]': -1.0361987
-    'sh[11]': -1.2616615
-    'sh[12]': -0.41224375
-    'sh[13]': 0.06822455
-    'sh[14]': -0.8771869
-    'sh[15]': 0.043816123
-    'sh[16]': -0.061452452
-    'sh[17]': -0.1285208
-    'sh[18]': 4.792991
-    'sh[19]': -0.24786071
-    'sh[20]': -1.845904
-    'sh[21]': -0.36921245
-    'sh[22]': 0.014049194
-    'sh[23]': -0.688742
-    'sh[24]': 0.063569754
-    'sh[25]': -0.021578405
-    'sh[26]': -0.0979126
+    'sh[ 0]': 9.758692
+    'sh[ 1]': -1.8750147
+    'sh[ 2]': -0.2797461
+    'sh[ 3]': -0.8652956
+    'sh[ 4]': 0.18758519
+    'sh[ 5]': -1.3123796
+    'sh[ 6]': -0.043004896
+    'sh[ 7]': -0.19126058
+    'sh[ 8]': -0.06370495
+    'sh[ 9]': 6.967095
+    'sh[10]': -0.99429095
+    'sh[11]': -1.2639953
+    'sh[12]': -0.77243847
+    'sh[13]': 0.07554842
+    'sh[14]': -0.9826577
+    'sh[15]': 0.005113904
+    'sh[16]': -0.1284957
+    'sh[17]': -0.055049002
+    'sh[18]': 5.179588
+    'sh[19]': -0.19923848
+    'sh[20]': -1.8804692
+    'sh[21]': -0.7088149
+    'sh[22]': 0.0007662253
+    'sh[23]': -0.7600895
+    'sh[24]': 0.033739295
+    'sh[25]': -0.08588696
+    'sh[26]': -0.021310376
   m_SHValidForCapturePosition: {x: 57.680187, y: 3.3250947, z: -0.30450857}
   m_SHValidForSourcePosition: {x: 58.600563, y: 3.69, z: -0.24048615}
   m_HDProbeVersion: 9
@@ -37604,3 +37677,4 @@ SceneRoots:
   - {fileID: 1427689351}
   - {fileID: 287864317}
   - {fileID: 1991903406}
+  - {fileID: 1903496273}
