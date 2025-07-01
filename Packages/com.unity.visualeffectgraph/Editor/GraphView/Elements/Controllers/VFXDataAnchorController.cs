@@ -304,7 +304,7 @@ namespace UnityEditor.VFX.UI
                                 if (typeof(UnityObject).IsAssignableFrom(storageType))
                                 {
                                     Debug.Assert(UnsafeUtility.SizeOf<EntityId>()==sizeof(int), "EntityId size is not the same as int, this will cause issues in VFXDataAnchorController");
-                                    EntityId entityId = (int)evaluatedValue;
+                                    EntityId entityId = (EntityId)evaluatedValue;
                                     return VFXConverter.ConvertTo(EditorUtility.EntityIdToObject(entityId), storageType);
                                 }
                                 else

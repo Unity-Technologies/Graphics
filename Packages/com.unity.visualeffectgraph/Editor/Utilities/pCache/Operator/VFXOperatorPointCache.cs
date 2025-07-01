@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
             base.GetImportDependentAssets(dependencies);
             if (!object.ReferenceEquals(Asset, null))
             {
-                dependencies.Add(Asset.GetInstanceID());
+                dependencies.Add(Asset.GetEntityId());
             }
         }
 
@@ -37,7 +37,7 @@ namespace UnityEditor.VFX
             var asset = GetOrRefreshPointCacheAsset(false);
             if (m_IsPointCacheAssetMissing)
             {
-                var missingPointCachePath = AssetDatabase.GetAssetPath(asset.GetInstanceID());
+                var missingPointCachePath = AssetDatabase.GetAssetPath(asset.GetEntityId());
                 var message = $"The VFX Graph cannot be compiled because a PointCacheAsset located here '{missingPointCachePath}' is missing.";
                 report.RegisterError("ErrorMissingPointCache", VFXErrorType.Error, message, this);
             }
@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
             //This is the only place where point cache property is updated or read
             if (Asset == null && !object.ReferenceEquals(Asset, null))
             {
-                var assetPath = AssetDatabase.GetAssetPath(Asset.GetInstanceID());
+                var assetPath = AssetDatabase.GetAssetPath(Asset.GetEntityId());
 
                 var newPointCacheAsset = AssetDatabase.LoadAssetAtPath<PointCacheAsset>(assetPath);
                 m_IsPointCacheAssetMissing = newPointCacheAsset == null;

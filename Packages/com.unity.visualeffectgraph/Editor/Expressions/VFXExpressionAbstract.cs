@@ -291,6 +291,7 @@ namespace UnityEditor.VFX
             if (type == typeof(Vector4)) return VFXValueType.Float4;
             if (type == typeof(Color)) return VFXValueType.Float4;
             if (type == typeof(int)) return VFXValueType.Int32;
+            if (type == typeof(EntityId)) return VFXValueType.EntityId;
             if (type == typeof(uint)) return VFXValueType.Uint32;
             if (type == typeof(Texture2D)) return VFXValueType.Texture2D;
             if (type == typeof(Texture2DArray)) return VFXValueType.Texture2DArray;

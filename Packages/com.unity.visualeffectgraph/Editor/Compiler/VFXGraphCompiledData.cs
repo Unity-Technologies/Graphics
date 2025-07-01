@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
         private static VFXExpressionObjectValueContainerDesc<T> CreateObjectValueDesc<T>(VFXExpression exp, int expIndex)
         {
             var desc = new VFXExpressionObjectValueContainerDesc<T>();
-            desc.instanceID = exp.Get<int>();
+            desc.entityId = exp.Get<EntityId>();
             return desc;
         }
 
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX
 
         private void SetObjectValueDesc<T>(VFXExpressionValueContainerDesc desc, VFXExpression exp)
         {
-            ((VFXExpressionObjectValueContainerDesc<T>)desc).instanceID = exp.Get<int>();
+            ((VFXExpressionObjectValueContainerDesc<T>)desc).entityId = exp.Get<EntityId>();
         }
 
         public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
