@@ -938,6 +938,40 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        [TestMustExpectAllLogs]
+        public void ExceptionsOnExecuteAreHandledAsExpected()
+        {
+            const string kErrorMessage = "A fatal error.";
+            const int kWidth = 4;
+            const int kHeight = 4;
+
+            // record and execute render graph calls
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+                TextureHandle texture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("WorkingPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderAttachment(texture0, 0);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("BrokenPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    builder.SetInputAttachment(texture1, 0);
+                    builder.SetRenderAttachment(texture0, 1);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => throw new Exception(kErrorMessage));
+                }
+            };
+            LogAssert.Expect(LogType.Error, "Render Graph Execution error");
+            LogAssert.Expect(LogType.Exception, $"Exception: {kErrorMessage}");
+            m_Camera.Render();
+        }
+
+        [Test]
         public void UsingAddRenderPassWithNRPThrows()
         {
             // m_RenderGraph.nativeRenderPassesEnabled is set to true in the setup

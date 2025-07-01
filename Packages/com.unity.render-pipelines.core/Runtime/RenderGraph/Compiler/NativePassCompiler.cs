@@ -1496,41 +1496,25 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
-        internal void ExecuteGraphNode(ref InternalRenderGraphContext rgContext, RenderGraphResourceRegistry resources, RenderGraphPass pass)
+        internal void ExecuteRenderGraphPass(ref InternalRenderGraphContext rgContext, RenderGraphResourceRegistry resources, RenderGraphPass pass)
         {
-#if THROW_ON_SETRENDERTARGET_DEBUG
-            if (pass.type == RenderGraphPassType.Raster)
+
+            rgContext.executingPass = pass;
+
+            if (!pass.HasRenderFunc())
             {
-                CommandBuffer.ThrowOnSetRenderTarget = true;
+                throw new InvalidOperationException(
+                    string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
             }
-#endif
-            try
+
+            using (new ProfilingScope(rgContext.cmd, pass.customSampler))
             {
-                rgContext.executingPass = pass;
+                pass.Execute(rgContext);
 
-                if (!pass.HasRenderFunc())
+                foreach (var tex in pass.setGlobalsList)
                 {
-                    throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
+                    rgContext.cmd.SetGlobalTexture(tex.Item2, tex.Item1);
                 }
-
-                using (new ProfilingScope(rgContext.cmd, pass.customSampler))
-                {
-                    pass.Execute(rgContext);
-
-                    foreach (var tex in pass.setGlobalsList)
-                    {
-                        rgContext.cmd.SetGlobalTexture(tex.Item2, tex.Item1);
-                    }
-                }
-            }
-            finally
-            {
-#if THROW_ON_SETRENDERTARGET_DEBUG
-                if (pass.type == RenderGraphPassType.Raster)
-                {
-                    CommandBuffer.ThrowOnSetRenderTarget = false;
-                }
-#endif
             }
         }
 
@@ -1544,20 +1528,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             for (int passIndex = 0; passIndex < contextData.passData.Length; passIndex++)
             {
-                ref var pass = ref contextData.passData.ElementAt(passIndex);
-
-                if (pass.culled)
+                ref var passData = ref contextData.passData.ElementAt(passIndex);
+                if (passData.culled)
                     continue;
 
-                bool isRaster = pass.type == RenderGraphPassType.Raster;
-                bool isUnsafe = pass.type == RenderGraphPassType.Unsafe;
+                bool nrpBegan = false;
+                ExecuteInitializeResource(rgContext, resources, passData);
 
-                ExecuteInitializeResource(rgContext, resources, pass);
-
-                var isAsyncCompute = pass.type == RenderGraphPassType.Compute && pass.asyncCompute == true;
-                if (isAsyncCompute)
+                if (passData.type == RenderGraphPassType.Compute && passData.asyncCompute)
                 {
-                    if (rgContext.contextlessTesting == false)
+                    if (!rgContext.contextlessTesting)
                         rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
                     rgContext.cmd.Clear();
 
@@ -1567,18 +1547,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
 
                 // also make sure to insert fence=waits for multiple queue syncs
-                if (pass.waitOnGraphicsFencePassId != -1)
+                if (passData.waitOnGraphicsFencePassId != -1)
                 {
-                    var fence = contextData.fences[pass.waitOnGraphicsFencePassId];
+                    var fence = contextData.fences[passData.waitOnGraphicsFencePassId];
                     rgContext.cmd.WaitOnAsyncGraphicsFence(fence);
                 }
 
-                var nrpBegan = false;
-                if (isRaster && pass.mergeState <= PassMergeState.Begin)
+                if (passData.type == RenderGraphPassType.Raster && passData.mergeState <= PassMergeState.Begin)
                 {
-                    if (pass.nativePassIndex >= 0)
+                    if (passData.nativePassIndex >= 0)
                     {
-                        ref var nativePass = ref contextData.nativePassData.ElementAt(pass.nativePassIndex);
+                        ref var nativePass = ref contextData.nativePassData.ElementAt(passData.nativePassIndex);
                         if (nativePass.fragments.size > 0)
                         {
                             ExecuteBeginRenderPass(rgContext, resources, ref nativePass);
@@ -1587,97 +1566,103 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         }
                     }
                 }
-                else if (isUnsafe)
+
+                else if (passData.type == RenderGraphPassType.Unsafe)
                 {
                     ExecuteSetRenderTargets(passes[passIndex], rgContext);
                 }
 
-                if (pass.mergeState >= PassMergeState.SubPass)
+                if (passData.mergeState >= PassMergeState.SubPass)
                 {
-                    if (pass.beginNativeSubpass)
+                    if (passData.beginNativeSubpass)
                     {
                         if (!inRenderPass)
                         {
-                            throw new Exception("Compiler error: Pass is marked as beginning a native sub pass but no pass is currently active.");
+                            throw new Exception(
+                                "Compiler error: Pass is marked as beginning a native sub pass but no pass is currently active.");
                         }
 
                         rgContext.cmd.NextSubPass();
                     }
                 }
 
-                if (pass.numRandomAccessResources > 0)
+                if (passData.numRandomAccessResources > 0)
                 {
-                    foreach (var randomWriteAttachment in pass.RandomWriteTextures(contextData))
+                    foreach (var randomWriteAttachment in passData.RandomWriteTextures(contextData))
                     {
-                        ExecuteSetRandomWriteTarget(rgContext.cmd, resources, randomWriteAttachment.index, randomWriteAttachment.resource);
+                        ExecuteSetRandomWriteTarget(rgContext.cmd, resources, randomWriteAttachment.index,
+                            randomWriteAttachment.resource);
                     }
                 }
 
-#if THROW_ON_SETRENDERTARGET_DEBUG
-                if (passes[pass.passId].type == RenderGraphPassType.Raster)
-                {
-                    CommandBuffer.ThrowOnSetRenderTarget = true;
-                }
-#endif
+                ExecuteRenderGraphPass(ref rgContext, resources, passes[passData.passId]);
+                EndRenderGraphPass(ref rgContext, ref passData, ref inRenderPass, resources, nrpBegan);
 
-                ExecuteGraphNode(ref rgContext, resources, passes[pass.passId]);
+            }
+        }
 
-                // If we set any uavs clear them again so they are local to the pass
-                if (pass.numRandomAccessResources > 0)
-                {
-                    rgContext.cmd.ClearRandomWriteTargets();
-                }
+        void EndRenderGraphPass(ref InternalRenderGraphContext rgContext, ref PassData passData,
+            ref bool inRenderPass, RenderGraphResourceRegistry resources, bool nrpBegan)
+        {
+            // If we set any uavs clear them again so they are local to the pass
+            if (passData.numRandomAccessResources > 0)
+            {
+                rgContext.cmd.ClearRandomWriteTargets();
+            }
 
-                // should we insert a fence to sync between difference queues?
-                if (pass.insertGraphicsFence)
-                {
-                    var fence = rgContext.cmd.CreateAsyncGraphicsFence();
-                    contextData.fences[pass.passId] = fence;
-                }
+            // should we insert a fence to sync between difference queues?
+            if (passData.insertGraphicsFence)
+            {
+                var fence = rgContext.cmd.CreateAsyncGraphicsFence();
+                contextData.fences[passData.passId] = fence;
+            }
 
-                if (isRaster)
+            if (passData.type == RenderGraphPassType.Raster)
+            {
+                var hasRenderPassEnded = (passData.mergeState == PassMergeState.None && nrpBegan)
+                                 || passData.mergeState == PassMergeState.End;
+
+                if (hasRenderPassEnded)
                 {
-                    if ((pass.mergeState == PassMergeState.None && nrpBegan)
-                        || pass.mergeState == PassMergeState.End)
+                    if (passData.nativePassIndex >= 0)
                     {
-                        if (pass.nativePassIndex >= 0)
+                        ref var nativePass = ref contextData.nativePassData.ElementAt(passData.nativePassIndex);
+                        if (nativePass.fragments.size > 0)
                         {
-                            ref var nativePass = ref contextData.nativePassData.ElementAt(pass.nativePassIndex);
-                            if (nativePass.fragments.size > 0)
+                            if (!inRenderPass)
                             {
-                                if (!inRenderPass)
-                                {
-                                    throw new Exception("Compiler error: Generated a subpass pass but no pass is currently active.");
-                                }
+                                throw new Exception(
+                                    "Compiler error: Generated a subpass pass but no pass is currently active.");
+                            }
 
-                                if (nativePass.hasFoveatedRasterization)
-                                {
-                                    rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
-                                }
+                            if (nativePass.hasFoveatedRasterization)
+                            {
+                                rgContext.cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+                            }
 
-                                rgContext.cmd.EndRenderPass();
-                                CommandBuffer.ThrowOnSetRenderTarget = false;
-                                inRenderPass = false;
+                            rgContext.cmd.EndRenderPass();
+                            CommandBuffer.ThrowOnSetRenderTarget = false;
+                            inRenderPass = false;
 
-                                // VRS ShadingRate(Image) cannot be set inside a render pass (cmdBuf).
-                                // ShadingRate is set before BeginRenderPass and here we ResetShadingRate after EndRenderPass.
-                                if (nativePass.hasShadingRateStates || nativePass.hasShadingRateImage)
-                                {
-                                    rgContext.cmd.ResetShadingRate();
-                                }
+                            // VRS ShadingRate(Image) cannot be set inside a render pass (cmdBuf).
+                            // ShadingRate is set before BeginRenderPass and here we ResetShadingRate after EndRenderPass.
+                            if (nativePass.hasShadingRateStates || nativePass.hasShadingRateImage)
+                            {
+                                rgContext.cmd.ResetShadingRate();
                             }
                         }
                     }
                 }
-                else if (isAsyncCompute)
-                {
-                    rgContext.renderContext.ExecuteCommandBufferAsync(rgContext.cmd, ComputeQueueType.Background);
-                    CommandBufferPool.Release(rgContext.cmd);
-                    rgContext.cmd = previousCommandBuffer;
-                }
-
-                ExecuteDestroyResource(rgContext, resources, ref pass);
             }
+            else if (passData.type == RenderGraphPassType.Compute && passData.asyncCompute)
+            {
+                rgContext.renderContext.ExecuteCommandBufferAsync(rgContext.cmd, ComputeQueueType.Background);
+                CommandBufferPool.Release(rgContext.cmd);
+                rgContext.cmd = previousCommandBuffer;
+            }
+
+            ExecuteDestroyResource(rgContext, resources, ref passData);
         }
     }
 }
+

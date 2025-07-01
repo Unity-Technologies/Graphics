@@ -1562,8 +1562,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_ExecutionExceptionWasRaised = true;
             }
 
+            CommandBuffer.ThrowOnSetRenderTarget = false;
+
             CleanupResourcesAndGraph();
 
+            // If there has been an error, we have to flush the command being built along the RG data structure,
+            // because otherwise the command might try to use resources we just deleted.
+            m_RenderGraphContext.cmd.Clear();
             return m_RenderGraphContext.contextlessTesting;
         }
 

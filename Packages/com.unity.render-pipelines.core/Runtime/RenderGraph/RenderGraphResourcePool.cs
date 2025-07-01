@@ -107,7 +107,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         ReleaseResource(value.Item1, value.Item2, frameIndex);
                     }
 
-                    Debug.LogWarning(logMessage);
+                    if (!onException) // If onException is true, logMessage is ""
+                        Debug.LogWarning(logMessage);
                 }
 
                 // If an error occurred during execution, it's expected that textures are not all released so we clear the tracking list.
