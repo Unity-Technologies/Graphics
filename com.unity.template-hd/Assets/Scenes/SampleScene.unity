@@ -21303,7 +21303,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -55.660603, z: -0}
+    textureOffset: {x: -0, y: -66.649254, z: -0}
     falloffMode: 0
     maskMode: 0
     materialMask: {fileID: 0}
@@ -29738,15 +29738,15 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 2076744744}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.75
+      value: 0.75000006
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.75
+      value: 0.74999994
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
       propertyPath: m_LocalScale.z
@@ -29805,6 +29805,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+--- !u!4 &1903496274 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 461997d46bca1974f8827fa79c602f8f, type: 3}
+  m_PrefabInstance: {fileID: 1903496273}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1909621619
 GameObject:
   m_ObjectHideFlags: 0
@@ -34442,6 +34447,7 @@ Transform:
   m_Children:
   - {fileID: 1895543026}
   - {fileID: 7210509970297696232}
+  - {fileID: 1903496274}
   - {fileID: 654127264494350039}
   - {fileID: 1784457235}
   - {fileID: 1408268352}
@@ -37677,4 +37683,3 @@ SceneRoots:
   - {fileID: 1427689351}
   - {fileID: 287864317}
   - {fileID: 1991903406}
-  - {fileID: 1903496273}
