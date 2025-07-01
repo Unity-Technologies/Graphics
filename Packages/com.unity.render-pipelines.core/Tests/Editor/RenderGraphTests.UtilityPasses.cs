@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Tests
         public void RenderPassAddBlitReturnBuilder()
         {
             var resources = CreateBlitResources(m_RenderGraph);
-            
+
             var builderNull = m_RenderGraph.AddBlitPass(resources.blitParameters, "Test Pass", false);
             Assert.IsNull(builderNull);
 
@@ -47,10 +47,10 @@ namespace UnityEngine.Rendering.Tests
             Assert.IsNotNull(builder);
             builder.Dispose();
 
-            builderNull = m_RenderGraph.AddBlitPass(resources.textures[0], resources.textures[1], Vector2.one, Vector2.zero, passName:"Test Pass", returnBuilder:false);
+            builderNull = m_RenderGraph.AddBlitPass(resources.textures[0], resources.textures[1], Vector2.one, Vector2.zero, passName: "Test Pass", returnBuilder: false);
             Assert.IsNull(builderNull);
 
-            builder = m_RenderGraph.AddBlitPass(resources.textures[0], resources.textures[1], Vector2.one, Vector2.zero, passName:"Test Pass", returnBuilder:true);
+            builder = m_RenderGraph.AddBlitPass(resources.textures[0], resources.textures[1], Vector2.one, Vector2.zero, passName: "Test Pass", returnBuilder: true);
             Assert.IsNotNull(builder);
             builder.Dispose();
         }
@@ -61,14 +61,14 @@ namespace UnityEngine.Rendering.Tests
             int texture0ID = 0;
             int texture1ID = 1;
             var resources = CreateBlitResources(m_RenderGraph);
-            
-            using(var builder = m_RenderGraph.AddBlitPass(resources.blitParameters, "Test Pass", true ))
+
+            using (var builder = m_RenderGraph.AddBlitPass(resources.blitParameters, "Test Pass", true))
             {
                 builder.SetGlobalTextureAfterPass(resources.textures[0], texture0ID);
             }
             Assert.IsTrue(m_RenderGraph.IsGlobal(texture0ID));
 
-            using(var builder = m_RenderGraph.AddBlitPass(resources.textures[0], resources.textures[1], Vector2.one, Vector2.zero, passName: "Test Pass", returnBuilder: true ))
+            using (var builder = m_RenderGraph.AddBlitPass(resources.textures[0], resources.textures[1], Vector2.one, Vector2.zero, passName: "Test Pass", returnBuilder: true))
             {
                 builder.SetGlobalTextureAfterPass(resources.textures[1], texture1ID);
             }
@@ -80,9 +80,9 @@ namespace UnityEngine.Rendering.Tests
         public void RenderPassAddBlitUseTexture()
         {
             var resources = CreateBlitResources(m_RenderGraph);
-            
+
             // Writing to the texture blitting is the same as writing the same texture twice, is not allowed.
-            using (var builder = m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPass", true ))
+            using (var builder = m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPass", true))
             {
                 Assert.Throws<System.InvalidOperationException>(() =>
                 {
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.Tests
             }
 
             // Reading the same texture twice is allowed
-            using (var builder = m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPass", true ))
+            using (var builder = m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPass", true))
             {
                 builder.UseTexture(resources.textures[0], AccessFlags.Read);
             }
@@ -125,6 +125,30 @@ namespace UnityEngine.Rendering.Tests
             Assert.Throws<System.ArgumentException>(() =>
             {
                 m_RenderGraph.AddBlitPass(resources.blitParameters.source, resources.blitParameters.destination, Vector2.one, Vector2.zero, passName: "BlitPass2");
+            });
+        }
+
+        [Test]
+        public void RenderPassAddBlitBackbufferTarget()
+        {
+            var resources = CreateBlitResources(m_RenderGraph);
+            resources.blitParameters.destination = m_RenderGraph.ImportBackbuffer(0);
+            
+            // Using a backbuffer as destination is allowed
+            Assert.DoesNotThrow(delegate { m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPassBackbufferTarget0"); });
+            Assert.DoesNotThrow(delegate { m_RenderGraph.AddBlitPass(resources.blitParameters.source, resources.blitParameters.destination, Vector2.one, Vector2.zero, passName: "BlitPassBackbufferTarget1"); });
+            
+            resources.blitParameters.destination = resources.textures[1];
+            resources.blitParameters.source = m_RenderGraph.ImportBackbuffer(0);
+            
+            // Using a backbuffer as source is not allowed and throws an exception
+            Assert.Throws<System.ArgumentException>(() =>
+            {
+                m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPassBackbufferSource0");
+            });
+            Assert.Throws<System.ArgumentException>(() =>
+            {
+                m_RenderGraph.AddBlitPass(resources.blitParameters.source, resources.blitParameters.destination, Vector2.one, Vector2.zero, passName: "BlitPassBackbufferSource1");
             });
         }
     }

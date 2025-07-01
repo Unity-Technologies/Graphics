@@ -223,11 +223,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// <param name="destinationSlice"></param>
         /// <param name="numSlices"></param>
         /// <param name="numMips"></param>
-        internal static bool IsTextureXR(ref TextureDesc destDesc, int sourceSlice, int destinationSlice, int numSlices, int numMips)
+        internal static bool IsTextureXR(ref RenderTargetInfo destDesc, int sourceSlice, int destinationSlice, int numSlices, int numMips)
         {
             if (TextureXR.useTexArray &&
-                  destDesc.dimension == TextureDimension.Tex2DArray &&
-                  destDesc.slices == TextureXR.slices &&
+                  destDesc.volumeDepth > 1 &&
+                  destDesc.volumeDepth == TextureXR.slices &&
                   sourceSlice == 0 &&
                   destinationSlice == 0 &&
                   numSlices == TextureXR.slices &&
@@ -328,17 +328,17 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             {
                 throw new ArgumentException($"BlitPass: {passName} destination needs to be a valid texture handle.");
             }
-            var destinationDesc = graph.GetTextureDesc(destination);
+            var destinationDesc = graph.GetRenderTargetInfo(destination);
 
             int sourceMaxWidth = math.max(math.max(sourceDesc.width, sourceDesc.height), sourceDesc.slices);
             int sourceTotalMipChainLevels = (int)math.log2(sourceMaxWidth) + 1;
 
-            int destinationMaxWidth = math.max(math.max(destinationDesc.width, destinationDesc.height), destinationDesc.slices);
+            int destinationMaxWidth = math.max(math.max(destinationDesc.width, destinationDesc.height), destinationDesc.volumeDepth);
             int destinationTotalMipChainLevels = (int)math.log2(destinationMaxWidth) + 1;
 
             if (numSlices == -1) numSlices = sourceDesc.slices - sourceSlice;
             if (numSlices > sourceDesc.slices - sourceSlice
-                || numSlices > destinationDesc.slices - destinationSlice)
+                || numSlices > destinationDesc.volumeDepth - destinationSlice)
             {
                 throw new ArgumentException($"BlitPass: {passName} attempts to blit too many slices. The pass will be skipped.");
             }
@@ -857,14 +857,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 throw new ArgumentException($"BlitPass: {passName} destination needs to be a valid texture handle.");
             }
 
-            var destinationDesc = graph.GetTextureDesc(blitParameters.destination);
+            var destinationDesc = graph.GetRenderTargetInfo(blitParameters.destination);
 
             // Fill in unspecified parameters automatically based on the texture descriptor
-            int destinationMaxWidth = math.max(math.max(destinationDesc.width, destinationDesc.height), destinationDesc.slices);
+            int destinationMaxWidth = math.max(math.max(destinationDesc.width, destinationDesc.height), destinationDesc.volumeDepth);
             int destinationTotalMipChainLevels = (int)math.log2(destinationMaxWidth) + 1;
             if (blitParameters.numSlices == -1)
             {
-                blitParameters.numSlices = destinationDesc.slices - blitParameters.destinationSlice;
+                blitParameters.numSlices = destinationDesc.volumeDepth - blitParameters.destinationSlice;
             }
 
             if (blitParameters.numMips == -1)
@@ -891,7 +891,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             }
 
             // Validate against destination
-            if (blitParameters.numSlices > destinationDesc.slices - blitParameters.destinationSlice)
+            if (blitParameters.numSlices > destinationDesc.volumeDepth - blitParameters.destinationSlice)
             {
                throw new ArgumentException($"BlitPass: {passName} attempts to blit too many slices. There are not enough slices in the destination array. The pass will be skipped.");
             }
@@ -922,6 +922,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 passData.sourceSlicePropertyID = blitParameters.sourceSlicePropertyID;
                 passData.sourceMipPropertyID = blitParameters.sourceMipPropertyID;
                 passData.scaleBiasPropertyID = blitParameters.scaleBiasPropertyID;
+
                 passData.isXR = IsTextureXR(ref destinationDesc, (passData.sourceSlice == -1) ? 0 : passData.sourceSlice, passData.destinationSlice, passData.numSlices, passData.numMips);
                 if (blitParameters.source.IsValid())
                 {
