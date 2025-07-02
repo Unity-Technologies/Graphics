@@ -287,7 +287,6 @@ namespace UnityEngine.Rendering.Universal
         {
             var requireColorTexture = HasActiveRenderFeatures(rendererFeatures) && m_IntermediateTextureMode == IntermediateTextureMode.Always;
             requireColorTexture |= HasPassesRequiringIntermediateTexture(activeRenderPassQueue);
-            requireColorTexture |= Application.isEditor && usesClusterLightLoop;
             requireColorTexture |= RequiresIntermediateColorTexture(cameraData, in renderPassInputs, usesDeferredLighting, applyPostProcessing);
 
             // Intermediate texture has different yflip state than backbuffer. In case we use intermediate texture, we must use both color and depth together.
