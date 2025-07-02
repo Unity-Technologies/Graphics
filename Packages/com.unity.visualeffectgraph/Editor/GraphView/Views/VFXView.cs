@@ -1795,13 +1795,21 @@ namespace UnityEditor.VFX.UI
             window.LoadAsset(vfxAsset, null);
         }
 
-        public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode)
+        public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode, bool centerInView)
         {
             var resource = VisualEffectResource.GetResourceAtPath(path);
             if (resource != null)
             {
                 VFXViewController templateController = VFXViewController.GetController(resource, true);
                 templateController.useCount++;
+
+                if (centerInView)
+                {
+                    var pos = contentViewContainer.style.translate.value;
+                    var scale = contentViewContainer.style.scale;
+                    tPos.x = (resolvedStyle.width / 2f - pos.x.value) / scale.value.value.x - templateController.graph.UIInfos.uiBounds.width / 2f;
+                    tPos.y = (resolvedStyle.height / 2f - pos.y.value) / scale.value.value.x - templateController.graph.UIInfos.uiBounds.height / 2f;
+                }
 
                 var data = VFXCopy.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds, null, null, null);
                 VFXPaste.UnserializeAndPasteElements(controller, tPos, data, this, groupNode != null ? groupNode.controller : null);
@@ -2788,6 +2796,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void InsertTemplate(Vector2 position)
+        {
+            void InsertFromTemplate(string templatePath, string assetPath)
+            {
+                CreateTemplateSystem(templatePath, position, null, false);
+            }
+
+            position = contentViewContainer.WorldToLocal(position);
+            GraphViewTemplateWindow.ShowInsertTemplate(new VFXTemplateHelperInternal(), InsertFromTemplate);
+        }
+
         public void AddStickyNote(Vector2 position)
         {
             var group = selection.OfType<VFXGroupNode>().FirstOrDefault();
@@ -2928,6 +2947,7 @@ namespace UnityEditor.VFX.UI
 
             if (evt.target is VFXView)
             {
+                evt.menu.InsertAction(0, "Insert Template", (e) => { InsertTemplate(mousePosition); }, (e) => controller.graph.visualEffectResource.isSubgraph ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal);
                 evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); }, (e) => DropdownMenuAction.Status.Normal);
                 evt.menu.InsertAction(2, "Create Group Node", (e) => { AddGroupNode(mousePosition); }, (e) => DropdownMenuAction.Status.Normal);
 
@@ -2948,7 +2968,7 @@ namespace UnityEditor.VFX.UI
                 var window = VFXViewWindow.GetWindow(this);
                 if (window != null && window.resourceHistory.Any())
                 {
-                    evt.menu.AppendAction(" Back To Parent Graph", e => window.PopResource());
+                    evt.menu.AppendAction("Back To Parent Graph", e => window.PopResource());
                 }
             }
 

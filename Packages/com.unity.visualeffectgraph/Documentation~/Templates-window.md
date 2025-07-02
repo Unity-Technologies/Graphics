@@ -5,10 +5,10 @@ Each template has a description and an image to describe its behavior.
 
 ![Template-Window](Images/templates-window.png)    
 
-## Create a VFX Graph Template
+## Use a VFX Graph Template
 
 ![toolbar](Images/templates-window-toolbar.png)    
-To open the Default VFX Graph Templates window:
+To open the VFX Graph Templates window:
 1. Select the dropdown arrow next to the **Add** (**+**) icon in the Visual Effect graph toolbar.
 2. Select one of the following options:
       * **Create from template** - Creates a new VFX Graph asset based on a VFX Graph template. 
@@ -16,8 +16,11 @@ To open the Default VFX Graph Templates window:
 3. In the Create new VFX Asset window, select a Default VFX Graph template. 
 4. Double-click the Template asset, or select **Create**
 
->- The Add **[+]** button opens the templates window to insert a template in the current VFX.
->- If you hold the **CTRL** key while clicking on **[+]** button the templates window will open to create a new VFX asset.
+The Add **[+]** button opens the templates window to insert a template in the current VFX (it will be placed at the center of the screen).    
+You can also use the **Insert template** option from the context menu in the graph.
+
+> [!TIP]
+> If you hold the **CTRL** key while clicking on **[+]** button, the templates window will open to create a new VFX asset.
 
 ## Create a custom VFX Graph template
 

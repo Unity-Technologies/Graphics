@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
             nameof(CreateFromTemplateDropDownButton),
             vfxView,
         "VFXCreateFromTemplateDropDownPanel",
-        "Insert a template into current asset\nHold CTRL key and click to create a new VFX",
+        "Insert a template into current graph\nHold CTRL key and click to create a new VFX",
             k_MainButtonName,
         EditorResources.iconsPath + "CreateAddNew.png",
         true,
@@ -75,7 +75,7 @@ namespace UnityEditor.VFX
         private void InsertFromTemplate(string templatePath, string assetPath)
         {
             var window = VFXViewWindow.GetWindow(m_VFXView);
-            window.graphView.CreateTemplateSystem(templatePath, Vector2.zero, null);
+            window.graphView.CreateTemplateSystem(templatePath, Vector2.zero, null, true);
         }
 
         private void CreateNewFromTemplate(string templatePath, string assetPath)
