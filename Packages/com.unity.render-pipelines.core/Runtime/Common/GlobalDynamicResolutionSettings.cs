@@ -93,6 +93,11 @@ namespace UnityEngine.Rendering
             DLSSUseOptimalSettings = true,
             DLSSPerfQualitySetting = 0,
             DLSSSharpness = 0.5f,
+            DLSSRenderPresetForQuality = 0,
+            DLSSRenderPresetForBalanced = 0,
+            DLSSRenderPresetForPerformance = 0,
+            DLSSRenderPresetForUltraPerformance = 0,
+            DLSSRenderPresetForDLAA = 0,
             DLSSInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
             FSR2InjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
             TAAUInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
@@ -127,13 +132,26 @@ namespace UnityEngine.Rendering
         public DynamicResolutionHandler.UpsamplerScheduleType defaultInjectionPoint;
 
         /// <summary>Toggle NVIDIA Deep Learning Super Sampling (DLSS) automatic recommendation system for scaling and sharpness.
-        /// If this is on, the manually established scale callback for Dynamic Resolution Scaling is ignored. The sharpness setting of DLSS is also ignored.
+        /// If this is on, the manually established scale callback for Dynamic Resolution Scaling is ignored.
         /// </summary>
         public bool DLSSUseOptimalSettings;
 
-        /// <summary>Pixel sharpness of NVIDIA Deep Leraning Super Sampling (DLSS).</summary>
+        /// <summary>Pixel sharpness of NVIDIA Deep Learning Super Sampling (DLSS).
+        /// Unused since DLSS3 as NVIDIA deprecated the sharpness input to DLSS.
+        /// </summary>
         [Range(0, 1)]
         public float DLSSSharpness;
+
+        /// <summary> Specifies the DLSS Render Preset to use for the Quality performance quality setting.</summary>
+        public uint DLSSRenderPresetForQuality;
+        /// <summary> Specifies the DLSS Render Preset to use for the Balanced performance quality setting.</summary>
+        public uint DLSSRenderPresetForBalanced;
+        /// <summary> Specifies the DLSS Render Preset to use for the Performance performance quality setting.</summary>
+        public uint DLSSRenderPresetForPerformance;
+        /// <summary> Specifies the DLSS Render Preset to use for the UltraPerformance performance quality setting.</summary>
+        public uint DLSSRenderPresetForUltraPerformance;
+        /// <summary> Specifies the DLSS Render Preset to use for the DLAA performance quality setting.</summary>
+        public uint DLSSRenderPresetForDLAA;
 
         /// <summary>Enable sharpness control for FidelityFX 2.0 Super Resolution (FSR2).</summary>
         public bool FSR2EnableSharpness;

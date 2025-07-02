@@ -13,6 +13,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty DLSSInjectionPoint;
         public SerializedProperty DLSSUseOptimalSettings;
         public SerializedProperty DLSSSharpness;
+        public SerializedProperty DLSSRenderPresetForQuality;
+        public SerializedProperty DLSSRenderPresetForBalanced;
+        public SerializedProperty DLSSRenderPresetForPerformance;
+        public SerializedProperty DLSSRenderPresetForUltraPerformance;
+        public SerializedProperty DLSSRenderPresetForDLAA;
         public SerializedProperty FSR2EnableSharpness;
         public SerializedProperty FSR2Sharpness;
         public SerializedProperty FSR2UseOptimalSettings;
@@ -48,6 +53,11 @@ namespace UnityEditor.Rendering.HighDefinition
             defaultInjectionPoint = root.Find((GlobalDynamicResolutionSettings s) => s.defaultInjectionPoint);
             DLSSUseOptimalSettings = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSUseOptimalSettings);
             DLSSSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSSharpness);
+            DLSSRenderPresetForQuality = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSRenderPresetForQuality);
+            DLSSRenderPresetForBalanced = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSRenderPresetForBalanced);
+            DLSSRenderPresetForPerformance = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSRenderPresetForPerformance);
+            DLSSRenderPresetForUltraPerformance = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSRenderPresetForUltraPerformance);
+            DLSSRenderPresetForDLAA = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSRenderPresetForDLAA);
             advancedUpscalersByPriority = root.Find((GlobalDynamicResolutionSettings s) => s.advancedUpscalersByPriority);
             FSR2EnableSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.FSR2EnableSharpness);
             FSR2Sharpness = root.Find((GlobalDynamicResolutionSettings s) => s.FSR2Sharpness);

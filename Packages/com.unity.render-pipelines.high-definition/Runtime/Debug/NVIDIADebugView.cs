@@ -152,6 +152,9 @@ namespace UnityEngine.NVIDIA
                     },
                     new DebugUI.Container() {
                         displayName = "Quality",
+                    },
+                    new DebugUI.Container() {
+                        displayName = "Render Preset",
                     }
                 }
             };
@@ -175,8 +178,8 @@ namespace UnityEngine.NVIDIA
                     },
                     new DebugUI.Value()
                     {
-                        displayName = "DLSS Version",
-                        getter = () => m_DebugView == null ? "-" : String.Format("{0}.{1}.{2}", (m_DebugView.ngxVersion >> 16) & 0xFF, (m_DebugView.ngxVersion >> 8) & 0xFF, m_DebugView.ngxVersion & 0xFF),
+                        displayName = "DLSS Version", // Must match NVUnityPlugin preprocessor definition NV_MAKE_BIT_VERSION
+                        getter = () => m_DebugView == null ? "-" : String.Format("{0}.{1}.{2}", (m_DebugView.ngxVersion >> 18) & 0x3FF, (m_DebugView.ngxVersion >> 7) & 0x7F, m_DebugView.ngxVersion & 0x7F),
                     },
                     new DebugUI.Value()
                     {
@@ -211,6 +214,25 @@ namespace UnityEngine.NVIDIA
                     data = new DLSSDebugFeatureInfos()
                 };
                 m_Data.dlssFeatureInfos[r] = c;
+
+                string GetPresetLabel(DLSSQuality quality)
+                {
+                    DLSSPreset presetValue = DLSSPreset.Preset_Default;
+                    switch (quality)
+                    {
+                        case DLSSQuality.DLAA: presetValue = c.data.initData.presetDlaaMode; break;
+                        case DLSSQuality.Balanced: presetValue = c.data.initData.presetBalancedMode; break;
+                        case DLSSQuality.MaximumQuality: presetValue = c.data.initData.presetQualityMode; break;
+                        case DLSSQuality.UltraPerformance: presetValue = c.data.initData.presetUltraPerformanceMode; break;
+                        case DLSSQuality.MaximumPerformance: presetValue = c.data.initData.presetPerformanceMode; break;
+                    }
+                    string presetLabel = presetValue.ToString();
+                    int delimiterIndex = presetLabel.IndexOf(" - "); // trim explanation from explanation separator token
+                    if (delimiterIndex != -1)
+                        presetLabel = presetLabel.Substring(0, delimiterIndex);
+                    return presetLabel;
+                }
+                
                 var dlssStateRow = new DebugUI.Table.Row()
                 {
                     children =
@@ -230,6 +252,10 @@ namespace UnityEngine.NVIDIA
                             new DebugUI.Value()
                             {
                                 getter = () => c.data.validFeature ? c.data.initData.quality.ToString() : "-"
+                            },
+                            new DebugUI.Value()
+                            {
+                                getter = () => c.data.validFeature ? GetPresetLabel(c.data.initData.quality) : "-"
                             }
                         }
                 };

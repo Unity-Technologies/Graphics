@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -81,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region private members, nvidia specific code
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-        private static uint s_ExpectedDeviceVersion = 0x04;
+        private static uint s_ExpectedDeviceVersion = 0x05;
 
         private UpscalerCameras m_CameraStates = new UpscalerCameras();
 
@@ -103,6 +100,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public float jitterX;
             public float jitterY;
             public bool reset;
+            public uint presetQuality;
+            public uint presetBalanced;
+            public uint presetPerformance;
+            public uint presetUltraPerformance;
+            public uint presetDLAA;
             public bool CanFitInput(in UpscalerResolution inputRect)
             {
                 return inputRes.width >= inputRect.width && inputRes.height > inputRect.height;
@@ -179,6 +181,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     && IsOptimalSettingsValid(m_OptimalSettingsRequest.optimalSettings);
             }
 
+            static NVIDIA.DLSSPreset Uint2Preset(uint preset)
+            {
+                if (preset >= (uint)NVIDIA.DLSSPreset.Preset_Default && preset <= (uint)NVIDIA.DLSSPreset.Preset_K)
+                    return (NVIDIA.DLSSPreset)preset;
+                Debug.LogWarningFormat("Unknown DLSS Preset value {0}, using default value.", preset);
+                return NVIDIA.DLSSPreset.Preset_Default;
+            }
+            static bool PresetChanged(in DlssViewData prev, in DlssViewData curr)
+            {
+                return  prev.presetQuality != curr.presetQuality ||
+                        prev.presetBalanced != curr.presetBalanced ||
+                        prev.presetPerformance != curr.presetPerformance ||
+                        prev.presetUltraPerformance != curr.presetUltraPerformance ||
+                        prev.presetDLAA != curr.presetDLAA;
+            }
+
             public void UpdateViewState(
                 in DlssViewData viewData,
                 CommandBuffer cmdBuffer)
@@ -193,7 +211,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     (viewData.inputRes != m_BackbufferRes && !m_OptimalSettingsRequest.CanFit(viewData.inputRes)) ||
                     viewData.perfQuality != m_Data.perfQuality ||
                     m_DlssContext == null ||
-                    shouldUseOptimalSettings != m_UsingOptimalSettings)
+                    shouldUseOptimalSettings != m_UsingOptimalSettings ||
+                    PresetChanged(viewData, m_Data)
+                )
                 {
                     isNew = true;
                     m_BackbufferRes = viewData.inputRes;
@@ -208,12 +228,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     settings.SetFlag(NVIDIA.DLSSFeatureFlags.IsHDR, true);
                     settings.SetFlag(NVIDIA.DLSSFeatureFlags.MVLowRes, true);
                     settings.SetFlag(NVIDIA.DLSSFeatureFlags.DepthInverted, true);
-                    settings.SetFlag(NVIDIA.DLSSFeatureFlags.DoSharpening, true);
                     settings.inputRTWidth   = m_BackbufferRes.width;
                     settings.inputRTHeight  = m_BackbufferRes.height;
                     settings.outputRTWidth  = viewData.outputRes.width;
                     settings.outputRTHeight = viewData.outputRes.height;
                     settings.quality = viewData.perfQuality;
+
+                    settings.presetQualityMode = Uint2Preset(viewData.presetQuality);
+                    settings.presetBalancedMode = Uint2Preset(viewData.presetBalanced);
+                    settings.presetPerformanceMode = Uint2Preset(viewData.presetPerformance);
+                    settings.presetUltraPerformanceMode = Uint2Preset(viewData.presetUltraPerformance);
+                    settings.presetDlaaMode = Uint2Preset(viewData.presetDLAA);
+
                     m_UsingOptimalSettings = shouldUseOptimalSettings;
                     m_DlssContext = m_Device.CreateFeature(cmdBuffer, settings);
                 }
@@ -521,9 +547,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? parameters.hdCamera.deepLearningSuperSamplingQuality
                     : parameters.drsSettings.DLSSPerfQualitySetting);
 
-            dlssViewData.sharpness = parameters.hdCamera.deepLearningSuperSamplingUseCustomAttributes
-                ? parameters.hdCamera.deepLearningSuperSamplingSharpening
-                : parameters.drsSettings.DLSSSharpness;
+            // presets are per-project, not per camera.
+            dlssViewData.presetQuality          = parameters.drsSettings.DLSSRenderPresetForQuality;
+            dlssViewData.presetBalanced         = parameters.drsSettings.DLSSRenderPresetForBalanced;
+            dlssViewData.presetPerformance      = parameters.drsSettings.DLSSRenderPresetForPerformance;
+            dlssViewData.presetUltraPerformance = parameters.drsSettings.DLSSRenderPresetForUltraPerformance;
+            dlssViewData.presetDLAA             = parameters.drsSettings.DLSSRenderPresetForDLAA;
 
             dlssViewData.inputRes  = new UpscalerResolution() { width = (uint)parameters.hdCamera.actualWidth, height = (uint)parameters.hdCamera.actualHeight };
             dlssViewData.outputRes = new UpscalerResolution() { width = (uint)DynamicResolutionHandler.instance.finalViewport.x, height = (uint)DynamicResolutionHandler.instance.finalViewport.y };

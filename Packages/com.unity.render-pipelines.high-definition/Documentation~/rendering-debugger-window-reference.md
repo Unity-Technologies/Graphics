@@ -351,6 +351,7 @@ The **NVIDIA device debug view** is a panel that displays a list of the current 
 | **Input resolution**      | Displays the current input resolution. Unity calculates this from the screen percentage specified for dynamic resolution scaling.                                         |
 | **Output resolution**     | Displays the target resolution for this particular DLSS view.                                                                                                             |
 | **Quality**               | Displays the quality selected for this particular DLSS view.                                                                                                              |
+| **Render Preset**         | Displays the render preset selected for the currently active quality mode for this particular DLSS view.                                                                                                              |
 
 The **History Buffers view** lets you display various render pipeline full screen buffers that persist across multiple frames.
 
