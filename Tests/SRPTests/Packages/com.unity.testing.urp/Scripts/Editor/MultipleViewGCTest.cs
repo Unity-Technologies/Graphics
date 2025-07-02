@@ -2,12 +2,16 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 [TestFixture]
 public class MultipleViewGCTest : MonoBehaviour
 {
     Recorder m_gcAllocRecorder;
     EditorWindow m_sceneView;
+    RenderTexture m_RenderTexture;
+    UniversalRenderPipeline.SingleCameraRequest m_RenderRequest;
 
     [OneTimeSetUp]
     public void SetUp()
@@ -37,9 +41,20 @@ public class MultipleViewGCTest : MonoBehaviour
         m_gcAllocRecorder.FilterToCurrentThread();
         m_gcAllocRecorder.enabled = false;
 
+        RenderTextureDescriptor desc = new RenderTextureDescriptor(Camera.main.pixelWidth, Camera.main.pixelHeight, RenderTextureFormat.Default, 32);
+        m_RenderTexture = RenderTexture.GetTemporary(desc);
+
+        m_RenderRequest = new UniversalRenderPipeline.SingleCameraRequest { destination = m_RenderTexture };
+
         // Render first frame where gc is ok
         m_sceneView.Repaint();
-        Camera.main.Render();
+        RenderPipeline.SubmitRenderRequest(Camera.main, m_RenderRequest);
+    }
+
+    [OneTimeTearDown]
+    public void TearDown()
+    {
+        RenderTexture.ReleaseTemporary(m_RenderTexture);
     }
 
     [Test]
@@ -49,7 +64,7 @@ public class MultipleViewGCTest : MonoBehaviour
         {
             m_gcAllocRecorder.enabled = true;
             m_sceneView.Repaint();
-            Camera.main.Render();
+            RenderPipeline.SubmitRenderRequest(Camera.main, m_RenderRequest);
             m_gcAllocRecorder.enabled = false;
         }
         int allocationCountOfRenderPipeline = m_gcAllocRecorder.sampleBlockCount;

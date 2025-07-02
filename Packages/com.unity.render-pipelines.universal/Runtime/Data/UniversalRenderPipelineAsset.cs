@@ -1552,9 +1552,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (RenderGraphGraphicsAutomatedTests.enabled)
-                   return true;
-
                 if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings))
                     return !renderGraphSettings.enableRenderCompatibilityMode;
 

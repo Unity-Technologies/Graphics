@@ -72,7 +72,12 @@ namespace UnityEngine.Rendering.Universal
         public bool enableRenderCompatibilityMode
 #if URP_COMPATIBILITY_MODE
         {
-            get => m_EnableRenderCompatibilityMode && !RenderGraphGraphicsAutomatedTests.enabled;
+            get
+            {
+                if (RenderGraphGraphicsAutomatedTests.forceRenderGraphState.HasValue)
+                    return !RenderGraphGraphicsAutomatedTests.forceRenderGraphState.Value;
+                return m_EnableRenderCompatibilityMode;
+            }
             set
             {
                 this.SetValueAndNotify(ref m_EnableRenderCompatibilityMode, value, nameof(m_EnableRenderCompatibilityMode));
