@@ -6,7 +6,6 @@
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Common.hlsl"
 
-#define QRNG_METHOD_SOBOL
 #include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/QuasiRandom.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Common.hlsl"
 
@@ -32,7 +31,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
     int probeId = dispatchInfo.globalThreadIndex;
 
-    QuasiRandomGenerator rngState;
+    QrngSobol rngState;
     rngState.Init(uint2((uint)probeId, 0), _SampleId);
 
     if (_SampleId==0)

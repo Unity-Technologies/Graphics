@@ -7,9 +7,7 @@
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 
-#define QRNG_METHOD_SOBOL
 #define SAMPLE_COUNT 32
-#define RAND_SAMPLES_PER_BOUNCE 2
 #include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/QuasiRandom.hlsl"
 #include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Common.hlsl"
 
@@ -27,7 +25,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
     ray.tMax = FLT_MAX;
     ray.tMin = 0.0f;
 
-    QuasiRandomGenerator rngState;
+    QrngSobol rngState;
     rngState.Init(0, SAMPLE_COUNT);
 
     int4 hitCount = 0;

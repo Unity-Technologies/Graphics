@@ -760,7 +760,7 @@ namespace UnityEngine.Rendering
                     m_SamplingResources.Load();
                 }
 
-                SamplingResources.BindSobolBlueNoiseTextures(cmd, m_SamplingResources);
+                SamplingResources.Bind(cmd, m_SamplingResources);
             }
 
             public bool TryGetMeshForAccelerationStructure(Renderer renderer, out Mesh mesh)
