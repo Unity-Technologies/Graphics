@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private class PassData
         {
             internal TextureHandle source;
-            // internal RenderingData renderingData;
+            internal TextureHandle destination;
             internal bool useProceduralBlit;
             internal Material samplingMaterial;
             internal Material copyColorMaterial;
@@ -216,25 +216,27 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderInternal(renderGraph, destination, source, cameraData.xr.enabled);
         }
 
+        static readonly string k_CopyColorPassName = "Copy Color";
+        static readonly string k_DownsampleAndCopyPassName = "Downsample Color";
+
         private void RenderInternal(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit)
         {
-            var downsamplingEnabled = m_DownsamplingMethod != Downsampling.None;
-            var useDirectCopyPass = !downsamplingEnabled && renderGraph.CanAddCopyPass(source, destination);
+            bool isES3 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 
-            if (useDirectCopyPass)
+            if (m_DownsamplingMethod != Downsampling.None || isES3)
             {
-                using (var builder = renderGraph.AddCopyPass(source, destination, returnBuilder: true))
+                AddDownsampleAndCopyColorRenderPass(renderGraph, destination, source, useProceduralBlit, k_DownsampleAndCopyPassName);
+            }
+            else
+            {
+                using (var builder = renderGraph.AddBlitPass(source, destination, Vector2.one, Vector2.zero, returnBuilder: true, passName: k_CopyColorPassName))
                 {
                     builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraOpaqueTexture"));
                 }
             }
-            else
-            {
-                AddDownsamplingRenderPass(renderGraph, destination, source, useProceduralBlit);
-            }
         }
 
-        private void AddDownsamplingRenderPass(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit)
+        private void AddDownsampleAndCopyColorRenderPass(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit, string passName)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {

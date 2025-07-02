@@ -80,6 +80,7 @@ namespace UnityEngine.Rendering.Tests
         public void RenderPassAddBlitUseTexture()
         {
             var resources = CreateBlitResources(m_RenderGraph);
+            var canUseCopyPass = RenderGraphUtils.CanAddCopyPass(m_RenderGraph, resources.blitParameters.source, resources.blitParameters.destination);
 
             // Writing to the texture blitting is the same as writing the same texture twice, is not allowed.
             using (var builder = m_RenderGraph.AddBlitPass(resources.blitParameters, "BlitPass", true))
@@ -93,10 +94,24 @@ namespace UnityEngine.Rendering.Tests
             // Writing to the texture blitting is the same as writing the same texture twice, is not allowed.
             using (var builder = m_RenderGraph.AddBlitPass(resources.textures[0], resources.textures[1], Vector2.one, Vector2.zero, passName: "Test Pass", returnBuilder: true))
             {
-                Assert.Throws<System.InvalidOperationException>(() =>
+                // The CopyPass should throw the following exception:
+                // "<System.ArgumentException: Trying to UseTexture on a texture that is already used through SetRenderAttachment. Consider updating your code. (pass BlitPass resource)."
+                if (canUseCopyPass)
                 {
-                    builder.UseTexture(resources.textures[1], AccessFlags.Write);
-                });
+                    Assert.Throws<System.ArgumentException>(() =>
+                    {
+                        builder.UseTexture(resources.textures[1], AccessFlags.Write);
+                    });
+                }
+                // The BlitPass should throw the following exception:
+                // "<System.InvalidOperationException: Trying to write a resource twice in a pass. You can only write the same resource once within a pass (pass BlitPass resource)."
+                else
+                {
+                    Assert.Throws<System.InvalidOperationException>(() =>
+                    {
+                        builder.UseTexture(resources.textures[1], AccessFlags.Write);
+                    });
+                }
             }
 
             // Reading the same texture twice is allowed

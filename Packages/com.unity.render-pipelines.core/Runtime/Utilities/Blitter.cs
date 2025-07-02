@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering
             return s_Copy.passCount == 2;
         }
 
-        internal static bool CanCopyMSAA(in TextureDesc sourceDesc)
+        internal static bool CanCopyMSAA(bool srcBindTextureMS)
         {
             // Real native renderpass platforms
             // TODO: Expose this through systeminfo
@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering
                 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12;
 
             if (SystemInfo.supportsMultisampleAutoResolve &&
-                !hasRenderPass && sourceDesc.bindTextureMS == false)
+                !hasRenderPass && !srcBindTextureMS)
             {
                 // If we have autoresolve it means msaa rendertextures render as MSAA but  magically resolve in the driver when accessed as a texture, the MSAA surface is fully hidden inside the GFX device
                 // this is contrary to most platforms where the resolve magic on reading happens in the engine layer (and thus allocates proper multi sampled and resolve surfaces the engine can access)
