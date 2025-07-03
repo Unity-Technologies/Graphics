@@ -29,7 +29,15 @@ The following control appears on the Node Settings tab of the Graph Inspector wh
 
 ## World and Absolute World
 
-Use the **World** and **Absolute World** space options to transform the coordinate space of [position](Position-Node.md) values. The **World** space option uses the Scriptable Render Pipeline default world space to convert position values. The **Absolute World** space option uses absolute world space to convert position values in all Scriptable Render Pipelines.
+Use the **World** and **Absolute World** space options to transform the coordinate space of [position](Position-Node.md) values.
+
+In [URP](https://docs.unity3d.com/Manual/urp/urp-introduction.html), both **World** and **Absolute World** are relative to the global world position of the object in the Scene.
+
+In [HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html): 
+
+- **World** space is [camera-relative](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?preview=1&subfolder=/manual/Camera-Relative-Rendering.html).
+
+- **Absolute World** space is relative to the global world position of the object in the Scene.
 
 If you use the **Transform Node** to convert coordinate spaces that aren't for position values, Unity recommends that you use the **World** space option. Using **Absolute World** on values that don't represent position might result in unexpected behavior.
 
