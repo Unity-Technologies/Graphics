@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     [Serializable]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [Categorization.CategoryInfo(Name = "URP ReflectionProbe Settings", Order = 21)]
+    [Categorization.CategoryInfo(Name = "Lighting", Order = 21)]
     public class URPReflectionProbeSettings : IRenderPipelineGraphicsSettings
     {
         [SerializeField, HideInInspector] private int version = 1;
