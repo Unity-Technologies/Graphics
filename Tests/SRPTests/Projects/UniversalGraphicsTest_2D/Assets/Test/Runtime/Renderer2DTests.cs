@@ -53,9 +53,9 @@ class Renderer2DTests
         if (UnityEngine.Rendering.XRGraphicsAutomatedTests.enabled)
             return;
 
-        Assert.IsFalse(baseRenderer.createColorTexture);
+        Assert.IsFalse(baseRenderer.m_CreateColorTexture);
 
-        Assert.IsFalse(baseRenderer.createDepthTexture);
+        Assert.IsFalse(baseRenderer.m_CreateDepthTexture);
     }
 
     [Test]
@@ -67,9 +67,9 @@ class Renderer2DTests
 
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
 
-        Assert.IsTrue(baseRenderer.createColorTexture);
+        Assert.IsTrue(baseRenderer.m_CreateColorTexture);
 
-        Assert.IsTrue(baseRenderer.createDepthTexture);
+        Assert.IsTrue(baseRenderer.m_CreateDepthTexture);
     }
 
     [Test]
@@ -81,9 +81,9 @@ class Renderer2DTests
 
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
 
-        Assert.IsTrue(baseRenderer.createColorTexture);
+        Assert.IsTrue(baseRenderer.m_CreateColorTexture);
 
-        Assert.IsTrue(baseRenderer.createDepthTexture);
+        Assert.IsTrue(baseRenderer.m_CreateDepthTexture);
     }
 
     [Test]
@@ -96,8 +96,13 @@ class Renderer2DTests
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
         Renderer2D overlayRenderer = m_OverlayCameraData.scriptableRenderer as Renderer2D;
 
+#if URP_COMPATIBILITY_MODE
         Assert.AreEqual(baseRenderer.m_ColorTextureHandle, overlayRenderer.m_ColorTextureHandle);
         Assert.AreEqual(baseRenderer.m_DepthTextureHandle, overlayRenderer.m_DepthTextureHandle);
+#else
+        Assert.AreEqual(baseRenderer.m_RenderGraphCameraColorHandles, overlayRenderer.m_RenderGraphCameraColorHandles);
+        Assert.AreEqual(baseRenderer.m_RenderGraphCameraDepthHandle, overlayRenderer.m_RenderGraphCameraDepthHandle);
+#endif
     }
 
     [Test]
@@ -109,8 +114,8 @@ class Renderer2DTests
 
         Renderer2D overlayRenderer = m_OverlayCameraData.scriptableRenderer as Renderer2D;
 
-        Assert.IsTrue(overlayRenderer.createColorTexture);
-        Assert.IsTrue(overlayRenderer.createDepthTexture);
+        Assert.IsTrue(overlayRenderer.m_CreateColorTexture);
+        Assert.IsTrue(overlayRenderer.m_CreateDepthTexture);
     }
 
     [Test]

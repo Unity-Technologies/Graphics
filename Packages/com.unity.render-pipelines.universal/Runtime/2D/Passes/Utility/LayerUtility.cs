@@ -14,8 +14,10 @@ namespace UnityEngine.Rendering.Universal
         public SortingLayerRange layerRange;
         public LightStats lightStats;
         public bool useNormals;
+#if URP_COMPATIBILITY_MODE
         private unsafe fixed int renderTargetIds[4];
         private unsafe fixed bool renderTargetUsed[4];
+#endif
 
         public List<Light2D> lights;
         public List<int> shadowIndices;
@@ -25,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
         public void InitRTIds(int index)
         {
+#if URP_COMPATIBILITY_MODE
             for (var i = 0; i < 4; i++)
             {
                 unsafe
@@ -33,12 +36,14 @@ namespace UnityEngine.Rendering.Universal
                     renderTargetIds[i] = Shader.PropertyToID($"_LightTexture_{index}_{i}");
                 }
             }
+#endif
 
             lights = new List<Light2D>();
             shadowIndices = new List<int>();
             shadowCasters = new List<ShadowCasterGroup2D>();
         }
 
+#if URP_COMPATIBILITY_MODE
         public RenderTargetIdentifier GetRTId(CommandBuffer cmd, RenderTextureDescriptor desc, int index)
         {
             unsafe
@@ -66,17 +71,20 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
+#endif
     }
 
     internal static class LayerUtility
     {
         private static LayerBatch[] s_LayerBatches;
+#if URP_COMPATIBILITY_MODE
         public static uint maxTextureCount { get; private set; }
 
         public static void InitializeBudget(uint maxTextureCount)
         {
             LayerUtility.maxTextureCount = math.max(4, maxTextureCount);
         }
+#endif
 
         private static bool CanBatchLightsInLayer(int layerIndex1, int layerIndex2, SortingLayer[] sortingLayers, ILight2DCullResult lightCullResult)
         {
@@ -107,7 +115,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (rendererData.useCameraSortingLayerTexture)
             {
-                var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(rendererData);
+                var cameraSortingLayerBoundsIndex = rendererData.GetCameraSortingLayerBoundsIndex();
                 return sortingLayers[startLayerIndex].value == cameraSortingLayerBoundsIndex;
             }
 

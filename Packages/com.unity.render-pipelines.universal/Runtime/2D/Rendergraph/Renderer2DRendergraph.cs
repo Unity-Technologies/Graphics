@@ -1,5 +1,6 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.Universal.Internal;
 using static UnityEngine.Rendering.Universal.UniversalResourceDataBase;
 using CommonResourceData = UnityEngine.Rendering.Universal.UniversalResourceData;
 
@@ -7,32 +8,11 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed partial class Renderer2D : ScriptableRenderer
     {
-        // TODO RENDERGRAPH: Once all cameras will run in a single RenderGraph we should remove all RTHandles and use per frame RG textures.
-        // We use 2 camera color handles so we can handle the edge case when a pass might want to read and write the same target.
-        // This is not allowed so we just swap the current target, this keeps camera stacking working and avoids an extra blit pass.
-        static int m_CurrentColorHandle = 0;
-        RTHandle[] m_RenderGraphCameraColorHandles = new RTHandle[]
+        private struct RenderPassInputSummary
         {
-            null, null
-        };
-
-        RTHandle m_RenderGraphCameraDepthHandle;
-        RTHandle m_RenderGraphBackbufferColorHandle;
-        RTHandle m_RenderGraphBackbufferDepthHandle;
-        RTHandle m_CameraSortingLayerHandle;
-
-        DrawNormal2DPass m_NormalPass = new DrawNormal2DPass();
-        DrawLight2DPass m_LightPass = new DrawLight2DPass();
-        DrawShadow2DPass m_ShadowPass = new DrawShadow2DPass();
-        DrawRenderer2DPass m_RendererPass = new DrawRenderer2DPass();
-
-        LayerBatch[] m_LayerBatches;
-        int m_BatchCount;
-
-        bool ppcUpscaleRT = false;
-
-        PostProcessPassRenderGraph m_PostProcessPassRenderGraph;
-        Internal.ColorGradingLutPass m_ColorGradingLutPassRenderGraph;
+            internal bool requiresDepthTexture;
+            internal bool requiresColorTexture;
+        }
 
         private struct ImportResourceSummary
         {
@@ -43,6 +23,51 @@ namespace UnityEngine.Rendering.Universal
             internal ImportResourceParams backBufferColorParams;
             internal ImportResourceParams backBufferDepthParams;
         }
+
+        const int k_FinalBlitPassQueueOffset = 1;
+        const int k_AfterFinalBlitPassQueueOffset = k_FinalBlitPassQueueOffset + 1;
+
+        // TODO RENDERGRAPH: Once all cameras will run in a single RenderGraph we should remove all RTHandles and use per frame RG textures.
+        // We use 2 camera color handles so we can handle the edge case when a pass might want to read and write the same target.
+        // This is not allowed so we just swap the current target, this keeps camera stacking working and avoids an extra blit pass.
+        static int m_CurrentColorHandle = 0;
+        internal RTHandle[] m_RenderGraphCameraColorHandles = new RTHandle[]
+        {
+            null, null
+        };
+
+        internal RTHandle m_RenderGraphCameraDepthHandle;
+        RTHandle m_RenderGraphBackbufferColorHandle;
+        RTHandle m_RenderGraphBackbufferDepthHandle;
+        RTHandle m_CameraSortingLayerHandle;
+
+        Material m_BlitMaterial;
+        Material m_BlitHDRMaterial;
+        Material m_SamplingMaterial;
+
+        // 2D specific render passes
+        DrawNormal2DPass m_NormalPass = new DrawNormal2DPass();
+        DrawLight2DPass m_LightPass = new DrawLight2DPass();
+        DrawShadow2DPass m_ShadowPass = new DrawShadow2DPass();
+        DrawRenderer2DPass m_RendererPass = new DrawRenderer2DPass();
+
+        CopyDepthPass m_CopyDepthPass;
+        UpscalePass m_UpscalePass;
+        CopyCameraSortingLayerPass m_CopyCameraSortingLayerPass;
+        FinalBlitPass m_FinalBlitPass;
+        DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
+        DrawScreenSpaceUIPass m_DrawOverlayUIPass; // from HDRP code
+
+        Renderer2DData m_Renderer2DData;
+        LayerBatch[] m_LayerBatches;
+        int m_BatchCount;
+
+        internal bool m_CreateColorTexture;
+        internal bool m_CreateDepthTexture;
+        bool ppcUpscaleRT = false;
+
+        PostProcessPassRenderGraph m_PostProcessPassRenderGraph;
+        ColorGradingLutPass m_ColorGradingLutPassRenderGraph;
 
         private RTHandle currentRenderGraphCameraColorHandle
         {
@@ -62,6 +87,59 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
+        public override int SupportedCameraStackingTypes()
+        {
+            return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
+        }
+
+        public Renderer2D(Renderer2DData data) : base(data)
+        {
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(out var shadersResources))
+            {
+                m_BlitMaterial = CoreUtils.CreateEngineMaterial(shadersResources.coreBlitPS);
+                m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
+                m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shadersResources.samplingPS);
+            }
+
+            if (GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var renderer2DResources))
+            {
+                m_CopyDepthPass = new CopyDepthPass(
+                    RenderPassEvent.AfterRenderingTransparents,
+                    renderer2DResources.copyDepthPS,
+                    shouldClear: true,
+                    copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported());
+            }
+
+            m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing, m_BlitMaterial);
+            m_CopyCameraSortingLayerPass = new CopyCameraSortingLayerPass(m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
+
+            m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing, true);
+            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
+
+            m_Renderer2DData = data;
+            m_Renderer2DData.lightCullResult = new Light2DCullResult();
+
+            supportedRenderingFeatures = new RenderingFeatures();
+
+            LensFlareCommonSRP.mergeNeeded = 0;
+            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
+            LensFlareCommonSRP.Initialize();
+
+            Light2DManager.Initialize();
+
+            if (data.postProcessData != null)
+            {
+                m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, GraphicsFormat.B10G11R11_UFloatPack32);
+                m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
+            }
+
+#if URP_COMPATIBILITY_MODE
+            InitializeCompatibilityMode(data);
+#endif
+        }
+
         private bool IsPixelPerfectCameraEnabled(UniversalCameraData cameraData)
         {
             PixelPerfectCamera ppc = null;
@@ -71,6 +149,34 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.camera.TryGetComponent(out ppc);
 
             return ppc != null && ppc.enabled && ppc.cropFrame != PixelPerfectCamera.CropFrame.None;
+        }
+
+        private RenderPassInputSummary GetRenderPassInputs(UniversalCameraData cameraData)
+        {
+            RenderPassInputSummary inputSummary = new RenderPassInputSummary();
+
+            for (int i = 0; i < activeRenderPassQueue.Count; ++i)
+            {
+                ScriptableRenderPass pass = activeRenderPassQueue[i];
+                bool needsDepth = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
+                bool needsColor = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
+
+                inputSummary.requiresDepthTexture |= needsDepth;
+                inputSummary.requiresColorTexture |= needsColor;
+            }
+
+            inputSummary.requiresColorTexture |= cameraData.postProcessEnabled
+                    || cameraData.isHdrEnabled
+                    || cameraData.isSceneViewCamera
+                    || !cameraData.isDefaultViewport
+                    || cameraData.requireSrgbConversion
+                    || !cameraData.resolveFinalTarget
+                    || cameraData.cameraTargetDescriptor.msaaSamples > 1 && UniversalRenderer.PlatformRequiresExplicitMsaaResolve()
+                    || m_Renderer2DData.useCameraSortingLayerTexture
+                    || !Mathf.Approximately(cameraData.renderScale, 1.0f)
+                    || (DebugHandler != null && DebugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget));
+
+            return inputSummary;
         }
 
         ImportResourceSummary GetImportResourceSummary(RenderGraph renderGraph, UniversalCameraData cameraData)
@@ -158,6 +264,16 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return output;
+        }
+
+        public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
+        {
+            cullingParameters.cullingOptions = CullingOptions.None;
+            cullingParameters.isOrthographic = cameraData.camera.orthographic;
+            cullingParameters.shadowDistance = 0.0f;
+
+            var cullResult = m_Renderer2DData.lightCullResult as Light2DCullResult;
+            cullResult.SetupCulling(ref cullingParameters, cameraData.camera);
         }
 
         void InitializeLayerBatches()
@@ -265,10 +381,10 @@ namespace UnityEngine.Rendering.Universal
                 m_CreateColorTexture |= forceCreateColorTexture;
 
                 // RTHandles do not support combining color and depth in the same texture so we create them separately
-                m_CreateDepthTexture |= createColorTexture;
+                m_CreateDepthTexture |= m_CreateColorTexture;
 
                 // Camera Target Color
-                if (createColorTexture)
+                if (m_CreateColorTexture)
                 {
                     cameraTargetDescriptor.useMipMap = false;
                     cameraTargetDescriptor.autoGenerateMips = false;
@@ -282,7 +398,7 @@ namespace UnityEngine.Rendering.Universal
                     commonResourceData.activeColorID = ActiveID.BackBuffer;
 
                 // Camera Target Depth
-                if (createDepthTexture)
+                if (m_CreateDepthTexture)
                 {
                     var depthDescriptor = cameraData.cameraTargetDescriptor;
                     depthDescriptor.useMipMap = false;
@@ -568,7 +684,7 @@ namespace UnityEngine.Rendering.Universal
                 commonResourceData.internalColorLut = internalColorLut;
             }
 
-            var cameraSortingLayerBoundsIndex = Render2DLightingPass.GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
+            var cameraSortingLayerBoundsIndex = m_Renderer2DData.GetCameraSortingLayerBoundsIndex();
 
             // Set Global Properties and Textures
             GlobalPropertiesPass.Setup(renderGraph, frameData, m_Renderer2DData, cameraData);
@@ -781,15 +897,54 @@ namespace UnityEngine.Rendering.Universal
                 DrawRenderGraphGizmos(renderGraph, frameData, commonResourceData.activeColorTexture, commonResourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
         }
 
+        public Renderer2DData GetRenderer2DData()
+        {
+            return m_Renderer2DData;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            CleanupRenderGraphResources();
+
+#if URP_COMPATIBILITY_MODE
+            CleanupCompatibilityModeResources();
+#endif
+
+            base.Dispose(disposing);
+        }
+
         private void CleanupRenderGraphResources()
         {
+            m_Renderer2DData.Dispose();
+            m_UpscalePass.Dispose();
+            m_CopyDepthPass?.Dispose();
+            m_FinalBlitPass?.Dispose();
+            m_DrawOffscreenUIPass?.Dispose();
+            m_DrawOverlayUIPass?.Dispose();
+            m_PostProcessPassRenderGraph?.Cleanup();
+            m_ColorGradingLutPassRenderGraph?.Cleanup();
+
             m_RenderGraphCameraColorHandles[0]?.Release();
             m_RenderGraphCameraColorHandles[1]?.Release();
             m_RenderGraphCameraDepthHandle?.Release();
             m_RenderGraphBackbufferColorHandle?.Release();
             m_RenderGraphBackbufferDepthHandle?.Release();
             m_CameraSortingLayerHandle?.Release();
+
+            Light2DManager.Dispose();
             Light2DLookupTexture.Release();
+
+            CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_BlitHDRMaterial);
+            CoreUtils.Destroy(m_SamplingMaterial);
         }
+
+        internal static bool IsGLESDevice()
+        {
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+        }
+
+        internal override bool supportsNativeRenderPassRendergraphCompiler => true;
+
     }
 }

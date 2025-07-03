@@ -1,3 +1,4 @@
+#if URP_COMPATIBILITY_MODE
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
@@ -6,25 +7,14 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed partial class Renderer2D : ScriptableRenderer
     {
-        const int k_FinalBlitPassQueueOffset = 1;
-        const int k_AfterFinalBlitPassQueueOffset = k_FinalBlitPassQueueOffset + 1;
-
-        Render2DLightingPass m_Render2DLightingPass;
-        PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
-        UpscalePass m_UpscalePass;
-        CopyDepthPass m_CopyDepthPass;
-        CopyCameraSortingLayerPass m_CopyCameraSortingLayerPass;
-        FinalBlitPass m_FinalBlitPass;
-        DrawScreenSpaceUIPass m_DrawOffscreenUIPass;
-        DrawScreenSpaceUIPass m_DrawOverlayUIPass; // from HDRP code
+        CompatibilityMode.Render2DLightingPass m_Render2DLightingPass;
+        CompatibilityMode.PixelPerfectBackgroundPass m_PixelPerfectBackgroundPass;
 
         internal RenderTargetBufferSystem m_ColorBufferSystem;
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
 
         bool m_UseDepthStencilBuffer = true;
-        bool m_CreateColorTexture;
-        bool m_CreateDepthTexture;
 
         // We probably should declare these names in the base class,
         // as they must be the same across all ScriptableRenderer types for camera stacking to work.
@@ -35,12 +25,6 @@ namespace UnityEngine.Rendering.Universal
         SetEditorTargetPass m_SetEditorTargetPass;
         internal RTHandle m_DefaultWhiteTextureHandle;
 #endif
-
-        Material m_BlitMaterial;
-        Material m_BlitHDRMaterial;
-        Material m_SamplingMaterial;
-
-        Renderer2DData m_Renderer2DData;
 
         internal bool createColorTexture => m_CreateColorTexture;
         internal bool createDepthTexture => m_CreateDepthTexture;
@@ -53,41 +37,14 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle afterPostProcessColorHandle { get => m_PostProcessPasses.afterPostProcessColor; }
         internal RTHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
 
-        /// <inheritdoc/>
-        public override int SupportedCameraStackingTypes()
+        void InitializeCompatibilityMode(Renderer2DData data)
         {
-            return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
-        }
-
-        public Renderer2D(Renderer2DData data) : base(data)
-        {
-            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
-                    out var shadersResources))
-            {
-                m_BlitMaterial = CoreUtils.CreateEngineMaterial(shadersResources.coreBlitPS);
-                m_BlitHDRMaterial = CoreUtils.CreateEngineMaterial(shadersResources.blitHDROverlay);
-                m_SamplingMaterial = CoreUtils.CreateEngineMaterial(shadersResources.samplingPS);
-            }
-
             if (GraphicsSettings.TryGetRenderPipelineSettings<Renderer2DResources>(out var renderer2DResources))
             {
-                m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial, renderer2DResources.fallOffLookup);
-
-                m_CopyDepthPass = new CopyDepthPass(
-                    RenderPassEvent.AfterRenderingTransparents,
-                    renderer2DResources.copyDepthPS,
-                    shouldClear: true,
-                    copyResolvedDepth: RenderingUtils.MultisampleDepthResolveSupported());
+                m_Render2DLightingPass = new CompatibilityMode.Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial, renderer2DResources.fallOffLookup);
             }
 
-            // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
-            m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
-            m_UpscalePass = new UpscalePass(RenderPassEvent.AfterRenderingPostProcessing, m_BlitMaterial);
-            m_CopyCameraSortingLayerPass = new CopyCameraSortingLayerPass(m_BlitMaterial);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + k_FinalBlitPassQueueOffset, m_BlitMaterial, m_BlitHDRMaterial);
-
-            m_DrawOffscreenUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.BeforeRenderingPostProcessing, true);
-            m_DrawOverlayUIPass = new DrawScreenSpaceUIPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, false); // after m_FinalBlitPass
+            m_PixelPerfectBackgroundPass = new CompatibilityMode.PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
 
 #if UNITY_EDITOR
             m_SetEditorTargetPass = new SetEditorTargetPass(RenderPassEvent.AfterRendering + 9);
@@ -101,102 +58,24 @@ namespace UnityEngine.Rendering.Universal
             ppParams.blitMaterial = m_BlitMaterial;
             ppParams.requestColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
 
-            if (UniversalRenderPipeline.useRenderGraph)
-            {
-                if (data.postProcessData != null)
-                {
-                    m_PostProcessPassRenderGraph = new PostProcessPassRenderGraph(data.postProcessData, ppParams.requestColorFormat);
-                    m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
-                }
-                // No postProcessData in RG means no post processes
-            }
-            else
-                m_PostProcessPasses = new CompatibilityMode.PostProcessPasses(data.postProcessData, ref ppParams);
+            m_PostProcessPasses = new CompatibilityMode.PostProcessPasses(data.postProcessData, ref ppParams);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
-
-            m_Renderer2DData = data;
-
-            supportedRenderingFeatures = new RenderingFeatures();
-
-            m_Renderer2DData.lightCullResult = new Light2DCullResult();
-
-            LensFlareCommonSRP.mergeNeeded = 0;
-            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
-            LensFlareCommonSRP.Initialize();
-
-            Light2DManager.Initialize();
         }
 
-        protected override void Dispose(bool disposing)
+        void CleanupCompatibilityModeResources()
         {
-            m_Renderer2DData.Dispose();
             m_Render2DLightingPass?.Dispose();
             m_PostProcessPasses.Dispose();
             m_ColorTextureHandle?.Release();
             m_DepthTextureHandle?.Release();
             ReleaseRenderTargets();
-            m_UpscalePass.Dispose();
-            m_CopyDepthPass?.Dispose();
-            m_FinalBlitPass?.Dispose();
-            m_DrawOffscreenUIPass?.Dispose();
-            m_DrawOverlayUIPass?.Dispose();
-            Light2DManager.Dispose();
-            m_PostProcessPassRenderGraph?.Cleanup();
-            m_ColorGradingLutPassRenderGraph?.Cleanup();
-
-            CoreUtils.Destroy(m_BlitMaterial);
-            CoreUtils.Destroy(m_BlitHDRMaterial);
-            CoreUtils.Destroy(m_SamplingMaterial);
-
-            CleanupRenderGraphResources();
-
-            base.Dispose(disposing);
         }
 
         internal override void ReleaseRenderTargets()
         {
             m_ColorBufferSystem.Dispose();
             m_PostProcessPasses.ReleaseRenderTargets();
-        }
-
-        public Renderer2DData GetRenderer2DData()
-        {
-            return m_Renderer2DData;
-        }
-
-        private struct RenderPassInputSummary
-        {
-            internal bool requiresDepthTexture;
-            internal bool requiresColorTexture;
-        }
-
-        private RenderPassInputSummary GetRenderPassInputs(UniversalCameraData cameraData)
-        {
-            RenderPassInputSummary inputSummary = new RenderPassInputSummary();
-
-            for (int i = 0; i < activeRenderPassQueue.Count; ++i)
-            {
-                ScriptableRenderPass pass = activeRenderPassQueue[i];
-                bool needsDepth = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
-                bool needsColor = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
-
-                inputSummary.requiresDepthTexture |= needsDepth;
-                inputSummary.requiresColorTexture |= needsColor;
-            }
-
-            inputSummary.requiresColorTexture |= cameraData.postProcessEnabled
-                    || cameraData.isHdrEnabled
-                    || cameraData.isSceneViewCamera
-                    || !cameraData.isDefaultViewport
-                    || cameraData.requireSrgbConversion
-                    || !cameraData.resolveFinalTarget
-                    || cameraData.cameraTargetDescriptor.msaaSamples > 1 && UniversalRenderer.PlatformRequiresExplicitMsaaResolve()
-                    || m_Renderer2DData.useCameraSortingLayerTexture
-                    || !Mathf.Approximately(cameraData.renderScale, 1.0f)
-                    || (DebugHandler != null && DebugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget));
-
-            return inputSummary;
         }
 
         void CreateRenderTextures(
@@ -390,9 +269,9 @@ namespace UnityEngine.Rendering.Universal
 
             m_Render2DLightingPass.Setup(renderPassInputs.requiresDepthTexture || m_UseDepthStencilBuffer);
             // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
+#pragma warning disable CS0618
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle, depthTargetHandle);
-            #pragma warning restore CS0618
+#pragma warning restore CS0618
             EnqueuePass(m_Render2DLightingPass);
 
             bool shouldRenderUI = cameraData.rendersOverlayUI;
@@ -498,27 +377,18 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
-        {
-            cullingParameters.cullingOptions = CullingOptions.None;
-            cullingParameters.isOrthographic = cameraData.camera.orthographic;
-            cullingParameters.shadowDistance = 0.0f;
-            var cullResult = m_Renderer2DData.lightCullResult as Light2DCullResult;
-            cullResult.SetupCulling(ref cullingParameters, cameraData.camera);
-        }
-
         internal override void SwapColorBuffer(CommandBuffer cmd)
         {
             m_ColorBufferSystem.Swap();
 
             // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
+#pragma warning disable CS0618
             //Check if we are using the depth that is attached to color buffer
             if (m_DepthTextureHandle.nameID != BuiltinRenderTextureType.CameraTarget)
                 ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_DepthTextureHandle);
             else
                 ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
-            #pragma warning restore CS0618
+#pragma warning restore CS0618
 
             m_ColorTextureHandle = m_ColorBufferSystem.GetBackBuffer(cmd);
             cmd.SetGlobalTexture("_CameraColorTexture", m_ColorTextureHandle.nameID);
@@ -542,13 +412,6 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ColorBufferSystem.EnableMSAA(enable);
         }
-
-        internal static bool IsGLESDevice()
-        {
-            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
-        }
-
-        internal override bool supportsNativeRenderPassRendergraphCompiler => true;
     }
 
 #if UNITY_EDITOR
@@ -569,3 +432,4 @@ namespace UnityEngine.Rendering.Universal
     }
 #endif
 }
+#endif // URP_COMPATIBILITY_MODE

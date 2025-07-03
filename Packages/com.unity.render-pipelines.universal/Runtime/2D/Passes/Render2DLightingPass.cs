@@ -1,8 +1,9 @@
+#if URP_COMPATIBILITY_MODE
 using System;
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.CompatibilityMode
 {
     internal class Render2DLightingPass : ScriptableRenderPass, IRenderPass2D
     {
@@ -46,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
             m_SamplingMaterial = samplingMaterial;
             m_FallOffLookup = fallOffLookup;
 
-            m_CameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
+            m_CameraSortingLayerBoundsIndex = m_Renderer2DData.GetCameraSortingLayerBoundsIndex();
         }
 
         internal void Setup(bool useDepth)
@@ -78,18 +79,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
         }
 
-        public static short GetCameraSortingLayerBoundsIndex(Renderer2DData rendererData)
-        {
-            SortingLayer[] sortingLayers = Light2DManager.GetCachedSortingLayer();
-            for (short i = 0; i < sortingLayers.Length; i++)
-            {
-                if (sortingLayers[i].id == rendererData.cameraSortingLayerTextureBound)
-                    return (short)sortingLayers[i].value;
-            }
-
-            return short.MinValue;
-        }
-
         private void DetermineWhenToResolve(int startIndex, int batchesDrawn, int batchCount, LayerBatch[] layerBatches,
             out int resolveDuringBatch, out bool resolveIsAfterCopy)
         {
@@ -117,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_Renderer2DData.useCameraSortingLayerTexture)
             {
-                var cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
+                var cameraSortingLayerBoundsIndex = m_Renderer2DData.GetCameraSortingLayerBoundsIndex();
                 var copyBatch = -1;
                 for (int i = startIndex; i < startIndex + batchesDrawn; i++)
                 {
@@ -275,7 +264,7 @@ namespace UnityEngine.Rendering.Universal
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
 
-                        short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex(m_Renderer2DData);
+                        short cameraSortingLayerBoundsIndex = m_Renderer2DData.GetCameraSortingLayerBoundsIndex();
 
                         RenderBufferStoreAction copyStoreAction;
                         if (msaaEnabled)
@@ -464,3 +453,4 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
+#endif // URP_COMPATIBILITY_MODE
