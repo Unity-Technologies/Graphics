@@ -45,11 +45,13 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+#if URP_COMPATIBILITY_MODE
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotImplementedException();
         }
+#endif
 
         private static void Execute(RasterCommandBuffer cmd, PassData passData, ref LayerBatch layerBatch)
         {
