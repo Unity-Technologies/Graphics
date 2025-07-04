@@ -591,6 +591,19 @@ namespace UnityEngine.Rendering
             return batchLodLevel == instanceLodLevel + sign;
         }
 
+        static int GetPrimitiveCount(int indexCount, MeshTopology topology, bool nativeQuads)
+        {
+            switch (topology)
+            {
+                case MeshTopology.Triangles: return indexCount / 3;
+                case MeshTopology.Quads: return nativeQuads ? (indexCount / 4) : (indexCount / 4 * 2);
+                case MeshTopology.Lines: return indexCount / 2;
+                case MeshTopology.LineStrip: return (indexCount >= 1) ? (indexCount - 1) : 0;
+                case MeshTopology.Points: return indexCount;
+                default: Debug.Assert(false, "unknown primitive type"); return 0;
+            }
+        }
+
         public void Execute(int batchIndex)
         {
             // figure out how many combinations of views/features we need to partition by
@@ -697,7 +710,12 @@ namespace UnityEngine.Rendering
 
                         int visibleCount = visibleCountPerView[viewIndex];
                         if (visibleCount > 0)
+                        {
+                            int primitiveCount = GetPrimitiveCount((int)drawBatch.procInfo.indexCount, drawBatch.procInfo.topology, false);
+
                             Interlocked.Add(ref UnsafeUtility.AsRef<int>(counterPtr + (int)InstanceCullerSplitDebugCounter.VisibleInstances), visibleCount);
+                            Interlocked.Add(ref UnsafeUtility.AsRef<int>(counterPtr + (int)InstanceCullerSplitDebugCounter.VisiblePrimitives), visibleCount * primitiveCount);
+                        }
                     }
                 }
             }
@@ -1060,7 +1078,7 @@ namespace UnityEngine.Rendering
                         firstIndex = drawBatch.procInfo.firstIndex,
                         baseVertex = drawBatch.procInfo.baseVertex,
                         firstInstanceGlobalIndex = (uint)instanceInfoGlobalIndex,
-                        maxInstanceCount = (uint)visibleInstanceCount,
+                        maxInstanceCountAndTopology = ((uint)visibleInstanceCount << 3) | (uint)drawBatch.procInfo.topology,
                     };
                     output.indirectDrawCommands[drawCommandOffset] = new BatchDrawCommandIndirect
                     {
@@ -1442,6 +1460,7 @@ namespace UnityEngine.Rendering
     internal enum InstanceCullerSplitDebugCounter
     {
         VisibleInstances,
+        VisiblePrimitives,
         DrawCommands,
         Count,
     }
@@ -1520,7 +1539,10 @@ namespace UnityEngine.Rendering
                     viewType = info.viewType,
                     viewInstanceID = info.viewInstanceID,
                     splitIndex = info.splitIndex,
-                    visibleInstances = m_Counters[counterBase + (int)InstanceCullerSplitDebugCounter.VisibleInstances],
+                    visibleInstancesOnCPU = m_Counters[counterBase + (int)InstanceCullerSplitDebugCounter.VisibleInstances],
+                    visibleInstancesOnGPU = 0, // Unknown at this point, will be filled in later
+                    visiblePrimitivesOnCPU = m_Counters[counterBase + (int)InstanceCullerSplitDebugCounter.VisiblePrimitives],
+                    visiblePrimitivesOnGPU = 0, // Unknown at this point, will be filled in later
                     drawCommands = m_Counters[counterBase + (int)InstanceCullerSplitDebugCounter.DrawCommands],
                 });
             }
@@ -1669,8 +1691,10 @@ namespace UnityEngine.Rendering
                     }
 
                     int counterBase = index * (int)InstanceOcclusionTestDebugCounter.Count;
-                    int occludedCounter = m_LatestCounters[counterBase + (int)InstanceOcclusionTestDebugCounter.Occluded];
-                    int notOccludedCounter = m_LatestCounters[counterBase + (int)InstanceOcclusionTestDebugCounter.NotOccluded];
+                    int instancesOccludedCounter = m_LatestCounters[counterBase + (int)InstanceOcclusionTestDebugCounter.InstancesOccluded];
+                    int instancesNotOccludedCounter = m_LatestCounters[counterBase + (int)InstanceOcclusionTestDebugCounter.InstancesNotOccluded];
+                    int primitivesOccludedCounter = m_LatestCounters[counterBase + (int)InstanceOcclusionTestDebugCounter.PrimitivesOccluded];
+                    int primitivesNotOccludedCounter = m_LatestCounters[counterBase + (int)InstanceOcclusionTestDebugCounter.PrimitivesNotOccluded];
 
                     debugStats.instanceOcclusionEventStats.Add(new InstanceOcclusionEventStats
                     {
@@ -1679,8 +1703,10 @@ namespace UnityEngine.Rendering
                         occluderVersion = occluderVersion,
                         subviewMask = info.subviewMask,
                         occlusionTest = info.occlusionTest,
-                        visibleInstances = notOccludedCounter,
-                        culledInstances = occludedCounter,
+                        visibleInstances = instancesNotOccludedCounter,
+                        culledInstances = instancesOccludedCounter,
+                        visiblePrimitives = primitivesNotOccludedCounter,
+                        culledPrimitives = primitivesOccludedCounter,
                     });
                 }
             }
@@ -2564,6 +2590,7 @@ namespace UnityEngine.Rendering
             {
                 m_SplitDebugArray.MoveToDebugStatsAndClear(m_DebugStats);
                 m_OcclusionEventDebugArray.MoveToDebugStatsAndClear(m_DebugStats);
+                m_DebugStats.FinalizeInstanceCullerViewStats();
             }
         }
 

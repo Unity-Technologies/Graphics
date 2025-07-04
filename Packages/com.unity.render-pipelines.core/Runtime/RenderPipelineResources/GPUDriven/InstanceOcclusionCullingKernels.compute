@@ -61,7 +61,7 @@ SphereBound LoadInstanceBoundingSphere(uint instanceID)
 {
     float4 data = asfloat(_InstanceDataBuffer.Load4(_BoundingSphereInstanceDataAddress + instanceID * 16));
     SphereBound b;
-    b.center = data.xyz; 
+    b.center = data.xyz;
     b.radius = data.w;
     return b;
 }
@@ -105,7 +105,7 @@ void CopyInstances(uint dispatchIdx : SV_DispatchThreadID)
 
         uint argsBase = DRAW_ARGS_INDEX(dispatchIdx);
         _DrawArgs[argsBase + 0] = drawInfo.indexCount;   // IndirectDrawIndexedArgs.indexCountPerInstance
-        _DrawArgs[argsBase + 1] = drawInfo.maxInstanceCount << _InstanceMultiplierShift;  // IndirectDrawIndexedArgs.instanceCount
+        _DrawArgs[argsBase + 1] = (drawInfo.maxInstanceCountAndTopology >> 3) << _InstanceMultiplierShift;  // IndirectDrawIndexedArgs.instanceCount
         _DrawArgs[argsBase + 2] = drawInfo.firstIndex;   // IndirectDrawIndexedArgs.startIndex
         _DrawArgs[argsBase + 3] = drawInfo.baseVertex;   // IndirectDrawIndexedArgs.baseVertexIndex
         _DrawArgs[argsBase + 4] = 0;                     // IndirectDrawIndexedArgs.startInstance
@@ -117,6 +117,19 @@ void CopyInstances(uint dispatchIdx : SV_DispatchThreadID)
 
         uint writeIndex = INSTANCE_ALLOC_INDEX + dispatchIdx;
         _InstanceIndices.Store(writeIndex << 2, instanceInfo.instanceIndexAndCrossFade);
+    }
+}
+
+uint GetPrimitiveCount(uint indexCount, uint topology, bool nativeQuads)
+{
+    switch (topology)
+    {
+    case /*MeshTopology.Triangles*/ 0: return indexCount / 3;
+    case /*MeshTopology.Quads*/ 2: return nativeQuads ? (indexCount / 4) : (indexCount / 4 * 2);
+    case /*MeshTopology.Lines*/ 3: return indexCount / 2;
+    case /*MeshTopology.LineStrip*/ 4: return (indexCount >= 1) ? (indexCount - 1) : 0;
+    case /*MeshTopology.Points*/ 5: return indexCount;
+    default: return 0;
     }
 }
 
@@ -157,7 +170,7 @@ void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID)
                 isOccludedInAll = false;
         }
         isVisible = !isOccludedInAll;
-        
+
 #ifdef OCCLUSION_FIRST_PASS
         // if we failed the occlusion check, then add to the list for the second pass
         if (!isVisible)
@@ -173,8 +186,16 @@ void CullInstances(uint instanceInfoOffset : SV_DispatchThreadID)
         if (_DebugCounterIndex >= 0)
         {
             // TODO: sum each within wave, first thread in wave issues atomic add to memory
-            int counterIndex = isVisible ? INSTANCEOCCLUSIONTESTDEBUGCOUNTER_NOT_OCCLUDED : INSTANCEOCCLUSIONTESTDEBUGCOUNTER_OCCLUDED;
+            int counterIndex = isVisible ? INSTANCEOCCLUSIONTESTDEBUGCOUNTER_INSTANCES_NOT_OCCLUDED : INSTANCEOCCLUSIONTESTDEBUGCOUNTER_INSTANCES_OCCLUDED;
             InterlockedAdd(_OcclusionDebugCounters[_DebugCounterIndex*INSTANCEOCCLUSIONTESTDEBUGCOUNTER_COUNT + counterIndex], 1);
+
+            IndirectDrawInfo drawInfo = LoadDrawInfo(drawOffset);
+            uint argsBase = DRAW_ARGS_INDEX(drawOffset);
+            uint indexCount = _DrawArgs[argsBase + 0]; // IndirectDrawIndexedArgs.indexCountPerInstance
+            uint topology = drawInfo.maxInstanceCountAndTopology & 7;
+            uint primitiveCount = GetPrimitiveCount(indexCount, topology, false);
+            counterIndex = isVisible ? INSTANCEOCCLUSIONTESTDEBUGCOUNTER_PRIMITIVES_NOT_OCCLUDED : INSTANCEOCCLUSIONTESTDEBUGCOUNTER_PRIMITIVES_OCCLUDED;
+            InterlockedAdd(_OcclusionDebugCounters[_DebugCounterIndex*INSTANCEOCCLUSIONTESTDEBUGCOUNTER_COUNT + counterIndex], primitiveCount);
         }
 
         if (isVisible)
