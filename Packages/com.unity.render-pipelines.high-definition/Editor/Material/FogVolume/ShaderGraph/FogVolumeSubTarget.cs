@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 // Definition
                 displayName = HDShaderPassNames.s_FogVolumeVoxelizeStr,
-                referenceName = "SHADERPASS_FOGVOLUME_VOXELIZATION",
+                referenceName = "SHADERPASS_FOG_VOLUME_VOXELIZATION",
                 lightMode = HDShaderPassNames.s_FogVolumeVoxelizeStr,
                 useInPreview = false,
 
@@ -200,7 +200,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 // Definition
                 displayName = "ShaderGraphPreview",
-                referenceName = "SHADERPASS_FOGVOLUME_PREVIEW",
+                referenceName = "SHADERPASS_FOG_VOLUME_PREVIEW",
                 lightMode = "ShaderGraphPreview",
                 useInPreview = true,
 
@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 // Definition
                 displayName = HDShaderPassNames.s_VolumetricFogVFXOverdrawDebugStr,
-                referenceName = "SHADERPASS_FOGVOLUME_OVERDRAW_DEBUG",
+                referenceName = "SHADERPASS_FOG_VOLUME_OVERDRAW_DEBUG",
                 lightMode = HDShaderPassNames.s_VolumetricFogVFXOverdrawDebugStr,
                 useInPreview = true,
 
@@ -308,6 +308,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             const string kPacking = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl";
             const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
             const string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
+            const string kVoxelizationTransforms = "Packages/com.unity.render-pipelines.high-definition/Editor/Material/FogVolume/ShaderGraph/VoxelizationTransforms.hlsl";
             const string kVoxelizePass = "Packages/com.unity.render-pipelines.high-definition/Editor/Material/FogVolume/ShaderGraph/ShaderPassVoxelize.hlsl";
             const string kPreviewPass = "Packages/com.unity.render-pipelines.high-definition/Editor/Material/FogVolume/ShaderGraph/ShaderPassPreview.hlsl";
             const string kOverdrawPass = "Packages/com.unity.render-pipelines.high-definition/Editor/Material/FogVolume/ShaderGraph/OverdrawDebug.hlsl";
@@ -318,6 +319,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { kColor, IncludeLocation.Pregraph },
                 { kFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.MinimalCorePregraph },
+                { kVoxelizationTransforms, IncludeLocation.Pregraph },
                 { kVoxelizePass, IncludeLocation.Postgraph },
             };
 
