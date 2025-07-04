@@ -194,6 +194,7 @@
     * [Create realistic clouds (volumetric clouds)](create-realistic-clouds-volumetric-clouds.md)
     * [Create simple clouds (Cloud Layer)](create-simple-clouds-cloud-layer.md)
     * [Create custom cloud effects](create-custom-cloud-effects.md)
+    * [Troubleshooting Volumetric Clouds rendering issues](troubleshooting-volumetric-clouds-rendering-issues.md)
   * [Fog](fog.md)
     * [Understand fog](Understand-Fog.md)
     * [Create a global fog effect](create-a-global-fog-effect.md)
