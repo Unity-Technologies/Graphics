@@ -24,12 +24,14 @@ namespace UnityEditor.ShaderGraph.Internal
             set { }
         }
 
+        internal bool isPerElementVFX => overrideHLSLDeclaration && hlslDeclarationOverride != HLSLDeclaration.Global;
+
         internal virtual string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
         {
             if (mode == GenerationMode.VFX)
             {
                 // Per-element exposed properties are provided by the properties structure filled by VFX.
-                if (overrideHLSLDeclaration && hlslDeclarationOverride != HLSLDeclaration.Global)
+                if (isPerElementVFX)
                     return $"PROP.{referenceName}";
                 // For un-exposed global properties, just read from the cbuffer.
                 else

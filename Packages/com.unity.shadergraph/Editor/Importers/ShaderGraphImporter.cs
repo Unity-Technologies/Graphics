@@ -16,7 +16,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(132, Extension, -902)]
+    [ScriptedImporter(133, Extension, -902)]
     [CoreRPHelpURL("Shader-Graph-Asset", "com.unity.shadergraph")]
     class ShaderGraphImporter : ScriptedImporter
     {
@@ -901,7 +901,21 @@ Shader ""Hidden/GraphErrorShader2""
             var sortedProperties = graph.categories
                 .SelectMany(x => x.Children)
                 .Union(graph.properties)
-                .Where(x => x.isExposed);
+                .Where(x =>
+                    {
+                        if (!asset.generatesWithShaderGraph)
+                            return x.isExposed; //Compatibility behavior for old SG integration
+
+                        if (x is AbstractShaderProperty shaderProperty)
+                        {
+                            if (shaderProperty.isExposed)
+                                return true; //see implicit override of isPerElementVFX in https://github.cds.internal.unity3d.com/unity/unity/blob/b27af44f6be3c181e86bd3c2e30fd58738a69404/Packages/com.unity.shadergraph/Editor/Data/Graphs/GraphData.cs#L1357
+
+                            return shaderProperty.isPerElementVFX && x.isExposable;
+                        }
+
+                        return x.isExposable;
+                    });
 
             foreach (var property in sortedProperties)
             {

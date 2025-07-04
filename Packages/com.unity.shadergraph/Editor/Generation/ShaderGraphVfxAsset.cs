@@ -147,10 +147,16 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
+        internal ShaderStageCapability GetPropertyStage(int index)
+        {
+            return m_PropertiesStages[index];
+        }
+
         public List<AbstractShaderProperty> fragmentProperties
         {
             get
             {
+                //This getter is only used for old SG integration, kept for compatibility
                 EnsureProperties();
                 var allProperties = m_Data.m_Properties.SelectValue().ToList();
                 var fragProperties = new List<AbstractShaderProperty>();
@@ -161,23 +167,6 @@ namespace UnityEditor.ShaderGraph.Internal
                         fragProperties.Add(property);
                 }
                 return fragProperties;
-            }
-        }
-
-        public List<AbstractShaderProperty> vertexProperties
-        {
-            get
-            {
-                EnsureProperties();
-                var allProperties = m_Data.m_Properties.SelectValue().ToList();
-                var vertexProperties = new List<AbstractShaderProperty>();
-                for (var i = 0; i < allProperties.Count(); i++)
-                {
-                    if (allProperties[i] is AbstractShaderProperty property
-                        && (m_PropertiesStages[i] & ShaderStageCapability.Vertex) != 0)
-                        vertexProperties.Add(property);
-                }
-                return vertexProperties;
             }
         }
 

@@ -88,21 +88,28 @@ namespace UnityEditor.VFX
             }
         }
 
+        static VFXExpression ConstantFromValue(object value)
+        {
+            if (value == null)
+                throw new NullReferenceException("ConstantFromValue NRE");
+
+            var type = value.GetType();
+            if (type == typeof(Color)) return VFXValue.Constant<Vector4>((Color)(value));
+            if (type == typeof(bool)) return VFXValue.Constant((bool)value);
+            if (type == typeof(float)) return VFXValue.Constant((float)value);
+            if (type == typeof(Vector2)) return VFXValue.Constant((Vector2)value);
+            if (type == typeof(Vector3)) return VFXValue.Constant((Vector3)value);
+            if (type == typeof(Vector4)) return VFXValue.Constant((Vector4)value);
+
+            //This function is only used for constant which can be exposed and aren't textures (see VFXSGInputs usage)
+            throw new InvalidOperationException("ConstantFromValue missing support for: " + type);
+        }
+
         public struct Property
         {
             public VFXPropertyWithValue property;
             public bool multiCompile;
             public string[] keywordsMapping;
-        }
-
-        public static bool HasAnyKeywordProperty(ShaderGraphVfxAsset shaderGraph)
-        {
-            foreach (var property in shaderGraph.properties)
-            {
-                if (property is ShaderGraph.ShaderKeyword)
-                    return true;
-            }
-            return false;
         }
 
         public static IEnumerable<Property> GetProperties(ShaderGraphVfxAsset shaderGraph)
@@ -111,7 +118,7 @@ namespace UnityEditor.VFX
             {
                 if (property is AbstractShaderProperty shaderProperty)
                 {
-                    if (shaderProperty.hidden)
+                    if (shaderProperty.hidden || !shaderProperty.isExposed)
                         continue;
 
                     var type = GetPropertyType(shaderProperty);
@@ -249,18 +256,29 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        public static void GetShaderGraphParameter(ShaderGraphVfxAsset shaderGraph, out List<string> fragmentParameters, out List<string> vertexParameter)
+        public static void GetShaderGraphParameters(ShaderGraphVfxAsset shaderGraph, out List<(string name, ShaderStageCapability shaderStage, bool exposed, VFXExpression defaultValue)> parameters)
         {
-            fragmentParameters = new List<string>();
-            vertexParameter = new List<string>();
-
-            foreach (var param in shaderGraph.fragmentProperties)
-                if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
-                    fragmentParameters.Add(param.referenceName);
-
-            foreach (var param in shaderGraph.vertexProperties)
-                if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
-                    vertexParameter.Add(param.referenceName);
+            parameters = new();
+            var properties = shaderGraph.properties;
+            for (var propertyIndex = 0; propertyIndex < properties.Count; ++propertyIndex)
+            {
+                var param = properties[propertyIndex];
+                if (param is AbstractShaderProperty property
+                    && !IsTexture(property.propertyType))
+                {
+                    var propertyStage = shaderGraph.GetPropertyStage(propertyIndex);
+                    if (propertyStage != ShaderStageCapability.None)
+                    {
+                        VFXExpression exp = null;
+                        if (!param.isExposed)
+                        {
+                            var value = GetPropertyValue(property);
+                            exp = ConstantFromValue(value);
+                        } //else, expression will be provided by VFXSlot
+                        parameters.Add((param.referenceName, propertyStage, param.isExposed, exp));
+                    }
+                }
+            }
         }
     }
 }

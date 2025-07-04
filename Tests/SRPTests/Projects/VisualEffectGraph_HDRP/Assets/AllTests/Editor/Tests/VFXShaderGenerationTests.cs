@@ -452,6 +452,36 @@ namespace UnityEditor.VFX.Test
             CheckShaderStructs(meshOutputSrc, new uint[] { 9, 5, 7, 6 });
         }
 
+        [Test]
+        public void ShaderGraph_Insure_GlobalProperties_No_Leak_In_Interpolator()
+        {
+            var vfxPath = "Assets/AllTests/VFXTests/GraphicsTests/35_ShaderGraphGenerationFTP/VFX/VFX - GlobalShaderProperty.vfx";
+            AssetDatabase.ImportAsset(vfxPath);
+            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath).GetResource();
+            Assert.IsNotNull(vfx);
+
+            var source = vfx.GetShaderSource(2);
+            Assert.IsTrue(source.Contains("float4 _VFXGlobalColor;"));
+
+            var graphPropertiesFields = VFXTestShaderSrcUtils.GetStructFieldsFromSource(source, "GraphProperties", "ForwardOnly");
+            var fragInputFields = VFXTestShaderSrcUtils.GetStructFieldsFromSource(source, "FragInputsVFX", "ForwardOnly");
+            var varyingsFields = VFXTestShaderSrcUtils.GetStructFieldsFromSource(source, "VaryingsMeshToPS", "ForwardOnly");
+            var packedVaryingFields = VFXTestShaderSrcUtils.GetStructFieldsFromSource(source, "PackedVaryingsMeshToPS", "ForwardOnly");
+
+            Assert.AreEqual(0, graphPropertiesFields.Length);
+            Assert.AreEqual(0, fragInputFields.Length);
+            Assert.AreEqual(3, varyingsFields.Length);
+            Assert.AreEqual(3, packedVaryingFields.Length);
+
+            Assert.AreEqual("positionCS", varyingsFields[0].name);
+            Assert.AreEqual("positionRWS", varyingsFields[1].name);
+            Assert.AreEqual("instanceID", varyingsFields[2].name);
+
+            Assert.AreEqual("positionCS", packedVaryingFields[0].name);
+            Assert.AreEqual("positionRWS", packedVaryingFields[1].name);
+            Assert.AreEqual("instanceID", packedVaryingFields[2].name);
+        }
+
         public class WrapperWindow : EditorWindow
         {
             public Action onGUIDelegate;
