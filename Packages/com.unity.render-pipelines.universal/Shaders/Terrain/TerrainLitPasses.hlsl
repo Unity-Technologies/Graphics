@@ -110,7 +110,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     inputData.vertexSH = SH;
     #endif
     #if defined(USE_APV_PROBE_OCCLUSION)
-    inputData.probeOcclusion = input.probeOcclusion;
+    inputData.probeOcclusion = IN.probeOcclusion;
     #endif
     #endif
 }
