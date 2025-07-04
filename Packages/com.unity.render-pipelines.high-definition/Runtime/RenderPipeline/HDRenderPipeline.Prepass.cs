@@ -1387,6 +1387,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5NGGC ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
