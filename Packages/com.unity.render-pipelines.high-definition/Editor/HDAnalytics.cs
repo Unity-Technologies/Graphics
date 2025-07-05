@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var data = new UsageEventData()
                     {
                         build_target = activeBuildTarget.ToString(),
-                        asset_guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(hdrpAsset.GetInstanceID())),
+                        asset_guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(hdrpAsset.GetEntityId())),
                         changed_settings = hdrpAsset.currentPlatformRenderPipelineSettings.ToNestedColumnWithDefault(defaults, true)
                     };
                     Analytic analytic = new Analytic(data);

@@ -152,7 +152,7 @@ internal static class URP2DConverterUtility
     {
         string guid;
         long localId;
-        if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj.GetInstanceID(), out guid, out localId))
+        if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj.GetEntityId(), out guid, out localId))
             return "fileID: " + localId + ", guid: " + guid;
 
         return null;

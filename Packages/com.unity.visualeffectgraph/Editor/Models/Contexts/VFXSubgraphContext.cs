@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
         {
             if (m_Subgraph == null && !object.ReferenceEquals(m_Subgraph, null))
             {
-                string assetPath = AssetDatabase.GetAssetPath(m_Subgraph.GetInstanceID());
+                string assetPath = AssetDatabase.GetAssetPath(m_Subgraph.GetEntityId());
 
                 var newSubgraph = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
                 if (newSubgraph != null)

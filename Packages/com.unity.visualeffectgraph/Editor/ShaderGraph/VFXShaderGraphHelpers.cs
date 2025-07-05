@@ -17,8 +17,7 @@ namespace UnityEditor.VFX
     {
         public static string GetMissingShaderGraphErrorMessage(ShaderGraphVfxAsset shader)
         {
-            var instanceID = shader.GetInstanceID();
-            var missingShaderPath = AssetDatabase.GetAssetPath(instanceID);
+            var missingShaderPath = AssetDatabase.GetAssetPath(shader.GetEntityId());
             if (!string.IsNullOrEmpty(missingShaderPath))
             {
                 return $" cannot be compiled because a Shader Graph asset located here '{missingShaderPath}' is missing.";

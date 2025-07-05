@@ -1524,7 +1524,7 @@ namespace UnityEditor.VFX
                 if (dependency == 0)
                     continue;
 
-                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(dependency, out string guid, out long localId))
+                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier((EntityId)dependency, out string guid, out long localId))
                 {
                     if (!guids.Contains(guid))
                     {

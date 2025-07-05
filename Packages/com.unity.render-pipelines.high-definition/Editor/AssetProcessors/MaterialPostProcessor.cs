@@ -284,7 +284,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             if (importCounter > 2)
                                 continue;
 
-                            var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
+                            var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetEntityId());
                             AssetDatabase.ImportAsset(shaderPath);
 
                             // Restart the material import instead of proceeding otherwise the shadergraph will be processed after

@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph
                 GUIUtility.systemCopyBuffer = generator.generatedShader;
             }
 
-            EditorGUILayout.Space();            
+            EditorGUILayout.Space();
             EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.UseAsTemplateFieldName));
             bool needsReimport = false;
             using (new EditorGUI.IndentLevelScope(1))
@@ -191,7 +191,7 @@ namespace UnityEditor.ShaderGraph
         [OnOpenAsset(0)]
         public static bool OnOpenAsset(int instanceID, int line)
         {
-            var path = AssetDatabase.GetAssetPath(instanceID);
+            var path = AssetDatabase.GetAssetPath((EntityId)instanceID);
             return ShowGraphEditWindow(path);
         }
     }

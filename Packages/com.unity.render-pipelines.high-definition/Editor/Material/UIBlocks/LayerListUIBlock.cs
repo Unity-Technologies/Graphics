@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // TODO: does not work with multi-selection
             Material material = materials[0];
 
-            m_MaterialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
+            m_MaterialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetEntityId()));
 
             // Material importer can be null when the selected material doesn't exists as asset (Material saved inside the scene)
             if (m_MaterialImporter != null)
