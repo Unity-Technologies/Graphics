@@ -412,12 +412,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return m_RenderGraphResources[res.iType].resourceArray[res.index].imported;
         }
 
-        internal bool IsRenderGraphResourceForceReleased(RenderGraphResourceType type, int index)
-        {
-            CheckHandleValidity(type, index);
-            return m_RenderGraphResources[(int)type].resourceArray[index].forceRelease;
-        }
-
         internal bool IsRenderGraphResourceShared(RenderGraphResourceType type, int index)
         {
             CheckHandleValidity(type, index);
@@ -926,12 +920,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return new RendererListHandle(newHandle, RendererListHandleType.Legacy);
         }
 
-        internal BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer, bool forceRelease = false)
+        internal BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer)
         {
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.Buffer].AddNewRenderGraphResource(out BufferResource bufferResource);
             bufferResource.graphicsResource = graphicsBuffer;
             bufferResource.imported = true;
-            bufferResource.forceRelease = forceRelease;
             bufferResource.validDesc = false;
 
             return new BufferHandle(newHandle);
@@ -989,7 +982,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
             int newHandle = m_RenderGraphResources[(int)RenderGraphResourceType.AccelerationStructure].AddNewRenderGraphResource(out RayTracingAccelerationStructureResource accelStructureResource, false);
             accelStructureResource.graphicsResource = accelStruct;
             accelStructureResource.imported = true;
-            accelStructureResource.forceRelease = false;
             accelStructureResource.desc.name = name;
 
             return new RayTracingAccelerationStructureHandle(newHandle);
@@ -1100,7 +1092,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         {
             var resource = m_RenderGraphResources[type].resourceArray[index];
 
-            if (!resource.imported || resource.forceRelease)
+            if (!resource.imported)
             {
                 m_RenderGraphResources[type].releaseResourceCallback?.Invoke(rgContext, resource);
 

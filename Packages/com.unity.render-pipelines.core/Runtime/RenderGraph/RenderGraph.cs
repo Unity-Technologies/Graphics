@@ -1103,11 +1103,23 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="graphicsBuffer">External Graphics Buffer that needs to be imported.</param>
         /// <param name="forceRelease">The imported graphics buffer will be released after usage.</param>
         /// <returns>A new GraphicsBufferHandle.</returns>
+        [Obsolete("ImportBuffer with forceRelease parameter is deprecated. Use ImportBuffer without it instead.", false)]
         public BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer, bool forceRelease = false)
         {
-            CheckNotUsedWhenExecuting();
+            return ImportBuffer(graphicsBuffer);
+        }
 
-            return m_Resources.ImportBuffer(graphicsBuffer, forceRelease);
+        /// <summary>
+        /// Import an external Graphics Buffer to the Render Graph.
+        /// Any pass writing to an imported graphics buffer will be considered having side effects and can't be automatically culled.
+        /// </summary>
+        /// <param name="graphicsBuffer">External Graphics Buffer that needs to be imported.</param>
+        /// <returns>A new GraphicsBufferHandle.</returns>
+        public BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer)
+        {
+            CheckNotUsedWhenExecuting();
+          
+            return m_Resources.ImportBuffer(graphicsBuffer);
         }
 
         /// <summary>
@@ -2139,10 +2151,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     CompiledResourceInfo resourceInfo = resourceInfos[i];
 
                     bool sharedResource = m_Resources.IsRenderGraphResourceShared((RenderGraphResourceType)type, i);
-                    bool forceRelease = m_Resources.IsRenderGraphResourceForceReleased((RenderGraphResourceType) type, i);
-
+                    
                     // Imported resource needs neither creation nor release.
-                    if (resourceInfo.imported && !sharedResource && !forceRelease)
+                    if (resourceInfo.imported && !sharedResource)
                         continue;
 
                     // Resource creation
