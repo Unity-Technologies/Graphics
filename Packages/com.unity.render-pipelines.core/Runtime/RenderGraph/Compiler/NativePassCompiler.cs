@@ -766,15 +766,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             {
                                 ref readonly var resInfo = ref contextData.UnversionedResourceData(res);
 
+                                bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
+
+                                // This resource is read for the first time as a regular texture and not as a framebuffer attachment
+                                // so if requested we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
+                                resources.forceManualClearOfResource = !usedAsFragmentThisPass;
+
                                 if (!resInfo.isImported)
                                 {
-                                    bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
-
-                                    // This resource is read for the first time as a regular texture and not as a framebuffer attachment
-                                    // so we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
-                                    // TODO: Should this be a performance warning?? Maybe rare enough in practice?
-                                    resources.forceManualClearOfResource = !usedAsFragmentThisPass;
-
                                     // If the compiler has detected that this resource can be memoryless,
                                     // we need to update the texture descriptor that will be used to create the memoryless RTHandle.
                                     // Memoryless resources are created to allow implicit conversion from TextureHandle to RTHandle.
@@ -790,7 +789,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 }
                                 else // Imported resource
                                 {
-                                    if (resInfo.clear && !resInfo.memoryLess)
+                                    if (resInfo.clear && !resInfo.memoryLess && resources.forceManualClearOfResource)
                                         resources.ClearResource(rgContext, res.iType, res.index);
                                 }
                             }
