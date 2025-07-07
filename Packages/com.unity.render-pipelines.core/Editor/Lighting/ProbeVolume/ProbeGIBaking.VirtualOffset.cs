@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering
             CellCountInDirections(out minCellPosition, out maxCellPosition, prv.MaxBrickSize(), prv.ProbeOffset());
             cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
 
-            m_BakingBatch = new BakingBatch(cellCount);
+            m_BakingBatch = new BakingBatch(cellCount, ProbeReferenceVolume.instance);
             m_ProfileInfo = new ProbeVolumeProfileInfo();
             ModifyProfileFromLoadedData(m_BakingSet);
 

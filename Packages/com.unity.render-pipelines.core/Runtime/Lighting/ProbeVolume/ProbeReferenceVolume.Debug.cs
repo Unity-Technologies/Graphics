@@ -1189,12 +1189,16 @@ namespace UnityEngine.Rendering
 
                                 positionsList.Add(position);
                                 validityList.Add(cell.data.validity[probeFlatIndex]);
+
                                 var occlusionOffset = probeFlatIndex * 4;
-                                float occlusionValue0 = scenarioData.probeOcclusion[occlusionOffset] / 255.0f;
-                                float occlusionValue1 = scenarioData.probeOcclusion[occlusionOffset+1] / 255.0f;
-                                float occlusionValue2 = scenarioData.probeOcclusion[occlusionOffset+2] / 255.0f;
-                                float occlusionValue3 = scenarioData.probeOcclusion[occlusionOffset+3] / 255.0f;
-                                occlusionList.Add(new Vector4(occlusionValue0, occlusionValue1, occlusionValue2, occlusionValue3));
+                                if (scenarioData.probeOcclusion.Length != 0)
+                                {
+                                    float occlusionValue0 = scenarioData.probeOcclusion[occlusionOffset] / 255.0f;
+                                    float occlusionValue1 = scenarioData.probeOcclusion[occlusionOffset+1] / 255.0f;
+                                    float occlusionValue2 = scenarioData.probeOcclusion[occlusionOffset+2] / 255.0f;
+                                    float occlusionValue3 = scenarioData.probeOcclusion[occlusionOffset+3] / 255.0f;
+                                    occlusionList.Add(new Vector4(occlusionValue0, occlusionValue1, occlusionValue2, occlusionValue3));
+                                }
 
                                 if (cell.data.skyOcclusionDataL0L1.Length > 0)
                                 {

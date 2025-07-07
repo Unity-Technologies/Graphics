@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 
 using System.Collections.Generic;
-using UnityEditor;
 using System.Linq;
 using UnityEngine.Profiling;
 using System;
@@ -17,6 +16,13 @@ namespace UnityEngine.Rendering
         const int k_MaxSubdivisionInSubCell = 4; // Levels strictly higher than this can't be generated directly
         // The UAV binding index 4 isn't in use when we bake the probes and doesn't crash unity.
         const int k_RandomWriteBindingIndex = 4;
+
+        enum VoxelizeShaderPassIndex
+        {
+            Terrain = 0,
+            NonInstancedMesh = 1,
+            InstancedMesh = 2
+        }
 
         [GenerateHLSL(needAccessors = false)]
         struct GPUProbeVolumeOBB
@@ -67,7 +73,7 @@ namespace UnityEngine.Rendering
                     volumeDepth = sceneSDFSize,
                     enableRandomWrite = true,
                     dimension = TextureDimension.Tex3D,
-                    graphicsFormat = Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat, // we need 16 bit precision for the distance field
+                    graphicsFormat = Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat, // we need 16 bit precision for the distance field.
                     msaaSamples = 1,
                 };
 
@@ -123,9 +129,14 @@ namespace UnityEngine.Rendering
         static readonly int _OutputSize = Shader.PropertyToID("_OutputSize");
         static readonly int _VolumeWorldOffset = Shader.PropertyToID("_VolumeWorldOffset");
         static readonly int _VolumeSize = Shader.PropertyToID("_VolumeSize");
-        static readonly int _AxisSwizzle = Shader.PropertyToID("_AxisSwizzle");
-        static readonly int _TreePrototypeTransform = Shader.PropertyToID("_TreePrototypeTransform");
-        static readonly int _TreeInstanceToWorld = Shader.PropertyToID("_TreeInstanceToWorld");
+        static readonly int _AxisIndex = Shader.PropertyToID("_AxisIndex");
+        static readonly int _IndexBufferOffset = Shader.PropertyToID("_IndexBufferOffset");
+        static readonly int _VertexBufferOffset = Shader.PropertyToID("_VertexBufferOffset");
+        static readonly int _IndexBufferTopology = Shader.PropertyToID("_IndexBufferTopology");
+        static readonly int _IndexBufferBitCount = Shader.PropertyToID("_IndexBufferBitCount");
+        static readonly int _VertexBufferPositionOffset = Shader.PropertyToID("_VertexBufferPositionOffset");
+        static readonly int _VertexBufferStride = Shader.PropertyToID("_VertexBufferStride");
+        static readonly int _InstanceToWorld = Shader.PropertyToID("_InstanceToWorld");
         static readonly int _Size = Shader.PropertyToID("_Size");
         static readonly int _Input = Shader.PropertyToID("_Input");
         static readonly int _Offset = Shader.PropertyToID("_Offset");
@@ -236,7 +247,7 @@ namespace UnityEngine.Rendering
                         bool hasMaxSizedBricks = false;
 
                         var subBrickSet = new HashSet<Brick>();
-                        SubdivideSubCell(subVolume.bounds, subdivisionCtx, ctx, filteredContributors, overlappingProbeVolumes, subBrickSet);
+                        SubdivideSubCell(subVolume.bounds, ctx, filteredContributors, overlappingProbeVolumes, subdivisionCtx.profile.minBrickSize, subdivisionCtx.profile.probeOffset, subBrickSet);
                         if (subBrickSet.Count == 0)
                             continue;
 
@@ -300,7 +311,7 @@ namespace UnityEngine.Rendering
                 }
                 else
                 {
-                    SubdivideSubCell(cellBounds, subdivisionCtx, ctx, contributors, probeVolumes, brickSet);
+                    SubdivideSubCell(cellBounds, ctx, contributors, probeVolumes, subdivisionCtx.profile.minBrickSize, subdivisionCtx.profile.probeOffset, brickSet);
                 }
 
                 finalBricks = brickSet.ToArray();
@@ -328,9 +339,11 @@ namespace UnityEngine.Rendering
             return finalBricks;
         }
 
-        static void SubdivideSubCell(Bounds cellAABB, ProbeSubdivisionContext subdivisionCtx,
+        static void SubdivideSubCell(Bounds cellAABB,
             GPUSubdivisionContext ctx, GIContributors contributors,
             List<(ProbeVolume component, ProbeReferenceVolume.Volume volume, Bounds bounds)> probeVolumes,
+            float minBrickSize,
+            Vector3 cellOffset,
             HashSet<Brick> brickSet)
         {
             var firstLayerMask = probeVolumes.First().component.objectLayerMask;
@@ -351,20 +364,18 @@ namespace UnityEngine.Rendering
                     // re-filter contributors locally for these layers:
                     var contributorsPerLayer = contributors.FilterLayerMaskOnly(probeVolumesPerLayer.First().component.objectLayerMask);
                     // Subdivide the cell using  a list of probe volumes containing the same layer mask
-                    SubdivideSubCell(cellAABB, subdivisionCtx, ctx, contributorsPerLayer, probeVolumesPerLayer, brickSet);
+                    SubdivideSubCell(cellAABB, ctx, contributorsPerLayer, probeVolumesPerLayer, minBrickSize, cellOffset, brickSet);
                 }
 
                 return;
             }
 
-            float minBrickSize = subdivisionCtx.profile.minBrickSize;
-            var cellOffset = subdivisionCtx.profile.probeOffset;
-
             var cmd = CommandBufferPool.Get($"Subdivide (Sub)Cell {cellAABB.center}");
 
-            if (RasterizeGeometry(cmd, cellAABB, ctx, contributors))
+            var deferredBufferDisposals = new List<GraphicsBuffer>();
+            if (contributors.Count > 0)
             {
-                // Only generate the distance field if there was an object rasterized
+                VoxelizeGeometry(cmd, cellAABB, ctx.sceneSDF, ctx.dummyRenderTarget, contributors, deferredBufferDisposals);
                 GenerateDistanceField(cmd, ctx.sceneSDF, ctx.sceneSDF2);
             }
             else
@@ -425,35 +436,114 @@ namespace UnityEngine.Rendering
             Graphics.ExecuteCommandBuffer(cmd);
             cmd.Clear();
             CommandBufferPool.Release(cmd);
+
+            foreach (var buf in deferredBufferDisposals)
+                buf.Dispose();
+
             // ExternalGPUProfiler.EndGPUCapture();
         }
 
-        static bool RasterizeGeometry(CommandBuffer cmd, Bounds cellAABB, GPUSubdivisionContext ctx, GIContributors contributors)
+        static void VoxelizeMesh(Mesh mesh, Matrix4x4 instanceTransform, Matrix4x4[] instanceTransforms, int instanceCount, MaterialPropertyBlock props, List<GraphicsBuffer> deferredBufferRemovals, CommandBuffer cmd)
         {
-            var props = new MaterialPropertyBlock();
-            bool hasGeometry = contributors.Count > 0;
-
-            // Setup voxelize material properties
-            voxelizeMaterial.SetVector(_OutputSize, new Vector3(ctx.sceneSDF.width, ctx.sceneSDF.height, ctx.sceneSDF.volumeDepth));
-            voxelizeMaterial.SetVector(_VolumeWorldOffset, cellAABB.center - cellAABB.extents);
-            voxelizeMaterial.SetVector(_VolumeSize, cellAABB.size);
-
-            if (hasGeometry)
+            var shaderPassIndex = VoxelizeShaderPassIndex.NonInstancedMesh;
+            if (instanceTransforms != null)
             {
-                using (new ProfilingScope(cmd, new ProfilingSampler("Clear")))
+                shaderPassIndex = VoxelizeShaderPassIndex.InstancedMesh;
+                props.SetMatrixArray(_InstanceToWorld, instanceTransforms);
+            }
+
+            int positionVertexBufferIndex = mesh.GetVertexAttributeStream(VertexAttribute.Position);
+            int vertexBufferPositionOffset = mesh.GetVertexAttributeOffset(VertexAttribute.Position);
+            int vertexBufferStride = mesh.GetVertexBufferStride(positionVertexBufferIndex);
+
+            Debug.Assert(positionVertexBufferIndex != -1, "Meshes are expected to have a vertex buffer which contains positions.");
+            Debug.Assert(vertexBufferPositionOffset != -1, "Meshes are expected to have a vertex buffer which contains positions.");
+
+            var oldIndexBufferTarget = mesh.indexBufferTarget;
+            var oldVertexBufferTarget = mesh.vertexBufferTarget;
+            mesh.indexBufferTarget |= GraphicsBuffer.Target.Structured;
+            mesh.vertexBufferTarget |= GraphicsBuffer.Target.Structured;
+
+            var indexBuffer = mesh.GetIndexBuffer();
+            var vertexBuffer = mesh.GetVertexBuffer(positionVertexBufferIndex);
+
+            cmd.SetGlobalBuffer("_IndexBuffer", indexBuffer);
+            cmd.SetGlobalBuffer("_VertexBuffer", vertexBuffer);
+
+            props.SetInt(_IndexBufferBitCount, mesh.indexFormat == IndexFormat.UInt32 ? 32 : 16);
+            props.SetInt(_VertexBufferStride, vertexBufferStride);
+            props.SetInt(_VertexBufferPositionOffset, vertexBufferPositionOffset);
+
+            for (int subMeshIdx = 0; subMeshIdx < mesh.subMeshCount; ++subMeshIdx)
+            {
+                var submesh = mesh.GetSubMesh(subMeshIdx);
+                var topology = submesh.topology;
+                if (topology is MeshTopology.Triangles or MeshTopology.Quads)
                 {
-                    cmd.SetComputeTextureParam(subdivideSceneCS, s_ClearKernel, _Output, ctx.sceneSDF);
-                    cmd.SetComputeVectorParam(subdivideSceneCS, _Size, new Vector3(ctx.sceneSDF.width, ctx.sceneSDF.height, ctx.sceneSDF.volumeDepth));
-                    cmd.SetComputeFloatParam(subdivideSceneCS, _ClearValue, 0);
-                    DispatchCompute(cmd, s_ClearKernel, ctx.sceneSDF.width, ctx.sceneSDF.height, ctx.sceneSDF.volumeDepth);
+                    int vertexCount, topologyInt;
+                    if (topology == MeshTopology.Triangles)
+                    {
+                        topologyInt = 0;
+                        vertexCount = submesh.indexCount;
+                    }
+                    else
+                    {
+                        topologyInt = 1;
+                        Debug.Assert(submesh.indexCount % 4 == 0);
+                        int quadCount = submesh.indexCount / 4;
+                        const int verticesPerQuad = 6;
+                        vertexCount = quadCount * verticesPerQuad;
+                    }
+
+                    props.SetInt(_IndexBufferTopology, topologyInt);
+                    props.SetInt(_IndexBufferOffset, submesh.indexStart);
+                    props.SetInt(_VertexBufferOffset, submesh.baseVertex);
+                    for (int axisIdx = 0; axisIdx < 3; ++axisIdx)
+                    {
+                        props.SetInt(_AxisIndex, axisIdx);
+                        cmd.DrawProcedural(instanceTransform, voxelizeMaterial, (int)shaderPassIndex, MeshTopology.Triangles, vertexCount, instanceCount, props);
+                    }
                 }
             }
 
-            cmd.SetRandomWriteTarget(k_RandomWriteBindingIndex, ctx.sceneSDF);
+            mesh.indexBufferTarget = oldIndexBufferTarget;
+            mesh.vertexBufferTarget = oldVertexBufferTarget;
+
+            deferredBufferRemovals.Add(indexBuffer);
+            deferredBufferRemovals.Add(vertexBuffer);
+        }
+
+        internal static void VoxelizeGeometry(CommandBuffer cmd,
+            Bounds cellAABB,
+            RenderTexture output3dTexture,
+            RenderTexture dummyRenderTarget,
+            GIContributors contributors,
+            List<GraphicsBuffer> deferredBufferRemovals)
+        {
+            Debug.Assert(output3dTexture.width == output3dTexture.height);
+            Debug.Assert(output3dTexture.height == output3dTexture.volumeDepth);
+            Debug.Assert(output3dTexture.dimension == TextureDimension.Tex3D);
+
+            var props = new MaterialPropertyBlock();
+
+            // Setup voxelize material properties
+            voxelizeMaterial.SetFloat(_OutputSize, output3dTexture.width);
+            voxelizeMaterial.SetVector(_VolumeWorldOffset, cellAABB.center - cellAABB.extents);
+            voxelizeMaterial.SetVector(_VolumeSize, cellAABB.size);
+
+            using (new ProfilingScope(cmd, new ProfilingSampler("Clear")))
+            {
+                cmd.SetComputeTextureParam(subdivideSceneCS, s_ClearKernel, _Output, output3dTexture);
+                cmd.SetComputeVectorParam(subdivideSceneCS, _Size, new Vector3(output3dTexture.width, output3dTexture.height, output3dTexture.volumeDepth));
+                cmd.SetComputeFloatParam(subdivideSceneCS, _ClearValue, 0);
+                DispatchCompute(cmd, s_ClearKernel, output3dTexture.width, output3dTexture.height, output3dTexture.volumeDepth);
+            }
+
+            cmd.SetRandomWriteTarget(k_RandomWriteBindingIndex, output3dTexture);
 
             // We need to bind at least something for rendering
-            cmd.SetRenderTarget(ctx.dummyRenderTarget);
-            cmd.SetViewport(new Rect(0, 0, ctx.dummyRenderTarget.width, ctx.dummyRenderTarget.height));
+            cmd.SetRenderTarget(dummyRenderTarget);
+            cmd.SetViewport(new Rect(0, 0, dummyRenderTarget.width, dummyRenderTarget.height));
 
             if (contributors.renderers.Count > 0)
             {
@@ -468,16 +558,8 @@ namespace UnityEngine.Rendering
                             continue;
                         if (!renderer.TryGetComponent<MeshFilter>(out var meshFilter) || meshFilter.sharedMesh == null)
                             continue;
-                        var matrix = renderer.transform.localToWorldMatrix;
-                        for (int submesh = 0; submesh < meshFilter.sharedMesh.subMeshCount; submesh++)
-                        {
-                            props.SetInt(_AxisSwizzle, 0);
-                            cmd.DrawMesh(meshFilter.sharedMesh, matrix, voxelizeMaterial, submesh, shaderPass: 1, props);
-                            props.SetInt(_AxisSwizzle, 1);
-                            cmd.DrawMesh(meshFilter.sharedMesh, matrix, voxelizeMaterial, submesh, shaderPass: 1, props);
-                            props.SetInt(_AxisSwizzle, 2);
-                            cmd.DrawMesh(meshFilter.sharedMesh, matrix, voxelizeMaterial, submesh, shaderPass: 1, props);
-                        }
+
+                        VoxelizeMesh(meshFilter.sharedMesh, renderer.transform.localToWorldMatrix, null, 1, props, deferredBufferRemovals, cmd);
                     }
                 }
             }
@@ -490,8 +572,7 @@ namespace UnityEngine.Rendering
                     {
                         var terrain = kp.component;
                         var terrainData = terrain.terrainData;
-                        // Terrains can't be rotated or scaled
-                        var transform = Matrix4x4.Translate(terrain.GetPosition());
+                        var transform = Matrix4x4.Translate(terrain.GetPosition()); // Terrains can't be rotated or scaled
 
                         props.SetTexture("_TerrainHeightmapTexture", terrainData.heightmapTexture);
                         props.SetTexture("_TerrainHolesTexture", terrainData.holesTexture);
@@ -499,12 +580,11 @@ namespace UnityEngine.Rendering
                         props.SetFloat("_TerrainHeightmapResolution", terrainData.heightmapResolution);
 
                         int terrainTileCount = terrainData.heightmapResolution * terrainData.heightmapResolution;
-                        props.SetInt(_AxisSwizzle, 0);
-                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 0, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
-                        props.SetInt(_AxisSwizzle, 1);
-                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 0, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
-                        props.SetInt(_AxisSwizzle, 2);
-                        cmd.DrawProcedural(transform, voxelizeMaterial, shaderPass: 0, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
+                        for (int axisIdx = 0; axisIdx < 3; ++axisIdx)
+                        {
+                            props.SetInt(_AxisIndex, axisIdx);
+                            cmd.DrawProcedural(transform, voxelizeMaterial, (int)VoxelizeShaderPassIndex.Terrain, MeshTopology.Quads, 4 * terrainTileCount, 1, props);
+                        }
 
                         foreach (var prototype in kp.treePrototypes)
                         {
@@ -515,30 +595,17 @@ namespace UnityEngine.Rendering
 
                             var mesh = meshFilter.sharedMesh;
                             // Max buffer size is 64KB, matrix is 64B, so limit to 1000 trees per prototype per cell, which should be fine
-                            var matrices = new Matrix4x4[Mathf.Min(prototype.instances.Count, 1000)];
-                            for (int i = 0; i < matrices.Length; i++)
-                                matrices[i] = prototype.instances[i].transform;
+                            var treeMatrices = new Matrix4x4[Mathf.Min(prototype.instances.Count, 1000)];
+                            for (int i = 0; i < treeMatrices.Length; i++)
+                                treeMatrices[i] = prototype.instances[i].transform;
 
-                            props.SetMatrix(_TreePrototypeTransform, prototype.transform);
-                            props.SetMatrixArray(_TreeInstanceToWorld, matrices);
-
-                            for (int submesh = 0; submesh < mesh.subMeshCount; submesh++)
-                            {
-                                props.SetInt(_AxisSwizzle, 0);
-                                cmd.DrawMeshInstancedProcedural(mesh, submesh, voxelizeMaterial, 2, matrices.Length, props);
-                                props.SetInt(_AxisSwizzle, 1);
-                                cmd.DrawMeshInstancedProcedural(mesh, submesh, voxelizeMaterial, 2, matrices.Length, props);
-                                props.SetInt(_AxisSwizzle, 2);
-                                cmd.DrawMeshInstancedProcedural(mesh, submesh, voxelizeMaterial, 2, matrices.Length, props);
-                            }
+                            VoxelizeMesh(mesh, prototype.transform, treeMatrices, treeMatrices.Length, props, deferredBufferRemovals, cmd);
                         }
                     }
                 }
             }
 
             cmd.ClearRandomWriteTargets();
-
-            return hasGeometry;
         }
 
         static void DispatchCompute(CommandBuffer cmd, int kernel, int width, int height, int depth = 1)

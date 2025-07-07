@@ -867,7 +867,7 @@ namespace UnityEngine.Rendering
                 bakingSet.useRenderingLayers = bakingSet.bakedMaskCount == 1 ? false : true;
 
                 m_BakingSet = bakingSet;
-                m_BakingBatch = new BakingBatch(cellCount);
+                m_BakingBatch = new BakingBatch(cellCount, ProbeReferenceVolume.instance);
                 m_ProfileInfo = new ProbeVolumeProfileInfo();
                 ModifyProfileFromLoadedData(m_BakingSet);
                 m_CellPosToIndex.Clear();

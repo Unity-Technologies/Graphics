@@ -1744,10 +1744,10 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal static int CellSize(int subdivisionLevel) => (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel);
-        internal float BrickSize(int subdivisionLevel) => m_MinBrickSize * CellSize(subdivisionLevel);
+        internal static int CellSize(int subdivisionLevel) => ProbeVolumeUtil.CellSize(subdivisionLevel);
+        internal float BrickSize(int subdivisionLevel) => ProbeVolumeUtil.BrickSize(m_MinBrickSize, subdivisionLevel);
         internal float MinBrickSize() => m_MinBrickSize;
-        internal float MaxBrickSize() => BrickSize(m_MaxSubdivision - 1);
+        internal float MaxBrickSize() => ProbeVolumeUtil.MaxBrickSize(m_MinBrickSize, m_MaxSubdivision);
         internal Vector3 ProbeOffset() => m_ProbeOffset;
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);

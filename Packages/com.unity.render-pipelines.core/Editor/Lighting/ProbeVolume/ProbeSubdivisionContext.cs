@@ -73,7 +73,8 @@ namespace UnityEngine.Rendering
 
                     IEnumerator Subdivide()
                     {
-                        var ctx = AdaptiveProbeVolumes.PrepareProbeSubdivisionContext(true);
+                        var perSceneDataList = AdaptiveProbeVolumes.GetPerSceneDataList();
+                        var ctx = AdaptiveProbeVolumes.PrepareProbeSubdivisionContext(perSceneDataList, true);
                         var contributors = GIContributors.Find(GIContributors.ContributorFilter.All);
 
                         // Cull all the cells that are not visible (we don't need them for realtime debug)
