@@ -212,8 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         )]
         [IgnoreGraphicsTest(
             "4089_DRS-DLSS-Software$",
-            "Instability https://jira.unity3d.com/browse/UUM-109632",
-            graphicsDeviceTypes: new[] { GraphicsDeviceType.Direct3D12 }
+            "Instability https://jira.unity3d.com/browse/UUM-109632"
         )]
         [IgnoreGraphicsTest(
             "4096_DRS-TAAU-Hardware$",
