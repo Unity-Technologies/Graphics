@@ -135,6 +135,15 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorGradingLutPassRenderGraph = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data.postProcessData);
             }
 
+            PlatformAutoDetect.Initialize();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>(out var xrResources))
+            {
+                XRSystem.Initialize(XRPassUniversal.Create, xrResources.xrOcclusionMeshPS, xrResources.xrMirrorViewPS);
+            }
+#endif
+
 #if URP_COMPATIBILITY_MODE
             InitializeCompatibilityMode(data);
 #endif
@@ -226,22 +235,49 @@ namespace UnityEngine.Rendering.Universal
             output.backBufferDepthParams.clearColor = backBufferBackgroundColor;
             output.backBufferDepthParams.discardOnLastUse = true;
 
-            if (cameraData.targetTexture != null)
+            bool isBuiltInTexture = cameraData.targetTexture == null;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
             {
-                output.importInfo.width = cameraData.targetTexture.width;
-                output.importInfo.height = cameraData.targetTexture.height;
-                output.importInfo.volumeDepth = cameraData.targetTexture.volumeDepth;
-                output.importInfo.msaaSamples = cameraData.targetTexture.antiAliasing;
-                output.importInfo.format = cameraData.targetTexture.graphicsFormat;
+                isBuiltInTexture = false;
+            }
+#endif
 
-                output.importInfoDepth = output.importInfo;
-                output.importInfoDepth.format = cameraData.targetTexture.depthStencilFormat;
-
-                // We let users know that a depth format is required for correct usage, but we fallback to the old default depth format behaviour to avoid regressions
-                if (output.importInfoDepth.format == GraphicsFormat.None)
+            if (!isBuiltInTexture)
+            {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
                 {
-                    output.importInfoDepth.format = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
-                    Debug.LogWarning("In the render graph API, the output Render Texture must have a depth buffer. When you select a Render Texture in any camera's Output Texture property, the Depth Stencil Format property of the texture must be set to a value other than None.");
+                    output.importInfo.width = cameraData.xr.renderTargetDesc.width;
+                    output.importInfo.height = cameraData.xr.renderTargetDesc.height;
+                    output.importInfo.volumeDepth = cameraData.xr.renderTargetDesc.volumeDepth;
+                    output.importInfo.msaaSamples = cameraData.xr.renderTargetDesc.msaaSamples;
+                    output.importInfo.format = cameraData.xr.renderTargetDesc.graphicsFormat;
+                    if (!UniversalRenderer.PlatformRequiresExplicitMsaaResolve())
+                        output.importInfo.bindMS = output.importInfo.msaaSamples > 1;
+
+                    output.importInfoDepth = output.importInfo;
+                    output.importInfoDepth.format = cameraData.xr.renderTargetDesc.depthStencilFormat;
+                }
+                else
+#endif
+                {
+                    output.importInfo.width = cameraData.targetTexture.width;
+                    output.importInfo.height = cameraData.targetTexture.height;
+                    output.importInfo.volumeDepth = cameraData.targetTexture.volumeDepth;
+                    output.importInfo.msaaSamples = cameraData.targetTexture.antiAliasing;
+                    output.importInfo.format = cameraData.targetTexture.graphicsFormat;
+
+                    output.importInfoDepth = output.importInfo;
+                    output.importInfoDepth.format = cameraData.targetTexture.depthStencilFormat;
+
+                    // We let users know that a depth format is required for correct usage, but we fallback to the old default depth format behaviour to avoid regressions
+                    if (output.importInfoDepth.format == GraphicsFormat.None)
+                    {
+                        output.importInfoDepth.format = SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil);
+                        Debug.LogWarning("In the render graph API, the output Render Texture must have a depth buffer. When you select a Render Texture in any camera's Output Texture property, the Depth Stencil Format property of the texture must be set to a value other than None.");
+                    }
                 }
             }
             else
@@ -459,6 +495,14 @@ namespace UnityEngine.Rendering.Universal
             RenderTargetIdentifier targetColorId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier targetDepthId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.Depth;
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                targetColorId = cameraData.xr.renderTarget;
+                targetDepthId = cameraData.xr.renderTarget;
+            }
+#endif
+
             if (m_RenderGraphBackbufferColorHandle == null)
             {
                 m_RenderGraphBackbufferColorHandle = RTHandles.Alloc(targetColorId, "Backbuffer color");
@@ -502,7 +546,9 @@ namespace UnityEngine.Rendering.Universal
             if (m_Renderer2DData.useDepthStencilBuffer)
             {
                 // Normals pass can reuse active depth if same dimensions, if not create a new depth texture
+#if !(ENABLE_VR && ENABLE_XR_MODULE)
                 if (descriptor.width != width || descriptor.height != height)
+#endif
                 {
                     var normalsDepthDesc = new RenderTextureDescriptor(width, height);
                     normalsDepthDesc.graphicsFormat = GraphicsFormat.None;
@@ -614,10 +660,13 @@ namespace UnityEngine.Rendering.Universal
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             CommonResourceData commonResourceData = frameData.GetOrCreate<CommonResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
 
             InitializeLayerBatches();
 
             CreateResources(renderGraph);
+
+            DebugHandler?.Setup(renderGraph, cameraData.isPreviewCamera);
 
             SetupRenderGraphCameraProperties(renderGraph, commonResourceData.isActiveTargetBackBuffer);
 
@@ -629,11 +678,15 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.BeforeRendering);
 
+            BeginRenderGraphXRRendering(renderGraph);
+
             OnMainRendering(renderGraph);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.BeforeRenderingPostProcessing);
 
             OnAfterRendering(renderGraph);
+
+            EndRenderGraphXRRendering(renderGraph);
         }
 
         public override void OnEndRenderGraphFrame()
@@ -889,7 +942,6 @@ namespace UnityEngine.Rendering.Universal
                 m_DrawOverlayUIPass.RenderOverlay(renderGraph, frameData, in finalColorHandle, in finalDepthHandle);
 
             // If HDR debug views are enabled, DebugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
-            DebugHandler?.Setup(renderGraph, cameraData.isPreviewCamera);
             DebugHandler?.Render(renderGraph, cameraData, finalColorHandle, commonResourceData.overlayUITexture, commonResourceData.backBufferColor);
 
             if (cameraData.isSceneViewCamera)
@@ -939,6 +991,10 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRSystem.Dispose();
+#endif
         }
 
         internal static bool IsGLESDevice()
@@ -946,7 +1002,11 @@ namespace UnityEngine.Rendering.Universal
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
         }
 
-        internal override bool supportsNativeRenderPassRendergraphCompiler => true;
+        internal static bool supportsMRT
+        {
+            get => !IsGLESDevice();
+        }
 
+        internal override bool supportsNativeRenderPassRendergraphCompiler => true;
     }
 }
