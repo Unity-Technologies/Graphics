@@ -117,14 +117,15 @@ namespace UnityEditor.ShaderGraph
             }
 
             EditorGUILayout.Space();
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.UseAsTemplateFieldName));
-            bool needsReimport = false;
+            bool needsReimport = EditorGUI.EndChangeCheck();
             using (new EditorGUI.IndentLevelScope(1))
             using (new EditorGUI.DisabledScope(!(target as ShaderGraphImporter)?.UseAsTemplate ?? true))
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.ExposeTemplateAsShaderFieldName), new GUIContent("Expose as Shader", "Toggle whether or not the template shader should be exposed in shader dropdowns."));
-                needsReimport = EditorGUI.EndChangeCheck();
+                needsReimport |= EditorGUI.EndChangeCheck();
 
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.TemplateFieldName));
             }

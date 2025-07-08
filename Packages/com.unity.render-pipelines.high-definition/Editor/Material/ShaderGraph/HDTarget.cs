@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
 
-        public SubTarget activeSubTarget
+        public override SubTarget activeSubTarget
         {
             get => m_ActiveSubTarget.value;
             set => m_ActiveSubTarget = value;

@@ -83,6 +83,35 @@ namespace UnityEditor.ShaderGraph
             return result;
         }
 
+        internal static bool TryReadGraphDataFromDisk(string path, out GraphData graph)
+        {
+            try
+            {
+                var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                graph = new GraphData
+                {
+                    messageManager = new Graphing.Util.MessageManager(),
+                    assetGuid = AssetDatabase.AssetPathToGUID(path)
+                };
+
+                MultiJson.Deserialize(graph, textGraph);
+            }
+            catch
+            {
+                graph = null;
+                return false;
+            }
+            return true;
+        }
+
+        internal static bool TryGetImporter(string assetPath, out ShaderGraphImporter importer)
+        {
+            importer = null;
+            return (!string.IsNullOrEmpty(assetPath)
+                && assetPath.EndsWith(ShaderGraphImporter.Extension)
+                && (importer = AssetImporter.GetAtPath(assetPath) as ShaderGraphImporter) != null);
+        }
+
         static void CheckoutIfValid(string path)
         {
             if (VersionControl.Provider.enabled && VersionControl.Provider.isActive)
