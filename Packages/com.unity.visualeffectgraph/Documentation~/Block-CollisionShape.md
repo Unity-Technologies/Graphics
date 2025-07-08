@@ -10,7 +10,7 @@ The Collision Shape Block defines a shape that particles collide with.
 If you change the **Behavior** property of the block, the Block changes to the following:
 
 - A [Kill Shape Block](Block-KillShape.md) if you set **Behavior** to **Kill**.
-- A Trigger Shape Block if you set **Behavior** to **None**.
+- A [Trigger Shape Block](Block-TriggerShape.md) if you set **Behavior** to **None**.
 
 ## Block compatibility
 
