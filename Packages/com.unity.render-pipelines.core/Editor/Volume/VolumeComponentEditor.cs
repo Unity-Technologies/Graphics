@@ -279,13 +279,6 @@ namespace UnityEditor.Rendering
             var supportedOn = volumeComponentType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
             m_LegacyPipelineTypes = supportedOn != null ? supportedOn.pipelineTypes : Array.Empty<Type>();
 #pragma warning restore CS0618
-
-            EditorApplication.contextualPropertyMenu += OnPropertyContextMenu;
-        }
-
-        void OnDestroy()
-        {
-            EditorApplication.contextualPropertyMenu -= OnPropertyContextMenu;
         }
 
         internal void DetermineVisibility(Type renderPipelineAssetType, Type renderPipelineType)
@@ -393,21 +386,11 @@ namespace UnityEditor.Rendering
                 profile != null &&
                 defaultProfile != profile)
             {
+                menu.AddSeparator(string.Empty);
                 menu.AddItem(EditorGUIUtility.TrTextContent($"Show Default Volume Profile"), false,
                     () => Selection.activeObject = defaultProfile);
                 menu.AddItem(EditorGUIUtility.TrTextContent($"Apply Values to Default Volume Profile"), false, copyAction);
             }
-        }
-
-        void OnPropertyContextMenu(GenericMenu menu, SerializedProperty property)
-        {
-            if (property.serializedObject.targetObject != target)
-                return;
-
-            var targetComponent = property.serializedObject.targetObject as VolumeComponent;
-
-            AddDefaultProfileContextMenuEntries(menu, VolumeManager.instance.globalDefaultProfile,
-                () => VolumeProfileUtils.AssignValuesToProfile(VolumeManager.instance.globalDefaultProfile, targetComponent, property));
         }
 
         /// <summary>
