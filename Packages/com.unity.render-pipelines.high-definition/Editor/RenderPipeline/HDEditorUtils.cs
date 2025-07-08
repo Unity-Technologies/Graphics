@@ -366,16 +366,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool disabledByDefault = !defaultValue && !cameraOverrideState;
             bool disabledByCameraOverride = cameraOverrideState && !cameraOverridenValue;
-            
-            var textBase = $"The FrameSetting required to render this effect in the {(camera.cameraType == CameraType.SceneView ? "Scene" : "Game")} view (by {camera.name}) ";
+
+            // If the setting is enabled in the frame settings but is disabled in the HDRP Asset (cameraSanitizedValue), it means the feature is disabled and we should not display anything.
+            bool disabledbySanitized = (cameraOverrideState ? cameraOverridenValue : defaultValue) && !cameraSanitizedValue;
+
+            var textBase = $"The Frame Setting required to render this effect in the {(camera.cameraType == CameraType.SceneView ? "Scene" : "Game")} view ";
 
             if (disabledByDefault)
-                GlobalSettingsHelpBox(textBase + "is disabled in the HDRP Global Settings.", MessageType.Warning, field, attribute.displayedName);
+                GlobalSettingsHelpBox(textBase + "is disabled in the HDRP Default Frame Settings.", MessageType.Warning, field, attribute.displayedName);
             else if (disabledByCameraOverride)
-                CoreEditorUtils.DrawFixMeBox(textBase + $"is disabled on the Camera.", MessageType.Warning, "Open", () => EditorUtility.OpenPropertyEditor(camera));
+                CoreEditorUtils.DrawFixMeBox(textBase + $"is disabled in the {camera.name}'s Custom Frame Settings.", MessageType.Warning, "Open", () => EditorUtility.OpenPropertyEditor(camera));
             else if (!dependenciesSanitizedValueOk)
-                GlobalSettingsHelpBox(textBase + "depends on a disabled FrameSetting.", MessageType.Warning, field, attribute.displayedName);
-            else if (!finalValue)
+            {
+                if(cameraOverrideState)
+                    CoreEditorUtils.DrawFixMeBox(textBase + $"depends on a disabled Frame Setting parent in the {camera.name} Custom Frame Settings.", MessageType.Warning, "Open", () => EditorUtility.OpenPropertyEditor(camera));
+                else
+                    GlobalSettingsHelpBox(textBase + "depends on a disabled Frame Setting parent in the HDRP Default Frame Settings.", MessageType.Warning, field, attribute.displayedName);
+
+            }
+            else if (!finalValue && !disabledbySanitized)
                 CoreEditorUtils.DrawFixMeBox(textBase + "is disabled in the Rendering Debugger.", MessageType.Warning, "Open", () => HighlightInDebugger(camera, field, attribute.displayedName));
         }
 
