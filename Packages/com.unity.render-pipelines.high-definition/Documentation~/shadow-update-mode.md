@@ -1,41 +1,55 @@
-## Set a shadow update mode
+# Update shadows less frequently
 
-You can use **Update Mode** to specify the calculation method HDRP uses to update a [Light](Light-Component.md)'s shadow maps. The following Update Modes are available:
+By default, the High Definition Render Pipline (HDRP) calculates the shadow map of a Light every frame. To improve performance, reduce how often HDRP updates the shadow map.
 
-| **Update Mode** | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| **Every Frame** | HDRP updates the shadow maps for the light every frame.      |
-| **On Enable**   | HDRP updates the shadow maps for the light whenever you enable the GameObject. |
-| **On Demand**   | HDRP updates the shadow maps for the light every time you request them. To do this, call the RequestShadowMapRendering() method in the Light's HDAdditionalLightData component. |
+## Reduce shadow map updates
 
-The High Definition Render Pipeline (HDRP) uses shadow caching to increase performance by only updating the shadow maps for [Lights](Light-Component.md) when it's necessary. HDRP has shadow atlases for punctual, area, and directional Lights, and separate shadow atlases specifically for cached punctual and cached area Lights. For cached directional Lights, they use the same atlas as normal directional Lights.
+Follow these steps:
 
-When a Light that caches its shadows renders its shadow map for the first time, HDRP registers it with the cached shadow manager which assigns the shadow map to a cached shadow atlas. For directional Lights, HDRP uses the same shadow atlas for cached and non-cached directional Lights.
+1. Select a Light in your Scene.
+1. In the Inspector window, in the **Shadows** section, set **Update Mode** to **On Enable** or **On Demand**.
 
-A Light's **Update Mode** determines whether HDRP caches its shadow map:
+   - **On Enable**: Updates the shadow map only when the Light is enabled.
+   - **On Demand**: Updates the shadow map only when you use an API to update the shadows manually.
 
-- If you set a Light's **Update Mode** to **OnEnable** or **OnDemand**, HDRP caches the Light's shadow map.
-- If you set a Light's **Update Mode** to **Every Frame**, HDRP doesn't cache the Light's shadow map.
+In these modes, HDRP caches the shadow map when the shadows update, and uses the cached version between updates.
 
-If you set the Light's **Update Mode** to **OnDemand**, you can manually request HDRP to update the Light's shadow map. To do this:
+Point Lights and Area Lights have their own shadow atlas for cached shadows. Directional Lights store cached shadows in the same shadow atlas as non-cached Directional Lights. For more information about shadow atlases, refer to [Control shadow resolution and quality](Shadows-in-HDRP.md). 
 
-1. Select a Light in your scene to view it in the Inspector window.
-2. Go to **HDAdditionalLightData** and open the More menu (&#8942;).
-3. Select **Edit Script**.
-4. Call the `RequestShadowMapRendering` function in the script.
+## Updates shadows manually
 
-If the Light has multiple shadows (for example, multiple cascades of a directional light), you can request the update of a specific sub-shadow. To do this, use the `RequestSubShadowMapRendering(shadowIndex)` function.
+If you set the **Update Mode** of the Light to **On Demand**, follow these steps to update the shadows:
 
-When you set **Update Mode** to **OnDemand** HDRP renders the shadow maps `OnEnable` for the first time, or when first registered with the system by default. You can change this using the `onDemandShadowRenderOnPlacement` property. If you set this property to false, HDRP doesn't render the shadows until you call `RequestShadowMapRendering` or `RequestSubShadowMapRendering(shadowIndex)`.
+1. In the Inspector window for the Light, go to **HDAdditionalLightData** and open the **More** (&#8942;) menu.
+1. Select **Edit Script**.
+1. Call the `RequestShadowMapRendering` API in the script when you want to update the shadows.
 
-For a Light that caches its shadows, if you disable it or set its **Update Mode** to **Every Frame**, HDRP can preserve the Light's shadow map's place in the cached shadow atlas. This means that, if you enable the Light again, HDRP doesn't need to re-render the shadow map or place it into a shadow atlas. For information on how to make a Light preserve its shadow map's place in the cached shadow atlas, see [Preserving shadow atlas placement](Shadows-in-HDRP.md#preserve-shadow-atlas-placement).
+HDRP also updates the shadows when you first enable [Contact Shadows](Override-Contact-Shadows.md).
 
-As a shortcut for a common case, HDRP offers an option to automatically trigger an update when either the position or rotation of a light changes above a certain threshold. To enable this option:
+If you set a Directional Light to **On Demand**, update shadows frequently so they stay up-to-date with the camera position. Otherwise you might see visual artifacts.
 
-1. Select a Light in your Scene to view it in the Inspector window.
-2. Go to **Light** > **Shadows** and set **Update Mode** to **On Enable**
-3. Enable **Update on light movement**.
+For more information about customizing which shadows HDRP updates and when, refer to the [`HDAdditionalLightData`](xref:UnityEngine.Rendering.HighDefinition.HDAdditionalLightData) API.
 
-You can customize the threshold that HDRP uses to determine how much a light needs to move or rotate to trigger an update. To do this, use the properties: `cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` properties on the Light's **HDAdditionalLightData** component.
+## Update shadows when the Light moves
 
-**Note**: Point lights ignore the angle differences when determining if they need to perform an update in this mode.
+To update the shadow map only when the position or rotation of the Light changes, follow these steps:
+
+1. Set **Update Mode** to **On Enable**.
+1. Enable **Update on light movement**.
+
+To customize how much a light needs to move or rotate to trigger an update, use the [`cachedShadowAngleUpdateThreshold`](xref:UnityEngine.Rendering.HighDefinition.HDAdditionalLightData.cachedShadowAngleUpdateThreshold) and [`cachedShadowTranslationUpdateThreshold`](xref:UnityEngine.Rendering.HighDefinition.HDAdditionalLightData.cachedShadowTranslationUpdateThreshold) APIs.
+
+**Note**: Point Lights ignore `cachedShadowAngleUpdateThreshold`.
+
+## Preserve cached shadows
+
+To preserve a cached shadow map when you disable a Light or set its **Update Mode** back to **Every Frame**, edit your script to set the [`UnityEngine.Rendering.HighDefinition.HDAdditionalLightData.preserveCachedShadow`](HighDefinition.HDAdditionalLightData.preserveCachedShadow) property to `true`. 
+
+HDRP keeps the shadow map in the shadow atlas, so it doesn't need to re-render the shadow map or place it into a shadow atlas again. This is useful if, for example, you want HDRP to cache the shadow map of a distant Light, but update the shadow map every frame when the Light gets closer to the camera.
+
+**Note**: If you destroy the Light, HDRP no longer preserves its shadow map in the shadow atlas.
+
+## Additional resources
+
+- [Realtime shadows](Realtime-Shadows.md)
+- [Contact Shadows](Override-Contact-Shadows.md)
