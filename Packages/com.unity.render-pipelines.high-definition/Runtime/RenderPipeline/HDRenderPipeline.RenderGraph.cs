@@ -45,8 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
                 // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
-                    m_SkyManager.UpdateEnvironment(m_RenderGraph, hdCamera, GetMainLight(), m_CurrentDebugDisplaySettings);
+                m_SkyManager.UpdateEnvironment(m_RenderGraph, hdCamera, GetMainLight(), m_CurrentDebugDisplaySettings);
 
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
