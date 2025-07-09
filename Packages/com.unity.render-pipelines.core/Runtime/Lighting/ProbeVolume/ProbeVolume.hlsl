@@ -749,6 +749,7 @@ void EvaluateAPVL1L2(APVSample apvSample, float3 N, out float3 diffuseLighting)
 // -------------------------------------------------------------
 void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, out float3 bakeDiffuseLighting)
 {
+    bakeDiffuseLighting = float3(0.0f, 0.0f, 0.0f);
     if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
     {
         apvSample.Decode();
