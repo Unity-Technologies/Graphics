@@ -1010,15 +1010,14 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.enabled, Styles.lowResTransparentEnabled);
 
-            /* For the time being we don't enable the option control and default to nearest depth. This might change in a close future.
+            // For the time being we don't enable the option control and default to nearest depth. This might change in a close future.
             ++EditorGUI.indentLevel;
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.lowresTransparentSettings.enabled.boolValue))
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer, k_CheckerboardDepthBuffer);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.upsampleType, k_UpsampleFilter);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer, Styles.checkerboardDepthBuffer);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.upsampleType, Styles.upsampleLowResFilter);
             }
             --EditorGUI.indentLevel;
-            */
         }
 
         static void Drawer_SectionWaterSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
