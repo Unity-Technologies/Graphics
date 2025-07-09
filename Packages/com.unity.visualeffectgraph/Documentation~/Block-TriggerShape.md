@@ -1,20 +1,20 @@
-# Kill Shape Block reference
+# Trigger Shape Block reference
 
-The Kill Shape Block defines a shape that destroys particles that collide with it. The Block destroys particles by setting their `alive` attribute to `false`.
+The Trigger Shape Block defines a shape that detects particle collisions without physically interacting with the particles. Instead of blocking or altering particle movement, it triggers specific events when particles collide with it. You can use this block in combination with a [Trigger Event Block](Block-Trigger-Event.md) set to **Collide** mode to spawn child particles or perform other actions.
 
 If you change the **Behavior** property of the block, the Block changes to the following:
 
 - A [Collision Shape Block](Block-CollisionShape.md) if you set **Behavior** to **Collision**.
-- A [Trigger Shape Block](Block-TriggerShape.md) if you set **Behavior** to **None**.
+- A [Kill Shape Block](Block-KillShape.md) if you set **Behavior** to **Kill**.
 
 ## Block compatibility
 
-You can add the Kill Shape Block to the following Contexts:
+You can add the Trigger Shape Block to the following Contexts:
 
 - [Initialize](Context-Initialize.md)
 - [Update](Context-Update.md)
 
-To add a Kill Shape Block to your graph, open the graph element menu as described in [Adding graph elements](VisualEffectGraphWindow.md#adding-graph-elements) then select **Collision** > **Kill Shape**.
+To add a Trigger Shape Block to your graph, [open the menu for adding a graph element](VisualEffectGraphWindow.md#adding-graph-elements) then select **Collision** > **Trigger Shape**.
 
 ## Block settings
 
@@ -23,7 +23,7 @@ To add a Kill Shape Block to your graph, open the graph element menu as describe
 | **Shape** | Enum | Sets the shape for particles to collide with. For more information, refer to the [Shape dropdown](#shape-dropdown) section. |
 | **Mode** | Enum | Specifies how particles interact with the collider. The options are:<ul><li><strong>Solid</strong>: Destroys particles when they enter the shape. If you set <strong>Shape</strong> to <strong>Plane</strong>, particles collide with the plane when they travel away from the normal of the plane.</li><li><strong>Inverted</strong>: Destroys particles when they leave the shape. If you set <strong>Shape</strong> to <strong>Plane</strong>, particles collide with the plane when they travel in the same direction as the normal of the plane.</li></ul> |
 | **Radius Mode** | Enum | Sets the collision radius of the particles. The options are:<ul><li><strong>None</strong>: Sets the collision radius to zero.</li><li><strong>From Size</strong>: Sets the collision radius for each particle to its individual size.</li><li><strong>Custom</strong>: Sets the collision radius to the value of **Radius** in the [Block properties](#block-properties).</li></ul> |
-| **Collision Attributes** | Enum | Specifies whether Unity stores data in the collision attributes of particles. The options are:<ul><li><strong>No Write</strong>: Doesn't write or store collision attributes.</li><li><strong>Write Punctual Contact only</strong>: Updates the collision attribute only when a specific, single-point collision occurs. This setting has no effect in a Kill Shape Block.</li><li><strong>Write Always</strong>: Updates the collision attribute every time a collision occurs.</li></ul> |
+| **Collision Attributes** | Enum | Specifies whether Unity stores data in the collision attributes of particles. The options are:<ul><li><strong>No Write</strong>: Doesn't write or store collision attributes.</li><li><strong>Write Punctual Contact only</strong>: Updates the collision attribute only when a specific, single-point collision occurs. This setting has no effect in a Trigger Shape Block.</li><li><strong>Write Always</strong>: Updates the collision attribute every time a collision occurs.</li></ul> |
 
 <a name="shape-dropdown"></a>
 ### Shape dropdown
@@ -52,4 +52,4 @@ To add a Kill Shape Block to your graph, open the graph element menu as describe
 
 | **Property** | **Type** | **Description** |
 |-|-|-|
-| **Behavior** | Enum | Specifies how particles behave when they collide with the shape. The options are: <ul><li><strong>None</strong>: Changes the Block to a Trigger Shape Block, so particles don't bounce off the shape.</li><li><strong>Collision</strong>: Changes the Block to a [Collision Shape Block](Block-CollisionShape.md), so particles bounce off the shape.</li><li><strong>Kill</strong>: Destroys a particle when it collides with the shape. This is the default in a Kill Shape Block.</li></ul> |
+| **Behavior** | Enum | Specifies how particles behave when they collide with the shape. The options are: <ul><li><strong>None</strong>: Changes the Block to a Trigger Shape Block, so particles don't bounce off the shape.</li><li><strong>Collision</strong>: Changes the Block to a [Collision Shape Block](Block-CollisionShape.md), so particles bounce off the shape.</li><li><strong>Kill</strong>: Destroys a particle when it collides with the shape.</li></ul> |

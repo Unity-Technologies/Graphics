@@ -87,6 +87,7 @@
       * [Collision Shape](Block-CollisionShape.md)
       * [Collision Depth Buffer](Block-CollideWithDepthBuffer.md)
       * [Kill Shape](Block-KillShape.md)
+      * [Trigger Shape](Block-TriggerShape.md)
     * Flipbook
       * [Flipbook Player](Block-FlipbookPlayer.md)
     * Force
