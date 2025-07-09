@@ -2,6 +2,7 @@
 * [Getting started with Shader Graph](Getting-Started)
     * [Creating a new Shader Graph Asset](Create-Shader-Graph)
     * [My first Shader Graph](First-Shader-Graph)
+    * [Create a new shader graph from a template](create-shader-graph-template.md)
     * [Shader Graph Window](Shader-Graph-Window)
         * [Blackboard](Blackboard)
         * [Main Preview](Main-Preview)
