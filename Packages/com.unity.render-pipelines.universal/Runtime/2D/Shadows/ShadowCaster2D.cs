@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// If selfShadows is true, useRendererSilhoutte specifies that the renderer's sihouette should be considered part of the shadow. If selfShadows is false, useRendererSilhoutte specifies that the renderer's sihouette should be excluded from the shadow
         /// </summary>
-        [Obsolete("useRendererSilhoutte is deprecated. Use selfShadows instead")]
+        [Obsolete("useRendererSilhoutte is deprecated. Use selfShadows instead. #from(2023.1)")]
         public bool useRendererSilhouette
         {
             set { m_UseRendererSilhouette = value; }

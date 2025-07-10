@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering
     public class DebugDisplaySettingsVolume : IDebugDisplaySettingsData
     {
         /// <summary>Current volume debug settings.</summary>
-        [Obsolete("This property has been obsoleted and will be removed in a future version. #from(6000.2)", false)]
+        [Obsolete("This property has been obsoleted and will be removed in a future version. #from(6000.2)")]
         public IVolumeDebugSettings volumeDebugSettings { get; }
 
         private int m_SelectedComponentIndex = -1;
@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
         /// Constructor with the settings
         /// </summary>
         /// <param name="volumeDebugSettings">The volume debug settings object used for configuration.</param>
-        [Obsolete("This constructor has been obsoleted and will be removed in a future version. #from(6000.2)", false)]
+        [Obsolete("This constructor has been obsoleted and will be removed in a future version. #from(6000.2)")]
         public DebugDisplaySettingsVolume(IVolumeDebugSettings volumeDebugSettings)
             : this()
         {

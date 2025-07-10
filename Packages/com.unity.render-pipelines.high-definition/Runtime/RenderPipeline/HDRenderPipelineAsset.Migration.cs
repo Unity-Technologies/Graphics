@@ -316,54 +316,54 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning disable 618 // Type or member is obsolete
         #region FrameSettings Moved
         [SerializeField]
-        [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings"), Obsolete("For data migration")]
+        [FormerlySerializedAs("serializedFrameSettings"), FormerlySerializedAs("m_FrameSettings"), Obsolete("For data migration. #rom(2021.1)")]
         ObsoleteFrameSettings m_ObsoleteFrameSettings;
         [SerializeField]
-        [FormerlySerializedAs("m_BakedOrCustomReflectionFrameSettings"), Obsolete("For data migration")]
+        [FormerlySerializedAs("m_BakedOrCustomReflectionFrameSettings"), Obsolete("For data migration. #rom(2021.1)")]
         ObsoleteFrameSettings m_ObsoleteBakedOrCustomReflectionFrameSettings;
         [SerializeField]
-        [FormerlySerializedAs("m_RealtimeReflectionFrameSettings"), Obsolete("For data migration")]
+        [FormerlySerializedAs("m_RealtimeReflectionFrameSettings"), Obsolete("For data migration. #rom(2021.1)")]
         ObsoleteFrameSettings m_ObsoleteRealtimeReflectionFrameSettings;
         #endregion
 
         #region Settings Moved from the HDRP Asset to HDRenderPipelineGlobalSettings
         [SerializeField]
-        [FormerlySerializedAs("m_DefaultVolumeProfile"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("m_DefaultVolumeProfile"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal VolumeProfile m_ObsoleteDefaultVolumeProfile;
         [SerializeField]
-        [FormerlySerializedAs("m_DefaultLookDevProfile"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("m_DefaultLookDevProfile"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal VolumeProfile m_ObsoleteDefaultLookDevProfile;
 
         [SerializeField]
-        [FormerlySerializedAs("m_RenderingPathDefaultCameraFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("m_RenderingPathDefaultCameraFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal FrameSettings m_ObsoleteFrameSettingsMovedToDefaultSettings;
         [SerializeField]
-        [FormerlySerializedAs("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal FrameSettings m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings;
         [SerializeField]
-        [FormerlySerializedAs("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal FrameSettings m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings;
         [SerializeField]
-        [FormerlySerializedAs("beforeTransparentCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("beforeTransparentCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal List<string> m_ObsoleteBeforeTransparentCustomPostProcesses;
         [SerializeField]
-        [FormerlySerializedAs("beforePostProcessCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("beforePostProcessCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal List<string> m_ObsoleteBeforePostProcessCustomPostProcesses;
         [SerializeField]
-        [FormerlySerializedAs("afterPostProcessCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("afterPostProcessCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal List<string> m_ObsoleteAfterPostProcessCustomPostProcesses;
         [SerializeField]
-        [FormerlySerializedAs("beforeTAACustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("beforeTAACustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal List<string> m_ObsoleteBeforeTAACustomPostProcesses;
 
         [SerializeField]
-        [FormerlySerializedAs("shaderVariantLogLevel"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("shaderVariantLogLevel"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal int m_ObsoleteShaderVariantLogLevel;
         [SerializeField]
-        [FormerlySerializedAs("m_LensAttenuation"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("m_LensAttenuation"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal LensAttenuationMode m_ObsoleteLensAttenuation;
         [SerializeField]
-        [FormerlySerializedAs("diffusionProfileSettingsList"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
+        [FormerlySerializedAs("diffusionProfileSettingsList"), Obsolete("Moved from HDRPAsset to HDGlobal Settings. #from(2021.2)")]
         internal DiffusionProfileSettings[] m_ObsoleteDiffusionProfileSettingsList;
         #endregion
 #pragma warning restore 618

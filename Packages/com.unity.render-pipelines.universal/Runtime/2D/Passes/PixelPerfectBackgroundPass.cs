@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
             renderPassEvent = evt;
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = renderingData.commandBuffer;

@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.Universal
         /// Set to true to have the Scene rendered to a temporary texture set as close as possible to the Reference Resolution,
         /// while maintaining the full screen aspect ratio. This temporary texture is then upscaled to fit the full screen.
         /// </summary>
-        [System.Obsolete("Use gridSnapping instead", false)]
+        [System.Obsolete("Use gridSnapping instead #from(2021.2)")]
         public bool upscaleRT
         {
             get
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal
         /// Set to true to prevent subpixel movement and make Sprites appear to move in pixel-by-pixel increments.
         /// Only applicable when upscaleRT is false.
         /// </summary>
-        [System.Obsolete("Use gridSnapping instead", false)]
+        [System.Obsolete("Use gridSnapping instead #from(2021.2)")]
         public bool pixelSnapping
         {
             get
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Set to true to crop the viewport with black bars to match refResolutionX in the horizontal direction.
         /// </summary>
-        [System.Obsolete("Use cropFrame instead", false)]
+        [System.Obsolete("Use cropFrame instead #from(2021.2)")]
         public bool cropFrameX
         {
             get
@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Set to true to crop the viewport with black bars to match refResolutionY in the vertical direction.
         /// </summary>
-        [System.Obsolete("Use cropFrame instead", false)]
+        [System.Obsolete("Use cropFrame instead #from(2021.2)")]
         public bool cropFrameY
         {
             get
@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.Universal
         /// Set to true to expand the viewport to fit the screen resolution while maintaining the viewport's aspect ratio.
         /// Only applicable when both cropFrameX and cropFrameY are true.
         /// </summary>
-        [System.Obsolete("Use cropFrame instead", false)]
+        [System.Obsolete("Use cropFrame instead. #from(2021.2)")]
         public bool stretchFill
         {
             get

@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="renderer">Renderer used for adding render passes.</param>
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete + " #from(6000.2)")]
         public virtual void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) { }
 
         void OnEnable()

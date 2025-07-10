@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Bilinear upscaling filter. Obsolete and not supported.
         /// </summary>
-        [Obsolete("Bilinear upscale filter is considered obsolete and is not supported anymore, please use CatmullRom for a very cheap, but blurry filter.", false)] Bilinear,
+        [Obsolete("Bilinear upscale filter is considered obsolete and is not supported anymore, please use CatmullRom for a very cheap, but blurry filter. #from(2022.1)")] Bilinear,
         /// <summary>
         /// Bicubic Catmull-Rom upscaling filter.
         /// </summary>
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Lanczos upscaling filter. Obsolete and not supported.
         /// </summary>
-        [Obsolete("Lanczos upscale filter is considered obsolete and is not supported anymore, please use Contrast Adaptive Sharpening for very sharp filter or FidelityFX Super Resolution 1.0.", false)] Lanczos,
+        [Obsolete("Lanczos upscale filter is considered obsolete and is not supported anymore, please use Contrast Adaptive Sharpening for very sharp filter or FidelityFX Super Resolution 1.0. #from(2022.1)")] Lanczos,
         /// <summary>
         /// Contrast Adaptive Sharpening upscaling filter.
         /// </summary>
@@ -207,10 +207,8 @@ namespace UnityEngine.Rendering
         /// <summary>The minimum percentage threshold allowed to clamp tracing resolution for Volumetric Clouds. When the resolution percentage falls below this threshold, HDRP will trace the Volumetric Clouds in half res.</summary>
         public float lowResVolumetricCloudsMinimumThreshold;
 
-#pragma warning disable 618 // Type or member is obsolete
         /// <summary>Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority.</summary>
-        [Obsolete("Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority.")]
+        [Obsolete("Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority. #from(2023.3)")]
         public bool enableDLSS;
-#pragma warning restore 618
     }
 }

@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
         /// <param name="renderForCubemap">Pass in true if you want to render the sky into a cubemap for lighting. This is useful when the sky renderer needs a different implementation in this case.</param>
         /// <param name="renderSunDisk">If the sky renderer supports the rendering of a sun disk, it must not render it if this is set to false.</param>
-        [System.Obsolete("Please override PreRenderSky(BuiltinSkyParameters) instead.")]
+        [System.Obsolete("Please override PreRenderSky(BuiltinSkyParameters) instead. #from(2021.2)")]
         public virtual void PreRenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             PreRenderSky(builtinParams);
@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
         /// <returns>True if the PreRenderSky step is required.</returns>
-        [System.Obsolete("Please implement RequiresPreRender instead")]
+        [System.Obsolete("Please implement RequiresPreRender instead. #from(2022.2)")]
         public virtual bool RequiresPreRenderSky(BuiltinSkyParameters builtinParams) { return false; }
 
         /// <summary>

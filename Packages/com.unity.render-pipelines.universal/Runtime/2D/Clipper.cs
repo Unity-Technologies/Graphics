@@ -425,7 +425,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Options for clip types.
     /// </summary>
-    [Obsolete("Will be removed in 2025.1", true)]
+    [Obsolete("This enum is obsolete. #from(2023.1) #breakingFrom(2023.1)", true)]
     public enum ClipType
     {
         /// <summary>
@@ -452,7 +452,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Options for polygon types.
     /// </summary>
-    [Obsolete("Will be removed in 2025.1", true)]
+    [Obsolete("This enum is obsolete.  #from(2023.1) #breakingFrom(2023.1)", true)]
     public enum PolyType
     {
         /// <summary>
@@ -474,7 +474,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Options for polygon filling types.
     /// </summary>
-    [Obsolete("Will be removed in 2025.1", true)]
+    [Obsolete("This enum is obsolete.  #from(2023.1) #breakingFrom(2023.1)", true)]
     public enum PolyFillType
     {
         /// <summary>
@@ -501,7 +501,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Options for join types.
     /// </summary>
-    [Obsolete("Will be removed in 2025.1", true)]
+    [Obsolete("This enum is obsolete.  #from(2023.1) #breakingFrom(2023.1)", true)]
     public enum JoinType
     {
         /// <summary>
@@ -513,7 +513,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Options for end types.
     /// </summary>
-    [Obsolete("Will be removed in 2025.1", true)]
+    [Obsolete("This enum is obsolete.  #from(2023.1) #breakingFrom(2023.1)", true)]
     public enum EndType
     {
         /// <summary>

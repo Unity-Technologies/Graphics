@@ -366,7 +366,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cubemapSize">The cubemap size.</param>
         /// <returns>The texture to use as reflection probe target.</returns>
-        [Obsolete("Use CreateReflectionProbeRenderTarget with explicit format instead", true)]
+        [Obsolete("Use CreateReflectionProbeRenderTarget with explicit format instead #from(2021.1) #breakingFrom(2021.1)", true)]
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize)
         {
             RenderTexture rt = new RenderTexture(cubemapSize, cubemapSize, 0, GraphicsFormat.R16G16B16A16_SFloat)

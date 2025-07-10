@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering
     /// <c>unity_DOTSInstanceGlobalValues</c> constant buffer the shader expects the default
     /// values in.
     /// </summary>
-    [Obsolete("BatchRendererGroupGlobals and associated cbuffer are now set automatically by Unity. Setting it manually is no longer necessary or supported.")]
+    [Obsolete("BatchRendererGroupGlobals and associated cbuffer are now set automatically by Unity. Setting it manually is no longer necessary or supported. #from(2023.1)")]
     [StructLayout(LayoutKind.Sequential)]
     [Serializable]
     public struct BatchRendererGroupGlobals : IEquatable<BatchRendererGroupGlobals>

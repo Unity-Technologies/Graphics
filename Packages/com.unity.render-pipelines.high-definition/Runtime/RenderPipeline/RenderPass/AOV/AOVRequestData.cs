@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public struct AOVRequestData
     {
         /// <summary>Default frame pass settings.</summary>
-        [Obsolete("Since 2019.3, use AOVRequestData.NewDefault() instead.")]
+        [Obsolete("Use AOVRequestData.NewDefault() instead. #from(2019.3)")]
         public static readonly AOVRequestData @default = default;
         /// <summary>
         /// Instantiate a new AOV request data with default values.

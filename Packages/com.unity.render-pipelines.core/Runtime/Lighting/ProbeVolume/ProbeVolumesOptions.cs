@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// This parameter isn't used anymore.
         /// </summary>
-        [Obsolete("This parameter isn't used anymore.")]
+        [Obsolete("This parameter isn't used anymore. #from(6000.0)")]
         public ClampedFloatParameter minValidDotProductValue = new ClampedFloatParameter(0.1f, -1.0f, 0.33f);
 
         /// <summary>

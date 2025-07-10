@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
 
 #if URP_COMPATIBILITY_MODE
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotImplementedException();

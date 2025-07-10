@@ -181,7 +181,9 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             var singleValues = (values as IEnumerable<int>).Distinct();
 
 #pragma warning disable 0612 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
             var excluded = new List<FrameSettingsField> { FrameSettingsField.RoughRefraction };
+#pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore 0612 // Type or member is obsolete
 
             //gathering helpful debug info

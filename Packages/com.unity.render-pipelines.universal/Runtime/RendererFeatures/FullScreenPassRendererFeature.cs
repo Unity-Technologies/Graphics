@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if URP_COMPATIBILITY_MODE
-            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
                 // Disable obsolete warning for internal usage
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if URP_COMPATIBILITY_MODE
-            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 ref var cameraData = ref renderingData.cameraData;

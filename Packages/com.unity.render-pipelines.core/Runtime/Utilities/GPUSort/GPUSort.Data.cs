@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering
             /// <param name="renderGraph">Render Graph</param>
             /// <param name="builder">Render Graph Builder</param>
             /// <returns>An initialized RenderGraphResources object containing the created sort buffers.</returns>
-            [Obsolete("This Create signature is deprecated and will be removed in the future. Please use Create(IBaseRenderGraphBuilder) instead", false)]
+            [Obsolete("This Create signature is deprecated and will be removed in the future. Please use Create(IBaseRenderGraphBuilder) instead. #from(6000.3)")]
             public static RenderGraphResources Create(int count, RenderGraph renderGraph, RenderGraphBuilder builder)
             {
                 var targets = GraphicsBuffer.Target.Raw | GraphicsBuffer.Target.CopyDestination;

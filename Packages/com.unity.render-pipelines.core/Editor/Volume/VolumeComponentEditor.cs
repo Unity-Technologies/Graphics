@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering
         /// The copy of the serialized property of the <see cref="VolumeComponent"/> being
         /// inspected. Unity uses this to track whether the editor is collapsed in the Inspector or not.
         /// </summary>
-        [Obsolete("Please use expanded property instead. #from(2022.2)", false)]
+        [Obsolete("Please use expanded property instead. #from(2022.2)")]
         public SerializedProperty baseProperty { get; internal set; }
 
         /// <summary>

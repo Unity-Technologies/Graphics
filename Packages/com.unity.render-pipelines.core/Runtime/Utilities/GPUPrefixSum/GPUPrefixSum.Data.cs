@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering
             /// <param name="builder">Render Graph Builder</param>
             /// <param name="outputIsTemp">Whether or not to allocate a transient resource.</param>
             /// <returns>The created Render Graph Resources.</returns>
-            [Obsolete("This Create signature is deprecated and will be removed in the future. Please use Create(IBaseRenderGraphBuilder) instead", false)]
+            [Obsolete("This Create signature is deprecated and will be removed in the future. Please use Create(IBaseRenderGraphBuilder) instead. #from(6000.3)")]
             public static RenderGraphResources Create(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder, bool outputIsTemp = false)
             {
                 var resources = new RenderGraphResources();

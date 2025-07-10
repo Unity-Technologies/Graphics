@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// If is a global bolume
         /// </summary>
-        [SerializeField, Obsolete("Use mode instead")]
+        [SerializeField, Obsolete("Use mode instead. #from(2023.1)")]
         public bool globalVolume = false;
 
     }

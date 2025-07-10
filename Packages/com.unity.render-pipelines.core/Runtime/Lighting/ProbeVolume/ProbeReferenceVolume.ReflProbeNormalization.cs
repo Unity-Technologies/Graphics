@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering
         /// <param name ="sh"> The output SH coefficients that have been computed.</param>
         /// <param name ="pos"> The position for which the computed SH coefficients are valid.</param>
         /// <returns>Whether the request for light probe rendering has been fulfilled and sh is valid.</returns>
-        [Obsolete("Use RetrieveProbe instead.", false)]
+        [Obsolete("Use RetrieveProbe instead. #from(6000.2)")]
         public bool RetrieveProbeSH(int probeInstanceID, out SphericalHarmonicsL2 sh, out Vector3 pos)
         {
             if (m_SHCoefficients.ContainsKey(probeInstanceID))

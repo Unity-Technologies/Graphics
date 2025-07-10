@@ -118,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty slopeBias;
         public SerializedProperty normalBias;
 
-        [Obsolete("This property has been deprecated. Use SerializedHDLight.settings.intensity instead.")]
+        [Obsolete("This property has been deprecated. Use SerializedHDLight.settings.intensity instead. #from(2023.3)")]
         public SerializedProperty intensity => settings.intensity;
 
         private GameObject[] emissiveMeshes;

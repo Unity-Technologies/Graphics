@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct Lighting
         {
             /// <summary>Default value.</summary>
-            [Obsolete("Since 2019.3, use Lighting.NewDefault() instead.")]
+            [Obsolete("Use Lighting.NewDefault() instead. #from(2019.3)")]
             public static readonly Lighting @default = default;
             /// <summary>Default value.</summary>
             /// <returns>The default value.</returns>
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct ProxySettings
         {
             /// <summary>Default value.</summary>
-            [Obsolete("Since 2019.3, use ProxySettings.NewDefault() instead.")]
+            [Obsolete("Use ProxySettings.NewDefault() instead. #from(2019.3)")]
             public static readonly ProxySettings @default = default;
             /// <summary>Default value.</summary>
             /// <returns>The default value.</returns>
@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct Frustum
         {
             /// <summary>Obsolete</summary>
-            [Obsolete("Since 2019.3, use Frustum.NewDefault() instead.")]
+            [Obsolete("Use Frustum.NewDefault() instead. #from(2019.3)")]
             public static readonly Frustum @default = default;
             /// <summary>Default value.</summary>
             /// <returns>The default value.</returns>
@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const CubeReflectionResolution k_DefaultCubeResolution = CubeReflectionResolution.CubeReflectionResolution128;
 
         /// <summary>Default value.</summary>
-        [Obsolete("Since 2019.3, use ProbeSettings.NewDefault() instead.")]
+        [Obsolete("Use ProbeSettings.NewDefault() instead. #from(2019.3)")]
         public static ProbeSettings @default = default;
         /// <summary>Default value.</summary>
         /// <returns>The default value.</returns>

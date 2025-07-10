@@ -447,7 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="hdCamera"></param>
         /// <param name="cullingResult"></param>
-        [Obsolete("This Execute signature is obsolete and will be removed in the future. Please use Execute(CustomPassContext) instead")]
+        [Obsolete("This Execute signature is obsolete and will be removed in the future. Please use Execute(CustomPassContext) instead. #from(2021.1)")]
         protected virtual void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult) { }
 
         /// <summary>
@@ -482,7 +482,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="bindDepth">if true we bind the camera depth buffer in addition to the color</param>
         /// <param name="clearFlags"></param>
-        [Obsolete("Use directly CoreUtils.SetRenderTarget with the render target of your choice.")]
+        [Obsolete("Use directly CoreUtils.SetRenderTarget with the render target of your choice. #from(2021.1)")]
         protected void SetCameraRenderTarget(CommandBuffer cmd, bool bindDepth = true, ClearFlag clearFlags = ClearFlag.None)
         {
             if (!isExecuting)
@@ -503,7 +503,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="bindDepth">if true we bind the custom depth buffer in addition to the color</param>
         /// <param name="clearFlags"></param>
-        [Obsolete("Use directly CoreUtils.SetRenderTarget with the render target of your choice.")]
+        [Obsolete("Use directly CoreUtils.SetRenderTarget with the render target of your choice. #from(2021.1)")]
         protected void SetCustomRenderTarget(CommandBuffer cmd, bool bindDepth = true, ClearFlag clearFlags = ClearFlag.None)
         {
             if (!isExecuting)
@@ -555,7 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="colorBuffer">outputs the camera color buffer</param>
         /// <param name="depthBuffer">outputs the camera depth buffer</param>
-        [Obsolete("GetCameraBuffers is obsolete and will be removed in the future. All camera buffers are now avaliable directly in the CustomPassContext in parameter of the Execute function")]
+        [Obsolete("GetCameraBuffers is obsolete and will be removed in the future. All camera buffers are now avaliable directly in the CustomPassContext in parameter of the Execute function. #from(2021.1)")]
         protected void GetCameraBuffers(out RTHandle colorBuffer, out RTHandle depthBuffer)
         {
             if (!isExecuting)
@@ -570,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="colorBuffer">outputs the custom color buffer</param>
         /// <param name="depthBuffer">outputs the custom depth buffer</param>
-        [Obsolete("GetCustomBuffers is obsolete and will be removed in the future. All custom buffers are now avaliable directly in the CustomPassContext in parameter of the Execute function")]
+        [Obsolete("GetCustomBuffers is obsolete and will be removed in the future. All custom buffers are now avaliable directly in the CustomPassContext in parameter of the Execute function. #from(2021.1)")]
         protected void GetCustomBuffers(out RTHandle colorBuffer, out RTHandle depthBuffer)
         {
             if (!isExecuting)
@@ -584,7 +584,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Get the current normal buffer (can be MSAA)
         /// </summary>
         /// <returns></returns>
-        [Obsolete("GetNormalBuffer is obsolete and will be removed in the future. Normal buffer is now avaliable directly in the CustomPassContext in parameter of the Execute function")]
+        [Obsolete("GetNormalBuffer is obsolete and will be removed in the future. Normal buffer is now avaliable directly in the CustomPassContext in parameter of the Execute function. #from(2021.1)")]
         protected RTHandle GetNormalBuffer()
         {
             if (!isExecuting)

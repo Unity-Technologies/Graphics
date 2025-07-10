@@ -41,23 +41,23 @@ namespace UnityEngine.Rendering.HighDefinition
         );
 
         /// <summary>Specifies the decal layers that affect the water surface.</summary>
-        [SerializeField, Obsolete("Use renderingLayerMask instead @from(2023.1) (UnityUpgradable) -> renderingLayerMask")]
+        [SerializeField, Obsolete("Use renderingLayerMask instead #from(2023.1) (UnityUpgradable) -> renderingLayerMask")]
         public RenderingLayerMask decalLayerMask = RenderingLayerMask.RenderingLayer1; // old DecalLayerDefault is rendering layer 1
 
         /// <summary>Specifies the light layers that affect the water surface.</summary>
-        [SerializeField, Obsolete("Use renderingLayerMask instead @from(2023.1) (UnityUpgradable) -> renderingLayerMask")]
+        [SerializeField, Obsolete("Use renderingLayerMask instead #from(2023.1) (UnityUpgradable) -> renderingLayerMask")]
         public RenderingLayerMask lightLayerMask = RenderingLayerMask.LightLayerDefault;
 
         /// <summary></summary>
-        [SerializeField, Obsolete("Use largeBand0FadeMode instead @from(2023.1)")]
+        [SerializeField, Obsolete("Use largeBand0FadeMode instead #from(2023.1)")]
         public bool largeBand0FadeToggle = true;
 
         /// <summary></summary>
-        [SerializeField, Obsolete("Use largeBand1FadeMode instead @from(2023.1)")]
+        [SerializeField, Obsolete("Use largeBand1FadeMode instead #from(2023.1)")]
         public bool largeBand1FadeToggle = true;
 
         /// <summary></summary>
-        [SerializeField, Obsolete("Use ripplesFadeMode instead @from(2023.1)")]
+        [SerializeField, Obsolete("Use ripplesFadeMode instead #from(2023.1)")]
         public bool ripplesFadeToggle = true;
     }
 }

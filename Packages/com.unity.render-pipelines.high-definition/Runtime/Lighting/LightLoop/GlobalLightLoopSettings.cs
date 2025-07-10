@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Possible values for one element of the Local Volumetric Fog atlas.
     /// </summary>
     [Serializable]
-    [Obsolete("The texture resolution limit in volumetric fogs have been removed. This enum is unused.")]
+    [Obsolete("The texture resolution limit in volumetric fogs have been removed. This enum is unused. #from(2023.1)")]
     public enum LocalVolumetricFogResolution
     {
         /// <summary>3D volume of 32x32x32 voxels.</summary>
@@ -230,25 +230,25 @@ namespace UnityEngine.Rendering.HighDefinition
         public int cookieAtlasLastValidMip;
 
         // We keep this property for the migration code (we need to know how many cookies we could have before).
-        [SerializeField, Obsolete("There is no more texture array for cookies, use cookie atlases properties instead.", false)]
+        [SerializeField, Obsolete("There is no more texture array for cookies, use cookie atlases properties instead. #from(2021.2)")]
         internal int cookieTexArraySize;
 
         // We keep this property for the migration code
         /// <summary>Obsolete: Use planar reflection atlas.</summary>
         [FormerlySerializedAs("planarReflectionTextureSize")]
-        [SerializeField, Obsolete("There is no more planar reflection atlas, use reflection probe atlases instead.", false)]
+        [SerializeField, Obsolete("There is no more planar reflection atlas, use reflection probe atlases instead. #from(2022.2)")]
         public PlanarReflectionAtlasResolution planarReflectionAtlasSize;
 
         // We keep this property for the migration code
-        [SerializeField, Obsolete("There is no more texture array for cube reflection probes, use reflection probe atlases properties instead.", false)]
+        [SerializeField, Obsolete("There is no more texture array for cube reflection probes, use reflection probe atlases properties instead. #from(2022.2)")]
         internal int reflectionProbeCacheSize;
 
         // We keep this property for the migration code
-        [SerializeField, Obsolete("There is no more cube reflection probe size, use cube reflection probe size tiers instead.", false)]
+        [SerializeField, Obsolete("There is no more cube reflection probe size, use cube reflection probe size tiers instead. #from(2022.2)")]
         internal CubeReflectionResolution reflectionCubemapSize;
 
         // We keep this property for the migration code
-        [SerializeField, Obsolete("There is no more max env light on screen, use max planar and cube reflection probes on screen instead.", false)]
+        [SerializeField, Obsolete("There is no more max env light on screen, use max planar and cube reflection probes on screen instead. #from(2022.2)")]
         internal int maxEnvLightsOnScreen;
 
         /// <summary>Enable reflection probe cache compression.</summary>
@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxLightsPerClusterCell;
 
         /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
-        [Obsolete("The texture resolution limit in volumetric fogs have been removed. This field is unused.")]
+        [Obsolete("The texture resolution limit in volumetric fogs have been removed. This field is unused. #from(2023.1)")]
         public LocalVolumetricFogResolution maxLocalVolumetricFogSize;
 
         /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>

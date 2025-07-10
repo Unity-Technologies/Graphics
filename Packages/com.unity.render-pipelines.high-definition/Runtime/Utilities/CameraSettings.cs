@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct BufferClearing
         {
             /// <summary>Default value.</summary>
-            [Obsolete("Since 2019.3, use BufferClearing.NewDefault() instead.")]
+            [Obsolete("Use BufferClearing.NewDefault() instead. #from(2019.3)")]
             public static readonly BufferClearing @default = default;
             /// <summary>Default value.</summary>
             /// <returns>The default value.</returns>
@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// The default value uses a <see cref="LayerMask"/> of -1 (which includes all layers) and a null override
             /// for the anchor (indicating no anchor override).
             /// </remarks>
-            [Obsolete("This field is obsolete use Volumes.NewDefault() instead. #from(2019.3)", true)]
+            [Obsolete("This field is obsolete use Volumes.NewDefault() instead. #from(2019.3) #breakingFrom(6000.1)", true)]
             public static readonly Volumes @default = default;
 
             /// <summary>
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public const float MinFarClipPlane = 1e-4f;
 
             /// <summary>Default value.</summary>
-            [Obsolete("Since 2019.3, use Frustum.NewDefault() instead.")]
+            [Obsolete("Use Frustum.NewDefault() instead. #from(2019.3)")]
             public static readonly Frustum @default = default;
             /// <summary>Default value.</summary>
             /// <returns>The default value.</returns>
@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public struct Culling
         {
             /// <summary>Default value.</summary>
-            [Obsolete("Since 2019.3, use Culling.NewDefault() instead.")]
+            [Obsolete("Use Culling.NewDefault() instead. #from(2019.3)")]
             public static readonly Culling @default = default;
             /// <summary>Default value.</summary>
             /// <returns>The default value.</returns>
@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Default value.</summary>
-        [Obsolete("Since 2019.3, use CameraSettings.defaultCameraSettingsNonAlloc instead.")]
+        [Obsolete("Use CameraSettings.defaultCameraSettingsNonAlloc instead. #from(2019.3)")]
         public static readonly CameraSettings @default = default;
         /// <summary>Default value.</summary>
         /// <returns>The default value and allocate ~250B of garbage.</returns>
@@ -397,12 +397,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         [FormerlySerializedAs("renderingPath")]
-        [Obsolete("For data migration")]
+        [Obsolete("For data migration. #from(2022.1)")]
         internal int m_ObsoleteRenderingPath;
 #pragma warning disable 618 // Type or member is obsolete
         [SerializeField]
         [FormerlySerializedAs("frameSettings")]
-        [Obsolete("For data migration")]
+        [Obsolete("For data migration. #from(2022.1)")]
         internal ObsoleteFrameSettings m_ObsoleteFrameSettings;
 #pragma warning restore 618
 

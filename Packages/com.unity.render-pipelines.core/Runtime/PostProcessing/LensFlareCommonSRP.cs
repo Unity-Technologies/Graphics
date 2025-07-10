@@ -967,7 +967,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
-        [Obsolete("Use ComputeOcclusion without _FlareOcclusionTex.._FlareData4 parameters.")]
+        [Obsolete("Use ComputeOcclusion without _FlareOcclusionTex.._FlareData4 parameters. #from(2023.3)")]
         static public void ComputeOcclusion(Material lensFlareShader, Camera cam, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
@@ -1057,7 +1057,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData2">ShaderID for the FlareData2</param>
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
-        [Obsolete("Use ComputeOcclusion without _FlareOcclusionTex.._FlareData4 parameters.")]
+        [Obsolete("Use ComputeOcclusion without _FlareOcclusionTex.._FlareData4 parameters. #from(2023.3)")]
         static public void ComputeOcclusion(Material lensFlareShader, Camera cam, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit, bool isCameraRelative,
@@ -1703,7 +1703,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="debugView">Debug View which setup black background to see only lens flare</param>
-        [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters.")]
+        [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters. #from(2023.3)")]
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
@@ -1820,7 +1820,7 @@ namespace UnityEngine.Rendering
         /// <param name="_FlareData3">ShaderID for the FlareData3</param>
         /// <param name="_FlareData4">ShaderID for the FlareData4</param>
         /// <param name="debugView">Debug View which setup black background to see only lens flare</param>
-        [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters.")]
+        [Obsolete("Use DoLensFlareDataDrivenCommon without _FlareOcclusionRemapTex.._FlareData4 parameters. #from(2023.3)")]
         static public void DoLensFlareDataDrivenCommon(Material lensFlareShader, Camera cam, Rect viewport, XRPass xr, int xrIndex,
             float actualWidth, float actualHeight,
             bool usePanini, float paniniDistance, float paniniCropToFit,
@@ -2190,7 +2190,7 @@ namespace UnityEngine.Rendering
         /// <param name="_LensFlareScreenSpaceParams4">ShaderID for the LensFlareScreenSpaceParams4</param>
         /// <param name="_LensFlareScreenSpaceParams5">ShaderID for the LensFlareScreenSpaceParams5</param>
         /// <param name="debugView">Information if we are in debug mode or not</param>
-        [Obsolete("Use DoLensFlareScreenSpaceCommon without _Shader IDs parameters.")]
+        [Obsolete("Use DoLensFlareScreenSpaceCommon without _Shader IDs parameters. #from(2023.3)")]
         static public void DoLensFlareScreenSpaceCommon(
             Material lensFlareShader,
             Camera cam,

@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="writeEnabled">Sets whether it should write to depth or not.</param>
         /// <param name="function">The depth comparison function to use.</param>
-        [Obsolete("Use SetDepthState instead", true)]
+        [Obsolete("Use SetDepthState instead. #from(2023.1) #breakingFrom(2023.1)", true)]
         public void SetDetphState(bool writeEnabled, CompareFunction function = CompareFunction.Less)
         {
             SetDepthState(writeEnabled, function);
@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             UniversalRenderingData universalRenderingData = renderingData.frameData.Get<UniversalRenderingData>();

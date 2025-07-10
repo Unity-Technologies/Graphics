@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Holds the physical settings set on cameras.
     /// </summary>
     [Serializable]
-    [Obsolete("Properties have been migrated to Camera class", false)]
+    [Obsolete("Properties have been migrated to Camera class. #from(2022.2)")]
     public struct HDPhysicalCamera
     {
         /// <summary>
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Copies the settings of this instance to another instance.
         /// </summary>
         /// <param name="c">The instance to copy the settings to.</param>
-        [Obsolete("The CopyTo method is obsolete and does not work anymore. Use the assignement operator instead to get a copy of the HDPhysicalCamera parameters.", true)]
+        [Obsolete("The CopyTo method is obsolete and does not work anymore. Use the assignement operator instead to get a copy of the HDPhysicalCamera parameters. #from(2021.2) #breakingFrom(2021.2)", true)]
         public void CopyTo(HDPhysicalCamera c)
         {
         }
@@ -355,7 +355,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Physical camera parameters.</summary>
         [ValueCopy] // reference should not be same. only content.
-        [Obsolete("Physical camera properties have been migrated to Camera.", false)]
+        [Obsolete("Physical camera properties have been migrated to Camera. #from(2022.2)")]
 #pragma warning disable CS0618
         public HDPhysicalCamera physicalParameters = HDPhysicalCamera.GetDefaults();
 #pragma warning restore CS0618

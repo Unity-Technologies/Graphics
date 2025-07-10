@@ -135,25 +135,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Rendering Layer Mask
         [SerializeField]
-        [Obsolete ("Kept For Migration")]
+        [Obsolete ("Kept For Migration. #from(2023.3)")]
         internal string[] renderingLayerNames = { "Default" };
 
-        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName0;
-        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName1;
-        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName2;
-        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName3;
-        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName4;
-        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName5;
-        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName6;
-        [SerializeField, Obsolete("Kept For Migration")] string lightLayerName7;
-        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName0;
-        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName1;
-        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName2;
-        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName3;
-        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName4;
-        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName5;
-        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName6;
-        [SerializeField, Obsolete("Kept For Migration")] string decalLayerName7;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string lightLayerName0;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string lightLayerName1;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string lightLayerName2;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string lightLayerName3;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string lightLayerName4;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string lightLayerName5;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string lightLayerName6;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string lightLayerName7;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string decalLayerName0;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string decalLayerName1;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string decalLayerName2;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string decalLayerName3;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string decalLayerName4;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string decalLayerName5;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string decalLayerName6;
+        [SerializeField, Obsolete("Kept For Migration. #from(2023.1)")] string decalLayerName7;
 
         #endregion
 

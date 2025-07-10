@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The serialized version of the class. Used for upgrading.
         /// </summary>
-        [Obsolete("This field has been deprecated. #from(6000.2)", false)]
+        [Obsolete("This field has been deprecated. #from(6000.2)")]
         public float version => (int)m_Version;
     }
 }

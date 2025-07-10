@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Shadow Resolution Tier
         /// </summary>
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         enum ShadowResolutionTier
         {
             Low = 0,
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Type used previous isolation of AreaLightShape as we use Point for realtime area light due to culling
         /// </summary>
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         enum LightTypeExtent
         {
             Punctual,
@@ -318,30 +318,31 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Obsolete fields
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
         // we add intensity (for each type of light we want to manage).
-        [Obsolete("Use Light.renderingLayerMask instead")]
+        [Obsolete("Use Light.renderingLayerMask instead. #from(2021.1)")]
         [FormerlySerializedAs("lightLayers")]
         [ExcludeCopy]
         RenderingLayerMask m_LightLayers = RenderingLayerMask.LightLayerDefault;
 
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         [SerializeField]
         [FormerlySerializedAs("m_ShadowResolutionTier")]
         [ExcludeCopy]
         ShadowResolutionTier m_ObsoleteShadowResolutionTier = ShadowResolutionTier.Medium;
-        [Obsolete]
+
+        [Obsolete("#from(2021.1)")]
         [SerializeField]
         [FormerlySerializedAs("m_UseShadowQualitySettings")]
         [ExcludeCopy]
         bool m_ObsoleteUseShadowQualitySettings = false;
 
         [FormerlySerializedAs("m_CustomShadowResolution")]
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         [SerializeField]
         [ExcludeCopy]
         int m_ObsoleteCustomShadowResolution = k_DefaultShadowResolution;
 
         [FormerlySerializedAs("m_ContactShadows")]
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         [SerializeField]
         [ExcludeCopy]
         bool m_ObsoleteContactShadows = false;

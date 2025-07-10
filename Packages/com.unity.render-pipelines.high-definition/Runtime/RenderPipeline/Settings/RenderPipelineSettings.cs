@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMask computeThicknessLayerMask;
 
         /// <summary>Names for rendering layers.</summary>
-        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(2023.3)")]
         public string[] renderingLayerNames
         {
             get { return (string[])HDRenderPipelineGlobalSettings.instance.renderingLayerNames.Clone(); }
@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default Number of samples when using MSAA.</summary>
         public MSAASamples msaaSampleCount;
         /// <summary>Support MSAA.</summary>
-        [Obsolete]
+        [Obsolete("#from(2021.2)")]
         public bool supportMSAA => msaaSampleCount != MSAASamples.None;
 
         // Returns true if the output of the rendering passes support an alpha channel
@@ -383,7 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDataDrivenLensFlare;
 
         /// <summary>Support runtime debug display.</summary>
-        [Obsolete("Use HDRenderPipelineGlobalSettings.instance.stripDebugVariants) instead. #from(23.1)", false)]
+        [Obsolete("Use HDRenderPipelineGlobalSettings.instance.stripDebugVariants) instead. #from(2023.1)")]
         public bool supportRuntimeDebugDisplay
         {
             get => !HDRenderPipelineGlobalSettings.instance.m_StripDebugVariants;
@@ -392,11 +392,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool supportProbeVolume => (lightProbeSystem == LightProbeSystem.AdaptiveProbeVolumes);
         [FormerlySerializedAs("supportProbeVolume")]
-        [Obsolete("Use lightProbeSystem instead", false)]
+        [Obsolete("Use lightProbeSystem instead #from(2023.2)")]
         internal bool oldSupportProbeVolume;
 
         /// <summary> Support LOD Dithering Cross-Fade/// </summary>
-        [Obsolete("This setting has no effect, use LOD Quality Setting instead", false)]
+        [Obsolete("This setting has no effect, use LOD Quality Setting instead #from(2023.2)")]
         public bool supportDitheringCrossFade;
 
         /// <summary>Support runtime AOV API.</summary>
@@ -473,61 +473,61 @@ namespace UnityEngine.Rendering.HighDefinition
         [FormerlySerializedAs("macroBatcherSettings")] public GlobalGPUResidentDrawerSettings gpuResidentDrawerSettings;
 
 #pragma warning disable 618 // Type or member is obsolete
-        [Obsolete("For data migration")]
+        [Obsolete("For data migration. #from(2021.1)")]
         internal bool m_ObsoleteincreaseSssSampleCount;
 
         [SerializeField]
-        [FormerlySerializedAs("lightLayerName0"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("lightLayerName0"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteLightLayerName0;
         [SerializeField]
-        [FormerlySerializedAs("lightLayerName1"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("lightLayerName1"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteLightLayerName1;
         [SerializeField]
-        [FormerlySerializedAs("lightLayerName2"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("lightLayerName2"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteLightLayerName2;
         [SerializeField]
-        [FormerlySerializedAs("lightLayerName3"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("lightLayerName3"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteLightLayerName3;
         [SerializeField]
-        [FormerlySerializedAs("lightLayerName4"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("lightLayerName4"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteLightLayerName4;
         [SerializeField]
-        [FormerlySerializedAs("lightLayerName5"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("lightLayerName5"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteLightLayerName5;
         [SerializeField]
-        [FormerlySerializedAs("lightLayerName6"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("lightLayerName6"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteLightLayerName6;
         [SerializeField]
-        [FormerlySerializedAs("lightLayerName7"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("lightLayerName7"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteLightLayerName7;
 
         [SerializeField]
-        [FormerlySerializedAs("decalLayerName0"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("decalLayerName0"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteDecalLayerName0;
         [SerializeField]
-        [FormerlySerializedAs("decalLayerName1"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("decalLayerName1"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteDecalLayerName1;
         [SerializeField]
-        [FormerlySerializedAs("decalLayerName2"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("decalLayerName2"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteDecalLayerName2;
         [SerializeField]
-        [FormerlySerializedAs("decalLayerName3"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("decalLayerName3"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteDecalLayerName3;
         [SerializeField]
-        [FormerlySerializedAs("decalLayerName4"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("decalLayerName4"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteDecalLayerName4;
         [SerializeField]
-        [FormerlySerializedAs("decalLayerName5"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("decalLayerName5"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteDecalLayerName5;
         [SerializeField]
-        [FormerlySerializedAs("decalLayerName6"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("decalLayerName6"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteDecalLayerName6;
         [SerializeField]
-        [FormerlySerializedAs("decalLayerName7"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("decalLayerName7"), Obsolete("Moved to HDGlobal Settings. #from(2021.2)")]
         internal string m_ObsoleteDecalLayerName7;
 
         [SerializeField]
-        [FormerlySerializedAs("supportRuntimeDebugDisplay"), Obsolete("Moved to HDGlobal Settings")]
+        [FormerlySerializedAs("supportRuntimeDebugDisplay"), Obsolete("Moved to HDGlobal Settings. #from(2022.1)")]
         internal bool m_ObsoleteSupportRuntimeDebugDisplay;
 #pragma warning restore 618
     }

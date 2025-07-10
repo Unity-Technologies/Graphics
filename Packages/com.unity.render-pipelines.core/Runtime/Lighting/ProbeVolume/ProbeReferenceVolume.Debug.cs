@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="camera">The <see cref="Camera"/></param>
         /// <param name="exposureTexture">Texture containing the exposure value for this frame.</param>
-        [Obsolete("Use the other override to support sampling offset in debug modes.")]
+        [Obsolete("Use the other override to support sampling offset in debug modes. #from(6000.0)")]
         public void RenderDebug(Camera camera, Texture exposureTexture)
         {
             RenderDebug(camera, null, exposureTexture);

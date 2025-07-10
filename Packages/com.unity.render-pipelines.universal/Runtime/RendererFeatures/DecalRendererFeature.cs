@@ -542,7 +542,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete + " #from(6000.2)")]
         public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
         {
             // Disable obsolete warning for internal usage

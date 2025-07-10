@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="source">Source render target.</param>
         /// <param name="destination">Destination render target.</param>
         /// <param name="downsampling">The downsampling method to use.</param>
-        [Obsolete("Use RTHandles for source and destination.", true)]
+        [Obsolete("Use RTHandles for source and destination #from(2022.1) #breakingFrom(2023.1).", true)]
         public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
         {
             throw new NotSupportedException("Setup with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead.");
@@ -107,14 +107,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             cmd.SetGlobalTexture(destination.name, destination.nameID);
         }
 
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_PassData.samplingMaterial = m_SamplingMaterial;

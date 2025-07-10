@@ -81,14 +81,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Obsolete Properties
 #pragma warning disable 649
-        [SerializeField, FormerlySerializedAs("m_CaptureNearPlane"), Obsolete("For data migration")]
+        [SerializeField, FormerlySerializedAs("m_CaptureNearPlane"), Obsolete("For data migration. #from(2021.1)")]
         float m_ObsoleteCaptureNearPlane = ObsoleteCaptureSettings.@default.nearClipPlane;
-        [SerializeField, FormerlySerializedAs("m_CaptureFarPlane"), Obsolete("For data migration")]
+        [SerializeField, FormerlySerializedAs("m_CaptureFarPlane"), Obsolete("For data migration. #from(2021.1)")]
         float m_ObsoleteCaptureFarPlane = ObsoleteCaptureSettings.@default.farClipPlane;
 
-        [SerializeField, FormerlySerializedAs("m_OverrideFieldOfView"), Obsolete("For data migration")]
+        [SerializeField, FormerlySerializedAs("m_OverrideFieldOfView"), Obsolete("For data migration. #from(2021.1)")]
         bool m_ObsoleteOverrideFieldOfView;
-        [SerializeField, FormerlySerializedAs("m_FieldOfViewOverride"), Obsolete("For data migration")]
+        [SerializeField, FormerlySerializedAs("m_FieldOfViewOverride"), Obsolete("For data migration. #from(2021.1)")]
         float m_ObsoleteFieldOfViewOverride = ObsoleteCaptureSettings.@default.fieldOfView;
 #pragma warning restore 649
     }

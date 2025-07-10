@@ -53,14 +53,14 @@ namespace UnityEngine.Rendering.Universal
         /// The point light distance.
         /// This is obsolete and has been changed to normalMapDistance.
         /// </summary>
-        [Obsolete("pointLightDistance has been changed to normalMapDistance", true)]
+        [Obsolete("pointLightDistance has been changed to normalMapDistance #from(2021.1) #breakingFrom(2021.1)", true)]
         public float pointLightDistance => m_NormalMapDistance;
 
         /// <summary>
         /// The quality of the point light.
         /// This is obsolete and has been changed to normalMapQuality.
         /// </summary>
-        [Obsolete("pointLightQuality has been changed to normalMapQuality", true)]
+        [Obsolete("pointLightQuality has been changed to normalMapQuality #from(2021.1) #breakingFrom(2021.1)", true)]
         public NormalMapQuality pointLightQuality => m_NormalMapQuality;
 
         internal bool isPointLight => m_LightType == LightType.Point;

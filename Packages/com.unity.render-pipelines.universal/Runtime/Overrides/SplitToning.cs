@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.Universal
         /// Tells if the post process can run the effect on-tile or if it needs a full pass.
         /// </summary>
         /// <returns><c>true</c> if it can run on-tile, <c>false</c> otherwise.</returns>
-        [Obsolete("Unused #from(2023.1)", false)]
+        [Obsolete("Unused. #from(2023.1)")]
         public bool IsTileCompatible() => true;
     }
 }

@@ -574,7 +574,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="injectionPoint">The injection point to get the currently active Custom Pass Volume for.</param>
         /// <returns>Returns the Custom Pass Volume instance associated with the injection point.</returns>
-        [Obsolete("In order to support multiple custom pass volume per injection points, please use GetActivePassVolumes.")]
+        [Obsolete("In order to support multiple custom pass volume per injection points, please use GetActivePassVolumes. #from(2021.1)")]
         public static CustomPassVolume GetActivePassVolume(CustomPassInjectionPoint injectionPoint)
         {
             var volumes = new List<CustomPassVolume>();

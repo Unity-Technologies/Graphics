@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// RTHandle alias for BuiltinRenderTextureType.CameraTarget which is the backbuffer.
         /// </summary>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public static RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
 
         /// <summary>
@@ -219,21 +219,21 @@ namespace UnityEngine.Rendering.Universal
         /// The render target identifiers for color attachments.
         /// This is obsolete, use colorAttachmentHandles instead.
         /// </summary>
-        [Obsolete("Use colorAttachmentHandles", true)]
+        [Obsolete("Use colorAttachmentHandles. #from(2022.1) #breakingFrom(2023.2)", true)]
         public RenderTargetIdentifier[] colorAttachments => throw new NotSupportedException("colorAttachments has been deprecated. Use colorAttachmentHandles instead.");
 
         /// <summary>
         /// The render target identifier for color attachment.
         /// This is obsolete, use colorAttachmentHandle instead.
         /// </summary>
-        [Obsolete("Use colorAttachmentHandle", true)]
+        [Obsolete("Use colorAttachmentHandle. #from(2022.1) #breakingFrom(2023.2)", true)]
         public RenderTargetIdentifier[] colorAttachment => throw new NotSupportedException("colorAttachment has been deprecated. Use colorAttachmentHandle instead.");
 
         /// <summary>
         /// The render target identifier for depth attachment.
         /// This is obsolete, use depthAttachmentHandle instead.
         /// </summary>
-        [Obsolete("Use depthAttachmentHandle", true)]
+        [Obsolete("Use depthAttachmentHandle. #from(2022.1) #breakingFrom(2023.2)", true)]
         public RenderTargetIdentifier depthAttachment => throw new NotSupportedException("depthAttachment has been deprecated. Use depthAttachmentHandle instead.");
 
         /// <summary>
@@ -422,7 +422,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="storeAction">RenderBufferStoreAction to use</param>
         /// <param name="attachmentIndex">Index of the color attachment</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0)
         {
             m_ColorStoreActions[attachmentIndex] = storeAction;
@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.Universal
         /// Configures the Store Actions for all the color attachments of this render pass.
         /// </summary>
         /// <param name="storeActions">Array of RenderBufferStoreActions to use</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions)
         {
             int count = Math.Min(storeActions.Length, m_ColorStoreActions.Length);
@@ -448,27 +448,27 @@ namespace UnityEngine.Rendering.Universal
         /// Configures the Store Action for the depth attachment of this render pass.
         /// </summary>
         /// <param name="storeAction">RenderBufferStoreAction to use</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void ConfigureDepthStoreAction(RenderBufferStoreAction storeAction)
         {
             m_DepthStoreAction = storeAction;
             m_OverriddenDepthStoreAction = true;
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         internal void ConfigureInputAttachments(RTHandle input, bool isTransient = false)
         {
             m_InputAttachments[0] = input;
             m_InputAttachmentIsTransient[0] = isTransient;
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         internal void ConfigureInputAttachments(RTHandle[] inputs)
         {
             m_InputAttachments = inputs;
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         internal void ConfigureInputAttachments(RTHandle[] inputs, bool[] isTransient)
         {
             // Disable obsolete warning for internal usage
@@ -479,13 +479,13 @@ namespace UnityEngine.Rendering.Universal
             m_InputAttachmentIsTransient = isTransient;
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         internal void SetInputAttachmentTransient(int idx, bool isTransient)
         {
             m_InputAttachmentIsTransient[idx] = isTransient;
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         internal bool IsInputAttachmentTransient(int idx)
         {
             return m_InputAttachmentIsTransient[idx];
@@ -496,7 +496,7 @@ namespace UnityEngine.Rendering.Universal
         /// This method effectively reset changes done by ConfigureTarget.
         /// </summary>
         /// <seealso cref="ConfigureTarget"/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void ResetTarget()
         {
             overrideCameraTarget = false;
@@ -519,7 +519,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete("Use RTHandles for colorAttachment and depthAttachment", true)]
+        [Obsolete("Use RTHandles for colorAttachment and depthAttachment. #from(2022.1) #breakingFrom(2023.1)", true)]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
             throw new NotSupportedException("ConfigureTarget with RenderTargetIdentifier has been deprecated. Use RTHandles instead");
@@ -532,7 +532,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachment">Color attachment handle.</param>
         /// <param name="depthAttachment">Depth attachment handle.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment)
         {
             overrideCameraTarget = true;
@@ -552,7 +552,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachments">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete("Use RTHandles for colorAttachments and depthAttachment", true)]
+        [Obsolete("Use RTHandles for colorAttachments and depthAttachment. #from(2022.1) #breakingFrom(2023.1)", true)]
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
             throw new NotSupportedException("ConfigureTarget with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead");
@@ -565,7 +565,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="colorAttachments">Color attachment handle.</param>
         /// <param name="depthAttachment">Depth attachment handle.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void ConfigureTarget(RTHandle[] colorAttachments, RTHandle depthAttachment)
         {
             overrideCameraTarget = true;
@@ -590,7 +590,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = depthAttachment;
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         internal void ConfigureTarget(RTHandle[] colorAttachments, RTHandle depthAttachment, GraphicsFormat[] formats)
         {
             // Disable obsolete warning for internal usage
@@ -608,7 +608,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete("Use RTHandle for colorAttachment", true)]
+        [Obsolete("Use RTHandle for colorAttachment. #from(2022.1) #breakingFrom(2023.1)", true)]
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
             throw new NotSupportedException("ConfigureTarget with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead");
@@ -620,7 +620,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachment">Color attachment handle.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void ConfigureTarget(RTHandle colorAttachment)
         {
             // Disable obsolete warning for internal usage
@@ -635,7 +635,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachments">Color attachment identifiers.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete("Use RTHandles for colorAttachments", true)]
+        [Obsolete("Use RTHandles for colorAttachments. #from(2022.1) #breakingFrom(2023.1)", true)]
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
             throw new NotSupportedException("ConfigureTarget with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead");
@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorAttachments">Color attachment handle.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void ConfigureTarget(RTHandle[] colorAttachments)
         {
             // Disable obsolete warning for internal usage
@@ -662,7 +662,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="clearFlag">ClearFlag containing information about what targets to clear.</param>
         /// <param name="clearColor">Clear color.</param>
         /// <seealso cref="Configure"/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void ConfigureClear(ClearFlag clearFlag, Color clearColor)
         {
             m_ClearFlag = clearFlag;
@@ -679,7 +679,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current rendering state information</param>
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         { }
 
@@ -693,7 +693,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraTextureDescriptor">Render texture descriptor of the camera render target.</param>
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         { }
 
@@ -717,7 +717,7 @@ namespace UnityEngine.Rendering.Universal
         /// In that case the Base camera is the first and last camera in the stack.
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public virtual void OnFinishCameraStackRendering(CommandBuffer cmd)
         { }
 
@@ -726,7 +726,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="context">Use this render context to issue any draw commands during execution</param>
         /// <param name="renderingData">Current rendering state information</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public virtual void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             Debug.LogWarning("Execute is not implemented, the pass " + this.ToString() + " won't be executed in the current render loop.");
@@ -748,7 +748,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
         /// <seealso cref="ScriptableRenderer"/>
-        [Obsolete("Use RTHandles for source and destination", true)]
+        [Obsolete("Use RTHandles for source and destination. #from(2022.1) #breakingFrom(2023.1)", true)]
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
             throw new NotSupportedException("Blit with RenderTargetIdentifier has been deprecated. Use RTHandles instead");
@@ -764,7 +764,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
         /// <seealso cref="ScriptableRenderer"/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void Blit(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material = null, int passIndex = 0)
         {
             if (material == null)
@@ -780,7 +780,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="data">RenderingData to access the active renderer.</param>
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void Blit(CommandBuffer cmd, ref RenderingData data, Material material, int passIndex = 0)
         {
             var renderer = data.cameraData.renderer;
@@ -797,7 +797,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="source">Source texture or target identifier to blit from.</param>
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public void Blit(CommandBuffer cmd, ref RenderingData data, RTHandle source, Material material, int passIndex = 0)
         {
             var renderer = data.cameraData.renderer;

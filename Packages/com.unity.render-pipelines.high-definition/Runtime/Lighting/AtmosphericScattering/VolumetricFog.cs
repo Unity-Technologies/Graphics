@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Deprecated, kept for migration
-    [Obsolete()]
+    [Obsolete("#from(2021.2)")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class VolumetricFog : AtmosphericScattering
     {

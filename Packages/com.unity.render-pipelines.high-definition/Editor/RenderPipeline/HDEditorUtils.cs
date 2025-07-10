@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// True: managed to do the operation.
         /// False: unknown shader used in material
         /// </returns>
-        [Obsolete("Use HDShaderUtils.ResetMaterialKeywords instead")]
+        [Obsolete("Use HDShaderUtils.ResetMaterialKeywords instead. #from(2021.1)")]
         public static bool ResetMaterialKeywords(Material material)
             => HDShaderUtils.ResetMaterialKeywords(material);
 

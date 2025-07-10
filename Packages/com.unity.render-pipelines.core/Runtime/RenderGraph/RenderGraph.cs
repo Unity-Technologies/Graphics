@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     public struct RenderGraphParameters
     {
         ///<summary>Identifier for this render graph execution.</summary>
-        [Obsolete("Not used anymore. The debugging tools use the name of the object identified by executionId. #from(6000.3)", false)]
+        [Obsolete("Not used anymore. The debugging tools use the name of the object identified by executionId. #from(6000.3)")]
         public string executionName;
         ///<summary>Identifier for this render graph execution (i.e. EntityId of the Camera rendering). Used for debugging tools.</summary>
         public EntityId executionId;
@@ -1103,7 +1103,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="graphicsBuffer">External Graphics Buffer that needs to be imported.</param>
         /// <param name="forceRelease">The imported graphics buffer will be released after usage.</param>
         /// <returns>A new GraphicsBufferHandle.</returns>
-        [Obsolete("ImportBuffer with forceRelease parameter is deprecated. Use ImportBuffer without it instead.", false)]
+        [Obsolete("ImportBuffer with forceRelease parameter is deprecated. Use ImportBuffer without it instead. #from(6000.3)")]
         public BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer, bool forceRelease = false)
         {
             return ImportBuffer(graphicsBuffer);

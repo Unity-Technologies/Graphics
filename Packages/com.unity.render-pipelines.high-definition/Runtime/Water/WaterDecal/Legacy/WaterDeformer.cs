@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Controls the type of the procedural water deformer.
     /// </summary>
-    [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+    [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
     public enum WaterDeformerType
     {
         /// <summary>
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the type of the deformer. This parameter defines which parameters will be used to render it.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public WaterDeformerType type = WaterDeformerType.Sphere;
         #endregion
 
@@ -53,13 +53,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the range that is used to blend the box deformer.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public Vector2 boxBlend;
 
         /// <summary>
         /// When enabled, the box deformer will have a cubic blend on the edges (instead of procedural).
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public bool cubicBlend = true;
         #endregion
 
@@ -67,43 +67,43 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the wave length of the individual waves of the shore wave deformer.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public float waveLength = 3.0f;
 
         /// <summary>
         /// Specifies the wave repetition of the waves. A higher value implies that additional waves will be skipped.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public int waveRepetition = 10;
 
         /// <summary>
         /// Specifies the speed of the waves in kilometers per hour.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public float waveSpeed = 15.0f;
 
         /// <summary>
         /// Specifies the offset in the waves' position.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public float waveOffset = 0.0f;
 
         /// <summary>
         /// Specifies the blend size on the length of the deformer's region.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public Vector2 waveBlend = new Vector2(0.3f, 0.6f);
 
         /// <summary>
         /// Specifies the range in which the waves break and generate surface foam.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public Vector2 breakingRange = new Vector2(0.7f, 0.8f);
 
         /// <summary>
         /// Specifies the range in which the waves generate deep foam.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public Vector2 deepFoamRange = new Vector2(0.5f, 0.8f);
         #endregion
 
@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the elevation of outer part of the bow wave.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public float bowWaveElevation = 1.0f;
         #endregion
 
@@ -119,13 +119,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the range of the texture deformer
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public Vector2 range = new Vector2(0.0f, 1.0f);
 
         /// <summary>
         /// Specifies the texture used for the deformer.
         /// </summary>
-        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterDeformer has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public Texture texture = null;
         #endregion
 

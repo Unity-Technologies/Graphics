@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public MaterialQuality defaultMaterialQualityLevel { get => m_DefaultMaterialQualityLevel; }
 
         [SerializeField]
-        [Obsolete("Use HDRP Global Settings' diffusionProfileSettingsList instead")]
+        [Obsolete("Use HDRP Global Settings' diffusionProfileSettingsList instead. #from(2021.1)")]
         internal DiffusionProfileSettings diffusionProfileSettings;
 
         [SerializeField]
@@ -170,30 +170,30 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_Values;
 
         /// <summary>Names used for display of rendering layer masks.</summary>
-        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(2023.3)")]
         public override string[] renderingLayerMaskNames => UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
 
         /// <summary>Names used for display of rendering layer masks with a prefix.</summary>
-        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(2023.3)")]
         public override string[] prefixedRenderingLayerMaskNames
             => Array.Empty<string>();
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        [Obsolete("Use renderingLayerNames")]
+        [Obsolete("Use renderingLayerNames. #from(2023.1)")]
         public string[] lightLayerNames => renderingLayerNames;
 
         /// <summary>
         /// Names used for display of decal layers.
         /// </summary>
-        [Obsolete("Use renderingLayerNames")]
+        [Obsolete("Use renderingLayerNames. #from(2023.1)")]
         public string[] decalLayerNames => renderingLayerNames;
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(2023.3)")]
         public string[] renderingLayerNames => UnityEngine.RenderingLayerMask.GetDefinedRenderingLayerNames();
 
         [SerializeField]
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
 		/// <summary>
         /// Returns the projects global ProbeVolumeSceneData instance.
         /// </summary>
-        [Obsolete("This property is no longer necessary.")]
+        [Obsolete("This property is no longer necessary. #from(2023.3)")]
         public ProbeVolumeSceneData probeVolumeSceneData => null;
 
         /// <summary>

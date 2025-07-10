@@ -302,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Index of the light used for contact shadows display.</summary>
             public int fullScreenContactShadowLightIndex = 0;
             /// <summary>XR single pass test mode.</summary>
-            [Obsolete]
+            [Obsolete("#from(2022.2)")]
             public bool xrSinglePassTestMode = false;
             /// <summary>Whether to display the average timings every second.</summary>
             public bool averageProfilerTimingsOverASecond = false;
@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
 
             /// <summary>Current decals debug settings.</summary>
-            [Obsolete("decalsDebugSettings has been deprecated, please use HDDebugDisplaySettings.Instance.decalSettings instead", false)]
+            [Obsolete("decalsDebugSettings has been deprecated, please use HDDebugDisplaySettings.Instance.decalSettings instead. #from(2023.1)")]
             public DecalsDebugSettings decalsDebugSettings = HDDebugDisplaySettings.Instance.decalSettings.m_Data;
 
             /// <summary>Current transparency debug settings.</summary>
@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Max vertex density for vertex density display.</summary>
             public uint maxVertexDensity = 10;
             /// <summary>Display ray tracing ray count per frame.</summary>
-            [Obsolete("Obsolete, moved to HDDebugDisplayStats", false)]
+            [Obsolete("Obsolete, moved to HDDebugDisplayStats. #from(2023.1)")]
             public bool countRays = false;
             /// <summary>Display Show Lens Flare Data Driven Only.</summary>
             public bool showLensFlareDataDrivenOnly = false;

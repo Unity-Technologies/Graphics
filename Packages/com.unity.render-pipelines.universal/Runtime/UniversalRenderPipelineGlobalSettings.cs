@@ -327,41 +327,41 @@ namespace UnityEngine.Rendering.Universal
         /// Names used for display of light layers with Layer's index as prefix.
         /// For example: "0: Light Layer Default"
         /// </summary>
-        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead.", true)]
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(2022.2) #breackingFrom(2023.1)", true)]
         public string[] prefixedLightLayerNames => new string[0];
 
 
         #region Light Layer Names [3D]
 
         /// <summary>Name for light layer 0.</summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead. #from(2022.2)")]
         public string lightLayerName0;
         /// <summary>Name for light layer 1.</summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead. #from(2022.2)")]
         public string lightLayerName1;
         /// <summary>Name for light layer 2.</summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead. #from(2022.2)")]
         public string lightLayerName2;
         /// <summary>Name for light layer 3.</summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead. #from(2022.2)")]
         public string lightLayerName3;
         /// <summary>Name for light layer 4.</summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead. #from(2022.2)")]
         public string lightLayerName4;
         /// <summary>Name for light layer 5.</summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead. #from(2022.2)")]
         public string lightLayerName5;
         /// <summary>Name for light layer 6.</summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead. #from(2022.2)")]
         public string lightLayerName6;
         /// <summary>Name for light layer 7.</summary>
-        [Obsolete("This is obsolete, please use renderingLayerNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerNames instead. #from(2022.2)")]
         public string lightLayerName7;
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", false)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead. #from(2022.2)")]
         public string[] lightLayerNames => new string[0];
 
         internal void ResetRenderingLayerNames()

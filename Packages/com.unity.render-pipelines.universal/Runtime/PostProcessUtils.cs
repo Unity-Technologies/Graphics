@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="camera">The camera using the dithering effect.</param>
         /// <param name="material">The material used with the dithering effect.</param>
         /// <returns>The new array index to the Blue noise textures.</returns>
-        [System.Obsolete("This method is obsolete. Use ConfigureDithering override that takes camera pixel width and height instead.")]
+        [System.Obsolete("This method is obsolete. Use ConfigureDithering override that takes camera pixel width and height instead. #from(2021.1)")]
         public static int ConfigureDithering(PostProcessData data, int index, Camera camera, Material material)
         {
             return ConfigureDithering(data, index, camera.pixelWidth, camera.pixelHeight, material);
@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="settings">The Film Grain settings. </param>
         /// <param name="camera">The camera using the dithering effect.</param>
         /// <param name="material">The material used with the dithering effect.</param>
-        [System.Obsolete("This method is obsolete. Use ConfigureFilmGrain override that takes camera pixel width and height instead.")]
+        [System.Obsolete("This method is obsolete. Use ConfigureFilmGrain override that takes camera pixel width and height instead. #from(2021.1)")]
         public static void ConfigureFilmGrain(PostProcessData data, FilmGrain settings, Camera camera, Material material)
         {
             ConfigureFilmGrain(data, settings, camera.pixelWidth, camera.pixelHeight, material);

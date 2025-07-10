@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering
 
         // We keep a separate list with only the guids for the sake of convenience when iterating from outside this class.
         [SerializeField] private List<string> m_SceneGUIDs = new List<string>();
-        [SerializeField, Obsolete("This is now contained in the SceneBakeData structure"), FormerlySerializedAs("scenesToNotBake")] internal List<string> obsoleteScenesToNotBake = new List<string>();
+        [SerializeField, Obsolete("This is now contained in the SceneBakeData structure. #from(2023.3)"), FormerlySerializedAs("scenesToNotBake")] internal List<string> obsoleteScenesToNotBake = new List<string>();
         [SerializeField, FormerlySerializedAs("lightingScenarios")] internal List<string> m_LightingScenarios = new List<string>();
 
         /// <summary>The list of scene GUIDs.</summary>

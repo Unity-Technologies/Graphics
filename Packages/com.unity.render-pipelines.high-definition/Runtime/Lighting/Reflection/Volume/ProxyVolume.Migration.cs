@@ -35,9 +35,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_CSVersion; set => m_CSVersion = value; }
 
         // Obsolete fields
-        [SerializeField, FormerlySerializedAs("m_SphereInfiniteProjection"), Obsolete("For data migration")]
+        [SerializeField, FormerlySerializedAs("m_SphereInfiniteProjection"), Obsolete("For data migration. #from(2021.1)")]
         bool m_ObsoleteSphereInfiniteProjection = false;
-        [SerializeField, FormerlySerializedAs("m_BoxInfiniteProjection"), Obsolete("Kept only for compatibility. Use m_Shape instead")]
+        [SerializeField, FormerlySerializedAs("m_BoxInfiniteProjection"), Obsolete("Kept only for compatibility. Use m_Shape instead. #from(2021.1)")]
         bool m_ObsoleteBoxInfiniteProjection = false;
 
         /// <summary>Serialization callback</summary>

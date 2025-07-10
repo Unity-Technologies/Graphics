@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
         /// matrix when rendering with for cmd.Draw* and reading from camera textures.
         /// </summary>
         /// <returns> True if the camera device projection matrix is flipped. </returns>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public bool IsCameraProjectionMatrixFlipped()
         {
             return frameData.Get<UniversalCameraData>().IsCameraProjectionMatrixFlipped();

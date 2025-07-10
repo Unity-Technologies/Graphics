@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public struct ProbeCapturePositionSettings
     {
         /// <summary>Default value.</summary>
-        [Obsolete("Since 2019.3, use ProbeCapturePositionSettings.NewDefault() instead.")]
+        [Obsolete("Use ProbeCapturePositionSettings.NewDefault() instead. #from(2019.3)")]
         public static readonly ProbeCapturePositionSettings @default = default;
         /// <summary>Default value.</summary>
         /// <returns>The default value.</returns>

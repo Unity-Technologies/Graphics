@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Whether debug overdraw mode is active.
         /// </summary>
-        [Obsolete("overdraw has been deprecated. Use overdrawMode instead.", true)]
+        [Obsolete("overdraw has been deprecated. Use overdrawMode instead. #from(2022.2) #breakingFrom(2023.1)", true)]
 
         public bool overdraw
         {

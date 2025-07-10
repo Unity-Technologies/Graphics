@@ -233,10 +233,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Decals.</summary>
         Decal = (1 << LightCategory.Decal),
         /// <summary>Local Volumetric Fog.</summary>
-        [Obsolete("Unused")]
+        [Obsolete("Unused. #from(2023.1)")]
         LocalVolumetricFog = 0,
         /// <summary>Local Volumetric Fog.</summary>
-        [Obsolete("Unused", true)]
+        [Obsolete("Unused. #from(2021.2) #breakingFrom(2023.1)", true)]
         [InspectorName("Local Volumetric Fog")]
         DensityVolumes = LocalVolumetricFog
     };
