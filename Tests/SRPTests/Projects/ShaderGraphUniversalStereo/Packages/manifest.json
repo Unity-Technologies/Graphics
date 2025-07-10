@@ -7,7 +7,6 @@
     "com.unity.render-pipelines.core": "file:../../../../../Packages/com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal": "file:../../../../../Packages/com.unity.render-pipelines.universal",
     "com.unity.render-pipelines.universal-config": "file:../../../../../Packages/com.unity.render-pipelines.universal-config",
-    "com.unity.rendering.light-transport": "file:../../../../../Packages/com.unity.rendering.light-transport",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.testframework.graphics": "8.9.1-exp.1",
     "com.unity.ugui": "2.0.0",

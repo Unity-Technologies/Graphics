@@ -11,7 +11,6 @@
     "com.unity.render-pipelines.core": "file:../../../../../Packages/com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal": "file:../../../../../Packages/com.unity.render-pipelines.universal",
     "com.unity.render-pipelines.universal-config": "file:../../../../../Packages/com.unity.render-pipelines.universal-config",
-    "com.unity.rendering.light-transport": "file:../../../../../Packages/com.unity.rendering.light-transport",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
     "com.unity.testframework.graphics": "file:../../../Packages/com.unity.test-framework.graphics",

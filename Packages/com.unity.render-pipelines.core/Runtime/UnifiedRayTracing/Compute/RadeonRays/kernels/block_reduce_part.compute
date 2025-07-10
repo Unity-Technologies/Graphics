@@ -1,0 +1,110 @@
+/**********************************************************************
+Copyright (c) 2019 Advanced Micro Devices, Inc. All rights reserved.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+********************************************************************/
+
+// WebGPU has extremely strict uniformity requirements that are incompatible with the current implementation of this shader.
+#pragma exclude_renderers webgpu
+
+uint g_constants_num_keys;
+
+uint g_constants_input_keys_offset;
+uint g_constants_part_sums_offset;
+uint g_constants_output_keys_offset;
+
+RWStructuredBuffer<int> g_buffer: register(u0);
+
+#define GROUP_SIZE 256u
+#define KEYS_PER_THREAD 4u
+groupshared int lds_keys[GROUP_SIZE];
+
+int BlockReduce(int key, uint lidx)
+{
+#ifndef USE_WAVE_INTRINSICS
+    lds_keys[lidx] = key;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Peform reduction within a block
+    for (int stride = (GROUP_SIZE >> 1); stride > 0; stride >>= 1)
+    {
+        if (int(lidx) < stride)
+        {
+            lds_keys[lidx] += lds_keys[lidx + stride];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+    return lds_keys[0];
+#else
+    lds_keys[lidx] = 0;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Perform reduction within a subgroup
+    int wave_reduced = WaveActiveSum(key);
+
+    uint widx  = lidx / WaveGetLaneCount();
+    uint wlidx = WaveGetLaneIndex();
+
+    // First element of each wave puts subgroup-reduced value into LDS
+    if (wlidx == 0)
+    {
+        lds_keys[widx] = wave_reduced;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // First subroup reduces partial sums
+    if (widx == 0)
+    {
+        lds_keys[lidx] = WaveActiveSum(lds_keys[lidx]);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    return lds_keys[0];
+#endif
+}
+
+//[RootSignature(ROOT_SIGNATURE)]
+#pragma kernel BlockReducePart
+[numthreads(GROUP_SIZE, 1, 1)]
+void BlockReducePart(
+    in uint gidx: SV_DispatchThreadID,
+    in uint lidx: SV_GroupThreadID,
+    in uint bidx: SV_GroupID)
+{
+    int thread_sum = 0;
+
+    // Do coalesced loads and calculate their partial sums right away
+    uint range_begin = bidx * GROUP_SIZE * KEYS_PER_THREAD;
+    for (uint i = 0; i < KEYS_PER_THREAD; ++i)
+    {
+        uint load_index = range_begin + i * GROUP_SIZE + lidx;
+        thread_sum += (load_index < g_constants_num_keys) ? g_buffer[g_constants_input_keys_offset + load_index] : 0;
+    }
+
+    // Reduce sums
+    thread_sum = BlockReduce(thread_sum, lidx);
+
+    // First thread writes the sum to partial sums array
+    if (lidx == 0)
+    {
+        g_buffer[g_constants_part_sums_offset + bidx] = thread_sum;
+    }
+}

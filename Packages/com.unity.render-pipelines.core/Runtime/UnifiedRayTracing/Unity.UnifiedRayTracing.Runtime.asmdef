@@ -1,0 +1,26 @@
+{
+    "name": "Unity.UnifiedRayTracing.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.Burst"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [
+        "WebGL"
+    ],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.assetbundle",
+            "expression": "1.0.0",
+            "define": "ENABLE_ASSET_BUNDLE"
+        }
+    ],
+    "noEngineReferences": false
+}

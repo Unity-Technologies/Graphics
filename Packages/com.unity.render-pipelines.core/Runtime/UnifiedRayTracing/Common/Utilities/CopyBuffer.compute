@@ -1,0 +1,24 @@
+
+#define GROUP_SIZE 256
+#define ELEMENTS_PER_THREAD 8
+
+StructuredBuffer<uint> _SrcBuffer;
+int _SrcOffset;
+RWStructuredBuffer<uint> _DstBuffer;
+int _DstOffset;
+int _Size;
+
+#pragma kernel CopyBuffer
+[numthreads(GROUP_SIZE,1,1)]
+void CopyBuffer(uint gidx : SV_DispatchThreadID)
+{
+    for (int i = 0; i < ELEMENTS_PER_THREAD; ++i)
+    {
+        int elemIndex = gidx * ELEMENTS_PER_THREAD + i;
+        if (elemIndex >= _Size)
+            return;
+
+        uint value = _SrcBuffer[elemIndex + _SrcOffset];
+        _DstBuffer[elemIndex + _DstOffset] = value;
+    }
+}

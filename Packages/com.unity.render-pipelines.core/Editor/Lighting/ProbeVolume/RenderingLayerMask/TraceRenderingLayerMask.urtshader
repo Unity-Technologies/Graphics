@@ -4,12 +4,12 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ShaderVariablesProbeVolumes.cs.hlsl"
 
-#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
-#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
 
 #define SAMPLE_COUNT 32
-#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/QuasiRandom.hlsl"
-#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_AccelStruct);
 
