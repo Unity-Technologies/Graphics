@@ -933,7 +933,7 @@ namespace UnityEngine.Rendering.Universal
 
         #region STP
 
-        private const string _UpscaledColorTargetName = "_UpscaledColorTarget";
+        private const string _UpscaledColorTargetName = "_CameraColorUpscaledSTP";
 
         private void RenderSTP(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, ref TextureHandle source, out TextureHandle destination)
         {
