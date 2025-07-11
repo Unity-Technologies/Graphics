@@ -502,7 +502,7 @@ namespace UnityEngine.Rendering
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
-            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureXR.dimension), s_BlitShaderPassIndicesMap[bilinear ? 1 : 0]);
+            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(source.rt.dimension), s_BlitShaderPassIndicesMap[bilinear ? 1 : 0]);
         }
 
         /// <summary>
