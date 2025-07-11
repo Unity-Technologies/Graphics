@@ -20,7 +20,7 @@
   "samples": [
     {
       "displayName": "URP Package Samples",
-      "description": "Collection of scenes showcasing different features of the Universal Render Pipeline.",
+      "description": "Collection of scenes showcasing different features of the Universal Render Pipeline.\n \nTo setup the project to use the samples, the URP Package Samples/SharedAssets/Settings/PackageSamplesURPAsset.asset has to be assigned in the Project Settings/Graphics/Set Default Render Pipeline Asset/Default Render pipeline and/or in the Project Settings/Quality/Rendering/Render Pipeline Asset.",
       "path": "Samples~/URPPackageSamples"
     },
     {
