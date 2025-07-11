@@ -63,13 +63,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             {
                 int oldCapacity = m_VerticesAllocator.capacity;
 
-                if (!m_VerticesAllocator.GetExpectedGrowthToFitAllocation((int)info.vertexCount, GraphicsHelpers.MaxGraphicsBufferSizeInBytes / UnsafeUtility.SizeOf<float3>(), out int newCapacity))
-                    throw new UnifiedRayTracingException("Can't allocate a GraphicsBuffer bigger than 2GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
+                if (!m_VerticesAllocator.GetExpectedGrowthToFitAllocation((int)info.vertexCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / UnsafeUtility.SizeOf<float3>()), out int newCapacity))
+                    throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
                 if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, UnsafeUtility.SizeOf<float3>(), ref m_VerticesBuffer))
                     throw new UnifiedRayTracingException($"Failed to allocate buffer of size: {newCapacity * UnsafeUtility.SizeOf<float3>()} bytes", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                verticesAllocation = m_VerticesAllocator.GrowAndAllocate((int)info.vertexCount, GraphicsHelpers.MaxGraphicsBufferSizeInBytes / UnsafeUtility.SizeOf<float3>(), out oldCapacity, out newCapacity);
+                verticesAllocation = m_VerticesAllocator.GrowAndAllocate((int)info.vertexCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / UnsafeUtility.SizeOf<float3>()), out oldCapacity, out newCapacity);
                 Debug.Assert(verticesAllocation.valid);
             }
 

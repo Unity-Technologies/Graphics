@@ -38,11 +38,9 @@ THE SOFTWARE.
 // WebGPU has extremely strict uniformity requirements that are incompatible with the current implementation of this shader.
 #pragma exclude_renderers webgpu
 
-#if !(TOP_LEVEL)
 RWStructuredBuffer<float> g_vertices;
 int g_vertices_offset;
 uint g_constants_vertex_stride;
-#endif
 
 #if defined(SHADER_API_PSSL) || defined(SHADER_API_METAL) || defined(SHADER_API_WEBGPU)
 // TODO: globallycoherent is not supported on PS4, metal, or webgpu this shader may fail

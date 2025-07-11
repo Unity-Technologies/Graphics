@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                     var requirements = m_RadeonRaysAPI.GetMeshBuildMemoryRequirements(meshBuildInfo, ConvertFlagsToGpuBuild(m_BuildFlags));
                     var allocationNodeCount = (ulong)(requirements.bvhSizeInDwords / (ulong)bvhNodeSizeInDwords);
                     if (allocationNodeCount > int.MaxValue)
-                        throw new UnifiedRayTracingException("Can't allocate a GraphicsBuffer bigger than 2GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
+                        throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
                     blas.bvhAlloc = AllocateBlasInternalNodes((int)allocationNodeCount);
                     blas.bvhLeavesAlloc = AllocateBlasLeafNodes((int)meshBuildInfo.triangleCount);
@@ -636,13 +636,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             {
                 int oldCapacity = m_BlasAllocator.capacity;
 
-                if (!m_BlasAllocator.GetExpectedGrowthToFitAllocation(allocationNodeCount, GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhInternalNodeSizeInBytes(), out int newCapacity))
-                    throw new UnifiedRayTracingException("Can't allocate a GraphicsBuffer bigger than 2GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
+                if (!m_BlasAllocator.GetExpectedGrowthToFitAllocation(allocationNodeCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhInternalNodeSizeInBytes()), out int newCapacity))
+                    throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
                 if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, RadeonRaysAPI.BvhInternalNodeSizeInBytes(), ref m_BlasBuffer))
                     throw new UnifiedRayTracingException($"Failed to allocate buffer of size: {newCapacity * RadeonRaysAPI.BvhInternalNodeSizeInBytes()} bytes", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                allocation = m_BlasAllocator.GrowAndAllocate(allocationNodeCount, GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhInternalNodeSizeInBytes(), out  oldCapacity, out newCapacity);
+                allocation = m_BlasAllocator.GrowAndAllocate(allocationNodeCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhInternalNodeSizeInBytes()), out  oldCapacity, out newCapacity);
                 Debug.Assert(allocation.valid);
             }
 
@@ -656,13 +656,13 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             {
                 int oldCapacity = m_BlasLeavesAllocator.capacity;
 
-                if (!m_BlasLeavesAllocator.GetExpectedGrowthToFitAllocation(allocationNodeCount, GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhLeafNodeSizeInBytes(), out int newCapacity))
-                    throw new UnifiedRayTracingException("Can't allocate a GraphicsBuffer bigger than 2GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
+                if (!m_BlasLeavesAllocator.GetExpectedGrowthToFitAllocation(allocationNodeCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhLeafNodeSizeInBytes()), out int newCapacity))
+                    throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
                 if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, RadeonRaysAPI.BvhLeafNodeSizeInBytes(), ref m_BlasLeavesBuffer))
                     throw new UnifiedRayTracingException($"Failed to allocate buffer of size: {newCapacity* RadeonRaysAPI.BvhLeafNodeSizeInBytes()} bytes", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                allocation = m_BlasLeavesAllocator.GrowAndAllocate(allocationNodeCount, GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhLeafNodeSizeInBytes(), out oldCapacity, out newCapacity);
+                allocation = m_BlasLeavesAllocator.GrowAndAllocate(allocationNodeCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / RadeonRaysAPI.BvhLeafNodeSizeInBytes()), out oldCapacity, out newCapacity);
                 Debug.Assert(allocation.valid);
             }
 

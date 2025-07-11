@@ -41,18 +41,19 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         static public bool ReallocateBuffer(ComputeShader copyShader, int oldCapacity, int newCapacity, int elementSizeInBytes, ref GraphicsBuffer buffer)
         {
             int bufferStrideInBytes = buffer.stride;
-            var newBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, newCapacity * elementSizeInBytes / bufferStrideInBytes, bufferStrideInBytes);
+            var newBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, (int)((long)newCapacity * elementSizeInBytes / bufferStrideInBytes), bufferStrideInBytes);
             if (!newBuffer.IsValid())
                 return false;
 
-            CopyBuffer(copyShader, buffer, 0, newBuffer, 0, oldCapacity * elementSizeInBytes / 4);
+            CopyBuffer(copyShader, buffer, 0, newBuffer, 0, (int)((long)oldCapacity * elementSizeInBytes / 4));
             buffer.Dispose();
             buffer = newBuffer;
 
             return true;
         }
 
-        public const int MaxGraphicsBufferSizeInBytes = int.MaxValue;
+        public static long MaxGraphicsBufferSizeInBytes => SystemInfo.maxGraphicsBufferSize;
+        public static float MaxGraphicsBufferSizeInGigaBytes => MaxGraphicsBufferSizeInBytes / 1024f / 1024f / 1024f;
         static public int DivUp(int x, int y) => (x + y - 1) / y;
         static public int DivUp(int x, uint y) => (x + (int)y - 1) / (int)y;
         static public uint DivUp(uint x, uint y) => (x + y - 1) / y;
