@@ -1483,6 +1483,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public bool decalsEnabled;
             public BufferHandle  perVoxelOffset;
+            public BufferHandle  lightList;
             public DBufferOutput dbuffer;
             public GBufferOutput gbuffer;
             public TextureHandle depthBuffer;
@@ -1565,6 +1566,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
                     passData.perVoxelOffset = builder.ReadBuffer(lightLists.perVoxelOffset);
+
+                    passData.lightList = builder.ReadBuffer(lightLists.lightList);
                     passData.dbuffer = ReadDBuffer(dbuffer, builder);
 
                     passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
@@ -1583,6 +1586,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             BindDefaultTexturesLightingBuffers(context.defaultResources, context.cmd);
+
+                            if (data.lightList.IsValid())
+                                context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListTile, data.lightList);
 
                             BindDBufferGlobalData(data.dbuffer, context);
                             DrawOpaqueRendererList(context, data.frameSettings, data.opaqueRendererList);
