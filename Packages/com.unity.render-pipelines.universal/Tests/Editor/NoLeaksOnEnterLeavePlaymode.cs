@@ -104,12 +104,24 @@ class NoLeaksOnEnterLeavePlaymode
         var newTextures = Resources.FindObjectsOfTypeAll(typeof(Texture));
 
         string[] materialBlackList = {
+            // Debug materials
             "Hidden/Universal/HDRDebugView",
             "Hidden/Universal Render Pipeline/Debug/DebugReplacement",
-            "Roboto Mono - Regular Material", // Font leaks
-            "Inter - Regular Material"        // https://jira.unity3d.com/browse/UUM-28555
-        };
 
+            // Fonts are intentionally preserved in the editor for performance reasons.
+            "Apple Color Emoji - Regular Material",
+            "Arial - Regular Material",
+            "Arial Unicode MS - Regular Material",
+            "Helvetica Neue - Regular Material",
+            "Inter - Regular Material",                // UUM-28555
+            "Malgun Gothic - Regular Material",
+            "Microsoft Sans Serif - Regular Material",
+            "Microsoft YaHei - Regular Material",
+            "MS Gothic - Regular Material",
+            "Nirmala UI - Regular Material",
+            "Roboto Mono - Regular Material",
+            "Segoe UI Emoji - Regular Material"
+        };
         var oldMaterialNames = materialNames.Split(";");
         var materialsPerNameOld = CountResources(oldMaterialNames);
         var newMaterialNames = newMats.Select(m => m.name).ToArray();
@@ -126,8 +138,18 @@ class NoLeaksOnEnterLeavePlaymode
         CompareResourceLists(meshesPerNameOld, meshesPerNameNew, meshBlackList);
 
         string[] textureBlackList = {
-            "Inter - Regular Atlas",       // more fonts leakage :-\
-            "Roboto Mono - Regular Atlas", // more fonts leakage :-\
+            "Apple Color Emoji - Regular Atlas",
+            "Arial - Regular Atlas",
+            "Arial Unicode MS - Regular Atlas",
+            "Helvetica Neue - Regular Atlas",
+            "Inter - Regular Atlas",
+            "Malgun Gothic - Regular Atlas",
+            "Microsoft Sans Serif - Regular Atlas",
+            "Microsoft YaHei - Regular Atlas",
+            "MS Gothic - Regular Atlas",
+            "Nirmala UI - Regular Atlas",
+            "Roboto Mono - Regular Atlas",
+            "Segoe UI Emoji - Regular Atlas"
         };
 
         var oldTextureNames = textureNames.Split(";");
