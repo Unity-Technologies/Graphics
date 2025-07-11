@@ -154,7 +154,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 | ----------------- | ------------------------------------------------------------ |
 | **Enable**        | Enable the checkbox to simulate light scattering through volumetric fog. Enabling this property allows you to edit the **Multiplier** and **Shadow Dimmer** properties. |
 | **Multiplier**        | Sets the intensity of the volumetric lighting effect of this Light.           |
-| **Shadow Dimmer** | Dims the volumetric fog effect of this Light. Set this property to 0 to make the volumetric scattering compute faster. |
+| **Shadow Dimmer** | Dims the volumetric shadows the light casts. If you set this property to zero, Unity no longer samples the shadow map to create volumetric shadows, which might reduce the performance impact. |
 
 <a name="Shadow"></a>
 
