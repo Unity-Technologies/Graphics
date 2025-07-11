@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditorInternal;
 using System.Reflection;
@@ -7,6 +8,7 @@ using UnityEditor.Experimental.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -445,8 +447,8 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    [EditorTool(Description, typeof(PlanarReflectionProbe), null, (int)Mode, null)]
-    internal class PlanarReflectionProbeModifyBaseShapeTool : ReflectionProbeTool
+    [EditorTool(Description, typeof(PlanarReflectionProbe), toolPriority = (int)Mode)]
+    internal class PlanarReflectionProbeModifyBaseShapeTool : ReflectionProbeTool<PlanarReflectionProbe>
     {
         private const string Description = "Modify the base shape.";
         private const EditMode.SceneViewEditMode Mode = HDProbeUI.EditBaseShape;
@@ -455,8 +457,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public PlanarReflectionProbeModifyBaseShapeTool() : base(Description, Mode, IconName) { }
     }
 
-    [EditorTool(Description, typeof(PlanarReflectionProbe), null, (int)Mode, null)]
-    internal class PlanarReflectionProbeModifyMirrorPositionTool : ReflectionProbeTool
+    [EditorTool(Description, typeof(PlanarReflectionProbe), toolPriority = (int)Mode)]
+    internal class PlanarReflectionProbeModifyMirrorPositionTool : ReflectionProbeTool<PlanarReflectionProbe>
     {
         private const string Description = "Change the mirror position.";
         private const EditMode.SceneViewEditMode Mode = HDProbeUI.EditMirrorPosition;
@@ -465,8 +467,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public PlanarReflectionProbeModifyMirrorPositionTool() : base(Description, Mode, IconName) { }
     }
 
-    [EditorTool(Description, typeof(PlanarReflectionProbe), null, (int)Mode, null)]
-    internal class PlanarReflectionProbeModifyMirrorRotationTool : ReflectionProbeTool
+    [EditorTool(Description, typeof(PlanarReflectionProbe), toolPriority = (int)Mode)]
+    internal class PlanarReflectionProbeModifyMirrorRotationTool : ReflectionProbeTool<PlanarReflectionProbe>
     {
         private const string Description = "Change the mirror rotation.";
         private const EditMode.SceneViewEditMode Mode = HDProbeUI.EditMirrorRotation;
@@ -475,8 +477,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public PlanarReflectionProbeModifyMirrorRotationTool() : base(Description, Mode, IconName) { }
     }
 
-    [EditorTool(Description, typeof(PlanarReflectionProbe), null, (int)Mode, null)]
-    internal class PlanarReflectionProbeModifyEditInfluenceShapeTool : ReflectionProbeTool
+    [EditorTool(Description, typeof(PlanarReflectionProbe), toolPriority = (int)Mode)]
+    internal class PlanarReflectionProbeModifyEditInfluenceShapeTool : ReflectionProbeTool<PlanarReflectionProbe>
     {
         private const string Description = "Modify the influence volume blend distance.";
         private const EditMode.SceneViewEditMode Mode = HDProbeUI.EditInfluenceShape;
@@ -485,8 +487,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public PlanarReflectionProbeModifyEditInfluenceShapeTool() : base(Description, Mode, IconName) { }
     }
 
-    [EditorTool(Description, typeof(ReflectionProbe), null, (int)Mode, null)]
-    internal class ReflectionProbeModifyBaseShapeTool : ReflectionProbeTool
+    [EditorTool(Description, typeof(ReflectionProbe), toolPriority = (int)Mode)]
+    internal class ReflectionProbeModifyBaseShapeTool : ReflectionProbeTool<ReflectionProbe>
     {
         private const string Description = "Modify the base shape.";
         private const EditMode.SceneViewEditMode Mode = HDProbeUI.EditBaseShape;
@@ -495,8 +497,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public ReflectionProbeModifyBaseShapeTool() : base(Description, Mode, IconName) {}
     }
 
-    [EditorTool(Description, typeof(ReflectionProbe), null, (int)Mode, null)]
-    internal class ReflectionProbeModifyEditInfluenceShapeTool : ReflectionProbeTool
+    [EditorTool(Description, typeof(ReflectionProbe), toolPriority = (int)Mode)]
+    internal class ReflectionProbeModifyEditInfluenceShapeTool : ReflectionProbeTool<ReflectionProbe>
     {
         private const string Description = "Modify the influence volume blend distance.";
         private const EditMode.SceneViewEditMode Mode = HDProbeUI.EditInfluenceShape;
@@ -505,8 +507,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public ReflectionProbeModifyEditInfluenceShapeTool() : base(Description, Mode, IconName) { }
     }
 
-    [EditorTool(Description, typeof(ReflectionProbe), null, (int)Mode, null)]
-    internal class ReflectionProbeModifyInfluenceNormalShapeTool : ReflectionProbeTool
+    [EditorTool(Description, typeof(ReflectionProbe), toolPriority = (int)Mode)]
+    internal class ReflectionProbeModifyInfluenceNormalShapeTool : ReflectionProbeTool<ReflectionProbe>
     {
         private const string Description = "Modify the influence volume normal blend distance.";
         private const EditMode.SceneViewEditMode Mode = HDProbeUI.EditInfluenceNormalShape;
@@ -515,8 +517,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public ReflectionProbeModifyInfluenceNormalShapeTool() : base(Description, Mode, IconName) { }
     }
 
-    [EditorTool(Description, typeof(ReflectionProbe), null, (int)Mode, null)]
-    internal class ReflectionProbeModifyCapturePositionTool : ReflectionProbeTool
+    [EditorTool(Description, typeof(ReflectionProbe), toolPriority = (int)Mode)]
+    internal class ReflectionProbeModifyCapturePositionTool : ReflectionProbeTool<ReflectionProbe>
     {
         private const string Description = "Change the capture position.";
         private const EditMode.SceneViewEditMode Mode = HDProbeUI.EditCapturePosition;
@@ -525,13 +527,12 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ReflectionProbeModifyCapturePositionTool() : base(Description, Mode, IconName) { }
     }
 
-    internal class ReflectionProbeTool : EditorTool
+    internal class ReflectionProbeTool<T> : EditorTool where T : Component
     {
         private readonly string _description;
         private readonly EditMode.SceneViewEditMode _mode;
         private readonly string _iconName;
         private GUIContent _iconContent;
-        private bool _wasDeactivated;
 
         protected ReflectionProbeTool(string description, EditMode.SceneViewEditMode mode, string iconName)
         {
@@ -541,23 +542,32 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public override GUIContent toolbarIcon => _iconContent;
-        public override void OnWillBeDeactivated() => _wasDeactivated = true;
+        public override void OnWillBeDeactivated() => EditMode.SetEditModeToNone();
         public override void OnToolGUI(EditorWindow window)
         {
-            Bounds bounds = target switch
-            {
-                PlanarReflectionProbe planarProbe => planarProbe.bounds,
-                ReflectionProbe reflectionProbe => reflectionProbe.bounds,
-                _ => default
-            };
-            if (bounds == default)
-                return;
-            if (EditMode.editMode == _mode && !_wasDeactivated)
+            if (EditMode.editMode == _mode)
                 return;
 
+            List<T> usefulTargets = new();
+            foreach (Object thisTarget in targets)
+                if (thisTarget is T usefulTarget)
+                    usefulTargets.Add(usefulTarget);
+
+            if (usefulTargets.Count == 0)
+                return;
+
+            Bounds bounds = GetBoundsOfTargets(usefulTargets);
             EditMode.ChangeEditMode(_mode, bounds);
             ToolManager.SetActiveTool(this);
-            _wasDeactivated = false;
+        }
+
+        private static Bounds GetBoundsOfTargets(IEnumerable<T> targets) 
+        {
+            var bounds = new Bounds { min = Vector3.positiveInfinity, max = Vector3.negativeInfinity };
+            foreach (T t in targets)
+                bounds.Encapsulate(t.transform.position);
+
+            return bounds;
         }
 
         private void OnEnable() => _iconContent = EditorGUIUtility.TrIconContent(_iconName, _description);

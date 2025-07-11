@@ -10,12 +10,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent k_DensityMaskTextureHeader = new GUIContent("Mask Texture");
             public static readonly GUIContent k_MaskMaterialTextureHeader = new GUIContent("Mask Material");
 
-            public static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
-            {
-                EditorGUIUtility.IconContent("EditCollider", "|Modify the base shape. (SHIFT+1)"),
-                EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)")
-            };
-
             public static readonly GUIContent s_ScaleMode = new GUIContent("Scale Mode", "Specifies the scaling mode to apply to the Local Volumetric Fog Volume.");
             public static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Local Volumetric Fog. This is independent of the Transform's Scale.");
             public static readonly GUIContent s_AlbedoLabel = new GUIContent("Single Scattering Albedo", "The color this fog scatters light to.");
