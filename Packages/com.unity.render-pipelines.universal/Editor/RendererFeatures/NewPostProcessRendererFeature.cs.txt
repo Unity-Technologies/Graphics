@@ -158,6 +158,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
 
         #region PASS_NON_RENDER_GRAPH_PATH
 
+#if URP_COMPATIBILITY_MODE
         // Override the OnCameraSetup method to configure render targets and their clear states, and create temporary render target textures.
         // Unity calls this method before executing the render pass.
         // This method is used only in the Compatibility Mode path.
@@ -212,6 +213,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
             // Release the command buffer.
             CommandBufferPool.Release(cmd);
         }
+#endif
 
         // Free the resources the camera uses.
         // This method is used only in the Compatibility Mode path.

@@ -167,6 +167,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
         }
 
+#if URP_COMPATIBILITY_MODE
         internal static void SetScaleBiasRt(RasterCommandBuffer cmd, in RenderingData renderingData)
         {
             var renderer = renderingData.cameraData.renderer;
@@ -188,6 +189,7 @@ namespace UnityEngine.Rendering.Universal
 
             cmd.SetGlobalVector(Shader.PropertyToID("_ScaleBiasRt"), scaleBiasRt);
         }
+#endif
 
         internal static void Blit(CommandBuffer cmd,
             RTHandle source,

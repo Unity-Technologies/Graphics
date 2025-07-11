@@ -36,11 +36,11 @@ namespace UnityEngine.Rendering.Universal
 #if URP_COMPATIBILITY_MODE
             m_PassDataCIExy = new PassDataCIExy() { material = mat };
             m_PassDataDebugView = new PassDataDebugView() { material = mat };
-#endif
-            m_material = mat;
-
+            
             // Disabling native render passes (for non-RG) because it renders to 2 different render targets
             useNativeRenderPass = false;
+#endif
+            m_material = mat;
         }
 
         // Common to RenderGraph and non-RenderGraph paths

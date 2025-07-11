@@ -26,12 +26,14 @@ namespace UnityEngine.Rendering.Tests
             Assert.IsTrue(cullingResults.visibleLights.Length == lightsInScene.Length);
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // This path does not implement the CullContextData.
         }
+#endif
     }
 
     class RenderGraphTests

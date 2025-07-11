@@ -28,10 +28,10 @@ namespace UnityEngine.Rendering.Universal
         {
             profilingSampler = ProfilingSampler.Get(URPProfileId.DrawScreenSpaceUI);
             renderPassEvent = evt;
-            useNativeRenderPass = false;
             m_RenderOffscreen = renderOffscreen;
 
 #if URP_COMPATIBILITY_MODE
+            useNativeRenderPass = false;
             m_PassData = new PassData();
 #endif
         }

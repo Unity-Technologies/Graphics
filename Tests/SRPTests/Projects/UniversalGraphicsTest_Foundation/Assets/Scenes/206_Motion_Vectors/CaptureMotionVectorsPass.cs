@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
             m_intensity = intensity;
         }
 
+#if URP_COMPATIBILITY_MODE
         [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -40,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
             CommandBufferPool.Release(rawcmd);
         }
-
+#endif
 
         static void ExecutePass(RTHandle targetHandle, RasterCommandBuffer cmd, Camera camera, Material material, float motionIntensity)
         {

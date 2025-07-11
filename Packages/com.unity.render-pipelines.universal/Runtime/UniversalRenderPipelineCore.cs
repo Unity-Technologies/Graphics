@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal UniversalRenderingData universalRenderingData => frameData.Get<UniversalRenderingData>();
 
+#if URP_COMPATIBILITY_MODE
         // Non-rendergraph path only. Do NOT use with rendergraph!
         internal ref CommandBuffer commandBuffer
         {
@@ -111,6 +112,7 @@ namespace UnityEngine.Rendering.Universal
                 return ref cmd;
             }
         }
+#endif
 
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
@@ -289,6 +291,7 @@ namespace UnityEngine.Rendering.Universal
             return frameData.Get<UniversalCameraData>().GetProjectionMatrixNoJitter(viewIndex);
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Includes camera jitter if required by active features.
         /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
@@ -314,6 +317,7 @@ namespace UnityEngine.Rendering.Universal
         {
             return frameData.Get<UniversalCameraData>().GetGPUProjectionMatrixNoJitter(viewIndex);
         }
+#endif
 
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
         {
@@ -468,6 +472,7 @@ namespace UnityEngine.Rendering.Universal
             return frameData.Get<UniversalCameraData>().IsHandleYFlipped(handle);
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
@@ -480,6 +485,7 @@ namespace UnityEngine.Rendering.Universal
         {
             return frameData.Get<UniversalCameraData>().IsCameraProjectionMatrixFlipped();
         }
+#endif
 
         /// <summary>
         /// True if the render target's projection matrix is flipped. This happens when the pipeline is rendering

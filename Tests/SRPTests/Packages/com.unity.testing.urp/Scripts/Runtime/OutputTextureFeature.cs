@@ -67,6 +67,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             ConfigureInput(inputRequirement);
         }
 
+#if !UNITY_6000_3_OR_NEWER || URP_COMPATIBILITY_MODE
         // This method is called before executing the render pass.
         // It can be used to configure render targets and their clear state. Also to create temporary render target textures.
         // When empty this render pass will render to the active camera render target.
@@ -95,6 +96,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+#endif
 
         private class PassData
         {

@@ -25,6 +25,7 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
             m_Material = material;
         }
 
+#if URP_COMPATIBILITY_MODE
         // This method is called before executing the render pass.
         // It can be used to configure render targets and their clear state. Also to create temporary render target textures.
         // When empty this render pass will render to the active camera render target.
@@ -70,6 +71,7 @@ public class Deferred_GBuffer_Visualization_RenderFeature : ScriptableRendererFe
                 cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Triangles, 3, 1);
             }
         }
+#endif
 
         // Cleanup any allocated resources that were created during the execution of this render pass.
         public override void OnCameraCleanup(CommandBuffer cmd)

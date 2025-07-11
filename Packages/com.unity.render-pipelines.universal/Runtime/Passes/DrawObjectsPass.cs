@@ -20,11 +20,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_IsOpaque;
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Used to indicate if the active target of the pass is the back buffer
         /// </summary>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete + " #from(6000.3)")]
         public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
+#endif
 
         /// <summary>
         /// Used to indicate whether transparent objects should receive shadows or not.

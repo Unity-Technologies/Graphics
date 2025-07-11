@@ -32,11 +32,13 @@ internal class ForceDepthPrepassFeature : ScriptableRendererFeature
             copyDepthPasses.EnqueuePasses(renderer);
     }
 
+#if URP_COMPATIBILITY_MODE
     [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
     public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
     {
         copyDepthPasses.SetupForNonRGPath(renderer, renderingData.cameraData.cameraTargetDescriptor);
     }
+#endif
 
     public override void Create()
     {
@@ -83,6 +85,7 @@ internal class ThreeCopyDepths : ScriptableRenderPass
         m_CopyDepthPass3 = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthShader, copyToDepth: true, copyResolvedDepth: true, customPassName: "Third Copy");
     }
 
+#if URP_COMPATIBILITY_MODE
     public void SetupForNonRGPath(ScriptableRenderer renderer, RenderTextureDescriptor cameraTextureDescriptor)
     {
         var depthDesc = cameraTextureDescriptor;
@@ -103,6 +106,7 @@ internal class ThreeCopyDepths : ScriptableRenderPass
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
     }
+#endif
 
     internal void EnqueuePasses(ScriptableRenderer renderer)
     {

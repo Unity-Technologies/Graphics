@@ -47,10 +47,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             profilingSampler = ProfilingSampler.Get(URPProfileId.DrawDepthNormalPrepass);
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
-            useNativeRenderPass = false;
             this.shaderTagIds = k_DepthNormals;
 
 #if URP_COMPATIBILITY_MODE
+            useNativeRenderPass = false;
             m_PassData = new PassData();
 #endif
         }

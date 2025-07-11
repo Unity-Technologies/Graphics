@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class UniversalRenderingData : ContextItem
     {
+#if URP_COMPATIBILITY_MODE
         // Non-rendergraph path only. Do NOT use with rendergraph! (RG execution timeline breaks.)
         // NOTE: internal for a ref return in legacy RenderingData.commandBuffer.
         internal CommandBuffer m_CommandBuffer;
@@ -20,6 +21,7 @@ namespace UnityEngine.Rendering.Universal
                 return m_CommandBuffer;
             }
         }
+#endif
 
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
@@ -71,7 +73,9 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Reset()
         {
+#if URP_COMPATIBILITY_MODE
             m_CommandBuffer = default;
+#endif
             cullResults = default;
             supportsDynamicBatching = default;
             perObjectData = default;

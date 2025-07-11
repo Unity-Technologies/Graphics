@@ -39,6 +39,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
             m_Material = material;
         }
 
+#if URP_COMPATIBILITY_MODE
         [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -51,6 +52,7 @@ public class NormalReconstructionTestFeature : ScriptableRendererFeature
 
             CommandBufferPool.Release(cmd);
         }
+#endif
 
         static void ExecutePass(RasterCommandBuffer cmd, in CameraData cameraData)
         {

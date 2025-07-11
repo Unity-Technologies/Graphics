@@ -54,8 +54,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial, Material blitHDRMaterial)
         {
             profilingSampler = ProfilingSampler.Get(URPProfileId.BlitFinalToBackBuffer);
-            base.useNativeRenderPass = false;
 #if URP_COMPATIBILITY_MODE
+            base.useNativeRenderPass = false;
             m_PassData = new PassData();
 #endif
             renderPassEvent = evt;

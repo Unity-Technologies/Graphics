@@ -421,6 +421,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Sets up the keywords and data for forward lighting.
         /// </summary>
@@ -435,6 +436,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             SetupLights(CommandBufferHelpers.GetUnsafeCommandBuffer(renderingData.commandBuffer), universalRenderingData, cameraData, lightData);
         }
+#endif
 
         static ProfilingSampler s_SetupForwardLights = new ProfilingSampler("Setup Forward Lights");
         private class SetupLightPassData

@@ -75,11 +75,13 @@ public class RandomUAVFeature : ScriptableRendererFeature
             m_ProfilingOutputSampler = new ProfilingSampler(profilerTagOutput);
         }
 
+#if URP_COMPATIBILITY_MODE
         [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             // Don't do anything as this is a RenderGraph only feature
         }
+#endif
 
         public void Setup(ScriptableRenderer renderer, Material randomUAVFillMaterial, Material randomUAVReadWriteMaterial, Material randomUAVFinalOutputMaterial)
         {

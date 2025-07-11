@@ -37,6 +37,7 @@ public class CaptureDepthFeature : ScriptableRendererFeature
             m_Material = material;
         }
 
+#if URP_COMPATIBILITY_MODE
         [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -67,6 +68,7 @@ public class CaptureDepthFeature : ScriptableRendererFeature
 
             CommandBufferPool.Release(cmd);
         }
+#endif
 
         class CaptureDepthPassData
         {
@@ -114,6 +116,7 @@ public class CaptureDepthFeature : ScriptableRendererFeature
             renderPassEvent = RenderPassEvent.AfterRendering;
         }
 
+#if URP_COMPATIBILITY_MODE
         [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -126,6 +129,7 @@ public class CaptureDepthFeature : ScriptableRendererFeature
 
             CommandBufferPool.Release(cmd);
         }
+#endif
 
         class DrawDepthPassData
         {

@@ -1,3 +1,4 @@
+#if URP_COMPATIBILITY_MODE
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
@@ -1979,3 +1980,4 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
 #endregion
     }
 }
+#endif

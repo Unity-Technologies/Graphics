@@ -535,12 +535,12 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+#if URP_COMPATIBILITY_MODE
         internal override bool SupportsNativeRenderPass()
         {
             return m_Technique == DecalTechnique.GBuffer || m_Technique == DecalTechnique.ScreenSpace;
         }
 
-#if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete + " #from(6000.2)")]
         public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)

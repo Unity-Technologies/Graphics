@@ -204,17 +204,20 @@ namespace UnityEngine.Rendering.Universal
     /// </remarks>
     public abstract partial class ScriptableRenderPass : IRenderGraphRecorder
     {
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// RTHandle alias for BuiltinRenderTextureType.CameraTarget which is the backbuffer.
         /// </summary>
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public static RTHandle k_CameraTarget = RTHandles.Alloc(BuiltinRenderTextureType.CameraTarget);
+#endif
 
         /// <summary>
         /// The event when the render pass executes.
         /// </summary>
         public RenderPassEvent renderPassEvent { get; set; }
-
+        
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// The render target identifiers for color attachments.
         /// This is obsolete, use colorAttachmentHandles instead.
@@ -264,6 +267,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool[] overriddenColorStoreActions => m_OverriddenColorStoreActions;
 
         internal bool overriddenDepthStoreAction => m_OverriddenDepthStoreAction;
+#endif
 
         /// <summary>
         /// The input requirements for the <c>ScriptableRenderPass</c>, which has been set using <c>ConfigureInput</c>
@@ -271,6 +275,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureInput"/>
         public ScriptableRenderPassInput input => m_Input;
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// The flag to use when clearing.
         /// </summary>
@@ -284,16 +289,19 @@ namespace UnityEngine.Rendering.Universal
 
         RenderBufferStoreAction[] m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store };
         RenderBufferStoreAction m_DepthStoreAction = RenderBufferStoreAction.Store;
+#endif
 
         /// <summary>
         /// Setting this property to true forces rendering of all passes in the URP frame via an intermediate texture. Use this option for passes that do not support rendering directly to the backbuffer or that require sampling the active color target. Using this option might have a significant performance impact on untethered VR platforms.
         /// </summary>
         public bool requiresIntermediateTexture { get; set; }
 
+#if URP_COMPATIBILITY_MODE
         // by default all store actions are Store. The overridden flags are used to keep track of explicitly requested store actions, to
         // help figuring out the correct final store action for merged render passes when using the RenderPass API.
         private bool[] m_OverriddenColorStoreActions = new bool[] { false };
         private bool m_OverriddenDepthStoreAction = false;
+#endif
 
         private ProfilingSampler m_ProfingSampler;
         private string m_PassName;
@@ -344,11 +352,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         protected internal string passName{ get { return m_PassName; } }
 
-        internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
+#if URP_COMPATIBILITY_MODE
         internal bool useNativeRenderPass { get; set; }
-
+#endif
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
@@ -357,14 +365,19 @@ namespace UnityEngine.Rendering.Universal
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
 
+#if URP_COMPATIBILITY_MODE
         RTHandle[] m_ColorAttachments;
         internal RTHandle[] m_InputAttachments = new RTHandle[8];
         internal bool[] m_InputAttachmentIsTransient = new bool[8];
+        internal bool overrideCameraTarget { get; set; }
         RTHandle m_DepthAttachment;
+#endif
 
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
+#if URP_COMPATIBILITY_MODE
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
+#endif
 
         static internal DebugHandler GetActiveDebugHandler(UniversalCameraData cameraData)
         {
@@ -380,6 +393,7 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()            
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+#if URP_COMPATIBILITY_MODE
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618
             m_ColorAttachments = new RTHandle[] { k_CameraTarget, null, null, null, null, null, null, null };
@@ -402,6 +416,7 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None
             };
+#endif
 
             profilingSampler = new ProfilingSampler(this.GetType().Name);
         }
@@ -417,6 +432,7 @@ namespace UnityEngine.Rendering.Universal
             m_Input = passInput;
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Configures the Store Action for a color attachment of this render pass.
         /// </summary>
@@ -472,9 +488,9 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureInputAttachments(RTHandle[] inputs, bool[] isTransient)
         {
             // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
+#pragma warning disable CS0618
             ConfigureInputAttachments(inputs);
-            #pragma warning restore CS0618
+#pragma warning restore CS0618
 
             m_InputAttachmentIsTransient = isTransient;
         }
@@ -640,7 +656,7 @@ namespace UnityEngine.Rendering.Universal
         {
             throw new NotSupportedException("ConfigureTarget with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead");
         }
-
+        
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -651,9 +667,9 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RTHandle[] colorAttachments)
         {
             // Disable obsolete warning for internal usage
-            #pragma warning disable CS0618
+#pragma warning disable CS0618
             ConfigureTarget(colorAttachments, k_CameraTarget);
-            #pragma warning restore CS0618
+#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -696,7 +712,7 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         { }
-
+#endif
 
         /// <summary>
         /// Called upon finish rendering a camera. You can use this callback to release any resources created
@@ -708,7 +724,8 @@ namespace UnityEngine.Rendering.Universal
         public virtual void OnCameraCleanup(CommandBuffer cmd)
         {
         }
-
+        
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Called upon finish rendering a camera stack. You can use this callback to release any resources created
         /// by this render pass that need to be cleanup once all cameras in the stack have finished rendering.
@@ -731,13 +748,15 @@ namespace UnityEngine.Rendering.Universal
         {
             Debug.LogWarning("Execute is not implemented, the pass " + this.ToString() + " won't be executed in the current render loop.");
         }
+#endif
 
         /// <inheritdoc cref="IRenderGraphRecorder.RecordRenderGraph"/>
         public virtual void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
             Debug.LogWarning("The render pass " + this.ToString() + " does not have an implementation of the RecordRenderGraph method. Please implement this method, or consider turning on Compatibility Mode (RenderGraph disabled) in the menu Edit > Project Settings > Graphics > URP. Otherwise the render pass will have no effect. For more information, refer to https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/customizing-urp.html.");
         }
-
+        
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Add a blit command to the context for execution. This changes the active render target in the ScriptableRenderer to
         /// destination.
@@ -803,6 +822,7 @@ namespace UnityEngine.Rendering.Universal
             var renderer = data.cameraData.renderer;
             Blit(cmd, source, renderer.cameraColorTargetHandle, material, passIndex);
         }
+#endif
 
         /// <summary>
         /// Creates <c>DrawingSettings</c> based on current the rendering state.

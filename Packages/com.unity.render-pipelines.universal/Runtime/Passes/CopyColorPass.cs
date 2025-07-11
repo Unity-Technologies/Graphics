@@ -44,9 +44,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
-            base.useNativeRenderPass = false;
 
 #if URP_COMPATIBILITY_MODE
+            base.useNativeRenderPass = false;
             m_PassData = new PassData();
 #endif
         }

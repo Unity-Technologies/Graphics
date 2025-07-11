@@ -637,7 +637,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MaxShadowDistanceSq = cameraData.maxShadowDistance * cameraData.maxShadowDistance;
             m_CascadeBorder = shadowData.mainLightShadowCascadeBorder;
             m_CreateEmptyShadowmap = false;
+
+#if URP_COMPATIBILITY_MODE
             useNativeRenderPass = true;
+#endif
 
             return true;
         }
@@ -682,7 +685,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             shadowData.isKeywordAdditionalLightShadowsEnabled = true;
             m_CreateEmptyShadowmap = true;
+            
+#if URP_COMPATIBILITY_MODE
             useNativeRenderPass = false;
+#endif
 
             m_SetKeywordForEmptyShadowmap = shadowsEnabled;
 

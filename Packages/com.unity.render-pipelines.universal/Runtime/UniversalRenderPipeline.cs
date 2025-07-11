@@ -80,7 +80,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     const string k_Name = nameof(ScriptableRenderer);
                     public static readonly ProfilingSampler setupCullingParameters = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.SetupCullingParameters)}");
+#if URP_COMPATIBILITY_MODE
                     public static readonly ProfilingSampler setup = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.Setup)}");
+#endif
                 };
 
                 public static class Context
@@ -187,8 +189,10 @@ namespace UnityEngine.Rendering.Universal
         internal static RenderGraph s_RenderGraph;
         internal static RTHandleResourcePool s_RTHandlePool;
 
+#if URP_COMPATIBILITY_MODE
         // internal for tests
         internal static bool useRenderGraph;
+#endif
 
         // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
@@ -265,15 +269,12 @@ namespace UnityEngine.Rendering.Universal
             DecalProjector.defaultMaterial = asset.decalMaterial;
 
             s_RenderGraph = new RenderGraph("URPRenderGraph");
-            useRenderGraph =
 #if URP_COMPATIBILITY_MODE
-                !GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode;
-#else
-                true;
-#endif
+            useRenderGraph = !GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode;
 
 #if !UNITY_EDITOR
             Debug.Log($"RenderGraph is now {(useRenderGraph ? "enabled" : "disabled")}.");
+#endif
 #endif
 
             s_RTHandlePool = new RTHandleResourcePool();
@@ -795,7 +796,7 @@ namespace UnityEngine.Rendering.Universal
                 if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
                     ScriptableRenderContext.EmitGeometryForCamera(camera);
 #if UNITY_EDITOR
-                 else if (isSceneViewCamera)
+                else if (isSceneViewCamera)
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
 
@@ -860,12 +861,8 @@ namespace UnityEngine.Rendering.Universal
 
                 renderer.AddRenderPasses(ref legacyRenderingData);
 
-                if (useRenderGraph)
-                {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
-                    renderer.FinishRenderGraphRendering(cmd);
-                }
-                else
+#if URP_COMPATIBILITY_MODE
+                if (!useRenderGraph)
                 {
                     // Disable obsolete warning for internal usage
                     #pragma warning disable CS0618
@@ -878,6 +875,12 @@ namespace UnityEngine.Rendering.Universal
                     renderer.Execute(context, ref legacyRenderingData);
                     #pragma warning restore CS0618
                 }
+                else
+#endif
+                {
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
+                    renderer.FinishRenderGraphRendering(cmd);
+                }
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
@@ -885,6 +888,7 @@ namespace UnityEngine.Rendering.Universal
 
             using (new ProfilingScope(Profiling.Pipeline.Context.submit))
             {
+#if URP_COMPATIBILITY_MODE
                 // Render Graph will do the validation by itself, so this is redundant in that case
                 if (!useRenderGraph && renderer.useRenderPassEnabled && !context.SubmitForRenderPassValidation())
                 {
@@ -892,6 +896,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetKeyword(ShaderGlobalKeywords.RenderPassEnabled, false);
                     Debug.LogWarning("Rendering command not supported inside a native RenderPass found. Falling back to non-RenderPass rendering path");
                 }
+#endif
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
             }
             ScriptableRenderer.current = null;
@@ -1613,12 +1618,14 @@ namespace UnityEngine.Rendering.Universal
             data.supportsDynamicBatching = settings.supportsDynamicBatching;
             data.perObjectData = GetPerObjectLightFlags(universalLightData, settings, isForwardPlus);
 
+#if URP_COMPATIBILITY_MODE
             // Render graph does not support RenderingData.commandBuffer as its execution timeline might break.
             // RenderingData.commandBuffer is available only for the old non-RG execute code path.
             if(useRenderGraph)
                 data.m_CommandBuffer = null;
             else
                 data.m_CommandBuffer = cmd;
+#endif
 
             UniversalRenderer universalRenderer = renderer as UniversalRenderer;
             if (universalRenderer != null)
