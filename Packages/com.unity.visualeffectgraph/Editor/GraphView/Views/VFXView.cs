@@ -1827,7 +1827,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 VFXGraph.explicitCompile = true;
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
+                controller.graph.CompileAndUpdateAsset(controller.graph.GetResource().asset); 
                 VFXGraph.explicitCompile = false;
             }
             foreach (var model in m_ModelsWithHiddenBadges)

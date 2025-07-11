@@ -375,7 +375,8 @@ namespace UnityEditor.VFX.UI
                         {
                             graph.errorManager.RefreshCompilationReport();
                             VFXGraph.explicitCompile = true;
-                            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                            var asset = graph.GetResource().asset;
+                            graph.CompileAndUpdateAsset(asset);
                             // As are implemented subgraph now, compiling dependents chain can reset dirty flag on used subgraphs, which will make an infinite loop, this is bad!
                             graph.SetExpressionGraphDirty(false);
                             VFXGraph.explicitCompile = false;

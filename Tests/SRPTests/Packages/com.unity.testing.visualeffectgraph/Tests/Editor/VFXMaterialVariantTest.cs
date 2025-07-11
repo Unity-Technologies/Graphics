@@ -386,45 +386,54 @@ namespace UnityEditor.VFX.Test
         {
             public override string ToString()
             {
-                return compilationMode.ToString() + (createEditor ? "_With_Inspector" : string.Empty);
+                return $"{compilationMode}{(createEditor ? "_With_Inspector" : string.Empty)}{(usingImporter ? "_Using_Importer" : string.Empty)}";
             }
             internal VFXCompilationMode compilationMode;
             internal bool createEditor;
+            internal bool usingImporter;
         }
 
         public static Cross_Pipeline_VFX_Override_Test_Case[] k_Cross_Pipeline_Cases = new[]
         {
-            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = false },
-            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = false },
-            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = true },
-            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = true },
+            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = false , usingImporter = false},
+            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = false , usingImporter = false},
+            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = true  , usingImporter = false},
+            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = true  , usingImporter = false},
+
+            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = false , usingImporter = true},
+            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = false , usingImporter = true},
+            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Edition, createEditor = true  , usingImporter = true},
+            new Cross_Pipeline_VFX_Override_Test_Case() { compilationMode = VFXCompilationMode.Runtime, createEditor = true  , usingImporter = true},
         };
 
         private static System.Reflection.PropertyInfo kGetAllowLocking = typeof(Material).GetProperty("allowLocking", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
-        [UnityTest, Description("Cover behavior from UUM-29663, in editor, both settings from HDRP & URP must be kept")]
+        [UnityTest, Description("Cover behavior from UUM-29663 & UUM-77448, in editor, both settings from HDRP & URP must be kept")]
         public IEnumerator Cross_Pipeline_VFX_Override([ValueSource(nameof(k_Cross_Pipeline_Cases))] Cross_Pipeline_VFX_Override_Test_Case testCase)
         {
             var path = "Packages/com.unity.testing.visualeffectgraph/Scenes/CrossPipeline_MaterialOverride.vfx";
 
-            if (testCase.compilationMode == VFXCompilationMode.Edition)
-            {
-                //Had to open the VFX View to switch the compilation to edition
-                var initialAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-                var window = VFXViewWindow.GetWindow<VFXViewWindow>();
-                window.LoadAsset(initialAsset, null);
-                for (int i = 0; i < 4; ++i) //Wait for VFX to be load in view
-                    yield return null;
-            }
-
-            var allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
-            var visualEffectAsset = allAssets.OfType<VisualEffectAsset>().FirstOrDefault();
+            var visualEffectAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
             Assert.IsNotNull(visualEffectAsset);
 
             VFXGraph graph = visualEffectAsset.GetOrCreateResource().GetOrCreateGraph();
             Assert.IsNotNull(graph);
-            Assert.AreEqual(testCase.compilationMode, graph.GetCompilationMode());
 
+            graph.SetCompilationMode(testCase.compilationMode);
+
+            UnityEngine.Object[] allAssets;
+
+            if (testCase.usingImporter)
+            {
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+            }
+            else
+            {
+                allAssets = graph.CompileAndUpdateAsset(visualEffectAsset);
+            }
+
+            Assert.AreEqual(testCase.compilationMode, graph.GetCompilationMode());
             var output = graph.children.OfType<VFXComposedParticleOutput>().FirstOrDefault();
             Assert.IsNotNull(output);
 

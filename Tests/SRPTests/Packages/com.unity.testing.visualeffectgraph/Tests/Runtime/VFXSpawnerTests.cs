@@ -943,7 +943,7 @@ namespace UnityEditor.VFX.Test
             spawnerOutput.LinkFrom(spawnerInit);
 
             graph.SetCompilationMode(VFXCompilationMode.Edition);
-            graph.RecompileIfNeeded(false, true);
+            graph.CompileAndUpdateAsset(graph.visualEffectResource.asset);
 
             var gameObj = new GameObject("CreateSpawner_Set_Attribute_With_Delay");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
