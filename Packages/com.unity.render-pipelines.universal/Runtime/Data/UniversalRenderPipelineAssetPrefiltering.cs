@@ -174,6 +174,10 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SCREEN_COORD_OVERRIDE)]
         [SerializeField] private bool m_PrefilterScreenCoord = false;
 
+        // Screen space irradiance.
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.ScreenSpaceIrradiance)]
+        [SerializeField] private bool m_PrefilterScreenSpaceIrradiance = false;
+
         // Native Render Pass
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.RenderPassEnabled)]
         [SerializeField] private bool m_PrefilterNativeRenderPass = false;
@@ -234,6 +238,8 @@ namespace UnityEngine.Rendering.Universal
             public bool stripBicubicLightmapSampling;
             public bool stripReflectionProbeRotation;
 
+            public bool stripScreenSpaceIrradiance;
+
             public static ShaderPrefilteringData GetDefault()
             {
                 return new ShaderPrefilteringData()
@@ -290,6 +296,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_PrefilterBicubicLightmapSampling       = prefilteringData.stripBicubicLightmapSampling;
             m_PrefilterReflectionProbeRotation       = prefilteringData.stripReflectionProbeRotation;
+
+            m_PrefilterScreenSpaceIrradiance         = prefilteringData.stripScreenSpaceIrradiance;
         }
     }
 }

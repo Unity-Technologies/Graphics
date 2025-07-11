@@ -146,6 +146,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetViewport(data.cameraData.xr.GetViewport());
             }
 
+            bool useScreenSpaceIrradiance = data.screenSpaceIrradianceHdl.IsValid();
+            cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceIrradiance, useScreenSpaceIrradiance);
+            if (useScreenSpaceIrradiance)
+            {
+                cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceIrradiance, data.screenSpaceIrradianceHdl);
+            }
+
             // scaleBias.x = flipSign
             // scaleBias.y = scale
             // scaleBias.z = bias
@@ -181,6 +188,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             internal TextureHandle albedoHdl;
             internal TextureHandle depthHdl;
+            internal TextureHandle screenSpaceIrradianceHdl;
 
             internal UniversalCameraData cameraData;
             internal bool isOpaque;
@@ -297,6 +305,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 TextureHandle ssaoTexture = resourceData.ssaoTexture;
                 if (ssaoTexture.IsValid())
                     builder.UseTexture(ssaoTexture, AccessFlags.Read);
+
+                TextureHandle irradianceTexture = resourceData.irradianceTexture;
+                if (irradianceTexture.IsValid())
+                {
+                    passData.screenSpaceIrradianceHdl = irradianceTexture;
+                    builder.UseTexture(irradianceTexture, AccessFlags.Read);
+                }
+
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
                 InitRendererLists(renderingData, cameraData, lightData, ref passData, default(ScriptableRenderContext), renderGraph, true);
@@ -327,6 +343,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                         TransparentSettingsPass.ExecutePass(context.cmd);
 
                     bool yFlip = data.cameraData.IsRenderTargetProjectionMatrixFlipped(data.albedoHdl, data.depthHdl);
+
+                    bool useScreenSpaceIrradiance = data.screenSpaceIrradianceHdl.IsValid();
+                    context.cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceIrradiance, useScreenSpaceIrradiance);
+                    if (useScreenSpaceIrradiance)
+                    {
+                        context.cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceIrradiance, data.screenSpaceIrradianceHdl);
+                    }
 
                     ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, yFlip);
                 });
@@ -361,7 +384,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ColorTargetIndentifiers = new RTHandle[2];
 #endif
         }
-        
+
 #if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Sets up the pass.

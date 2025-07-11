@@ -160,6 +160,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (usesRenderingLayers)
                 cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
 
+            bool useScreenSpaceIrradiance = data.screenSpaceIrradianceHdl.IsValid();
+            cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceIrradiance, useScreenSpaceIrradiance);
+            if (useScreenSpaceIrradiance)
+            {
+                cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceIrradiance, data.screenSpaceIrradianceHdl);
+            }
+
             cmd.DrawRendererList(rendererList);
 
             // Render objects that did not match any shader pass with error shader
@@ -178,6 +185,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal DeferredLights deferredLights;
             internal RendererListHandle rendererListHdl;
             internal RendererListHandle objectsWithErrorRendererListHdl;
+
+            internal TextureHandle screenSpaceIrradianceHdl;
 
 #if URP_COMPATIBILITY_MODE
             internal TextureHandle[] gbuffer;
@@ -244,6 +253,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 Debug.Assert(gbuffer[i].IsValid());
                 builder.SetRenderAttachment(gbuffer[i], i, AccessFlags.Write);
+            }
+
+            TextureHandle irradianceTexture = resourceData.irradianceTexture;
+            if (irradianceTexture.IsValid())
+            {
+                passData.screenSpaceIrradianceHdl = irradianceTexture;
+                builder.UseTexture(irradianceTexture, AccessFlags.Read);
             }
 
             RenderGraphUtils.UseDBufferIfValid(builder, resourceData);

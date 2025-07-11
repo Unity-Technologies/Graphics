@@ -1009,6 +1009,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
             {
                 { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },

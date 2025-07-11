@@ -896,6 +896,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int overlayUITexture = Shader.PropertyToID("_OverlayUITexture");
         public static readonly int hdrOutputLuminanceParams = Shader.PropertyToID("_HDROutputLuminanceParams");
         public static readonly int hdrOutputGradingParams = Shader.PropertyToID("_HDROutputGradingParams");
+
+        public static readonly int screenSpaceIrradiance = Shader.PropertyToID("_ScreenSpaceIrradiance");
     }
 
     /// <summary>
@@ -977,6 +979,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword DecalLayers;
         public static GlobalKeyword WriteRenderingLayers;
         public static GlobalKeyword ScreenSpaceOcclusion;
+        public static GlobalKeyword ScreenSpaceIrradiance;
         public static GlobalKeyword _SPOT;
         public static GlobalKeyword _DIRECTIONAL;
         public static GlobalKeyword _POINT;
@@ -1090,6 +1093,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.DecalLayers = GlobalKeyword.Create(ShaderKeywordStrings.DecalLayers);
             ShaderGlobalKeywords.WriteRenderingLayers = GlobalKeyword.Create(ShaderKeywordStrings.WriteRenderingLayers);
             ShaderGlobalKeywords.ScreenSpaceOcclusion = GlobalKeyword.Create(ShaderKeywordStrings.ScreenSpaceOcclusion);
+            ShaderGlobalKeywords.ScreenSpaceIrradiance = GlobalKeyword.Create(ShaderKeywordStrings.ScreenSpaceIrradiance);
             ShaderGlobalKeywords._SPOT = GlobalKeyword.Create(ShaderKeywordStrings._SPOT);
             ShaderGlobalKeywords._DIRECTIONAL = GlobalKeyword.Create(ShaderKeywordStrings._DIRECTIONAL);
             ShaderGlobalKeywords._POINT = GlobalKeyword.Create(ShaderKeywordStrings._POINT);
@@ -1310,6 +1314,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Screen Space Occlusion, such as Screen Space Ambient Occlusion (SSAO). </summary>
         public const string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
+
+        /// <summary> Keyword used for Screen Space Global Illumination. </summary>
+        public const string ScreenSpaceIrradiance = "_SCREEN_SPACE_IRRADIANCE";
 
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public const string PointSampling = "_POINT_SAMPLING";

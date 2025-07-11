@@ -842,6 +842,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordCollection Forward = new KeywordCollection
             {
                 { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
+                { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -867,6 +868,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
+                { CoreKeywordDescriptors.ScreenSpaceIrradiance },
                 { CoreKeywordDescriptors.StaticLightmap },
                 { CoreKeywordDescriptors.DynamicLightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },

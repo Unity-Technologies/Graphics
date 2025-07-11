@@ -958,6 +958,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripScreenCoordOverride = stripScreenCoord;
             spd.stripBicubicLightmapSampling = stripBicubicLightmap;
             spd.stripReflectionProbeRotation = stripReflectionProbeRotation;
+            spd.stripScreenSpaceIrradiance = true; // This is currently not exposed to the user nor used by anything internal.
 
             // Rendering Modes
             // Check if only Deferred is being used

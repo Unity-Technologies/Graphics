@@ -123,7 +123,9 @@ void InitializeBakedGIData(Varyings IN, inout InputData inputData)
     half3 SH = IN.vertexSH;
     #endif
 
-#if defined(DYNAMICLIGHTMAP_ON)
+#if defined(_SCREEN_SPACE_IRRADIANCE)
+    inputData.bakedGI = SAMPLE_GI(_ScreenSpaceIrradiance, inputData.positionCS.xy);
+#elif defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, IN.dynamicLightmapUV, SH, inputData.normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw);
 #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))

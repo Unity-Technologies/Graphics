@@ -1,4 +1,3 @@
-
 #ifndef UNIVERSAL_GLOBAL_ILLUMINATION_INCLUDED
 #define UNIVERSAL_GLOBAL_ILLUMINATION_INCLUDED
 
@@ -14,6 +13,15 @@
 #endif
 #if USE_CLUSTER_LIGHT_LOOP
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#endif
+
+#if defined(_SCREEN_SPACE_IRRADIANCE)
+TEXTURE2D_X(_ScreenSpaceIrradiance);
+
+half3 SampleScreenSpaceGI(float2 pos)
+{
+    return LOAD_TEXTURE2D_X(_ScreenSpaceIrradiance, pos).rgb;
+}
 #endif
 
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
@@ -192,10 +200,9 @@ half3 SampleLightmap(float2 staticLightmapUV, half3 normalWS)
     return result;
 }
 
-// We either sample GI from baked lightmap or from probes.
-// If lightmap: sampleData.xy = lightmapUV
-// If probe: sampleData.xyz = L2 SH terms
-#if defined(LIGHTMAP_ON) && defined(DYNAMICLIGHTMAP_ON)
+#if defined(_SCREEN_SPACE_IRRADIANCE)
+#define SAMPLE_GI(irradianceTex, pos) SampleScreenSpaceGI(pos)
+#elif defined(LIGHTMAP_ON) && defined(DYNAMICLIGHTMAP_ON)
 #define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(staticLmName, dynamicLmName, normalWSName)
 #elif defined(DYNAMICLIGHTMAP_ON)
 #define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(0, dynamicLmName, normalWSName)

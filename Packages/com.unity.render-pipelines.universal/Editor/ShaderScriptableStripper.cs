@@ -159,6 +159,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_AlphaTestOn;
         LocalKeyword m_GbufferNormalsOct;
         LocalKeyword m_ScreenSpaceOcclusion;
+        LocalKeyword m_ScreenSpaceIrradiance;
         LocalKeyword m_UseFastSRGBLinearConversion;
         LocalKeyword m_LightLayers;
         LocalKeyword m_DecalLayers;
@@ -229,6 +230,7 @@ namespace UnityEditor.Rendering.Universal
             m_AlphaTestOn = TryGetLocalKeyword(shader, ShaderKeywordStrings._ALPHATEST_ON);
             m_GbufferNormalsOct = TryGetLocalKeyword(shader, ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
             m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
+            m_ScreenSpaceIrradiance = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceIrradiance);
             m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
             m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
             m_DecalLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalLayers);
@@ -396,6 +398,11 @@ namespace UnityEditor.Rendering.Universal
         internal bool StripUnusedFeatures_ScreenCoordOverride(ref IShaderScriptableStrippingData strippingData)
         {
             return strippingData.stripScreenCoordOverrideVariants && strippingData.IsKeywordEnabled(m_ScreenCoordOverride);
+        }
+
+        internal bool StripUnusedFeatures_ScreenSpaceIrradiance(ref IShaderScriptableStrippingData strippingData)
+        {
+            return strippingData.IsKeywordEnabled(m_ScreenSpaceIrradiance); // Screen space irradiance is currently not exposed to the user nor used by anything internal.
         }
 
         internal bool StripUnusedFeatures_BicubicLightmapSampling(ref IShaderScriptableStrippingData strippingData)
@@ -815,6 +822,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_ScreenCoordOverride(ref strippingData))
+                return true;
+
+            if (StripUnusedFeatures_ScreenSpaceIrradiance(ref strippingData))
                 return true;
 
             if (StripUnusedFeatures_BicubicLightmapSampling(ref strippingData))

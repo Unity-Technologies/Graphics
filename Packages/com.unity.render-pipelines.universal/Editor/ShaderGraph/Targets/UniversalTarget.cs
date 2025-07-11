@@ -2345,7 +2345,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
         {
             displayName = "Screen Space Ambient Occlusion",
-            referenceName = "_SCREEN_SPACE_OCCLUSION",
+            referenceName = ShaderKeywordStrings.ScreenSpaceOcclusion,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ScreenSpaceIrradiance = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Irradiance",
+            referenceName = ShaderKeywordStrings.ScreenSpaceIrradiance,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

@@ -311,7 +311,10 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
             if (UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
             {
                 // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
-                #if defined(DYNAMICLIGHTMAP_ON)
+
+                #if defined(_SCREEN_SPACE_IRRADIANCE)
+                // In screen space irradiance mode the final pixel values have already been resolved so we cannot reevaluate here.
+                #elif defined(DYNAMICLIGHTMAP_ON)
                 inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.dynamicLightmapUV.xy, inputData.vertexSH, inputData.normalWS);
                 #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
                 inputData.bakedGI = SAMPLE_GI(inputData.vertexSH,
@@ -357,7 +360,10 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
             if (UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
             {
                 // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
-                #if defined(DYNAMICLIGHTMAP_ON)
+
+                #if defined(_SCREEN_SPACE_IRRADIANCE)
+                // In screen space irradiance mode the final pixel values have already been resolved so we cannot reevaluate here.
+                #elif defined(DYNAMICLIGHTMAP_ON)
                 inputData.bakedGI = SAMPLE_GI(inputData.staticLightmapUV, inputData.dynamicLightmapUV.xy, inputData.vertexSH, inputData.normalWS);
                 #elif !defined(LIGHTMAP_ON) && (defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2))
                 inputData.bakedGI = SAMPLE_GI(inputData.vertexSH,
