@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 10
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -38,6 +38,10 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _SampleTexture2D_6267e7f36a40a78f9f41ccbb0ecf6ff5_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 5f951043386624d62a1d57cf247df28f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_6267e7f36a40a78f9f41ccbb0ecf6ff5_Texture_1_Texture2D:
         m_Texture: {fileID: 2800000, guid: 5f951043386624d62a1d57cf247df28f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -71,3 +75,4 @@ Material:
     - _QueueOffset: 0
     m_Colors: []
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

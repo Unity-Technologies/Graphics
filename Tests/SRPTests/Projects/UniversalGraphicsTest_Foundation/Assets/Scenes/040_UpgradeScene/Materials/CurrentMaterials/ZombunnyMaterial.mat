@@ -96,8 +96,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaTestRef: 0.5
+    - _AlphaToMask: 0
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
@@ -132,6 +134,7 @@ Material:
     - _Surface: 0
     - _UVSec: 0
     - _WorkflowMode: 0
+    - _XRMotionVectorsPass: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
@@ -143,6 +146,7 @@ Material:
     - _SpecColor: {r: 0.283737, g: 0.2845931, b: 0.30147058, a: 1}
     - _SpecularColor: {r: 0.22794116, g: 0.22794116, b: 0.22794116, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &7720935081963420072
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -155,4 +159,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 10
