@@ -42,6 +42,13 @@ namespace UnityEngine.Rendering.Universal
         }
         private TextureHandle[] _cameraNormalsTexture = new TextureHandle[0];
 
+        internal TextureHandle normalsDepth
+        {
+            get => CheckAndGetTextureHandle(ref _normalsDepth);
+            set => CheckAndSetTextureHandle(ref _normalsDepth, value);
+        }
+        private TextureHandle _normalsDepth;
+
         internal TextureHandle[][] shadowTextures
         {
             get => CheckAndGetTextureHandle(ref _shadowTextures);
@@ -73,6 +80,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Reset()
         {
+            _normalsDepth = TextureHandle.nullHandle;
             _shadowDepth = TextureHandle.nullHandle;
             _upscaleTexture = TextureHandle.nullHandle;
             _cameraSortingLayerTexture = TextureHandle.nullHandle;

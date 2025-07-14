@@ -52,6 +52,13 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderAttachment(universal2DResourceData.normalsTexture[batchIndex], 0);
 
+                // Depth needed for sprite mask stencil or z test for 3d meshes
+                if (rendererData.useDepthStencilBuffer)
+                {
+                    var depth = universal2DResourceData.normalsDepth.IsValid() ? universal2DResourceData.normalsDepth : commonResourceData.activeDepthTexture;
+                    builder.SetRenderAttachmentDepth(depth);
+                }
+
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
