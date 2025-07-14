@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEditor.EditorTools;
 using UnityEditorInternal;
 using UnityEngine;
@@ -267,7 +266,7 @@ namespace UnityEditor.Rendering.HighDefinition
     }
 
     [EditorTool(Description, typeof(LocalVolumetricFog), toolPriority = (int)Mode)]
-    internal class LocalVolumetricFogModifyInfluenceVolumeTool : LocalVolumetricFogTool
+    internal class LocalVolumetricFogModifyInfluenceVolumeTool : GenericEditorTool<LocalVolumetricFog>
     {
         private const string Description = "Modify the influence volume";
         private const EditMode.SceneViewEditMode Mode = LocalVolumetricFogEditor.k_EditBlend;
@@ -277,58 +276,12 @@ namespace UnityEditor.Rendering.HighDefinition
     }
 
     [EditorTool(Description, typeof(LocalVolumetricFog), toolPriority = (int)Mode)]
-    internal class LocalVolumetricFogModifyReflectionProbeBoxTool : LocalVolumetricFogTool
+    internal class LocalVolumetricFogModifyReflectionProbeBoxTool : GenericEditorTool<LocalVolumetricFog>
     {
         private const string Description = "Modify the base shape";
         private const EditMode.SceneViewEditMode Mode = LocalVolumetricFogEditor.k_EditShape;
         private const string IconName = "EditCollider";
 
         protected LocalVolumetricFogModifyReflectionProbeBoxTool() : base(Description, Mode, IconName) { }
-    }
-
-    internal class LocalVolumetricFogTool : EditorTool
-    {
-        private readonly string _description;
-        private readonly EditMode.SceneViewEditMode _mode;
-        private readonly string _iconName;
-        private GUIContent _iconContent;
-
-        protected LocalVolumetricFogTool(string description, EditMode.SceneViewEditMode mode, string iconName)
-        {
-            _description = description;
-            _mode = mode;
-            _iconName = iconName;
-        }
-
-        public override GUIContent toolbarIcon => _iconContent;
-        public override void OnWillBeDeactivated() => EditMode.SetEditModeToNone();
-            public override void OnToolGUI(EditorWindow window)
-            {
-                if (EditMode.editMode == _mode)
-                    return;
-                
-                List<LocalVolumetricFog> usefulTargets = new ();
-                foreach (Object thisTarget in targets)
-                    if (thisTarget is LocalVolumetricFog fog)
-                        usefulTargets.Add(fog);
-
-                if (usefulTargets.Count == 0)
-                    return;
-
-                Bounds bounds = GetBoundsOfTargets(usefulTargets);
-                EditMode.ChangeEditMode(_mode, bounds);
-                ToolManager.SetActiveTool(this);
-            }
-
-            private static Bounds GetBoundsOfTargets(IEnumerable<LocalVolumetricFog> targets)
-            {
-                var bounds = new Bounds { min = Vector3.positiveInfinity, max = Vector3.negativeInfinity };
-                foreach (LocalVolumetricFog t in targets)
-                    bounds.Encapsulate(t.transform.position);
-
-                return bounds;
-            }
-
-        private void OnEnable() => _iconContent = EditorGUIUtility.TrIconContent(_iconName, _description);
     }
 }
