@@ -696,14 +696,14 @@ namespace UnityEngine.Rendering.Universal
 
                 if (isTargetBackbuffer)
                 {
-                    commonResourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                    commonResourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                    commonResourceData.activeColorID = ActiveID.BackBuffer;
+                    commonResourceData.activeDepthID = ActiveID.BackBuffer;
                 }
             }
 
-            var finalColorHandle = commonResourceData.activeColorTexture;
-
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRenderingPostProcessing);
+
+            var finalColorHandle = commonResourceData.activeColorTexture;
 
             // Do PixelPerfect upscaling when using the Stretch Fill option
             if (requirePixelPerfectUpscale)
@@ -720,8 +720,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 postProcessPass.RenderFinalPassRenderGraph(renderGraph, frameData, in finalColorHandle, commonResourceData.overlayUITexture, in finalBlitTarget, needsColorEncoding);
 
-                commonResourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                commonResourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                finalColorHandle = finalBlitTarget;
+
+                commonResourceData.activeColorID = ActiveID.BackBuffer;
+                commonResourceData.activeDepthID = ActiveID.BackBuffer;
             }
 
             // If post-processing then we already resolved to camera target while doing post.
