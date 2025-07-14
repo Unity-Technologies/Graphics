@@ -49,6 +49,8 @@ The __Surface Options__ control how URP renders the Material on a screen.
 
 The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth.
 
+You can use a single RGBA texture for the metallic, smoothness, and occlusion properties. For more information, refer to [Assign a channel-packed texture to a material in URP](shaders-in-universalrp-channel-packed-texture.md).
+
 **Note:** If you are used to the [Standard Shader](https://docs.unity3d.com/Manual/Shader-StandardShader.html) in the built-in Unity render pipeline, these options are similar to the Main Maps settings in the [Material Editor](https://docs.unity3d.com/Manual/StandardShaderContextAndContent.html).
 
 

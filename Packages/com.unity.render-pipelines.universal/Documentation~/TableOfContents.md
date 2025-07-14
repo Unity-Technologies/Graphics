@@ -109,6 +109,7 @@
       * [Fullscreen Master Stack in Shader Graph reference for URP](urp-shaders/fullscreen-master-stack-reference.md)
 * [Shaders and Materials](shaders-in-universalrp.md)
   * [Shading Models](shading-model.md)
+  * [Assign a channel-packed texture to a material](shaders-in-universalrp-channel-packed-texture.md)
   * [Material Variants](materialvariant-URP.md)
   * [Complex Lit](shader-complex-lit.md)
   * [Lit](lit-shader.md)
