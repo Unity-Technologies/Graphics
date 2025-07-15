@@ -426,7 +426,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static IEnumerable<(Camera camera, T component)> SelectVolumeComponent<T>(IEnumerable<Camera> cameras) where T : VolumeComponent
         {
             // Wait for volume system to be initialized
-            if (VolumeManager.instance.baseComponentTypeArray == null)
+            if (!VolumeManager.instance.isInitialized)
                 yield break;
 
             foreach (var camera in GetAllCameras())
