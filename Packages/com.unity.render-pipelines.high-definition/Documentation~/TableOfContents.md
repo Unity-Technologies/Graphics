@@ -143,6 +143,7 @@
   * [Local Volumetric Fog](Local-Volumetric-Fog.md)
   * [Light Layers](Light-Layers.md)
   * [Shadows](Shadows-in-HDRP.md)
+  * [Update shadows less frequently](shadow-update-mode.md)
   * [Shadowmasks](Lighting-Mode-Shadowmask.md)
   * [Volumetric Lighting](Volumetric-Lighting.md)
   * [Physical Light Units and Intensities](Physical-Light-Units.md)
