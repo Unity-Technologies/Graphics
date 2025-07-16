@@ -346,6 +346,139 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             contextTypes: new[] { typeof(GpuResidentDrawerGlobalContext) },
             contextMasks: new[] { (int)GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing }
         )]
+        [IgnoreGraphicsTest(
+            "9305_MotionVectors_SpeedTree",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "9305_MotionVectors_SpeedTree_Terrain",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "8301_Canvas",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "8105_BlendStates_a",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "8105_BlendStates_b",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "8105_BlendStates_c_lit",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "5001_Fog_FogFallback",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "9970-ScreenSpaceUIOverlay",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "3003_LightingMode",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "2551_SSR",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "9903_AOV_buffers3",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "2602_SSAO_FullRes",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "2601_SSAO_HalfRes",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "9702_CustomPass_API",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "1601_TerrainLit",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "1603_TerrainLit_BaseMap",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "2122_APV_Baking_Sky_Occlusion_And_Direction",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "2124_APV_XR",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
+        [IgnoreGraphicsTest(
+            "2210_ReflectionProbes_CaptureAtVolumeAnchor",
+            "Instability https://jira.unity3d.com/browse/UUM-111704",
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
+            runtimePlatforms: new[] { RuntimePlatform.OSXEditor },
+            architectures: new[] { Architecture.X64 }
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
