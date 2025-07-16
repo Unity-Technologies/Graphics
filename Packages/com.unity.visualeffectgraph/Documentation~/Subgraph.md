@@ -23,14 +23,7 @@ Visual Effect Graphs used as Subgraphs appear as a [Context](Contexts.md) that p
 
 ### Creating System Subgraphs
 
-To create a System Subgraph:
-
-1. Create a Visual Effect Graph in the Project Window.
-2. Select one or many Systems in a Visual Effect Graph.
-3. Navigate to the the Right-Click context menu and select **Convert to Subgraph**.
-4. Save the Graph Asset in the Save File dialog.
-
-Creating a subgraph using this method replaces all converted content with a System Subgraph Node.
+System Subgraphs are Visual Effect (VFX) assets, so you can't create them directly in the **Visual Effect Graph** window. To use an existing VFX asset as a System Subgraph, drag it from the **Project** view to the **Visual Effect Graph** window.
 
 ### Editing System Subgraphs
 
@@ -49,6 +42,8 @@ To add a System Subgraph Node to your Graph, drag a Visual Effect Graph from you
 You can customize System Subgraph properties in the same way you customise Visual Effect Graph properties. You can also use Operators to create custom expressions in that extend the behavior of the systems contained in the subgraph.
 
 You can send Events to the Workflow inputs of the System Subgraph Node using Event or Spawn Context.
+
+**Note**: When you use a System Subgraph, Unity creates a deep copy in the parent. This means the System Subgraph isn't a reference at runtime, and Unity generates a new set of shaders and runtime data. Extensive use of System Subgraphs can impact performance, including longer import times in the Editor and increased memory consumption at runtime. Use System Subgraphs sparingly to minimize these impacts.
 
 ## Block Subgraphs
 

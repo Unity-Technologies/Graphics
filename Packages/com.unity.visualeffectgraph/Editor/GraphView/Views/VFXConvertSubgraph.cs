@@ -13,12 +13,6 @@ namespace UnityEditor.VFX.UI
 {
     static class VFXConvertSubgraph
     {
-        public static void ConvertToSubgraphContext(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path = null)
-        {
-            var ctx = new Context();
-            ctx.ConvertToSubgraphContext(sourceView, controllers, rect, path);
-        }
-
         public static void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path = null)
         {
             var ctx = new Context();
@@ -222,34 +216,6 @@ namespace UnityEditor.VFX.UI
                     m_TargetParameters.Add(parameter);
                     parameter.exposed = true;
                 }
-            }
-
-            public void ConvertToSubgraphContext(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path)
-            {
-                this.m_Rect = rect;
-                Init(sourceView, controllers);
-                if (path == null)
-                {
-                    if (!CreateUniqueSubgraph("Subgraph", VisualEffectResource.Extension, VisualEffectAssetEditorUtility.CreateNewAsset))
-                        return;
-                }
-                else
-                {
-                    m_TargetSubgraph = VisualEffectAssetEditorUtility.CreateNewAsset(path);
-
-                    m_TargetController = VFXViewController.GetController(m_TargetSubgraph.GetResource());
-                    m_TargetController.useCount++;
-                    m_TargetControllers = new List<VFXNodeController>();
-                }
-                CopyPasteNodes();
-                m_SourceNode = ScriptableObject.CreateInstance<VFXSubgraphContext>();
-                PostSetupNode();
-                m_SourceControllersWithBlocks = m_SourceControllers.Concat(m_SourceControllers.OfType<VFXContextController>().SelectMany(t => t.blockControllers));
-                TransferEdges();
-                //TransferContextsFlowEdges();
-                UninitSmart();
-
-                m_TargetSubgraph.GetResource()?.WriteAssetWithSubAssets();
             }
 
             public void ConvertToSubgraphOperator(VFXView sourceView, IEnumerable<Controller> controllers, Rect rect, string path)
