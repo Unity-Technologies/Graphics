@@ -62,17 +62,16 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMotionVector"
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-                output.position = GetFullScreenTriangleVertexPosition(input.vertexID);
-
-                float depth = 1 - UNITY_NEAR_CLIP_VALUE;
-                output.position.z = depth;
+                output.position = GetFullScreenTriangleVertexPosition(input.vertexID, 1 - UNITY_NEAR_CLIP_VALUE);
 
                 // Reconstruct world position
-                float3 posWS = ComputeWorldSpacePosition(output.position.xy, depth, UNITY_MATRIX_I_VP);
+                // We can use the clip space as is because contrary to the convention mentioned in Common.hlsl (RP Core),
+                // this clip space is already Y-up
+                float3 posWS = ComputeWorldSpacePosition(output.position, UNITY_MATRIX_I_VP);
 
                 // Multiply with current and previous non-jittered view projection
-                output.posCS = mul(_NonJitteredViewProjMatrix, float4(posWS.xyz, 1.0));
-                output.prevPosCS = mul(_PrevViewProjMatrix, float4(posWS.xyz, 1.0));
+                output.posCS = mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0));
+                output.prevPosCS = mul(_PrevViewProjMatrix, float4(posWS, 1.0));
 
                 return output;
             }
