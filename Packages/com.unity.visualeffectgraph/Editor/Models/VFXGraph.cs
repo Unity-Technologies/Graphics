@@ -1437,9 +1437,13 @@ namespace UnityEditor.VFX
                                 currentProcessor.hideFlags = HideFlags.HideAndDontSave;
                             }
                         }
-                        else if (task.processor is Shader)
+                        else if (task.processor is Shader || task.processor is MonoScript)
                         {
                             currentProcessor = task.processor;
+                        }
+                        else if (task.processor != null)
+                        {
+                            throw new InvalidOperationException("Unexpected processor type:" + task.processor.GetType());
                         }
 
                         if (currentProcessor != null && currentProcessor is Shader shader)
