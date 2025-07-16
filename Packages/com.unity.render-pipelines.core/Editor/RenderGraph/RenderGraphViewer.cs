@@ -39,6 +39,7 @@ namespace UnityEditor.Rendering
             public const string kHoverOverlay = "hover-overlay";
             public const string kEmptyStateMessage = "empty-state-message";
             public const string kPassListCornerOccluder = "pass-list-corner-occluder";
+            public const string kStatusLabel = "status-label";
         }
 
         internal static partial class Classes
@@ -101,6 +102,7 @@ namespace UnityEditor.Rendering
         const string k_LightStylePath = "Packages/com.unity.render-pipelines.core/Editor/StyleSheets/RenderGraphViewerLight.uss";
         const string k_ResourceListIconPath = "Packages/com.unity.render-pipelines.core/Editor/Icons/RenderGraphViewer/{0}Resources@2x.png";
         const string k_PassListIconPath = "Packages/com.unity.render-pipelines.core/Editor/Icons/RenderGraphViewer/{0}PassInspector@2x.png";
+        const string k_EditorName ="Editor";
 
         // keep in sync with .uss
         const int kPassWidthPx = 26;
@@ -123,6 +125,9 @@ namespace UnityEditor.Rendering
         bool m_Paused = false;
 
         static int s_EditorWindowInstanceId;
+        DateTime m_LastDataCaptureTime = DateTime.MinValue;
+        string m_ConnectedDeviceName = "Local Editor";
+        bool m_IsDeviceConnected = true;
 
         bool HasValidDebugData => m_CurrentDebugData != null && m_CurrentDebugData.valid;
 
@@ -895,6 +900,8 @@ namespace UnityEditor.Rendering
             var autoPlayToggle = rootVisualElement.Q<ToolbarToggle>(Names.kAutoPauseToggle);
             autoPlayToggle.text = evt.newValue ? L10n.Tr("Auto Update") : L10n.Tr("Pause");
             m_Paused = evt.newValue;
+
+            UpdateStatusLabel();
 
             // Force update when unpausing
             if (!m_Paused)
@@ -1987,6 +1994,32 @@ namespace UnityEditor.Rendering
             }
         }
 
+        void UpdateStatusLabel()
+        {
+            var statusLabel = rootVisualElement.Q<Label>(Names.kStatusLabel);
+            var footerContainer = rootVisualElement.Q<VisualElement>("footer-container");
+
+            if (statusLabel == null || footerContainer == null)
+                return;
+
+            footerContainer.style.display = m_Paused ? DisplayStyle.Flex : DisplayStyle.None;
+
+            if (!m_Paused)
+                return;
+
+            string connectionStatus = m_IsDeviceConnected ? "Online" : "Offline";
+
+            bool isEditor = m_ConnectedDeviceName == "Editor";
+            string sourceLabel = isEditor ? "Source: Editor" : $"Source: {m_ConnectedDeviceName} ({connectionStatus})";
+
+            bool hasCapture = HasValidDebugData && m_LastDataCaptureTime != DateTime.MinValue;
+            string captureLabel = hasCapture ? $"Captured: {m_LastDataCaptureTime:HH:mm:ss}" : "No data captured";
+
+            string statusText = $"{sourceLabel} | {captureLabel}";
+
+            statusLabel.text = statusText;
+        }
+
         void UpdateCurrentDebugData(bool force = false)
         {
             if (m_Paused && !force)
@@ -1995,6 +2028,9 @@ namespace UnityEditor.Rendering
             if (selectedExecutionItem != null)
             {
                 m_CurrentDebugData = RenderGraphDebugSession.GetDebugData(m_SelectedRenderGraph, selectedExecutionItem.id);
+
+                if (HasValidDebugData)
+                    m_LastDataCaptureTime = DateTime.Now;
             }
             else
             {
@@ -2009,6 +2045,8 @@ namespace UnityEditor.Rendering
                     currentExecutionToolbarMenu.style.display = DisplayStyle.None;
             }
 
+            UpdateStatusLabel();
+
             // Refresh delayed. That way we don't break rendering if something goes wrong on the UI layer.
             m_RefreshUIDelayed ??= rootVisualElement.schedule.Execute(DelayedRefresh);
             m_RefreshUIDelayed.ExecuteLater(1);
@@ -2021,6 +2059,7 @@ namespace UnityEditor.Rendering
             RebuildViewOptionsUI();
             RebuildGraphViewerUI();
             RebuildAutoPlayUI();
+            UpdateStatusLabel();
         }
 
         void CreateGUI()
@@ -2051,6 +2090,20 @@ namespace UnityEditor.Rendering
             {
                 var connectionState = PlayerConnectionGUIUtility.GetConnectionState(this);
                 m_PlayerConnection = new PlayerConnection(connectionState, OnPlayerConnected, OnPlayerDisconnected);
+
+                // Initialize device connection state right here while we have it
+                if (!string.IsNullOrEmpty(connectionState.connectionName))
+                {
+                    m_ConnectedDeviceName = connectionState.connectionName;
+                    m_IsDeviceConnected = true;
+                }
+                else
+                {
+                    m_ConnectedDeviceName = k_EditorName;
+                    m_IsDeviceConnected = false;
+                }
+
+                connectionState.Dispose(); // Dispose it immediately after use
             }
 
             var connectionDropdown = rootVisualElement.Q<IMGUIContainer>(Names.kConnectionDropdown);
@@ -2058,6 +2111,7 @@ namespace UnityEditor.Rendering
 
             if (RenderGraphDebugSession.currentDebugSession == null)
                 ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
+            UpdateStatusLabel();
         }
 
         void OnDisable()
@@ -2079,17 +2133,45 @@ namespace UnityEditor.Rendering
 
         void OnPlayerConnected(int playerID)
         {
+            // Get device name fresh when needed
+            using (var connectionState = PlayerConnectionGUIUtility.GetConnectionState(this))
+            {
+                m_ConnectedDeviceName = connectionState?.connectionName ?? $"Remote Device {playerID}";
+            }
+            m_IsDeviceConnected = true;
+
+
             ConnectDebugSession<RenderGraphEditorRemoteDebugSession>();
         }
 
         void OnPlayerDisconnected(int playerID)
         {
+            m_IsDeviceConnected = false;
+
+            if (!m_Paused)
+            {
+                var autoPlayToggle = rootVisualElement.Q<ToolbarToggle>(Names.kAutoPauseToggle);
+                if (autoPlayToggle != null)
+                {
+                    autoPlayToggle.value = true;
+                }
+            }
+
             ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
         }
 
         internal void ConnectDebugSession<TSession>()
             where TSession : RenderGraphDebugSession, new()
         {
+            if (typeof(TSession) == typeof(RenderGraphEditorLocalDebugSession))
+            {
+                if (!m_IsDeviceConnected)
+                {
+                    m_ConnectedDeviceName = k_EditorName;
+                    m_IsDeviceConnected = true;
+                }
+            }
+
             //If we are paused, we need to force update the current debug data once to ensure that the UI is up to date when the
             //connection changes
             if (m_Paused)
@@ -2115,6 +2197,9 @@ namespace UnityEditor.Rendering
             RenderGraphDebugSession.EndSession();
             RenderGraphDebugSession.onRegisteredGraphsChanged -= OnRegisteredGraphsChanged;
             RenderGraphDebugSession.onDebugDataUpdated -= OnDebugDataUpdated;
+
+            m_IsDeviceConnected = false;
+            UpdateStatusLabel();
 
             ClearGraphViewerUI();
         }

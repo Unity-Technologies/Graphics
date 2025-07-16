@@ -129,6 +129,18 @@
     text-overflow: ellipsis;
 }
 
+/* Footer */
+#footer-container {
+    flex-direction: row;
+    height: var(--header-container-height);
+    background-color: var(--unity-colors-toolbar-background);
+}
+
+#status-label {
+    margin-left: 10px;
+    align-self: center;
+}
+
 /* Passes */
 
 #pass-list-scroll-view {
