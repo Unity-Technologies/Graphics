@@ -2,6 +2,8 @@
 
 This section contains information about changes to the High Definition Render Pipeline (HDRP). Each page contains a list of new features and, if relevant, a list of improvements and a list of resolved issues.
 
+**Note:** For HDRP 17.2 (Unity 6.2) and later, refer to the [What's new in Unity](https://docs.unity3d.com/6000.2/Documentation/Manual/WhatsNewUnity6Preview.html) page.
+
 | Page| Description|
 |-| -|
 | [What's new in HDRP 16](whats-new-16.md) | Unity version 2023.2|
