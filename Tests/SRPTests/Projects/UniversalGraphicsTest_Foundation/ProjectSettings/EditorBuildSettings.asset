@@ -177,12 +177,6 @@ EditorBuildSettings:
     path: Assets/Scenes/058_LightLeak_PointLight.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
-    path: Assets/Scenes/060_Deferred_GBuffer.unity
-    guid: f42c387ccdc6840159743027165e1b7c
-  - enabled: 1
-    path: Assets/Scenes/060_Deferred_GBuffer_Alpha.unity
-    guid: e90c743b5f0d84d30bc98e6d5be68eca
-  - enabled: 1
     path: Assets/Scenes/066_Blending.unity
     guid: d27c51a5aecee4e0e9c29141a0819c8b
   - enabled: 1

@@ -394,6 +394,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.DBuffer,
                 CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion,
                 CoreKeywordDescriptors.RenderPassEnabled,
+                CoreKeywordDescriptors.GBufferNormalsOct,
+                CoreKeywordDescriptors.ShadowsShadowmask
             };
         }
         #endregion
