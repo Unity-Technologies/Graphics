@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXSkinnedMeshRendererValue(0, mode);
+            return new VFXSkinnedMeshRendererValue(EntityId.None, mode);
         }
     }
 }

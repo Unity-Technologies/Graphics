@@ -28,6 +28,9 @@ namespace UnityEngine.VFX.Test
         }
 
         [UnityTest]
+#if VFX_TESTS_HAS_URP
+        [Ignore("This job fails when disabling these tests - can be re-enabled when this gets fixed: https://jira.unity3d.com/browse/UUM-110854")]
+#endif
         public IEnumerator Ensure_Camera_Commands_Are_Culled()
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(kScenePath);

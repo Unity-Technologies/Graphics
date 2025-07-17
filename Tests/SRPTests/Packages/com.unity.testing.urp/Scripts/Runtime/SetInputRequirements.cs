@@ -47,6 +47,7 @@ public class SetInputRequirements : ScriptableRendererFeature
             ConfigureInput(inputRequirement);
         }
 
+#if !UNITY_6000_3_OR_NEWER || URP_COMPATIBILITY_MODE
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -56,6 +57,7 @@ public class SetInputRequirements : ScriptableRendererFeature
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
         }
+#endif
 
         internal class PassData
         {

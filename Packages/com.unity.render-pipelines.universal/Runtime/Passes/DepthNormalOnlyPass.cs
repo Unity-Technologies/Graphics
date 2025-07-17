@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// <summary>
     /// Render all objects that have a 'DepthNormals' and/or 'DepthNormalsOnly' pass into the given depth and normal buffers.
     /// </summary>
-    public class DepthNormalOnlyPass : ScriptableRenderPass
+    public partial class DepthNormalOnlyPass : ScriptableRenderPass
     {
         internal List<ShaderTagId> shaderTagIds { get; set; }
         internal bool enableRenderingLayers { get; set; } = false;
@@ -47,10 +47,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             profilingSampler = ProfilingSampler.Get(URPProfileId.DrawDepthNormalPrepass);
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
-            useNativeRenderPass = false;
             this.shaderTagIds = k_DepthNormals;
 
 #if URP_COMPATIBILITY_MODE
+            useNativeRenderPass = false;
             m_PassData = new PassData();
 #endif
         }
@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             RTHandle[] colorHandles;
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;

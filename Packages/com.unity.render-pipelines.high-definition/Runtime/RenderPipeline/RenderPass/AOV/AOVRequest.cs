@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public unsafe struct AOVRequest
     {
         /// <summary>Default settings.</summary>
-        [Obsolete("Since 2019.3, use AOVRequest.NewDefault() instead.")]
+        [Obsolete("Use AOVRequest.NewDefault() instead. #from(2019.3)")]
         public static readonly AOVRequest @default = default;
         /// <summary>Default settings.</summary>
         /// <returns></returns>

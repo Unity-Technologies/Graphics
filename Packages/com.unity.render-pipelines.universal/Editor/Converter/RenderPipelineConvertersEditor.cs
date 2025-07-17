@@ -2,16 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using UnityEditor.SceneManagement;
-using UnityEngine;
 using UnityEditor.Search;
 using UnityEditor.UIElements;
-using UnityEngine.UIElements;
+using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using UnityEditor.Rendering.Analytics;
-
+using static UnityEditor.Progress;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -62,6 +63,11 @@ namespace UnityEditor.Rendering.Universal
 
         public bool isActiveAndEnabled => isEnabled && isActive;
         public bool requiresInitialization => !isInitialized && isActiveAndEnabled;
+
+        public override string ToString()
+        {
+            return $"Warnings: {warnings} - Errors: {errors} - Ok: {success} - Total: {items?.Count ?? 0}";
+        }
     }
 
     [Serializable]
@@ -106,6 +112,7 @@ namespace UnityEditor.Rendering.Universal
         List<RenderPipelineConverterContainer> m_Containers = new List<RenderPipelineConverterContainer>();
         int m_ContainerChoiceIndex = 0;
         int m_WorkerCount;
+        private Action m_ReadonlyConversionDone;
 
         // This is a list of Converter States which holds a list of which converter items/assets are active
         // There is one for each Converter.
@@ -114,6 +121,9 @@ namespace UnityEditor.Rendering.Universal
         TypeCache.TypeCollection m_ConverterContainers;
 
         RenderPipelineConverterContainer currentContainer => m_Containers[m_ContainerChoiceIndex];
+
+        private bool m_ExtendedIndexing;
+        private bool m_PackageIndexing;
 
         // Name of the index file
         string m_URPConverterIndex = "URPConverterIndex";
@@ -148,6 +158,7 @@ namespace UnityEditor.Rendering.Universal
 
         void OnEnable()
         {
+            m_ReadonlyConversionDone = null;
             InitIfNeeded();
             GraphicsToolLifetimeAnalytic.WindowOpened<RenderPipelineConvertersEditor>();
         }
@@ -155,6 +166,42 @@ namespace UnityEditor.Rendering.Universal
         private void OnDisable()
         {
             GraphicsToolLifetimeAnalytic.WindowClosed<RenderPipelineConvertersEditor>();
+        }
+
+        internal static void ConvertReadonlyMaterials(Action conversionDone)
+        {
+            var editor = GetWindow<RenderPipelineConvertersEditor>();
+            editor.m_ReadonlyConversionDone = () =>
+            {
+                editor.Close();
+                conversionDone();
+            };
+
+            // Enable Material Conversion
+            var converterIndex = 0;
+            for (; converterIndex < editor.m_CoreConvertersList.Count; ++converterIndex)
+            {
+                if (editor.m_CoreConvertersList[converterIndex] is ReadonlyMaterialConverter)
+                {
+                    break;
+                }
+            }
+
+            if (converterIndex < editor.m_CoreConvertersList.Count)
+            {
+                // Start Conversion
+                var item = editor.m_VEList[converterIndex];
+                item.Q<Toggle>("converterEnabled").value = true;
+                editor.m_ConverterStates[converterIndex].isEnabled = true;
+                editor.m_ConverterStates[converterIndex].isActive = true;
+                editor.InitializeAndConvert(null);
+            }
+            else
+            {
+                // Error state: no converter
+                editor.m_ReadonlyConversionDone = null;
+                conversionDone();
+            }
         }
 
         void InitIfNeeded()
@@ -465,8 +512,7 @@ namespace UnityEditor.Rendering.Universal
                 var converterEnabledToggle = item.Q<Toggle>("converterEnabled");
                 converterEnabledToggle.RegisterCallback<ClickEvent>((evt) =>
                 {
-                    ConverterStatusInfo(id, item);
-                    InitOrConvert();
+                    ToggleConverter(id);
                     // This toggle needs to stop propagation since it is inside another clickable element
                     evt.StopPropagation();
                 });
@@ -601,6 +647,13 @@ namespace UnityEditor.Rendering.Universal
             InitOrConvert();
             HideUnhideConverters();
             rootVisualElement.Bind(m_SerializedObject);
+        }
+
+        private void ToggleConverter(int index)
+        {
+            var item = m_VEList[index];
+            ConverterStatusInfo(index, item);
+            InitOrConvert();
         }
 
         private void HideUnhideConverters()
@@ -760,7 +813,7 @@ namespace UnityEditor.Rendering.Universal
                 AssetDatabase.ForceToDesiredWorkerCount();
 
                 AssetDatabase.DesiredWorkerCount = System.Convert.ToInt32(Math.Ceiling(Environment.ProcessorCount * 0.8));
-                CreateSearchIndex(m_URPConverterIndex);
+                SetupIndexingForConversion(m_URPConverterIndex);
             }
             // Otherwise do everything directly
             else
@@ -768,19 +821,16 @@ namespace UnityEditor.Rendering.Universal
                 ConverterCollectData(() => { EditorUtility.ClearProgressBar(); });
             }
 
-            void CreateSearchIndex(string name)
+            void SetupIndexingForConversion(string name)
             {
-                // Create <guid>.index in the project
-                var title = $"Building {name} search index";
-                EditorUtility.DisplayProgressBar(title, "Creating search index...", -1f);
-
-                Search.SearchService.CreateIndex(name, IndexingOptions.Temporary | IndexingOptions.Extended,
-                    new[] { "Assets" },
-                    new[] { ".prefab", ".unity", ".asset" },
-                    null, OnSearchIndexCreated);
+                var title = $"Modifying {name} search index";
+                EditorUtility.DisplayProgressBar(title, "Modifying search index...", -1f);
+                m_ExtendedIndexing = Search.SearchService.IsDeepIndexingEnabled();
+                m_PackageIndexing = Search.SearchService.IsPackageIndexingEnabled();
+                Search.SearchService.ChangeIndexingSettings(deepIndexing:true, packageIndexing:false, OnSearchIndexReady);
             }
 
-            void OnSearchIndexCreated(string name, string path, Action onComplete)
+            void OnSearchIndexReady()
             {
                 EditorUtility.ClearProgressBar();
                 ConverterCollectData(() =>
@@ -795,7 +845,14 @@ namespace UnityEditor.Rendering.Universal
                     AssetDatabase.ForceToDesiredWorkerCount();
 
                     RecreateUI();
-                    onComplete();
+                    Search.SearchService.ChangeIndexingSettings(m_ExtendedIndexing, m_PackageIndexing,() =>
+                    {
+                        m_ExtendedIndexing = false;
+                        m_PackageIndexing = false;
+                        var done = m_ReadonlyConversionDone;
+                        m_ReadonlyConversionDone = null;
+                        done?.Invoke();
+                    });
                 });
             }
 
@@ -874,8 +931,20 @@ namespace UnityEditor.Rendering.Universal
                     ConvertIndex(coreConverterIndex, (int)ve.userData);
                     // Refreshing the list to show the new state
                     m_ConverterSelectedVE.Q<ListView>("converterItems").Rebuild();
+                    LogConverterResult(coreConverterIndex);
                 },
                 isActive ? DropdownMenuAction.AlwaysEnabled : DropdownMenuAction.AlwaysDisabled);
+        }
+
+        void LogConverterResult(int coreConverterIndex)
+        {
+            var converterState = m_ConverterStates[coreConverterIndex];
+            if (converterState.items.Count() > 0)
+            {
+                var sb = new StringBuilder($"Conversion results for item: {m_CoreConvertersList[coreConverterIndex].name}:{Environment.NewLine}");
+                sb.AppendLine(converterState.ToString());
+                Debug.Log(sb);
+            }
         }
 
         void UpdateInfo(int stateIndex, RunItemContext ctx)
@@ -955,6 +1024,8 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
+                LogConverterResult(index);
+
                 contextInfo.Add(converterInfo);
                 m_CoreConvertersList[index].OnPostRun();
                 AssetDatabase.SaveAssets();
@@ -967,7 +1038,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorSceneManager.OpenScene(currentScenePath);
             }
 
-            RecreateUI(); 
+            RecreateUI();
 
             GraphicsToolUsageAnalytic.ActionPerformed<RenderPipelineConvertersEditor>(nameof(Convert), contextInfo.ToNestedColumn());
         }

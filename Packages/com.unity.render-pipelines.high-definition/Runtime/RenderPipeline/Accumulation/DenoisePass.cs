@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle denoisedHistory;
             public TextureHandle denoisedVolumetricFogHistory;
             public SubFrameManager subFrameManager;
+            public ScriptableRenderContext renderContext;
 
             public int camID;
             public bool useAOV;
@@ -40,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int slices;
         }
 
-        void RenderDenoisePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle outputTexture)
+        void RenderDenoisePass(RenderGraph renderGraph, ScriptableRenderContext renderContext, HDCamera hdCamera, TextureHandle outputTexture)
         {
 #if UNITY_64 && ENABLE_UNITY_DENOISING_PLUGIN && (UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN)
             // Early exit if there is no denoising
@@ -49,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            using (var builder = renderGraph.AddRenderPass<RenderDenoisePassData>("Denoise Pass", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<RenderDenoisePassData>("Denoise Pass", out var passData))
             {
                 passData.blitAndExposeCS = runtimeShaders.blitAndExposeCS;
                 passData.blitAndExposeKernel = passData.blitAndExposeCS.FindKernel("KMain");
@@ -71,28 +72,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.height = hdCamera.actualHeight;
                 passData.slices = hdCamera.viewCount;
 
+                passData.renderContext = renderContext;
+
                 // Grab the history buffer
                 TextureHandle ptAccumulation = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingOutput));
                 TextureHandle denoisedHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingDenoised)
                     ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracingDenoised, PathTracingHistoryBufferAllocatorFunction, 1));
 
-                passData.color = builder.ReadWriteTexture(ptAccumulation);
-                passData.outputTexture = builder.WriteTexture(outputTexture);
-                passData.denoisedHistory = builder.ReadTexture(denoisedHistory);
+                passData.color = ptAccumulation;
+                builder.UseTexture(passData.color, AccessFlags.ReadWrite);
+                passData.outputTexture = outputTexture;
+                builder.UseTexture(passData.outputTexture, AccessFlags.Write);
+                passData.denoisedHistory = denoisedHistory;
+                builder.UseTexture(passData.denoisedHistory, AccessFlags.Read);
 
                 if (passData.useAOV)
                 {
                     TextureHandle albedoHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingAlbedo));
                     TextureHandle normalHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingNormal));
 
-                    passData.albedoAOV = builder.ReadTexture(albedoHistory);
-                    passData.normalAOV = builder.ReadTexture(normalHistory);
+                    passData.albedoAOV = albedoHistory;
+                    builder.UseTexture(passData.albedoAOV, AccessFlags.Read);
+                    passData.normalAOV = normalHistory;
+                    builder.UseTexture(passData.normalAOV, AccessFlags.Read);
                 }
 
                 if (passData.temporal)
                 {
                     TextureHandle motionVectorHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingMotionVector));
-                    passData.motionVectorAOV = builder.ReadTexture(motionVectorHistory);
+                    passData.motionVectorAOV = motionVectorHistory;
+                    builder.UseTexture(passData.motionVectorAOV, AccessFlags.Read);
                 }
 
                 if (passData.denoiseVolumetricFog)
@@ -100,13 +109,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle volumetricFogHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingVolumetricFog));
                     TextureHandle denoisedVolumetricFogHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracingVolumetricFogDenoised)
                                                                              ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracingVolumetricFogDenoised, PathTracingHistoryBufferAllocatorFunction, 1));
-                    passData.volumetricFogHistory = builder.ReadTexture(volumetricFogHistory);
-                    passData.denoisedVolumetricFogHistory = builder.ReadTexture(denoisedVolumetricFogHistory);
+                    passData.volumetricFogHistory = volumetricFogHistory;
+                    builder.UseTexture(passData.volumetricFogHistory, AccessFlags.Read);
+                    passData.denoisedVolumetricFogHistory = denoisedVolumetricFogHistory;
+                    builder.UseTexture(passData.denoisedVolumetricFogHistory, AccessFlags.Read);
                 }
 
                 builder.SetRenderFunc(
-                (RenderDenoisePassData data, RenderGraphContext ctx) =>
+                (RenderDenoisePassData data, UnsafeGraphContext ctx) =>
                 {
+                    var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                     CameraData camData = data.subFrameManager.GetCameraData(data.camID);
                     bool wasDenoisedResultRendered = false;
 
@@ -135,17 +147,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             if (!camData.colorDenoiserData.activeRequest)
                             {
-                                camData.colorDenoiserData.denoiser.DenoiseRequest(ctx.cmd, "color", data.color);
+                                camData.colorDenoiserData.denoiser.DenoiseRequest(natCmd, "color", data.color);
 
                                 if (data.useAOV)
                                 {
-                                    camData.colorDenoiserData.denoiser.DenoiseRequest(ctx.cmd, "albedo", data.albedoAOV);
-                                    camData.colorDenoiserData.denoiser.DenoiseRequest(ctx.cmd, "normal", data.normalAOV);
+                                    camData.colorDenoiserData.denoiser.DenoiseRequest(natCmd, "albedo", data.albedoAOV);
+                                    camData.colorDenoiserData.denoiser.DenoiseRequest(natCmd, "normal", data.normalAOV);
                                 }
 
                                 if (data.temporal)
                                 {
-                                    camData.colorDenoiserData.denoiser.DenoiseRequest(ctx.cmd, "flow", data.motionVectorAOV);
+                                    camData.colorDenoiserData.denoiser.DenoiseRequest(natCmd, "flow", data.motionVectorAOV);
                                 }
 
                                 camData.colorDenoiserData.InitRequest();
@@ -153,16 +165,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (!data.async)
                             {
-                                camData.colorDenoiserData.denoiser.WaitForCompletion(ctx.renderContext, ctx.cmd);
+                                camData.colorDenoiserData.denoiser.WaitForCompletion(data.renderContext, natCmd);
 
-                                Denoiser.State ret = camData.colorDenoiserData.denoiser.GetResults(ctx.cmd, data.denoisedHistory);
+                                Denoiser.State ret = camData.colorDenoiserData.denoiser.GetResults(natCmd, data.denoisedHistory);
                                 camData.colorDenoiserData.EndRequest(ret == Denoiser.State.Success);
                             }
                             else
                             {
                                 if (camData.colorDenoiserData.activeRequest && camData.colorDenoiserData.denoiser.QueryCompletion() != Denoiser.State.Executing)
                                 {
-                                    Denoiser.State ret = camData.colorDenoiserData.denoiser.GetResults(ctx.cmd, data.denoisedHistory);
+                                    Denoiser.State ret = camData.colorDenoiserData.denoiser.GetResults(natCmd, data.denoisedHistory);
                                     camData.colorDenoiserData.EndRequest(ret == Denoiser.State.Success && camData.colorDenoiserData.discardRequest == false);
                                 }
                             }
@@ -175,22 +187,23 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             if (!camData.volumetricFogDenoiserData.activeRequest)
                             {
-                                camData.volumetricFogDenoiserData.denoiser.DenoiseRequest(ctx.cmd, "color", data.volumetricFogHistory);
+                                camData.volumetricFogDenoiserData.denoiser.DenoiseRequest(natCmd, "color", data.volumetricFogHistory);
                                 camData.volumetricFogDenoiserData.InitRequest();
                             }
 
                             if (!data.async)
                             {
-                                camData.volumetricFogDenoiserData.denoiser.WaitForCompletion(ctx.renderContext, ctx.cmd);
+                                camData.volumetricFogDenoiserData.denoiser.WaitForCompletion(data.renderContext, natCmd);
 
-                                Denoiser.State ret = camData.volumetricFogDenoiserData.denoiser.GetResults(ctx.cmd, data.denoisedVolumetricFogHistory);
+
+                                Denoiser.State ret = camData.volumetricFogDenoiserData.denoiser.GetResults(natCmd, data.denoisedVolumetricFogHistory);
                                 camData.volumetricFogDenoiserData.EndRequest(ret == Denoiser.State.Success);
                             }
                             else
                             {
                                 if (camData.volumetricFogDenoiserData.activeRequest && camData.volumetricFogDenoiserData.denoiser.QueryCompletion() != Denoiser.State.Executing)
                                 {
-                                    Denoiser.State ret = camData.volumetricFogDenoiserData.denoiser.GetResults(ctx.cmd, data.denoisedVolumetricFogHistory);
+                                    Denoiser.State ret = camData.volumetricFogDenoiserData.denoiser.GetResults(natCmd, data.denoisedVolumetricFogHistory);
                                     camData.volumetricFogDenoiserData.EndRequest(ret == Denoiser.State.Success && camData.volumetricFogDenoiserData.discardRequest == false);
                                 }
                             }
@@ -206,11 +219,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (camData.volumetricFogDenoiserData.validHistory && data.denoiseVolumetricFog)
                             {
                                 kernel = data.blitAddAndExposeKernel;
-                                ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, kernel, HDShaderIDs._InputTexture2, data.denoisedVolumetricFogHistory);
+                                natCmd.SetComputeTextureParam(data.blitAndExposeCS, kernel, HDShaderIDs._InputTexture2, data.denoisedVolumetricFogHistory);
                             }
-                            ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, kernel, HDShaderIDs._InputTexture, data.denoisedHistory);
-                            ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, kernel, HDShaderIDs._OutputTexture, data.outputTexture);
-                            ctx.cmd.DispatchCompute(data.blitAndExposeCS, kernel, (data.width + 7) / 8, (data.height + 7) / 8, data.slices);
+                            natCmd.SetComputeTextureParam(data.blitAndExposeCS, kernel, HDShaderIDs._InputTexture, data.denoisedHistory);
+                            natCmd.SetComputeTextureParam(data.blitAndExposeCS, kernel, HDShaderIDs._OutputTexture, data.outputTexture);
+                            natCmd.DispatchCompute(data.blitAndExposeCS, kernel, (data.width + 7) / 8, (data.height + 7) / 8, data.slices);
                             wasDenoisedResultRendered = true;
                         }
                     }
@@ -218,9 +231,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (data.denoiseVolumetricFog && !wasDenoisedResultRendered)
                     {
                         // Just add the volumetrics output on top of the color output to show a full picture to the user while the final denoising is ready to display
-                        ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.accumAndExposeKernel, HDShaderIDs._InputTexture, data.volumetricFogHistory);
-                        ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.accumAndExposeKernel, HDShaderIDs._OutputTexture, data.outputTexture);
-                        ctx.cmd.DispatchCompute(data.blitAndExposeCS, data.accumAndExposeKernel, (data.width + 7) / 8, (data.height + 7) / 8, data.slices);
+                        natCmd.SetComputeTextureParam(data.blitAndExposeCS, data.accumAndExposeKernel, HDShaderIDs._InputTexture, data.volumetricFogHistory);
+                        natCmd.SetComputeTextureParam(data.blitAndExposeCS, data.accumAndExposeKernel, HDShaderIDs._OutputTexture, data.outputTexture);
+                        natCmd.DispatchCompute(data.blitAndExposeCS, data.accumAndExposeKernel, (data.width + 7) / 8, (data.height + 7) / 8, data.slices);
                     }
                 });
             }

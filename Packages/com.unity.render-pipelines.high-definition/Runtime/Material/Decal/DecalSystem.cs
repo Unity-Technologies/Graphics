@@ -1493,9 +1493,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderGraphVertexCount.Clear();
 
             UpdateShaderGraphTexturePassData updatePassData;
-            using (var builder = renderGraph.AddRenderPass<UpdateShaderGraphTexturePassData>("UpdateShaderGraphDecalTexture", out updatePassData, ProfilingSampler.Get(HDProfileId.UpdateShaderGraphDecalTexture)))
+            using (var builder = renderGraph.AddUnsafePass<UpdateShaderGraphTexturePassData>("UpdateShaderGraphDecalTexture", out updatePassData, ProfilingSampler.Get(HDProfileId.UpdateShaderGraphDecalTexture)))
             {
-                updatePassData.atlasTexture = builder.WriteTexture(renderGraph.ImportTexture(Atlas.AtlasTexture));
+                updatePassData.atlasTexture = renderGraph.ImportTexture(Atlas.AtlasTexture);
+                builder.UseTexture(updatePassData.atlasTexture, AccessFlags.Write);
                 updatePassData.shaderGraphData = m_ShaderGraphList;
                 updatePassData.updateMipmaps = false;
 
@@ -1543,9 +1544,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 updatePassData.shaderGraphVertexCount = m_ShaderGraphVertexCount;
 
-                builder.SetRenderFunc((UpdateShaderGraphTexturePassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((UpdateShaderGraphTexturePassData data, UnsafeGraphContext ctx) =>
                 {
-                    context.cmd.SetRenderTarget(data.atlasTexture);
+                    ctx.cmd.SetRenderTarget(data.atlasTexture);
 
                     for (int i = 0; i < data.shaderGraphData.Count; i++)
                     {
@@ -1554,7 +1555,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
 
                         ShaderGraphData shaderGraphData = data.shaderGraphData[i];
-                        context.cmd.DrawProcedural(Matrix4x4.identity, shaderGraphData.material, shaderGraphData.passIndex, MeshTopology.Quads, vertexCount, 1, shaderGraphData.propertyBlock);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, shaderGraphData.material, shaderGraphData.passIndex, MeshTopology.Quads, vertexCount, 1, shaderGraphData.propertyBlock);
                     }
                 });
             }
@@ -1562,13 +1563,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // Create the mipmaps for the texture atlas
             if (updatePassData.updateMipmaps)
             {
-                using (var builder = renderGraph.AddRenderPass<UpdateAtlasMipmapsPassData>("UpdateDecalAtlasMipmaps", out var passData, ProfilingSampler.Get(HDProfileId.UpdateDecalAtlasMipmaps)))
+                using (var builder = renderGraph.AddUnsafePass<UpdateAtlasMipmapsPassData>("UpdateDecalAtlasMipmaps", out var passData, ProfilingSampler.Get(HDProfileId.UpdateDecalAtlasMipmaps)))
                 {
-                    passData.atlasTexture = builder.WriteTexture(renderGraph.ImportTexture(Atlas.AtlasTexture));
+                    passData.atlasTexture = renderGraph.ImportTexture(Atlas.AtlasTexture);
+                    builder.UseTexture(passData.atlasTexture, AccessFlags.Write);
 
-                    builder.SetRenderFunc((UpdateAtlasMipmapsPassData data, RenderGraphContext context) =>
+                    builder.SetRenderFunc((UpdateAtlasMipmapsPassData data, UnsafeGraphContext ctx) =>
                     {
-                        context.cmd.GenerateMips(data.atlasTexture);
+                        CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd).GenerateMips(data.atlasTexture);
                     });
                 }
             }
@@ -1673,7 +1675,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, int mipLevel, Rendering.DebugOverlay debugOverlay)
         {
             cmd.SetViewport(debugOverlay.Next());
-            HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), mipLevel, true);
+            HDUtils.BlitQuad(cmd, Atlas.AtlasTexture,
+                new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), mipLevel, true);
         }
 
         public void LoadCullResults(CullResult cullResult)

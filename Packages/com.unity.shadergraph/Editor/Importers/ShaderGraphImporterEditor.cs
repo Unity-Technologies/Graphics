@@ -116,15 +116,16 @@ namespace UnityEditor.ShaderGraph
                 GUIUtility.systemCopyBuffer = generator.generatedShader;
             }
 
-            EditorGUILayout.Space();            
+            EditorGUILayout.Space();
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.UseAsTemplateFieldName));
-            bool needsReimport = false;
+            bool needsReimport = EditorGUI.EndChangeCheck();
             using (new EditorGUI.IndentLevelScope(1))
             using (new EditorGUI.DisabledScope(!(target as ShaderGraphImporter)?.UseAsTemplate ?? true))
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.ExposeTemplateAsShaderFieldName), new GUIContent("Expose as Shader", "Toggle whether or not the template shader should be exposed in shader dropdowns."));
-                needsReimport = EditorGUI.EndChangeCheck();
+                needsReimport |= EditorGUI.EndChangeCheck();
 
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(ShaderGraphImporter.TemplateFieldName));
             }
@@ -191,7 +192,7 @@ namespace UnityEditor.ShaderGraph
         [OnOpenAsset(0)]
         public static bool OnOpenAsset(int instanceID, int line)
         {
-            var path = AssetDatabase.GetAssetPath(instanceID);
+            var path = AssetDatabase.GetAssetPath((EntityId)instanceID);
             return ShowGraphEditWindow(path);
         }
     }

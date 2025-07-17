@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Analytics
                 {
                     data.volume_name = Hash128.Compute(volume.name).ToString();
                     data.scene_name = EditorSceneManager.GetActiveScene().GetGUID();
-                    data.volume_profile_asset_guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(volumeProfile.GetInstanceID()));
+                    data.volume_profile_asset_guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(volumeProfile.GetEntityId()));
                     m_Data = data;
                 }
             }

@@ -87,13 +87,13 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderingLayer16 = 1 << 15,
 
         /// <summary>Default Layer for lights.</summary>
-        [HideInInspector, Obsolete("Use UnityEngine.RenderingLayerMask.defaultRenderingLayerMask instead. @from(2023.1) ")]
+        [HideInInspector, Obsolete("Use UnityEngine.RenderingLayerMask.defaultRenderingLayerMask instead. #from(2023.1) ")]
         LightLayerDefault = RenderingLayer1,
         /// <summary>Default Layer for decals.</summary>
-        [HideInInspector, Obsolete("Use UnityEngine.RenderingLayerMask.defaultRenderingLayerMask instead. @from(2023.1) ")]
+        [HideInInspector, Obsolete("Use UnityEngine.RenderingLayerMask.defaultRenderingLayerMask instead. #from(2023.1) ")]
         DecalLayerDefault = RenderingLayer9,
         /// <summary>Default rendering layers mask.</summary>
-        [HideInInspector, Obsolete("Use UnityEngine.RenderingLayerMask.defaultRenderingLayerMask instead. @from(2023.1) ")]
+        [HideInInspector, Obsolete("Use UnityEngine.RenderingLayerMask.defaultRenderingLayerMask instead. #from(2023.1) ")]
         Default = LightLayerDefault | DecalLayerDefault,
         /// <summary>All layers enabled.</summary>
         [HideInInspector]
@@ -101,47 +101,47 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         /// <summary>Light Layer 1.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer2")]
+        [HideInInspector, Obsolete("Use RenderingLayer2. #from(2023.1)")]
         LightLayer1 = RenderingLayer2,
         /// <summary>Light Layer 2.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer3")]
+        [HideInInspector, Obsolete("Use RenderingLayer3. #from(2023.1)")]
         LightLayer2 = RenderingLayer3,
         /// <summary>Light Layer 3.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer4")]
+        [HideInInspector, Obsolete("Use RenderingLayer4. #from(2023.1)")]
         LightLayer3 = RenderingLayer4,
         /// <summary>Light Layer 4.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer5")]
+        [HideInInspector, Obsolete("Use RenderingLayer5. #from(2023.1)")]
         LightLayer4 = RenderingLayer5,
         /// <summary>Light Layer 5.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer6")]
+        [HideInInspector, Obsolete("Use RenderingLayer6. #from(2023.1)")]
         LightLayer5 = RenderingLayer6,
         /// <summary>Light Layer 6.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer7")]
+        [HideInInspector, Obsolete("Use RenderingLayer7. #from(2023.1)")]
         LightLayer6 = RenderingLayer7,
         /// <summary>Light Layer 7.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer8")]
+        [HideInInspector, Obsolete("Use RenderingLayer8. #from(2023.1)")]
         LightLayer7 = RenderingLayer8,
 
         /// <summary>Decal Layer 1.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer10")]
+        [HideInInspector, Obsolete("Use RenderingLayer10. #from(2023.1)")]
         DecalLayer1 = RenderingLayer10,
         /// <summary>Decal Layer 2.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer11")]
+        [HideInInspector, Obsolete("Use RenderingLayer11. #from(2023.1)")]
         DecalLayer2 = RenderingLayer11,
         /// <summary>Decal Layer 3.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer12")]
+        [HideInInspector, Obsolete("Use RenderingLayer12. #from(2023.1)")]
         DecalLayer3 = RenderingLayer12,
         /// <summary>Decal Layer 4.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer13")]
+        [HideInInspector, Obsolete("Use RenderingLayer13. #from(2023.1)")]
         DecalLayer4 = RenderingLayer13,
         /// <summary>Decal Layer 5.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer14")]
+        [HideInInspector, Obsolete("Use RenderingLayer14. #from(2023.1)")]
         DecalLayer5 = RenderingLayer14,
         /// <summary>Decal Layer 6.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer15")]
+        [HideInInspector, Obsolete("Use RenderingLayer15. #from(2023.1)")]
         DecalLayer6 = RenderingLayer15,
         /// <summary>Decal Layer 7.</summary>
-        [HideInInspector, Obsolete("@from(2023.1) Use RenderingLayer16")]
+        [HideInInspector, Obsolete("Use RenderingLayer16. #from(2023.1)")]
         DecalLayer7 = RenderingLayer16,
     }
 

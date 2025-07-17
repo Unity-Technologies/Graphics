@@ -16,8 +16,8 @@ namespace UnityEditor.VFX
 
             if (!object.ReferenceEquals(obj, null))
             {
-                int instanceID = obj.GetInstanceID();
-                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(instanceID)));
+                var entityId = obj.GetEntityId();
+                dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(entityId)));
             }
         }
     }

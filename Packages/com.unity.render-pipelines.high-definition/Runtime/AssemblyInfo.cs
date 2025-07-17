@@ -12,4 +12,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Industrial.Materials.AVRD.Editor")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Multiple_SRP.RuntimeTests")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Multiple_SRP.EditorTests")]
+[assembly: InternalsVisibleTo("Unity.GI.ReflectionProbes.Test")]
 

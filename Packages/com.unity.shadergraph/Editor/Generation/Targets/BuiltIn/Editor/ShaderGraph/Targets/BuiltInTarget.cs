@@ -153,7 +153,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             }
         }
 
-        public SubTarget activeSubTarget
+        public override SubTarget activeSubTarget
         {
             get => m_ActiveSubTarget.value;
             set => m_ActiveSubTarget = value;

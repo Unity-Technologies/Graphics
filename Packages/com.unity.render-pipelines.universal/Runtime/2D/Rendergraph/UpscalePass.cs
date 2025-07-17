@@ -44,7 +44,8 @@ namespace UnityEngine.Rendering.Universal
             destination?.Release();
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+#if URP_COMPATIBILITY_MODE
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = renderingData.commandBuffer;
@@ -52,6 +53,7 @@ namespace UnityEngine.Rendering.Universal
 
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(cmd), source);
         }
+#endif
 
         private static void ExecutePass(RasterCommandBuffer cmd, RTHandle source)
         {

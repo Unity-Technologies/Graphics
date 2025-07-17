@@ -541,8 +541,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         Matrix4x4 invViewProjection;
                         Vector4 deviceProjection;
 
-                        HDShadowUtils.ExtractSpotLightData(spotAngleForShadows, light.shadowNearPlane, light.aspectRatio, light.shapeWidth,
-                            light.shapeHeight, visibleLight, viewportSize, light.normalBias, punctualShadowFilteringQuality, usesReversedZBuffer,
+                        HDShadowUtils.ExtractSpotLightData(spotAngleForShadows, light.shadowNearPlane, visibleLight.areaSize.x,
+                            visibleLight.areaSize.y, visibleLight, viewportSize, light.normalBias, punctualShadowFilteringQuality, usesReversedZBuffer,
                             out view, out invViewProjection, out projection,
                             out deviceProjection, out deviceProjectionYFlip,
                             out splitData);
@@ -685,8 +685,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int shadowRequestIndex = shadowRequestIndices[0];
                         Vector2 viewportSize = shadowResolutionRequestStorage[shadowRequestIndex].resolution;
-                        Vector2 shapeSize = new Vector2(light.shapeWidth, light.shapeHeight);
-                        float forwardOffset = HDAdditionalLightData.GetAreaLightOffsetForShadows(shapeSize, light.areaLightShadowCone);
+                        float forwardOffset = HDAdditionalLightData.GetAreaLightOffsetForShadows(visibleLight.areaSize, light.areaLightShadowCone);
 
                         Matrix4x4 view;
                         Matrix4x4 deviceProjectionYFlip;
@@ -695,7 +694,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector4 deviceProjection;
 
                         HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, forwardOffset, light.areaLightShadowCone,
-                            light.shadowNearPlane, shapeSize, viewportSize, light.normalBias, usesReversedZBuffer,
+                            light.shadowNearPlane, visibleLight.areaSize, viewportSize, light.normalBias, usesReversedZBuffer,
                             out view, out invViewProjection, out projection,
                             out deviceProjection, out deviceProjectionYFlip,
                             out splitData);

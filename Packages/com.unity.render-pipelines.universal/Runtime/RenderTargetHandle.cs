@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// Deprecated in favor of RTHandle.
     /// </summary>
     // RenderTargetHandle can be thought of as a kind of ShaderProperty string hash
-    [Obsolete("Deprecated in favor of RTHandle", true)]
+    [Obsolete("Deprecated in favor of RTHandle. #from(2022.1) #breakingFrom(2023.1)", true)]
     public struct RenderTargetHandle
     {
         /// <summary>

@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.Universal
             public bool stripDebugDisplayShaders { get; set; }
             public bool stripScreenCoordOverrideVariants { get; set; }
             public bool stripBicubicLightmapSamplingVariants { get; set; }
+            public bool stripReflectionProbeRotationVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
@@ -65,6 +66,7 @@ namespace UnityEditor.Rendering.Universal
             public bool stripDebugDisplayShaders { get; set; }
             public bool stripScreenCoordOverrideVariants { get; set; }
             public bool stripBicubicLightmapSamplingVariants { get; set; }
+            public bool stripReflectionProbeRotationVariants { get; set; }
             public bool stripUnusedVariants { get; set; }
             public bool stripUnusedPostProcessingVariants { get; set; }
             public bool stripUnusedXRVariants { get; set; }
@@ -142,6 +144,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ReflectionProbeBlending;
         LocalKeyword m_ReflectionProbeBoxProjection;
         LocalKeyword m_ReflectionProbeAtlas;
+        LocalKeyword m_ReflectionProbeRotation;
         LocalKeyword m_CastingPunctualLightShadow;
         LocalKeyword m_SoftShadows;
         LocalKeyword m_SoftShadowsLow;
@@ -156,6 +159,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_AlphaTestOn;
         LocalKeyword m_GbufferNormalsOct;
         LocalKeyword m_ScreenSpaceOcclusion;
+        LocalKeyword m_ScreenSpaceIrradiance;
         LocalKeyword m_UseFastSRGBLinearConversion;
         LocalKeyword m_LightLayers;
         LocalKeyword m_DecalLayers;
@@ -211,6 +215,7 @@ namespace UnityEditor.Rendering.Universal
             m_ReflectionProbeBlending = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBlending);
             m_ReflectionProbeBoxProjection = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBoxProjection);
             m_ReflectionProbeAtlas = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeAtlas);
+            m_ReflectionProbeRotation = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeRotation);
             m_CastingPunctualLightShadow = TryGetLocalKeyword(shader, ShaderKeywordStrings.CastingPunctualLightShadow);
             m_SoftShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadows);
             m_SoftShadowsLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsLow);
@@ -225,6 +230,7 @@ namespace UnityEditor.Rendering.Universal
             m_AlphaTestOn = TryGetLocalKeyword(shader, ShaderKeywordStrings._ALPHATEST_ON);
             m_GbufferNormalsOct = TryGetLocalKeyword(shader, ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
             m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
+            m_ScreenSpaceIrradiance = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceIrradiance);
             m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
             m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
             m_DecalLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalLayers);
@@ -394,6 +400,11 @@ namespace UnityEditor.Rendering.Universal
             return strippingData.stripScreenCoordOverrideVariants && strippingData.IsKeywordEnabled(m_ScreenCoordOverride);
         }
 
+        internal bool StripUnusedFeatures_ScreenSpaceIrradiance(ref IShaderScriptableStrippingData strippingData)
+        {
+            return strippingData.IsKeywordEnabled(m_ScreenSpaceIrradiance); // Screen space irradiance is currently not exposed to the user nor used by anything internal.
+        }
+
         internal bool StripUnusedFeatures_BicubicLightmapSampling(ref IShaderScriptableStrippingData strippingData)
         {
             if (strippingData.PassHasKeyword(m_LightmapBicubicSampling))
@@ -402,6 +413,16 @@ namespace UnityEditor.Rendering.Universal
                 return useBicubic != strippingData.IsKeywordEnabled(m_LightmapBicubicSampling);
             }
 
+            return false;
+        }
+
+        internal bool StripUnusedFeatures_ReflectionProbeRotation(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.PassHasKeyword(m_ReflectionProbeRotation))
+            {
+                bool useRotation = !strippingData.stripReflectionProbeRotationVariants;
+                return useRotation != strippingData.IsKeywordEnabled(m_ReflectionProbeRotation);
+            }
             return false;
         }
 
@@ -803,7 +824,13 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedFeatures_ScreenCoordOverride(ref strippingData))
                 return true;
 
+            if (StripUnusedFeatures_ScreenSpaceIrradiance(ref strippingData))
+                return true;
+
             if (StripUnusedFeatures_BicubicLightmapSampling(ref strippingData))
+                return true;
+
+            if (StripUnusedFeatures_ReflectionProbeRotation(ref strippingData))
                 return true;
 
             if (StripUnusedFeatures_MixedLighting(ref strippingData))
@@ -1192,6 +1219,7 @@ namespace UnityEditor.Rendering.Universal
                 stripDebugDisplayShaders = ShaderBuildPreprocessor.s_StripDebugDisplayShaders,
                 stripScreenCoordOverrideVariants = ShaderBuildPreprocessor.s_StripScreenCoordOverrideVariants,
                 stripBicubicLightmapSamplingVariants = ShaderBuildPreprocessor.s_StripBicubicLightmapSamplingVariants,
+                stripReflectionProbeRotationVariants = ShaderBuildPreprocessor.s_StripReflectionProbeRotationVariants,
                 stripUnusedVariants = ShaderBuildPreprocessor.s_StripUnusedVariants,
                 stripUnusedPostProcessingVariants = ShaderBuildPreprocessor.s_StripUnusedPostProcessingVariants,
                 stripUnusedXRVariants = ShaderBuildPreprocessor.s_StripXRVariants,

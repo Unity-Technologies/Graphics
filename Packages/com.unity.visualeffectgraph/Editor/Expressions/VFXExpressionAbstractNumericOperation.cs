@@ -152,7 +152,7 @@ namespace UnityEditor.VFX
         {
             if (!IsNumeric(parentLeft.valueType) || !IsNumeric(parentRight.valueType))
             {
-                throw new ArgumentException("Incorrect VFXExpressionBinaryMathOperation (not numeric type)");
+                throw new ArgumentException($"Incorrect VFXExpressionBinaryMathOperation (not numeric type) ({parentLeft.valueType} vs {parentRight.valueType})");
             }
 
             if (parentRight.valueType != parentLeft.valueType)

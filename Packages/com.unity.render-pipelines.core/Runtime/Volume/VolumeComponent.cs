@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
     /// This attribute allows you to add commands to the <b>Add Override</b> popup menu on Volumes,
     /// while also specifying the render pipeline(s) for which the command will be supported.
     /// </summary>
-    [Obsolete(@"VolumeComponentMenuForRenderPipelineAttribute is deprecated. Use VolumeComponentMenu with SupportedOnRenderPipeline instead. #from(2023.1)", false)]
+    [Obsolete(@"VolumeComponentMenuForRenderPipelineAttribute is deprecated. Use VolumeComponentMenu with SupportedOnRenderPipeline instead. #from(2023.1)")]
     public class VolumeComponentMenuForRenderPipeline : VolumeComponentMenu
     {
         /// <summary>
@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering
     /// overrides in the Volume Inspector via the <b>Add Override</b> button.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    [Obsolete("VolumeComponentDeprecated has been deprecated (UnityUpgradable) -> [UnityEngine] UnityEngine.HideInInspector #from(2023.1)", false)]
+    [Obsolete("VolumeComponentDeprecated has been deprecated. #from(2023.1) (UnityUpgradable) -> [UnityEngine] UnityEngine.HideInInspector")]
     public sealed class VolumeComponentDeprecated : Attribute
     {
     }

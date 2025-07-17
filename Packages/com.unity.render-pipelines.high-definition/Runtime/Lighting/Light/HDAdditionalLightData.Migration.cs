@@ -27,12 +27,13 @@ namespace UnityEngine.Rendering.HighDefinition
             EnableApplyRangeAttenuationOnBoxLight,
             UpdateLightShapeToCore,
             UpdateLightUnitsToCore,
+            UpdateSpotLightParamsToCore,
         }
 
         /// <summary>
         /// Shadow Resolution Tier
         /// </summary>
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         enum ShadowResolutionTier
         {
             Low = 0,
@@ -44,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Type used previous isolation of AreaLightShape as we use Point for realtime area light due to culling
         /// </summary>
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         enum LightTypeExtent
         {
             Punctual,
@@ -237,8 +238,74 @@ namespace UnityEngine.Rendering.HighDefinition
                     // This is a temporary solution until we break out areaSize into multiple fields
                     light.areaSize = new Vector2(data.aspectRatio, light.areaSize.y);
                 }
+            }),
+            MigrationStep.New(Version.UpdateSpotLightParamsToCore, (HDAdditionalLightData data) =>
+            {
+                // Copy data from the HDRP's HDAdditionalLight component to the Unity's Light component
+                // Assign -1.0f (invalid value) to the deprecated variables to detect if they are animated. (See MigrateFromTimeline)
+
+                var light = data.GetComponent<Light>();
+                if (light.type == LightType.Pyramid)
+                {
+                    light.innerSpotAngle = 360f / Mathf.PI * Mathf.Atan(data.m_AspectRatio * Mathf.Tan(light.spotAngle * Mathf.PI / 360f));
+                    data.m_AspectRatio = -1.0f;
+                }
+                else
+                {
+                    light.innerSpotAngle = data.m_InnerSpotPercent * light.spotAngle / 100f;
+                    data.m_InnerSpotPercent = -1.0f;
+                }
+
+                if (light.type == LightType.Directional)
+                {
+                    light.cookieSize2D = new Vector2(data.m_ShapeWidth, data.m_ShapeHeight);
+                    data.m_ShapeWidth = data.m_ShapeHeight = -1.0f;
+                }
+                else if (light.type == LightType.Disc)
+                {
+                    // Disc lights already store their size in Light.areaSize. Don't overwrite it.
+                }
+                else
+                {
+                    light.areaSize = new Vector2(data.m_ShapeWidth, data.m_ShapeHeight);
+                    data.m_ShapeWidth = data.m_ShapeHeight = -1.0f;
+                }
             })
             );
+
+        /// <summary>
+        /// Migrate deprecated variables if they are animated
+        /// </summary>
+        void MigrateFromTimeline()
+        {
+            var lightType = legacyLight.type;
+
+            if (lightType == LightType.Pyramid)
+            {
+                if (m_AspectRatio != -1.0f)
+                    legacyLight.innerSpotAngle = 360f / Mathf.PI * Mathf.Atan(m_AspectRatio * Mathf.Tan(legacyLight.spotAngle * Mathf.PI / 360f));
+            }
+            else
+            {
+                if (m_InnerSpotPercent != -1.0f)
+                    legacyLight.innerSpotAngle = m_InnerSpotPercent * legacyLight.spotAngle / 100f;
+            }
+
+            if (lightType == LightType.Directional)
+            {
+                if (m_ShapeWidth != -1.0f || m_ShapeHeight != -1.0f)
+                    legacyLight.cookieSize2D = new Vector2(m_ShapeWidth, m_ShapeHeight);
+            }
+            else if (lightType == LightType.Disc)
+            {
+                // nop
+            }
+            else
+            {
+                if (m_ShapeWidth != -1.0f || m_ShapeHeight != -1.0f)
+                    legacyLight.areaSize = new Vector2(m_ShapeWidth, m_ShapeHeight);
+            }
+        }
 #pragma warning restore 0618, 0612
 
         void Migrate()
@@ -251,30 +318,31 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Obsolete fields
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
         // we add intensity (for each type of light we want to manage).
-        [Obsolete("Use Light.renderingLayerMask instead")]
+        [Obsolete("Use Light.renderingLayerMask instead. #from(2021.1)")]
         [FormerlySerializedAs("lightLayers")]
         [ExcludeCopy]
         RenderingLayerMask m_LightLayers = RenderingLayerMask.LightLayerDefault;
 
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         [SerializeField]
         [FormerlySerializedAs("m_ShadowResolutionTier")]
         [ExcludeCopy]
         ShadowResolutionTier m_ObsoleteShadowResolutionTier = ShadowResolutionTier.Medium;
-        [Obsolete]
+
+        [Obsolete("#from(2021.1)")]
         [SerializeField]
         [FormerlySerializedAs("m_UseShadowQualitySettings")]
         [ExcludeCopy]
         bool m_ObsoleteUseShadowQualitySettings = false;
 
         [FormerlySerializedAs("m_CustomShadowResolution")]
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         [SerializeField]
         [ExcludeCopy]
         int m_ObsoleteCustomShadowResolution = k_DefaultShadowResolution;
 
         [FormerlySerializedAs("m_ContactShadows")]
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         [SerializeField]
         [ExcludeCopy]
         bool m_ObsoleteContactShadows = false;

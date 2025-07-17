@@ -51,5 +51,7 @@ namespace UnityEditor.ShaderGraph
 
         // think this is not called by anyone anymore, leaving it to avoid changing client code
         public abstract bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline);
+
+        virtual public SubTarget activeSubTarget { get; set; }
     }
 }

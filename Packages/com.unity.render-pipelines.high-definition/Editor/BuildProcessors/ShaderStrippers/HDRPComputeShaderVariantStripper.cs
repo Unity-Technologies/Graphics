@@ -111,13 +111,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            foreach (var areaShadowVariant in m_ShadowKeywords.AreaShadowVariants)
+
+            if (ShaderConfig.s_AreaLights == 1)
             {
-                if (areaShadowVariant.Key != shadowInitParams.areaShadowFilteringQuality)
+                foreach (var areaShadowVariant in m_ShadowKeywords.AreaShadowVariants)
                 {
+                    if (areaShadowVariant.Key != shadowInitParams.areaShadowFilteringQuality)
+                        if (inputData.shaderKeywordSet.IsEnabled(areaShadowVariant.Value))
+                            return true;
+                }
+            }
+            else
+            {
+                // Strip all the area light shadow filtering variants when they are disabled in the shader config.
+                foreach (var areaShadowVariant in m_ShadowKeywords.AreaShadowVariants)
                     if (inputData.shaderKeywordSet.IsEnabled(areaShadowVariant.Value))
                         return true;
-                }
             }
 
             // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not

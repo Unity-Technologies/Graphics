@@ -88,6 +88,8 @@
     * [Collision](Block-Collision-LandingPage.md)
       * [Collision Shape](Block-CollisionShape.md)
       * [Collision Depth Buffer](Block-CollideWithDepthBuffer.md)
+      * [Kill Shape](Block-KillShape.md)
+      * [Trigger Shape](Block-TriggerShape.md)
     * Flipbook
       * [Flipbook Player](Block-FlipbookPlayer.md)
     * Force
@@ -103,9 +105,6 @@
     * Implicit
       * [Integration : Update Position](Block-UpdatePosition.md)
       * [Integration : Update Rotation](Block-UpdateRotation.md)
-    * Kill
-      * [Kill (AABox)](Block-Kill(AABox).md)
-      * [Kill (Sphere)](Block-Kill(Sphere).md)
     * Orientation
       * [Connect Target](Block-ConnectTarget.md)
       * [Orient](Block-Orient.md)

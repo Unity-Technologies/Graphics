@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class HDLitData : HDTargetData
     {
-        [Obsolete("Use MaterialTypeMask instead.")]
+        [Obsolete("Use MaterialTypeMask instead. #from(2023.1)")]
         public enum MaterialType
         {
             Standard,
@@ -37,10 +37,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_RayTracing = value;
         }
 
-        [SerializeField, Obsolete("use m_MaterialTypeMask instead.")]
+        [SerializeField, Obsolete("use m_MaterialTypeMask instead. #from(2023.1)")]
         MaterialType m_MaterialType;
 
-        [Obsolete("Use materialTypeMask instead.")]
+        [Obsolete("Use materialTypeMask instead. #from(2023.1)")]
         public MaterialType materialType
         {
             get => m_MaterialType;

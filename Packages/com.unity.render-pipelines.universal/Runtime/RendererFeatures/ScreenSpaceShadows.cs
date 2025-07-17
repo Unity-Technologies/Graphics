@@ -149,7 +149,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if URP_COMPATIBILITY_MODE
             /// <inheritdoc/>
-            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if URP_COMPATIBILITY_MODE
             /// <inheritdoc/>
-            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 if (m_Material == null)
@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if URP_COMPATIBILITY_MODE
-            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
             public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
             {
                 // Disable obsolete warning for internal usage
@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if URP_COMPATIBILITY_MODE
-            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 var cmd = renderingData.commandBuffer;

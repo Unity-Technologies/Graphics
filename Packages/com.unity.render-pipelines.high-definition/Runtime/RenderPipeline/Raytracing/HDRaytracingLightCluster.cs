@@ -233,31 +233,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             TextureHandle debugTexture;
-            using (var builder = renderGraph.AddRenderPass<LightClusterDebugPassData>("Debug Texture for the Light Cluster", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingDebugCluster)))
+            using (var builder = renderGraph.AddUnsafePass<LightClusterDebugPassData>("Debug Texture for the Light Cluster", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingDebugCluster)))
             {
-                builder.EnableAsyncCompute(false);
-
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
                 passData.clusterCellSize = clusterCellSize;
-                passData.lightCluster = builder.ReadBuffer(renderGraph.ImportBuffer(m_LightCluster));
+                passData.lightCluster = renderGraph.ImportBuffer(m_LightCluster);
+                builder.UseBuffer(passData.lightCluster, AccessFlags.Read);
                 passData.lightClusterDebugCS = m_RenderPipeline.rayTracingResources.lightClusterDebugCS;
                 passData.lightClusterDebugKernel = passData.lightClusterDebugCS.FindKernel("DebugLightCluster");
                 passData.debugMaterial = m_DebugMaterial;
-                passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
-                passData.depthPyramid = builder.ReadTexture(depthStencilBuffer);
-                passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Light Cluster Debug Texture" }));
+                passData.depthStencilBuffer = depthStencilBuffer;
+                passData.depthPyramid = depthStencilBuffer;
+                builder.UseTexture(passData.depthPyramid, AccessFlags.Read);
+                passData.outputBuffer = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Light Cluster Debug Texture" });
+                builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 passData.clusterLightCategory = m_RenderPipeline.m_CurrentDebugDisplaySettings.data.lightClusterCategoryDebug;
 
                 builder.SetRenderFunc(
-                    (LightClusterDebugPassData data, RenderGraphContext ctx) =>
+                    (LightClusterDebugPassData data, UnsafeGraphContext ctx) =>
                     {
                         var debugMaterialProperties = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
                         // Bind the output texture
-                        CoreUtils.SetRenderTarget(ctx.cmd, data.outputBuffer, data.depthStencilBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
+                        CoreUtils.SetRenderTarget(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.outputBuffer, data.depthStencilBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
 
                         // Inject all the parameters to the debug compute
                         ctx.cmd.SetComputeBufferParam(data.lightClusterDebugCS, data.lightClusterDebugKernel, HDShaderIDs._RaytracingLightCluster, data.lightCluster);

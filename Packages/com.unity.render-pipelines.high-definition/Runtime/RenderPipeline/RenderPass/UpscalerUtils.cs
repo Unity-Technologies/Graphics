@@ -174,15 +174,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depth;
             public TextureHandle motionVectors;
             public TextureHandle biasColorMask;
-            public void WriteResources(RenderGraphBuilder builder)
+            public void WriteResources(IUnsafeRenderGraphBuilder builder)
             {
-                source = builder.WriteTexture(source);
-                output = builder.WriteTexture(output);
-                depth = builder.WriteTexture(depth);
-                motionVectors = builder.WriteTexture(motionVectors);
+                builder.UseTexture(source, AccessFlags.Write);
+                builder.UseTexture(output, AccessFlags.Write);
+                builder.UseTexture(depth, AccessFlags.Write);
+                builder.UseTexture(motionVectors, AccessFlags.Write);
 
-                if (biasColorMask.IsValid())
-                    biasColorMask = builder.WriteTexture(biasColorMask);
+                if (biasColorMask.IsValid()) {
+                    builder.UseTexture(biasColorMask, AccessFlags.Write);
+                }
             }
         }
 
@@ -209,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return resources;
         }
 
-        public static UpscalerResources.CameraResourcesHandles CreateCameraResources(HDCamera camera, RenderGraph renderGraph, RenderGraphBuilder builder, in UpscalerResources.ViewResourceHandles resources)
+        public static UpscalerResources.CameraResourcesHandles CreateCameraResources(HDCamera camera, RenderGraph renderGraph, IUnsafeRenderGraphBuilder builder, in UpscalerResources.ViewResourceHandles resources)
         {
             var camResources = new UpscalerResources.CameraResourcesHandles();
             camResources.resources = resources;

@@ -1,0 +1,65 @@
+#define UNIFIED_RT_GROUP_SIZE_X 16
+#define UNIFIED_RT_GROUP_SIZE_Y 8
+#define UNIFIED_RT_PAYLOAD RayPayload
+#define UNIFIED_RT_RAYGEN_FUNC RayGenExecute
+#define UNIFIED_RT_CLOSESTHIT_FUNC ClosestHitExecute
+#define UNIFIED_RT_ANYHIT_FUNC AnyHitExecute
+
+struct RayPayload
+{
+    uint anyHits;
+    int closestHit;
+};
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRay.hlsl"
+
+int _AnyHitDecision;
+
+uint AnyHitExecute(UnifiedRT::HitContext hitContext, inout RayPayload payload)
+{
+    payload.anyHits |= (1 << hitContext.InstanceID());
+
+    return _AnyHitDecision;
+}
+
+void ClosestHitExecute(UnifiedRT::HitContext hitContext, inout RayPayload payload)
+{
+    payload.closestHit = hitContext.InstanceID();
+}
+
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(_AccelStruct);
+
+struct RayWithFlags
+{
+    float3 origin;
+    float tMin;
+    float3 direction;
+    float tMax;
+    uint culling;
+    uint instanceMask;
+    uint padding;
+    uint padding2;
+};
+
+StructuredBuffer<RayWithFlags> _Rays;
+RWStructuredBuffer<RayPayload> _Hits;
+
+
+void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    RayWithFlags rayWithFlags = _Rays[dispatchInfo.globalThreadIndex];
+    UnifiedRT::Ray ray;
+    ray.origin = rayWithFlags.origin;
+    ray.direction = rayWithFlags.direction;
+    ray.tMin = rayWithFlags.tMin;
+    ray.tMax = rayWithFlags.tMax;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(_AccelStruct);
+
+    RayPayload rayPayload = (RayPayload)0;
+    rayPayload.closestHit = -1;
+    UnifiedRT::TraceRay(dispatchInfo, accelStruct, 0xFFFFFFFF, ray, rayWithFlags.culling, rayPayload);
+
+    _Hits[dispatchInfo.globalThreadIndex] = rayPayload;
+}
+

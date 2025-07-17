@@ -80,15 +80,15 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_SkyVersion; set => m_SkyVersion = value; }
 
         /// <summary>Obsolete field. Simplifies the interface by using parameters suitable to simulate Earth.</summary>
-        [SerializeField, FormerlySerializedAs("earthPreset"), Obsolete("For Data Migration")]
+        [SerializeField, FormerlySerializedAs("earthPreset"), Obsolete("For Data Migration. #from(2021.1)")]
         BoolParameter m_ObsoleteEarthPreset = new BoolParameter(true);
 
         /// <summary> Radius of the planet (distance from the center of the planet to the sea level). Units: meters. </summary>
-        [SerializeField, Obsolete("For Data Migration")]
+        [SerializeField, Obsolete("For Data Migration. #from(2023.3)")]
         MinFloatParameter planetaryRadius = new MinFloatParameter(k_DefaultEarthRadius, 0);
 
         /// <summary> Position of the center of the planet in the world space. Units: meters. Does not affect the precomputation. </summary>
-        [SerializeField, Obsolete("For Data Migration")]
+        [SerializeField, Obsolete("For Data Migration. #from(2023.3)")]
         Vector3Parameter planetCenterPosition = new Vector3Parameter(new Vector3(0, -k_DefaultEarthRadius, 0));
 
     }

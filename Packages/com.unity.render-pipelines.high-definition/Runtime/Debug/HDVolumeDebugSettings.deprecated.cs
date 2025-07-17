@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the render pipeline for this volume settings
         /// </summary>
-        [Obsolete("This property is obsolete and kept only for not breaking user code. VolumeDebugSettings will use current pipeline when it needs to gather volume component types and paths. #from(23.2)", false)]
+        [Obsolete("This property is obsolete and kept only for not breaking user code. VolumeDebugSettings will use current pipeline when it needs to gather volume component types and paths. #from(2023.2)")]
         public override Type targetRenderPipeline => typeof(HDRenderPipeline);
     }
 }

@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle ambientProbeBuffer;
         }
 
-        void PrepareVolumetricCloudsSkyLowPassData(RenderGraph renderGraph, RenderGraphBuilder builder,
+        void PrepareVolumetricCloudsSkyLowPassData(RenderGraph renderGraph, IUnsafeRenderGraphBuilder builder,
             HDCamera hdCamera, int width, int height, Matrix4x4[] pixelCoordToViewDir, CubemapFace cubemapFace,
             VolumetricClouds settings, GraphicsBuffer ambientProbeBuffer, VolumetricCloudsSkyLowPassData data)
         {
@@ -101,8 +101,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.intermediateLightingBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateLightingBufferDesc());
             data.intermediateDepthBuffer = builder.CreateTransientTexture(GetVolumetricCloudsIntermediateDepthBufferDesc());
-            data.output = builder.WriteTexture(renderGraph.CreateTexture(GetVolumetricCloudsIntermediateCubeTextureDesc()));
-            data.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(ambientProbeBuffer));
+            data.output = renderGraph.CreateTexture(GetVolumetricCloudsIntermediateCubeTextureDesc());
+            builder.UseTexture(data.output, AccessFlags.Write);
+            data.ambientProbeBuffer = renderGraph.ImportBuffer(ambientProbeBuffer);
+            builder.UseBuffer(data.ambientProbeBuffer, AccessFlags.Read);
         }
 
         static void TraceVolumetricClouds_Sky_Low(CommandBuffer cmd, VolumetricCloudsSkyLowPassData passData, MaterialPropertyBlock mpb)
@@ -153,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle ambientProbeBuffer;
         }
 
-        void PrepareVolumetricCloudsSkyHighPassData(RenderGraph renderGraph, RenderGraphBuilder builder,
+        void PrepareVolumetricCloudsSkyHighPassData(RenderGraph renderGraph, IUnsafeRenderGraphBuilder builder,
             HDCamera hdCamera, int width, int height, Matrix4x4[] pixelCoordToViewDir, CubemapFace cubemapFace,
             VolumetricClouds settings, GraphicsBuffer ambientProbeBuffer,
             TextureHandle output, VolumetricCloudsSkyHighPassData data)
@@ -193,13 +195,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
                 data.cameraColorCopy = builder.CreateTransientTexture(GetVolumetricCloudsMetalCopyBufferDesc());
-                data.output = builder.ReadWriteTexture(output);
+                data.output = output;
+                builder.UseTexture(data.output, AccessFlags.ReadWrite);
             }
             else
             {
-                data.output = builder.WriteTexture(output);
+                data.output = output;
+                builder.UseTexture(data.output, AccessFlags.Write);
             }
-            data.ambientProbeBuffer = builder.ReadBuffer(renderGraph.ImportBuffer(ambientProbeBuffer));
+            data.ambientProbeBuffer = renderGraph.ImportBuffer(ambientProbeBuffer);
+            builder.UseBuffer(data.ambientProbeBuffer, AccessFlags.Read);
         }
 
         static void RenderVolumetricClouds_Sky_High(CommandBuffer cmd, VolumetricCloudsSkyHighPassData passData, MaterialPropertyBlock mpb)
@@ -275,13 +280,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.FullResolutionCloudsForSky))
             {
-                using (var builder = renderGraph.AddRenderPass<VolumetricCloudsSkyHighPassData>("FullResolutionCloudsForSky", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace)))
+                using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsSkyHighPassData>("FullResolutionCloudsForSky", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace)))
                 {
                     PrepareVolumetricCloudsSkyHighPassData(renderGraph, builder, hdCamera, width, height, pixelCoordToViewDir, CubemapFace.Unknown, settings, probeBuffer, skyboxCubemap, passData);
 
                     builder.SetRenderFunc(
-                    (VolumetricCloudsSkyHighPassData data, RenderGraphContext ctx) =>
+                    (VolumetricCloudsSkyHighPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
                         {
                             // Update the cubemap face and the inverse projection matrix
@@ -289,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             UpdatePixelCoordToViewDir(ref data.commonData.cloudsCB, data.pixelCoordToViewDir[faceIdx]);
 
                             // Render the face straight to the output cubemap
-                            RenderVolumetricClouds_Sky_High(ctx.cmd, data, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
+                            RenderVolumetricClouds_Sky_High(natCmd, data, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
                         }
                     });
                 }
@@ -298,13 +304,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 TextureHandle intermediateCubemap;
 
-                using (var builder = renderGraph.AddRenderPass<VolumetricCloudsSkyLowPassData>("LowResolutionCloudsForSky", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace)))
+                using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsSkyLowPassData>("LowResolutionCloudsForSky", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace)))
                 {
                     PrepareVolumetricCloudsSkyLowPassData(renderGraph, builder, hdCamera, width, height, pixelCoordToViewDir, CubemapFace.Unknown, settings, probeBuffer, passData);
 
                     builder.SetRenderFunc(
-                    (VolumetricCloudsSkyLowPassData data, RenderGraphContext ctx) =>
+                    (VolumetricCloudsSkyLowPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
                         {
                             // Update the cubemap face and the inverse projection matrix
@@ -312,23 +319,26 @@ namespace UnityEngine.Rendering.HighDefinition
                             UpdatePixelCoordToViewDir(ref data.commonData.cloudsCB, data.pixelCoordToViewDir[faceIdx]);
 
                             // Render the face straight to the output cubemap
-                            TraceVolumetricClouds_Sky_Low(ctx.cmd, data, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
+                            TraceVolumetricClouds_Sky_Low(natCmd, data, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
                         }
                     });
 
                     intermediateCubemap = passData.output;
                 }
 
-                using (var builder = renderGraph.AddRenderPass<VolumetricCloudsPreUpscalePassData>("VolumetricCloudsPreUpscale", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsPreUpscale)))
+                using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsPreUpscalePassData>("VolumetricCloudsPreUpscale", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsPreUpscale)))
                 {
                     passData.cloudCombinePass = m_CloudCombinePass;
                     passData.pixelCoordToViewDir = pixelCoordToViewDir;
-                    passData.input = builder.ReadTexture(intermediateCubemap);
-                    passData.output = builder.WriteTexture(renderGraph.CreateTexture(GetVolumetricCloudsIntermediateCubeTextureDesc()));
+                    passData.input = intermediateCubemap;
+                    builder.UseTexture(passData.input, AccessFlags.Read);
+                    passData.output = renderGraph.CreateTexture(GetVolumetricCloudsIntermediateCubeTextureDesc());
+                    builder.UseTexture(passData.output, AccessFlags.Write);
 
                     builder.SetRenderFunc(
-                    (VolumetricCloudsPreUpscalePassData data, RenderGraphContext ctx) =>
+                    (VolumetricCloudsPreUpscalePassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
                         {
                             var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
@@ -336,32 +346,36 @@ namespace UnityEngine.Rendering.HighDefinition
                             mpb.SetTexture(HDShaderIDs._VolumetricCloudsTexture, data.input);
                             mpb.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDir[faceIdx]);
                             mpb.SetInt(HDShaderIDs._Mipmap, 2);
-                            CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 1, (CubemapFace)faceIdx);
-                            CoreUtils.DrawFullScreen(ctx.cmd, data.cloudCombinePass, mpb, 4);
+                            CoreUtils.SetRenderTarget(natCmd, data.output, ClearFlag.None, 1, (CubemapFace)faceIdx);
+                            CoreUtils.DrawFullScreen(natCmd, data.cloudCombinePass, mpb, 4);
                         }
                     });
 
                     intermediateCubemap = passData.output;
                 }
 
-                using (var builder = renderGraph.AddRenderPass<VolumetricCloudsUpscalePassData>("VolumetricCloudsUpscale", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscale)))
+                using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsUpscalePassData>("VolumetricCloudsUpscale", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscale)))
                 {
                     passData.cloudCombinePass = m_CloudCombinePass;
                     passData.pixelCoordToViewDir = pixelCoordToViewDir;
-                    passData.input = builder.ReadTexture(intermediateCubemap);
+                    passData.input = intermediateCubemap;
+                    builder.UseTexture(passData.input, AccessFlags.Read);
                     if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                     {
                         passData.intermediateBuffer = builder.CreateTransientTexture(GetVolumetricCloudsMetalCopyBufferDesc());
-                        passData.output = builder.ReadWriteTexture(skyboxCubemap);
+                        passData.output = skyboxCubemap;
+                        builder.UseTexture(passData.output, AccessFlags.ReadWrite);
                     }
                     else
                     {
-                        passData.output = builder.WriteTexture(skyboxCubemap);
+                        passData.output = skyboxCubemap;
+                        builder.UseTexture(passData.output, AccessFlags.Write);
                     }
 
                     builder.SetRenderFunc(
-                    (VolumetricCloudsUpscalePassData data, RenderGraphContext ctx) =>
+                    (VolumetricCloudsUpscalePassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
                         {
                             var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
@@ -371,15 +385,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                 // On Intel GPUs on OSX, due to the fact that we cannot always rely on pre-exposure the hardware blending fails and turns into Nans when
                                 // the values are close to the max fp16 value. We do the blending manually on metal to avoid that behavior.
                                 // Copy the target face of the cubemap into a temporary texture
-                                ctx.cmd.CopyTexture(data.output, faceIdx, 0, data.intermediateBuffer, 0, 0);
+                                natCmd.CopyTexture(data.output, faceIdx, 0, data.intermediateBuffer, 0, 0);
 
                                 mpb.Clear();
                                 mpb.SetTexture(HDShaderIDs._CameraColorTexture, data.intermediateBuffer);
                                 mpb.SetTexture(HDShaderIDs._VolumetricCloudsTexture, data.input);
                                 mpb.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDir[faceIdx]);
                                 mpb.SetInt(HDShaderIDs._Mipmap, 1);
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)faceIdx);
-                                CoreUtils.DrawFullScreen(ctx.cmd, data.cloudCombinePass, mpb, 5);
+                                CoreUtils.SetRenderTarget(natCmd, data.output, ClearFlag.None, 0, (CubemapFace)faceIdx);
+                                CoreUtils.DrawFullScreen(natCmd, data.cloudCombinePass, mpb, 5);
                             }
                             else
                             {
@@ -387,8 +401,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 mpb.SetTexture(HDShaderIDs._VolumetricCloudsTexture, data.input);
                                 mpb.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDir[faceIdx]);
                                 mpb.SetInt(HDShaderIDs._Mipmap, 1);
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)faceIdx);
-                                CoreUtils.DrawFullScreen(ctx.cmd, data.cloudCombinePass, mpb, 6);
+                                CoreUtils.SetRenderTarget(natCmd, data.output, ClearFlag.None, 0, (CubemapFace)faceIdx);
+                                CoreUtils.DrawFullScreen(natCmd, data.cloudCombinePass, mpb, 6);
                             }
                         }
                     });

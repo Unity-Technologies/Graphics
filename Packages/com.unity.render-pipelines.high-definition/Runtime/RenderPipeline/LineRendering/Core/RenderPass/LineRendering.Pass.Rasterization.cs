@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
     partial class LineRendering
     {
 
-        private static void ExecuteRasterizationPass(CommandBuffer cmd, RasterizationPassData resources)
+        private static void ExecuteRasterizationPass(ComputeCommandBuffer cmd, RasterizationPassData resources)
         {
             var buffers = resources.sharedBuffers;
             var transientBuffers = resources.transientBuffers;

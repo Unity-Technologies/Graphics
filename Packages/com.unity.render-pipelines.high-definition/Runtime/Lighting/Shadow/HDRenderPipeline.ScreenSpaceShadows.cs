@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!rayTracingSupported || (m_ScreenSpaceShadowChannelSlot <= m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex))
                 return m_RenderGraph.defaultResources.blackTextureXR;
 
-            using (var builder = renderGraph.AddRenderPass<ScreenSpaceShadowDebugPassData>("Screen Space Shadows Debug", out var passData, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadowsDebug)))
+            using (var builder = renderGraph.AddUnsafePass<ScreenSpaceShadowDebugPassData>("Screen Space Shadows Debug", out var passData, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadowsDebug)))
             {
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
@@ -331,23 +331,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: move the debug kernel outside of the ray tracing resources
                 passData.shadowFilter = rayTracingResources.shadowFilterCS;
 
-                passData.screenSpaceShadowArray = builder.ReadTexture(screenSpaceShadowArray);
-                passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "EvaluateShadowDebug" }));
+                passData.screenSpaceShadowArray = screenSpaceShadowArray;
+                builder.UseTexture(passData.screenSpaceShadowArray, AccessFlags.Read);
+                passData.outputBuffer = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "EvaluateShadowDebug" });
+                builder.UseTexture(passData.outputBuffer, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (ScreenSpaceShadowDebugPassData data, RenderGraphContext ctx) =>
+                    (ScreenSpaceShadowDebugPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Evaluate the dispatch parameters
                         int shadowTileSize = 8;
                         int numTilesX = (data.texWidth + (shadowTileSize - 1)) / shadowTileSize;
                         int numTilesY = (data.texHeight + (shadowTileSize - 1)) / shadowTileSize;
 
                         // If the screen space shadows we are asked to deliver is available output it to the intermediate texture
-                        ctx.cmd.SetComputeIntParam(data.shadowFilter, HDShaderIDs._DenoisingHistorySlot, data.targetShadow);
-                        ctx.cmd.SetComputeTextureParam(data.shadowFilter, data.debugKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, data.screenSpaceShadowArray);
-                        ctx.cmd.SetComputeTextureParam(data.shadowFilter, data.debugKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputBuffer);
-                        ctx.cmd.DispatchCompute(data.shadowFilter, data.debugKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.SetComputeIntParam(data.shadowFilter, HDShaderIDs._DenoisingHistorySlot, data.targetShadow);
+                        natCmd.SetComputeTextureParam(data.shadowFilter, data.debugKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, data.screenSpaceShadowArray);
+                        natCmd.SetComputeTextureParam(data.shadowFilter, data.debugKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputBuffer);
+                        natCmd.DispatchCompute(data.shadowFilter, data.debugKernel, numTilesX, numTilesY, data.viewCount);
                     });
                 return passData.outputBuffer;
             }
@@ -379,7 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void WriteScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle shadowTexture, TextureHandle screenSpaceShadowArray, int shadowIndex, ScreenSpaceShadowType shadowType)
         {
             // Write the result texture to the screen space shadow buffer
-            using (var builder = renderGraph.AddRenderPass<WriteScreenSpaceShadowPassData>("Write Screen Space Shadows", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingWriteShadow)))
+            using (var builder = renderGraph.AddUnsafePass<WriteScreenSpaceShadowPassData>("Write Screen Space Shadows", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingWriteShadow)))
             {
                 passData.texWidth = hdCamera.actualWidth;
                 passData.texHeight = hdCamera.actualHeight;
@@ -418,29 +421,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Other parameters
                 passData.screenSpaceShadowCS = m_ScreenSpaceShadowsCS;
 
-                passData.inputShadowBuffer = builder.ReadTexture(shadowTexture);
-                passData.outputShadowArrayBuffer = builder.ReadWriteTexture(screenSpaceShadowArray);
+                passData.inputShadowBuffer = shadowTexture;
+                builder.UseTexture(passData.inputShadowBuffer, AccessFlags.Read);
+                passData.outputShadowArrayBuffer = screenSpaceShadowArray;
+                builder.UseTexture(passData.outputShadowArrayBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (WriteScreenSpaceShadowPassData data, RenderGraphContext ctx) =>
+                    (WriteScreenSpaceShadowPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Evaluate the dispatch parameters
                         int shadowTileSize = 8;
                         int numTilesX = (data.texWidth + (shadowTileSize - 1)) / shadowTileSize;
                         int numTilesY = (data.texHeight + (shadowTileSize - 1)) / shadowTileSize;
 
                         // Bind the input data
-                        ctx.cmd.SetComputeIntParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingShadowSlot, data.shadowSlot / 4);
-                        ctx.cmd.SetComputeVectorParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingChannelMask, data.shadowChannelMask);
-                        ctx.cmd.SetComputeVectorParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingChannelMask0, data.shadowChannelMask0);
-                        ctx.cmd.SetComputeVectorParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingChannelMask1, data.shadowChannelMask1);
-                        ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._RaytracedShadowIntegration, data.inputShadowBuffer);
+                        natCmd.SetComputeIntParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingShadowSlot, data.shadowSlot / 4);
+                        natCmd.SetComputeVectorParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingChannelMask, data.shadowChannelMask);
+                        natCmd.SetComputeVectorParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingChannelMask0, data.shadowChannelMask0);
+                        natCmd.SetComputeVectorParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingChannelMask1, data.shadowChannelMask1);
+                        natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._RaytracedShadowIntegration, data.inputShadowBuffer);
 
                         // Bind the output texture
-                        ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, data.outputShadowArrayBuffer);
+                        natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._ScreenSpaceShadowsTextureRW, data.outputShadowArrayBuffer);
 
                         //Do our copy
-                        ctx.cmd.DispatchCompute(data.screenSpaceShadowCS, data.shadowKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.DispatchCompute(data.screenSpaceShadowCS, data.shadowKernel, numTilesX, numTilesY, data.viewCount);
                     });
             }
         }

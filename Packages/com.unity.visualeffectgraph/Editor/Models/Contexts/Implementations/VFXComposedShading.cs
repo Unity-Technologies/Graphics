@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
             //This is the only place where shaderGraph property is updated or read
             if (currentShaderGraph == null && !object.ReferenceEquals(currentShaderGraph, null))
             {
-                var assetPath = AssetDatabase.GetAssetPath(currentShaderGraph.GetInstanceID());
+                var assetPath = AssetDatabase.GetAssetPath(currentShaderGraph.GetEntityId());
                 var newShaderGraph = AssetDatabase.LoadAssetAtPath<ShaderGraphVfxAsset>(assetPath);
                 if (newShaderGraph == null)
                 {

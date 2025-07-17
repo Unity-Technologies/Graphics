@@ -104,6 +104,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             CheckDimensions(desc, testCase);
         }
 
+#if URP_COMPATIBILITY_MODE
         public class TestRTDimensionNativeRenderPass : ScriptableRenderPass {}
 
         [TestCaseSource(nameof(TestCasesTextureDimension))]
@@ -119,5 +120,6 @@ namespace UnityEditor.Rendering.Universal.Tests
             ScriptableRenderer.GetRenderTextureDescriptor(m_CameraData, nativeRenderPass, out var desc);
             CheckDimensions(desc, testCase);
         }
+#endif
     }
 }

@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
-            return new VFXGraphicsBufferValue(0, mode);
+            return new VFXGraphicsBufferValue(EntityId.None, mode);
         }
     }
 }

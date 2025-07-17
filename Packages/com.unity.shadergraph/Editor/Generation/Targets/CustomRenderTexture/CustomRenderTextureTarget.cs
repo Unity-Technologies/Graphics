@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
             return subTargets;
         }
 
-        public SubTarget activeSubTarget
+        public override SubTarget activeSubTarget
         {
             get => m_ActiveSubTarget;
             set => m_ActiveSubTarget = value;

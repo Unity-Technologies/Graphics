@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Profiling Sampler class.
     /// </summary>
-    [System.Obsolete("Please use ProfilingScope")]
+    [System.Obsolete("Please use ProfilingScope. #from(2021.1)")]
     [IgnoredByDeepProfiler]
     public struct ProfilingSample : IDisposable
     {

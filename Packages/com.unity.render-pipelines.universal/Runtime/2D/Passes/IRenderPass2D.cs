@@ -1,3 +1,4 @@
+#if URP_COMPATIBILITY_MODE
 namespace UnityEngine.Rendering.Universal
 {
     internal interface IRenderPass2D
@@ -5,3 +6,4 @@ namespace UnityEngine.Rendering.Universal
         Renderer2DData rendererData { get; }
     }
 }
+#endif

@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
     /// Deprecated, kept for backward compatibility with existing ForwardRendererData asset files.
     /// Use UniversalRendererData instead.
     /// </summary>
-    [System.Obsolete("ForwardRendererData has been deprecated (UnityUpgradable) -> UniversalRendererData", true)]
+    [System.Obsolete("ForwardRendererData has been deprecated #from(2021.2) #breakingFrom(2021.2) (UnityUpgradable) -> UniversalRendererData", true)]
     [Serializable, ReloadGroup, ExcludeFromPreset]
     public class ForwardRendererData : ScriptableRendererData
     {
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Screen space shadows shader.
             /// </summary>
-            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature", true)]
+            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature. #from(2021.1) #breakingFrom(2023.1)", true)]
             public Shader screenSpaceShadowPS;
 
             /// <summary>
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Material error shader.
             /// </summary>
-            [Obsolete("Use fallbackErrorPS instead", true)]
+            [Obsolete("Use fallbackErrorPS instead. #from(2022.2) #breakingFrom(2023.1)", true)]
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
 

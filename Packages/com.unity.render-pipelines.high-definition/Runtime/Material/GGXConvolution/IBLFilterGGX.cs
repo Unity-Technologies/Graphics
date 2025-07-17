@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.GetTemporaryRT(k_PlanarReflectionFilterDepthTex1ID, MakeRenderTextureDescriptor(texWidth, texHeight, GraphicsFormat.R32_SFloat, false));
         }
 
-        private static void ReleaseItrermediateTextures(CommandBuffer cmd)
+        private static void ReleaseIntermediateTextures(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(k_PlanarReflectionFilterTex0ID);
             cmd.ReleaseTemporaryRT(k_PlanarReflectionFilterTex1ID);
@@ -349,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 mipIndex++;
             }
 
-            ReleaseItrermediateTextures(cmd);
+            ReleaseIntermediateTextures(cmd);
         }
     }
 }

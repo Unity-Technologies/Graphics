@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float debugExposure = 0.0f;
         /// <summary>Obsolete, please use  the lens attenuation mode in HDRP Global Settings.</summary>
-        [Obsolete("Please use the lens attenuation mode in HDRP Global Settings", true)]
+        [Obsolete("Please use the lens attenuation mode in HDRP Global Settings. #from(2021.1) #breakingFrom(2021.1)", true)]
         public float debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool showTonemapCurveAlongHistogramView = true;
@@ -340,7 +340,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool showReflectionProbe = true;
 
         /// <summary>Display the Local Volumetric Fog atlas.</summary>
-        [Obsolete("The local volumetric fog atlas was removed. This field is unused.")]
+        [Obsolete("The local volumetric fog atlas was removed. This field is unused. #from(2023.1)")]
         public bool displayLocalVolumetricFogAtlas = false;
         /// <summary>Local Volumetric Fog atlas slice.</summary>
         public uint localVolumetricFogAtlasSlice = 0;

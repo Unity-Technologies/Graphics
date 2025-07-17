@@ -54,7 +54,7 @@ class DrawRenderersFromPostProcess : CustomPass
         };
 
         var renderCtx = currentFrameContext.renderContext;
-        CoreUtils.DrawRendererList(currentFrameContext.renderContext, cmd, renderCtx.CreateRendererList(result));
+        CoreUtils.DrawRendererList(cmd, renderCtx.CreateRendererList(result));
     }
 
     protected override void Cleanup()

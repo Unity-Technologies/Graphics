@@ -1742,74 +1742,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 referenceAspect: referenceAspect
             );
 
-
             var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
-
-            var isPlanarReflectionProbe = false;
-            switch (visibleProbe.type)
-            {
-                case ProbeSettings.ProbeType.ReflectionProbe:
-                    int desiredProbeSize = (int)visibleProbe.cubeResolution;
-
-                    var desiredProbeFormat = ((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
-
-                    if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredProbeSize ||
-                        visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
-                    {
-                        visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreateReflectionProbeRenderTarget(desiredProbeSize, probeFormat));
-                    }
-                    break;
-                case ProbeSettings.ProbeType.PlanarProbe:
-                    isPlanarReflectionProbe = true;
-
-                    if (visibleProbe.IsTurnedOff())
-                    {
-                        RenderTexture rt = new RenderTexture(1, 1, 1, probeFormat)
-                        {
-                            dimension = TextureDimension.Tex2D,
-                            enableRandomWrite = false,
-                            useMipMap = true,
-                            autoGenerateMips = false,
-                            depth = 0
-                        };
-                        rt.Create();
-                        visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, rt);
-                    }
-                    else
-                    {
-
-                        int desiredPlanarProbeSize = (int) visibleProbe.resolution;
-
-                        if (visibleProbe.realtimeTextureRTH == null ||
-                            visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize ||
-                            visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
-                        {
-                            visibleProbe.SetTexture(ProbeSettings.Mode.Realtime,
-                                HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize, probeFormat));
-                        }
-
-                        if (visibleProbe.realtimeDepthTextureRTH == null ||
-                            visibleProbe.realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
-                        {
-                            visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime,
-                                HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
-                        }
-
-                        // Set the viewer's camera as the default camera anchor
-                        for (var i = 0; i < cameraSettings.Count; ++i)
-                        {
-                            var v = cameraSettings[i];
-                            if (v.volumes.anchorOverride == null)
-                            {
-                                v.volumes.anchorOverride = viewerTransform;
-                                cameraSettings[i] = v;
-                            }
-                        }
-                    }
-
-                    break;
-            }
-
+            visibleProbe.AllocTexture(probeFormat);
+            visibleProbe.SetCameraAnchor(cameraSettings, viewerTransform);
+            var isPlanarReflectionProbe = visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe;
+            
             ProbeRenderSteps skippedRenderSteps = ProbeRenderSteps.None;
             for (int j = 0; j < cameraSettings.Count; ++j)
             {
@@ -3287,20 +3224,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        static void DrawOpaqueRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
+        static void DrawOpaqueRendererList(CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
         {
             if (!frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return;
 
-            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
+            CoreUtils.DrawRendererList(cmd, rendererList);
         }
 
-        static void DrawTransparentRendererList(in ScriptableRenderContext renderContext, CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
+        static void DrawTransparentRendererList(CommandBuffer cmd, in FrameSettings frameSettings, RendererList rendererList)
         {
             if (!frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
                 return;
 
-            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
+            CoreUtils.DrawRendererList(cmd, rendererList);
         }
 
         void UpdateShaderVariablesGlobalDecal(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
@@ -3338,11 +3275,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_WaterSystem.RenderWaterAsWireFrame(cmd, hdCamera);
 
                 var rendererListOpaque = renderContext.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames));
-                DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListOpaque);
+                DrawOpaqueRendererList(cmd, hdCamera.frameSettings, rendererListOpaque);
 
                 // Render forward transparent
                 var rendererListTransparent = renderContext.CreateRendererList(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames));
-                DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
+                DrawTransparentRendererList(cmd, hdCamera.frameSettings, rendererListTransparent);
 
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

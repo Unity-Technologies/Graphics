@@ -99,6 +99,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal UniversalRenderingData universalRenderingData => frameData.Get<UniversalRenderingData>();
 
+#if URP_COMPATIBILITY_MODE
         // Non-rendergraph path only. Do NOT use with rendergraph!
         internal ref CommandBuffer commandBuffer
         {
@@ -111,6 +112,7 @@ namespace UnityEngine.Rendering.Universal
                 return ref cmd;
             }
         }
+#endif
 
         /// <summary>
         /// Returns culling results that exposes handles to visible objects, lights and probes.
@@ -238,7 +240,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Struct that holds settings related to camera.
     /// </summary>
-    public struct CameraData
+    public partial struct CameraData
     {
         ContextContainer frameData;
 
@@ -289,6 +291,7 @@ namespace UnityEngine.Rendering.Universal
             return frameData.Get<UniversalCameraData>().GetProjectionMatrixNoJitter(viewIndex);
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Includes camera jitter if required by active features.
         /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
@@ -314,6 +317,7 @@ namespace UnityEngine.Rendering.Universal
         {
             return frameData.Get<UniversalCameraData>().GetGPUProjectionMatrixNoJitter(viewIndex);
         }
+#endif
 
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
         {
@@ -468,6 +472,7 @@ namespace UnityEngine.Rendering.Universal
             return frameData.Get<UniversalCameraData>().IsHandleYFlipped(handle);
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
@@ -475,11 +480,12 @@ namespace UnityEngine.Rendering.Universal
         /// matrix when rendering with for cmd.Draw* and reading from camera textures.
         /// </summary>
         /// <returns> True if the camera device projection matrix is flipped. </returns>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public bool IsCameraProjectionMatrixFlipped()
         {
             return frameData.Get<UniversalCameraData>().IsCameraProjectionMatrixFlipped();
         }
+#endif
 
         /// <summary>
         /// True if the render target's projection matrix is flipped. This happens when the pipeline is rendering
@@ -896,6 +902,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int overlayUITexture = Shader.PropertyToID("_OverlayUITexture");
         public static readonly int hdrOutputLuminanceParams = Shader.PropertyToID("_HDROutputLuminanceParams");
         public static readonly int hdrOutputGradingParams = Shader.PropertyToID("_HDROutputGradingParams");
+
+        public static readonly int screenSpaceIrradiance = Shader.PropertyToID("_ScreenSpaceIrradiance");
     }
 
     /// <summary>
@@ -952,6 +960,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword ReflectionProbeBoxProjection;
         public static GlobalKeyword ReflectionProbeBlending;
         public static GlobalKeyword ReflectionProbeAtlas;
+        public static GlobalKeyword ReflectionProbeRotation;
         public static GlobalKeyword SoftShadows;
         public static GlobalKeyword SoftShadowsLow;
         public static GlobalKeyword SoftShadowsMedium;
@@ -976,6 +985,7 @@ namespace UnityEngine.Rendering.Universal
         public static GlobalKeyword DecalLayers;
         public static GlobalKeyword WriteRenderingLayers;
         public static GlobalKeyword ScreenSpaceOcclusion;
+        public static GlobalKeyword ScreenSpaceIrradiance;
         public static GlobalKeyword _SPOT;
         public static GlobalKeyword _DIRECTIONAL;
         public static GlobalKeyword _POINT;
@@ -1064,6 +1074,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.ReflectionProbeBoxProjection = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeBoxProjection);
             ShaderGlobalKeywords.ReflectionProbeBlending = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeBlending);
             ShaderGlobalKeywords.ReflectionProbeAtlas = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeAtlas);
+            ShaderGlobalKeywords.ReflectionProbeRotation = GlobalKeyword.Create(ShaderKeywordStrings.ReflectionProbeRotation);
             ShaderGlobalKeywords.SoftShadows = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadows);
             ShaderGlobalKeywords.SoftShadowsLow = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsLow);
             ShaderGlobalKeywords.SoftShadowsMedium = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsMedium);
@@ -1088,6 +1099,7 @@ namespace UnityEngine.Rendering.Universal
             ShaderGlobalKeywords.DecalLayers = GlobalKeyword.Create(ShaderKeywordStrings.DecalLayers);
             ShaderGlobalKeywords.WriteRenderingLayers = GlobalKeyword.Create(ShaderKeywordStrings.WriteRenderingLayers);
             ShaderGlobalKeywords.ScreenSpaceOcclusion = GlobalKeyword.Create(ShaderKeywordStrings.ScreenSpaceOcclusion);
+            ShaderGlobalKeywords.ScreenSpaceIrradiance = GlobalKeyword.Create(ShaderKeywordStrings.ScreenSpaceIrradiance);
             ShaderGlobalKeywords._SPOT = GlobalKeyword.Create(ShaderKeywordStrings._SPOT);
             ShaderGlobalKeywords._DIRECTIONAL = GlobalKeyword.Create(ShaderKeywordStrings._DIRECTIONAL);
             ShaderGlobalKeywords._POINT = GlobalKeyword.Create(ShaderKeywordStrings._POINT);
@@ -1173,6 +1185,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Reflection probe atlas. </summary>
         public const string ReflectionProbeAtlas = "_REFLECTION_PROBE_ATLAS";
+
+        /// <summary> Keyword used for ReflectionProbe rotation. </summary>
+        public const string ReflectionProbeRotation = "REFLECTION_PROBE_ROTATION";
 
         /// <summary> Keyword used for soft shadows. </summary>
         public const string SoftShadows = "_SHADOWS_SOFT";
@@ -1305,6 +1320,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used for Screen Space Occlusion, such as Screen Space Ambient Occlusion (SSAO). </summary>
         public const string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
+
+        /// <summary> Keyword used for Screen Space Global Illumination. </summary>
+        public const string ScreenSpaceIrradiance = "_SCREEN_SPACE_IRRADIANCE";
 
         /// <summary> Keyword used for Point sampling when doing upsampling. </summary>
         public const string PointSampling = "_POINT_SAMPLING";

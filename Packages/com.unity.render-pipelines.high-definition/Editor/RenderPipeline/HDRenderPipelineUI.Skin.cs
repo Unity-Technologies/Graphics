@@ -275,7 +275,59 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent defaultInjectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The injection point at which to apply the upscaling.");
             public static readonly GUIContent TAAUInjectionPoint = EditorGUIUtility.TrTextContent("TAA Upscale Injection Point", "The injection point at which to apply the upscaling.");
             public static readonly GUIContent STPInjectionPoint = EditorGUIUtility.TrTextContent("STP Injection Point", "The injection point at which to apply the upscaling.");
-            public static readonly GUIContent DLSSUseOptimalSettingsContent = EditorGUIUtility.TrTextContent("DLSS Use Optimal Settings", "Sets the sharpness and scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.");
+            public static readonly GUIContent DLSSUseOptimalSettingsContent = EditorGUIUtility.TrTextContent("DLSS Use Optimal Settings", "Sets the scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.");
+            public static readonly GUIContent DLSSRenderPresetsContent = EditorGUIUtility.TrTextContent("DLSS Render Presets", "DLSS will use the specified render preset for each quality value.");
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            public static readonly string[] DLSSPerfQualityLabels = 
+            {   // should follow enum value ordering in DLSSQuality enum
+                UnityEngine.NVIDIA.DLSSQuality.MaximumPerformance.ToString(),
+                UnityEngine.NVIDIA.DLSSQuality.Balanced.ToString(),
+                UnityEngine.NVIDIA.DLSSQuality.MaximumQuality.ToString(),
+                UnityEngine.NVIDIA.DLSSQuality.UltraPerformance.ToString(),
+                UnityEngine.NVIDIA.DLSSQuality.DLAA.ToString()
+            };
+            public static string[][] DLSSPresetOptionsForEachPerfQuality = PopulateDLSSQualityPresetLabels();
+            private static string[][] PopulateDLSSQualityPresetLabels()
+            {
+                int CountBits(uint bitMask) // System.Numerics.BitOperations not available
+                {
+                    int count = 0;
+                    while (bitMask > 0)
+                    {
+                        count += (bitMask & 1) > 0 ? 1 : 0;
+                        bitMask >>= 1;
+                    }
+                    return count;
+                }
+
+                System.Array perfQualities = System.Enum.GetValues(typeof(UnityEngine.NVIDIA.DLSSQuality));
+                string[][] labels = new string[perfQualities.Length][];
+                foreach(UnityEngine.NVIDIA.DLSSQuality quality in perfQualities)
+                {
+                    uint presetBitmask = UnityEngine.NVIDIA.GraphicsDevice.GetAvailableDLSSPresetsForQuality(quality);
+                    int numPresets = CountBits(presetBitmask) + 1; // +1 for default option which is available to all quality enums
+                    labels[(int)quality] = new string[numPresets];
+
+                    int iWrite = 0;
+                    System.Array presets = System.Enum.GetValues(typeof(UnityEngine.NVIDIA.DLSSPreset));
+                    foreach(UnityEngine.NVIDIA.DLSSPreset preset in presets)
+                    {
+                        if (preset == UnityEngine.NVIDIA.DLSSPreset.Preset_Default)
+                        {
+                            labels[(int)quality][iWrite++] = "Default Preset";
+                            continue;
+                        }
+
+                        if ((presetBitmask & (uint)preset) != 0)
+                        {
+                            string presetName = preset.ToString().Replace('_', ' ');
+                            labels[(int)quality][iWrite++] = presetName + " - " + UnityEngine.NVIDIA.GraphicsDevice.GetDLSSPresetExplanation(preset);
+                        }
+                    }
+                }
+                return labels;
+            }
+#endif
 
             public static readonly GUIContent FSR2Title = EditorGUIUtility.TrTextContent("AMD FidelityFX Super Resolution 2.0 (FSR2)");
             public static readonly GUIContent enableFSR2 = EditorGUIUtility.TrTextContent("Enable Fidelity FX 2.2", "Enables FidelityFX 2.0 Super Resolution (FSR2).");
@@ -327,6 +379,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent dynResTypeWarning = EditorGUIUtility.TrTextContent("The current graphics API does not support hardware dynamic resolution mode. HDRP will automatically fall back to software dynamic resolution mode.");
             public static readonly GUIContent useMipBias = EditorGUIUtility.TrTextContent("Use Mip Bias", "Offsets the mip bias to recover more detail. This only works if the camera is utilizing TAA.");
             public static readonly GUIContent upsampleFilter = EditorGUIUtility.TrTextContent("Default Upscale Filter", "Specifies the filter that HDRP uses for upscaling unless overwritten by API by the user.");
+            public static readonly GUIContent upsampleLowResFilter = EditorGUIUtility.TrTextContent("Upscale Filter", "Specifies the filter that HDRP uses for upscaling the low-resolution transparent texture. Bilinear provides good quality at the cost of performance whereas Nearest Depth is more performant.");
             public static readonly GUIContent fallbackUpsampleFilter = EditorGUIUtility.TrTextContent("Default Fallback Upscale Filter", "Specifies the filter that HDRP uses for upscaling as a fallback if DLSS is not detected. Can be overwritten via API.");
             public static readonly GUIContent forceScreenPercentage = EditorGUIUtility.TrTextContent("Force Screen Percentage", "When enabled, HDRP uses the Forced Screen Percentage value as the screen percentage.");
             public static readonly GUIContent forcedScreenPercentage = EditorGUIUtility.TrTextContent("Forced Screen Percentage", "Sets a specific screen percentage value. HDRP forces this screen percentage for dynamic resolution.");

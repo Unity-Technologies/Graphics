@@ -42,4 +42,7 @@
     <ui:VisualElement name="empty-state-message">
         <ui:TextElement/>
     </ui:VisualElement>
+    <ui:VisualElement name="footer-container">
+        <ui:Label text="Label" name="status-label"/>
+    </ui:VisualElement>
 </ui:UXML>

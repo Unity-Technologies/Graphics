@@ -1,3 +1,4 @@
+#if URP_COMPATIBILITY_MODE
 using System;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -125,7 +126,5 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
     }
-
-    
-
 }
+#endif

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -76,25 +77,36 @@ namespace UnityEditor.VFX
             m_VertInputs.Clear();
             m_KeywordToDefine.Clear();
 
-            VFXShaderGraphHelpers.GetShaderGraphParameter(shaderGraph, out var fragInputNames, out var vertInputNames);
-            foreach (var inputName in vertInputNames)
+            VFXShaderGraphHelpers.GetShaderGraphParameters(shaderGraph, out var sgParameters);
+            foreach (var parameter in sgParameters)
             {
-                var exp = gpuMapper.FromNameAndId(inputName, -1); // Postulate that inputs are only generated from context slots.
-                if (exp == null)
-                    throw new ArgumentException("Cannot find an expression matching the vertInput: " + inputName);
+                VFXExpression exp = null;
+                if (parameter.exposed)
+                {
+                    exp = gpuMapper.FromNameAndId(parameter.name, -1); // About `-1`, Postulate that inputs are only generated from context slots.
+                    if (exp == null)
+                        throw new ArgumentException("Cannot find an expression matching the input: " + parameter.name);
+                }
+                else
+                {
+                    exp = parameter.defaultValue;
+                    if (exp == null)
+                        throw new NullReferenceException("Unexpected non exposed property without default: " + parameter.name);
+                }
 
-                m_VertInputs.Add(inputName, exp);
-            }
+                if (parameter.shaderStage.HasFlag(ShaderStageCapability.Vertex))
+                    m_VertInputs.Add(parameter.name, exp);
 
-            foreach(var inputName in fragInputNames)
-            {
-                var exp = gpuMapper.FromNameAndId(inputName, -1); // Postulate that inputs are only generated from context slots.
-                if (exp == null)
-                    throw new ArgumentException("Cannot find an expression matching the fragInput: " + inputName);
-
-                m_FragInputs.Add(inputName, exp);
-                if (!(exp.Is(VFXExpression.Flags.Constant) || uniforms.Contains(exp) || m_Interpolators.ContainsKey(exp))) // No interpolator needed for constants or uniforms
-                    m_Interpolators.Add(exp, inputName);
+                if (parameter.shaderStage.HasFlag(ShaderStageCapability.Fragment))
+                {
+                    m_FragInputs.Add(parameter.name, exp);
+                    if (!(exp.Is(VFXExpression.Flags.Constant) || uniforms.Contains(exp) || m_Interpolators.ContainsKey(exp))) // No interpolator needed for constants or uniforms
+                    {
+                        if (!parameter.exposed)
+                            throw new InvalidOperationException("Unexpected description with newly created constant for non exposed value: " + parameter.name);
+                        m_Interpolators.Add(exp, parameter.name);
+                    }
+                }
             }
 
             foreach (var namedExpression in cpuMapper.CollectExpression(-1))

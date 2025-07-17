@@ -72,9 +72,9 @@ The following properties are available only if you enable **Allow DLSS**.
 | **Property** | **Description** |
 |-|-|
 | **Use DLSS Custom Quality**        | Indicates whether this Camera overrides the DLSS quality mode specified in the [HDRP Asset](HDRP-Asset.md). |
-| **DLSS Mode** | Sets whether DLSS prioritizes quality or performance. The options are:<ul><li>**Maximum Quality**</li><li>**Balanced**</li><li>**Maximum Performance**</li><li>**Ultra Performance**</li></ul>This property is available only if you enable **Use DLSS Custom Quality**. |
+| **DLSS Mode** | Sets whether DLSS prioritizes quality or performance. The options are:<ul><li>**Maximum Quality**</li><li>**Balanced**</li><li>**Maximum Performance**</li><li>**Ultra Performance**</li><li>**DLAA**</li></ul>This property is available only if you enable **Use DLSS Custom Quality**. |
 | **Use DLSS Custom Attributes**     | Overrides the DLSS properties specified in the [HDRP Asset](HDRP-Asset.md), on this camera. |
-| **DLSS Use Optimal Settings**      | Enables DLSS controlling sharpness and screen percentage automatically. This property is available only if you enable **Use DLSS Custom Attributes**. |
+| **DLSS Use Optimal Settings**      | Enables DLSS to automatically control screen percentage. This property is available only if you enable **Use DLSS Custom Attributes**. |
 
 <a name="fsr2-settings"></a>
 ### FSR2 settings

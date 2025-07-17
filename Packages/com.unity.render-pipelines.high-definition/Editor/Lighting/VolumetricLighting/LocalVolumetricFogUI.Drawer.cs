@@ -21,7 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
-                Drawer_ToolBar,
                 Drawer_PrimarySettings
                 ),
             CED.space,
@@ -37,24 +36,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 Drawer_MaterialMaskContent
             ))
         );
-
-        static void Drawer_ToolBar(SerializedLocalVolumetricFog serialized, Editor owner)
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            EditMode.DoInspectorToolbar(new[] { LocalVolumetricFogEditor.k_EditShape, LocalVolumetricFogEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
-            {
-                var bounds = new Bounds();
-                foreach (Component targetObject in owner.targets)
-                {
-                    bounds.Encapsulate(targetObject.transform.position);
-                }
-                return bounds;
-            },
-                owner);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-        }
 
         static void Drawer_PrimarySettings(SerializedLocalVolumetricFog serialized, Editor owner)
         {

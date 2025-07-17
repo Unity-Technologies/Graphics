@@ -786,15 +786,18 @@ float3 DummyFunction()
             string vfxPath = "Assets/AllTests/Editor/Tests/Repro_UUM_66018.vfx";
             Assert.IsTrue(AssetDatabase.AssetPathExists(vfxPath));
 
-            var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath).GetResource();
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath);
+            var vfx = asset.GetResource();
 
             vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Edition);
+            vfx.GetOrCreateGraph().CompileAndUpdateAsset(asset);
             yield return null;
 
             var sourceEdition = Check_Multiple_Usage_Buffer_Get_Source(vfx);
             Assert.IsNotNull(sourceEdition);
 
             vfx.GetOrCreateGraph().SetCompilationMode(VFXCompilationMode.Runtime);
+            vfx.GetOrCreateGraph().CompileAndUpdateAsset(asset);
             yield return null;
 
             var sourceRuntime = Check_Multiple_Usage_Buffer_Get_Source(vfx);

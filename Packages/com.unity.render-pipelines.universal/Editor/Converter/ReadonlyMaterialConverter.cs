@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.Universal
         {
             Search.SearchService.Request
             (
-                Search.SearchService.CreateContext("asset", "urp=convert-readonly a=URPConverterIndex"),
+                Search.SearchService.CreateContext("asset", "urp=convert-readonly"),
                 (searchContext, items) =>
                 {
                     // we're going to do this step twice in order to get them ordered, but it should be fast

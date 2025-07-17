@@ -8,15 +8,15 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Draw the XR occlusion mesh into the current depth buffer when XR is enabled.
     /// </summary>
-    public class XROcclusionMeshPass : ScriptableRenderPass
+    public partial class XROcclusionMeshPass : ScriptableRenderPass
     {
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Used to indicate if the active target of the pass is the back buffer
         /// </summary>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete + " #from(6000.3)")]
         public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
 
-#if URP_COMPATIBILITY_MODE
         PassData m_PassData;
 #endif
 
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_PassData.xr = renderingData.cameraData.xr;

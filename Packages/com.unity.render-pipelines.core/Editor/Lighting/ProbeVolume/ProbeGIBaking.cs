@@ -301,11 +301,11 @@ namespace UnityEngine.Rendering
 
         private BakingBatch() { }
 
-        public BakingBatch(Vector3Int cellCount)
+        public BakingBatch(Vector3Int cellCount, ProbeReferenceVolume refVolume)
         {
-            maxBrickCount = cellCount * ProbeReferenceVolume.CellSize(ProbeReferenceVolume.instance.GetMaxSubdivision());
-            inverseScale = ProbeBrickPool.kBrickCellCount / ProbeReferenceVolume.instance.MinBrickSize();
-            offset = ProbeReferenceVolume.instance.ProbeOffset();
+            maxBrickCount = cellCount * ProbeReferenceVolume.CellSize(refVolume.GetMaxSubdivision());
+            inverseScale = ProbeBrickPool.kBrickCellCount / refVolume.MinBrickSize();
+            offset = refVolume.ProbeOffset();
         }
 
         public int GetProbePositionHash(Vector3 position)
@@ -927,7 +927,7 @@ namespace UnityEngine.Rendering
                 bool canceledByUser = false;
                 // Note: this could be executed in the baking delegate to be non blocking
                 using (new BakingSetupProfiling(BakingSetupProfiling.Stages.PlaceProbes))
-                    positions = RunPlacement(ref canceledByUser);
+                    positions = RunPlacement(m_ProfileInfo, ProbeReferenceVolume.instance, ref canceledByUser);
 
                 if (positions.Length == 0 || canceledByUser)
                 {

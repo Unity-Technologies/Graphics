@@ -241,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle shadowTexture = renderGraph.CreateTexture(new TextureDesc(shadowResolution, shadowResolution, false, false)
             { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Texture" });
 
-            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsShadowsData>("Volumetric Clouds Shadows", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
+            using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsShadowsData>("Volumetric Clouds Shadows", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudsShadow)))
             {
                 // Disable pass culling
                 builder.AllowPassCulling(false);
@@ -252,15 +252,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Manage the resources
                 passData.intermediateShadowTexture = builder.CreateTransientTexture(new TextureDesc(shadowResolution, shadowResolution, false, false)
                 { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Volumetric Clouds Shadow Temp Texture" });
-                passData.shadowTexture = builder.ReadWriteTexture(shadowTexture);
+                passData.shadowTexture = shadowTexture;
+                builder.UseTexture(passData.shadowTexture, AccessFlags.ReadWrite);
 
                 // Evaluate the shadow
-                builder.SetRenderFunc((VolumetricCloudsShadowsData data, RenderGraphContext ctx) =>
+                builder.SetRenderFunc((VolumetricCloudsShadowsData data, UnsafeGraphContext ctx) =>
                 {
-                    TraceVolumetricCloudShadow(ctx.cmd, data.parameters, data.intermediateShadowTexture, data.shadowTexture);
+                    var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+
+                    TraceVolumetricCloudShadow(natCmd, data.parameters, data.intermediateShadowTexture, data.shadowTexture);
 
                     // Bind the volumetric clouds shadow
-                    ctx.cmd.SetGlobalTexture(HDShaderIDs._VolumetricCloudsShadowsTexture, data.shadowTexture);
+                    natCmd.SetGlobalTexture(HDShaderIDs._VolumetricCloudsShadowsTexture, data.shadowTexture);
                 });
             }
 

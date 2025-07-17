@@ -954,6 +954,38 @@ float Remap(float origFrom, float origTo, float targetFrom, float targetTo, floa
     return lerp(targetFrom, targetTo, (value - origFrom) / (origTo - origFrom));
 }
 
+float3 RotateVectorByQuat(float4 quarternion, float3 v)
+{
+    // Extract Quaternion components
+    float qx = quarternion.x;
+    float qy = quarternion.y;
+    float qz = quarternion.z;
+    float qw = quarternion.w;
+
+    // Precompute products and scale factors
+    float x = qx * 2.0f;
+    float y = qy * 2.0f;
+    float z = qz * 2.0f;
+    float xx = qx * x;
+    float yy = qy * y;
+    float zz = qz * z;
+    float xy = qx * y;
+    float xz = qx * z;
+    float yz = qy * z;
+    float wx = qw * x;
+    float wy = qw * y;
+    float wz = qw * z;
+
+    // Compute rotated vector
+    float3 res;
+    res.x = (1.0f - (yy + zz)) * v.x + (xy - wz) * v.y + (xz + wy) * v.z;
+    res.y = (xy + wz) * v.x + (1.0f - (xx + zz)) * v.y + (yz - wx) * v.z;
+    res.z = (xz - wy) * v.x + (yz + wx) * v.y + (1.0f - (xx + yy)) * v.z;
+
+    return res;
+}
+
+
 // ----------------------------------------------------------------------------
 // Texture utilities
 // ----------------------------------------------------------------------------

@@ -38,6 +38,7 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
         m_Slice = slice;
     }
 
+#if URP_COMPATIBILITY_MODE // Compatibility Mode is being removed
 #pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
 
     // Unity calls the Configure method in the Compatibility mode (non-RenderGraph path)
@@ -70,6 +71,7 @@ public class DistortTunnelPass_Tunnel : ScriptableRenderPass
     }
 
 #pragma warning restore 618, 672
+#endif
 
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)

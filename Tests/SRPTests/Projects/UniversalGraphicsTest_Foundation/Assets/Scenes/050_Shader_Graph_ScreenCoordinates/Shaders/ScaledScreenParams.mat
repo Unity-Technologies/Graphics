@@ -29,7 +29,15 @@ Material:
         m_Texture: {fileID: 2800000, guid: 3d0e17e76a814b74485ac2cc376f29b6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Integer_46312bc1e894490db8ee08e0421bb39e_fontTexture_3750603965_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 3d0e17e76a814b74485ac2cc376f29b6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Integer_b436cc2908114a75b4be16d1cda9c36f_fontTexture_3750603965:
+        m_Texture: {fileID: 2800000, guid: 3d0e17e76a814b74485ac2cc376f29b6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Integer_b436cc2908114a75b4be16d1cda9c36f_fontTexture_3750603965_Texture2D:
         m_Texture: {fileID: 2800000, guid: 3d0e17e76a814b74485ac2cc376f29b6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -53,6 +61,7 @@ Material:
     - _QueueOffset: 0
     m_Colors: []
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &4603590758495620777
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -65,7 +74,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 10
 --- !u!114 &5610391679363293911
 MonoBehaviour:
   m_ObjectHideFlags: 11

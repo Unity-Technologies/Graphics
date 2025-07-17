@@ -1,3 +1,4 @@
+#if URP_COMPATIBILITY_MODE
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
@@ -93,14 +94,15 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
             if (m_CurrentPostProcessData != null)
             {
                 m_ColorGradingLutPass?.Cleanup();
-                m_PostProcessPass?.Cleanup();
-                m_FinalPostProcessPass?.Cleanup();
 
                 // We need to null post process passes to avoid using them
                 m_ColorGradingLutPass = null;
+                m_CurrentPostProcessData = null;
+
+                m_PostProcessPass?.Cleanup();
+                m_FinalPostProcessPass?.Cleanup();
                 m_PostProcessPass = null;
                 m_FinalPostProcessPass = null;
-                m_CurrentPostProcessData = null;
             }
 
             if (data != null)
@@ -131,3 +133,4 @@ namespace UnityEngine.Rendering.Universal.CompatibilityMode
         }
     }
 }
+#endif

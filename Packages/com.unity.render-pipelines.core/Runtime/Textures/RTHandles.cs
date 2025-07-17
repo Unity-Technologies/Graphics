@@ -767,7 +767,7 @@ namespace UnityEngine.Rendering
         /// <param name="width">Initial reference rendering width.</param>
         /// <param name="height">Initial reference rendering height.</param>
         /// <param name="useLegacyDynamicResControl">Use legacy hardware DynamicResolution control in the default RTHandle system.</param>
-        [Obsolete("useLegacyDynamicResControl is deprecated. Please use SetHardwareDynamicResolutionState() instead.")]
+        [Obsolete("useLegacyDynamicResControl is deprecated. Please use SetHardwareDynamicResolutionState() instead. #from(2023.3)")]
         public static void Initialize(int width, int height, bool useLegacyDynamicResControl = false)
         {
             s_DefaultInstance.Initialize(width, height, useLegacyDynamicResControl);

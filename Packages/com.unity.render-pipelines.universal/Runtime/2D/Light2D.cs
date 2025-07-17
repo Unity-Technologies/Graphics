@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.Universal
         /// The lights current intensity
         /// </summary>
         ///
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         public float volumeOpacity => m_LightVolumeIntensity;
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace UnityEngine.Rendering.Universal
         /// Enables or disables the light's volume
         /// </summary>
         ///
-        [Obsolete]
+        [Obsolete("#from(2023.1)")]
         public bool volumeIntensityEnabled { get => m_LightVolumeEnabled; set => m_LightVolumeEnabled = value; }
 
 
@@ -310,7 +310,7 @@ namespace UnityEngine.Rendering.Universal
         /// Checks if the alpha overlap operation is alpha blend.
         /// This is obsolete.
         /// </summary>
-        [Obsolete]
+        [Obsolete("#from(2021.1)")]
         public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
 
         /// <summary>

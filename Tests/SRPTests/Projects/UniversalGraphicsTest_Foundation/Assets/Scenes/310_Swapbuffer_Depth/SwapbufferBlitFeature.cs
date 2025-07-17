@@ -8,6 +8,7 @@ public class SwapbufferBlitFeature : ScriptableRendererFeature
 {
     class CustomRenderPass : ScriptableRenderPass
     {
+#if URP_COMPATIBILITY_MODE
         // This method is called before executing the render pass.
         // It can be used to configure render targets and their clear state. Also to create temporary render target textures.
         // When empty this render pass will render to the active camera render target.
@@ -32,6 +33,7 @@ public class SwapbufferBlitFeature : ScriptableRendererFeature
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+#endif
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {

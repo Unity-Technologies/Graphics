@@ -1,0 +1,78 @@
+/**********************************************************************
+Copyright (c) 2019 Advanced Micro Devices, Inc. All rights reserved.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+********************************************************************/
+
+// WebGPU has extremely strict uniformity requirements that are incompatible with the current implementation of this shader.
+#pragma exclude_renderers webgpu
+
+uint g_constants_num_keys;
+uint g_constants_num_blocks;
+uint g_constants_bit_shift;
+
+uint g_input_keys_offset;
+uint g_group_histograms_offset;
+
+RWStructuredBuffer<uint> g_buffer : register(u0);
+
+#define NUM_BINS 16u
+#define GROUP_SIZE 256u
+#define KEYS_PER_THREAD 4u
+groupshared int lds_histograms[NUM_BINS];
+
+//[RootSignature(ROOT_SIGNATURE)]
+#pragma kernel BitHistogram
+[numthreads(GROUP_SIZE, 1, 1)]
+void BitHistogram(
+    in uint gidx: SV_DispatchThreadID,
+    in uint lidx: SV_GroupThreadID,
+    in uint bidx: SV_GroupID)
+{
+    if (lidx < NUM_BINS)
+    {
+        lds_histograms[lidx] = 0;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    for (uint i = 0; i < KEYS_PER_THREAD; ++i)
+    {
+        // Calculate next input element index
+        uint key_index = gidx * KEYS_PER_THREAD + i;
+
+        // Handle out of bounds
+        if (key_index >= g_constants_num_keys)
+        {
+            break;
+        }
+
+        // Determine bin index for next element
+        int bin_index = (g_buffer[g_input_keys_offset + key_index] >> g_constants_bit_shift) & 0xf;
+
+        // Increment LDS histogram counter (no atomic required, histogram is
+        // private)
+        InterlockedAdd(lds_histograms[bin_index], 1);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Write reduced bins into global memory
+    if (lidx < NUM_BINS)
+    {
+        g_buffer[g_group_histograms_offset + g_constants_num_blocks * lidx + bidx] = lds_histograms[lidx];
+    }
+}

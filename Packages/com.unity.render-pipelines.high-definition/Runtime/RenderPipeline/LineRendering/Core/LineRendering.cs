@@ -160,20 +160,20 @@ namespace UnityEngine.Rendering
 #endif
 
             // Utility for binding the common buffers between passes one and two.
-            void UseSharedBuffers(RenderGraphBuilder builder, SharedPassData.Buffers buff)
+            void UseSharedBuffers(IBaseRenderGraphBuilder builder, SharedPassData.Buffers buff)
             {
-                builder.WriteBuffer(buff.counterBuffer);
-                builder.WriteBuffer(buff.vertexStream0);
-                builder.WriteBuffer(buff.vertexStream1);
-                builder.WriteBuffer(buff.vertexStream2);
-                builder.WriteBuffer(buff.vertexStream3);
-                builder.WriteBuffer(buff.recordBufferSegment);
-                builder.WriteBuffer(buff.viewSpaceDepthRange);
-                builder.ReadWriteTexture(buff.groupShadingSampleAtlas);
+                builder.UseBuffer(buff.counterBuffer, AccessFlags.Write);
+                builder.UseBuffer(buff.vertexStream0, AccessFlags.Write);
+                builder.UseBuffer(buff.vertexStream1, AccessFlags.Write);
+                builder.UseBuffer(buff.vertexStream2, AccessFlags.Write);
+                builder.UseBuffer(buff.vertexStream3, AccessFlags.Write);
+                builder.UseBuffer(buff.recordBufferSegment, AccessFlags.Write);
+                builder.UseBuffer(buff.viewSpaceDepthRange, AccessFlags.Write);
+                builder.UseTexture(buff.groupShadingSampleAtlas, AccessFlags.ReadWrite);
             }
 
             // Pass 1: Geometry Processing and Shading
-            using (var builder = args.renderGraph.AddRenderPass<GeometryPassData>("Geometry Processing", out var passData, k_LineRenderingGeometrySampler))
+            using (var builder = args.renderGraph.AddUnsafePass<GeometryPassData>("Geometry Processing", out var passData, k_LineRenderingGeometrySampler))
             {
                 // TODO: Get rid of this...
                 // Unfortunately we currently need this utility to "reimport" some buffers.
@@ -183,8 +183,10 @@ namespace UnityEngine.Rendering
 
                     for (uint i = 0; i < importedRenderers.Length; ++i)
                     {
-                        importedRenderers[i].indexBuffer = builder.ReadBuffer(renderDatas[i].indexBuffer);
-                        importedRenderers[i].lodBuffer   = builder.ReadBuffer(renderDatas[i].lodBuffer);
+                        importedRenderers[i].indexBuffer = renderDatas[i].indexBuffer;
+                        builder.UseBuffer(importedRenderers[i].indexBuffer, AccessFlags.Read);
+                        importedRenderers[i].lodBuffer   = renderDatas[i].lodBuffer;
+                        builder.UseBuffer(importedRenderers[i].lodBuffer, AccessFlags.Read);
                     }
 
                     return importedRenderers;
@@ -203,7 +205,8 @@ namespace UnityEngine.Rendering
 
                 // Set up the shared resources.
                 passData.sharedBuffers = sharedBuffers;
-                passData.depthRT       = builder.ReadTexture(args.depthTexture);
+                passData.depthRT       = args.depthTexture;
+                builder.UseTexture(passData.depthRT, AccessFlags.Read);
                 UseSharedBuffers(builder, sharedBuffers);
 
                 // Then set up the resources specific to this pass.
@@ -213,23 +216,27 @@ namespace UnityEngine.Rendering
                     countVertexMaxPerRenderer = renderDatas.Max(o => o.mesh.vertexCount),
                 });
 
-                builder.SetRenderFunc((GeometryPassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((GeometryPassData data, UnsafeGraphContext ctx) =>
                 {
+                    var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+
                     // Upload the constants to device.
-                    data.shaderVariablesBuffer.UpdateData(context.cmd, data.shaderVariables);
+                    data.shaderVariablesBuffer.UpdateData(ctx.cmd, data.shaderVariables);
 
                     // Render-graph provides a scratch MPB for our needs.
-                    data.materialPropertyBlock = context.renderGraphPool.GetTempMaterialPropertyBlock();
+                    data.materialPropertyBlock = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
-                    ExecuteGeometryPass(context.cmd, data);
+                    ExecuteGeometryPass(natCmd, data);
                 });
             }
 
             // Pass 2: Rasterization
-            using (var builder = args.renderGraph.AddRenderPass<RasterizationPassData>("Rasterization", out var passData, k_LineRenderingRasterizationSampler))
+            using (var builder = args.renderGraph.AddComputePass<RasterizationPassData>("Rasterization", out var passData, k_LineRenderingRasterizationSampler))
             {
                 // Optionally schedule this pass in async. (This is actually the whole reason we split this process into two passes).
                 builder.EnableAsyncCompute(args.settings.executeAsync);
+
+                builder.AllowGlobalStateModification(true);
 
                 // Set up other various dependent data.
                 passData.shaderVariables       = shaderVariables;
@@ -247,14 +254,19 @@ namespace UnityEngine.Rendering
                 // Configure the render targets that the rasterizer will draw to.
                 passData.renderTargets = new RenderTargets
                 {
-                    color  = builder.WriteTexture(args.targets.color),
-                    depth  = builder.WriteTexture(args.targets.depth),
-                    motion = builder.WriteTexture(args.targets.motion)
+                    color  = args.targets.color,
+                    depth  = args.targets.depth,
+                    motion = args.targets.motion
                 };
+
+                builder.UseTexture(passData.renderTargets.color, AccessFlags.Write);
+                builder.UseTexture(passData.renderTargets.depth, AccessFlags.Write);
+                builder.UseTexture(passData.renderTargets.motion, AccessFlags.Write);
 
                 // Set up the shared resources.
                 passData.sharedBuffers = sharedBuffers;
-                passData.depthRT       = builder.ReadTexture(args.depthTexture);
+                passData.depthRT       = args.depthTexture;
+                builder.UseTexture(passData.depthRT, AccessFlags.Read);
                 UseSharedBuffers(builder, sharedBuffers);
 
                 // Then set up the resources specific to this pass.
@@ -268,9 +280,9 @@ namespace UnityEngine.Rendering
                     countWorkQUeue  = ComputeWorkQueueCapacity(args.settings.memoryBudget)
                 });
 
-                builder.SetRenderFunc((RasterizationPassData data, RenderGraphContext context) =>
+                builder.SetRenderFunc((RasterizationPassData data, ComputeGraphContext ctx) =>
                 {
-                    ExecuteRasterizationPass(context.cmd, data);
+                    ExecuteRasterizationPass(ctx.cmd, data);
                 });
             }
         }

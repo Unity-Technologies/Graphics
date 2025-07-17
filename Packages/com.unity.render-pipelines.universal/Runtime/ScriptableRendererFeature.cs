@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRenderer"/>
     /// <seealso cref="ScriptableRenderPass"/>
     [ExcludeFromPreset]
-    public abstract class ScriptableRendererFeature : ScriptableObject, IDisposable
+    public abstract partial class ScriptableRendererFeature : ScriptableObject, IDisposable
     {
         [SerializeField, HideInInspector] private bool m_Active = true;
         /// <summary>
@@ -36,13 +36,15 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
         public abstract void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData);
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Callback after render targets are initialized. This allows for accessing targets from renderer after they are created and ready.
         /// </summary>
         /// <param name="renderer">Renderer used for adding render passes.</param>
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete + " #from(6000.2)")]
         public virtual void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) { }
+#endif
 
         void OnEnable()
         {
@@ -60,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
                 Create();
         }
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Override this method and return true if the feature should use the Native RenderPass API
         /// </summary>
@@ -67,6 +70,7 @@ namespace UnityEngine.Rendering.Universal
         {
             return false;
         }
+#endif
 
         /// <summary>
         /// Override this method and return true that renderer would produce rendering layers texture.

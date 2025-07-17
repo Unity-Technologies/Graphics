@@ -101,10 +101,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSetting maximumLODLevel;
 
 #pragma warning disable 618 // Type or member is obsolete
-        [FormerlySerializedAs("enableUltraQualitySSS"), FormerlySerializedAs("increaseSssSampleCount"), Obsolete("For data migration")]
+        [FormerlySerializedAs("enableUltraQualitySSS"), FormerlySerializedAs("increaseSssSampleCount"), Obsolete("For data migration. #from(2021.1)")]
         SerializedProperty m_ObsoleteincreaseSssSampleCount;
 
-        [FormerlySerializedAs("supportDitheringCrossFade"), Obsolete("Merged with LOD Quality Setting")]
+        [FormerlySerializedAs("supportDitheringCrossFade"), Obsolete("Merged with LOD Quality Setting. #from(2023.2)")]
         private SerializedProperty m_ObsoleteSupportDitheringCrossFade;
 #pragma warning restore 618
 

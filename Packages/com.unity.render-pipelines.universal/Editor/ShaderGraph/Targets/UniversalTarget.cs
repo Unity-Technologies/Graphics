@@ -245,7 +245,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
-        public SubTarget activeSubTarget
+        public override SubTarget activeSubTarget
         {
             get => m_ActiveSubTarget.value;
             set => m_ActiveSubTarget = value;
@@ -2345,7 +2345,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
         {
             displayName = "Screen Space Ambient Occlusion",
-            referenceName = "_SCREEN_SPACE_OCCLUSION",
+            referenceName = ShaderKeywordStrings.ScreenSpaceOcclusion,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor ScreenSpaceIrradiance = new KeywordDescriptor()
+        {
+            displayName = "Screen Space Irradiance",
+            referenceName = ShaderKeywordStrings.ScreenSpaceIrradiance,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -2369,11 +2379,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Local,
         };
-        
+
         public static readonly KeywordDescriptor LightmapBicubicSampling = new KeywordDescriptor()
         {
             displayName = "Lightmap Bicubic Sampling",
             referenceName = ShaderKeywordStrings.LIGHTMAP_BICUBIC_SAMPLING,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
+        };
+
+        public static readonly KeywordDescriptor ReflectionProbeRotation = new KeywordDescriptor()
+        {
+            displayName = "ReflectionProbe Rotation",
+            referenceName = ShaderKeywordStrings.ReflectionProbeRotation,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global

@@ -339,13 +339,13 @@ namespace UnityEditor.VFX
             return new CameraBuffer(texture);
         }
 
-        public static implicit operator int(CameraBuffer cameraBuffer)
+        public static implicit operator EntityId(CameraBuffer cameraBuffer)
         {
             Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int), "EntityId size is not equal to int size, this will cause issues, update to EntityId instead");
             return cameraBuffer.texture?.GetEntityId() ?? EntityId.None;
         }
 
-        public static implicit operator CameraBuffer(int id)
+        public static implicit operator CameraBuffer(EntityId id)
         {
             Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int), "EntityId size is not equal to int size, this will cause issues, update to EntityId instead");
             return new CameraBuffer((Texture)EditorUtility.EntityIdToObject(id));

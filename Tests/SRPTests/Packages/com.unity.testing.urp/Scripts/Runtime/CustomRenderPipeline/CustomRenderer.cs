@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.Universal
             base.Dispose(disposing);
         }
 
+#if !UNITY_6000_3_OR_NEWER || URP_COMPATIBILITY_MODE
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -63,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
             internal RenderingData renderingData;
             internal ForwardLights forwardLights;
         };
+#endif
         private void SetupRenderGraphLights(RenderGraph renderGraph)
         {
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
@@ -172,6 +174,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, targetHandle, depthHandle, mainShadowsTexture, additionalShadowsTexture);
         }
 
+#if !UNITY_6000_3_OR_NEWER || URP_COMPATIBILITY_MODE
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -181,6 +184,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ForwardLights.SetupLights(CommandBufferHelpers.GetUnsafeCommandBuffer(universalRenderingData.commandBuffer), universalRenderingData, cameraData, lightData);
         }
+#endif
 
         internal override bool supportsNativeRenderPassRendergraphCompiler => true;
     }

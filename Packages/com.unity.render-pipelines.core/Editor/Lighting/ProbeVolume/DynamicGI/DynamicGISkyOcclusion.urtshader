@@ -2,13 +2,12 @@
 #define UNIFIED_RT_GROUP_SIZE_X 64
 #define UNIFIED_RT_GROUP_SIZE_Y 1
 
-#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
-#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/TraceRay.hlsl"
-#include "Packages/com.unity.rendering.light-transport/Runtime/UnifiedRayTracing/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Common.hlsl"
 
-#define QRNG_METHOD_SOBOL
-#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/QuasiRandom.hlsl"
-#include "Packages/com.unity.rendering.light-transport/Runtime/Sampling/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Common.hlsl"
 
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_AccelStruct);
 
@@ -32,7 +31,7 @@ void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
 
     int probeId = dispatchInfo.globalThreadIndex;
 
-    QuasiRandomGenerator rngState;
+    QrngSobol rngState;
     rngState.Init(uint2((uint)probeId, 0), _SampleId);
 
     if (_SampleId==0)

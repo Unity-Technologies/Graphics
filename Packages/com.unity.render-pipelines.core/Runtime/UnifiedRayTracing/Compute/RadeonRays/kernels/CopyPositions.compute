@@ -1,0 +1,33 @@
+
+
+#define GROUP_SIZE 128
+#define ITEMS_PER_THREAD 48
+
+int _InputPosBufferCount;
+int _InputBaseVertex;
+int _InputPosBufferStride;
+int _InputPosBufferOffset;
+int _OutputPosBufferOffset;
+
+ByteAddressBuffer _InputPosBuffer;
+RWStructuredBuffer<uint> _OutputPosBuffer;
+
+#pragma kernel CopyVertexBuffer
+[numthreads(GROUP_SIZE, 1, 1)]
+void CopyVertexBuffer(uint gidx : SV_DispatchThreadID)
+{
+    for (int i = 0; i < ITEMS_PER_THREAD; ++i)
+    {
+        int offset = gidx * ITEMS_PER_THREAD + i;
+        if (offset >= _InputPosBufferCount)
+            return;
+
+        uint inputAddr = _InputPosBufferOffset + (_InputBaseVertex + offset) * _InputPosBufferStride;
+        uint3 val = _InputPosBuffer.Load3(inputAddr << 2);
+
+        uint outputAddr = _OutputPosBufferOffset + 3 * offset;
+        _OutputPosBuffer[outputAddr] = val.x;
+        _OutputPosBuffer[outputAddr + 1] = val.y;
+        _OutputPosBuffer[outputAddr + 2] = val.z;
+    }
+}

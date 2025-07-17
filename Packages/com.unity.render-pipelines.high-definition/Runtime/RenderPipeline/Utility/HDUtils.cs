@@ -23,11 +23,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>
         /// <returns></returns>
-        [Obsolete("Use GetRendererConfiguration() instead. #from(23.2).")]
+        [Obsolete("Use GetRendererConfiguration() instead. #from(2023.2).")]
         public static PerObjectData GetBakedLightingRenderConfig() => PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
         /// <summary>Returns the render configuration for baked static lighting with shadow masks, this value can be used in a RendererListDesc call to render Lit objects when shadow masks are enabled.</summary>
         /// <returns></returns>
-        [Obsolete("Use GetRendererConfiguration() instead. #from(23.2).")]
+        [Obsolete("Use GetRendererConfiguration() instead. #from(2023.2).")]
         public static PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => GetBakedLightingRenderConfig() | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
         /// <summary>
@@ -1078,7 +1078,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="renderContext">Current Scriptable Render Context.</param>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
-        [Obsolete("Please use CoreUtils.DrawRendererList instead.")]
+        [Obsolete("Please use CoreUtils.DrawRendererList instead. #from(2021.1)")]
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, UnityEngine.Rendering.RendererList rendererList)
         {
             CoreUtils.DrawRendererList(renderContext, cmd, rendererList);

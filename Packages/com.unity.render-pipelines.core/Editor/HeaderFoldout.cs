@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering
     }
     
     /// <summary> UITK component to display header styled foldout. This variant have an enable checkbox.</summary>
-    [Obsolete("Please directly use HeaderFoldout now #from(6000.2) (UnityUpgradable) -> HeaderFoldout", false)]
+    [Obsolete("Please directly use HeaderFoldout now. #from(6000.2) (UnityUpgradable) -> HeaderFoldout")]
     public class HeaderToggleFoldout : HeaderFoldout
     {
         /// <summary>Constructor</summary>

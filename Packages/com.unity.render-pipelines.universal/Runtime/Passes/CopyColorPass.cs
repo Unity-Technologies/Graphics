@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// so you can use it later in rendering. For example, you can copy
     /// the opaque texture to use it for distortion effects.
     /// </summary>
-    public class CopyColorPass : ScriptableRenderPass
+    public partial class CopyColorPass : ScriptableRenderPass
     {
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;
@@ -44,9 +44,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
-            base.useNativeRenderPass = false;
 
 #if URP_COMPATIBILITY_MODE
+            base.useNativeRenderPass = false;
             m_PassData = new PassData();
 #endif
         }
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="source">Source render target.</param>
         /// <param name="destination">Destination render target.</param>
         /// <param name="downsampling">The downsampling method to use.</param>
-        [Obsolete("Use RTHandles for source and destination.", true)]
+        [Obsolete("Use RTHandles for source and destination #from(2022.1) #breakingFrom(2023.1).", true)]
         public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
         {
             throw new NotSupportedException("Setup with RenderTargetIdentifier has been deprecated. Use it with RTHandles instead.");
@@ -107,14 +107,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             cmd.SetGlobalTexture(destination.name, destination.nameID);
         }
 
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_PassData.samplingMaterial = m_SamplingMaterial;
@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private class PassData
         {
             internal TextureHandle source;
-            // internal RenderingData renderingData;
+            internal TextureHandle destination;
             internal bool useProceduralBlit;
             internal Material samplingMaterial;
             internal Material copyColorMaterial;
@@ -216,25 +216,27 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderInternal(renderGraph, destination, source, cameraData.xr.enabled);
         }
 
+        static readonly string k_CopyColorPassName = "Copy Color";
+        static readonly string k_DownsampleAndCopyPassName = "Downsample Color";
+
         private void RenderInternal(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit)
         {
-            var downsamplingEnabled = m_DownsamplingMethod != Downsampling.None;
-            var useDirectCopyPass = !downsamplingEnabled && renderGraph.CanAddCopyPass(source, destination);
+            bool isES3 = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 
-            if (useDirectCopyPass)
+            if (m_DownsamplingMethod != Downsampling.None || isES3)
             {
-                using (var builder = renderGraph.AddCopyPass(source, destination, returnBuilder: true))
+                AddDownsampleAndCopyColorRenderPass(renderGraph, destination, source, useProceduralBlit, k_DownsampleAndCopyPassName);
+            }
+            else
+            {
+                using (var builder = renderGraph.AddBlitPass(source, destination, Vector2.one, Vector2.zero, returnBuilder: true, passName: k_CopyColorPassName))
                 {
                     builder.SetGlobalTextureAfterPass(destination, Shader.PropertyToID("_CameraOpaqueTexture"));
                 }
             }
-            else
-            {
-                AddDownsamplingRenderPass(renderGraph, destination, source, useProceduralBlit);
-            }
         }
 
-        private void AddDownsamplingRenderPass(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit)
+        private void AddDownsampleAndCopyColorRenderPass(RenderGraph renderGraph, in TextureHandle destination, in TextureHandle source, bool useProceduralBlit, string passName)
         {
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {

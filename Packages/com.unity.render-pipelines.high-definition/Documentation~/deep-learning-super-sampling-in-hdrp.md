@@ -1,10 +1,10 @@
 # Deep learning super sampling (DLSS)
 
-NVIDIA Deep Learning Super Sampling (DLSS) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS. For more information about DLSS see [Deep learning super sampling](https://docs.unity3d.com/Manual/deep-learning-super-sampling.html).
+[NVIDIA Deep Learning Super Sampling (DLSS)](https://www.nvidia.com/en-us/geforce/technologies/dlss/) is a rendering technology that uses artificial intelligence to increase graphics performance. The High Definition Render Pipeline (HDRP) natively supports DLSS.
 
 ## Requirements and compatibility
 
-This section includes HDRP-specific requirements and compatibility information for DLSS. For information about the general requirements and compatibility of DLSS, see [Deep learning super sampling](https://docs.unity3d.com/Manual/deep-learning-super-sampling.html).
+This section includes HDRP-specific requirements and compatibility information for DLSS.
 
 ### Platforms
 
@@ -50,7 +50,7 @@ To use DLSS in your scene:
     2. Select **Allow Dynamic Resolution** to expose the DLSS settings. For more information see the [Dynamic Resolution](Dynamic-Resolution.md) guide.
     3. Enable **Allow DLSS** to expose other properties that you can use to customize DLSS for the Camera. For information about these properties, see the [Camera](hdrp-camera-component-reference.md) documentation.
 
-4. Set the DLSS quality mode. You can do this on a project level or a per-Camera level. For information about the available quality modes, see [Quality modes](https://docs.unity3d.com/Manual/deep-learning-super-sampling.html).
+4. Set the DLSS quality mode. You can do this on a project level or a per-camera level.
 
     * To change the DLSS quality mode for your whole project:
 
@@ -62,6 +62,41 @@ To use DLSS in your scene:
         1. In the Hierarchy or Scene view, select a Camera and view it in the Inspector.
         2. Select **Use Custom Quality**.
         3. Set the **Mode** property to the quality mode you want.
+
+5. To fine-tune the DLSS image quality for your project, select a DLSS render preset for each quality mode available under the [HDRP Asset](HDRP-Asset.md)
+
+<a name="qualityandpresets"></a>
+
+### DLSS quality modes and render presets
+
+| Quality mode | Explanation | Upscale ratio | Render percentage |
+|- |- |- |- |
+| Maximum Quality | Provides the highest image quality but lowers performance. | 1.50  | 67% |
+| Balanced | Balances image quality and performance. | 1.72 | 58% |
+| Maximum Performance | Increases performance but lowers image quality. | 2.00 | 50% |
+| Ultra Performance | Provides the highest performance and the lowest image quality. | 3.00 | 33% | 
+| DLAA | Provides AI-assisted anti-aliasing (deep-learning anti-aliasing) without upscaling | 1.00 | 100% |
+
+Each quality mode provides a specific collection of DLSS Render presets.
+Available presets are marked as '1' in the table below.
+
+| Render Preset | Maximum Quality | Balanced | Maximum Performance | Ultra Performance | DLAA | Explanation | AI Model |
+|- |- |- |- |- |- |- |- |
+| Preset F |   |   |  | 1 | 1 | Provides the highest image stability. Default value for UltraPerformance. | CNN |
+| Preset J | 1 | 1 | 1|   | 1 | Slightly lowers ghosting but increases flickering.<br/>NVIDIA recommends using **Preset K** instead of **Preset J**. | Transformer |
+| Preset K | 1 | 1 | 1|   | 1 |  Provides the highest image quality. | Transformer |
+
+The defaults for each quality mode are:
+
+| **Quality mode** | **Default render preset** |
+|- |- |
+| **Maximum Quality** | Preset K 
+| **Balanced** | Preset K 
+| **Maximum Performance** | Preset K 
+| **Ultra Performance** | Preset F 
+| **DLAA** | Preset K |
+
+DLSS render presets are project-specific. Presets are available only from the HDRP Asset settings. You can't override presets on a per-camera basis.
 
 ### DLSS and Dynamic Resolution
 

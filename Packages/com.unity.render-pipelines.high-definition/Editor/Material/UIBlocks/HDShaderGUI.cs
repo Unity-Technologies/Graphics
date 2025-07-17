@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Sets up the keywords and passes for the material you pass in as a parameter.
         /// </summary>
         /// <param name="material">Target material.</param>
-        [Obsolete("SetupMaterialKeywordsAndPass has been renamed ValidateMaterial", false)]
+        [Obsolete("SetupMaterialKeywordsAndPass has been renamed ValidateMaterial. #from(2022.1)")]
         protected virtual void SetupMaterialKeywordsAndPass(Material material)
         {
             ValidateMaterial(material);

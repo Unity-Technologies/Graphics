@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering
     /// Callback method that will be called when the Global Preferences for Additional Properties is changed
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
-    [Obsolete("This attribute is not handled anymore. Use Advanced Properties. #from(6000.0)", false)]
+    [Obsolete("This attribute is not handled anymore. Use Advanced Properties. #from(6000.0)")]
     public sealed class SetAdditionalPropertiesVisibilityAttribute : Attribute
     {
     }
@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering
     /// Interface that should be used with [ScriptableRenderPipelineExtension(type))] attribute to dispatch ContextualMenu calls on the different SRPs
     /// </summary>
     /// <typeparam name="T">This must be a component that require AdditionalData in your SRP</typeparam>
-    [Obsolete("The menu items are handled automatically for components with the AdditionalComponentData attribute. #from(2022.2)", false)]
+    [Obsolete("The menu items are handled automatically for components with the AdditionalComponentData attribute. #from(2022.2)")]
     public interface IRemoveAdditionalDataContextualMenu<T>
         where T : Component
     {
@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering
     public static partial class RenderPipelineGlobalSettingsUI
     {
         /// <summary>A collection of GUIContent for use in the inspector</summary>
-        [Obsolete("Use ShaderStrippingSettings instead. #from(23.2).")]
+        [Obsolete("Use ShaderStrippingSettings instead. #from(2023.2).")]
         public static class Styles
         {
             /// <summary>
@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering
         /// <param name="serialized">The serialized global settings</param>
         /// <param name="owner">The owner editor</param>
         /// <param name="additionalShaderStrippingSettings">Pass another drawer if you want to specify additional shader stripping settings</param>
-        [Obsolete("Use ShaderStrippingSettings instead. #from(23.2).")]
+        [Obsolete("Use ShaderStrippingSettings instead. #from(2023.2).")]
         public static void DrawShaderStrippingSettings(ISerializedRenderPipelineGlobalSettings serialized, Editor owner, CoreEditorDrawer<ISerializedRenderPipelineGlobalSettings>.IDrawer additionalShaderStrippingSettings = null)
         {
             CoreEditorUtils.DrawSectionHeader(Styles.shaderStrippingSettingsLabel);
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Public interface for handling a serialized object of <see cref="UnityEngine.Rendering.RenderPipelineGlobalSettings"/>
     /// </summary>
-    [Obsolete("Use ShaderStrippingSettings instead. #from(23.2).")]
+    [Obsolete("Use ShaderStrippingSettings instead. #from(2023.2).")]
     public interface ISerializedRenderPipelineGlobalSettings
     {
         /// <summary>
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="baseEditor">Editor that displays the content of this class</param>
         /// <param name="profile">VolumeProfile to display</param>
-        [Obsolete("Use DefaultVolumeProfileEditor(VolumeProfile, SerializedObject) instead. #from(23.3)")]
+        [Obsolete("Use DefaultVolumeProfileEditor(VolumeProfile, SerializedObject) instead. #from(2023.3)")]
         public DefaultVolumeProfileEditor(Editor baseEditor, VolumeProfile profile)
         {
             m_Profile = profile;
@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering
     /// Builtin Drawer for Maskfield Debug Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.MaskField))]
-    [Obsolete("DebugUI.MaskField has been deprecated and is not longer supported, please use BitField instead. #from(6000.2)", false)]
+    [Obsolete("DebugUI.MaskField has been deprecated and is not longer supported, please use BitField instead. #from(6000.2)")]
     public sealed class DebugUIDrawerMaskField : DebugUIFieldDrawer<uint, DebugUI.MaskField, DebugStateUInt>
     {
         /// <summary>

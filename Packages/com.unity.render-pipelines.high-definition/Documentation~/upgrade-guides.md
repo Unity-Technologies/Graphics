@@ -4,6 +4,8 @@ This section contains information about upgrading from an older version of the H
 
 To upgrade a Unity project that uses the built-in render pipeline, refer to [Convert a project from the Built-in Render Pipeline](convert-project-from-built-in-render-pipeline.md).
 
+**Note:** For HDRP 17.2 (Unity 6.2) and later, refer to the [Upgrade Unity](https://docs.unity3d.com/6000.2/Documentation/Manual/UpgradeGuides.html) page.
+
 | Page| Description|
 |-|-|
 |[High Definition Render Pipeline Wizard](Render-Pipeline-Wizard.md)|Use the HDRP Wizard to upgrade features between versions.|

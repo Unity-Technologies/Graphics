@@ -1795,13 +1795,21 @@ namespace UnityEditor.VFX.UI
             window.LoadAsset(vfxAsset, null);
         }
 
-        public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode)
+        public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode, bool centerInView)
         {
             var resource = VisualEffectResource.GetResourceAtPath(path);
             if (resource != null)
             {
                 VFXViewController templateController = VFXViewController.GetController(resource, true);
                 templateController.useCount++;
+
+                if (centerInView)
+                {
+                    var pos = contentViewContainer.style.translate.value;
+                    var scale = contentViewContainer.style.scale;
+                    tPos.x = (resolvedStyle.width / 2f - pos.x.value) / scale.value.value.x - templateController.graph.UIInfos.uiBounds.width / 2f;
+                    tPos.y = (resolvedStyle.height / 2f - pos.y.value) / scale.value.value.x - templateController.graph.UIInfos.uiBounds.height / 2f;
+                }
 
                 var data = VFXCopy.SerializeElements(templateController.allChildren, templateController.graph.UIInfos.uiBounds, null, null, null);
                 VFXPaste.UnserializeAndPasteElements(controller, tPos, data, this, groupNode != null ? groupNode.controller : null);
@@ -1819,7 +1827,7 @@ namespace UnityEditor.VFX.UI
             else
             {
                 VFXGraph.explicitCompile = true;
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(controller.model));
+                controller.graph.CompileAndUpdateAsset(controller.graph.GetResource().asset); 
                 VFXGraph.explicitCompile = false;
             }
             foreach (var model in m_ModelsWithHiddenBadges)
@@ -2788,6 +2796,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void InsertTemplate(Vector2 position)
+        {
+            void InsertFromTemplate(string templatePath, string assetPath)
+            {
+                CreateTemplateSystem(templatePath, position, null, false);
+            }
+
+            position = contentViewContainer.WorldToLocal(position);
+            GraphViewTemplateWindow.ShowInsertTemplate(new VFXTemplateHelperInternal(), InsertFromTemplate);
+        }
+
         public void AddStickyNote(Vector2 position)
         {
             var group = selection.OfType<VFXGroupNode>().FirstOrDefault();
@@ -2928,6 +2947,7 @@ namespace UnityEditor.VFX.UI
 
             if (evt.target is VFXView)
             {
+                evt.menu.InsertAction(0, "Insert Template", (e) => { InsertTemplate(mousePosition); }, (e) => controller.graph.visualEffectResource.isSubgraph ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal);
                 evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); }, (e) => DropdownMenuAction.Status.Normal);
                 evt.menu.InsertAction(2, "Create Group Node", (e) => { AddGroupNode(mousePosition); }, (e) => DropdownMenuAction.Status.Normal);
 
@@ -2948,7 +2968,7 @@ namespace UnityEditor.VFX.UI
                 var window = VFXViewWindow.GetWindow(this);
                 if (window != null && window.resourceHistory.Any())
                 {
-                    evt.menu.AppendAction(" Back To Parent Graph", e => window.PopResource());
+                    evt.menu.AppendAction("Back To Parent Graph", e => window.PopResource());
                 }
             }
 
@@ -2963,9 +2983,9 @@ namespace UnityEditor.VFX.UI
             if (selection.OfType<VFXNodeUI>().Any() && evt.target is VFXNodeUI)
             {
                 if (selection.OfType<VFXOperatorUI>().Any() && !selection.OfType<VFXNodeUI>().Any(t => !(t is VFXOperatorUI) && !(t is VFXParameterUI)))
+                {
                     evt.menu.InsertAction(3, "Convert To Subgraph Operator", ToSubgraphOperator, e => DropdownMenuAction.Status.Normal);
-                else if (SelectionHasCompleteSystems())
-                    evt.menu.InsertAction(3, "Convert To Subgraph", ToSubgraphContext, e => DropdownMenuAction.Status.Normal);
+                }
                 else if (selection.OfType<VFXBlockUI>().Any() && selection.OfType<VFXBlockUI>().Select(t => t.context).Distinct().Count() == 1)
                 {
                     evt.menu.InsertAction(3, "Convert to Subgraph Block", ToSubgraphBlock, e => DropdownMenuAction.Status.Normal);
@@ -3040,38 +3060,6 @@ namespace UnityEditor.VFX.UI
                 ope.controller.superCollapsed = collapse;
         }
 
-        public bool SelectionHasCompleteSystems()
-        {
-            HashSet<VFXContextUI> selectedContextUIs = new HashSet<VFXContextUI>(selection.OfType<VFXContextUI>());
-            if (selectedContextUIs.Count() < 1)
-                return false;
-
-            var relatedContext = selectedContextUIs.Select(t => t.controller.model);
-
-            //Adding manually VFXBasicGPUEvent, it doesn't appears as dependency.
-            var outputContextDataFromGPUEvent = relatedContext.OfType<VFXBasicGPUEvent>().SelectMany(o => o.outputContexts);
-            relatedContext = relatedContext.Concat(outputContextDataFromGPUEvent);
-            var selectedContextDatas = relatedContext.Select(o => o.GetData()).Where(o => o != null);
-
-            var selectedContextDependencies = selectedContextDatas.SelectMany(o => o.allDependenciesIncludingNotCompilable);
-            var allDatas = selectedContextDatas.Concat(selectedContextDependencies);
-
-            var allDatasHash = new HashSet<VFXData>(allDatas);
-            foreach (var context in GetAllContexts())
-            {
-                var model = context.controller.model;
-                if (model is VFXBlockSubgraphContext)
-                    return false;
-
-                //We should exclude model.contextType == VFXContextType.Event of this condition.
-                //If VFXConvertSubgraph.TransferContextsFlowEdges has been fixed & renabled.
-                if (allDatasHash.Contains(model.GetData()) && !selectedContextUIs.Contains(context))
-                    return false;
-            }
-
-            return true;
-        }
-
         void ToSubgraphBlock(DropdownMenuAction a)
         {
             VFXConvertSubgraph.ConvertToSubgraphBlock(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
@@ -3080,11 +3068,6 @@ namespace UnityEditor.VFX.UI
         void ToSubgraphOperator(DropdownMenuAction a)
         {
             ConvertToSubgraphOperator();
-        }
-
-        void ToSubgraphContext(DropdownMenuAction a)
-        {
-            VFXConvertSubgraph.ConvertToSubgraphContext(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
         }
 
         List<VFXSystemBorder> m_Systems = new List<VFXSystemBorder>();

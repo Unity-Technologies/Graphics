@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Controls the type of the procedural foam generator.
     /// </summary>
-    [Obsolete("WaterFoamGenerator has been deprecated. Use WaterDecal instead.")]
+    [Obsolete("WaterFoamGenerator has been deprecated. Use WaterDecal instead. #from(6000.0)")]
     public enum WaterFoamGeneratorType
     {
         /// <summary>
@@ -37,13 +37,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies the type of the generator. This parameter defines which parameters will be used to render it.
         /// </summary>
-        [Obsolete("WaterFoamGenerator has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterFoamGenerator has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public WaterFoamGeneratorType type = WaterFoamGeneratorType.Disk;
 
         /// <summary>
         /// Specifies the texture used for the foam.
         /// </summary>
-        [Obsolete("WaterFoamGenerator has been deprecated. Use WaterDecal instead.")]
+        [Obsolete("WaterFoamGenerator has been deprecated. Use WaterDecal instead. #from(6000.0)")]
         public Texture texture = null;
 
         private void Awake()

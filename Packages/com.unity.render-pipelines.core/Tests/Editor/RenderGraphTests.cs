@@ -227,11 +227,7 @@ namespace UnityEngine.Rendering.Tests
         {
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
-                builder.UseTexture(
-                    m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one)
-                    {
-                        colorFormat = GraphicsFormat.R8G8B8A8_UNorm
-                    }), AccessFlags.WriteAll);
+                builder.UseTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }), AccessFlags.WriteAll);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
@@ -342,17 +338,10 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void PartialUnusedProductNotCulled()
         {
-            TextureHandle texture =
-                m_RenderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle texture = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.UseTexture(texture, AccessFlags.Write);
-                builder.UseTexture(
-                    m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one)
-                    {
-                        colorFormat = GraphicsFormat.R8G8B8A8_UNorm
-                    }), AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, UnsafeGraphContext context) => { });
             }
 
@@ -375,9 +364,7 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void SimpleCreateReleaseTexture()
         {
-            TextureHandle texture =
-                m_RenderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle texture = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.UseTexture(texture, AccessFlags.Write);
@@ -530,9 +517,7 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void TransientResourceNotCulled()
         {
-            TextureHandle texture0 =
-                m_RenderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.UseTexture(texture0, AccessFlags.Write);
@@ -565,9 +550,7 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void AsyncPassWriteWaitOnGraphicsPipe()
         {
-            TextureHandle texture0 =
-                m_RenderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
                 builder.UseTexture(texture0, AccessFlags.Write);
@@ -599,12 +582,8 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void AsyncPassReadWaitOnGraphicsPipe()
         {
-            TextureHandle texture0 =
-                m_RenderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-            TextureHandle texture1 =
-                m_RenderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle texture1 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
 
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
@@ -638,9 +617,7 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void GraphicsPassWriteWaitOnAsyncPipe()
         {
-            TextureHandle texture0 =
-                m_RenderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
 
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
             {
@@ -674,9 +651,7 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void GraphicsPassReadWaitOnAsyncPipe()
         {
-            TextureHandle texture0 =
-                m_RenderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
 
             using (var builder = m_RenderGraph.AddUnsafePass<RenderGraphTestPassData>("Async_TestPass0", out var passData))
             {
@@ -959,6 +934,40 @@ namespace UnityEngine.Rendering.Tests
             };
             LogAssert.Expect(LogType.Error, "Render Graph Execution error");
             LogAssert.Expect(LogType.Exception, "InvalidOperationException: RenderPass TestPassWithNoRenderFunc was not provided with an execute function.");
+            m_Camera.Render();
+        }
+
+        [Test]
+        [TestMustExpectAllLogs]
+        public void ExceptionsOnExecuteAreHandledAsExpected()
+        {
+            const string kErrorMessage = "A fatal error.";
+            const int kWidth = 4;
+            const int kHeight = 4;
+
+            // record and execute render graph calls
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+                TextureHandle texture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("WorkingPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderAttachment(texture0, 0);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("BrokenPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    builder.SetInputAttachment(texture1, 0);
+                    builder.SetRenderAttachment(texture0, 1);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => throw new Exception(kErrorMessage));
+                }
+            };
+            LogAssert.Expect(LogType.Error, "Render Graph Execution error");
+            LogAssert.Expect(LogType.Exception, $"Exception: {kErrorMessage}");
             m_Camera.Render();
         }
 

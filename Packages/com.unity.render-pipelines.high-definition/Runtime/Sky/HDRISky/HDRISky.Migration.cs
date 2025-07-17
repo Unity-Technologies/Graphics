@@ -61,15 +61,15 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_SkyVersion; set => m_SkyVersion = value; }
 
         /// <summary>Obsolete field. Use distortionMode</summary>
-        [SerializeField, Obsolete("For Data Migration")]
+        [SerializeField, Obsolete("For Data Migration. #from(2022.1)")]
         public BoolParameter enableDistortion = new BoolParameter(false);
         /// <summary>Obsolete field. Use distortionMode</summary>
-        [SerializeField, Obsolete("For Data Migration")]
+        [SerializeField, Obsolete("For Data Migration. #from(2022.1)")]
         public BoolParameter procedural = new BoolParameter(true);
         /// <summary>Obsolete field. Use scrollOrientation</summary>
-        [SerializeField, Obsolete("For Data Migration")]
+        [SerializeField, Obsolete("For Data Migration. #from(2022.1)")]
         public ClampedFloatParameter scrollDirection = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
-        [SerializeField, FormerlySerializedAs("scrollSpeed"), Obsolete("For Data Migration")]
+        [SerializeField, FormerlySerializedAs("scrollSpeed"), Obsolete("For Data Migration. #from(2022.1)")]
         MinFloatParameter m_ObsoleteScrollSpeed = new MinFloatParameter(1.0f, 0.0f);
     }
 }

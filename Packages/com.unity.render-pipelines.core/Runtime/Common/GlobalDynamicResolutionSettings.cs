@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Bilinear upscaling filter. Obsolete and not supported.
         /// </summary>
-        [Obsolete("Bilinear upscale filter is considered obsolete and is not supported anymore, please use CatmullRom for a very cheap, but blurry filter.", false)] Bilinear,
+        [Obsolete("Bilinear upscale filter is considered obsolete and is not supported anymore, please use CatmullRom for a very cheap, but blurry filter. #from(2022.1)")] Bilinear,
         /// <summary>
         /// Bicubic Catmull-Rom upscaling filter.
         /// </summary>
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Lanczos upscaling filter. Obsolete and not supported.
         /// </summary>
-        [Obsolete("Lanczos upscale filter is considered obsolete and is not supported anymore, please use Contrast Adaptive Sharpening for very sharp filter or FidelityFX Super Resolution 1.0.", false)] Lanczos,
+        [Obsolete("Lanczos upscale filter is considered obsolete and is not supported anymore, please use Contrast Adaptive Sharpening for very sharp filter or FidelityFX Super Resolution 1.0. #from(2022.1)")] Lanczos,
         /// <summary>
         /// Contrast Adaptive Sharpening upscaling filter.
         /// </summary>
@@ -93,6 +93,11 @@ namespace UnityEngine.Rendering
             DLSSUseOptimalSettings = true,
             DLSSPerfQualitySetting = 0,
             DLSSSharpness = 0.5f,
+            DLSSRenderPresetForQuality = 0,
+            DLSSRenderPresetForBalanced = 0,
+            DLSSRenderPresetForPerformance = 0,
+            DLSSRenderPresetForUltraPerformance = 0,
+            DLSSRenderPresetForDLAA = 0,
             DLSSInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
             FSR2InjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
             TAAUInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
@@ -127,13 +132,26 @@ namespace UnityEngine.Rendering
         public DynamicResolutionHandler.UpsamplerScheduleType defaultInjectionPoint;
 
         /// <summary>Toggle NVIDIA Deep Learning Super Sampling (DLSS) automatic recommendation system for scaling and sharpness.
-        /// If this is on, the manually established scale callback for Dynamic Resolution Scaling is ignored. The sharpness setting of DLSS is also ignored.
+        /// If this is on, the manually established scale callback for Dynamic Resolution Scaling is ignored.
         /// </summary>
         public bool DLSSUseOptimalSettings;
 
-        /// <summary>Pixel sharpness of NVIDIA Deep Leraning Super Sampling (DLSS).</summary>
+        /// <summary>Pixel sharpness of NVIDIA Deep Learning Super Sampling (DLSS).
+        /// Unused since DLSS3 as NVIDIA deprecated the sharpness input to DLSS.
+        /// </summary>
         [Range(0, 1)]
         public float DLSSSharpness;
+
+        /// <summary> Specifies the DLSS Render Preset to use for the Quality performance quality setting.</summary>
+        public uint DLSSRenderPresetForQuality;
+        /// <summary> Specifies the DLSS Render Preset to use for the Balanced performance quality setting.</summary>
+        public uint DLSSRenderPresetForBalanced;
+        /// <summary> Specifies the DLSS Render Preset to use for the Performance performance quality setting.</summary>
+        public uint DLSSRenderPresetForPerformance;
+        /// <summary> Specifies the DLSS Render Preset to use for the UltraPerformance performance quality setting.</summary>
+        public uint DLSSRenderPresetForUltraPerformance;
+        /// <summary> Specifies the DLSS Render Preset to use for the DLAA performance quality setting.</summary>
+        public uint DLSSRenderPresetForDLAA;
 
         /// <summary>Enable sharpness control for FidelityFX 2.0 Super Resolution (FSR2).</summary>
         public bool FSR2EnableSharpness;
@@ -189,10 +207,8 @@ namespace UnityEngine.Rendering
         /// <summary>The minimum percentage threshold allowed to clamp tracing resolution for Volumetric Clouds. When the resolution percentage falls below this threshold, HDRP will trace the Volumetric Clouds in half res.</summary>
         public float lowResVolumetricCloudsMinimumThreshold;
 
-#pragma warning disable 618 // Type or member is obsolete
         /// <summary>Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority.</summary>
-        [Obsolete("Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority.")]
+        [Obsolete("Obsolete, used only for data migration. Use the advancedUpscalersByPriority list instead to add the proper supported advanced upscaler by priority. #from(2023.3)")]
         public bool enableDLSS;
-#pragma warning restore 618
     }
 }

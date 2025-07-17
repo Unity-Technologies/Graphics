@@ -22,7 +22,12 @@ namespace UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration
             public bool IsMigrationCorrect(RenderGraphSettings settings, out string message)
             {
                 message = string.Empty;
+#if URP_COMPATIBILITY_MODE
                 return !settings.enableRenderCompatibilityMode;
+#else
+                // Without URP_COMPATIBILITY_MODE define, this should always return false regardless of migration.
+                return settings.enableRenderCompatibilityMode == false;
+#endif
             }
         }
 
@@ -41,7 +46,12 @@ namespace UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration
             public bool IsMigrationCorrect(RenderGraphSettings settings, out string message)
             {
                 message = string.Empty;
+#if URP_COMPATIBILITY_MODE
                 return settings.enableRenderCompatibilityMode;
+#else
+                // Without URP_COMPATIBILITY_MODE define, this should always return false regardless of migration.
+                return settings.enableRenderCompatibilityMode == false;
+#endif
             }
         }
 

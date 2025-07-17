@@ -397,7 +397,7 @@ namespace UnityEngine.Rendering
 
                 }
 
-                public static Buffers Allocate(RenderGraph renderGraph, RenderGraphBuilder builder, AllocationParameters parameters)
+                public static Buffers Allocate(RenderGraph renderGraph, IBaseRenderGraphBuilder builder, AllocationParameters parameters)
                 {
                     BufferHandle CreateBuffer(int elementCount, int stride, GraphicsBuffer.Target target, string name)
                     {
@@ -468,7 +468,7 @@ namespace UnityEngine.Rendering
                     public int countWorkQUeue;
                 }
 
-                public static Buffers Allocate(RenderGraph renderGraph, RenderGraphBuilder builder, AllocationParameters parameters)
+                public static Buffers Allocate(RenderGraph renderGraph, IComputeRenderGraphBuilder builder, AllocationParameters parameters)
                 {
                     BufferHandle CreateBuffer(int elementCount, int stride, GraphicsBuffer.Target target, string name)
                     {

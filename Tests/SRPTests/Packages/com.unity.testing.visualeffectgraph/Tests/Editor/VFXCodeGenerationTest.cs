@@ -335,6 +335,7 @@ namespace UnityEditor.VFX.Test
 
             var vfx = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(vfxPath).GetResource();
             vfx.GetOrCreateGraph().SetCompilationMode(compilationMode);
+            vfx.GetOrCreateGraph().CompileAndUpdateAsset(vfx.asset);
 
             Assert.AreEqual(5, vfx.GetShaderSourceCount());
 

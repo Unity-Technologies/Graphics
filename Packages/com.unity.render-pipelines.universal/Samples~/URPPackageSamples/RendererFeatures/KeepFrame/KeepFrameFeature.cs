@@ -24,6 +24,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
             m_Destination = destination;
         }
 
+#if URP_COMPATIBILITY_MODE // Compatibility Mode is being removed
 #pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
 
         // Override the Execute method to implement the rendering logic.
@@ -49,6 +50,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
         }
 
 #pragma warning restore 618, 672
+#endif
 
         // Override the RecordRenderGraph method to implement the rendering logic.
         // This method is used only in the render graph system path.
@@ -114,6 +116,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
             Blitter.BlitTexture(cmd, source, viewportScale, material, 0);
         }
 
+#if URP_COMPATIBILITY_MODE // Compatibility Mode is being removed
 #pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
 
         // Override the Execute method to implement the rendering logic.
@@ -136,6 +139,7 @@ public class KeepFrameFeature : ScriptableRendererFeature
         }
 
 #pragma warning restore 618, 672
+#endif
 
         // Override the RecordRenderGraph method to implement the rendering logic.
         // This method is used only in the render graph system path.

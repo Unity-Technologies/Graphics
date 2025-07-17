@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 
 
-[System.Obsolete("Kept for migration purpose only. Do not use (see script for more info) #from(6000.0) (UnityUpgradable) -> FullScreenPassRendererFeature", true)]
+[System.Obsolete("Kept for migration purpose only. Do not use (see script for more info) #from(6000.0) #breakingFrom(6000.0) (UnityUpgradable) -> FullScreenPassRendererFeature", true)]
 class FullScreenPassRendererFeature_OldGUID : UnityEngine.Rendering.Universal.FullScreenPassRendererFeature, ISerializationCallbackReceiver
 {
     void ISerializationCallbackReceiver.OnAfterDeserialize()

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 9
+  version: 10
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -53,11 +53,19 @@ Material:
         m_Texture: {fileID: 2800000, guid: 24e5d18252f5a47e5b5c5186f46181cf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_590cc01e211b30889fb3622ae0e53368_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 24e5d18252f5a47e5b5c5186f46181cf, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_5D75851F_Texture:
         m_Texture: {fileID: 2800000, guid: f49c8d7d101cf49a5bcd2a3817c328f2, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_6d8641184915c78d980d81f5f53da29c_Texture_1:
+        m_Texture: {fileID: 2800000, guid: da6593a3e4b5a48a397c434f13c1b203, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_6d8641184915c78d980d81f5f53da29c_Texture_1_Texture2D:
         m_Texture: {fileID: 2800000, guid: da6593a3e4b5a48a397c434f13c1b203, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -86,6 +94,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_ce150abb5aa7c18f89f3e033be867d17_Texture_1:
+        m_Texture: {fileID: 2800000, guid: f49c8d7d101cf49a5bcd2a3817c328f2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_ce150abb5aa7c18f89f3e033be867d17_Texture_1_Texture2D:
         m_Texture: {fileID: 2800000, guid: f49c8d7d101cf49a5bcd2a3817c328f2, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -121,3 +133,4 @@ Material:
     - _ZWriteControl: 0
     m_Colors: []
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

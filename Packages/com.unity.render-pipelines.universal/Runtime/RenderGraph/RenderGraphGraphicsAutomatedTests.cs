@@ -19,10 +19,14 @@ namespace UnityEngine.Rendering
 #endif
         }
 
-        /// <summary>
-        /// Used by render pipelines to initialize RenderGraph tests.
-        /// </summary>
+        ///<summary> Obsolete, use forceRenderGraphState instead </summary>
+        [Obsolete]
         public static bool enabled { get; set; } = activatedFromCommandLine;
 
+        /// <summary>
+        /// Used by render pipelines to initialize RenderGraph tests.
+        /// True = RenderGraph, False = CompatibilityMode, null = no effect (keep as it is configured in the project settings).
+        /// </summary>
+        public static bool? forceRenderGraphState { get; set; } = activatedFromCommandLine ? true : null;
     }
 }

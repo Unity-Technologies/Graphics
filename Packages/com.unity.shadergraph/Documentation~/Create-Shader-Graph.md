@@ -1,23 +1,22 @@
-# Creating a new Shader Graph Asset
+# Creating a new shader graph asset
 
-After you configure an SRP, you can create a new Shader Graph Asset. Right-click the Project window, locate **Create** > **Shader Graph** in the context menu, then select your desired type of Shader Graph.
+After you configure an SRP, you can create a new shader graph asset.
 
-The type of Shader Graph available is dependent on the render pipelines present in your project. Some options may or may not be present based on the render pipelines.
+To create a new shader graph asset, follow these steps:
 
-The following options are always available:
+1. In the **Project** window, right-click and select **Create** > **Shader Graph** > **From Template...**. 
 
-|       |  | |
-|:------------|:----------------|:------------|
-| Blank Shader Graph | A completely blank shader graph. No target is selected and no blocks are added to the Master Stack. |
-| Sub Graph |  A blank sub graph asset. |
+1. In the context menu, select your desired type of Shader Graph.
 
-A sub menu for each installed render pipeline may be present containing template stacks for standard shading models ( Lit, Unlit, etc ).
+	The type of Shader Graph available is dependent on the render pipelines present in your project.
 
-For a full list of provided options, refer to the [Universal Render Pipeline](https://docs.unity3d.com/Manual/urp/urp-introduction.html) and [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) documentation.
+	A submenu for each installed render pipeline may be present containing template stacks for standard shading models ( Lit, Unlit, etc ).
 
-For this example, Universal is installed so a Unversal Lit Shader Graph has been created.
+	For a full list of provided options, refer to the [Universal Render Pipeline](https://docs.unity3d.com/Manual/urp/urp-introduction.html) and [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) documentation.
 
-Double-click your newly created Shader Graph Asset to open it in the Shader Graph window.
+	For this example, Universal is installed so a Universal Lit Shader Graph has been created.
+
+1. Double-click your newly created shader graph asset to open it in the Shader Graph window.
 
 ## Shader Graph window
 

@@ -558,34 +558,34 @@ namespace UnityEditor.Rendering.HighDefinition
                     shadowNearPlane = light.shadows != LightShadows.None ? shadowNearPlane : 0.0f;
                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                     {
-                        Vector3 outterAngleInnerAngleRange = new Vector3(light.spotAngle, light.spotAngle * additionalData.innerSpotPercent01, light.range);
+                        Vector3 outerAngleInnerAngleRange = new Vector3(light.spotAngle, light.innerSpotAngle, light.range);
                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                         Handles.color = wireframeColorBehind;
-                        DrawSpotlightWireframe(outterAngleInnerAngleRange, shadowNearPlane);
+                        DrawSpotlightWireframe(outerAngleInnerAngleRange, shadowNearPlane);
                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                         Handles.color = wireframeColorAbove;
-                        DrawSpotlightWireframe(outterAngleInnerAngleRange, shadowNearPlane);
+                        DrawSpotlightWireframe(outerAngleInnerAngleRange, shadowNearPlane);
                         EditorGUI.BeginChangeCheck();
                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                         Handles.color = handleColorBehind;
-                        outterAngleInnerAngleRange = DrawSpotlightHandle(outterAngleInnerAngleRange);
+                        outerAngleInnerAngleRange = DrawSpotlightHandle(outerAngleInnerAngleRange);
                         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
                         Handles.color = handleColorAbove;
-                        outterAngleInnerAngleRange = DrawSpotlightHandle(outterAngleInnerAngleRange);
+                        outerAngleInnerAngleRange = DrawSpotlightHandle(outerAngleInnerAngleRange);
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Cone Spot Light");
-                            outterAngleInnerAngleRange.x = Mathf.Min(179.0f, Mathf.Max(1.0f, outterAngleInnerAngleRange.x));
-                            additionalData.innerSpotPercent = 100f * outterAngleInnerAngleRange.y / outterAngleInnerAngleRange.x;
+                            outerAngleInnerAngleRange.x = Mathf.Min(179.0f, Mathf.Max(1.0f, outerAngleInnerAngleRange.x));
                             // If light unit is currently displayed in lumen and 'reflector' is on, recalculate candela so lumen value remains constant
-                            if (light.spotAngle != outterAngleInnerAngleRange.x && light.enableSpotReflector && light.lightUnit == LightUnit.Lumen)
+                            if (light.spotAngle != outerAngleInnerAngleRange.x && light.enableSpotReflector && light.lightUnit == LightUnit.Lumen)
                             {
                                 float oldLumen = LightUnitUtils.ConvertIntensity(light, light.intensity, LightUnit.Candela, LightUnit.Lumen);
-                                float newSolidAngle = LightUnitUtils.GetSolidAngleFromSpotLight(Mathf.Max(1.0f, outterAngleInnerAngleRange.x));
+                                float newSolidAngle = LightUnitUtils.GetSolidAngleFromSpotLight(Mathf.Max(1.0f, outerAngleInnerAngleRange.x));
                                 light.intensity = LightUnitUtils.LumenToCandela(oldLumen, newSolidAngle);
                             }
-                            light.spotAngle = outterAngleInnerAngleRange.x;
-                            light.range = outterAngleInnerAngleRange.z;
+                            light.spotAngle = outerAngleInnerAngleRange.x;
+                            light.innerSpotAngle = Mathf.Max(outerAngleInnerAngleRange.y, HDAdditionalLightData.k_MinSpotAngle);
+                            light.range = outerAngleInnerAngleRange.z;
                         }
 
                         // Handles.color reseted at end of scope
@@ -598,7 +598,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     shadowNearPlane = light.shadows != LightShadows.None ? shadowNearPlane : 0.0f;
                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                     {
-                        Vector4 aspectFovMaxRangeMinRange = new Vector4(additionalData.aspectRatio, light.spotAngle, light.range);
+                        float aspectRatio = Mathf.Tan(light.innerSpotAngle * Mathf.PI / 360f) /
+                                            Mathf.Tan(light.spotAngle * Mathf.PI / 360f);
+                        Vector4 aspectFovMaxRangeMinRange = new Vector4(aspectRatio, light.spotAngle, light.range);
                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                         Handles.color = wireframeColorBehind;
                         DrawSpherePortionWireframe(aspectFovMaxRangeMinRange, shadowNearPlane);
@@ -616,15 +618,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Pyramid Spot Light");
 
-                            if ((light.spotAngle != aspectFovMaxRangeMinRange.y || additionalData.aspectRatio != aspectFovMaxRangeMinRange.x)
+                            if ((light.spotAngle != aspectFovMaxRangeMinRange.y || aspectRatio != aspectFovMaxRangeMinRange.x)
                                 && light.enableSpotReflector && light.lightUnit == LightUnit.Lumen)
                             {
                                 float oldLumen = LightUnitUtils.ConvertIntensity(light, light.intensity, LightUnit.Candela, LightUnit.Lumen);
                                 float newSolidAngle = LightUnitUtils.GetSolidAngleFromPyramidLight(aspectFovMaxRangeMinRange.y, aspectFovMaxRangeMinRange.x);
                                 light.intensity = LightUnitUtils.LumenToCandela(oldLumen, newSolidAngle);
                             }
-                            additionalData.aspectRatio = aspectFovMaxRangeMinRange.x;
+
+                            float newAspectRatio = aspectFovMaxRangeMinRange.x;
                             light.spotAngle = aspectFovMaxRangeMinRange.y;
+                            light.innerSpotAngle = 360f / Mathf.PI * Mathf.Atan(newAspectRatio * Mathf.Tan(light.spotAngle * Mathf.PI / 360f));
                             light.range = aspectFovMaxRangeMinRange.z;
                         }
 
@@ -638,7 +642,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     shadowNearPlane = light.shadows != LightShadows.None ? shadowNearPlane : 0.0f;
                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                     {
-                        Vector4 widthHeightMaxRangeMinRange = new Vector4(additionalData.shapeWidth, additionalData.shapeHeight, light.range);
+                        Vector4 widthHeightMaxRangeMinRange = new Vector4(light.areaSize.x, light.areaSize.y, light.range);
                         Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
                         Handles.color = wireframeColorBehind;
                         DrawOrthoFrustumWireframe(widthHeightMaxRangeMinRange, shadowNearPlane);
@@ -655,8 +659,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, "Adjust Box Spot Light");
-                            additionalData.shapeWidth = widthHeightMaxRangeMinRange.x;
-                            additionalData.shapeHeight = widthHeightMaxRangeMinRange.y;
+                            light.areaSize = new Vector2(widthHeightMaxRangeMinRange.x, widthHeightMaxRangeMinRange.y);
                             light.range = widthHeightMaxRangeMinRange.z;
                         }
 
@@ -670,11 +673,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     bool withYAxis = light.type == LightType.Rectangle;
                     using (new Handles.DrawingScope(Matrix4x4.TRS(light.transform.position, light.transform.rotation, Vector3.one)))
                     {
-                        Vector2 widthHeight = new Vector4(additionalData.shapeWidth, withYAxis ? additionalData.shapeHeight : 0f);
+                        Vector2 widthHeight = new Vector4(light.areaSize.x, withYAxis ? light.areaSize.y : 0f);
                         float range = light.range;
-                        float aspect = additionalData.shapeWidth / additionalData.shapeHeight;
+                        float aspect = light.areaSize.x / light.areaSize.y;
                         float angle = additionalData.areaLightShadowCone;
-                        float offset = -Mathf.Min(additionalData.shapeWidth, additionalData.shapeHeight) * 0.5f / Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad);
+                        float offset = -Mathf.Min(light.areaSize.x, light.areaSize.y) * 0.5f / Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad);
                         Vector4 aspectFovMaxRangeMinRange = new Vector4(aspect, angle, range - offset);
                         Matrix4x4 shadowFrustumMatrix = Matrix4x4.TRS(light.transform.position + light.transform.forward * offset, light.transform.rotation, Vector3.one);
                         float nearPlane = additionalData.shadowNearPlane - offset;
@@ -716,8 +719,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObjects(new UnityEngine.Object[] { light, additionalData }, withYAxis ? "Adjust Area Rectangle Light" : "Adjust Area Tube Light");
-                            float oldWidth = additionalData.shapeWidth;
-                            float oldHeight = additionalData.shapeHeight;
+                            float oldWidth = light.areaSize.x;
+                            float oldHeight = light.areaSize.y;
                             if (withYAxis)
                             {
                                 if (light.lightUnit == LightUnit.Lumen)
@@ -728,7 +731,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                     float newArea = LightUnitUtils.GetAreaFromRectangleLight(widthHeight);
                                     light.intensity = LightUnitUtils.LumenToNits(oldLumen, newArea);
                                 }
-                                additionalData.shapeHeight = widthHeight.y;
+                                light.areaSize = new Vector2(light.areaSize.x, widthHeight.y);
                             }
                             else if (light.lightUnit == LightUnit.Lumen)
                             {
@@ -738,7 +741,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 float newArea = LightUnitUtils.GetAreaFromTubeLight(widthHeight.x);
                                 light.intensity = LightUnitUtils.LumenToNits(oldLumen, newArea);
                             }
-                            additionalData.shapeWidth = widthHeight.x;
+                            light.areaSize = new Vector2(widthHeight.x, light.areaSize.y);
                             light.range = range;
                         }
 
@@ -789,8 +792,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     float depth = src.barnDoorLength * Mathf.Cos(angle);
 
                     // Evaluate the half dimensions of the rectangular area light
-                    float halfWidth = src.shapeWidth * 0.5f;
-                    float halfHeight = src.shapeHeight * 0.5f;
+                    float halfWidth = src.legacyLight.areaSize.x * 0.5f;
+                    float halfHeight = src.legacyLight.areaSize.y * 0.5f;
 
                     // Evaluate the dimensions of the extended area light
                     float extendedWidth = Mathf.Tan(angle) * depth + halfWidth;

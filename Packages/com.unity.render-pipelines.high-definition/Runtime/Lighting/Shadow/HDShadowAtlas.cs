@@ -229,8 +229,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Since we now store the output TextureHandle (because we only want to create the texture once depending on the control flow),
             // we need to be careful not to keep a "valid" handle when not desired.
-            // Note: this seems to be redundant, m_Output.IsValid() should be enough but keeping this to avoid regressions
             m_Output = TextureHandle.nullHandle;
+            m_ShadowMapOutput = TextureHandle.nullHandle;
         }
 
         public void CreateOrUpdateOutputTexture(RenderGraph renderGraph)
@@ -330,9 +330,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShadowDrawingSettings shadowDrawSettings;
             public Material clearMaterial;
             public bool debugClearAtlas;
+            public ScriptableRenderContext renderContext;
         }
 
-        private void SetCommonRenderPassData(RenderShadowMapsCommonPassData passData, in RenderGraphBuilder builder, RenderGraph renderGraph, in ShaderVariablesGlobal globalCBData)
+        private void SetCommonRenderPassData(RenderShadowMapsCommonPassData passData, in IUnsafeRenderGraphBuilder builder, RenderGraph renderGraph, in ShaderVariablesGlobal globalCBData)
         {
             passData.globalCBData = globalCBData;
             passData.globalCB = m_GlobalConstantBuffer;
@@ -341,9 +342,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Only in case of regular shadow map do we render directly in the output texture of the atlas.
             if (m_BlurAlgorithm == BlurAlgorithm.EVSM || m_BlurAlgorithm == BlurAlgorithm.IM)
-                passData.atlasTexture = builder.WriteTexture(GetShadowMapDepthTexture(renderGraph));
+                passData.atlasTexture = GetShadowMapDepthTexture(renderGraph);
             else
-                passData.atlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
+                passData.atlasTexture = GetOutputTexture(renderGraph);
+            builder.UseTexture(passData.atlasTexture, AccessFlags.Write);
         }
 
         struct RenderShadowMapsCommonState
@@ -427,11 +429,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public static Vector4[] frustumPlanesScratchpad = new Vector4[HDShadowRequest.frustumPlanesCount];
-        internal unsafe TextureHandle RenderShadowMaps(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCBData, FrameSettings frameSettings, string shadowPassName)
+        internal unsafe TextureHandle RenderShadowMaps(RenderGraph renderGraph, ScriptableRenderContext renderContext, CullingResults cullResults, in ShaderVariablesGlobal globalCBData, FrameSettings frameSettings, string shadowPassName)
         {
             TextureHandle atlasTexture;
 
-            using (var builder = renderGraph.AddRenderPass<RenderShadowMapsPassData>("Render Shadow Maps", out var passData, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
+            using (var builder = renderGraph.AddUnsafePass<RenderShadowMapsPassData>("Render Shadow Maps", out var passData, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
             {
                 SetCommonRenderPassData(passData, builder, renderGraph, globalCBData);
 
@@ -439,15 +441,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugClearAtlas = m_LightingDebugSettings.clearShadowAtlas;
                 passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
                 passData.shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
+                passData.renderContext = renderContext;
 
                 builder.SetRenderFunc(
-                    (RenderShadowMapsPassData data, RenderGraphContext ctx) =>
+                    (RenderShadowMapsPassData data, UnsafeGraphContext ctx) =>
                     {
-                        ctx.cmd.SetRenderTarget(data.atlasTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+                        natCmd.SetRenderTarget(data.atlasTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
                         // Clear the whole atlas to avoid garbage outside of current request when viewing it.
                         if (data.debugClearAtlas)
-                            CoreUtils.DrawFullScreen(ctx.cmd, data.clearMaterial, null, 0);
+                            CoreUtils.DrawFullScreen(natCmd, data.clearMaterial, null, 0);
 
                         NativeList<HDShadowRequest> requestStorage = HDShadowRequestDatabase.instance.hdShadowRequestStorage;
                         ref UnsafeList<HDShadowRequest> requestStorageUnsafe = ref *requestStorage.GetUnsafeList();
@@ -459,7 +463,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         foreach (var shadowRequestHandle in data.shadowRequests)
                         {
                             ref var shadowRequest = ref requestStorageUnsafe.ElementAt(shadowRequestHandle.storageIndexForShadowRequest);
-                            var commonState = CommonPerShadowRequestUpdate(ctx.cmd, data, shadowRequest, shadowRequestHandle, ref planesScratchpad, ref frustumPlanesStorageUnsafe);
+                            var commonState = CommonPerShadowRequestUpdate(natCmd, data, shadowRequest, shadowRequestHandle, ref planesScratchpad, ref frustumPlanesStorageUnsafe);
                             if (commonState.shouldSkipRequest)
                                 continue;
 
@@ -476,18 +480,18 @@ namespace UnityEngine.Rendering.HighDefinition
     #endif
 
                             if (!commonState.mixedInDynamicAtlas)
-                                CoreUtils.DrawFullScreen(ctx.cmd, data.clearMaterial, null, 0);
+                                CoreUtils.DrawFullScreen(natCmd, data.clearMaterial, null, 0);
 
                             data.shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
                             data.shadowDrawSettings.splitIndex = shadowRequest.cullingSplit.splitIndex;
 
                             //TODO(ddebaets) as the shadowDrawSettings are modified in this loop, we generate this RL very last minute
                             // We might want to refactor this and create the RL ahead of time (especially if we ever allow AsyncPrepare on them)
-                            var rl = ctx.renderContext.CreateShadowRendererList(ref data.shadowDrawSettings);
-                            ctx.cmd.DrawRendererList(rl);
+                            var rl = data.renderContext.CreateShadowRendererList(ref data.shadowDrawSettings);
+                            natCmd.DrawRendererList(rl);
                         }
 
-                        ResetDepthState(ctx.cmd);
+                        ResetDepthState(natCmd);
                     });
 
                 m_ShadowMapOutput = passData.atlasTexture;
@@ -510,18 +514,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe TextureHandle EVSMBlurMoments(RenderGraph renderGraph, TextureHandle inputAtlas)
         {
-            using (var builder = renderGraph.AddRenderPass<EVSMBlurMomentsPassData>("EVSM Blur Moments", out var passData, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMaps)))
+            using (var builder = renderGraph.AddUnsafePass<EVSMBlurMomentsPassData>("EVSM Blur Moments", out var passData, ProfilingSampler.Get(HDProfileId.RenderEVSMShadowMaps)))
             {
                 passData.evsmShadowBlurMomentsCS = m_RenderPipeline.runtimeShaders.evsmBlurCS;
                 passData.shadowRequests = m_ShadowRequests;
                 passData.isRenderingOnACache = m_IsACacheForShadows;
-                passData.atlasTexture = builder.ReadTexture(inputAtlas);
-                passData.momentAtlasTexture1 = builder.WriteTexture(GetOutputTexture(renderGraph));
-                passData.momentAtlasTexture2 = builder.WriteTexture(renderGraph.CreateTexture(GetMomentAtlasDesc(m_MomentCopyName)));
+                passData.atlasTexture = inputAtlas;
+                builder.UseTexture(passData.atlasTexture, AccessFlags.Read);
+                passData.momentAtlasTexture1 = GetOutputTexture(renderGraph);
+                builder.UseTexture(passData.momentAtlasTexture1, AccessFlags.Write);
+                passData.momentAtlasTexture2 = renderGraph.CreateTexture(GetMomentAtlasDesc(m_MomentCopyName));
+                builder.UseTexture(passData.momentAtlasTexture2, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (EVSMBlurMomentsPassData data, RenderGraphContext ctx) =>
+                    (EVSMBlurMomentsPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         ComputeShader shadowBlurMomentsCS = data.evsmShadowBlurMomentsCS;
                         RTHandle[] momentAtlasRenderTextures = ctx.renderGraphPool.GetTempArray<RTHandle>(2);
                         momentAtlasRenderTextures[0] = data.momentAtlasTexture1;
@@ -533,8 +541,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         RTHandle atlasRenderTexture = data.atlasTexture;
 
-                        ctx.cmd.SetComputeTextureParam(shadowBlurMomentsCS, generateAndBlurMomentsKernel, HDShaderIDs._DepthTexture, atlasRenderTexture);
-                        ctx.cmd.SetComputeVectorArrayParam(shadowBlurMomentsCS, HDShaderIDs._BlurWeightsStorage, evsmBlurWeights);
+                        natCmd.SetComputeTextureParam(shadowBlurMomentsCS, generateAndBlurMomentsKernel, HDShaderIDs._DepthTexture, atlasRenderTexture);
+                        natCmd.SetComputeVectorArrayParam(shadowBlurMomentsCS, HDShaderIDs._BlurWeightsStorage, evsmBlurWeights);
 
                         // We need to store in which of the two moment texture a request will have its last version stored in for a final patch up at the end.
                         var finalAtlasTexture = stackalloc int[data.shadowRequests.Length];
@@ -561,29 +569,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 Vector2 DstRectOffset = new Vector2(viewport.min.x * 0.5f, viewport.min.y * 0.5f);
 
-                                ctx.cmd.SetComputeTextureParam(shadowBlurMomentsCS, generateAndBlurMomentsKernel, HDShaderIDs._OutputTexture, momentAtlasRenderTextures[0]);
-                                ctx.cmd.SetComputeVectorParam(shadowBlurMomentsCS, HDShaderIDs._SrcRect, new Vector4(viewport.min.x, viewport.min.y, viewport.width, viewport.height));
-                                ctx.cmd.SetComputeVectorParam(shadowBlurMomentsCS, HDShaderIDs._DstRect, new Vector4(DstRectOffset.x, DstRectOffset.y, 1.0f / atlasRenderTexture.rt.width, 1.0f / atlasRenderTexture.rt.height));
-                                ctx.cmd.SetComputeFloatParam(shadowBlurMomentsCS, HDShaderIDs._EVSMExponent, shadowRequest.evsmParams.x);
+                                natCmd.SetComputeTextureParam(shadowBlurMomentsCS, generateAndBlurMomentsKernel, HDShaderIDs._OutputTexture, momentAtlasRenderTextures[0]);
+                                natCmd.SetComputeVectorParam(shadowBlurMomentsCS, HDShaderIDs._SrcRect, new Vector4(viewport.min.x, viewport.min.y, viewport.width, viewport.height));
+                                natCmd.SetComputeVectorParam(shadowBlurMomentsCS, HDShaderIDs._DstRect, new Vector4(DstRectOffset.x, DstRectOffset.y, 1.0f / atlasRenderTexture.rt.width, 1.0f / atlasRenderTexture.rt.height));
+                                natCmd.SetComputeFloatParam(shadowBlurMomentsCS, HDShaderIDs._EVSMExponent, shadowRequest.evsmParams.x);
 
                                 int dispatchSizeX = ((int)downsampledWidth + 7) / 8;
                                 int dispatchSizeY = ((int)downsampledHeight + 7) / 8;
 
-                                ctx.cmd.DispatchCompute(shadowBlurMomentsCS, generateAndBlurMomentsKernel, dispatchSizeX, dispatchSizeY, 1);
+                                natCmd.DispatchCompute(shadowBlurMomentsCS, generateAndBlurMomentsKernel, dispatchSizeX, dispatchSizeY, 1);
 
                                 int currentAtlasMomentSurface = 0;
 
                                 RTHandle GetMomentRT() { return momentAtlasRenderTextures[currentAtlasMomentSurface]; }
                                 RTHandle GetMomentRTCopy() { return momentAtlasRenderTextures[(currentAtlasMomentSurface + 1) & 1]; }
 
-                                ctx.cmd.SetComputeVectorParam(shadowBlurMomentsCS, HDShaderIDs._SrcRect, new Vector4(DstRectOffset.x, DstRectOffset.y, downsampledWidth, downsampledHeight));
+                                natCmd.SetComputeVectorParam(shadowBlurMomentsCS, HDShaderIDs._SrcRect, new Vector4(DstRectOffset.x, DstRectOffset.y, downsampledWidth, downsampledHeight));
                                 for (int i = 0; i < shadowRequest.evsmParams.w; ++i)
                                 {
                                     currentAtlasMomentSurface = (currentAtlasMomentSurface + 1) & 1;
-                                    ctx.cmd.SetComputeTextureParam(shadowBlurMomentsCS, blurMomentsKernel, HDShaderIDs._InputTexture, GetMomentRTCopy());
-                                    ctx.cmd.SetComputeTextureParam(shadowBlurMomentsCS, blurMomentsKernel, HDShaderIDs._OutputTexture, GetMomentRT());
+                                    natCmd.SetComputeTextureParam(shadowBlurMomentsCS, blurMomentsKernel, HDShaderIDs._InputTexture, GetMomentRTCopy());
+                                    natCmd.SetComputeTextureParam(shadowBlurMomentsCS, blurMomentsKernel, HDShaderIDs._OutputTexture, GetMomentRT());
 
-                                    ctx.cmd.DispatchCompute(shadowBlurMomentsCS, blurMomentsKernel, dispatchSizeX, dispatchSizeY, 1);
+                                    natCmd.DispatchCompute(shadowBlurMomentsCS, blurMomentsKernel, dispatchSizeX, dispatchSizeY, 1);
                                 }
 
                                 finalAtlasTexture[requestIdx++] = currentAtlasMomentSurface;
@@ -603,14 +611,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                     int downsampledWidth = Mathf.CeilToInt(viewport.width * 0.5f);
                                     int downsampledHeight = Mathf.CeilToInt(viewport.height * 0.5f);
 
-                                    ctx.cmd.SetComputeVectorParam(shadowBlurMomentsCS, HDShaderIDs._SrcRect, new Vector4(viewport.min.x * 0.5f, viewport.min.y * 0.5f, downsampledWidth, downsampledHeight));
-                                    ctx.cmd.SetComputeTextureParam(shadowBlurMomentsCS, copyMomentsKernel, HDShaderIDs._InputTexture, momentAtlasRenderTextures[1]);
-                                    ctx.cmd.SetComputeTextureParam(shadowBlurMomentsCS, copyMomentsKernel, HDShaderIDs._OutputTexture, momentAtlasRenderTextures[0]);
+                                    natCmd.SetComputeVectorParam(shadowBlurMomentsCS, HDShaderIDs._SrcRect, new Vector4(viewport.min.x * 0.5f, viewport.min.y * 0.5f, downsampledWidth, downsampledHeight));
+                                    natCmd.SetComputeTextureParam(shadowBlurMomentsCS, copyMomentsKernel, HDShaderIDs._InputTexture, momentAtlasRenderTextures[1]);
+                                    natCmd.SetComputeTextureParam(shadowBlurMomentsCS, copyMomentsKernel, HDShaderIDs._OutputTexture, momentAtlasRenderTextures[0]);
 
                                     int dispatchSizeX = ((int)downsampledWidth + 7) / 8;
                                     int dispatchSizeY = ((int)downsampledHeight + 7) / 8;
 
-                                    ctx.cmd.DispatchCompute(shadowBlurMomentsCS, copyMomentsKernel, dispatchSizeX, dispatchSizeY, 1);
+                                    natCmd.DispatchCompute(shadowBlurMomentsCS, copyMomentsKernel, dispatchSizeX, dispatchSizeY, 1);
                                 }
                             }
                         }
@@ -634,21 +642,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe TextureHandle IMBlurMoment(RenderGraph renderGraph, TextureHandle atlasTexture)
         {
-            using (var builder = renderGraph.AddRenderPass<IMBlurMomentPassData>("EVSM Blur Moments", out var passData, ProfilingSampler.Get(HDProfileId.RenderMomentShadowMaps)))
+            using (var builder = renderGraph.AddUnsafePass<IMBlurMomentPassData>("EVSM Blur Moments", out var passData, ProfilingSampler.Get(HDProfileId.RenderMomentShadowMaps)))
             {
                 passData.shadowRequests = m_ShadowRequests;
                 passData.isRenderingOnACache = m_IsACacheForShadows;
                 passData.imShadowBlurMomentsCS = m_RenderPipeline.runtimeShaders.momentShadowsCS;
-                passData.atlasTexture = builder.ReadTexture(atlasTexture);
-                passData.momentAtlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
-                passData.intermediateSummedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                { format = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black }));
-                passData.summedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                { format = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true, clearColor = Color.black }));
+                passData.atlasTexture = atlasTexture;
+                builder.UseTexture(passData.atlasTexture, AccessFlags.Read);
+                passData.momentAtlasTexture = GetOutputTexture(renderGraph);
+                builder.UseTexture(passData.momentAtlasTexture, AccessFlags.Write);
+                passData.intermediateSummedAreaTexture = renderGraph.CreateTexture(new TextureDesc(width, height)
+                { format = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true, clearBuffer = true, clearColor = Color.black });
+                builder.UseTexture(passData.intermediateSummedAreaTexture, AccessFlags.Write);
+                passData.summedAreaTexture = renderGraph.CreateTexture(new TextureDesc(width, height)
+                { format = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true, clearColor = Color.black });
+                builder.UseTexture(passData.summedAreaTexture, AccessFlags.Write);
 
                 builder.SetRenderFunc(
-                    (IMBlurMomentPassData data, RenderGraphContext ctx) =>
+                    (IMBlurMomentPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // If the target kernel is not available
                         ComputeShader momentCS = data.imShadowBlurMomentsCS;
                         if (momentCS == null) return;
@@ -670,35 +683,35 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             ref var shadowRequest = ref requestStorageUnsafe.ElementAt(shadowRequestHandle.storageIndexForShadowRequest);
                             // Let's bind the resources of this
-                            ctx.cmd.SetComputeTextureParam(momentCS, computeMomentKernel, HDShaderIDs._ShadowmapAtlas, atlas);
-                            ctx.cmd.SetComputeTextureParam(momentCS, computeMomentKernel, HDShaderIDs._MomentShadowAtlas, atlasMoment);
-                            ctx.cmd.SetComputeVectorParam(momentCS, HDShaderIDs._MomentShadowmapSlotST, new Vector4(shadowRequest.dynamicAtlasViewport.width, shadowRequest.dynamicAtlasViewport.height, shadowRequest.dynamicAtlasViewport.min.x, shadowRequest.dynamicAtlasViewport.min.y));
+                            natCmd.SetComputeTextureParam(momentCS, computeMomentKernel, HDShaderIDs._ShadowmapAtlas, atlas);
+                            natCmd.SetComputeTextureParam(momentCS, computeMomentKernel, HDShaderIDs._MomentShadowAtlas, atlasMoment);
+                            natCmd.SetComputeVectorParam(momentCS, HDShaderIDs._MomentShadowmapSlotST, new Vector4(shadowRequest.dynamicAtlasViewport.width, shadowRequest.dynamicAtlasViewport.height, shadowRequest.dynamicAtlasViewport.min.x, shadowRequest.dynamicAtlasViewport.min.y));
 
                             // First of all we need to compute the moments
                             int numTilesX = Math.Max((int)shadowRequest.dynamicAtlasViewport.width / 8, 1);
                             int numTilesY = Math.Max((int)shadowRequest.dynamicAtlasViewport.height / 8, 1);
-                            ctx.cmd.DispatchCompute(momentCS, computeMomentKernel, numTilesX, numTilesY, 1);
+                            natCmd.DispatchCompute(momentCS, computeMomentKernel, numTilesX, numTilesY, 1);
 
                             // Do the horizontal pass of the summed area table
-                            ctx.cmd.SetComputeTextureParam(momentCS, summedAreaHorizontalKernel, HDShaderIDs._SummedAreaTableInputFloat, atlasMoment);
-                            ctx.cmd.SetComputeTextureParam(momentCS, summedAreaHorizontalKernel, HDShaderIDs._SummedAreaTableOutputInt, intermediateSummedAreaTexture);
-                            ctx.cmd.SetComputeFloatParam(momentCS, HDShaderIDs._IMSKernelSize, shadowRequest.kernelSize);
-                            ctx.cmd.SetComputeVectorParam(momentCS, HDShaderIDs._MomentShadowmapSize, new Vector2((float)atlasMoment.referenceSize.x, (float)atlasMoment.referenceSize.y));
+                            natCmd.SetComputeTextureParam(momentCS, summedAreaHorizontalKernel, HDShaderIDs._SummedAreaTableInputFloat, atlasMoment);
+                            natCmd.SetComputeTextureParam(momentCS, summedAreaHorizontalKernel, HDShaderIDs._SummedAreaTableOutputInt, intermediateSummedAreaTexture);
+                            natCmd.SetComputeFloatParam(momentCS, HDShaderIDs._IMSKernelSize, shadowRequest.kernelSize);
+                            natCmd.SetComputeVectorParam(momentCS, HDShaderIDs._MomentShadowmapSize, new Vector2((float)atlasMoment.referenceSize.x, (float)atlasMoment.referenceSize.y));
 
                             int numLines = Math.Max((int)shadowRequest.dynamicAtlasViewport.width / 64, 1);
-                            ctx.cmd.DispatchCompute(momentCS, summedAreaHorizontalKernel, numLines, 1, 1);
+                            natCmd.DispatchCompute(momentCS, summedAreaHorizontalKernel, numLines, 1, 1);
 
                             // Do the horizontal pass of the summed area table
-                            ctx.cmd.SetComputeTextureParam(momentCS, summedAreaVerticalKernel, HDShaderIDs._SummedAreaTableInputInt, intermediateSummedAreaTexture);
-                            ctx.cmd.SetComputeTextureParam(momentCS, summedAreaVerticalKernel, HDShaderIDs._SummedAreaTableOutputInt, summedAreaTexture);
-                            ctx.cmd.SetComputeVectorParam(momentCS, HDShaderIDs._MomentShadowmapSize, new Vector2((float)atlasMoment.referenceSize.x, (float)atlasMoment.referenceSize.y));
-                            ctx.cmd.SetComputeFloatParam(momentCS, HDShaderIDs._IMSKernelSize, shadowRequest.kernelSize);
+                            natCmd.SetComputeTextureParam(momentCS, summedAreaVerticalKernel, HDShaderIDs._SummedAreaTableInputInt, intermediateSummedAreaTexture);
+                            natCmd.SetComputeTextureParam(momentCS, summedAreaVerticalKernel, HDShaderIDs._SummedAreaTableOutputInt, summedAreaTexture);
+                            natCmd.SetComputeVectorParam(momentCS, HDShaderIDs._MomentShadowmapSize, new Vector2((float)atlasMoment.referenceSize.x, (float)atlasMoment.referenceSize.y));
+                            natCmd.SetComputeFloatParam(momentCS, HDShaderIDs._IMSKernelSize, shadowRequest.kernelSize);
 
                             int numColumns = Math.Max((int)shadowRequest.dynamicAtlasViewport.height / 64, 1);
-                            ctx.cmd.DispatchCompute(momentCS, summedAreaVerticalKernel, numColumns, 1, 1);
+                            natCmd.DispatchCompute(momentCS, summedAreaVerticalKernel, numColumns, 1, 1);
 
                             // Push the global texture
-                            ctx.cmd.SetGlobalTexture(HDShaderIDs._SummedAreaTableInputInt, summedAreaTexture);
+                            natCmd.SetGlobalTexture(HDShaderIDs._SummedAreaTableInputInt, summedAreaTexture);
                         }
                     });
 
@@ -726,14 +739,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_ShadowMapOutput;
             }
         }
-        internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
+        internal TextureHandle RenderShadows(RenderGraph renderGraph, ScriptableRenderContext renderContext, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
         {
             if (m_ShadowRequests.Length == 0)
             {
                 return renderGraph.defaultResources.defaultShadowTexture;
             }
 
-            RenderShadowMaps(renderGraph, cullResults, globalCB, frameSettings, shadowPassName);
+            RenderShadowMaps(renderGraph, renderContext, cullResults, globalCB, frameSettings, shadowPassName);
 
             if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
             {

@@ -26,6 +26,21 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Update the GPU data of the constant buffer and bind it globally via a command buffer.
+        /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="data">Input data of the constant buffer.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public static void PushGlobal<CBType>(BaseCommandBuffer cmd, in CBType data, int shaderId) where CBType : struct
+        {
+            var cb = ConstantBufferSingleton<CBType>.instance;
+
+            cb.UpdateData(cmd, data);
+            cb.SetGlobal(cmd, shaderId);
+        }
+
+        /// <summary>
         /// Update the GPU data of the constant buffer and bind it globally.
         /// </summary>
         /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
@@ -56,6 +71,22 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Update the GPU data of the constant buffer and bind it to a compute shader via a command buffer.
+        /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="data">Input data of the constant buffer.</param>
+        /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public static void Push<CBType>(IComputeCommandBuffer cmd, in CBType data, ComputeShader cs, int shaderId) where CBType : struct
+        {
+            var cb = ConstantBufferSingleton<CBType>.instance;
+
+            cb.UpdateData(cmd as BaseCommandBuffer, data);
+            cb.Set(cmd, cs, shaderId);
+        }
+
+        /// <summary>
         /// Update the GPU data of the constant buffer and bind it to a compute shader.
         /// </summary>
         /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
@@ -79,6 +110,22 @@ namespace UnityEngine.Rendering
         /// <param name="mat">Material to which the constant buffer should be bound.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void Push<CBType>(CommandBuffer cmd, in CBType data, Material mat, int shaderId) where CBType : struct
+        {
+            var cb = ConstantBufferSingleton<CBType>.instance;
+
+            cb.UpdateData(cmd, data);
+            cb.Set(mat, shaderId);
+        }
+
+        /// <summary>
+        /// Update the GPU data of the constant buffer and bind it to a material via a command buffer.
+        /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="data">Input data of the constant buffer.</param>
+        /// <param name="mat">Material to which the constant buffer should be bound.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public static void Push<CBType>(BaseCommandBuffer cmd, in CBType data, Material mat, int shaderId) where CBType : struct
         {
             var cb = ConstantBufferSingleton<CBType>.instance;
 
@@ -115,6 +162,19 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Update the GPU data of the constant buffer via a command buffer.
+        /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="data">Input data of the constant buffer.</param>
+        public static void UpdateData<CBType>(BaseCommandBuffer cmd, in CBType data) where CBType : struct
+        {
+            var cb = ConstantBufferSingleton<CBType>.instance;
+
+            cb.UpdateData(cmd, data);
+        }
+
+        /// <summary>
         /// Update the GPU data of the constant buffer.
         /// </summary>
         /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
@@ -133,6 +193,19 @@ namespace UnityEngine.Rendering
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void SetGlobal<CBType>(CommandBuffer cmd, int shaderId) where CBType : struct
+        {
+            var cb = ConstantBufferSingleton<CBType>.instance;
+
+            cb.SetGlobal(cmd, shaderId);
+        }
+
+        /// <summary>
+        /// Bind the constant buffer globally via a command buffer.
+        /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public static void SetGlobal<CBType>(BaseCommandBuffer cmd, int shaderId) where CBType : struct
         {
             var cb = ConstantBufferSingleton<CBType>.instance;
 
@@ -159,6 +232,20 @@ namespace UnityEngine.Rendering
         /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public static void Set<CBType>(CommandBuffer cmd, ComputeShader cs, int shaderId) where CBType : struct
+        {
+            var cb = ConstantBufferSingleton<CBType>.instance;
+
+            cb.Set(cmd, cs, shaderId);
+        }
+
+        /// <summary>
+        /// Bind the constant buffer to a compute shader via a command buffer.
+        /// </summary>
+        /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public static void Set<CBType>(IComputeCommandBuffer cmd, ComputeShader cs, int shaderId) where CBType : struct
         {
             var cb = ConstantBufferSingleton<CBType>.instance;
 
@@ -259,6 +346,16 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Update the GPU data of the constant buffer via a command buffer.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="data">Input data of the constant buffer.</param>
+        public void UpdateData(BaseCommandBuffer cmd, in CBType data)
+        {
+            UpdateData(cmd.m_WrappedCommandBuffer, data);
+        }
+
+        /// <summary>
         /// Update the GPU data of the constant buffer.
         /// </summary>
         /// <param name="data">Input data of the constant buffer.</param>
@@ -280,6 +377,16 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Bind the constant buffer globally via a command buffer.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public void SetGlobal(BaseCommandBuffer cmd, int shaderId)
+        {
+            SetGlobal(cmd.m_WrappedCommandBuffer, shaderId);
+        }
+
+        /// <summary>
         /// Bind the constant buffer globally.
         /// </summary>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
@@ -296,6 +403,17 @@ namespace UnityEngine.Rendering
         /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public void Set(CommandBuffer cmd, ComputeShader cs, int shaderId)
+        {
+            cmd.SetComputeConstantBufferParam(cs, shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
+        }
+
+        /// <summary>
+        /// Bind the constant buffer to a compute shader via a command buffer.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="cs">Compute shader to which the constant buffer should be bound.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public void Set(IComputeCommandBuffer cmd, ComputeShader cs, int shaderId)
         {
             cmd.SetComputeConstantBufferParam(cs, shaderId, m_GPUConstantBuffer, 0, m_GPUConstantBuffer.stride);
         }
@@ -340,6 +458,18 @@ namespace UnityEngine.Rendering
         /// <param name="data">Input data of the constant buffer.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
         public void PushGlobal(CommandBuffer cmd, in CBType data, int shaderId)
+        {
+            UpdateData(cmd, data);
+            SetGlobal(cmd, shaderId);
+        }
+
+        /// <summary>
+        /// Update the GPU data of the constant buffer and bind it globally via a command buffer.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
+        /// <param name="data">Input data of the constant buffer.</param>
+        /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        public void PushGlobal(BaseCommandBuffer cmd, in CBType data, int shaderId)
         {
             UpdateData(cmd, data);
             SetGlobal(cmd, shaderId);

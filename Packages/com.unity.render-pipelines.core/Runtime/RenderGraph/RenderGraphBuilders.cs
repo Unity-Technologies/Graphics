@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
+using static UnityEngine.Rendering.RenderGraphModule.RenderGraph;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -395,60 +396,37 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public void SetRenderAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice)
         {
             CheckUseFragment(tex, false);
-            ResourceHandle result = UseResource(tex.handle, flags);
-            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
-            // it doesn't really matter as it's really the Read/Write lists that determine that
-            // This is just to keep track of the handle->mrt index mapping
-            var th = new TextureHandle();
-            th.handle = result;
-            m_RenderPass.SetColorBufferRaw(th, index, flags, mipLevel, depthSlice);
+            var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, flags));
+            m_RenderPass.SetColorBufferRaw(versionedTextureHandle, index, flags, mipLevel, depthSlice);
         }
 
         public void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice)
         {
+            CheckFrameBufferFetchEmulationIsSupported(tex);
+
             CheckUseFragment(tex, false);
-            ResourceHandle result = UseResource(tex.handle, flags);
-            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
-            // it doesn't really matter as it's really the Read/Write lists that determine that
-            // This is just to keep track of the handle->mrt index mapping
-            var th = new TextureHandle();
-            th.handle = result;
-            m_RenderPass.SetFragmentInputRaw(th, index, flags, mipLevel, depthSlice);
+            var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, flags));
+            m_RenderPass.SetFragmentInputRaw(versionedTextureHandle, index, flags, mipLevel, depthSlice);
         }
 
         public void SetRenderAttachmentDepth(TextureHandle tex, AccessFlags flags, int mipLevel, int depthSlice)
         {
             CheckUseFragment(tex, true);
-            ResourceHandle result = UseResource(tex.handle, flags);
-            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
-            // it doesn't really matter as it's really the Read/Write lists that determine that
-            // This is just to keep track to bind this handle as a depth texture.
-            var th = new TextureHandle();
-            th.handle = result;
-            m_RenderPass.SetDepthBufferRaw(th, flags, mipLevel, depthSlice);
+            var versionedTextureHandle = new TextureHandle(UseResource(tex.handle, flags));
+            m_RenderPass.SetDepthBufferRaw(versionedTextureHandle, flags, mipLevel, depthSlice);
         }
 
         public TextureHandle SetRandomAccessAttachment(TextureHandle input, int index, AccessFlags flags = AccessFlags.Read)
         {
             CheckNotUseFragment(input);
             ResourceHandle result = UseResource(input.handle, flags);
-
-            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
-            // it doesn't really matter as it's really the Read/Write lists that determine that
-            // This is just to keep track of the resources to bind before execution
-            var th = new TextureHandle();
-            th.handle = result;
-            m_RenderPass.SetRandomWriteResourceRaw(th.handle, index, false, flags);
+            m_RenderPass.SetRandomWriteResourceRaw(result, index, false, flags);
             return input;
         }
 
         public BufferHandle UseBufferRandomAccess(BufferHandle input, int index, AccessFlags flags = AccessFlags.Read)
         {
             var h = UseBuffer(input, flags);
-
-            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
-            // it doesn't really matter as it's really the Read/Write lists that determine that
-            // This is just to keep track of the resources to bind before execution
             m_RenderPass.SetRandomWriteResourceRaw(h.handle, index, true, flags);
             return input;
         }
@@ -456,10 +434,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public BufferHandle UseBufferRandomAccess(BufferHandle input, int index, bool preserveCounterValue, AccessFlags flags = AccessFlags.Read)
         {
             var h = UseBuffer(input, flags);
-
-            // Note the version for the attachments is a bit arbitrary so we just use the latest for now
-            // it doesn't really matter as it's really the Read/Write lists that determine that
-            // This is just to keep track of the resources to bind before execution
             m_RenderPass.SetRandomWriteResourceRaw(h.handle, index, preserveCounterValue, flags);
             return input;
         }
@@ -517,6 +491,25 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 else
                 {
                     throw new Exception($"Trying to use an invalid resource (pass {m_RenderPass.name}).");
+                }
+            }
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void CheckFrameBufferFetchEmulationIsSupported(in TextureHandle tex)
+        {
+            if (enableValidityChecks)
+            {
+                if (!Util.RenderGraphUtils.IsFramebufferFetchEmulationSupportedOnCurrentPlatform())
+                {
+                    throw new InvalidOperationException($"This API is not supported on the current platform: {SystemInfo.graphicsDeviceType}");
+                }
+
+                if (!Util.RenderGraphUtils.IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform())
+                {
+                    var sourceInfo = m_RenderGraph.GetRenderTargetInfo(tex);
+                    if (sourceInfo.bindMS)
+                        throw new InvalidOperationException($"This API is not supported with MSAA attachments on the current platform: {SystemInfo.graphicsDeviceType}");
                 }
             }
         }

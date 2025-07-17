@@ -79,12 +79,6 @@ namespace UnityEditor.VFX
         public Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData;
     }
 
-    enum VFXCompilationMode
-    {
-        Edition,
-        Runtime,
-    }
-
     class VFXDependentBuffersData
     {
         public Dictionary<VFXData, int> attributeBuffers = new Dictionary<VFXData, int>();
@@ -121,7 +115,7 @@ namespace UnityEditor.VFX
         private static VFXExpressionObjectValueContainerDesc<T> CreateObjectValueDesc<T>(VFXExpression exp, int expIndex)
         {
             var desc = new VFXExpressionObjectValueContainerDesc<T>();
-            desc.instanceID = exp.Get<int>();
+            desc.entityId = exp.Get<EntityId>();
             return desc;
         }
 
@@ -139,7 +133,7 @@ namespace UnityEditor.VFX
 
         private void SetObjectValueDesc<T>(VFXExpressionValueContainerDesc desc, VFXExpression exp)
         {
-            ((VFXExpressionObjectValueContainerDesc<T>)desc).instanceID = exp.Get<int>();
+            ((VFXExpressionObjectValueContainerDesc<T>)desc).entityId = exp.Get<EntityId>();
         }
 
         public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
@@ -600,10 +594,11 @@ namespace UnityEditor.VFX
                     var preProcessTask = new VFXEditorTaskDesc
                     {
                         type = UnityEngine.VFX.VFXTaskType.EvaluateExpressionsSpawner,
-                        buffers = new VFXMapping[0],
+                        buffers = Array.Empty<VFXMapping>(),
                         values = mappingPreProcess,
                         parameters = taskData.parameters,
-                        externalProcessor = null
+                        processor = null,
+                        shaderSourceIndex = -1
                     };
                     taskDescList.Add(preProcessTask);
                 }
@@ -615,10 +610,11 @@ namespace UnityEditor.VFX
                 taskDescList.Add(new VFXEditorTaskDesc
                 {
                     type = (UnityEngine.VFX.VFXTaskType)spawnerBlock.spawnerType,
-                    buffers = new VFXMapping[0],
+                    buffers = Array.Empty<VFXMapping>(),
                     values = GetSortedUniformValues(mappingList),
                     parameters = taskData.parameters,
-                    externalProcessor = processor
+                    processor = processor,
+                    shaderSourceIndex = -1
                 });
                 index++;
             }
@@ -1072,15 +1068,6 @@ namespace UnityEditor.VFX
                     yield return index;
         }
 
-        private void CleanRuntimeData()
-        {
-            if (m_Graph.visualEffectResource != null)
-                m_Graph.visualEffectResource.ClearRuntimeData();
-
-            m_ExpressionGraph = new VFXExpressionGraph();
-            m_ExpressionValues = new VFXExpressionValueContainerDesc[] { };
-        }
-
         private static IEnumerable<(VFXSlot slot, VFXData data)> ComputeEventListFromSlot(IEnumerable<VFXSlot> slots)
         {
             foreach (var slot in slots)
@@ -1101,14 +1088,46 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void Compile(VFXCompilationMode compilationMode, bool forceShaderValidation, bool enableShaderDebugSymbols, VFXAnalytics analytics)
+        public struct VFXCompileOutput
         {
-            // Early out in case: (Not even displaying the popup)
-            if (m_Graph.children.Count() < 1 ||         // Graph is empty
-                VFXLibrary.currentSRPBinder == null)    // One of supported SRPs is not current SRP
+            public bool success;
+
+            public HashSet<string> sourceDependencies;
+
+            public VFXExpressionSheet sheet;
+            public VFXEditorSystemDesc[] systemDesc;
+            public VFXEventDesc[] eventDesc;
+            public VFXGPUBufferDesc[] gpuBufferDesc;
+            public VFXCPUBufferDesc[] cpuBufferDesc;
+            public VFXTemporaryGPUBufferDesc[] temporaryBufferDesc;
+            public VFXShaderSourceDesc[] shaderSourceDesc;
+            public VFXRendererSettings rendererSettings;
+            public VFXInstancingDisabledReason instancingDisabledReason;
+
+            public uint version;
+        }
+
+        public VFXCompileOutput Compile(VFXCompilationMode compilationMode, bool enableShaderDebugSymbols, VFXAnalytics analytics)
+        {
+            var output = new VFXCompileOutput()
             {
-                CleanRuntimeData();
-                return;
+                sourceDependencies = new HashSet<string>()
+            };
+
+            // Early out in case: (Not even displaying the popup)
+            if (VFXLibrary.currentSRPBinder == null)  // One of supported SRPs is not current SRP
+            {
+                output.success = false;
+                return output;
+            }
+
+            //Graph is empty
+            if (m_Graph.children.Count() == 0)
+            {
+                output.success = true;
+                output.version = compiledVersion;
+                output.systemDesc = Array.Empty<VFXEditorSystemDesc>();
+                return output;
             }
 
             Profiler.BeginSample("VFXEditor.CompileAsset");
@@ -1124,10 +1143,9 @@ namespace UnityEditor.VFX
                 var resource = m_Graph.GetResource();
                 resource.ClearSourceDependencies();
 
-                HashSet<string> sourceDependencies = new HashSet<string>();
                 foreach (VFXModel model in models.Where(t => t is IVFXSlotContainer))
                 {
-                    model.GetSourceDependentAssets(sourceDependencies);
+                    model.GetSourceDependentAssets(output.sourceDependencies);
                 }
 
                 var contexts = models.OfType<VFXContext>().ToArray();
@@ -1239,7 +1257,7 @@ namespace UnityEditor.VFX
                             particleData.GenerateSystemUniformMapper(m_ExpressionGraph, compiledData, ref gpuMappers);
                 }
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 8 / nbSteps);
-                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, compiledData, compilationMode, sourceDependencies, enableShaderDebugSymbols, gpuMappers);
+                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, compiledData, compilationMode, output.sourceDependencies, enableShaderDebugSymbols, gpuMappers);
 
                 m_Graph.systemNames.Sync(m_Graph);
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Saving shaders", 9 / nbSteps);
@@ -1331,19 +1349,27 @@ namespace UnityEditor.VFX
 
                 VFXInstancingDisabledReason instancingDisabledReason = ValidateInstancing(compilableContexts);
 
-                resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), vfxEventDesc, bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode, instancingDisabledReason, compiledVersion);
+                output.success = true;
+
+                output.sheet = expressionSheet;
+                output.systemDesc = systemDescs.ToArray();
+                output.eventDesc = vfxEventDesc;
+                output.gpuBufferDesc = bufferDescs.ToArray();
+                output.cpuBufferDesc = cpuBufferDescs.ToArray();
+                output.temporaryBufferDesc = temporaryBufferDescs.ToArray();
+                output.shaderSourceDesc = shaderSources;
+                output.rendererSettings = new() { shadowCastingMode = shadowCastingMode, motionVectorGenerationMode = motionVectorGenerationMode };
+                output.instancingDisabledReason = instancingDisabledReason;
+                output.version = compiledVersion;
+
                 m_ExpressionValues = expressionSheet.values;
-
-                foreach (var dep in sourceDependencies)
-                    resource.AddSourceDependency(dep);
-
-                m_Graph.visualEffectResource.compileInitialVariants = forceShaderValidation;
             }
             catch (Exception e)
             {
                 Debug.LogError($"Unity cannot compile the VisualEffectAsset at path \"{assetPath}\" because of the following exception:\n{e}");
                 analytics?.OnCompilationError(e);
-                CleanRuntimeData();
+                output.success = false;
+                return output;
             }
             finally
             {
@@ -1352,6 +1378,7 @@ namespace UnityEditor.VFX
             }
 
             m_Graph.onRuntimeDataChanged?.Invoke(m_Graph);
+            return output;
         }
 
         public void UpdateValues()
@@ -1400,7 +1427,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            m_Graph.visualEffectResource.SetValueSheet(m_ExpressionValues);
+            VisualEffectAssetUtility.SetValueSheet(m_Graph.visualEffectResource.asset, m_ExpressionValues);
         }
 
         public VFXInstancingDisabledReason ValidateInstancing(IEnumerable<VFXContext> compilableContexts)

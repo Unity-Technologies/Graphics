@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void EvaluateVolumetricCLoudMap(CommandBuffer cmd, CloudMapGenerationParameters parameters, RTHandle outputCloudMap)
+        static void EvaluateVolumetricCloudMap(CommandBuffer cmd, CloudMapGenerationParameters parameters, RTHandle outputCloudMap)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricCloudMapGeneration)))
             {
@@ -158,17 +158,17 @@ namespace UnityEngine.Rendering.HighDefinition
             // Make sure the cloud map is at the right size
             AdjustCloudMapTextureSize(in settings);
 
-            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsMapData>("Volumetric cloud map generation", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudMapGeneration)))
+            using (var builder = renderGraph.AddUnsafePass<VolumetricCloudsMapData>("Volumetric cloud map generation", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricCloudMapGeneration)))
             {
-                builder.EnableAsyncCompute(false);
+                builder.AllowPassCulling(false);
 
                 passData.parameters = PrepareCloudMapGenerationParameters(in settings);
                 passData.cloudMapTexture = renderGraph.ImportTexture(m_AdvancedCloudMap);
 
                 builder.SetRenderFunc(
-                    (VolumetricCloudsMapData data, RenderGraphContext ctx) =>
+                    (VolumetricCloudsMapData data, UnsafeGraphContext ctx) =>
                     {
-                        EvaluateVolumetricCLoudMap(ctx.cmd, data.parameters, data.cloudMapTexture);
+                        EvaluateVolumetricCloudMap(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd), data.parameters, data.cloudMapTexture);
                     });
             }
         }

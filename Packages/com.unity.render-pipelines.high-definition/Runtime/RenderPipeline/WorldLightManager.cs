@@ -380,7 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         // let's compute the oobb of the light influence volume first
-                        Vector3 oobbDimensions = new Vector3(hdLight.shapeWidth + 2 * lightRange, hdLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
+                        Vector3 oobbDimensions = new Vector3(hdLight.legacyLight.areaSize.x + 2 * lightRange, hdLight.legacyLight.areaSize.y + 2 * lightRange, lightRange); // One-sided
                         Vector3 extents = 0.5f * oobbDimensions;
                         Vector3 oobbCenter = lightPositionRWS;
 
@@ -566,6 +566,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     localToWorldMatrix.SetColumn(0, lightComponent.transform.right);
                     visibleLight.localToWorldMatrix = localToWorldMatrix;
                     visibleLight.spotAngle = lightComponent.spotAngle;
+                    visibleLight.innerSpotAngle = lightComponent.innerSpotAngle;
+                    visibleLight.areaSize = lightComponent.areaSize;
 
                     int shadowIndex = additionalLightData.shadowIndex;
 

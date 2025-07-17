@@ -49,6 +49,7 @@ public class HistoryVisualizer : ScriptableRendererFeature
             }
         }
 
+#if URP_COMPATIBILITY_MODE
         // For the Execute path only.
         [Obsolete("This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.", false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -68,6 +69,7 @@ public class HistoryVisualizer : ScriptableRendererFeature
 
             CommandBufferPool.Release(cmd);
         }
+#endif
 
         RTHandle GetHistorySourceTexture(UniversalCameraHistory historyManager, int multipassId)
         {
@@ -93,6 +95,7 @@ public class HistoryVisualizer : ScriptableRendererFeature
             return historyTexture;
         }
 
+#if URP_COMPATIBILITY_MODE
         void ExecutePass(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_Material == null)
@@ -125,6 +128,7 @@ public class HistoryVisualizer : ScriptableRendererFeature
             cmd.DrawProcedural(Matrix4x4.identity, m_Material, 0, MeshTopology.Triangles, 3, 1);
             cmd.SetViewport(cam.pixelRect);
         }
+#endif
 
         // Cleanup any allocated resources that were created during the execution of this render pass.
         public override void OnCameraCleanup(CommandBuffer cmd)

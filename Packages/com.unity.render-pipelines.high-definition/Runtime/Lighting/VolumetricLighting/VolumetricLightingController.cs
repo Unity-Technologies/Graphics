@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Obsolete()]
+    [Obsolete("#from(2021.2)")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     class VolumetricLightingController : VolumeComponent
     {

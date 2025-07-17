@@ -48,6 +48,7 @@ namespace UnityEngine.VFX.Test
         private static readonly string[] kRuntimeScene = new[] { "GPUEvent" };
 
         [UnityTest]
+        [Timeout(360000)]
         public IEnumerator Runtime([ValueSource(nameof(kRuntimeScene))] string scene)
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene($"Packages/com.unity.testing.visualeffectgraph/Scenes/StressTestRuntime_{scene}.unity");

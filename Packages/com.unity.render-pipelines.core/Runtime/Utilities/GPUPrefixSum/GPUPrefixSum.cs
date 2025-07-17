@@ -79,6 +79,22 @@ namespace UnityEngine.Rendering
         /// <param name="cmdBuffer">Command Buffer for recording the prefix sum commands.</param>
         /// <param name="arguments">Runtime arguments for the prefix sum.</param>
         /// <exception cref="Exception">When the input data is invalid.</exception>
+        public void DispatchDirect(IComputeCommandBuffer cmdBuffer, in DirectArgs arguments)
+        {
+            if (cmdBuffer is BaseCommandBuffer baseBuffer)
+                DispatchDirect(baseBuffer.m_WrappedCommandBuffer, arguments);
+#if UNITY_EDITOR
+            else
+                throw new ArgumentException("Command buffer must inherit from BaseCommandBuffer.");
+#endif
+        }
+
+        /// <summary>
+        /// Prefix sum a list of data from a CPU-defined count.
+        /// </summary>
+        /// <param name="cmdBuffer">Command Buffer for recording the prefix sum commands.</param>
+        /// <param name="arguments">Runtime arguments for the prefix sum.</param>
+        /// <exception cref="Exception">When the input data is invalid.</exception>
         public void DispatchDirect(CommandBuffer cmdBuffer, in DirectArgs arguments)
         {
             if (arguments.supportResources.prefixBuffer0 == null || arguments.supportResources.prefixBuffer1 == null)
@@ -99,6 +115,22 @@ namespace UnityEngine.Rendering
             cmdBuffer.DispatchCompute(resources.computeAsset, resources.kernelCalculateLevelDispatchArgsFromConst, 1, 1, 1);
 
             ExecuteCommonIndirect(cmdBuffer, arguments.input, arguments.supportResources, arguments.exclusive);
+        }
+
+        /// <summary>
+        /// Prefix sum a list of data from a GPU-defined count.
+        /// </summary>
+        /// <param name="cmdBuffer">Command Buffer for recording the prefix sum commands.</param>
+        /// <param name="arguments">Runtime arguments for the prefix sum.</param>
+        /// <exception cref="Exception">When the input data is invalid.</exception>
+        public void DispatchIndirect(IComputeCommandBuffer cmdBuffer, in IndirectDirectArgs arguments)
+        {
+            if (cmdBuffer is BaseCommandBuffer baseBuffer)
+                DispatchIndirect(baseBuffer.m_WrappedCommandBuffer, arguments);
+#if UNITY_EDITOR
+            else
+                throw new ArgumentException("Command buffer must inherit from BaseCommandBuffer.");
+#endif
         }
 
         /// <summary>

@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!ShouldRenderWater(hdCamera))
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<WaterRenderingMaskData>("Render Water Surface Mask Debug", out var passData, ProfilingSampler.Get(HDProfileId.WaterMaskDebug)))
+            using (var builder = renderGraph.AddUnsafePass<WaterRenderingMaskData>("Render Water Surface Mask Debug", out var passData, ProfilingSampler.Get(HDProfileId.WaterMaskDebug)))
             {
                 WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
                 PrepareWaterRenderingData(passData, hdCamera);
@@ -60,19 +60,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Output buffers
-                builder.UseColorBuffer(colorBuffer, 0);
-                builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                builder.SetRenderAttachment(colorBuffer, 0);
+                builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
 
                 // Request the output textures
                 builder.SetRenderFunc(
-                    (WaterRenderingMaskData data, RenderGraphContext ctx) =>
+                    (WaterRenderingMaskData data, UnsafeGraphContext ctx) =>
                     {
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._WaterSectorData, data.sectorDataBuffer);
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._WaterPatchData, data.patchDataBuffer);
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._FrustumGPUBuffer, data.frustumBuffer);
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+                        natCmd.SetGlobalTexture(HDShaderIDs._WaterSectorData, data.sectorDataBuffer);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._WaterPatchData, data.patchDataBuffer);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._FrustumGPUBuffer, data.frustumBuffer);
 
                         // Normally we should bind this into the material property block, but on metal there seems to be an issue. This fixes it.
-                        ctx.cmd.SetGlobalFloat(HDShaderIDs._CullWaterMask, (int)CullMode.Off);
+                        natCmd.SetGlobalFloat(HDShaderIDs._CullWaterMask, (int)CullMode.Off);
 
                         for (int surfaceIdx = 0; surfaceIdx < data.numSurfaces; ++surfaceIdx)
                         {
@@ -80,12 +81,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (surfaceData.renderDebug)
                             {
-                                ctx.cmd.SetBufferData(data.perCameraCB, data.sharedPerCameraDataArray, surfaceData.surfaceIndex, 0, 1);
-                                ConstantBuffer.Push(ctx.cmd, data.waterDebugCBs[surfaceIdx], surfaceData.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
-
-                                SetupWaterShaderKeyword(ctx.cmd, data.decalWorkflow, surfaceData.numActiveBands, surfaceData.activeCurrent);
-                                DrawWaterSurface(ctx.cmd, k_PassesWaterDebug, data, ref surfaceData);
-                                ResetWaterShaderKeyword(ctx.cmd);
+                                natCmd.SetBufferData(data.perCameraCB, data.sharedPerCameraDataArray, surfaceData.surfaceIndex, 0, 1);
+                                ConstantBuffer.Push(natCmd, data.waterDebugCBs[surfaceIdx], surfaceData.waterMaterial, HDShaderIDs._ShaderVariablesWaterDebug);
+                                SetupWaterShaderKeyword(natCmd, data.decalWorkflow, surfaceData.numActiveBands, surfaceData.activeCurrent);
+                                DrawWaterSurface(natCmd, k_PassesWaterDebug, data, ref surfaceData);
+                                ResetWaterShaderKeyword(natCmd);
                             }
 
                         }

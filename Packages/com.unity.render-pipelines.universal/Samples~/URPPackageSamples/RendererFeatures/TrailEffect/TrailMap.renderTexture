@@ -16,12 +16,13 @@ RenderTexture:
   m_Height: 512
   m_AntiAliasing: 1
   m_MipCount: -1
-  m_DepthStencilFormat: 0
+  m_DepthStencilFormat: 90
   m_ColorFormat: 4
   m_MipMap: 0
   m_GenerateMips: 1
   m_SRGB: 1
   m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
   m_BindMS: 0
   m_EnableCompatibleFormat: 0
   m_EnableRandomWrite: 0

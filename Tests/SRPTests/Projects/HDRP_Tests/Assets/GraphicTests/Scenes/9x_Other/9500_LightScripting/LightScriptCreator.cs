@@ -41,7 +41,8 @@ public class LightScriptCreator : MonoBehaviour
             float intensityInLumens = 50.0f;
             light.intensity = LightUnitUtils.LumenToCandela(intensityInLumens, LightUnitUtils.SphereSolidAngle);
             hdLight.SetRange(1.01f);
-            hdLight.SetSpotAngle(60);
+            light.spotAngle = 60f;
+            light.areaSize = new Vector2(0.5f, 0.5f);
 
             switch (position.y)
             {
@@ -51,9 +52,11 @@ public class LightScriptCreator : MonoBehaviour
                     break;
                 case 1: // Spot Pyramid
                     light.type = LightType.Pyramid;
+                    light.innerSpotAngle = light.spotAngle;
                     break;
                 case 2: // Spot Cone
                     light.type = LightType.Spot;
+                    light.innerSpotAngle = 0f;
                     break;
                 case 3: // Point
                     light.type = LightType.Point;
@@ -64,7 +67,7 @@ public class LightScriptCreator : MonoBehaviour
                     break;
                 case 5: // Rectangle
                     light.type = LightType.Rectangle;
-                    light.intensity = LightUnitUtils.ConvertIntensity(light, intensityInLumens, LightUnit.Lumen, LightUnit.Nits);
+                    light.intensity = LightUnitUtils.ConvertIntensity(light, intensityInLumens, LightUnit.Lumen, LightUnit.Nits) * 0.25f;
                     intensityInLumens /= 4;
                     break;
                 case 6: // Tube
@@ -95,14 +98,20 @@ public class LightScriptCreator : MonoBehaviour
                     break;
                 case 6: // Spot: Outer Angle / Inner Angle | Area Light: Set size | Box Spot: size
                     if (light.type == LightType.Box)
-                        hdLight.SetBoxSpotSize(new Vector2(0.1f, 0.6f));
+                        light.areaSize = new Vector2(0.1f, 0.6f);
                     else if (light.type == LightType.Pyramid)
-                        hdLight.aspectRatio = 2;
+                    {
+                        const float aspectRatio = 2;
+                        light.innerSpotAngle = 360f / Mathf.PI * Mathf.Atan(aspectRatio * Mathf.Tan(light.spotAngle * Mathf.PI / 360f));
+                    }
                     else if (light.type == LightType.Spot)
-                        hdLight.SetSpotAngle(30, Random.Range(20, 90));
+                    {
+                        light.spotAngle = 30;
+                        light.innerSpotAngle = Random.Range(20, 90) * light.spotAngle / 100f;
+                    }
                     else if (light.type.IsArea())
                     {
-                        hdLight.SetAreaLightSize(new Vector2(0.1f, 1.5f));
+                        light.areaSize = new Vector2(0.1f, 1.5f);
                         light.intensity = LightUnitUtils.ConvertIntensity(light, intensityInLumens, LightUnit.Lumen, LightUnit.Nits);
                     }
                     break;

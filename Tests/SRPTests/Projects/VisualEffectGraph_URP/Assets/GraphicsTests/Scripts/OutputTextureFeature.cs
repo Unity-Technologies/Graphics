@@ -66,6 +66,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             ConfigureInput(inputRequirement);
         }
 
+#if URP_COMPATIBILITY_MODE
         // Here you can implement the rendering logic.
         // Use <c>ScriptableRenderContext</c> to issue drawing commands or execute command buffers
         // https://docs.unity3d.com/ScriptReference/Rendering.ScriptableRenderContext.html
@@ -88,6 +89,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+#endif
 
         internal class PassData
         {

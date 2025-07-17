@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
 {
     class VFXTexture2DValue : VFXObjectValue
     {
-        public VFXTexture2DValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.Texture2D)
+        public VFXTexture2DValue(EntityId entityId = default, Mode mode = Mode.FoldableVariable) : base(entityId, mode, VFXValueType.Texture2D)
         {
         }
 
@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
 
     class VFXTexture3DValue : VFXObjectValue
     {
-        public VFXTexture3DValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.Texture3D)
+        public VFXTexture3DValue(EntityId entityId = default, Mode mode = Mode.FoldableVariable) : base(entityId, mode, VFXValueType.Texture3D)
         {
         }
 
@@ -35,7 +35,7 @@ namespace UnityEditor.VFX
 
     class VFXTextureCubeValue : VFXObjectValue
     {
-        public VFXTextureCubeValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.TextureCube)
+        public VFXTextureCubeValue(EntityId entityId = default, Mode mode = Mode.FoldableVariable) : base(entityId, mode, VFXValueType.TextureCube)
         {
         }
 
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
 
     class VFXTexture2DArrayValue : VFXObjectValue
     {
-        public VFXTexture2DArrayValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.Texture2DArray)
+        public VFXTexture2DArrayValue(EntityId entityId = default, Mode mode = Mode.FoldableVariable) : base(entityId, mode, VFXValueType.Texture2DArray)
         {
         }
 
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
 
     class VFXTextureCubeArrayValue : VFXObjectValue
     {
-        public VFXTextureCubeArrayValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.TextureCubeArray)
+        public VFXTextureCubeArrayValue(EntityId entityId = default, Mode mode = Mode.FoldableVariable) : base(entityId, mode, VFXValueType.TextureCubeArray)
         {
         }
 
@@ -72,9 +72,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXCameraBufferValue : VFXValue<int>
+    class VFXCameraBufferValue : VFXValue<EntityId>
     {
-        public VFXCameraBufferValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
+        public VFXCameraBufferValue(EntityId entityId = default, Mode mode = Mode.FoldableVariable) : base(entityId, mode)
         {
         }
 
@@ -94,8 +94,8 @@ namespace UnityEditor.VFX
 
             object value = cameraBuffer;
 
-            if (typeof(T) == typeof(int))
-                value = (int)cameraBuffer;
+            if (typeof(T) == typeof(EntityId))
+                value = (EntityId)cameraBuffer;
 
             if (typeof(T).IsAssignableFrom(typeof(Texture)))
                 value = (Texture)cameraBuffer;
@@ -110,13 +110,13 @@ namespace UnityEditor.VFX
 
         public override void SetContent(object value)
         {
-            m_Content = (int)(CameraBuffer)value;
+            m_Content = (EntityId)(CameraBuffer)value;
         }
     }
 
     class VFXMeshValue : VFXObjectValue
     {
-        public VFXMeshValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.Mesh)
+        public VFXMeshValue(EntityId entityId = default, Mode mode = Mode.FoldableVariable) : base(entityId, mode, VFXValueType.Mesh)
         {
         }
 
@@ -129,7 +129,7 @@ namespace UnityEditor.VFX
 
     class VFXSkinnedMeshRendererValue : VFXObjectValue
     {
-        public VFXSkinnedMeshRendererValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.SkinnedMeshRenderer)
+        public VFXSkinnedMeshRendererValue(EntityId entityId = default, Mode mode = Mode.FoldableVariable) : base(entityId, mode, VFXValueType.SkinnedMeshRenderer)
         {
         }
 
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
 
     class VFXGraphicsBufferValue : VFXObjectValue
     {
-        public VFXGraphicsBufferValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode, VFXValueType.Buffer)
+        public VFXGraphicsBufferValue(EntityId entityId = default, Mode mode = Mode.FoldableVariable) : base(entityId, mode, VFXValueType.Buffer)
         {
         }
         public sealed override VFXValue CopyExpression(Mode mode)

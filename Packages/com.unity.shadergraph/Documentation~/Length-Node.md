@@ -6,11 +6,11 @@ Returns the length of input **In**. This is also known as magnitude. A vector's 
 
 The length of a **Vector 2** can be calculated as:
 
-![](images/LengthNodePage02.png)
+![The square root of x squared plus y squared.](images/LengthNodePage02.png)
 
 Where *x* and *y* are the components of the input vector. Length can be calculated for other dimension vectors by adding or removing components.
 
-![](images/LengthNodePage03.png)
+![The square root of (x squared plus y squared plus z squared).](images/LengthNodePage03.png)
 
 And so on.
 

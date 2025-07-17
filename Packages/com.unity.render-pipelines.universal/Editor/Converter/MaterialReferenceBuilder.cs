@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal
             MaterialReferenceLookup = GetMaterialReferenceLookup();
         }
 
-        private static Dictionary<Type, List<MethodInfo>> GetMaterialReferenceLookup()
+        internal static Dictionary<Type, List<MethodInfo>> GetMaterialReferenceLookup()
         {
             var result = new Dictionary<Type, List<MethodInfo>>();
 

@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void SynchronizeAllLayers(Material material)
         {
             int layerCount = (int)material.GetFloat(kLayerCount);
-            AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
+            AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetEntityId()));
 
             Material[] layers = null;
             bool[] withUV = null;
@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // so we can keep reference during serialization
         public static void InitializeMaterialLayers(Material material, ref Material[] layers, ref bool[] withUV)
         {
-            AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
+            AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetEntityId()));
             InitializeMaterialLayers(materialImporter, ref layers, ref withUV);
         }
 
@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void SaveMaterialLayers(Material material, Material[] materialLayers, bool[] withUV)
         {
-            AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
+            AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetEntityId()));
 
             SerializeableGUIDs layersGUID;
             // We should guarantee that the size of the layers is equal to kMaxLayerCount as it is initialized before.
@@ -176,7 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition
             for (int i = 0; i < materialLayers.Length; ++i)
             {
                 if (materialLayers[i] != null)
-                    layersGUID.GUIDArray[i] = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(materialLayers[i].GetInstanceID()));
+                    layersGUID.GUIDArray[i] = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(materialLayers[i].GetEntityId()));
                 layersGUID.withUV[i] = withUV[i];
             }
 

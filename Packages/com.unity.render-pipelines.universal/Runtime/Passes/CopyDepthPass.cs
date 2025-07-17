@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// does not have MSAA enabled, the pass uses a Blit or a Copy Texture
     /// operation, depending on what the current platform supports.
     /// </summary>
-    public class CopyDepthPass : ScriptableRenderPass
+    public partial class CopyDepthPass : ScriptableRenderPass
     {
         // TODO RENDERGRAPH: The Render method overwrites this property with -1 before doing anything else. It should only be used in Compatibility Mode!
         internal int MsaaSamples { get; set; }
@@ -96,7 +96,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             // Disable obsolete warning for internal usage
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cameraData = renderingData.frameData.Get<UniversalCameraData>();
@@ -231,10 +231,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
         
-#if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
+#if URP_COMPATIBILITY_MODE
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
@@ -242,8 +242,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             #pragma warning disable CS0618
             destination = k_CameraTarget;
             #pragma warning restore CS0618
-        }
 #endif
+        }
 
         /// <summary>
         /// Sets up the Copy Depth pass for RenderGraph execution

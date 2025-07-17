@@ -797,7 +797,7 @@ namespace UnityEditor.Rendering
         /// <param name="advancedContent"> The content of the foldout header only visible if advanced mode is active and if foldout is expended. </param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
-        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead.")]
+        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead. #from(2021.2)")]
         public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isAdvanced, SwitchEnabler switchAdvanced, IDrawer normalContent, IDrawer advancedContent, FoldoutOption options = FoldoutOption.Indent) where TEnum : struct, IConvertible
         {
             return AdvancedFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isAdvanced, switchAdvanced, normalContent.Draw, advancedContent.Draw, options);
@@ -815,7 +815,7 @@ namespace UnityEditor.Rendering
         /// <param name="advancedContent"> The content of the foldout header only visible if advanced mode is active and if foldout is expended. </param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
-        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead.")]
+        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead. #from(2021.2)")]
         public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isAdvanced, SwitchEnabler switchAdvanced, ActionDrawer normalContent, IDrawer advancedContent, FoldoutOption options = FoldoutOption.Indent) where TEnum : struct, IConvertible
         {
             return AdvancedFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isAdvanced, switchAdvanced, normalContent, advancedContent.Draw, options);
@@ -833,7 +833,7 @@ namespace UnityEditor.Rendering
         /// <param name="advancedContent"> The content of the foldout header only visible if advanced mode is active and if foldout is expended. </param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
-        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead.")]
+        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead. #from(2021.2)")]
         public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isAdvanced, SwitchEnabler switchAdvanced, IDrawer normalContent, ActionDrawer advancedContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
         {
@@ -852,7 +852,7 @@ namespace UnityEditor.Rendering
         /// <param name="advancedContent"> The content of the foldout header only visible if advanced mode is active and if foldout is expended. </param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
-        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead.")]
+        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead. #from(2021.2)")]
         public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isAdvanced, SwitchEnabler switchAdvanced, ActionDrawer normalContent, ActionDrawer advancedContent, FoldoutOption options = FoldoutOption.Indent) where TEnum : struct, IConvertible
         {
             return FoldoutGroup(foldoutTitle, foldoutMask, foldoutState, options, null, isAdvanced, switchAdvanced, null, normalContent,

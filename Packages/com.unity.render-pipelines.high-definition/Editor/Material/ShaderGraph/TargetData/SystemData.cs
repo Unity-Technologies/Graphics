@@ -98,13 +98,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_ExcludeFromTUAndAA = value;
         }
 
-        [SerializeField, Obsolete("Keep for migration")]
+        [SerializeField, Obsolete("Keep for migration. #from(2021.1)")]
         internal bool m_TransparentDepthPrepass;
 
-        [SerializeField, Obsolete("Keep for migration")]
+        [SerializeField, Obsolete("Keep for migration. #from(2021.1)")]
         internal bool m_TransparentDepthPostpass;
 
-        [SerializeField, Obsolete("Keep for migration")]
+        [SerializeField, Obsolete("Keep for migration. #from(2021.1)")]
         internal bool m_SupportLodCrossFade;
 
         [SerializeField]

@@ -345,13 +345,13 @@ namespace UnityEditor.Rendering.HighDefinition
         );
 
 #pragma warning disable 649 // Field never assigned
-        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardPopupAlreadyShownOnce")]
+        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings. #from(2022.1)"), FormerlySerializedAs("m_WizardPopupAlreadyShownOnce")]
         bool m_ObsoleteWizardPopupAlreadyShownOnce;
-        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardActiveTab")]
+        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings. #from(2022.1)"), FormerlySerializedAs("m_WizardActiveTab")]
         int m_ObsoleteWizardActiveTab;
-        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardNeedRestartAfterChangingToDX12")]
+        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings. #from(2022.1)"), FormerlySerializedAs("m_WizardNeedRestartAfterChangingToDX12")]
         bool m_ObsoleteWizardNeedRestartAfterChangingToDX12;
-        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings"), FormerlySerializedAs("m_WizardNeedToRunFixAllAgainAfterDomainReload")]
+        [SerializeField, Obsolete("Moved from HDProjectSettings to HDUserSettings. #from(2022.1)"), FormerlySerializedAs("m_WizardNeedToRunFixAllAgainAfterDomainReload")]
         bool m_ObsoleteWizardNeedToRunFixAllAgainAfterDomainReload;
 #pragma warning restore 649 // Field never assigned
         #endregion

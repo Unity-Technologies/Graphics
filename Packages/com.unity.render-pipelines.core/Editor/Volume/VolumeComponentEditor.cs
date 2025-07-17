@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering
         /// The copy of the serialized property of the <see cref="VolumeComponent"/> being
         /// inspected. Unity uses this to track whether the editor is collapsed in the Inspector or not.
         /// </summary>
-        [Obsolete("Please use expanded property instead. #from(2022.2)", false)]
+        [Obsolete("Please use expanded property instead. #from(2022.2)")]
         public SerializedProperty baseProperty { get; internal set; }
 
         /// <summary>
@@ -279,13 +279,6 @@ namespace UnityEditor.Rendering
             var supportedOn = volumeComponentType.GetCustomAttribute<VolumeComponentMenuForRenderPipeline>();
             m_LegacyPipelineTypes = supportedOn != null ? supportedOn.pipelineTypes : Array.Empty<Type>();
 #pragma warning restore CS0618
-
-            EditorApplication.contextualPropertyMenu += OnPropertyContextMenu;
-        }
-
-        void OnDestroy()
-        {
-            EditorApplication.contextualPropertyMenu -= OnPropertyContextMenu;
         }
 
         internal void DetermineVisibility(Type renderPipelineAssetType, Type renderPipelineType)
@@ -393,21 +386,11 @@ namespace UnityEditor.Rendering
                 profile != null &&
                 defaultProfile != profile)
             {
+                menu.AddSeparator(string.Empty);
                 menu.AddItem(EditorGUIUtility.TrTextContent($"Show Default Volume Profile"), false,
                     () => Selection.activeObject = defaultProfile);
                 menu.AddItem(EditorGUIUtility.TrTextContent($"Apply Values to Default Volume Profile"), false, copyAction);
             }
-        }
-
-        void OnPropertyContextMenu(GenericMenu menu, SerializedProperty property)
-        {
-            if (property.serializedObject.targetObject != target)
-                return;
-
-            var targetComponent = property.serializedObject.targetObject as VolumeComponent;
-
-            AddDefaultProfileContextMenuEntries(menu, VolumeManager.instance.globalDefaultProfile,
-                () => VolumeProfileUtils.AssignValuesToProfile(VolumeManager.instance.globalDefaultProfile, targetComponent, property));
         }
 
         /// <summary>

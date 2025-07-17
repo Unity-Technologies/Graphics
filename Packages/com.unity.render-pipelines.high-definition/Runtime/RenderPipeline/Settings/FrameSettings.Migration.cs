@@ -3,14 +3,14 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Obsolete("For data migration")]
+    [Obsolete("For data migration. #from(2021.1)")]
     enum ObsoleteLitShaderMode
     {
         Forward,
         Deferred
     }
 
-    [Flags, Obsolete("For data migration")]
+    [Flags, Obsolete("For data migration. #from(2021.1)")]
     enum ObsoleteLightLoopSettingsOverrides
     {
         FptlForForwardOpaque = 1 << 0,
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         //Fptl = 1 << 6, //isFptlEnabled set up by system
     }
 
-    [Flags, Obsolete("For data migration")]
+    [Flags, Obsolete("For data migration. #from(2021.1)")]
     enum ObsoleteFrameSettingsOverrides
     {
         //lighting settings
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumeVoxelizationsAsync = 1 << 31,
     }
 
-    [Serializable, Obsolete("For data migration")]
+    [Serializable, Obsolete("For data migration. #from(2021.1)")]
     class ObsoleteLightLoopSettings
     {
         public ObsoleteLightLoopSettingsOverrides overrides;
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // Each camera must have its own per frame settings
     [Serializable]
     [System.Diagnostics.DebuggerDisplay("FrameSettings overriding {overrides.ToString(\"X\")}")]
-    [Obsolete("For data migration")]
+    [Obsolete("For data migration. #from(2021.1)")]
     class ObsoleteFrameSettings
     {
         public ObsoleteFrameSettingsOverrides overrides;

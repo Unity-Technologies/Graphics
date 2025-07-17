@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="height">The height of the texture.</param>
         /// <param name="bits">The number of depth bits.</param>
         /// <returns>A shadow render texture.</returns>
-        [Obsolete("Use AllocShadowRT or ShadowRTReAllocateIfNeeded", true)]
+        [Obsolete("Use AllocShadowRT or ShadowRTReAllocateIfNeeded. #from(2022.1) #breakingFrom(2023.1)", true)]
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
         {
             var rtd = GetTemporaryShadowTextureDescriptor(width, height, bits);

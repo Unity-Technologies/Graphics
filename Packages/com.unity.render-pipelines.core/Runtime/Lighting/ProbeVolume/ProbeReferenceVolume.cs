@@ -57,49 +57,49 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The shader used to visualize the probes in the debug view.
         /// </summary>
-        [Obsolete("This field is not used anymore.")]
+        [Obsolete("This field is not used anymore. #from(2023.3)")]
         public Shader probeDebugShader;
         /// <summary>
         /// The shader used to visualize the way probes are sampled for a single pixel in the debug view.
         /// </summary>
-        [Obsolete("This field is not used anymore.")]
+        [Obsolete("This field is not used anymore. #from(2023.3)")]
         public Shader probeSamplingDebugShader;
         /// <summary>
         /// The debug texture used to display probe weight in the debug view.
         /// </summary>
-        [Obsolete("This field is not used anymore.")]
+        [Obsolete("This field is not used anymore. #from(2023.3)")]
         public Texture probeSamplingDebugTexture;
         /// <summary>
         /// The debug mesh used to visualize the way probes are sampled for a single pixel in the debug view.
         /// </summary>
-        [Obsolete("This field is not used anymore.")]
+        [Obsolete("This field is not used anymore. #from(2023.3)")]
         public Mesh probeSamplingDebugMesh;
         /// <summary>
         /// The shader used to visualize probes virtual offset in the debug view.
         /// </summary>
-        [Obsolete("This field is not used anymore.")]
+        [Obsolete("This field is not used anymore. #from(2023.3)")]
         public Shader offsetDebugShader;
         /// <summary>
         /// The shader used to visualize APV fragmentation.
         /// </summary>
-        [Obsolete("This field is not used anymore.")]
+        [Obsolete("This field is not used anymore. #from(2023.3)")]
         public Shader fragmentationDebugShader;
         /// <summary>
         /// The compute shader used to interpolate between two lighting scenarios.
         /// Set to null if blending is not supported.
         /// </summary>
-        [Obsolete("This field is not used anymore.")]
+        [Obsolete("This field is not used anymore. #from(2023.3)")]
         public ComputeShader scenarioBlendingShader;
         /// <summary>
         /// The compute shader used to upload streamed data to the GPU.
         /// </summary>
-        [Obsolete("This field is not used anymore.")]
+        [Obsolete("This field is not used anymore. #from(2023.3)")]
         public ComputeShader streamingUploadShader;
 
         /// <summary>
         /// The <see cref="ProbeVolumeSceneData"/>
         /// </summary>
-        [Obsolete("This field is not used anymore.")]
+        [Obsolete("This field is not used anymore. #from(2023.3)")]
         public ProbeVolumeSceneData sceneData;
         /// <summary>True if APV is able to show runtime debug information.</summary>
         [Obsolete("This field is not used anymore. Used with the current Shader Stripping Settings. #from(2023.3)")]
@@ -692,7 +692,7 @@ namespace UnityEngine.Rendering
         int m_TemporaryDataLocationMemCost;
 
 #pragma warning disable 618
-        [Obsolete("This field is only kept for migration purpose.")]
+        [Obsolete("This field is only kept for migration purpose. #from(2023.3)")]
         internal ProbeVolumeSceneData sceneData; // Kept for migration
 #pragma warning restore 618
 
@@ -1744,10 +1744,10 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal static int CellSize(int subdivisionLevel) => (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel);
-        internal float BrickSize(int subdivisionLevel) => m_MinBrickSize * CellSize(subdivisionLevel);
+        internal static int CellSize(int subdivisionLevel) => ProbeVolumeUtil.CellSize(subdivisionLevel);
+        internal float BrickSize(int subdivisionLevel) => ProbeVolumeUtil.BrickSize(m_MinBrickSize, subdivisionLevel);
         internal float MinBrickSize() => m_MinBrickSize;
-        internal float MaxBrickSize() => BrickSize(m_MaxSubdivision - 1);
+        internal float MaxBrickSize() => ProbeVolumeUtil.MaxBrickSize(m_MinBrickSize, m_MaxSubdivision);
         internal Vector3 ProbeOffset() => m_ProbeOffset;
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);

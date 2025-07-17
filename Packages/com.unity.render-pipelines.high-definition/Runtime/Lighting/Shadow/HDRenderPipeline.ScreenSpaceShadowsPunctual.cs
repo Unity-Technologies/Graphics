@@ -143,42 +143,40 @@ namespace UnityEngine.Rendering.HighDefinition
             props.lightRadius = additionalLightData.shapeRadius;
             props.lightPosition = additionalLightData.transform.position;
             props.kernelSize = additionalLightData.filterSizeTraced;
-            props.lightConeAngle = additionalLightData.legacyLight.spotAngle * (float)Math.PI / 180.0f;
+            props.lightConeAngle = additionalLightData.legacyLight.spotAngle * Mathf.PI / 180.0f;
             props.distanceBasedDenoiser = additionalLightData.distanceBasedFiltering;
 
             switch (lightData.lightType)
             {
                 case (GPULightType.ProjectorPyramid):
                 {
-                    float spotHalfAngleRadians = 0.5f * props.lightConeAngle;
-
                     // Scale up one of the pyramind light angles based on aspect ratio
                     // We reuse _RaytracingLightSizeX and _RaytracingLightSizeY for the pyramid angles here
-                    if (additionalLightData.aspectRatio < 1.0f)
+                    if (additionalLightData.legacyLight.innerSpotAngle < additionalLightData.legacyLight.spotAngle)
                     {
-                        float scaledLightAngle = 2.0f * Mathf.Atan(Mathf.Tan(spotHalfAngleRadians) / additionalLightData.aspectRatio);
+                        float tanInnerSpotAngle = Mathf.Tan(additionalLightData.legacyLight.innerSpotAngle * Mathf.PI / 360f);
+                        float tanSpotAngle = Mathf.Tan(additionalLightData.legacyLight.spotAngle * Mathf.PI / 360f);
+                        float aspectRatio = tanInnerSpotAngle / tanSpotAngle;
 
                         props.lightSizeX = props.lightConeAngle;
-                        props.lightSizeY = scaledLightAngle;
+                        props.lightSizeY = 2.0f * Mathf.Atan(tanSpotAngle / aspectRatio);
                     }
                     else
                     {
-                        float scaledLightAngle = 2.0f * Mathf.Atan(Mathf.Tan(spotHalfAngleRadians) * additionalLightData.aspectRatio);
-
-                        props.lightSizeX = scaledLightAngle;
+                        props.lightSizeX = additionalLightData.legacyLight.innerSpotAngle * Mathf.Deg2Rad;
                         props.lightSizeY = props.lightConeAngle;
                     }
                 }
                 break;
                 default:
                 {
-                    props.lightSizeX = additionalLightData.shapeWidth;
-                    props.lightSizeY = additionalLightData.shapeHeight;
+                    props.lightSizeX = additionalLightData.legacyLight.areaSize.x;
+                    props.lightSizeY = additionalLightData.legacyLight.areaSize.y;
                 }
                 break;
             }
 
-            using (var builder = renderGraph.AddRenderPass<RTSPunctualTracePassData>("Punctual RT Shadow", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingLightShadow)))
+            using (var builder = renderGraph.AddUnsafePass<RTSPunctualTracePassData>("Punctual RT Shadow", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingLightShadow)))
             {
                 // Set the camera parameters
                 passData.texWidth = hdCamera.actualWidth;
@@ -216,27 +214,34 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
 
                 // Input Buffer
-                passData.depthStencilBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
-                passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                passData.depthStencilBuffer = depthBuffer;
+                builder.UseTexture(passData.depthStencilBuffer, AccessFlags.Read);
+                passData.normalBuffer = normalBuffer;
+                builder.UseTexture(passData.normalBuffer, AccessFlags.Read);
                 passData.directionBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Direction Buffer" });
                 passData.rayLengthBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Ray Length Buffer" });
 
                 // Debug buffers
-                passData.rayCountTexture = builder.ReadWriteTexture(rayCountTexture);
+                passData.rayCountTexture = rayCountTexture;
+                builder.UseTexture(passData.rayCountTexture, AccessFlags.ReadWrite);
 
                 // Output Buffers
-                passData.velocityBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { format = GraphicsFormat.R8_SNorm, enableRandomWrite = true, name = "Velocity Buffer" }));
-                passData.distanceBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" }));
-                passData.outputShadowBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "RT Sphere Shadow" }));
+                passData.velocityBuffer = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { format = GraphicsFormat.R8_SNorm, enableRandomWrite = true, name = "Velocity Buffer" });
+                builder.UseTexture(passData.velocityBuffer, AccessFlags.ReadWrite);
+                passData.distanceBuffer = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" });
+                builder.UseTexture(passData.distanceBuffer, AccessFlags.ReadWrite);
+                passData.outputShadowBuffer = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { format = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "RT Sphere Shadow" });
+                builder.UseTexture(passData.outputShadowBuffer, AccessFlags.ReadWrite);
 
                 builder.SetRenderFunc(
-                    (RTSPunctualTracePassData data, RenderGraphContext ctx) =>
+                    (RTSPunctualTracePassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         // Inject the ray-tracing sampling data
-                        BlueNoise.BindDitheredTextureSet(ctx.cmd, data.ditheredTextureSet);
+                        BlueNoise.BindDitheredTextureSet(natCmd, data.ditheredTextureSet);
 
                         // Evaluate the dispatch parameters
                         int shadowTileSize = 8;
@@ -244,38 +249,38 @@ namespace UnityEngine.Rendering.HighDefinition
                         int numTilesY = (data.texHeight + (shadowTileSize - 1)) / shadowTileSize;
 
                         // Clear the integration textures
-                        ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.clearShadowKernel, HDShaderIDs._RaytracedShadowIntegration, data.outputShadowBuffer);
-                        ctx.cmd.DispatchCompute(data.screenSpaceShadowCS, data.clearShadowKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.clearShadowKernel, HDShaderIDs._RaytracedShadowIntegration, data.outputShadowBuffer);
+                        natCmd.DispatchCompute(data.screenSpaceShadowCS, data.clearShadowKernel, numTilesX, numTilesY, data.viewCount);
 
-                        ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.clearShadowKernel, HDShaderIDs._RaytracedShadowIntegration, data.velocityBuffer);
-                        ctx.cmd.DispatchCompute(data.screenSpaceShadowCS, data.clearShadowKernel, numTilesX, numTilesY, data.viewCount);
+                        natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.clearShadowKernel, HDShaderIDs._RaytracedShadowIntegration, data.velocityBuffer);
+                        natCmd.DispatchCompute(data.screenSpaceShadowCS, data.clearShadowKernel, numTilesX, numTilesY, data.viewCount);
 
                         if (data.distanceBasedFiltering)
                         {
-                            ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.clearShadowKernel, HDShaderIDs._RaytracedShadowIntegration, data.distanceBuffer);
-                            ctx.cmd.DispatchCompute(data.screenSpaceShadowCS, data.clearShadowKernel, numTilesX, numTilesY, data.viewCount);
+                            natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.clearShadowKernel, HDShaderIDs._RaytracedShadowIntegration, data.distanceBuffer);
+                            natCmd.DispatchCompute(data.screenSpaceShadowCS, data.clearShadowKernel, numTilesX, numTilesY, data.viewCount);
                         }
 
                         // Set the acceleration structure for the pass
-                        ctx.cmd.SetRayTracingAccelerationStructure(data.screenSpaceShadowRT, HDShaderIDs._RaytracingAccelerationStructureName, data.accelerationStructure);
+                        natCmd.SetRayTracingAccelerationStructure(data.screenSpaceShadowRT, HDShaderIDs._RaytracingAccelerationStructureName, data.accelerationStructure);
 
                         // Define the shader pass to use for the reflection pass
-                        ctx.cmd.SetRayTracingShaderPass(data.screenSpaceShadowRT, "VisibilityDXR");
+                        natCmd.SetRayTracingShaderPass(data.screenSpaceShadowRT, "VisibilityDXR");
 
 
                         if (data.lightType == GPULightType.ProjectorBox ||
                             data.lightType == GPULightType.ProjectorPyramid)
                         {
-                            ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightSizeX, data.properties.lightSizeX);
-                            ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightSizeY, data.properties.lightSizeY);
+                            natCmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightSizeX, data.properties.lightSizeX);
+                            natCmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightSizeY, data.properties.lightSizeY);
                         }
 
                         // Bind the light & sampling data
-                        ctx.cmd.SetComputeIntParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingTargetLight, data.properties.lightIndex);
-                        ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightRadius, data.properties.lightRadius);
+                        natCmd.SetComputeIntParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingTargetLight, data.properties.lightIndex);
+                        natCmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightRadius, data.properties.lightRadius);
                         if (data.lightType == GPULightType.Spot)
                         {
-                            ctx.cmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightAngle, data.properties.lightConeAngle);
+                            natCmd.SetComputeFloatParam(data.screenSpaceShadowCS, HDShaderIDs._RaytracingLightAngle, data.properties.lightConeAngle);
                         }
 
                         // Loop through the samples of this frame
@@ -284,40 +289,41 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Update global constant buffer
                             data.shaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIdx;
                             data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.numShadowSamples;
-                            ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+                            ConstantBuffer.PushGlobal(natCmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                             // Input Buffer
-                            ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
-                            ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
-                            ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                            natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
+                            natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._StencilTexture, data.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
+                            natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
                             // Output buffers
-                            ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
-                            ctx.cmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._RayTracingLengthBuffer, data.rayLengthBuffer);
+                            natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
+                            natCmd.SetComputeTextureParam(data.screenSpaceShadowCS, data.shadowKernel, HDShaderIDs._RayTracingLengthBuffer, data.rayLengthBuffer);
 
                             // Generate a new direction
-                            ctx.cmd.DispatchCompute(data.screenSpaceShadowCS, data.shadowKernel, numTilesX, numTilesY, data.viewCount);
+                            natCmd.DispatchCompute(data.screenSpaceShadowCS, data.shadowKernel, numTilesX, numTilesY, data.viewCount);
 
                             // Define the shader pass to use for the shadow pass
-                            ctx.cmd.SetRayTracingShaderPass(data.screenSpaceShadowRT, "VisibilityDXR");
+                            natCmd.SetRayTracingShaderPass(data.screenSpaceShadowRT, "VisibilityDXR");
 
                             // Set ray count texture
-                            ctx.cmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RayCountTexture, data.rayCountTexture);
+                            natCmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RayCountTexture, data.rayCountTexture);
 
                             // Input buffers
-                            ctx.cmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
-                            ctx.cmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
-                            ctx.cmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
-                            ctx.cmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RayTracingLengthBuffer, data.rayLengthBuffer);
+                            natCmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
+                            natCmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                            natCmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RaytracingDirectionBuffer, data.directionBuffer);
+                            natCmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RayTracingLengthBuffer, data.rayLengthBuffer);
 
                             // Output buffer
-                            ctx.cmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RaytracedShadowIntegration, data.outputShadowBuffer);
-                            ctx.cmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._VelocityBuffer, data.velocityBuffer);
-                            ctx.cmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RaytracingDistanceBufferRW, data.distanceBuffer);
+                            natCmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RaytracedShadowIntegration, data.outputShadowBuffer);
+                            natCmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._VelocityBuffer, data.velocityBuffer);
+                            natCmd.SetRayTracingTextureParam(data.screenSpaceShadowRT, HDShaderIDs._RaytracingDistanceBufferRW, data.distanceBuffer);
 
-                            CoreUtils.SetKeyword(ctx.cmd, "TRANSPARENT_COLOR_SHADOW", data.semiTransparentShadow);
-                            ctx.cmd.DispatchRays(data.screenSpaceShadowRT, data.semiTransparentShadow ? m_RayGenSemiTransparentShadowSegmentSingleName : m_RayGenShadowSegmentSingleName, (uint)data.texWidth, (uint)data.texHeight, (uint)data.viewCount);
-                            CoreUtils.SetKeyword(ctx.cmd, "TRANSPARENT_COLOR_SHADOW", false);
+                            CoreUtils.SetKeyword(natCmd, "TRANSPARENT_COLOR_SHADOW", data.semiTransparentShadow);
+
+                            natCmd.DispatchRays(data.screenSpaceShadowRT, data.semiTransparentShadow ? m_RayGenSemiTransparentShadowSegmentSingleName : m_RayGenShadowSegmentSingleName, (uint)data.texWidth, (uint)data.texHeight, (uint)data.viewCount, null);
+                            CoreUtils.SetKeyword(natCmd, "TRANSPARENT_COLOR_SHADOW", false);
                         }
                     });
                 pointShadowBuffer = passData.outputShadowBuffer;

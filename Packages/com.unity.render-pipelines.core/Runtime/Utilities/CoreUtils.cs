@@ -104,31 +104,31 @@ namespace UnityEngine.Rendering
             public const int scriptingPriority = 40;
         }
 
-        const string obsoletePriorityMessage = "Use CoreUtils.Priorities instead";
+        const string obsoletePriorityMessage = "Use CoreUtils.Priorities instead. #from(2021.2)";
 
         /// <summary>Edit Menu priority 1</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
+        [Obsolete(obsoletePriorityMessage)]
         public const int editMenuPriority1 = 320;
         /// <summary>Edit Menu priority 2</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
+        [Obsolete(obsoletePriorityMessage)]
         public const int editMenuPriority2 = 331;
         /// <summary>Edit Menu priority 3</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
+        [Obsolete(obsoletePriorityMessage)]
         public const int editMenuPriority3 = 342;
         /// <summary>Edit Menu priority 4</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
+        [Obsolete(obsoletePriorityMessage)]
         public const int editMenuPriority4 = 353;
         /// <summary>Asset Create Menu priority 1</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
+        [Obsolete(obsoletePriorityMessage)]
         public const int assetCreateMenuPriority1 = 230;
         /// <summary>Asset Create Menu priority 2</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
+        [Obsolete(obsoletePriorityMessage)]
         public const int assetCreateMenuPriority2 = 241;
         /// <summary>Asset Create Menu priority 3</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
+        [Obsolete(obsoletePriorityMessage)]
         public const int assetCreateMenuPriority3 = 300;
         /// <summary>Game Object Menu priority</summary>
-        [Obsolete(obsoletePriorityMessage, false)]
+        [Obsolete(obsoletePriorityMessage)]
         public const int gameObjectMenuPriority = 10;
 
         static Cubemap m_BlackCubeTexture;
@@ -422,7 +422,7 @@ namespace UnityEngine.Rendering
         {
             SetRenderTarget(cmd, colorBuffers, depthBuffer, clearFlag, Color.clear);
         }
-
+        
         /// <summary>
         /// Set the current multiple render texture.
         /// </summary>
@@ -645,6 +645,21 @@ namespace UnityEngine.Rendering
             depthSlice = FixupDepthSlice(depthSlice, buffer);
             cmd.SetRenderTarget(buffer.nameID, miplevel, cubemapFace, depthSlice);
             SetViewportAndClear(cmd, buffer, clearFlag, clearColor);
+        }
+
+        /// <summary>
+        /// Setup the current render texture using an RTHandle
+        /// </summary>
+        /// <param name="cmd">ComputeCommandBuffer used for rendering commands, it must not be async.</param>
+        /// <param name="buffer">Color buffer RTHandle</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        /// <param name="miplevel">Mip level that should be bound as a render texture if applicable.</param>
+        /// <param name="cubemapFace">Cubemap face that should be bound as a render texture if applicable.</param>
+        /// <param name="depthSlice">Depth slice that should be bound as a render texture if applicable.</param>
+        public static void SetRenderTarget(ComputeCommandBuffer cmd, RTHandle buffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown, int depthSlice = -1)
+        {
+            SetRenderTarget(cmd.m_WrappedCommandBuffer, buffer, clearFlag, clearColor, miplevel, cubemapFace, depthSlice);
         }
 
         /// <summary>
@@ -1649,7 +1664,36 @@ namespace UnityEngine.Rendering
         /// <param name="renderContext">Current Scriptable Render Context.</param>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
+        [Obsolete("Use DrawRendererList(CommandBuffer cmd, UnityEngine.Rendering.RendererList rendererList) instead. #from(6000.3) (UnityUpgradable) -> !0")]
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, UnityEngine.Rendering.RendererList rendererList)
+        {
+#if UNITY_ENABLE_CHECKS || UNITY_EDITOR
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+#endif
+            cmd.DrawRendererList(rendererList);
+        }
+
+        /// <summary>
+        /// Draw a renderer list.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="rendererList">Renderer List to render.</param>
+        public static void DrawRendererList(CommandBuffer cmd, UnityEngine.Rendering.RendererList rendererList)
+        {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+#endif
+            cmd.DrawRendererList(rendererList);
+        }
+
+        /// <summary>
+        /// Draw a renderer list.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="rendererList">Renderer List to render.</param>
+        public static void DrawRendererList(IRasterCommandBuffer cmd, UnityEngine.Rendering.RendererList rendererList)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (!rendererList.isValid)

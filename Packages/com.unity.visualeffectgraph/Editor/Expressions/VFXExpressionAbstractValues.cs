@@ -20,32 +20,32 @@ namespace UnityEditor.VFX
 
         // Syntactic sugar method to create a constant value
 
-        static public VFXValue<int> Constant(Texture2D value)
+        static public VFXValue<EntityId> Constant(Texture2D value)
         {
-            return new VFXTexture2DValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
+            return new VFXTexture2DValue(ReferenceEquals(value, null) ? EntityId.None : value.GetEntityId(), Mode.Constant);
         }
 
-        static public VFXValue<int> Constant(Texture3D value)
+        static public VFXValue<EntityId> Constant(Texture3D value)
         {
-            return new VFXTexture3DValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
+            return new VFXTexture3DValue(ReferenceEquals(value, null) ? EntityId.None : value.GetEntityId(), Mode.Constant);
         }
 
-        static public VFXValue<int> Constant(Cubemap value)
+        static public VFXValue<EntityId> Constant(Cubemap value)
         {
-            return new VFXTextureCubeValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
+            return new VFXTextureCubeValue(ReferenceEquals(value, null) ? EntityId.None : value.GetEntityId(), Mode.Constant);
         }
 
-        static public VFXValue<int> Constant(Texture2DArray value)
+        static public VFXValue<EntityId> Constant(Texture2DArray value)
         {
-            return new VFXTexture2DArrayValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
+            return new VFXTexture2DArrayValue(ReferenceEquals(value, null) ? EntityId.None : value.GetEntityId(), Mode.Constant);
         }
 
-        static public VFXValue<int> Constant(CubemapArray value)
+        static public VFXValue<EntityId> Constant(CubemapArray value)
         {
-            return new VFXTextureCubeArrayValue(ReferenceEquals(value, null) ? 0 : value.GetInstanceID(), Mode.Constant);
+            return new VFXTextureCubeArrayValue(ReferenceEquals(value, null) ? EntityId.None : value.GetEntityId(), Mode.Constant);
         }
 
-        static public VFXValue<int> Constant(CameraBuffer value)
+        static public VFXValue<EntityId> Constant(CameraBuffer value)
         {
             return new VFXCameraBufferValue(value, Mode.Constant);
         }
@@ -172,10 +172,7 @@ namespace UnityEditor.VFX
         private static readonly VFXValue s_Default = new VFXValue<T>(default(T), VFXValue.Mode.Constant);
         public static VFXValue Default { get { return s_Default; } }
 
-        public T Get()
-        {
-            return (T)m_Content;
-        }
+        public T Get() => (T)m_Content;
 
         public override object GetContent()
         {
@@ -234,7 +231,7 @@ namespace UnityEditor.VFX
             }
             var valueType = GetVFXValueTypeFromType(t);
             if (valueType == VFXValueType.None)
-                throw new ArgumentException("Invalid type");
+                throw new ArgumentException($"Invalid type for {t}");
             return valueType;
         }
 
@@ -248,9 +245,9 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXObjectValue : VFXValue<int>
+    class VFXObjectValue : VFXValue<EntityId>
     {
-        public VFXObjectValue(int instanceID, Mode mode, VFXValueType contentType) : base(instanceID, mode, GetFlagsFromType(contentType))
+        public VFXObjectValue(EntityId entityId, Mode mode, VFXValueType contentType) : base(entityId, mode, GetFlagsFromType(contentType))
         {
             m_ContentType = contentType;
         }
@@ -265,13 +262,13 @@ namespace UnityEditor.VFX
 
         public override VFXValue CopyExpression(Mode mode)
         {
-            var copy = new VFXObjectValue((int)m_Content, mode, m_ContentType);
+            var copy = new VFXObjectValue((EntityId)m_Content, mode, m_ContentType);
             return copy;
         }
 
         public override T Get<T>()
         {
-            if (typeof(T) == typeof(int))
+            if (typeof(T) == typeof(EntityId))
                 return (T)(object)base.Get();
             Debug.Assert(UnsafeUtility.SizeOf<EntityId>() == sizeof(int), "EntityId size is not equal to int size, this will cause issues, update to VFXValue<EntityId> instead");
 
@@ -287,12 +284,12 @@ namespace UnityEditor.VFX
         {
             if (value == null)
             {
-                m_Content = (int)0;
+                m_Content = EntityId.None;
                 return;
             }
             if (value is UnityObject obj)
             {
-                m_Content = obj.GetInstanceID();
+                m_Content = obj.GetEntityId();
                 return;
             }
             if (value is CameraBuffer cameraBuffer)
@@ -302,11 +299,11 @@ namespace UnityEditor.VFX
             }
             if (value is GraphicsBuffer)
             {
-                m_Content = (int)0;
+                m_Content = EntityId.None;
                 return;
             }
 
-            m_Content = (int)value;
+            m_Content = (EntityId)value;
         }
 
         VFXValueType m_ContentType;

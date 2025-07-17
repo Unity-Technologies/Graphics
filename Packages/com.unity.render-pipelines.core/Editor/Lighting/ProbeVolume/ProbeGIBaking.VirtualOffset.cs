@@ -143,8 +143,10 @@ namespace UnityEngine.Rendering
                     int subMeshCount = mesh.subMeshCount;
                     var maskAndMatDummy = new uint[subMeshCount];
                     System.Array.Fill(maskAndMatDummy, 0xFFFFFFFF);
+                    Span<bool> perSubMeshOpaqueness = stackalloc bool[subMeshCount];
+                    perSubMeshOpaqueness.Fill(true);
 
-                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, maskAndMatDummy, maskAndMatDummy, 1);
+                    accelStruct.AddInstance(renderer.component.GetInstanceID(), renderer.component, maskAndMatDummy, maskAndMatDummy, perSubMeshOpaqueness, 1);
                 }
 
                 foreach (var terrain in contributors.terrains)
@@ -153,7 +155,7 @@ namespace UnityEngine.Rendering
                     if ((layerMask & mask) == 0)
                         continue;
 
-                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, 1);
+                    accelStruct.AddInstance(terrain.component.GetInstanceID(), terrain.component, new uint[1] { 0xFFFFFFFF }, new uint[1] { 0xFFFFFFFF }, new bool[1] { true }, 1);
                 }
 
                 return accelStruct;
@@ -270,7 +272,7 @@ namespace UnityEngine.Rendering
             CellCountInDirections(out minCellPosition, out maxCellPosition, prv.MaxBrickSize(), prv.ProbeOffset());
             cellCount = maxCellPosition + Vector3Int.one - minCellPosition;
 
-            m_BakingBatch = new BakingBatch(cellCount);
+            m_BakingBatch = new BakingBatch(cellCount, ProbeReferenceVolume.instance);
             m_ProfileInfo = new ProbeVolumeProfileInfo();
             ModifyProfileFromLoadedData(m_BakingSet);
 

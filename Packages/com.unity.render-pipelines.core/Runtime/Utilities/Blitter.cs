@@ -354,7 +354,7 @@ namespace UnityEngine.Rendering
             return s_Copy.passCount == 2;
         }
 
-        internal static bool CanCopyMSAA(in TextureDesc sourceDesc)
+        internal static bool CanCopyMSAA(bool srcBindTextureMS)
         {
             // Real native renderpass platforms
             // TODO: Expose this through systeminfo
@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering
                 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12;
 
             if (SystemInfo.supportsMultisampleAutoResolve &&
-                !hasRenderPass && sourceDesc.bindTextureMS == false)
+                !hasRenderPass && !srcBindTextureMS)
             {
                 // If we have autoresolve it means msaa rendertextures render as MSAA but  magically resolve in the driver when accessed as a texture, the MSAA surface is fully hidden inside the GFX device
                 // this is contrary to most platforms where the resolve magic on reading happens in the engine layer (and thus allocates proper multi sampled and resolve surfaces the engine can access)
@@ -502,7 +502,7 @@ namespace UnityEngine.Rendering
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
-            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureXR.dimension), s_BlitShaderPassIndicesMap[bilinear ? 1 : 0]);
+            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(source.rt.dimension), s_BlitShaderPassIndicesMap[bilinear ? 1 : 0]);
         }
 
         /// <summary>
@@ -537,6 +537,7 @@ namespace UnityEngine.Rendering
         /// Blitter.BlitTexture2D(cmd, source, new Vector4(1, 0.5, 0, 0.5), 4, false);
         /// ]]></code>
         /// </example>
+        
         public static void BlitTexture2D(RasterCommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             BlitTexture2D(cmd.m_WrappedCommandBuffer, source, scaleBias, mipLevel, bilinear);
@@ -1021,7 +1022,7 @@ namespace UnityEngine.Rendering
         /// RTHandle source = renderGraph.CreateTexture(texDesc);
         /// // Do a full copy of the texture's first mip level to a destination render target
         /// // scaling with bilinear filtering to the destination render target's full rect.
-        /// Blitter.BlitCameraTexture(cmd, source, destination, 0, true);
+        /// Blitter.BlitCameraTexture2D(cmd, source, destination, 0, true);
         /// ]]></code>
         /// </example>
         public static void BlitCameraTexture2D(CommandBuffer cmd, RTHandle source, RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)

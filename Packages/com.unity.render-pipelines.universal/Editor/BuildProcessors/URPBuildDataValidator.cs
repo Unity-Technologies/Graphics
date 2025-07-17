@@ -77,9 +77,9 @@ namespace UnityEditor.Rendering.Universal
                     EditorApplication.delayCall += () =>
                     {
                         int answear = EditorUtility.DisplayDialogComplex("Universal Render Pipeline's Compatibility Mode",
-                            "Unity can't build your project because Compatibility Mode (Render Graph disabled) is enabled. This feature is deprecated. Unity now uses the render graph system instead.\n\n" +
-                            "Select \"Use Render Graph\" (Recommended) to update your Project Settings to use the render graph system. You might need to manually update your scripts and assets.\n\n" +
-                            "Select \"Keep Compatibility Mode\" to add a URP_COMPATIBILITY_MODE define to the Scripting Define Symbols in Player Settings for your current build target. Warning: Compatibility Mode will be fully removed in a future release.",
+                            "Unity can't build your project because Compatibility Mode (Render Graph disabled) is active. This feature is deprecated.\n\n" +
+                            "Select \"Use Render Graph\" (Recommended) to update Project Settings. You may need to update scripts and assets.\n\n" +
+                            "Select \"Keep Compatibility Mode\" to add URP_COMPATIBILITY_MODE to Player Settings for this build target. Warning: Compatibility Mode will be removed in a future release.",
                             "Use Render Graph",
                             "Cancel",
                             "Keep Compatibility Mode");

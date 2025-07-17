@@ -55,12 +55,12 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Obsolete, kept for migration.
         /// </summary>
-        [Obsolete("Performance")]
+        [Obsolete("Performance #from(6000.0)")]
         ValidityBased = Performance,
         /// <summary>
         /// Obsolete, kept for migration.
         /// </summary>
-        [Obsolete("Quality")]
+        [Obsolete("Quality #from(6000.0)")]
         ValidityAndNormalBased = Quality,
     }
 

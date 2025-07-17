@@ -95,8 +95,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.orientation = light.transform.rotation;
                     lightDataGI.position = light.transform.position;
                     lightDataGI.range = 0.0f;
-                    lightDataGI.coneAngle = add.shapeWidth;
-                    lightDataGI.innerConeAngle = add.shapeHeight;
 #if UNITY_EDITOR
                     lightDataGI.shape0 = light.shadows != LightShadows.None ? (Mathf.Deg2Rad * light.shadowAngle) : 0.0f;
 #else
@@ -105,8 +103,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.shape1 = 0.0f;
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Directional;
                     lightDataGI.falloff = FalloffType.Undefined;
-                    lightDataGI.coneAngle = add.shapeWidth;
-                    lightDataGI.innerConeAngle = add.shapeHeight;
+                    lightDataGI.coneAngle = light.cookieSize2D.x;
+                    lightDataGI.innerConeAngle = light.cookieSize2D.y;
                     break;
 
                 case LightType.Spot:
@@ -126,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     spot.indirectColor = indirectColor;
                     spot.range = light.range;
                     spot.coneAngle = light.spotAngle * Mathf.Deg2Rad;
-                    spot.innerConeAngle = light.spotAngle * Mathf.Deg2Rad * add.innerSpotPercent01;
+                    spot.innerConeAngle = Mathf.Deg2Rad * light.innerSpotAngle;
                     spot.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
                     spot.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
                     lightDataGI.Init(ref spot, ref cookie);
@@ -152,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     pyramid.indirectColor = indirectColor;
                     pyramid.range = light.range;
                     pyramid.angle = light.spotAngle * Mathf.Deg2Rad;
-                    pyramid.aspectRatio = add.aspectRatio;
+                    pyramid.aspectRatio = Mathf.Tan(light.innerSpotAngle * Mathf.PI / 360f) / Mathf.Tan(light.spotAngle * Mathf.PI / 360f);
                     pyramid.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
                     lightDataGI.Init(ref pyramid, ref cookie);
                     if (light.cookie != null)
@@ -175,8 +173,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     box.color = directColor;
                     box.indirectColor = indirectColor;
                     box.range = light.range;
-                    box.width = add.shapeWidth;
-                    box.height = add.shapeHeight;
+                    box.width = light.areaSize.x;
+                    box.height = light.areaSize.y;
                     lightDataGI.Init(ref box, ref cookie);
                     if (light.cookie != null)
                         lightDataGI.cookieTextureEntityId = light.cookie.GetEntityId();
@@ -215,8 +213,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightDataGI.range = light.range;
                     lightDataGI.coneAngle = 0.0f;
                     lightDataGI.innerConeAngle = 0.0f;
-                    lightDataGI.shape0 = add.shapeWidth;
-                    lightDataGI.shape1 = add.shapeHeight;
+                    lightDataGI.shape0 = light.areaSize.x;
+                    lightDataGI.shape1 = light.areaSize.y;
 
                     // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
                     lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;

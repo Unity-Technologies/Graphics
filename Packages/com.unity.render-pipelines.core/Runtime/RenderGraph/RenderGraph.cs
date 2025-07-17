@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     public struct RenderGraphParameters
     {
         ///<summary>Identifier for this render graph execution.</summary>
-        [Obsolete("Not used anymore. The debugging tools use the name of the object identified by executionId. #from(6000.3)", false)]
+        [Obsolete("Not used anymore. The debugging tools use the name of the object identified by executionId. #from(6000.3)")]
         public string executionName;
         ///<summary>Identifier for this render graph execution (i.e. EntityId of the Camera rendering). Used for debugging tools.</summary>
         public EntityId executionId;
@@ -1103,11 +1103,23 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// <param name="graphicsBuffer">External Graphics Buffer that needs to be imported.</param>
         /// <param name="forceRelease">The imported graphics buffer will be released after usage.</param>
         /// <returns>A new GraphicsBufferHandle.</returns>
+        [Obsolete("ImportBuffer with forceRelease parameter is deprecated. Use ImportBuffer without it instead. #from(6000.3)")]
         public BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer, bool forceRelease = false)
         {
-            CheckNotUsedWhenExecuting();
+            return ImportBuffer(graphicsBuffer);
+        }
 
-            return m_Resources.ImportBuffer(graphicsBuffer, forceRelease);
+        /// <summary>
+        /// Import an external Graphics Buffer to the Render Graph.
+        /// Any pass writing to an imported graphics buffer will be considered having side effects and can't be automatically culled.
+        /// </summary>
+        /// <param name="graphicsBuffer">External Graphics Buffer that needs to be imported.</param>
+        /// <returns>A new GraphicsBufferHandle.</returns>
+        public BufferHandle ImportBuffer(GraphicsBuffer graphicsBuffer)
+        {
+            CheckNotUsedWhenExecuting();
+          
+            return m_Resources.ImportBuffer(graphicsBuffer);
         }
 
         /// <summary>
@@ -1562,8 +1574,13 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 m_ExecutionExceptionWasRaised = true;
             }
 
+            CommandBuffer.ThrowOnSetRenderTarget = false;
+
             CleanupResourcesAndGraph();
 
+            // If there has been an error, we have to flush the command being built along the RG data structure,
+            // because otherwise the command might try to use resources we just deleted.
+            m_RenderGraphContext.cmd.Clear();
             return m_RenderGraphContext.contextlessTesting;
         }
 
@@ -1631,14 +1648,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (sampler == null)
                 return;
 
-            using (var builder = AddRenderPass<ProfilingScopePassData>(k_BeginProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
+            using (var builder = AddUnsafePass<ProfilingScopePassData>(k_BeginProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
                 builder.GenerateDebugData(false);
-                builder.SetRenderFunc((ProfilingScopePassData data, RenderGraphContext ctx) =>
+                builder.SetRenderFunc((ProfilingScopePassData data, UnsafeGraphContext ctx) =>
                 {
-                    data.sampler.Begin(ctx.cmd);
+                    data.sampler.Begin(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd));
                 });
             }
         }
@@ -1656,14 +1673,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
             if (sampler == null)
                 return;
 
-            using (var builder = AddRenderPass<ProfilingScopePassData>(k_EndProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
+            using (var builder = AddUnsafePass<ProfilingScopePassData>(k_EndProfilingSamplerPassName, out var passData, (ProfilingSampler)null, file, line))
             {
                 passData.sampler = sampler;
                 builder.AllowPassCulling(false);
                 builder.GenerateDebugData(false);
-                builder.SetRenderFunc((ProfilingScopePassData data, RenderGraphContext ctx) =>
+                builder.SetRenderFunc((ProfilingScopePassData data, UnsafeGraphContext ctx) =>
                 {
-                    data.sampler.End(ctx.cmd);
+                    data.sampler.End(CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd));
                 });
             }
         }
@@ -2134,10 +2151,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     CompiledResourceInfo resourceInfo = resourceInfos[i];
 
                     bool sharedResource = m_Resources.IsRenderGraphResourceShared((RenderGraphResourceType)type, i);
-                    bool forceRelease = m_Resources.IsRenderGraphResourceForceReleased((RenderGraphResourceType) type, i);
-
+                    
                     // Imported resource needs neither creation nor release.
-                    if (resourceInfo.imported && !sharedResource && !forceRelease)
+                    if (resourceInfo.imported && !sharedResource)
                         continue;
 
                     // Resource creation

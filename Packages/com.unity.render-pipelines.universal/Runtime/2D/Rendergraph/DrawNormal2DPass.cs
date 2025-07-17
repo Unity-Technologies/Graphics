@@ -16,11 +16,13 @@ namespace UnityEngine.Rendering.Universal
             internal RendererListHandle rendererList;
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+#if URP_COMPATIBILITY_MODE
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             throw new NotImplementedException();
         }
+#endif
 
         private static void Execute(RasterCommandBuffer cmd, PassData passData)
         {
@@ -51,6 +53,13 @@ namespace UnityEngine.Rendering.Universal
                 builder.AllowPassCulling(false);
 
                 builder.SetRenderAttachment(universal2DResourceData.normalsTexture[batchIndex], 0);
+
+                // Depth needed for sprite mask stencil or z test for 3d meshes
+                if (rendererData.useDepthStencilBuffer)
+                {
+                    var depth = universal2DResourceData.normalsDepth.IsValid() ? universal2DResourceData.normalsDepth : commonResourceData.activeDepthTexture;
+                    builder.SetRenderAttachmentDepth(depth);
+                }
 
                 var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
                 passData.rendererList = graph.CreateRendererList(param);

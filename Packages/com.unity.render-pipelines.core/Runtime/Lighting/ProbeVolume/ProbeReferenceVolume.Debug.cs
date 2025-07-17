@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="camera">The <see cref="Camera"/></param>
         /// <param name="exposureTexture">Texture containing the exposure value for this frame.</param>
-        [Obsolete("Use the other override to support sampling offset in debug modes.")]
+        [Obsolete("Use the other override to support sampling offset in debug modes. #from(6000.0)")]
         public void RenderDebug(Camera camera, Texture exposureTexture)
         {
             RenderDebug(camera, null, exposureTexture);
@@ -827,24 +827,28 @@ namespace UnityEngine.Rendering
             if (!m_ProbeReferenceVolumeInit || !probeVolumeDebug.displayIndexFragmentation)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<RenderFragmentationOverlayPassData>("APVFragmentationOverlay", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<RenderFragmentationOverlayPassData>("APVFragmentationOverlay", out var passData))
             {
                 passData.debugOverlay = debugOverlay;
                 passData.debugFragmentationMaterial = m_DebugFragmentationMaterial;
-                passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
-                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
+                passData.colorBuffer = colorBuffer;
+                builder.SetRenderAttachment(colorBuffer, 0);
+                passData.depthBuffer = depthBuffer;
+                builder.SetRenderAttachmentDepth(depthBuffer, AccessFlags.ReadWrite);
                 passData.debugFragmentationData = m_Index.GetDebugFragmentationBuffer();
                 passData.chunkCount = passData.debugFragmentationData.count;
 
                 builder.SetRenderFunc(
-                    (RenderFragmentationOverlayPassData data, RenderGraphContext ctx) =>
+                    (RenderFragmentationOverlayPassData data, UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
 
-                        data.debugOverlay.SetViewport(ctx.cmd);
+                        data.debugOverlay.SetViewport(natCmd);
                         mpb.SetInt("_ChunkCount", data.chunkCount);
                         mpb.SetBuffer("_DebugFragmentation", data.debugFragmentationData);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugFragmentationMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
+                        natCmd.DrawProcedural(Matrix4x4.identity, data.debugFragmentationMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
                         data.debugOverlay.Next();
                     });
             }
@@ -1185,12 +1189,16 @@ namespace UnityEngine.Rendering
 
                                 positionsList.Add(position);
                                 validityList.Add(cell.data.validity[probeFlatIndex]);
+
                                 var occlusionOffset = probeFlatIndex * 4;
-                                float occlusionValue0 = scenarioData.probeOcclusion[occlusionOffset] / 255.0f;
-                                float occlusionValue1 = scenarioData.probeOcclusion[occlusionOffset+1] / 255.0f;
-                                float occlusionValue2 = scenarioData.probeOcclusion[occlusionOffset+2] / 255.0f;
-                                float occlusionValue3 = scenarioData.probeOcclusion[occlusionOffset+3] / 255.0f;
-                                occlusionList.Add(new Vector4(occlusionValue0, occlusionValue1, occlusionValue2, occlusionValue3));
+                                if (scenarioData.probeOcclusion.Length != 0)
+                                {
+                                    float occlusionValue0 = scenarioData.probeOcclusion[occlusionOffset] / 255.0f;
+                                    float occlusionValue1 = scenarioData.probeOcclusion[occlusionOffset+1] / 255.0f;
+                                    float occlusionValue2 = scenarioData.probeOcclusion[occlusionOffset+2] / 255.0f;
+                                    float occlusionValue3 = scenarioData.probeOcclusion[occlusionOffset+3] / 255.0f;
+                                    occlusionList.Add(new Vector4(occlusionValue0, occlusionValue1, occlusionValue2, occlusionValue3));
+                                }
 
                                 if (cell.data.skyOcclusionDataL0L1.Length > 0)
                                 {

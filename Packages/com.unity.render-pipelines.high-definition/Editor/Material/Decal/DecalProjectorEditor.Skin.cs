@@ -4,9 +4,9 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     partial class DecalProjectorEditor
     {
-        const string k_EditShapePreservingUVTooltip = "Modifies the projector boundaries and crops/tiles the decal to fill them.";
-        const string k_EditShapeWithoutPreservingUVTooltip = "Modifies the projector boundaries and stretches the decal to fill them.";
-        const string k_EditUVTooltip = "Modify the UV and the pivot position without moving the projection box. It can alter Transform.";
+        internal const string k_EditShapePreservingUVTooltip = "Modifies the projector boundaries and crops/tiles the decal to fill them.";
+        internal const string k_EditShapeWithoutPreservingUVTooltip = "Modifies the projector boundaries and stretches the decal to fill them.";
+        internal const string k_EditUVTooltip = "Modify the UV and the pivot position without moving the projection box. It can alter Transform.";
 
         static readonly GUIContent k_ScaleMode = EditorGUIUtility.TrTextContent("Scale Mode", "Specifies the scaling mode to apply to decals that use this Decal Projector.");
         static readonly GUIContent k_SizeContent = EditorGUIUtility.TrTextContent("Size", "Sets the size of the projector.");

@@ -2,7 +2,7 @@
 
 The Sample Texture 2D node samples a **Texture 2D** asset and returns a **Vector 4** color value. You can specify the **UV** coordinates for a texture sample and use a [Sampler State node](Sampler-State-Node.md) to define a specific Sampler State.
 
-A Sample Texture 2D node can also sample a normal map. For more information, see the [Controls](#controls) section, or [Normal map (Bump mapping)](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html) in the Unity User manual.
+A Sample Texture 2D node can also sample a normal map. For more information, refer to the [Controls](#controls) section, or [Normal map (Bump mapping)](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html) in the Unity User manual.
 
 [!include[nodes-sample-errors](./snippets/sample-nodes/nodes-sample-errors.md)]
 
@@ -36,43 +36,14 @@ The Sample Texture 2D [!include[nodes-inputs](./snippets/nodes-inputs.md)]
 
 The Sample Texture 2D [!include[nodes-controls](./snippets/nodes-controls.md)]
 
-<table>
-<thead>
-<tr>
-<th><strong>Name</strong></th>
-<th><strong>Type</strong></th>
-<th colspan="2"><strong>Description</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td rowspan="3"><strong>Type</strong></td>
-<td rowspan="3">Dropdown</td>
-<td colspan="2">Select whether the texture is a Texture asset or a normal map.</td>
-</tr>
-<tr>
-<td><strong>Default</strong></td>
-<td>The texture is a Texture asset.</td>
-</tr>
-<tr>
-<td><strong>Normal</strong></td>
-<td>The texture is a normal map.</td>
-</tr>
-<tr>
-<td rowspan="3"><strong>Space</strong></td>
-<td rowspan="3">Dropdown</td>
-<td colspan="2">When the node's <strong>Type</strong> is <strong>Normal</strong> to use a texture as a normal map, choose the Space for the normal map.</td>
-</tr>
-<tr>
-<td><strong>Tangent</strong></td>
-<td>Use a Tangent normal map whenever the mesh for a geometry needs to deform or change, such as when animating a character. With <strong>Tangent</strong> Space, the normal map's normals are relative to the existing vertex normals of any geometry rendered with your Shader Graph. Your Shader Graph only adjusts the vertex normals and not override them.</td>
-</tr>
-<tr>
-<td><strong>Object</strong></td>
-<td>Use an Object normal map whenever the mesh for a geometry is static and doesn't deform. With <strong>Object</strong> Space, the normal map's normals are explicit and override the normals of any geometry rendered with your Shader Graph. Because a static mesh's normals never change, an <strong>Object</strong> normal map also maintains consistent lighting across different levels of detail (LODs). <br/> For more information about normal maps, see <a href="https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html">Normal map (Bump mapping)</a> in the User manual.</td>
-</tr>
-</tbody>
-</table>
+| **Name** | **Type**     | **Subtype** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+|----------|--------------|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Type** | **Dropdown** | N/A         | Select whether the texture is a Texture asset or a normal map.                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| N/A      | N/A          | **Default** | The texture is a Texture asset.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| N/A      | N/A          | **Normal**  | The texture is a normal map.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Space    | Dropdown     | N/A         | Select whether the texture is a Texture asset or a normal map.                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| N/A      | N/A          | **Tangent** | Use a Tangent normal map whenever the mesh for a geometry needs to deform or change, such as when animating a character. With Tangent Space, the normal map's normals are relative to the existing vertex normals of any geometry rendered with your Shader Graph. Your Shader Graph only adjusts the vertex normals and not override them.                                                                                                                                    |
+| N/A      | N/A          | **Object**  | Use an Object normal map whenever the mesh for a geometry is static and doesn't deform. With Object Space, the normal map's normals are explicit and override the normals of any geometry rendered with your Shader Graph. Because a static mesh's normals never change, an Object normal map also maintains consistent lighting across different levels of detail (LODs). <br> For more information about normal maps, refer to Normal map (Bump mapping) in the User manual. |
 
 ## Additional node settings
 

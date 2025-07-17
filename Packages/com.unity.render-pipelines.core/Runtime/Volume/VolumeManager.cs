@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
         /// </summary>
-        [Obsolete("Please use baseComponentTypeArray instead.")]
+        [Obsolete("Please use baseComponentTypeArray instead. #from(2021.2)")]
         public IEnumerable<Type> baseComponentTypes => baseComponentTypeArray;
 
         static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
@@ -857,7 +857,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A scope in which a Camera filters a Volume.
     /// </summary>
-    [Obsolete("VolumeIsolationScope is deprecated, it does not have any effect anymore.")]
+    [Obsolete("VolumeIsolationScope is deprecated, it does not have any effect anymore. #from(2021.1)")]
     public struct VolumeIsolationScope : IDisposable
     {
         /// <summary>

@@ -98,19 +98,19 @@ namespace UnityEngine.Rendering.HighDefinition
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
 
-        [SerializeField, Obsolete("For Data Migration")]
+        [SerializeField, Obsolete("For Data Migration. #from(2023.3)")]
         internal BoolParameter localClouds = new(false);
 
-        [SerializeField, FormerlySerializedAs("globalWindSpeed"), Obsolete("For Data Migration")]
+        [SerializeField, FormerlySerializedAs("globalWindSpeed"), Obsolete("For Data Migration. #from(2022.1)")]
         MinFloatParameter m_ObsoleteWindSpeed = new MinFloatParameter(1.0f, 0.0f);
-        [SerializeField, FormerlySerializedAs("orientation"), Obsolete("For Data Migration")]
+        [SerializeField, FormerlySerializedAs("orientation"), Obsolete("For Data Migration. #from(2022.1)")]
         ClampedFloatParameter m_ObsoleteOrientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
 
-        [SerializeField, FormerlySerializedAs("shapeOffsetX"), Obsolete("For Data Migration")]
+        [SerializeField, FormerlySerializedAs("shapeOffsetX"), Obsolete("For Data Migration. #from(2022.1)")]
         FloatParameter m_ObsoleteShapeOffsetX = new FloatParameter(0.0f);
-        [SerializeField, FormerlySerializedAs("shapeOffsetY"), Obsolete("For Data Migration")]
+        [SerializeField, FormerlySerializedAs("shapeOffsetY"), Obsolete("For Data Migration. #from(2022.1)")]
         FloatParameter m_ObsoleteShapeOffsetY = new FloatParameter(0.0f);
-        [SerializeField, FormerlySerializedAs("shapeOffsetZ"), Obsolete("For Data Migration")]
+        [SerializeField, FormerlySerializedAs("shapeOffsetZ"), Obsolete("For Data Migration. #from(2022.1)")]
         FloatParameter m_ObsoleteShapeOffsetZ = new FloatParameter(0.0f);
     }
 }

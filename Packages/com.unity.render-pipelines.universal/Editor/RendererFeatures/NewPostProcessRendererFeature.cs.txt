@@ -158,11 +158,12 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
 
         #region PASS_NON_RENDER_GRAPH_PATH
 
+#if URP_COMPATIBILITY_MODE
         // Override the OnCameraSetup method to configure render targets and their clear states, and create temporary render target textures.
         // Unity calls this method before executing the render pass.
         // This method is used only in the Compatibility Mode path.
         // Use ConfigureTarget or ConfigureClear in this method. Don't use CommandBuffer.SetRenderTarget.
-        [System.Obsolete("This rendering path works in Compatibility Mode only, which is deprecated. Use the render graph API instead.", false)]
+        [System.Obsolete("This rendering path works in Compatibility Mode only, which is deprecated. Use the render graph API instead.")]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             // Reset the render target to default.
@@ -176,7 +177,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
         // Override the Execute method to implement the rendering logic. Use ScriptableRenderContext to issue drawing commands or execute command buffers.
         // You don't need to call ScriptableRenderContext.Submit.
         // This method is used only in the Compatibility Mode path.
-        [System.Obsolete("This rendering path works in Compatibility Mode only, which is deprecated. Use the render graph API instead.", false)]
+        [System.Obsolete("This rendering path works in Compatibility Mode only, which is deprecated. Use the render graph API instead.")]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
 
@@ -212,6 +213,7 @@ public sealed class #FEATURE_TYPE# : ScriptableRendererFeature
             // Release the command buffer.
             CommandBufferPool.Release(cmd);
         }
+#endif
 
         // Free the resources the camera uses.
         // This method is used only in the Compatibility Mode path.

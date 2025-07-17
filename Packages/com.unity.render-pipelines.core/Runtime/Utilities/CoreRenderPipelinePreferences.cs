@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering
 
     #region Volumes Gizmo Color
 
-        [Obsolete("Use VolumePreferences", false)]
+        [Obsolete("Use VolumePreferences #from(2022.1)")]
         public static Color volumeGizmoColor { get; } = new Color(0.2f, 0.8f, 0.1f, 0.125f);
 
     #endregion

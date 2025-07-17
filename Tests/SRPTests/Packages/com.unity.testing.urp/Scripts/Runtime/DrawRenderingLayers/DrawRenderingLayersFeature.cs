@@ -25,6 +25,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             m_TestRenderingLayersTextureHandle = renderingLayerTestTextureHandle;
         }
 
+#if !UNITY_6000_3_OR_NEWER || URP_COMPATIBILITY_MODE
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -32,6 +33,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
 
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData);
         }
+#endif
 
         private void ExecutePass(RasterCommandBuffer cmd, PassData data)
         {
@@ -96,6 +98,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
                 m_RenderingLayerColors[i] = Color.HSVToRGB(i / 32f, 1, 1);
         }
 
+#if !UNITY_6000_3_OR_NEWER || URP_COMPATIBILITY_MODE
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -109,6 +112,7 @@ public class DrawRenderingLayersFeature : ScriptableRendererFeature
             RasterCommandBuffer cmd = CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer);
             ExecutePass(cmd);
         }
+#endif
 
         private void ExecutePass(RasterCommandBuffer cmd)
         {

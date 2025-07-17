@@ -1,3 +1,4 @@
+#if URP_COMPATIBILITY_MODE
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store
         };
         internal RenderBufferStoreAction m_FinalDepthStoreAction = RenderBufferStoreAction.Store;
-
+        
         private static partial class Profiling
         {
             public static readonly ProfilingSampler setMRTAttachmentsList = new ProfilingSampler($"NativeRenderPass {nameof(SetNativeRenderPassMRTAttachmentList)}");
@@ -104,8 +105,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var renderPass = m_ActiveRenderPassQueue[i];
 
+
                     // Disable obsolete warning for internal usage
-                    #pragma warning disable CS0618
+                    #pragma warning disable CS0618 
                     bool RPEnabled = IsRenderPassEnabled(renderPass);
                     #pragma warning restore CS0618
                     if (!RPEnabled)
@@ -171,8 +173,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
 
-                var samples = pass.overrideCameraTarget ? GetFirstAllocatedRTHandle(pass).rt.descriptor.msaaSamples :
-                    (cameraData.targetTexture != null ? cameraData.targetTexture.descriptor.msaaSamples : cameraData.cameraTargetDescriptor.msaaSamples);
+                var samples = pass.overrideCameraTarget ? GetFirstAllocatedRTHandle(pass).rt.descriptor.msaaSamples : (cameraData.targetTexture != null ? cameraData.targetTexture.descriptor.msaaSamples : cameraData.cameraTargetDescriptor.msaaSamples);
 
                 bool rendererSupportsMSAA = cameraData.renderer != null && cameraData.renderer.supportedRenderingFeatures.msaa;
                 if (!cameraData.camera.allowMSAA || !rendererSupportsMSAA)
@@ -292,12 +293,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         bool IsDepthOnlyRenderTexture(RenderTexture t)
-        {
-            if (t.graphicsFormat == GraphicsFormat.None)
-                return true;
-            return false;
-        }
-
+            => t.graphicsFormat == GraphicsFormat.None;
+        
         internal void SetNativeRenderPassAttachmentList(ScriptableRenderPass renderPass, UniversalCameraData cameraData, RTHandle passColorAttachment, RTHandle passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor)
         {
             using (new ProfilingScope(Profiling.setAttachmentList))
@@ -412,7 +409,7 @@ namespace UnityEngine.Rendering.Universal
                 int validColorBuffersCount = m_RenderPassesAttachmentCount[currentPassHash];
 
                 var depthOnly = (renderPass.colorAttachmentHandle.rt != null && IsDepthOnlyRenderTexture(renderPass.colorAttachmentHandle.rt)) || (cameraData.targetTexture != null && IsDepthOnlyRenderTexture(cameraData.targetTexture));
-                bool useDepth = depthOnly || (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachmentHandle.nameID != BuiltinRenderTextureType.CameraTarget));// &&
+                bool useDepth = depthOnly|| (!renderPass.overrideCameraTarget || (renderPass.overrideCameraTarget && renderPass.depthAttachmentHandle.nameID != BuiltinRenderTextureType.CameraTarget));// &&
 
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(useDepth && !depthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
@@ -708,3 +705,4 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
+#endif

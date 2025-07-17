@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Text;
 using UnityEngine;
 using Unity.Mathematics;
@@ -674,17 +673,84 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool dlssDetected = ((1 << (int)AdvancedUpscalers.DLSS) & advancedUpscalersDetectedMask) != 0;
                 if (containsDLSS)
                 {
+                    SerializedDynamicResolutionSettings drsSettings = serialized.renderPipelineSettings.dynamicResolutionSettings;
+
                     ++EditorGUI.indentLevel;
-                    var v = EditorGUILayout.EnumPopup(
-                        Styles.DLSSQualitySettingContent,
-                        (UnityEngine.NVIDIA.DLSSQuality)
-                        serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue);
+                    var v = EditorGUILayout.EnumPopup(Styles.DLSSQualitySettingContent, (UnityEngine.NVIDIA.DLSSQuality)drsSettings.DLSSPerfQualitySetting.intValue);
 
-                    serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSPerfQualitySetting.intValue = (int)(object)v;
+                    drsSettings.DLSSPerfQualitySetting.intValue = (int)(object)v;
 
-                    int injectionPointVal = EditorGUILayout.IntPopup(Styles.DLSSInjectionPoint, serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint.intValue, Styles.UpscalerInjectionPointNames, Styles.UpscalerInjectionPointValues);
-                    serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSInjectionPoint.intValue = injectionPointVal;
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
+                    int injectionPointVal = EditorGUILayout.IntPopup(Styles.DLSSInjectionPoint, drsSettings.DLSSInjectionPoint.intValue, Styles.UpscalerInjectionPointNames, Styles.UpscalerInjectionPointValues);
+                    drsSettings.DLSSInjectionPoint.intValue = injectionPointVal;
+                    EditorGUILayout.PropertyField(drsSettings.DLSSUseOptimalSettings, Styles.DLSSUseOptimalSettingsContent);
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+                    EditorGUILayout.PrefixLabel(Styles.DLSSRenderPresetsContent);
+                    ++EditorGUI.indentLevel;
+
+                    void DrawPresetDropdown(ref SerializedProperty presetProp, UnityEngine.NVIDIA.DLSSQuality perfQuality)
+                    {
+                        // each DLSSQuality has a different set of DLSSPresets, represented by a bitmask.
+                        uint presetBitmask = UnityEngine.NVIDIA.GraphicsDevice.GetAvailableDLSSPresetsForQuality(perfQuality);
+                        if(presetProp.uintValue != 0 && (presetBitmask & presetProp.uintValue) == 0)
+                        {
+                            Debug.LogWarningFormat("DLSS Preset {0} not found for quality setting {1}, resetting to default value.",
+                                ((UnityEngine.NVIDIA.DLSSPreset)presetProp.uintValue).ToString(),
+                                perfQuality.ToString()
+                            );
+                            presetProp.uintValue = 0;
+                        }
+
+                        // We don't want to deal with List<DLSSPreset> & using bitmasks,
+                        // so we need some bit ops to convert between GUI index <--> Preset value
+                        int FindPresetGUIIndex(uint presetBitmask, uint presetValue)
+                        {
+                            int i = 0;
+                            while (presetValue > 0)
+                            {
+                                i += (presetBitmask & 1) > 0 ? 1 : 0;
+                                presetBitmask >>= 1;
+                                presetValue >>= 1;
+                            }
+                            return i; // includes 0=default, goes like 1=preset_A, 2=preset_B ...
+                        }
+                        uint GUIIndexToPresetValue(uint presetBitmask, uint index)
+                        {
+                            // e.g. bitset: 100101 --> 3 bits set, supports 4 presets (0=default, +3 other presets).
+                            //                   ^ i = 1 -> Preset A = 1
+                            //                 ^   i = 2 -> Preset C = 4
+                            //              ^      i = 3 -> Preset F = 32
+                            uint val = 0;
+                            while (index > 0 && presetBitmask > 0)
+                            {
+                                if ((presetBitmask & 1) != 0)
+                                    --index;
+                                presetBitmask >>= 1;
+                                val = val == 0 ? 1 : (val << 1);
+                            }
+                            if(index != 0)
+                            {
+                                Debug.LogWarningFormat("DLSSPreset (index={0}) not found in the supported preset list (mask={1}), setting to default value.", index, presetBitmask);
+                                return 0;
+                            }
+                            // Debug.LogFormat("Setting preset {0} : {1}", ((DLSSPreset)val).ToString(), val);
+                            return val;
+                        }
+
+                        int presetIndex = FindPresetGUIIndex(presetBitmask, presetProp.uintValue);
+                        int iNew = EditorGUILayout.Popup(Styles.DLSSPerfQualityLabels[(int)perfQuality], presetIndex, Styles.DLSSPresetOptionsForEachPerfQuality[(int)perfQuality]);
+                        if(iNew != presetIndex)
+                            presetProp.uintValue = GUIIndexToPresetValue(presetBitmask, (uint)iNew);
+                    }
+                    DrawPresetDropdown(ref drsSettings.DLSSRenderPresetForQuality         , UnityEngine.NVIDIA.DLSSQuality.MaximumQuality    );
+                    DrawPresetDropdown(ref drsSettings.DLSSRenderPresetForBalanced        , UnityEngine.NVIDIA.DLSSQuality.Balanced          );
+                    DrawPresetDropdown(ref drsSettings.DLSSRenderPresetForPerformance     , UnityEngine.NVIDIA.DLSSQuality.MaximumPerformance);
+                    DrawPresetDropdown(ref drsSettings.DLSSRenderPresetForUltraPerformance, UnityEngine.NVIDIA.DLSSQuality.UltraPerformance  );
+                    DrawPresetDropdown(ref drsSettings.DLSSRenderPresetForDLAA            , UnityEngine.NVIDIA.DLSSQuality.DLAA              );
+
+                    --EditorGUI.indentLevel;
+                
+#endif
 
                     --EditorGUI.indentLevel;
                 }
@@ -944,15 +1010,14 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.enabled, Styles.lowResTransparentEnabled);
 
-            /* For the time being we don't enable the option control and default to nearest depth. This might change in a close future.
+            // For the time being we don't enable the option control and default to nearest depth. This might change in a close future.
             ++EditorGUI.indentLevel;
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.lowresTransparentSettings.enabled.boolValue))
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer, k_CheckerboardDepthBuffer);
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.upsampleType, k_UpsampleFilter);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.checkerboardDepthBuffer, Styles.checkerboardDepthBuffer);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lowresTransparentSettings.upsampleType, Styles.upsampleLowResFilter);
             }
             --EditorGUI.indentLevel;
-            */
         }
 
         static void Drawer_SectionWaterSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

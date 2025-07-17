@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.Rendering.ShaderGraph;
 
@@ -33,58 +34,51 @@ namespace UnityEditor.ShaderGraph
 
         public GraphViewTemplateWindow.ISaveFileDialogHelper saveFileDialogHelper { get; set; } = new SaveFileDialog();
 
-        public void RaiseTemplateUsed(GraphViewTemplateDescriptor usedTemplate) { }
+        public void RaiseTemplateUsed(GraphViewTemplateDescriptor usedTemplate) =>
+            ShaderGraphAnalytics.SendShaderGraphTemplateEvent(usedTemplate);
 
         public bool TryGetTemplate(string assetPath, out GraphViewTemplateDescriptor graphViewTemplate)
         {
-            var importer = AssetImporter.GetAtPath(assetPath) as ShaderGraphImporter;
-            if (importer != null)
+            if (FileUtilities.TryGetImporter(assetPath, out var importer))
             {
                 var template = importer.Template;
                 if (importer.UseAsTemplate)
                 {
+                    var templateName = !string.IsNullOrEmpty(template.name) ? template.name : Path.GetFileNameWithoutExtension(assetPath);
+                    var templateCategory = !string.IsNullOrEmpty(template.category) ? template.category : "uncategorized";
+
                     graphViewTemplate = new GraphViewTemplateDescriptor
                     {
-                        name = string.IsNullOrEmpty(template.name) ? importer.name : template.name,
-                        category = template.category,
+                        name = templateName,
+                        category = templateCategory,
                         description = template.description,
                         icon = template.icon,
                         thumbnail = template.thumbnail,
                     };
-
                     return true;
                 }
             }
-
             graphViewTemplate = default;
             return false;
         }
 
         public bool TrySetTemplate(string assetPath, GraphViewTemplateDescriptor graphViewTemplate)
         {
-            if (string.IsNullOrEmpty(assetPath))
-                return false;
-
-            if (AssetDatabase.AssetPathExists(assetPath))
+            if (FileUtilities.TryGetImporter(assetPath, out var importer))
             {
-                var importer = AssetImporter.GetAtPath(assetPath) as ShaderGraphImporter;
-                if (importer != null)
+                importer.UseAsTemplate = true;
+
+                var template = new ShaderGraphTemplate
                 {
-                    importer.UseAsTemplate = true;
-                    var template = new ShaderGraphTemplate
-                    {
-                        name = graphViewTemplate.name,
-                        category = graphViewTemplate.category,
-                        description = graphViewTemplate.description,
-                        icon = graphViewTemplate.icon,
-                        thumbnail = graphViewTemplate.thumbnail,
-                    };
-
-                    importer.Template = template;
-                    return true;
-                }
+                    name = graphViewTemplate.name,
+                    category = graphViewTemplate.category,
+                    description = graphViewTemplate.description,
+                    icon = graphViewTemplate.icon,
+                    thumbnail = graphViewTemplate.thumbnail,
+                };
+                importer.Template = template;
+                return true;
             }
-
             return false;
         }
     }

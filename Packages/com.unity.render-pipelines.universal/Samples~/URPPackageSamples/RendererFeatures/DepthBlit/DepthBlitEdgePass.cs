@@ -22,6 +22,7 @@ public class DepthBlitEdgePass : ScriptableRenderPass
         m_DepthHandle = depthHandle;
     }
 
+#if URP_COMPATIBILITY_MODE // Compatibility Mode is being removed
 #pragma warning disable 618, 672 // Type or member is obsolete, Member overrides obsolete member
 
     // Unity calls the Execute method in the Compatibility mode
@@ -48,6 +49,7 @@ public class DepthBlitEdgePass : ScriptableRenderPass
     }
 
 #pragma warning restore 618, 672
+#endif
 
     // Unity calls the RecordRenderGraph method to add and configure one or more render passes in the render graph system.
     public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)

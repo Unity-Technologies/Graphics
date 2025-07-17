@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Returns the projects global ProbeVolumeSceneData instance.
         /// </summary>
-        [System.Obsolete("This field is no longer necessary")]
+        [System.Obsolete("This field is no longer necessary. #from(2023.3)")]
         ProbeVolumeSceneData probeVolumeSceneData { get; }
     }
 }

@@ -1,0 +1,178 @@
+/**********************************************************************
+Copyright (c) 2019 Advanced Micro Devices, Inc. All rights reserved.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+********************************************************************/
+
+// WebGPU has extremely strict uniformity requirements that are incompatible with the current implementation of this shader.
+#pragma exclude_renderers webgpu
+
+#pragma multi_compile __ ADD_PART_SUM
+
+uint g_constants_num_keys;
+
+uint g_constants_input_keys_offset;
+uint g_constants_part_sums_offset;
+uint g_constants_output_keys_offset;
+
+RWStructuredBuffer<int> g_buffer: register(u0);
+
+#define GROUP_SIZE 256u
+#define KEYS_PER_THREAD 4u
+groupshared int lds_keys[GROUP_SIZE];
+// This is to transform uncoalesced loads into coalesced loads and
+// then scattered load from LDS
+groupshared int lds_loads[KEYS_PER_THREAD][GROUP_SIZE];
+
+int BlockScan(int key, uint lidx)
+{
+#ifndef USE_WAVE_INTRINSICS
+    // Load the key into LDS
+    lds_keys[lidx] = key;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Calculate reduction
+    uint stride = 0;
+    for (stride = 1; stride < GROUP_SIZE; stride <<= 1)
+    {
+        if (lidx < GROUP_SIZE / (2 * stride))
+        {
+            lds_keys[2 * (lidx + 1) * stride - 1] =
+                lds_keys[2 * (lidx + 1) * stride - 1] + lds_keys[(2 * lidx + 1) * stride - 1];
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // Then put 0 into the root for downsweep
+    if (lidx == 0)
+        lds_keys[GROUP_SIZE - 1] = 0;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Perform downsweep
+    for (stride = GROUP_SIZE >> 1; stride > 0; stride >>= 1)
+    {
+        if (lidx < GROUP_SIZE / (2 * stride))
+        {
+            int temp                              = lds_keys[(2 * lidx + 1) * stride - 1];
+            lds_keys[(2 * lidx + 1) * stride - 1] = lds_keys[2 * (lidx + 1) * stride - 1];
+            lds_keys[2 * (lidx + 1) * stride - 1] = lds_keys[2 * (lidx + 1) * stride - 1] + temp;
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    return lds_keys[lidx];
+#else
+    lds_keys[lidx] = 0;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Perform scan within a subgroup
+    int wave_scanned = WavePrefixSum(key);
+
+    uint widx  = lidx / WaveGetLaneCount();
+    uint wlidx = WaveGetLaneIndex();
+
+    // Last element in each subgroup writes partial sum into LDS
+    if (wlidx == WaveGetLaneCount() - 1)
+    {
+        lds_keys[widx] = wave_scanned + key;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Then first subgroup scannes partial sums
+    if (widx == 0)
+    {
+        lds_keys[lidx] = WavePrefixSum(lds_keys[lidx]);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // And we add partial sums back to each subgroup-scanned element
+    wave_scanned += lds_keys[widx];
+
+    return wave_scanned;
+#endif
+}
+
+//[RootSignature(ROOT_SIGNATURE)]
+#pragma kernel BlockScanAdd
+[numthreads(GROUP_SIZE, 1, 1)]
+void BlockScanAdd(
+    in uint gidx: SV_DispatchThreadID,
+    in uint lidx: SV_GroupThreadID,
+    in uint bidx: SV_GroupID)
+{
+    uint i = 0; // Loop counter.
+
+    // Perform coalesced load into LDS
+    uint range_begin = bidx * GROUP_SIZE * KEYS_PER_THREAD;
+    for (i = 0; i < KEYS_PER_THREAD; ++i)
+    {
+        uint load_index = range_begin + i * GROUP_SIZE + lidx;
+
+        uint col = (i * GROUP_SIZE + lidx) / KEYS_PER_THREAD;
+        uint row = (i * GROUP_SIZE + lidx) % KEYS_PER_THREAD;
+
+        lds_loads[row][col] = (load_index < g_constants_num_keys) ? g_buffer[g_constants_input_keys_offset + load_index] : 0;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    int thread_sum = 0;
+
+    // Calculate scan on this thread's elements
+    for (i = 0; i < KEYS_PER_THREAD; ++i)
+    {
+        int tmp = lds_loads[i][lidx];
+        lds_loads[i][lidx] = thread_sum;
+        thread_sum += tmp;
+    }
+
+    // Scan partial sums
+    thread_sum = BlockScan(thread_sum, lidx);
+
+    // Add global partial sums if required
+    int part_sum = 0;
+#if ADD_PART_SUM
+    part_sum = g_buffer[g_constants_part_sums_offset + bidx];
+#endif
+
+    // Add partial sums back
+    for (i = 0; i < KEYS_PER_THREAD; ++i)
+    {
+        lds_loads[i][lidx] += thread_sum;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Perform coalesced writes back to global memory
+    for (i = 0; i < KEYS_PER_THREAD; ++i)
+    {
+        uint store_index = range_begin + i * GROUP_SIZE + lidx;
+        uint col = (i * GROUP_SIZE + lidx) / KEYS_PER_THREAD;
+        uint row = (i * GROUP_SIZE + lidx) % KEYS_PER_THREAD;
+
+        if (store_index < g_constants_num_keys)
+        {
+            g_buffer[g_constants_output_keys_offset + store_index] = lds_loads[row][col] + part_sum;
+        }
+    }
+}

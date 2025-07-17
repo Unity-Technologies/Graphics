@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Sets the constant values required by the FSR EASU shader on the provided command buffer
-        /// 
+        ///
         /// Logic ported from "FsrEasuCon()" in Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl
         /// </summary>
         /// <param name="cmd">Command buffer to modify</param>
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Sets the constant values required by the FSR EASU shader on the provided command buffer
-        /// 
+        ///
         /// Logic ported from "FsrEasuCon()" in Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl
         /// </summary>
         /// <param name="cmd">RasterCommandBuffer/ComputeCommandBuffer/UnsafeCommandBuffer to modify</param>
@@ -145,6 +145,19 @@ namespace UnityEngine.Rendering
             constants.w = 0.0f;
 
             cmd.SetGlobalVector(ShaderConstants._FsrRcasConstants, constants);
+        }
+
+        /// <summary>
+        /// Sets the constant values required by the FSR RCAS shader on the provided command buffer
+        ///
+        /// Logic ported from "FsrRcasCon()" in Runtime/PostProcessing/Shaders/ffx/ffx_fsr1.hlsl
+        /// For a more user-friendly version of this function, see SetRcasConstantsLinear().
+        /// </summary>
+        /// <param name="cmd">Command buffer to modify</param>
+        /// <param name="sharpnessStops">The scale is {0.0 := maximum, to N>0, where N is the number of stops(halving) of the reduction of sharpness</param>
+        public static void SetRcasConstants(BaseCommandBuffer cmd, float sharpnessStops = kDefaultSharpnessStops)
+        {
+            SetRcasConstants(cmd.m_WrappedCommandBuffer, sharpnessStops);
         }
 
         /// <summary>

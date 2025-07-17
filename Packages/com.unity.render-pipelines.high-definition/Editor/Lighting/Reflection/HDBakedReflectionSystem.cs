@@ -63,7 +63,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!AreAllOpenedSceneSaved())
                 return false;
-
             DeleteCubemapAssets(true);
             var bakedProbes = HDProbeSystem.bakedProbes;
 
@@ -789,7 +788,7 @@ namespace UnityEditor.Rendering.HighDefinition
             importer.SaveAndReimport();
         }
 
-        static bool AreAllOpenedSceneSaved()
+        public static bool AreAllOpenedSceneSaved()
         {
             for (int i = 0, c = SceneManager.sceneCount; i < c; ++i)
             {

@@ -1,0 +1,526 @@
+/* Copyright (c) 2021 Advanced Micro Devices, Inc. All rights reserved.
+
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2011 Erwin Coumans http://bulletphysics.org
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution. */
+
+// WebGPU has extremely strict uniformity requirements that are incompatible with the current implementation of this shader.
+#pragma exclude_renderers webgpu
+#pragma multi_compile __ TOP_LEVEL UINT16_INDICES
+
+#if defined(SHADER_API_PSSL) || defined(SHADER_API_METAL) || defined(SHADER_API_WEBGPU)
+#define globallycoherent
+#define USE_ATOMICS 1
+#endif
+
+#include "transform.hlsl"
+
+uint g_constants_vertex_stride;
+uint g_constants_triangle_count;
+
+uint g_aabb_offset;
+uint g_morton_codes_offset;
+uint g_primitive_refs_offset;
+uint g_leaf_parents_offset;
+int g_internal_node_range_offset;
+
+#if !(TOP_LEVEL)
+RWStructuredBuffer<float> g_vertices;
+ByteAddressBuffer g_indices;
+int g_vertices_offset;
+int g_base_index;
+int g_indices_offset;
+#define MESH_INDICES_BINDINGS
+#include "triangle_mesh.hlsl"
+#endif
+globallycoherent RWStructuredBuffer<uint> g_scratch_buffer;
+
+#include "bvh2il.hlsl"
+
+#if TOP_LEVEL
+
+#endif
+
+#define PRIMITIVES_PER_THREAD 8
+
+#define GROUP_SIZE 256
+#define INVALID_IDX 0xffffffff
+
+#define unit_side 1024.0f
+#define IS_LEAF_BIT (1 << 31)
+#define IS_UPDATED_BIT (1 << 31)
+#define IS_ENABLED_BIT (1 << 31)
+
+//=====================================================================================================================
+// 3-dilate a number
+uint ExpandBits(in uint r)
+{
+    r = (r * 0x00010001u) & 0xFF0000FFu;
+    r = (r * 0x00000101u) & 0x0F00F00Fu;
+    r = (r * 0x00000011u) & 0xC30C30C3u;
+    r = (r * 0x00000005u) & 0x49249249u;
+    return r;
+}
+
+//=====================================================================================================================
+// Calculate and pack Morton code for the point
+uint CalculateMortonCode(in float3 p)
+{
+    float x = clamp(p.x * unit_side, 0.0f, unit_side - 1.0f);
+    float y = clamp(p.y * unit_side, 0.0f, unit_side - 1.0f);
+    float z = clamp(p.z * unit_side, 0.0f, unit_side - 1.0f);
+
+    return ((ExpandBits(uint(x)) << 2) | (ExpandBits(uint(y)) << 1) | ExpandBits(uint(z)));
+}
+
+//=====================================================================================================================
+// HLSL implementation of OpenCL clz. This function counts the number of leading 0's from MSB
+
+// Thanks to a compiler bug, Only works on DX backends
+//int clz(int value) { return (31 - firstbithigh(value)); }
+
+// Version that works on all gfx backends
+int clz(uint x)
+{
+    int n = 1;
+    if (x == 0) return 32;
+    if ((x >> 16) == 0) { n = n + 16; x = x << 16; }
+    if ((x >> 24) == 0) { n = n + 8; x = x << 8; }
+    if ((x >> 28) == 0) { n = n + 4; x = x << 4; }
+    if ((x >> 30) == 0) { n = n + 2; x = x << 2; }
+
+    n = n - (x >> 31);
+    return n;
+}
+
+//=====================================================================================================================
+// Magic found here: https://github.com/kripken/bullet/blob/master/
+//                   src/BulletMultiThreaded/GpuSoftBodySolvers/DX11/HLSL/ComputeBounds.hlsl
+uint3 Float3ToUint3(in float3 v)
+{
+    // Reinterpret value as uint
+    uint3 value_as_uint = uint3(asuint(v.x), asuint(v.y), asuint(v.z));
+
+    // Invert sign bit of positives and whole of  to anegativesllow comparison as unsigned ints
+    value_as_uint.x ^= (1 + ~(value_as_uint.x >> 31) | 0x80000000);
+    value_as_uint.y ^= (1 + ~(value_as_uint.y >> 31) | 0x80000000);
+    value_as_uint.z ^= (1 + ~(value_as_uint.z >> 31) | 0x80000000);
+
+    return value_as_uint;
+}
+
+//=====================================================================================================================
+// Magic found here: https://github.com/kripken/bullet/blob/master/src/BulletMultiThreaded/GpuSoftBodySolvers/DX11/btSoftBodySolver_DX11.cpp
+float3 Uint3ToFloat3(in uint3 v)
+{
+    v.x ^= (((v.x >> 31) - 1) | 0x80000000);
+    v.y ^= (((v.y >> 31) - 1) | 0x80000000);
+    v.z ^= (((v.z >> 31) - 1) | 0x80000000);
+
+    return asfloat(v);
+}
+
+
+void MergeIntoGlobalAabb(in uint3 pmin_uint, in uint3 pmax_uint)
+{
+    uint temp;
+    InterlockedMin(g_scratch_buffer[g_aabb_offset + 0], pmin_uint.x, temp);
+    InterlockedMin(g_scratch_buffer[g_aabb_offset + 1], pmin_uint.y, temp);
+    InterlockedMin(g_scratch_buffer[g_aabb_offset + 2], pmin_uint.z, temp);
+
+    InterlockedMax(g_scratch_buffer[g_aabb_offset + 3], pmax_uint.x, temp);
+    InterlockedMax(g_scratch_buffer[g_aabb_offset + 4], pmax_uint.y, temp);
+    InterlockedMax(g_scratch_buffer[g_aabb_offset + 5], pmax_uint.z, temp);
+}
+
+
+//=====================================================================================================================
+groupshared uint3 lds_pmin[GROUP_SIZE];
+groupshared uint3 lds_pmax[GROUP_SIZE];
+
+void UpdateGlobalAabb(in Aabb aabb, in uint lidx)
+{
+#ifdef USE_WAVE_INTRINSICS
+    // Calculate the combined AABB for the entire wave.
+    const float3 wave_bounds_min = WaveActiveMin(aabb.pmin);
+    const float3 wave_bound_max = WaveActiveMax(aabb.pmax);
+    GroupMemoryBarrierWithGroupSync();
+
+    // Calculate the AABB for the entire scene using memory atomics.
+    // Scalarize the atomic min/max writes by only using the first lane.
+    if (WaveIsFirstLane())
+    {
+        // Convert the wave bounds to uints so we can atomically min/max them against the scene bounds in memory.
+        const uint3 wave_min_uint = Float3ToUint3(wave_bounds_min);
+        const uint3 wave_max_uint = Float3ToUint3(wave_bound_max);
+
+        MergeIntoGlobalAabb(wave_min_uint, wave_max_uint);
+    }
+#else
+    lds_pmin[lidx] = Float3ToUint3(aabb.pmin);
+    lds_pmax[lidx] = Float3ToUint3(aabb.pmax);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Peform reduction within a block
+    for (int stride = (GROUP_SIZE >> 1); stride > 0; stride >>= 1)
+    {
+        if ((int)lidx < stride)
+        {
+            lds_pmin[lidx] = min(lds_pmin[lidx], lds_pmin[lidx + stride]);
+            lds_pmax[lidx] = max(lds_pmax[lidx], lds_pmax[lidx + stride]);
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    if (lidx == 0)
+    {
+        MergeIntoGlobalAabb(lds_pmin[0], lds_pmax[0]);
+    }
+#endif
+}
+
+
+
+#pragma kernel Init
+[numthreads(1, 1, 1)]
+void Init(in uint gidx: SV_DispatchThreadID,
+    in uint lidx : SV_GroupThreadID,
+    in uint bidx : SV_GroupID)
+{
+    if (gidx == 0)
+    {
+        Aabb aabb = CreateEmptyAabb();
+        const uint3 pmin = Float3ToUint3(aabb.pmin);
+        const uint3 pmax = Float3ToUint3(aabb.pmax);
+
+        g_scratch_buffer[g_aabb_offset + 0] = pmin.x;
+        g_scratch_buffer[g_aabb_offset + 1] = pmin.y;
+        g_scratch_buffer[g_aabb_offset + 2] = pmin.z;
+
+        g_scratch_buffer[g_aabb_offset + 3] = pmax.x;
+        g_scratch_buffer[g_aabb_offset + 4] = pmax.y;
+        g_scratch_buffer[g_aabb_offset + 5] = pmax.z;
+    }
+}
+
+#pragma kernel CalculateAabb
+[numthreads(GROUP_SIZE, 1, 1)]
+void CalculateAabb(in uint gidx: SV_DispatchThreadID,
+    in uint lidx : SV_GroupThreadID,
+    in uint bidx : SV_GroupID)
+
+{
+    Aabb local_aabb = CreateEmptyAabb();
+    // Each thread handles PRIMITIVES_PER_THREAD triangles.
+    for (int i = 0; i < PRIMITIVES_PER_THREAD; ++i)
+    {
+        //  Calculate linear triangle index.
+        uint prim_index = gidx * PRIMITIVES_PER_THREAD + i;
+
+        if (prim_index < g_constants_triangle_count - 1)
+        {
+            // clear bvh update flag
+            g_bvh[g_bvh_offset + 1 + prim_index].update = 0;
+        }
+
+        // Check out of bounds for this triangle.
+        if (prim_index < g_constants_triangle_count)
+        {
+#if !(TOP_LEVEL)
+            // Fetch triangle indices & vertices.
+            uint3 indices = GetFaceIndices(prim_index);
+            TriangleData tri = FetchTriangle(indices);
+
+            // Update local AABB for the thread.
+            GrowAabb(tri.v0, local_aabb);
+            GrowAabb(tri.v1, local_aabb);
+            GrowAabb(tri.v2, local_aabb);
+#else
+            Aabb instance_aabb = GetInstanceAabb(prim_index);
+            GrowAabb(instance_aabb.pmin, local_aabb);
+            GrowAabb(instance_aabb.pmax, local_aabb);
+#endif
+        }
+    }
+
+    // Update global AABB for
+    UpdateGlobalAabb(local_aabb, lidx);
+}
+
+#pragma kernel CalculateMortonCodes
+[numthreads(GROUP_SIZE, 1, 1)]
+void CalculateMortonCodes(in uint gidx: SV_DispatchThreadID,
+    in uint lidx : SV_GroupThreadID,
+    in uint bidx : SV_GroupID)
+{
+    uint3 pmin;
+    pmin.x = g_scratch_buffer[g_aabb_offset + 0];
+    pmin.y = g_scratch_buffer[g_aabb_offset + 1];
+    pmin.z = g_scratch_buffer[g_aabb_offset + 2];
+
+    uint3 pmax;
+    pmax.x = g_scratch_buffer[g_aabb_offset + 3];
+    pmax.y = g_scratch_buffer[g_aabb_offset + 4];
+    pmax.z = g_scratch_buffer[g_aabb_offset + 5];
+
+    Aabb mesh_aabb;
+    mesh_aabb.pmin = Uint3ToFloat3(pmin);
+    mesh_aabb.pmax = Uint3ToFloat3(pmax);
+
+    // Each thread handles PRIMITIVES_PER_THREAD triangles.
+    for (int i = 0; i < PRIMITIVES_PER_THREAD; ++i)
+    {
+        //  Calculate linear triangle index.
+        uint prim_index = gidx * PRIMITIVES_PER_THREAD + i;
+
+        // Check out of bounds for this triangle.
+        if (prim_index < g_constants_triangle_count)
+        {
+            // Calculate primitive centroid and map it to [0, 1].
+#if !(TOP_LEVEL)
+            uint3 indices = GetFaceIndices(prim_index);
+            TriangleData tri = FetchTriangle(indices);
+            Aabb triangle_aabb = CreateEmptyAabb();
+            GrowAabb(tri.v0, triangle_aabb);
+            GrowAabb(tri.v1, triangle_aabb);
+            GrowAabb(tri.v2, triangle_aabb);
+
+            float3 center = 0.5f * (triangle_aabb.pmin + triangle_aabb.pmax);
+#else
+            Aabb instance_aabb = GetInstanceAabb(prim_index);
+            float3 center = 0.5f * (instance_aabb.pmin + instance_aabb.pmax);
+#endif
+            center -= mesh_aabb.pmin;
+            center /= (mesh_aabb.pmax - mesh_aabb.pmin);
+
+            // Calculate Morton code and save triangle index for further sorting.
+            g_scratch_buffer[g_morton_codes_offset + prim_index] = CalculateMortonCode(center);
+            g_scratch_buffer[g_primitive_refs_offset + prim_index] = prim_index;
+        }
+    }
+}
+
+uint deltaCompare(int index, int otherIndex)
+{
+    return ((uint)g_scratch_buffer[g_morton_codes_offset + index]) ^ ((uint)g_scratch_buffer[g_morton_codes_offset + otherIndex]);
+}
+
+void InitBvhHeader(float3 fpmin, float3 fpmax, uint primCount)
+{
+    g_bvh[g_bvh_offset + 0].child0 = primCount - 1; // internal node count
+    g_bvh[g_bvh_offset + 0].child1 = primCount; // leaf node count
+    g_bvh[g_bvh_offset + 0].update = 0; // unused
+    g_bvh[g_bvh_offset + 0].parent = 0; // root node index (set later)
+
+    g_bvh[g_bvh_offset + 0].SetLeftAabb(fpmin, fpmax); // global aabb
+    g_bvh[g_bvh_offset + 0].SetRightAabb(0.0, 0.0); // unused
+}
+
+void SetBvhHeaderRootNodeIndex(uint index)
+{
+    g_bvh[g_bvh_offset + 0].parent = index;
+}
+
+#if !TOP_LEVEL
+void SetLeafNode(int leafNodeIndex, uint3 triangleIndices, uint primIndex)
+{
+#if USE_ATOMICS
+    uint old_value;
+    InterlockedExchange(g_bvh_leaves[g_bvh_leaves_offset + leafNodeIndex].x, triangleIndices.x, old_value);
+    InterlockedExchange(g_bvh_leaves[g_bvh_leaves_offset + leafNodeIndex].y, triangleIndices.y, old_value);
+    InterlockedExchange(g_bvh_leaves[g_bvh_leaves_offset + leafNodeIndex].z, triangleIndices.z, old_value);
+    InterlockedExchange(g_bvh_leaves[g_bvh_leaves_offset + leafNodeIndex].w, primIndex, old_value);
+#else
+    g_bvh_leaves[g_bvh_leaves_offset + leafNodeIndex] = uint4(triangleIndices, primIndex);
+#endif
+}
+#endif
+
+void SetNodeLeftRange(int nodeIndex, uint rangeLeft)
+{
+#if USE_ATOMICS
+    uint old_value;
+    InterlockedExchange(g_scratch_buffer[g_internal_node_range_offset + 2 * nodeIndex], rangeLeft, old_value);
+#else
+    g_scratch_buffer[g_internal_node_range_offset + 2 * nodeIndex] = rangeLeft;
+#endif
+}
+
+void SetNodeRightRange(int nodeIndex, uint rangeRight)
+{
+#if USE_ATOMICS
+    uint old_value;
+    InterlockedExchange(g_scratch_buffer[g_internal_node_range_offset + 2 * nodeIndex + 1], rangeRight, old_value);
+#else
+    g_scratch_buffer[g_internal_node_range_offset + 2 * nodeIndex + 1] = rangeRight;
+#endif
+}
+
+uint2 GetNodeRange(int nodeIndex)
+{
+    int rangeLeft = 0;
+    int rangeRight = 0;
+#if USE_ATOMICS
+    InterlockedAdd(g_scratch_buffer[g_internal_node_range_offset + 2 * nodeIndex], 0, rangeLeft);
+    InterlockedAdd(g_scratch_buffer[g_internal_node_range_offset + 2 * nodeIndex + 1], 0, rangeRight);
+#else
+    rangeLeft = g_scratch_buffer[g_internal_node_range_offset + 2 * nodeIndex];
+    rangeRight = g_scratch_buffer[g_internal_node_range_offset + 2 * nodeIndex + 1];
+#endif
+
+    return uint2(rangeLeft, rangeRight);
+}
+
+uint ChooseNodeParent(uint index, uint rangeLeft, uint rangeRight, uint N, bool isLeafNode)
+{
+    if (rangeRight - rangeLeft == N - 1)
+    {
+        g_bvh[g_bvh_offset+1 + index].parent = INVALID_IDX;
+        SetBvhHeaderRootNodeIndex(index);
+        return INVALID_IDX;
+    }
+    else // not necessary but unity compiler reports a warning otherwise
+    {
+        if (rangeLeft == 0 || (rangeRight != N-1 && deltaCompare(rangeRight, rangeRight + 1) < deltaCompare(rangeLeft - 1, rangeLeft)))
+        {
+            uint parent = rangeRight;
+            if (!isLeafNode)
+                g_bvh[g_bvh_offset+1 + index].parent = parent;
+            #if !TOP_LEVEL
+            else
+                g_scratch_buffer[g_leaf_parents_offset + GET_LEAF_NODE_FIRST_PRIM(index)] = parent;
+            #endif
+
+            g_bvh[g_bvh_offset+1 + parent].child0 = index;
+            SetNodeLeftRange(parent, rangeLeft);
+            return parent;
+        }
+        else
+        {
+            uint parent = rangeLeft - 1;
+            if (!isLeafNode)
+                g_bvh[g_bvh_offset+1 + index].parent = parent;
+            #if !TOP_LEVEL
+            else
+                g_scratch_buffer[g_leaf_parents_offset + GET_LEAF_NODE_FIRST_PRIM(index)] = parent;
+            #endif
+
+            g_bvh[g_bvh_offset+1 + parent].child1 = index;
+            SetNodeRightRange(parent, rangeRight);
+            return parent;
+        }
+    }
+}
+
+#pragma kernel BuildTreeBottomUp
+[numthreads(GROUP_SIZE, 1, 1)]
+void BuildTreeBottomUp(
+    in uint gidx: SV_DispatchThreadID,
+    in uint lidx : SV_GroupThreadID,
+    in uint bidx : SV_GroupID)
+{
+    const uint N = g_constants_triangle_count;
+    if (gidx == 0)
+    {
+        uint3 pmin;
+        pmin.x = g_scratch_buffer[g_aabb_offset + 0];
+        pmin.y = g_scratch_buffer[g_aabb_offset + 1];
+        pmin.z = g_scratch_buffer[g_aabb_offset + 2];
+
+        uint3 pmax;
+        pmax.x = g_scratch_buffer[g_aabb_offset + 3];
+        pmax.y = g_scratch_buffer[g_aabb_offset + 4];
+        pmax.z = g_scratch_buffer[g_aabb_offset + 5];
+
+        float3 fpmin = Uint3ToFloat3(pmin);
+        float3 fpmax = Uint3ToFloat3(pmax);
+
+        // first bvh node is used as header
+        InitBvhHeader(fpmin, fpmax, N);
+
+        if (N == 1)
+        {
+            uint prim_index = 0;
+            SetBvhHeaderRootNodeIndex(LEAF_NODE_INDEX(prim_index));
+            #if TOP_LEVEL
+                g_instance_infos[prim_index].world_to_local_transform = Inverse(g_instance_infos[prim_index].local_to_world_transform);
+            #else
+                g_scratch_buffer[g_leaf_parents_offset + 0] = INVALID_IDX;
+                uint3 indices = GetFaceIndices(0);
+                g_bvh_leaves[g_bvh_leaves_offset + 0] = uint4(indices, 0);
+            #endif
+            return;
+        }
+    }
+
+    // Each thread handles PRIMITIVES_PER_THREAD triangles.
+    for (int i = 0; i < PRIMITIVES_PER_THREAD; ++i)
+    {
+        //  Calculate linear primitive index.
+        uint leaf_index = gidx * PRIMITIVES_PER_THREAD + i;
+        if (leaf_index >= N)
+        {
+            return;
+        }
+
+        #if TOP_LEVEL
+            uint prim_index = g_scratch_buffer[g_primitive_refs_offset + leaf_index];
+            g_instance_infos[prim_index].world_to_local_transform = Inverse(g_instance_infos[prim_index].local_to_world_transform);
+
+            uint index = ChooseNodeParent(LEAF_NODE_INDEX(prim_index), leaf_index, leaf_index, N, true);
+        #else
+            uint prim_index = g_scratch_buffer[g_primitive_refs_offset + leaf_index];
+            uint3 indices = GetFaceIndices(prim_index);
+            SetLeafNode(leaf_index, indices, prim_index);
+
+            uint index = ChooseNodeParent(LEAF_NODE_INDEX(leaf_index), leaf_index, leaf_index, N, true);
+        #endif
+
+
+        [allow_uav_condition]
+        while (index != INVALID_IDX)
+        {
+            uint old_value = 0;
+            AllMemoryBarrier(); // Shouldn't be necessary, g_bvh is globallycoherent but unity's compiler will remove too much code if not present
+            InterlockedExchange(g_bvh[g_bvh_offset+1 + index].update, 1, old_value);
+
+            if (old_value == 1)
+            {
+                uint child0 = g_bvh[g_bvh_offset+1 + index].child0;
+                uint child1 = g_bvh[g_bvh_offset+1 + index].child1;
+#if USE_ATOMICS
+                Aabb aabb0 = GetNodeAabbSync(g_bvh_offset+1, child0);
+                Aabb aabb1 = GetNodeAabbSync(g_bvh_offset+1, child1);
+				SetNodeAabbsSync(g_bvh, g_bvh_offset+1 + index, aabb0, aabb1);
+#else
+				Aabb aabb0 = GetNodeAabb(g_bvh_offset+1, child0);
+                Aabb aabb1 = GetNodeAabb(g_bvh_offset+1, child1);
+
+                g_bvh[g_bvh_offset+1 + index].SetLeftAabb(aabb0);
+                g_bvh[g_bvh_offset+1 + index].SetRightAabb(aabb1);
+#endif
+
+                uint2 nodeRange = GetNodeRange(index);
+                index = ChooseNodeParent(index, nodeRange.x, nodeRange.y, N, false);
+            }
+            else
+            {
+                // This is the first thread joining this node, bail out.
+                break;
+            }
+        }
+    }
+}
+
+// clang-format on

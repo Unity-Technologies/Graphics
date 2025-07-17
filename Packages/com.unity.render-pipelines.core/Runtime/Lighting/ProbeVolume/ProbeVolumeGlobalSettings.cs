@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering
 
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Categorization.CategoryInfo(Name = "Adaptive Probe Volumes", Order = 20)]
+    [Categorization.CategoryInfo(Name = "Lighting", Order = 20)]
     class ProbeVolumeGlobalSettings : IRenderPipelineGraphicsSettings
     {
         [SerializeField, HideInInspector]

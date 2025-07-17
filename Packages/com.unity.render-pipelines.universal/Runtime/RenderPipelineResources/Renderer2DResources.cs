@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.Universal
             set => this.SetValueAndNotify(ref m_GeometryUnshadowShader, value, nameof(m_GeometryUnshadowShader));
         }
 
+#if URP_COMPATIBILITY_MODE
         [SerializeField, ResourcePath("Runtime/2D/Data/Textures/FalloffLookupTexture.png")]
         [HideInInspector]
         private Texture2D m_FallOffLookup;
@@ -74,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
             get => m_FallOffLookup;
             set => this.SetValueAndNotify(ref m_FallOffLookup, value, nameof(m_FallOffLookup));
         }
+#endif
 
         [SerializeField,ResourcePath("Shaders/Utils/CopyDepth.shader")]
         private Shader m_CopyDepthPS;

@@ -115,6 +115,9 @@ GraphicsSettings:
   m_RenderPipelineGlobalSettingsMap:
     UnityEngine.Rendering.Universal.UniversalRenderPipeline: {fileID: 11400000, guid: de1a81e4609b24005835e55be8897384,
       type: 2}
+    UnityEditor.Rendering.DummyRenderPipeline: {fileID: 11400000, guid: c5514e40928c24e568cf97df2b3610dd,
+      type: 2}
+    UnityEngine.Rendering.Tests.RenderGraphTests+RenderGraphTestPipelineInstance: {fileID: 0}
   m_LightsUseLinearIntensity: 1
   m_LightsUseColorTemperature: 1
   m_LogWhenShaderIsCompiled: 0

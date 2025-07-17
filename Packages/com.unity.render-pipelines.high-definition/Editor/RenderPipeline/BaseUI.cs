@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [Obsolete("Use IUpdateable<TType> and EditorPrefsBoolFlags")]
+    [Obsolete("Use IUpdateable<TType> and EditorPrefsBoolFlags. #from(2021.1)")]
     class BaseUI<TType>
     {
         protected AnimBool[] m_AnimBools = null;

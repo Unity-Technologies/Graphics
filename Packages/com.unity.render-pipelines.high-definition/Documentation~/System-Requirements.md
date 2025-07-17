@@ -4,22 +4,11 @@ This page contains information on system requirements and compatibility of the H
 
 ## Unity Editor compatibility
 
-The following table shows the compatibility of the High Definition Render Pipeline (HDRP) versions with different Unity Editor versions.
+HDRP is a [core Unity package](../pack-core). For each alpha, beta or patch release of Unity, the main Unity installer contains the up-to-date version of the package.
 
-| **Package version** | **Minimum Unity version** | **Maximum Unity version** |
-|---------------------|---------------------------|---------------------------|
-| 17.x                | 6000.x                    | 6000.x                    |
-| 16.0.x              | 2023.2                    | 2023.x                    |
-| 15.0.x              | 2023.1                    | 2023.1                    |
-| 14.0.x              | 2022.2                    | 2022.x                    |
-| 13.x.x              | 2022.1                    | 2022.1                    |
-| 12.0.x              | 2021.2                    | 2021.3                    |
-| 11.x                | 2021.1                    | 2021.1                    |
-| 10.x                | 2020.2                    | 2020.3                    |
-| 9.x-preview         | 2020.1                    | 2020.1                    |
-| 8.x                 | 2020.1                    | 2020.1                    |
-| 7.x                 | 2019.3                    | 2019.4                    |
-| 6.x                 | 2019.2                    | 2019.2                    |
+The Package Manager window displays only the major and minor revision of the package. For example, version 17.2.0 for all Unity 6.2.x releases.
+
+You can install a different version of a graphics package from disk using the Package Manager, or by modifying the `manifest.json` file.
 
 ## Render pipeline compatibility
 

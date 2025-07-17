@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SplitScatteringDistance,// scattering color + mean free path
         }
 
-        [Obsolete("Profiles are obsolete, only one diffusion profile per asset is allowed.")]
+        [Obsolete("Profiles are obsolete, only one diffusion profile per asset is allowed. #from(2021.3)")]
         internal DiffusionProfile this[int index]
         {
             get => profile;
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
-        [Obsolete("Profiles are obsolete, only one diffusion profile per asset is allowed.")]
+        [Obsolete("Profiles are obsolete, only one diffusion profile per asset is allowed. #from(2021.3)")]
         internal DiffusionProfile[] profiles;
 
         static readonly MigrationDescription<Version, DiffusionProfileSettings> k_Migration = MigrationDescription.New(

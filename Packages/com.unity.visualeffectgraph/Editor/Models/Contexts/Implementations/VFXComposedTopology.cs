@@ -66,6 +66,8 @@ namespace UnityEditor.VFX
                 desc.features |= VFXOutputUpdate.Features.MultiMesh;
             if (lod)
                 desc.features |= VFXOutputUpdate.Features.LOD;
+            if (parent.HasFrustumCulling())
+                desc.features |= VFXOutputUpdate.Features.FrustumCulling;
 
             desc.properties.AddRange(VFXMultiMeshHelper.GetInputProperties(MeshCount, desc.features));
             foreach (var cpuExpression in VFXMultiMeshHelper.GetCPUExpressionNames(MeshCount))

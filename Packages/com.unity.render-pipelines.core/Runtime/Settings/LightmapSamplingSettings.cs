@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     [Serializable]
     [SupportedOnRenderPipeline()]
-    [Categorization.CategoryInfo(Name = "Lightmap Sampling Settings", Order = 20)]
+    [Categorization.CategoryInfo(Name = "Lighting", Order = 20)]
     public class LightmapSamplingSettings : IRenderPipelineGraphicsSettings
     {
         [SerializeField, HideInInspector]

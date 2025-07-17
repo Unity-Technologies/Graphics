@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Defines if profiling is logged or not. This enum is not longer in use, use the Profiler instead.
     /// </summary>
-    [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect.", true)]
+    [Obsolete("PipelineDebugLevel is replaced to use the profiler and has no effect. #from(2022.2) #breakingFrom(2023.1)", true)]
     public enum PipelineDebugLevel
     {
         /// <summary>
@@ -414,13 +414,14 @@ namespace UnityEngine.Rendering.Universal
         PerPixel = 3,
     }
 
+#if URP_COMPATIBILITY_MODE
     internal struct DeprecationMessage
     {
         internal const string CompatibilityScriptingAPIObsolete = "This rendering path is for compatibility mode only (when Render Graph is disabled). Use Render Graph API instead.";
-#if URP_COMPATIBILITY_MODE
+        internal const string CompatibilityScriptingAPIObsoleteFrom2023_3 = CompatibilityScriptingAPIObsolete + " #from(2023.3)";
         internal const string CompatibilityScriptingAPIConsoleWarning = "Your project uses Compatibility Mode, which disables the render graph system. Compatibility Mode is deprecated. Migrate your ScriptableRenderPasses to the Render Graph API instead. After you migrate, go to Edit > Project Settings > Player and remove the URP_COMPATIBILITY_MODE define from the Scripting Define Symbols. If you don't remove the define, build time and build size are slightly increased.";
-#endif
     }
+#endif
     
 #if UNITY_EDITOR && URP_COMPATIBILITY_MODE
     internal class WarnUsingNonRenderGraph
@@ -460,7 +461,7 @@ namespace UnityEngine.Rendering.Universal
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Use m_RendererDataList instead.")]
+        [Obsolete("Use m_RendererDataList instead. #from(2023.1)")]
         [SerializeField] internal ScriptableRendererData m_RendererData = null;
 
         // Renderer settings
@@ -589,7 +590,7 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.LightLayers)]
 #endif
         [SerializeField] bool m_SupportsLightLayers = false;
-        [SerializeField] [Obsolete("",true)] PipelineDebugLevel m_DebugLevel;
+        [SerializeField] [Obsolete("#from(2022.1) #breakingFrom(2023.1)", true)] PipelineDebugLevel m_DebugLevel;
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
 
         // Adaptive performance settings
@@ -1183,7 +1184,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Support GPU Streaming for Probe Volumes.
         /// </summary>
-        [Obsolete( "This is obsolete, use supportProbeVolumeGPUStreaming instead.")]
+        [Obsolete( "This is obsolete, use supportProbeVolumeGPUStreaming instead. #from(2023.3)")]
         public bool supportProbeVolumeStreaming
         {
             get => m_SupportProbeVolumeGPUStreaming;
@@ -1504,7 +1505,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
         /// </summary>
-        [Obsolete("This is obsolete, use useRenderingLayers instead.", true)]
+        [Obsolete("This is obsolete, use useRenderingLayers instead. #from(2023.1) #breakingFrom(2023.1)", true)]
         public bool supportsLightLayers => m_SupportsLightLayers;
 
         /// <summary>
@@ -1530,7 +1531,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Previously returned the debug level for this Render Pipeline Asset but is now deprecated. Replaced to use the profiler and is no longer used.
         /// </summary>
-        [Obsolete("PipelineDebugLevel is deprecated and replaced to use the profiler. Calling debugLevel is not necessary.", true)]
+        [Obsolete("PipelineDebugLevel is deprecated and replaced to use the profiler. Calling debugLevel is not necessary. #from(2022.2) #breakingFrom(2023.1)", true)]
         public PipelineDebugLevel debugLevel => PipelineDebugLevel.Disabled;
 
         /// <summary>
@@ -1546,15 +1547,12 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls whether the RenderGraph render path is enabled.
         /// </summary>
-        [Obsolete("This has been deprecated, please use GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode instead.")]
+        [Obsolete("This has been deprecated, please use GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode instead. #from(2023.3)")]
         public bool enableRenderGraph
 #if URP_COMPATIBILITY_MODE
         {
             get
             {
-                if (RenderGraphGraphicsAutomatedTests.enabled)
-                   return true;
-
                 if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings))
                     return !renderGraphSettings.enableRenderCompatibilityMode;
 
@@ -1642,17 +1640,17 @@ namespace UnityEngine.Rendering.Universal
         public override string renderPipelineShaderTag => UniversalRenderPipeline.k_ShaderTagName;
 
         /// <summary>Names used for display of rendering layer masks.</summary>
-        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(2023.3)")]
         public override string[] renderingLayerMaskNames => RenderingLayerMask.GetDefinedRenderingLayerNames();
 
         /// <summary>Names used for display of rendering layer masks with prefix.</summary>
-        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(23.3)", false)]
+        [Obsolete("This property is obsolete. Use RenderingLayerMask API and Tags & Layers project settings instead. #from(2023.3)")]
         public override string[] prefixedRenderingLayerMaskNames => Array.Empty<string>();
 
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead.", true)]
+        [Obsolete("This is obsolete, please use renderingLayerMaskNames instead. #from(2023.1) #breakingFrom(2023.1)", true)]
         public string[] lightLayerMaskNames => new string[0];
 
         /// <summary>
@@ -1980,7 +1978,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns the projects global ProbeVolumeSceneData instance.
         /// </summary>
-        [Obsolete("This property is no longer necessary.")]
+        [Obsolete("This property is no longer necessary. #from(2023.3)")]
         public ProbeVolumeSceneData probeVolumeSceneData => null;
 
         /// <summary>

@@ -72,7 +72,12 @@ namespace UnityEngine.Rendering.Universal
         public bool enableRenderCompatibilityMode
 #if URP_COMPATIBILITY_MODE
         {
-            get => m_EnableRenderCompatibilityMode && !RenderGraphGraphicsAutomatedTests.enabled;
+            get
+            {
+                if (RenderGraphGraphicsAutomatedTests.forceRenderGraphState.HasValue)
+                    return !RenderGraphGraphicsAutomatedTests.forceRenderGraphState.Value;
+                return m_EnableRenderCompatibilityMode;
+            }
             set
             {
                 this.SetValueAndNotify(ref m_EnableRenderCompatibilityMode, value, nameof(m_EnableRenderCompatibilityMode));
@@ -82,7 +87,7 @@ namespace UnityEngine.Rendering.Universal
         {
             //Temporarilly keep this boolean for all third parties support
             get => false;
-            [Obsolete("Compatibility Mode is being removed. This setter is not accessible without the define URP_COMPATIBILITY_MODE.", true)] set { }
+            [Obsolete("Compatibility Mode is being removed. This setter is not accessible without the define URP_COMPATIBILITY_MODE. #from(6000.3) #breakingFrom(6000.3)", true)] set { }
         }
 #endif
 

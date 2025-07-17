@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
             m_intensity = intensity;
         }
 
+#if URP_COMPATIBILITY_MODE
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             //Todo: test code is not working for XR
@@ -35,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
 
             CommandBufferPool.Release(cmd);
         }
-
+#endif
 
         static void ExecutePass(RTHandle targetHandle, CommandBuffer cmd, bool isGameCamera, Material material, float motionIntensity)
         {

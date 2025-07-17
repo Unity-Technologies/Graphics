@@ -943,7 +943,7 @@ namespace UnityEditor.VFX.Test
             spawnerOutput.LinkFrom(spawnerInit);
 
             graph.SetCompilationMode(VFXCompilationMode.Edition);
-            graph.RecompileIfNeeded(false, true);
+            graph.CompileAndUpdateAsset(graph.visualEffectResource.asset);
 
             var gameObj = new GameObject("CreateSpawner_Set_Attribute_With_Delay");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
@@ -1766,6 +1766,30 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual( Vector3.zero, readAttribute0);
             Assert.AreEqual( Vector3.one, readAttribute1);
+        }
+
+        [UnityTest, Description("Cover UUM-111564")]
+        public IEnumerator CustomSpawner_With_Live_Authoring()
+        {
+            var spawnCountValue = 159.0f;
+            CreateAssetAndComponent(spawnCountValue, "OnPlay", out var graph, out var vfxComponent, out var gameObj, out var cameraObj);
+
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().Single();
+            var blockCustomSpawner = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
+            blockCustomSpawner.SetSettingValue("m_customType", new SerializableType(typeof(VFXCustomSpawnerUpdateCounterTest)));
+            basicSpawner.AddChild(blockCustomSpawner);
+
+            var asset = graph.GetResource().asset;
+            Assert.IsNotNull(asset);
+            graph.CompileAndUpdateAsset(asset);
+
+            VFXCustomSpawnerUpdateCounterTest.s_UpdateCount = 0;
+            int maxFrame = 64;
+            while (VFXCustomSpawnerUpdateCounterTest.s_UpdateCount == 0 && --maxFrame > 0)
+                yield return null;
+
+            Assert.AreNotEqual(0u, VFXCustomSpawnerUpdateCounterTest.s_UpdateCount);
+            yield return null;
         }
     }
 }

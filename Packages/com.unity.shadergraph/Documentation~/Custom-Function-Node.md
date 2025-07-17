@@ -18,11 +18,11 @@ In the [Graph Inspector](Internal-Inspector.md), open the **Node Settings** to a
 | Menu Item | Description |
 |:----------|:------------|
 | Inputs | A [Custom Port Menu](Custom-Port-Menu.md) that defines the node's input ports. |
-| Outputs | A [Custom Port Menu](Custom-Port-Menu.md) that defines the node's input ports. |
+| Outputs | A [Custom Port Menu](Custom-Port-Menu.md) that defines the node's output ports. |
 | Type | A function type selector. Choose File to reference an external file or string to directly input functions to the node. |
 | Name | Part of the name this custom function has in the final generated code. Suffixed by the function type ` _half ` or ` _float `. |
-| Source | An asset field to reference the external HLSL include file. **Only available in `File` mode**. |
-| Body | A text box where you enter HLSL code. **Only available in `String` mode**. |
+| Source | An asset field to reference the external HLSL include file with the `.hlsl` extension. **Available only in `File` mode**. |
+| Body | A text box where you enter HLSL code. **Available only in `String` mode**. |
 
 ### Defining the Function via string
 If you select `String` mode, the graph generates the shader function. The `Name` field defines the name of the generated function, and the `Body` field defines the contents of the generated function. Unity handles the arguments, braces, and indent scope automatically. In `String` mode you may use the token `$precision` instead of `half` or `float` in the `Body` field. Unity replaces this with the correct type, based on that node's precision, when the node is processed.
@@ -58,7 +58,7 @@ void MyFunction_float(float3 A, float B, out float3 Out)
 #endif //MYHLSLINCLUDE_INCLUDED
 ```
 
-`File` mode allows for more flexbility with custom functions in a graph. You can define uniform variables outside of the function scope, as shown here with a matrix.
+`File` mode allows for more flexibility with custom functions in a graph. You can define uniform variables outside the function scope, as shown here with a matrix.
 
 ```
 //UNITY_SHADER_NO_UPGRADE

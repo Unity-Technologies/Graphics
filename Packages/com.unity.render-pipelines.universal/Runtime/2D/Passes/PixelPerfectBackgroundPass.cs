@@ -1,6 +1,7 @@
+#if URP_COMPATIBILITY_MODE
 using System;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Rendering.Universal.CompatibilityMode
 {
     // Only to be used when Pixel Perfect Camera is present and it has Crop Frame X or Y enabled.
     // This pass simply clears BuiltinRenderTextureType.CameraTarget to black, so that the letterbox or pillarbox is black instead of garbage.
@@ -14,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = evt;
         }
 
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = renderingData.commandBuffer;
@@ -32,3 +33,4 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
+#endif // URP_COMPATIBILITY_MODE

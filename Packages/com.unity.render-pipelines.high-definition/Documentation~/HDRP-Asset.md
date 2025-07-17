@@ -97,9 +97,10 @@ The following properties are available only if you add **DLSS** to **Advanced Up
 
 | **Property** | **Description** |
 |-|-|
-| **DLSS Mode** | Sets whether DLSS prioritizes quality or performance. The options are:<ul><li>**Maximum Quality**</li><li>**Balanced**</li><li>**Maximum Performance**</li><li>**Ultra Performance**</li></ul> |
+| **DLSS Mode** | Sets whether DLSS prioritizes quality or performance. The options are:<ul><li>**Maximum Quality**</li><li>**Balanced**</li><li>**Maximum Performance**</li><li>**Ultra Performance**</li><li>**DLAA**</li></ul> |
 | **DLSS Injection Point** | Sets when DLSS runs in the rendering pipeline. For more information, refer to [Injection points dropdown](#injection-points). |
 | **DLSS Use Optimal Settings** | Enables DLSS to control screen percentage automatically. |
+| **DLSS Render Presets** | Sets the selected DLSS Render Preset for each quality mode. For more information, refer to [DLSS Quality Modes and Render Presets](deep-learning-super-sampling-in-hdrp.md#qualityandpresets). |
 
 <a name="fsr2-settings"></a>
 #### FSR2 settings

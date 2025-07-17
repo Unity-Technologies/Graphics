@@ -663,7 +663,7 @@ namespace UnityEngine.Rendering
             static IRayTracingShader m_ShaderSO = null;
             static IRayTracingShader m_ShaderRL = null;
 
-            const string k_PackageLightTransport = "Packages/com.unity.rendering.light-transport";
+            const string k_PackageLightTransport = "Packages/com.unity.render-pipelines.core";
 
             internal AccelStructAdapter CreateAccelerationStructure()
             {
@@ -760,7 +760,7 @@ namespace UnityEngine.Rendering
                     m_SamplingResources.Load();
                 }
 
-                SamplingResources.BindSobolBlueNoiseTextures(cmd, m_SamplingResources);
+                SamplingResources.Bind(cmd, m_SamplingResources);
             }
 
             public bool TryGetMeshForAccelerationStructure(Renderer renderer, out Mesh mesh)
@@ -867,7 +867,7 @@ namespace UnityEngine.Rendering
                 bakingSet.useRenderingLayers = bakingSet.bakedMaskCount == 1 ? false : true;
 
                 m_BakingSet = bakingSet;
-                m_BakingBatch = new BakingBatch(cellCount);
+                m_BakingBatch = new BakingBatch(cellCount, ProbeReferenceVolume.instance);
                 m_ProfileInfo = new ProbeVolumeProfileInfo();
                 ModifyProfileFromLoadedData(m_BakingSet);
                 m_CellPosToIndex.Clear();

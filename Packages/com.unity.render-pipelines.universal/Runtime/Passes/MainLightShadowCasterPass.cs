@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// <summary>
     /// Renders a shadow map for the main Light.
     /// </summary>
-    public class MainLightShadowCasterPass : ScriptableRenderPass
+    public partial class MainLightShadowCasterPass : ScriptableRenderPass
     {
         // Internal
         internal RTHandle m_MainLightShadowmapTexture;
@@ -203,7 +203,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MaxShadowDistanceSq = cameraData.maxShadowDistance * cameraData.maxShadowDistance;
             m_CascadeBorder = shadowData.mainLightShadowCascadeBorder;
             m_CreateEmptyShadowmap = false;
+#if URP_COMPATIBILITY_MODE
             useNativeRenderPass = true;
+#endif
 
             return true;
         }
@@ -225,7 +227,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return false;
 
             m_CreateEmptyShadowmap = true;
+#if URP_COMPATIBILITY_MODE
             useNativeRenderPass = false;
+#endif
 
             m_SetKeywordForEmptyShadowmap = shadowsEnabled;
 
@@ -253,7 +257,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             // Disable obsolete warning for internal usage
@@ -283,7 +287,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;

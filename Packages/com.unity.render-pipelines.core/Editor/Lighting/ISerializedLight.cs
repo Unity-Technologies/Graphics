@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering
         SerializedObject serializedAdditionalDataObject { get; }
 
         /// <summary>Light Intensity Property</summary>
-        [Obsolete("This property has been deprecated. Use ISerializedLight.settings.intensity instead.")]
+        [Obsolete("This property has been deprecated. Use ISerializedLight.settings.intensity instead. #from(2023.3)")]
         SerializedProperty intensity { get; }
 
         /// <summary>Method that updates the <see cref="SerializedObject"/> of the Light and the Additional Light Data</summary>

@@ -1,8 +1,9 @@
-using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
+using System.Collections;
+using UnityEditor.EditorTools;
 using UnityEditorInternal;
-using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -262,5 +263,25 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
             }
         }
+    }
+
+    [EditorTool(Description, typeof(LocalVolumetricFog), toolPriority = (int)Mode)]
+    internal class LocalVolumetricFogModifyInfluenceVolumeTool : GenericEditorTool<LocalVolumetricFog>
+    {
+        private const string Description = "Modify the influence volume";
+        private const EditMode.SceneViewEditMode Mode = LocalVolumetricFogEditor.k_EditBlend;
+        private const string IconName = "PreMatCube";
+
+        protected LocalVolumetricFogModifyInfluenceVolumeTool() : base(Description, Mode, IconName) { }
+    }
+
+    [EditorTool(Description, typeof(LocalVolumetricFog), toolPriority = (int)Mode)]
+    internal class LocalVolumetricFogModifyReflectionProbeBoxTool : GenericEditorTool<LocalVolumetricFog>
+    {
+        private const string Description = "Modify the base shape";
+        private const EditMode.SceneViewEditMode Mode = LocalVolumetricFogEditor.k_EditShape;
+        private const string IconName = "EditCollider";
+
+        protected LocalVolumetricFogModifyReflectionProbeBoxTool() : base(Description, Mode, IconName) { }
     }
 }

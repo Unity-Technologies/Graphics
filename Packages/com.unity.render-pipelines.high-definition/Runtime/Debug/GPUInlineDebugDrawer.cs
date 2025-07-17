@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static public void BindProducers(HDCamera cam, RenderGraph renderGraph)
         {
 #if ENABLE_GPU_INLINE_DEBUG_DRAWER
-            using (var builder = renderGraph.AddRenderPass<GPUInlineDebugDrawerData>("GPUInlineDebugDrawer_BindProducers", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<GPUInlineDebugDrawerData>("GPUInlineDebugDrawer_BindProducers", out var passData))
             {
                 int maxLines = (int)GPUInlineDebugDrawerParams.MaxLines;
 
@@ -176,33 +176,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 lineCSBuffer = renderGraph.CreateBuffer(new BufferDesc(maxLines, Marshal.SizeOf(typeof(GPUInlineDebugDrawerLine)), GraphicsBuffer.Target.Append)
                 { name = "GPUInlineDebugDrawerLineCS" });
 
-                passData.lineWSBuffer = builder.WriteBuffer(lineWSBuffer);
-                passData.lineCSBuffer = builder.WriteBuffer(lineCSBuffer);
+                passData.lineWSBuffer = lineWSBuffer;
+                builder.UseBuffer(passData.lineWSBuffer, AccessFlags.Write);
+                passData.lineCSBuffer = lineCSBuffer;
+                builder.UseBuffer(passData.lineCSBuffer, AccessFlags.Write);
 
                 plotRingBufferHandle = renderGraph.ImportBuffer(plotRingBuffer);
                 plotRingBufferStartHandle = renderGraph.ImportBuffer(plotRingBufferStart);
                 plotRingBufferEndHandle = renderGraph.ImportBuffer(plotRingBufferEnd);
 
-                passData.plotRingBuffer = builder.WriteBuffer(plotRingBufferHandle);
-                passData.plotRingBufferStart = builder.WriteBuffer(plotRingBufferStartHandle);
-                passData.plotRingBufferEnd = builder.WriteBuffer(plotRingBufferEndHandle);
+                passData.plotRingBuffer = plotRingBufferHandle;
+                builder.UseBuffer(passData.plotRingBuffer, AccessFlags.Write);
+                passData.plotRingBufferStart = plotRingBufferStartHandle;
+                builder.UseBuffer(passData.plotRingBufferStart, AccessFlags.Write);
+                passData.plotRingBufferEnd = plotRingBufferEndHandle;
+                builder.UseBuffer(passData.plotRingBufferEnd, AccessFlags.Write);
 
                 passData.mousePosition = new Vector2(Mathf.Round(Event.current.mousePosition.x), Mathf.Round(cam.actualHeight - 1 - Event.current.mousePosition.y));
 
                 builder.SetRenderFunc(
-                    (GPUInlineDebugDrawerData data, Rendering.RenderGraphModule.RenderGraphContext ctx) =>
+                    (GPUInlineDebugDrawerData data, Rendering.RenderGraphModule.UnsafeGraphContext ctx) =>
                     {
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
                         ((GraphicsBuffer)data.lineWSBuffer).SetCounterValue(0u);
                         ((GraphicsBuffer)data.lineCSBuffer).SetCounterValue(0u);
 
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawerLinesWSProduce, data.lineWSBuffer);
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawerLinesCSProduce, data.lineCSBuffer);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawerLinesWSProduce, data.lineWSBuffer);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawerLinesCSProduce, data.lineCSBuffer);
 
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBuffer, data.plotRingBuffer);
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferStart, data.plotRingBufferStart);
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferEnd, data.plotRingBufferEnd);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBuffer, data.plotRingBuffer);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferStart, data.plotRingBufferStart);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferEnd, data.plotRingBufferEnd);
 
-                        ctx.cmd.SetGlobalVector(HDShaderIDs._GPUInlineDebugDrawerMousePos, data.mousePosition);
+                        natCmd.SetGlobalVector(HDShaderIDs._GPUInlineDebugDrawerMousePos, data.mousePosition);
                     });
             }
 #endif
@@ -215,18 +221,25 @@ namespace UnityEngine.Rendering.HighDefinition
         static public void Draw(RenderGraph renderGraph)
         {
 #if ENABLE_GPU_INLINE_DEBUG_DRAWER
-            using (var builder = renderGraph.AddRenderPass<GPUInlineDebugDrawerData>("GPUInlineDebugDrawer_Draws", out var passData))
+            using (var builder = renderGraph.AddUnsafePass<GPUInlineDebugDrawerData>("GPUInlineDebugDrawer_Draws", out var passData))
             {
-                passData.lineWSBuffer = builder.ReadBuffer(lineWSBuffer);
-                passData.lineCSBuffer = builder.ReadBuffer(lineCSBuffer);
+                passData.lineWSBuffer = lineWSBuffer;
+                builder.UseBuffer(passData.lineWSBuffer, AccessFlags.Read);
+                passData.lineCSBuffer = lineCSBuffer;
+                builder.UseBuffer(passData.lineCSBuffer, AccessFlags.Read);
                 lineWSIndirectArgs.SetData(m_IndirectLineArgsDefault);
                 lineCSIndirectArgs.SetData(m_IndirectLineArgsDefault);
-                passData.lineWSIndirectArgs = builder.WriteBuffer(renderGraph.ImportBuffer(lineWSIndirectArgs));
-                passData.lineCSIndirectArgs = builder.WriteBuffer(renderGraph.ImportBuffer(lineCSIndirectArgs));
+                passData.lineWSIndirectArgs = renderGraph.ImportBuffer(lineWSIndirectArgs);
+                builder.UseBuffer(passData.lineWSIndirectArgs, AccessFlags.Write);
+                passData.lineCSIndirectArgs = renderGraph.ImportBuffer(lineCSIndirectArgs);
+                builder.UseBuffer(passData.lineCSIndirectArgs, AccessFlags.Write);
 
-                passData.plotRingBuffer = builder.ReadBuffer(plotRingBufferHandle);
-                passData.plotRingBufferStart = builder.ReadBuffer(plotRingBufferStartHandle);
-                passData.plotRingBufferEnd = builder.ReadBuffer(plotRingBufferEndHandle);
+                passData.plotRingBuffer = plotRingBufferHandle;
+                builder.UseBuffer(passData.plotRingBuffer, AccessFlags.Read);
+                passData.plotRingBufferStart = plotRingBufferStartHandle;
+                builder.UseBuffer(passData.plotRingBufferStart, AccessFlags.Read);
+                passData.plotRingBufferEnd = plotRingBufferEndHandle;
+                builder.UseBuffer(passData.plotRingBufferEnd, AccessFlags.Read);
 
                 passData.lineMaterial = m_LineMaterial;
                 passData.lineWSNoDepthTestPassID = m_LineWSNoDepthTestPassID;
@@ -234,24 +247,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.plotRingBufferPassID = m_PlotRingBufferPassID;
 
                 builder.SetRenderFunc(
-                    (GPUInlineDebugDrawerData data, RenderGraphContext ctx) =>
+                    (GPUInlineDebugDrawerData data, UnsafeGraphContext ctx) =>
                     {
-                        ctx.cmd.CopyCounterValue(data.lineWSBuffer, data.lineWSIndirectArgs, sizeof(uint));
-                        ctx.cmd.CopyCounterValue(data.lineCSBuffer, data.lineCSIndirectArgs, sizeof(uint));
+                        var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
+                        natCmd.CopyCounterValue(data.lineWSBuffer, data.lineWSIndirectArgs, sizeof(uint));
+                        natCmd.CopyCounterValue(data.lineCSBuffer, data.lineCSIndirectArgs, sizeof(uint));
 
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawerLinesWSConsume, data.lineWSBuffer);
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawerLinesCSConsume, data.lineCSBuffer);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawerLinesWSConsume, data.lineWSBuffer);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawerLinesCSConsume, data.lineCSBuffer);
 
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferRead, data.plotRingBuffer);
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferStartRead, data.plotRingBufferStart);
-                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferEndRead, data.plotRingBufferEnd);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferRead, data.plotRingBuffer);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferStartRead, data.plotRingBufferStart);
+                        natCmd.SetGlobalBuffer(HDShaderIDs._GPUInlineDebugDrawer_PlotRingBufferEndRead, data.plotRingBufferEnd);
 
                         // Draw World Space Lines
-                        ctx.cmd.DrawProceduralIndirect(Matrix4x4.identity, data.lineMaterial, data.lineWSNoDepthTestPassID, MeshTopology.Lines, data.lineWSIndirectArgs);
+                        natCmd.DrawProceduralIndirect(Matrix4x4.identity, data.lineMaterial, data.lineWSNoDepthTestPassID, MeshTopology.Lines, data.lineWSIndirectArgs);
                         // Draw Clip Space Lines
-                        ctx.cmd.DrawProceduralIndirect(Matrix4x4.identity, data.lineMaterial, data.lineCSNoDepthTestPassID, MeshTopology.Lines, data.lineCSIndirectArgs);
+                        natCmd.DrawProceduralIndirect(Matrix4x4.identity, data.lineMaterial, data.lineCSNoDepthTestPassID, MeshTopology.Lines, data.lineCSIndirectArgs);
                         // Draw Plot Ring Buffer
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.lineMaterial, data.plotRingBufferPassID, MeshTopology.LineStrip, (int)GPUInlineDebugDrawerParams.MaxPlotRingBuffer + 5);
+                        natCmd.DrawProcedural(Matrix4x4.identity, data.lineMaterial, data.plotRingBufferPassID, MeshTopology.LineStrip, (int)GPUInlineDebugDrawerParams.MaxPlotRingBuffer + 5);
                     });
             }
 #endif

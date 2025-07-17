@@ -3,7 +3,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Utility class for debug overlay coordinates.
     /// </summary>
-    [System.Obsolete("Please use UnityEngine.Rendering.DebugOverlay")]
+    [System.Obsolete("Please use UnityEngine.Rendering.DebugOverlay. #from(2023.1)")]
     public class DebugOverlay
     {
         /// <summary>Current x coordinate.</summary>

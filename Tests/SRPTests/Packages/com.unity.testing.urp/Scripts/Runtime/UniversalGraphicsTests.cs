@@ -9,6 +9,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools.Graphics.Contexts;
 using Object = UnityEngine.Object;
 #if OCULUS_SDK || OPENXR_SDK
 using UnityEngine.XR;
@@ -78,9 +79,7 @@ namespace Unity.Rendering.Universal.Tests
                 Assert.Ignore("Test scene is not compatible with GPU Driven and and will be skipped.");
 
             // Check for RenderGraph compatibility and skip test if needed.
-            bool isUsingRenderGraph = RenderGraphGraphicsAutomatedTests.enabled ||
-                                      (!GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>()
-                                          ?.enableRenderCompatibilityMode ?? false);
+            bool isUsingRenderGraph = RenderGraphGlobalContext.IsRenderGraphActive();
 
             if (isUsingRenderGraph && settings.renderBackendCompatibility ==
                 UniversalGraphicsTestSettings.RenderBackendCompatibility.NonRenderGraph)

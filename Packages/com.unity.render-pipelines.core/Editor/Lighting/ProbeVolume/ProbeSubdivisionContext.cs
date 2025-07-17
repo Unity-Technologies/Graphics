@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering
                     if (s_CurrentSubdivision == null)
                     {
                         // Start a new Subdivision
-                        s_CurrentSubdivision = Subdivide();
+                        s_CurrentSubdivision = Subdivide(showProgress: false);
                     }
 
                     // Step the subdivision with the amount of cell per frame in debug menu
@@ -71,9 +71,10 @@ namespace UnityEngine.Rendering
                         }
                     }
 
-                    IEnumerator Subdivide()
+                    IEnumerator Subdivide(bool showProgress)
                     {
-                        var ctx = AdaptiveProbeVolumes.PrepareProbeSubdivisionContext(true);
+                        var perSceneDataList = AdaptiveProbeVolumes.GetPerSceneDataList();
+                        var ctx = AdaptiveProbeVolumes.PrepareProbeSubdivisionContext(perSceneDataList, true);
                         var contributors = GIContributors.Find(GIContributors.ContributorFilter.All);
 
                         // Cull all the cells that are not visible (we don't need them for realtime debug)
@@ -115,7 +116,7 @@ namespace UnityEngine.Rendering
                             ctx.cells.Add(cell);
 
                             bool canceledByUser = false;
-                            var result = AdaptiveProbeVolumes.BakeBricks(ctx, contributors, ref canceledByUser);
+                            var result = AdaptiveProbeVolumes.BakeBricks(ctx, contributors, showProgress, ref canceledByUser);
 
                             if (result.cells.Count != 0)
                                 ProbeReferenceVolume.instance.realtimeSubdivisionInfo[cell.bounds] = result.cells[0].bricks;

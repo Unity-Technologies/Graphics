@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// You can use this pass to render objects that have a material and/or shader
     /// with the pass names UniversalForward or SRPDefaultUnlit.
     /// </summary>
-    public class DrawObjectsPass : ScriptableRenderPass
+    public partial class DrawObjectsPass : ScriptableRenderPass
     {
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
@@ -20,11 +20,13 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_IsOpaque;
 
+#if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Used to indicate if the active target of the pass is the back buffer
         /// </summary>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete + " #from(6000.3)")]
         public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
+#endif
 
         /// <summary>
         /// Used to indicate whether transparent objects should receive shadows or not.
@@ -115,7 +117,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 #if URP_COMPATIBILITY_MODE
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             ContextContainer frameData = renderingData.frameData;
@@ -144,6 +146,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (data.cameraData.xr.enabled && data.isActiveTargetBackBuffer)
             {
                 cmd.SetViewport(data.cameraData.xr.GetViewport());
+            }
+
+            bool useScreenSpaceIrradiance = data.screenSpaceIrradianceHdl.IsValid();
+            cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceIrradiance, useScreenSpaceIrradiance);
+            if (useScreenSpaceIrradiance)
+            {
+                cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceIrradiance, data.screenSpaceIrradianceHdl);
             }
 
             // scaleBias.x = flipSign
@@ -181,6 +190,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             internal TextureHandle albedoHdl;
             internal TextureHandle depthHdl;
+            internal TextureHandle screenSpaceIrradianceHdl;
 
             internal UniversalCameraData cameraData;
             internal bool isOpaque;
@@ -297,6 +307,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 TextureHandle ssaoTexture = resourceData.ssaoTexture;
                 if (ssaoTexture.IsValid())
                     builder.UseTexture(ssaoTexture, AccessFlags.Read);
+
+                TextureHandle irradianceTexture = resourceData.irradianceTexture;
+                if (irradianceTexture.IsValid())
+                {
+                    passData.screenSpaceIrradianceHdl = irradianceTexture;
+                    builder.UseTexture(irradianceTexture, AccessFlags.Read);
+                }
+
                 RenderGraphUtils.UseDBufferIfValid(builder, resourceData);
 
                 InitRendererLists(renderingData, cameraData, lightData, ref passData, default(ScriptableRenderContext), renderGraph, true);
@@ -327,6 +345,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                         TransparentSettingsPass.ExecutePass(context.cmd);
 
                     bool yFlip = data.cameraData.IsRenderTargetProjectionMatrixFlipped(data.albedoHdl, data.depthHdl);
+
+                    bool useScreenSpaceIrradiance = data.screenSpaceIrradianceHdl.IsValid();
+                    context.cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceIrradiance, useScreenSpaceIrradiance);
+                    if (useScreenSpaceIrradiance)
+                    {
+                        context.cmd.SetGlobalTexture(ShaderPropertyId.screenSpaceIrradiance, data.screenSpaceIrradianceHdl);
+                    }
 
                     ExecutePass(context.cmd, data, data.rendererListHdl, data.objectsWithErrorRendererListHdl, yFlip);
                 });
@@ -361,7 +386,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ColorTargetIndentifiers = new RTHandle[2];
 #endif
         }
-        
+
 #if URP_COMPATIBILITY_MODE
         /// <summary>
         /// Sets up the pass.
@@ -385,7 +410,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             // Disable obsolete warning for internal usage
@@ -395,7 +420,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
-        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = renderingData.commandBuffer;
