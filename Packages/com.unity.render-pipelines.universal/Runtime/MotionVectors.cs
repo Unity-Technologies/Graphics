@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     {
         #region Fields
 
-        private const int k_EyeCount = 2;
+        private const int k_EyeCount = 4;
 
         readonly Matrix4x4[] m_Projection = new Matrix4x4[k_EyeCount];
         readonly Matrix4x4[] m_View = new Matrix4x4[k_EyeCount];
