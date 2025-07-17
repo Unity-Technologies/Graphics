@@ -17,6 +17,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// <returns>Returns true if the shader features required by the copy pass is supported for MSAA, otherwise will it return false.</returns>
         public static bool CanAddCopyPassMSAA()
         {
+            if (!IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform())
+                return false;
+
             return Blitter.CanCopyMSAA();
         }
 
@@ -27,6 +30,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// <returns>Returns true if the shader features required by the copy pass is supported for MSAA, otherwise will it return false.</returns>
         public static bool CanAddCopyPassMSAA(in TextureDesc sourceDesc)
         {
+            if (!IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform())
+                return false;
+
             return Blitter.CanCopyMSAA(sourceDesc.bindTextureMS);
         }
 
@@ -37,7 +43,51 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// <returns>Returns true if the shader features required by the copy pass is supported for MSAA, otherwise will it return false.</returns>
         public static bool CanAddCopyPassMSAA(bool bindTextureMS)
         {
+            if (!IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform())
+                return false;
+
             return Blitter.CanCopyMSAA(bindTextureMS);
+        }
+
+        internal static bool IsFramebufferFetchEmulationSupportedOnCurrentPlatform()
+        {
+#if PLATFORM_WEBGL
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+                return false;
+#endif
+            return true;
+        }
+
+        internal static bool IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform()
+        {
+            // TODO: Temporarily disable this utility pending a more efficient solution for supporting or disabling framebuffer fetch emulation on PS4/PS5.
+            return (SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4
+                 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation5NGGC);
+        }
+
+        /// <summary>
+        /// Determines whether framebuffer fetch is supported on the current platform for the given texture.
+        /// This includes checking both general support for framebuffer fetch emulation and specific support
+        /// for multisampled (MSAA) textures.
+        /// </summary>
+        /// <param name="graph">The RenderGraph adding this pass to.</param>
+        /// <param name="tex">The texture handle to validate for framebuffer fetch compatibility.</param>
+        /// <returns>
+        /// Returns true if framebuffer fetch is supported on the current platform for the given texture;
+        /// otherwise, returns false.
+        /// </returns>
+        public static bool IsFramebufferFetchSupportedOnCurrentPlatform(this RenderGraph graph, in TextureHandle tex)
+        {
+            if (!IsFramebufferFetchEmulationSupportedOnCurrentPlatform())
+                return false;
+
+            if (!IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform())
+            {
+                var sourceInfo = graph.GetRenderTargetInfo(tex);
+                if (sourceInfo.msaaSamples > 1)
+                    return sourceInfo.bindMS;
+            }
+            return true;
         }
 
         /// <summary>
@@ -55,10 +105,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             if (!graph.nativeRenderPassesEnabled)
                 return false;
 
-#if PLATFORM_WEBGL
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+            if (!IsFramebufferFetchEmulationSupportedOnCurrentPlatform())
                 return false;
-#endif
 
             var sourceInfo = graph.GetRenderTargetInfo(source);
             var destinationInfo = graph.GetRenderTargetInfo(destination);
