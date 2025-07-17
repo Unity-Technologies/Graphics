@@ -1,9 +1,6 @@
 #ifndef _UNIFIEDRAYTRACING_COMMON_HLSL_
 #define _UNIFIEDRAYTRACING_COMMON_HLSL_
 
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/Bindings.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
-
 #define K_T_MAX                 400000
 #ifndef FLT_EPSILON
 #define FLT_EPSILON             1.192092896e-07F

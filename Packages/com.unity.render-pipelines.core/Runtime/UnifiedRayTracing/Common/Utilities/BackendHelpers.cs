@@ -2,7 +2,10 @@ using System;
 
 namespace UnityEngine.Rendering.UnifiedRayTracing
 {
-    internal static class BackendHelpers
+    /// <summary>
+    /// Helper functions for querying the shader type and filename for a given backend.
+    /// </summary>
+    public static class BackendHelpers
     {
         /// <summary>
         /// Builds a file path with the right extension for the given <see cref="RayTracingBackend"/>.
@@ -24,7 +27,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// <summary>
         /// Returns the <see cref="System.Type"/> of shader used by the given <see cref="RayTracingBackend"/>.
         /// </summary>
-        /// <param name="backend"></param>
+        /// <param name="backend">Backend for which the shader will be loaded.</param>
         /// <returns>The Type of the shader.</returns>
         public static Type GetTypeOfShader(RayTracingBackend backend)
         {

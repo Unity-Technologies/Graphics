@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// <summary>
     /// Parameters used to configure the creation of instances that are part of a <see cref="IRayTracingAccelStruct"/>.
     /// </summary>
-    internal struct MeshInstanceDesc
+    public struct MeshInstanceDesc
     {
         /// <summary>
         /// The Mesh used to build this instance's geometry.
@@ -80,14 +80,14 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// A data structure used to represent a collection of instances and geometries that are used for GPU ray tracing.
     /// It can be created by calling <see cref="RayTracingContext.CreateAccelerationStructure"/>.
     /// </summary>
-    internal interface IRayTracingAccelStruct : IDisposable
+    public interface IRayTracingAccelStruct : IDisposable
     {
         /// <summary>
         /// Adds an instance to the RayTracingAccelerationStructure.
         /// </summary>
         /// <param name="meshInstance">The parameters describing this instance.</param>
         /// <returns>A value representing a handle that you can use to perform later actions (e.g. RemoveInstance...)</returns>
-        /// <exception cref="UnifiedRayTracingException"></exception>
+        /// <exception cref="UnifiedRayTracingException">Thrown if the instance cannot be added. Inspect <see cref="UnifiedRayTracingException.errorCode"/> for the reason.</exception>
         int AddInstance(MeshInstanceDesc meshInstance);
 
         /// <summary>
@@ -135,9 +135,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// Depending on the backend, the GPU build algorithm can require additional GPU storage that is supplied through the scratchBuffer parameter.
         /// Its required size can be queried by calling <see cref="GetBuildScratchBufferRequiredSizeInBytes"/>.
         /// </remarks>
-        /// <param name="cmd"></param>
-        /// <param name="scratchBuffer"></param>
-        /// <exception cref="UnifiedRayTracingException"></exception>
+        /// <param name="cmd">CommandBuffer to register the build command to.</param>
+        /// <param name="scratchBuffer">Temporary buffer used during the build.</param>
+        /// <exception cref="UnifiedRayTracingException">Thrown if the build failed. Inspect <see cref="UnifiedRayTracingException.errorCode"/> for the reason.</exception>
         void Build(CommandBuffer cmd, GraphicsBuffer scratchBuffer);
 
         /// <summary>

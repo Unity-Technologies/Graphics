@@ -9,6 +9,10 @@
 namespace UnifiedRT
 {
 
+#ifndef UNIFIED_RT_PAYLOAD
+    #pragma message("Error, you must define UNIFIED_RT_PAYLOAD before including TraceRay.hlsl")
+#endif
+
 #if defined(UNIFIED_RT_BACKEND_HARDWARE)
 
 float3 _WorldRayOrigin() { return WorldRayOrigin(); }

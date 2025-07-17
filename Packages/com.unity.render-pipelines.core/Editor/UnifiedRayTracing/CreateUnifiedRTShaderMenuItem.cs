@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.UnifiedRayTracing
         }
 
 const string shaderContent =
-@"#include ""Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRay.hlsl""
+@"#include ""Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl""
 
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_AccelStruct);
 

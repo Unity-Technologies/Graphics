@@ -102,17 +102,17 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// <summary>
     /// Utility shaders needed by a <see cref="RayTracingContext"/> to operate.
     /// </summary>
-    internal class RayTracingResources
+    public class RayTracingResources
     {
-        public ComputeShader geometryPoolKernels { get; set; }
-        public ComputeShader copyBuffer { get; set; }
-        public ComputeShader copyPositions { get; set; }
-        public ComputeShader bitHistogram { get; set; }
-        public ComputeShader blockReducePart { get; set; }
-        public ComputeShader blockScan { get; set; }
-        public ComputeShader buildHlbvh { get; set; }
-        public ComputeShader restructureBvh { get; set; }
-        public ComputeShader scatter { get; set; }
+        internal ComputeShader geometryPoolKernels { get; set; }
+        internal ComputeShader copyBuffer { get; set; }
+        internal ComputeShader copyPositions { get; set; }
+        internal ComputeShader bitHistogram { get; set; }
+        internal ComputeShader blockReducePart { get; set; }
+        internal ComputeShader blockScan { get; set; }
+        internal ComputeShader buildHlbvh { get; set; }
+        internal ComputeShader restructureBvh { get; set; }
+        internal ComputeShader scatter { get; set; }
 
 #if UNITY_EDITOR
         /// <summary>
@@ -172,35 +172,31 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// <returns>Whether the resources were successfully loaded.</returns>
         public bool LoadFromRenderPipelineResources()
         {
-            if (GraphicsSettings.TryGetRenderPipelineSettings<RayTracingRenderPipelineResources>(out var rpResources))
-            {
-                Debug.Assert(rpResources.GeometryPoolKernels != null);
-                Debug.Assert(rpResources.CopyBuffer != null);
-                Debug.Assert(rpResources.CopyPositions != null);
-                Debug.Assert(rpResources.BitHistogram != null);
-                Debug.Assert(rpResources.BlockReducePart != null);
-                Debug.Assert(rpResources.BlockScan != null);
-                Debug.Assert(rpResources.BuildHlbvh != null);
-                Debug.Assert(rpResources.RestructureBvh != null);
-                Debug.Assert(rpResources.Scatter != null);
-
-                geometryPoolKernels = rpResources.GeometryPoolKernels;
-                copyBuffer = rpResources.CopyBuffer;
-
-                copyPositions = rpResources.CopyPositions;
-                bitHistogram = rpResources.BitHistogram;
-                blockReducePart = rpResources.BlockReducePart;
-                blockScan = rpResources.BlockScan;
-                buildHlbvh = rpResources.BuildHlbvh;
-                restructureBvh = rpResources.RestructureBvh;
-                scatter = rpResources.Scatter;
-
-                return true;
-            }
-            else
-            {
+            if (!GraphicsSettings.TryGetRenderPipelineSettings<RayTracingRenderPipelineResources>(out var rpResources))
                 return false;
-            }
+
+            Debug.Assert(rpResources.GeometryPoolKernels != null);
+            Debug.Assert(rpResources.CopyBuffer != null);
+            Debug.Assert(rpResources.CopyPositions != null);
+            Debug.Assert(rpResources.BitHistogram != null);
+            Debug.Assert(rpResources.BlockReducePart != null);
+            Debug.Assert(rpResources.BlockScan != null);
+            Debug.Assert(rpResources.BuildHlbvh != null);
+            Debug.Assert(rpResources.RestructureBvh != null);
+            Debug.Assert(rpResources.Scatter != null);
+
+            geometryPoolKernels = rpResources.GeometryPoolKernels;
+            copyBuffer = rpResources.CopyBuffer;
+
+            copyPositions = rpResources.CopyPositions;
+            bitHistogram = rpResources.BitHistogram;
+            blockReducePart = rpResources.BlockReducePart;
+            blockScan = rpResources.BlockScan;
+            buildHlbvh = rpResources.BuildHlbvh;
+            restructureBvh = rpResources.RestructureBvh;
+            scatter = rpResources.Scatter;
+
+            return true;
         }
     }
 

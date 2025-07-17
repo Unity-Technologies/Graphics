@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// <summary>
     /// Specifies what backend to use when creating a <see cref="RayTracingContext"/>.
     /// </summary>
-    internal enum RayTracingBackend
+    public enum RayTracingBackend
     {
         /// <summary>
         /// Requires a GPU supporting hardware accelerated ray tracing.
@@ -35,14 +35,14 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// Once these objects have been created, the shader code can be executed by calling <see cref="IRayTracingShader.Dispatch">IRayTracingShader.Dispatch</see>
     /// Before calling Dispose() on a RayTracingContext, all <see cref="IRayTracingAccelStruct"/> that have been created by a RayTracingContext must be disposed as well.
     /// </remarks>
-    internal sealed class RayTracingContext : IDisposable
+    public sealed class RayTracingContext : IDisposable
     {
         /// <summary>
         /// Creates a RayTracingContext.
         /// </summary>
         /// <param name="backend">The chosen backend.</param>
         /// <param name="resources">The resources (provides the various shaders the context needs to operate).</param>
-        /// <exception cref="System.InvalidOperationException"></exception>
+        /// <exception cref="System.InvalidOperationException">Thrown when the supplied backend is not supported.</exception>
         public RayTracingContext(RayTracingBackend backend, RayTracingResources resources)
         {
             Utils.CheckArgIsNotNull(resources, nameof(resources));
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         /// Creates a RayTracingContext.
         /// </summary>
         /// <param name="resources">The resources (provides the various shaders the context needs to operate).</param>
-        /// <exception cref="System.InvalidOperationException"></exception>
+        /// <exception cref="System.InvalidOperationException">Thrown when no supported backend is available.</exception>
         public RayTracingContext(RayTracingResources resources) : this(IsBackendSupported(RayTracingBackend.Hardware) ? RayTracingBackend.Hardware : RayTracingBackend.Compute, resources)
         {
         }
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// Specifies how Unity builds the acceleration structure on the GPU.
     /// </summary>
     [System.Flags]
-    internal enum BuildFlags
+    public enum BuildFlags
     {
         /// <summary>
         /// Specify no options for the acceleration structure build. Provides a trade-off between good ray tracing performance and fast build times.
@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// <summary>
     /// Options used to configure the creation of a <see cref="IRayTracingAccelStruct"/>.
     /// </summary>
-    internal class AccelerationStructureOptions
+    public class AccelerationStructureOptions
     {
         /// <summary>
         /// Option for the quality of the built <see cref="IRayTracingAccelStruct"/>.
@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// <remarks>
     /// A scratch buffer is a GraphicsBuffer that Unity uses during the acceleration structure build or the ray tracing dispatch to store temporary data.
     /// </remarks>
-    internal static class RayTracingHelper
+    public static class RayTracingHelper
     {
         /// <summary>
         /// <see cref="GraphicsBuffer.Target"/> suitable for scratch buffers used in for both <see cref="IRayTracingShader.Dispatch"/> and <see cref="IRayTracingAccelStruct.Build"/>.

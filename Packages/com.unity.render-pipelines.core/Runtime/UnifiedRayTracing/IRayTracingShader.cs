@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     /// Depending on the backend that was selected when creating the <see cref="RayTracingContext"/>, this class either wraps
     /// a RayTracing or a Compute shader.
     /// </remarks>
-    internal interface IRayTracingShader
+    public interface IRayTracingShader
     {
         /// <summary>
         /// Adds a command in cmd to set an IRayTracingAccelStruct on this shader.

@@ -22,14 +22,6 @@
 #endif
 namespace UnifiedRT {
 
-struct EmptyPayload
-{
-
-};
-#ifndef UNIFIED_RT_PAYLOAD
-#define UNIFIED_RT_PAYLOAD EmptyPayload
-#endif
-
 struct RayTracingAccelStruct
 {
 #if defined(UNIFIED_RT_BACKEND_HARDWARE)
