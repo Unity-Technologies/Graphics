@@ -30,8 +30,8 @@ void InitializeInputData(Varyings input, out InputData inputData)
 {
     inputData = (InputData)0;
 
-    inputData.normalWS = NormalizeNormalPerPixel(input.normalWS);
-
+    inputData.positionCS = input.positionCS;
+    inputData.normalWS = normalize(input.normalWS);
     inputData.positionWS = float3(0, 0, 0);
     inputData.viewDirectionWS = half3(0, 0, 1);
     inputData.shadowCoord = 0;
