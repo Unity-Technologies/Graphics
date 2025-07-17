@@ -27,14 +27,13 @@ Although some fields are specific to certain types of Keywords, all Keywords hav
 | **Reference Name** | String   | The internal name for the Keyword in the shader.<br/><br/>If you overwrite the Reference Name parameter, take note of the following:<ul><li>Keyword Reference Names are always in full capitals, so Unity converts all lowercase letters to uppercase.<li/><li>If the Reference Name contains any characters that HLSL does not support, Unity replaces those characters with underscores.<li/><li>Right-click on a Reference Name, and select **Reset Reference** to revert to the default Reference Name.<li/><ul/> |
 | **Definition**     | Enum     | Sets how the Keyword is defined in the shader. Determines when to compile keyword variants.<br/><br/>There are three available options:<ul><li>**Shader Feature**: Unity only compiles keyword variants when a Material selects the relevant option. For this option to be available in the Player, a Material selecting it must exist at build-time.<li/><li>**Multi Compile**: Pre-compiles all the variant possibilities. This is slower and uses more memory, but allows the option to be dynamically switched in the Player.<li/><li>**Predefined**: The render pipeline defines this keyword and controls the settings for it.<li/><ul/> |
 | **Scope**          | Enum     | Sets the scope at which to define the Keyword.<br/><br/>The following options are available:<ul><li>**Global Keywords**: Defines Keyword for the entire project, and it counts towards the global keyword limit.<li/><li>**Local Keywords**: Defines Keyword for only one shader, which has its own local keyword limit.<li/><ul/>When you use Predefined Keywords, Unity disables this field. |
-| **Stages** |  | Set the stage the keyword applies to.<br/><br/>The following options are available:<ul><li>**All** - Applies this keyword to all shader stages.<li/><li>**Vertex** - Applies this keyword to the vertex stage.<li/><li>**Fragment** - Applies this keyword to the fragment stage.<li/><ul/> |
+| **Stages** | N/A | Set the stage the keyword applies to.<br/><br/>The following options are available:<ul><li>**All** - Applies this keyword to all shader stages.<li/><li>**Vertex** - Applies this keyword to the vertex stage.<li/><li>**Fragment** - Applies this keyword to the fragment stage.<li/><ul/> |
 
 <a name="BooleanKeywords"></a>
 ## Boolean Keywords
 
 Boolean Keywords are either on or off. This results in two shader variants. Unity exposes Boolean Keywords in the Material Inspector if the Exposed parameter is set to is true. To enable the keyword from a script, use EnableKeyword on the keyword's Reference name. DisableKeyword disables the keyword. To learn more about Boolean Keywords, see [Shader variants and keywords](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
 
-![](images/keywords_boolean.png)
 
 ### Type-specific parameters
 
@@ -53,8 +52,6 @@ Special characters such as ( ) or ! @ are not valid in the **Entry Name** of an 
 
 When you define an Enum Keyword, Shader Graph displays labels for each state consisting of  a sanitized version of the Enum's **Entry Name**  appended to the main **Reference** name.
 When controlling a keyword via script with a, <code>Material.EnableKeyword</code> or <code>Shader.EnableKeyword function</code>, enter the state label in the format <code>{REFERENCE}_{REFERENCESUFFIX}</code>. For example, if your reference name is MYENUM and the desired entry is OPTION1, then you would call <code>Material.EnableKeyword("MYENUM_OPTION1")</code>. When you select an option, this disables the other options.
-
-![](images/keywords_enum.png)
 
 ### Type-specific parameters
 
@@ -78,4 +75,3 @@ In an HDRP project, you can find the current quality level in the Material secti
 MaterialQualityUtilities.SetGlobalShaderKeywords( MaterialQuality.High );
 ```
 
-![](images/keywords_built-in.png)

@@ -732,6 +732,25 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Create a new Render Graph Texture resource using the descriptor from another texture.
+        /// </summary>
+        /// <remarks>
+        /// This API cannot be called during the Render Graph execution, please call it outside of SetRenderFunc().
+        /// </remarks>
+        /// <param name="texture">Texture from which the descriptor should be used.</param>
+        /// <param name="name">The destination texture name.</param>
+        /// <param name="clear">Texture needs to be cleared on first use.</param>
+        /// <returns>A new TextureHandle.</returns>
+        public TextureHandle CreateTexture(TextureHandle texture, string name, bool clear = false)
+        {
+            var destinationDesc = GetTextureDesc(texture);
+            destinationDesc.name = name;
+            destinationDesc.clearBuffer = clear;
+
+            return m_Resources.CreateTexture(destinationDesc);
+        }
+
+        /// <summary>
         /// Create a new Render Graph Texture if the passed handle is invalid and use said handle as output.
         /// If the passed handle is valid, no texture is created.
         /// </summary>

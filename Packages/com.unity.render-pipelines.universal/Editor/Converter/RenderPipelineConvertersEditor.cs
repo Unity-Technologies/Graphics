@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using UnityEditor.SceneManagement;
-using UnityEngine;
 using UnityEditor.Search;
 using UnityEditor.UIElements;
-using UnityEngine.UIElements;
+using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using UnityEditor.Rendering.Analytics;
-
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -62,6 +62,11 @@ namespace UnityEditor.Rendering.Universal
 
         public bool isActiveAndEnabled => isEnabled && isActive;
         public bool requiresInitialization => !isInitialized && isActiveAndEnabled;
+
+        public override string ToString()
+        {
+            return $"Warnings: {warnings} - Errors: {errors} - Ok: {success} - Total: {items?.Count ?? 0}";
+        }
     }
 
     [Serializable]
@@ -874,8 +879,20 @@ namespace UnityEditor.Rendering.Universal
                     ConvertIndex(coreConverterIndex, (int)ve.userData);
                     // Refreshing the list to show the new state
                     m_ConverterSelectedVE.Q<ListView>("converterItems").Rebuild();
+                    LogConverterResult(coreConverterIndex);
                 },
                 isActive ? DropdownMenuAction.AlwaysEnabled : DropdownMenuAction.AlwaysDisabled);
+        }
+
+        void LogConverterResult(int coreConverterIndex)
+        {
+            var converterState = m_ConverterStates[coreConverterIndex];
+            if (converterState.items.Count() > 0)
+            {
+                var sb = new StringBuilder($"Conversion results for item: {m_CoreConvertersList[coreConverterIndex].name}:{Environment.NewLine}");
+                sb.AppendLine(converterState.ToString());
+                Debug.Log(sb);
+            }
         }
 
         void UpdateInfo(int stateIndex, RunItemContext ctx)
@@ -955,6 +972,8 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
+                LogConverterResult(index);
+
                 contextInfo.Add(converterInfo);
                 m_CoreConvertersList[index].OnPostRun();
                 AssetDatabase.SaveAssets();
@@ -967,7 +986,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorSceneManager.OpenScene(currentScenePath);
             }
 
-            RecreateUI(); 
+            RecreateUI();
 
             GraphicsToolUsageAnalytic.ActionPerformed<RenderPipelineConvertersEditor>(nameof(Convert), contextInfo.ToNestedColumn());
         }

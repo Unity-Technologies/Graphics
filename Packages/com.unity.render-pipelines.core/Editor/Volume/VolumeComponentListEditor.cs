@@ -445,13 +445,14 @@ namespace UnityEditor.Rendering
             if (!m_IsDefaultVolumeProfile)
                 menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
 
-            menu.AddSeparator(string.Empty);
 
             if (targetEditor.hasAdditionalProperties)
+            {
+                menu.AddSeparator(string.Empty);
                 menu.AddAdvancedPropertiesBoolMenuItem(() => targetEditor.showAdditionalProperties,
                                                        () => targetEditor.showAdditionalProperties ^= true);
+            }
 
-            menu.AddSeparator(string.Empty);
             targetEditor.AddDefaultProfileContextMenuEntries(menu, VolumeManager.instance.globalDefaultProfile,
                 () => VolumeProfileUtils.CopyValuesToProfile(targetComponent, VolumeManager.instance.globalDefaultProfile));
 

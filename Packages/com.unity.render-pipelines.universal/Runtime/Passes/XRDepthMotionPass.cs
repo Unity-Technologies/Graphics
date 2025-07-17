@@ -11,11 +11,13 @@ namespace UnityEngine.Rendering.Universal
     public class XRDepthMotionPass : ScriptableRenderPass
     {
         private static readonly ShaderTagId k_MotionOnlyShaderTagId = new ShaderTagId("XRMotionVectors");
+        private static readonly int k_SpaceWarpNDCModifier = Shader.PropertyToID("_SpaceWarpNDCModifier");
         private PassData m_PassData;
         private RTHandle m_XRMotionVectorColor;
         private TextureHandle xrMotionVectorColor;
         private RTHandle m_XRMotionVectorDepth;
         private TextureHandle xrMotionVectorDepth;
+        private bool m_XRSpaceWarpRightHandedNDC;
 
         /// <summary>
         /// Creates a new <c>XRDepthMotionPass</c> instance.
@@ -156,6 +158,8 @@ namespace UnityEngine.Rendering.Universal
 
             xrMotionVectorColor = renderGraph.ImportTexture(m_XRMotionVectorColor, importInfo, importMotionColorParams);
             xrMotionVectorDepth = renderGraph.ImportTexture(m_XRMotionVectorDepth, importInfoDepth, importMotionDepthParams);
+
+            m_XRSpaceWarpRightHandedNDC = cameraData.xr.spaceWarpRightHandedNDC;
         }
 
 #region Recording
@@ -207,6 +211,10 @@ namespace UnityEngine.Rendering.Universal
                     // Setup camera stereo buffer
                     context.cmd.SetGlobalMatrixArray(ShaderPropertyId.previousViewProjectionNoJitterStereo, data.previousViewProjectionStereo);
                     context.cmd.SetGlobalMatrixArray(ShaderPropertyId.viewProjectionNoJitterStereo, data.viewProjectionStereo);
+
+                    // SpaceWarp is only available on Vulkan, so these values are always true. This is to support 2 versions of spacewarp
+                    // One expects OpenGL NDC space motion vectors, the other expects Vulkan NDC space
+                    context.cmd.SetGlobalFloat(k_SpaceWarpNDCModifier, m_XRSpaceWarpRightHandedNDC ? -1.0f : 1.0f);
 
                     // Object Motion for both static and dynamic objects, fill stencil for mv filled pixels.
                     context.cmd.DrawRendererList(passData.objMotionRendererList);

@@ -25,12 +25,20 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.TangentSpaceViewDirection:                    float3x3 tangentSpaceTransform =                    float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
     $SurfaceDescriptionInputs.TangentSpaceViewDirection:                    output.TangentSpaceViewDirection =                  TransformWorldToTangent(output.WorldSpaceViewDirection, tangentSpaceTransform);
     $SurfaceDescriptionInputs.WorldSpacePosition:                           output.WorldSpacePosition =                         input.positionRWS;
+#if SHADERPASS != SHADERPASS_FOG_VOLUME_VOXELIZATION
     $SurfaceDescriptionInputs.ObjectSpacePosition:                          output.ObjectSpacePosition =                        TransformWorldToObject(input.positionRWS);
+#else
+    $SurfaceDescriptionInputs.ObjectSpacePosition:                          output.ObjectSpacePosition =                        TransformWorldToObjectFog(input.positionRWS);
+#endif
     $SurfaceDescriptionInputs.ViewSpacePosition:                            output.ViewSpacePosition =                          TransformWorldToView(input.positionRWS);
     $SurfaceDescriptionInputs.TangentSpacePosition:                         output.TangentSpacePosition =                       float3(0.0f, 0.0f, 0.0f);
     $SurfaceDescriptionInputs.AbsoluteWorldSpacePosition:                   output.AbsoluteWorldSpacePosition =                 GetAbsolutePositionWS(input.positionRWS);
     $SurfaceDescriptionInputs.WorldSpacePositionPredisplacement:            output.WorldSpacePositionPredisplacement =          input.positionPredisplacementRWS;
+#if SHADERPASS != SHADERPASS_FOG_VOLUME_VOXELIZATION
     $SurfaceDescriptionInputs.ObjectSpacePositionPredisplacement:           output.ObjectSpacePositionPredisplacement =         TransformWorldToObject(input.positionPredisplacementRWS);
+#else
+    $SurfaceDescriptionInputs.ObjectSpacePositionPredisplacement:           output.ObjectSpacePositionPredisplacement =         TransformWorldToObjectFog(input.positionPredisplacementRWS);
+#endif
     $SurfaceDescriptionInputs.ViewSpacePositionPredisplacement:             output.ViewSpacePositionPredisplacement =           TransformWorldToView(input.positionPredisplacementRWS);
     $SurfaceDescriptionInputs.TangentSpacePositionPredisplacement:          output.TangentSpacePositionPredisplacement =        float3(0.0f, 0.0f, 0.0f);
     $SurfaceDescriptionInputs.AbsoluteWorldSpacePositionPredisplacement:    output.AbsoluteWorldSpacePositionPredisplacement =  GetAbsolutePositionWS(input.positionPredisplacementRWS);

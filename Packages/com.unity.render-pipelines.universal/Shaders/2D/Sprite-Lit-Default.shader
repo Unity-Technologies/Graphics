@@ -132,8 +132,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
         Pass
         {
-            ZWrite Off
-
             Tags { "LightMode" = "NormalsRendering"}
 
             HLSLPROGRAM
@@ -152,6 +150,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
                 float2 uv           : TEXCOORD0;
+                float3 normal       : NORMAL;
                 float4 tangent      : TANGENT;
                 UNITY_SKINNED_VERTEX_INPUTS
                 UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -190,7 +189,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = attributes.uv;
                 o.color = attributes.color * _Color * unity_SpriteColor;
-                o.normalWS = -GetViewForwardDir();
+                o.normalWS = TransformObjectToWorldDir(attributes.normal);
                 o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
                 o.bitangentWS = cross(o.normalWS, o.tangentWS) * attributes.tangent.w;
                 return o;

@@ -377,6 +377,20 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < resourceData.normalsTexture.Length; ++i)
                 resourceData.normalsTexture[i] = UniversalRenderer.CreateRenderGraphTexture(renderGraph, desc, "_NormalMap", true, RendererLighting.k_NormalClearColor);
 
+            if (m_Renderer2DData.useDepthStencilBuffer)
+            {
+                // Normals pass can reuse active depth if same dimensions, if not create a new depth texture
+                if (descriptor.width != width || descriptor.height != height)
+                {
+                    var normalsDepthDesc = new RenderTextureDescriptor(width, height);
+                    normalsDepthDesc.graphicsFormat = GraphicsFormat.None;
+                    normalsDepthDesc.autoGenerateMips = false;
+                    normalsDepthDesc.msaaSamples = descriptor.msaaSamples;
+                    normalsDepthDesc.depthStencilFormat = k_DepthStencilFormat;
+
+                    resourceData.normalsDepth = UniversalRenderer.CreateRenderGraphTexture(renderGraph, normalsDepthDesc, "_NormalDepth", false, FilterMode.Bilinear);
+                }
+            }
         }
 
         void CreateLightTextures(RenderGraph renderGraph, int width, int height)
@@ -437,8 +451,9 @@ namespace UnityEngine.Rendering.Universal
         bool RequiresDepthCopyPass(UniversalCameraData cameraData)
         {
             var renderPassInputs = GetRenderPassInputs(cameraData);
+            bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture;
             bool cameraHasPostProcessingWithDepth = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated && cameraData.postProcessingRequiresDepthTexture;
-            bool requiresDepthCopyPass = (cameraHasPostProcessingWithDepth || renderPassInputs.requiresDepthTexture) && m_CreateDepthTexture;
+            bool requiresDepthCopyPass = (cameraHasPostProcessingWithDepth || requiresDepthTexture) && m_CreateDepthTexture;
 
             return requiresDepthCopyPass;
         }
@@ -696,14 +711,14 @@ namespace UnityEngine.Rendering.Universal
 
                 if (isTargetBackbuffer)
                 {
-                    commonResourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                    commonResourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                    commonResourceData.activeColorID = ActiveID.BackBuffer;
+                    commonResourceData.activeDepthID = ActiveID.BackBuffer;
                 }
             }
 
-            var finalColorHandle = commonResourceData.activeColorTexture;
-
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent2D.AfterRenderingPostProcessing);
+
+            var finalColorHandle = commonResourceData.activeColorTexture;
 
             // Do PixelPerfect upscaling when using the Stretch Fill option
             if (requirePixelPerfectUpscale)
@@ -720,8 +735,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 postProcessPass.RenderFinalPassRenderGraph(renderGraph, frameData, in finalColorHandle, commonResourceData.overlayUITexture, in finalBlitTarget, needsColorEncoding);
 
-                commonResourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                commonResourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                finalColorHandle = finalBlitTarget;
+
+                commonResourceData.activeColorID = ActiveID.BackBuffer;
+                commonResourceData.activeDepthID = ActiveID.BackBuffer;
             }
 
             // If post-processing then we already resolved to camera target while doing post.

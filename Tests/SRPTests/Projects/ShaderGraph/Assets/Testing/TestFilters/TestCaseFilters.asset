@@ -175,3 +175,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Test is unstable
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: ef89632b434b9c644a88f827ec7b029d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 19
+    GraphicsDevice: 2
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Test is unstable

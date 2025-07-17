@@ -12,7 +12,7 @@ The subgraphs are broken into the following categories:
  - **SDFs** - Signed Distance Field shapes are the basis for UI elements. The value of each pixel in an SDF represents the distance to the edge of the shape. You can use the SDF data to create resolution-independent shapes that are either sharp or blurry. Shapes in the set include circle, hexagon, pill, rectangle, star, and triangle. This collection also contains operators for combining SDF shapes.
  - **Time** - These nodes output time in various forms - looping, mirroredm, sine wave, etc.
  - **UV** - These nodes manipulate UV coordinates including move, scale, tilt, mirror, invert, and more. Shapes and elements can be transformed by adjusting their UV coordinates with these nodes.
- ![](images/UITools-subgraphs.png)
+ ![A collection of graphical nodes within a node-based visual editor, grouped into labeled sections—Gradients, Helpers, Patterns, SDFs, Time, and UV. Each node features preview images and labeled inputs/outputs, handling elements like color, shape, noise, and UV manipulation.](images/UITools-subgraphs.png)
 
 ## Inputs
 

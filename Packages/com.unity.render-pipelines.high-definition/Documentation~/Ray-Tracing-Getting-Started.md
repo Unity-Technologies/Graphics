@@ -44,15 +44,19 @@ To set up ray tracing manually, you need to:
 
 #### Upgrade to DirectX 12
 
-HDRP enables DirextX12 by default. To enable DirectX 12 manually:
+In Unity 6, DirectX 12 is enabled by default.
 
-1. Open the Project Settings window (menu: **Edit** > **Project Settings**), then select the **Player** tab.
-2. Select the **Other Settings** drop-down, and in the **Rendering** section, disable Auto Graphics API for Windows. This exposes the Graphics APIs for Windows section.
-3. In the **Graphics APIs for Windows** section, click the plus (**+**) button and select **Direct3d12**.
-4. Unity uses Direct3d11 by default. To make Unity use Direct3d12, move **Direct3d12 (Experimental)** to the top of the list.
-5. To apply the changes, you may need to restart the Unity Editor. If a window prompt appears telling you to restart the Editor, click **Restart Editor** in the window.
+To enable DirectX 12 manually:
 
-The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar.
+1. Go to **Edit** > **Project Settings** > **Player** > **Other Settings**.
+
+1. In the **Rendering** section, disable **Auto Graphics API for Windows**.
+
+	This exposes the Graphics APIs for Windows section.
+
+1. Make sure **Direct3D12** is at the top of the list.
+
+	If you made any changes to the rendering settings, you might be prompted to restart the Unity Editor.
 
 <a name="ManualSetup-DisablingStaticBatching"></a>
 

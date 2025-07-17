@@ -19,6 +19,9 @@ The mask map contains four grayscale textures, one in each color channel. The de
 | **Blue**          | Detail mask |
 | **Alpha**         | Smoothness  |
 
+
+**Note:** The detail mask texture allows you to control where the detail texture is applied on your model. Use a value of `1` to display the detail texture and a value of `0` to mask it. For instance, if your model has skin pores, you might mask the lips and eyebrows to prevent the pores from appearing in those areas.
+
 To create a mask map, create a linear composited map in a photo editor, using the channels as described in the table above.
 
 The following example image demonstrates the individual components of a full mask map.

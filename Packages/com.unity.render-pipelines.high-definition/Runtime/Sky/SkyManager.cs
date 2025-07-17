@@ -1230,41 +1230,49 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CurrentDebugDisplaySettings = debugSettings;
             m_CurrentSunLight = sunLight;
 
-            SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
-
-            UpdateEnvironment(renderGraph, hdCamera, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, false, ambientMode);
-
-            // Preview camera will have a different sun, therefore the hash for the static lighting sky will change and force a recomputation
-            // because we only maintain one static sky. Since we don't care that the static lighting may be a bit different in the preview we never recompute
-            // and we use the one from the main camera.
-            bool forceStaticUpdate = false;
-            m_ActiveStaticSky = m_StaticLightingSkies.GetValueOrDefault(SceneManager.GetActiveScene().GetHashCode(), null);
-#if UNITY_EDITOR
-            // In the editor, we might need the static sky ready for baking lightmaps/lightprobes regardless of the current ambient mode so we force it to update in this case if it's not been computed yet..
-            // We always force an update of the static sky when we're in scene view mode. Previous behaviour was to prevent forced updates if the hash of the static sky was non-null, but this was preventing
-            // the lightmapper from updating in response to changes in environment. See GFXGI-237 for a better description of this issue.
-
-            forceStaticUpdate = hdCamera.camera.cameraType == CameraType.SceneView;
-#endif
-            if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
+            if (debugSettings.IsMatcapViewEnabled(hdCamera))
             {
-                if (m_ActiveStaticSky != null)
-                {
-                    m_StaticLightingSky.skySettings = m_ActiveStaticSky.skySettings;
-                    m_StaticLightingSky.cloudSettings = m_ActiveStaticSky.cloudSettings;
-                    m_StaticLightingSky.volumetricClouds = m_ActiveStaticSky.volumetricClouds;
-                }
-                UpdateEnvironment(renderGraph, hdCamera, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static);
-                m_StaticSkyUpdateRequired = false;
+                HDRenderPipeline.SetGlobalTexture(renderGraph, HDShaderIDs._SkyTexture, m_BlackCubemapArray);
+                HDRenderPipeline.SetGlobalBuffer(renderGraph, HDShaderIDs._AmbientProbeData, m_BlackAmbientProbeBuffer);
             }
+            else
+            {
+                SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
-            m_UpdateRequired = false;
+                UpdateEnvironment(renderGraph, hdCamera, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, false, ambientMode);
 
-            SetGlobalSkyData(renderGraph, hdCamera.lightingSky, m_BuiltinParameters);
+                // Preview camera will have a different sun, therefore the hash for the static lighting sky will change and force a recomputation
+                // because we only maintain one static sky. Since we don't care that the static lighting may be a bit different in the preview we never recompute
+                // and we use the one from the main camera.
+                bool forceStaticUpdate = false;
+                m_ActiveStaticSky = m_StaticLightingSkies.GetValueOrDefault(SceneManager.GetActiveScene().GetHashCode(), null);
+#if UNITY_EDITOR
+                // In the editor, we might need the static sky ready for baking lightmaps/lightprobes regardless of the current ambient mode so we force it to update in this case if it's not been computed yet..
+                // We always force an update of the static sky when we're in scene view mode. Previous behaviour was to prevent forced updates if the hash of the static sky was non-null, but this was preventing
+                // the lightmapper from updating in response to changes in environment. See GFXGI-237 for a better description of this issue.
 
-            // Keep global setter for now. We should probably remove it and set it explicitly where needed like any other resource. As is it breaks resource lifetime contract with render graph.
-            HDRenderPipeline.SetGlobalTexture(renderGraph, HDShaderIDs._SkyTexture, GetReflectionTexture(hdCamera.lightingSky));
-            HDRenderPipeline.SetGlobalBuffer(renderGraph, HDShaderIDs._AmbientProbeData, GetDiffuseAmbientProbeBuffer(hdCamera));
+                forceStaticUpdate = hdCamera.camera.cameraType == CameraType.SceneView;
+#endif
+                if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
+                {
+                    if (m_ActiveStaticSky != null)
+                    {
+                        m_StaticLightingSky.skySettings = m_ActiveStaticSky.skySettings;
+                        m_StaticLightingSky.cloudSettings = m_ActiveStaticSky.cloudSettings;
+                        m_StaticLightingSky.volumetricClouds = m_ActiveStaticSky.volumetricClouds;
+                    }
+                    UpdateEnvironment(renderGraph, hdCamera, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static);
+                    m_StaticSkyUpdateRequired = false;
+                }
+
+                m_UpdateRequired = false;
+
+                SetGlobalSkyData(renderGraph, hdCamera.lightingSky, m_BuiltinParameters);
+
+                // Keep global setter for now. We should probably remove it and set it explicitly where needed like any other resource. As is it breaks resource lifetime contract with render graph.
+                HDRenderPipeline.SetGlobalTexture(renderGraph, HDShaderIDs._SkyTexture, GetReflectionTexture(hdCamera.lightingSky));
+                HDRenderPipeline.SetGlobalBuffer(renderGraph, HDShaderIDs._AmbientProbeData, GetDiffuseAmbientProbeBuffer(hdCamera));
+            }
         }
 
         static void UpdateBuiltinParameters(ref BuiltinSkyParameters builtinParameters, SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, DebugDisplaySettings debugSettings)

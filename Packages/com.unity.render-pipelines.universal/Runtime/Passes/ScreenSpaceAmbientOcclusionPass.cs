@@ -356,6 +356,13 @@ namespace UnityEngine.Rendering.Universal
                 // Declare input textures
                 builder.UseTexture(passData.AOTexture, AccessFlags.ReadWrite);
 
+                // TODO: Refactor to eliminate the need for 'UseTexture'.
+                // Currently required only because 'PostProcessUtils.SetSourceSize' allocates an RTHandle,
+                // which expects a valid graphicsResource. Without this call, 'cameraColor.graphicsResource'
+                // may be null if it wasn't initialized in an earlier pass (e.g., DrawOpaque).
+                if (resourceData.cameraColor.IsValid())
+                    builder.UseTexture(resourceData.cameraColor, AccessFlags.Read);
+
                 if (passData.BlurQuality != ScreenSpaceAmbientOcclusionSettings.BlurQualityOptions.Low)
                     builder.UseTexture(passData.blurTexture, AccessFlags.ReadWrite);
 

@@ -7,9 +7,11 @@
 //
 // UnityEngine.Rendering.InstanceOcclusionTestDebugCounter:  static fields
 //
-#define INSTANCEOCCLUSIONTESTDEBUGCOUNTER_OCCLUDED (0)
-#define INSTANCEOCCLUSIONTESTDEBUGCOUNTER_NOT_OCCLUDED (1)
-#define INSTANCEOCCLUSIONTESTDEBUGCOUNTER_COUNT (2)
+#define INSTANCEOCCLUSIONTESTDEBUGCOUNTER_INSTANCES_OCCLUDED (0)
+#define INSTANCEOCCLUSIONTESTDEBUGCOUNTER_INSTANCES_NOT_OCCLUDED (1)
+#define INSTANCEOCCLUSIONTESTDEBUGCOUNTER_PRIMITIVES_OCCLUDED (2)
+#define INSTANCEOCCLUSIONTESTDEBUGCOUNTER_PRIMITIVES_NOT_OCCLUDED (3)
+#define INSTANCEOCCLUSIONTESTDEBUGCOUNTER_COUNT (4)
 
 // Generated from UnityEngine.Rendering.IndirectDrawInfo
 // PackingRules = Exact
@@ -19,7 +21,7 @@ struct IndirectDrawInfo
     uint firstIndex;
     uint baseVertex;
     uint firstInstanceGlobalIndex;
-    uint maxInstanceCount;
+    uint maxInstanceCountAndTopology;
 };
 
 // Generated from UnityEngine.Rendering.IndirectInstanceInfo

@@ -152,7 +152,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 | ----------------- | ------------------------------------------------------------ |
 | **Enable**        | Enable the checkbox to simulate light scattering through volumetric fog. Enabling this property allows you to edit the **Multiplier** and **Shadow Dimmer** properties. |
 | **Multiplier**        | Sets the intensity of the volumetric lighting effect of this Light.           |
-| **Shadow Dimmer** | Dims the volumetric fog effect of this Light. Set this property to 0 to make the volumetric scattering compute faster. |
+| **Shadow Dimmer** | Dims the volumetric shadows the light casts. If you set this property to zero, Unity no longer samples the shadow map to create volumetric shadows, which might reduce the performance impact. |
 
 <a name="Shadow"></a>
 
@@ -172,7 +172,7 @@ This section is only available in Realtime or Mixed light **Mode**.
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
 | **Enable**                 | Enable the checkbox to let this Light cast shadows.          |
-| **Update Mode**            | Use the drop-down to select the mode that HDRP uses to determine when to update a shadow map.<br />For information on the modes available, see the [Shadows in HDRP documentation](shadow-update-mode.md). |
+| **Update Mode** | Determines how often HDRP updates the shadow map for the Light. The options are: <ul><li><b>Every Frame</b>: Updates the shadow maps for the Light every frame. This is the default value.</li><li><b>On Enable</b>: Updates the shadow maps for the Light only when you enable the GameObject.</li><li><b>On Demand</b>: Updates the shadow maps for the Light only when you call the [`HDAdditionalLightData.RequestShadowMapRendering`](xref:UnityEngine.Rendering.HighDefinition.HDAdditionalLightData.RequestShadowMapRendering) API to update them.</li></ul>For more information, refer to [Update shadows less frequently](shadow-update-mode.md). |
 | **Resolution**             | Set the resolution of this Light’s shadow maps. Use the drop-down to select which quality mode to derive the resolution from. If you don't enable **Use Quality Settings**, or you select **Custom**, set the resolution, measured in pixels, in the input field.<br/>A higher resolution increases the fidelity of shadows at the cost of GPU performance and memory usage, so if you experience any performance issues, try using a lower value. Shadows can be turned off by setting the resolution to 0. |
 | **Near Plane**             | The distance, in meters, from the Light that GameObjects begin to cast shadows. |
 | **Shadowmask Mode**        | Defines how the shadowmask behaves for this Light. For detailed information on each **Shadowmask Mode**, see the documentation on [Shadowmasks](Lighting-Mode-Shadowmask.md). This property is only visible if you tet the **Mode**, under [General](#general), to **Mixed**. |
