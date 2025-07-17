@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// so you can use it later in rendering. For example, you can copy
     /// the opaque texture to use it for distortion effects.
     /// </summary>
-    public class CopyColorPass : ScriptableRenderPass
+    public partial class CopyColorPass : ScriptableRenderPass
     {
         int m_SampleOffsetShaderHandle;
         Material m_SamplingMaterial;

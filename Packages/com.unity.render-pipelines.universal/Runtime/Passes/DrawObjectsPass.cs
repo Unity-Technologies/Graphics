@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// You can use this pass to render objects that have a material and/or shader
     /// with the pass names UniversalForward or SRPDefaultUnlit.
     /// </summary>
-    public class DrawObjectsPass : ScriptableRenderPass
+    public partial class DrawObjectsPass : ScriptableRenderPass
     {
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;

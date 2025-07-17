@@ -1796,15 +1796,17 @@ namespace UnityEngine.Rendering.Universal
             cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
         }
 
-#if URP_COMPATIBILITY_MODE
         /// <inheritdoc />
         public override void FinishRendering(CommandBuffer cmd)
         {
+#if URP_COMPATIBILITY_MODE
             m_ColorBufferSystem.Clear();
             m_ActiveCameraColorAttachment = null;
             m_ActiveCameraDepthAttachment = null;
+#endif
         }
 
+#if URP_COMPATIBILITY_MODE
         void EnqueueDeferred(RenderTextureDescriptor cameraTargetDescriptor, bool hasDepthPrepass, bool hasNormalPrepass, bool hasRenderingLayerPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
             m_DeferredLights.Setup(

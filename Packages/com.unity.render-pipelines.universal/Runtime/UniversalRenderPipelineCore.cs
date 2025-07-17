@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Struct that holds settings related to camera.
     /// </summary>
-    public struct CameraData
+    public partial struct CameraData
     {
         ContextContainer frameData;
 

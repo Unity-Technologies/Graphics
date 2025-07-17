@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRenderer"/>
     /// <seealso cref="ScriptableRenderPass"/>
     [ExcludeFromPreset]
-    public abstract class ScriptableRendererFeature : ScriptableObject, IDisposable
+    public abstract partial class ScriptableRendererFeature : ScriptableObject, IDisposable
     {
         [SerializeField, HideInInspector] private bool m_Active = true;
         /// <summary>

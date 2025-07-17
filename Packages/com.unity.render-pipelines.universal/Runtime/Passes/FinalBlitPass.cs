@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// the camera target. The pass takes the screen viewport into
     /// consideration.
     /// </summary>
-    public class FinalBlitPass : ScriptableRenderPass
+    public partial class FinalBlitPass : ScriptableRenderPass
     {
         static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
 

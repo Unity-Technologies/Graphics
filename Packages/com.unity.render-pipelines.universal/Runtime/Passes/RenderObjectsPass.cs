@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
     /// The scriptable render pass used with the render objects renderer feature.
     /// </summary>
     [MovedFrom(true, "UnityEngine.Experimental.Rendering.Universal")]
-    public class RenderObjectsPass : ScriptableRenderPass
+    public partial class RenderObjectsPass : ScriptableRenderPass
     {
         RenderQueueType renderQueueType;
         FilteringSettings m_FilteringSettings;

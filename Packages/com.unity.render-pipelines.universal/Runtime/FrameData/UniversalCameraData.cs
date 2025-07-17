@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Class that holds settings related to camera.
     /// </summary>
-    public class UniversalCameraData : ContextItem
+    public partial class UniversalCameraData : ContextItem
     {
         // Internal camera data as we are not yet sure how to expose View in stereo context.
         // We might change this API soon.

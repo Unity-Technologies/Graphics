@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// <summary>
     /// Renders a shadow map for the main Light.
     /// </summary>
-    public class MainLightShadowCasterPass : ScriptableRenderPass
+    public partial class MainLightShadowCasterPass : ScriptableRenderPass
     {
         // Internal
         internal RTHandle m_MainLightShadowmapTexture;

@@ -2,9 +2,6 @@
 // way to being deprecated and removed in future releases
 using System;
 using System.ComponentModel;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -624,4 +621,567 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField, Obsolete("Keep for migration. #from(2023.2)")] internal bool m_EnableRenderGraph;
     }
+
+#if !URP_COMPATIBILITY_MODE
+    internal struct DeprecationMessage
+    {
+        internal const string CompatibilityScriptingAPIHidden = "This rendering path is for Compatibility Mode only which has been deprecated and hidden behind URP_COMPATIBILITY_MODE define. This will do nothing.";
+    }
+
+    partial class UniversalCameraData
+    {
+        /// <summary>
+        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Includes camera jitter if required by active features.
+        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
+        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
+        /// </summary>
+        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
+        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
+        /// <returns></returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0) => default;
+
+        /// <summary>
+        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Does not include any camera jitter.
+        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
+        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
+        /// </summary>
+        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
+        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
+        /// <returns></returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public Matrix4x4 GetGPUProjectionMatrixNoJitter(int viewIndex = 0) => default;
+
+        /// <summary>
+        /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
+        /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
+        /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
+        /// matrix when rendering with for cmd.Draw* and reading from camera textures.
+        /// </summary>
+        /// <returns> True if the camera device projection matrix is flipped. </returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public bool IsCameraProjectionMatrixFlipped() => default;
+    }
+
+    public abstract partial class ScriptableRenderPass
+    {
+        /// <summary>
+        /// RTHandle alias for BuiltinRenderTextureType.CameraTarget which is the backbuffer.
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public static RTHandle k_CameraTarget = null;
+
+        /// <summary>
+        /// List for the g-buffer attachment handles.
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public RTHandle[] colorAttachmentHandles => null;
+
+        /// <summary>
+        /// The main color attachment handle.
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public RTHandle colorAttachmentHandle => null;
+
+        /// <summary>
+        /// The depth attachment handle.
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public RTHandle depthAttachmentHandle => null;
+
+        /// <summary>
+        /// The store actions for Color.
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public RenderBufferStoreAction[] colorStoreActions => null;
+
+        /// <summary>
+        /// The store actions for Depth.
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public RenderBufferStoreAction depthStoreAction => default;
+        
+        /// <summary>
+        /// The flag to use when clearing.
+        /// </summary>
+        /// <seealso cref="ClearFlag"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public ClearFlag clearFlag => default;
+
+        /// <summary>
+        /// The color value to use when clearing.
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public Color clearColor => default;
+
+        /// <summary>
+        /// Configures the Store Action for a color attachment of this render pass.
+        /// </summary>
+        /// <param name="storeAction">RenderBufferStoreAction to use</param>
+        /// <param name="attachmentIndex">Index of the color attachment</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ConfigureColorStoreAction(RenderBufferStoreAction storeAction, uint attachmentIndex = 0) { }
+
+        /// <summary>
+        /// Configures the Store Actions for all the color attachments of this render pass.
+        /// </summary>
+        /// <param name="storeActions">Array of RenderBufferStoreActions to use</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ConfigureColorStoreActions(RenderBufferStoreAction[] storeActions) { }
+
+        /// <summary>
+        /// Configures the Store Action for the depth attachment of this render pass.
+        /// </summary>
+        /// <param name="storeAction">RenderBufferStoreAction to use</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ConfigureDepthStoreAction(RenderBufferStoreAction storeAction) { }
+
+        /// <summary>
+        /// Resets render targets to default.
+        /// This method effectively reset changes done by ConfigureTarget.
+        /// </summary>
+        /// <seealso cref="ConfigureTarget"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ResetTarget() { }
+
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorAttachment">Color attachment handle.</param>
+        /// <param name="depthAttachment">Depth attachment handle.</param>
+        /// <seealso cref="Configure"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment) { }
+
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorAttachments">Color attachment handle.</param>
+        /// <param name="depthAttachment">Depth attachment handle.</param>
+        /// <seealso cref="Configure"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ConfigureTarget(RTHandle[] colorAttachments, RTHandle depthAttachment) { }
+
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorAttachment">Color attachment handle.</param>
+        /// <seealso cref="Configure"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ConfigureTarget(RTHandle colorAttachment) { }
+
+        /// <summary>
+        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
+        /// This method should be called inside Configure.
+        /// </summary>
+        /// <param name="colorAttachments">Color attachment handle.</param>
+        /// <seealso cref="Configure"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ConfigureTarget(RTHandle[] colorAttachments) { }
+
+        /// <summary>
+        /// Configures clearing for the render targets for this render pass. Call this inside Configure.
+        /// </summary>
+        /// <param name="clearFlag">ClearFlag containing information about what targets to clear.</param>
+        /// <param name="clearColor">Clear color.</param>
+        /// <seealso cref="Configure"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ConfigureClear(ClearFlag clearFlag, Color clearColor) { }
+
+        /// <summary>
+        /// This method is called by the renderer before rendering a camera
+        /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
+        /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
+        /// You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to enqueue rendering commands. This will be executed by the pipeline.</param>
+        /// <param name="renderingData">Current rendering state information</param>
+        /// <seealso cref="ConfigureTarget"/>
+        /// <seealso cref="ConfigureClear"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData) { }
+
+        /// <summary>
+        /// This method is called by the renderer before executing the render pass.
+        /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
+        /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
+        /// You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to enqueue rendering commands. This will be executed by the pipeline.</param>
+        /// <param name="cameraTextureDescriptor">Render texture descriptor of the camera render target.</param>
+        /// <seealso cref="ConfigureTarget"/>
+        /// <seealso cref="ConfigureClear"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor) { }
+
+        /// <summary>
+        /// Called upon finish rendering a camera stack. You can use this callback to release any resources created
+        /// by this render pass that need to be cleanup once all cameras in the stack have finished rendering.
+        /// This method will be called once after rendering the last camera in the camera stack.
+        /// Cameras that don't have an explicit camera stack are also considered stacked rendering.
+        /// In that case the Base camera is the first and last camera in the stack.
+        /// </summary>
+        /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public virtual void OnFinishCameraStackRendering(CommandBuffer cmd) { }
+
+        /// <summary>
+        /// Execute the pass. This is where custom rendering occurs. Specific details are left to the implementation
+        /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution</param>
+        /// <param name="renderingData">Current rendering state information</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public virtual void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+
+        /// <summary>
+        /// Add a blit command to the context for execution. This changes the active render target in the ScriptableRenderer to
+        /// destination.
+        /// </summary>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="source">Source texture or target handle to blit from.</param>
+        /// <param name="destination">Destination texture or target handle to blit into. This becomes the renderer active render target.</param>
+        /// <param name="material">Material to use.</param>
+        /// <param name="passIndex">Shader pass to use. Default is 0.</param>
+        /// <seealso cref="ScriptableRenderer"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void Blit(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material = null, int passIndex = 0) { }
+
+        /// <summary>
+        /// Add a blit command to the context for execution. This applies the material to the color target.
+        /// </summary>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="data">RenderingData to access the active renderer.</param>
+        /// <param name="material">Material to use.</param>
+        /// <param name="passIndex">Shader pass to use. Default is 0.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void Blit(CommandBuffer cmd, ref RenderingData data, Material material, int passIndex = 0) { }
+
+        /// <summary>
+        /// Add a blit command to the context for execution. This applies the material to the color target.
+        /// </summary>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="data">RenderingData to access the active renderer.</param>
+        /// <param name="source">Source texture or target identifier to blit from.</param>
+        /// <param name="material">Material to use.</param>
+        /// <param name="passIndex">Shader pass to use. Default is 0.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void Blit(CommandBuffer cmd, ref RenderingData data, RTHandle source, Material material, int passIndex = 0) { }
+    }
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+    partial class XROcclusionMeshPass
+    {
+        /// <summary>
+        /// Used to indicate if the active target of the pass is the back buffer
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public bool m_IsActiveTargetBackBuffer; 
+        
+        /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+    }
+#endif
+
+    partial class DecalRendererFeature
+    {
+        /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) { }
+    }
+
+    partial class ScriptableRenderer
+    {
+        /// <summary>
+        /// Override to provide a custom profiling name
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        protected ProfilingSampler profilingExecute { get; set; }
+        
+        /// <summary>
+        /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to the camera matrices.
+        /// Additionally this will also set <c>unity_CameraProjection</c> and <c>unity_CameraProjection</c>.
+        /// If <c>setInverseMatrices</c> is set to true this function will also set <c>UNITY_MATRIX_I_V</c> and <c>UNITY_MATRIX_I_VP</c>.
+        /// This function has no effect when rendering in stereo. When in stereo rendering you cannot override camera matrices.
+        /// If you need to set general purpose view and projection matrices call <see cref="SetViewAndProjectionMatrices(CommandBuffer, Matrix4x4, Matrix4x4, bool)"/> instead.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
+        /// <param name="cameraData">CameraData containing camera matrices information.</param>
+        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public static void SetCameraMatrices(CommandBuffer cmd, ref CameraData cameraData, bool setInverseMatrices) { }
+
+        /// <summary>
+        /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to camera matrices.
+        /// Additionally this will also set <c>unity_CameraProjection</c> and <c>unity_CameraProjection</c>.
+        /// If <c>setInverseMatrices</c> is set to true this function will also set <c>UNITY_MATRIX_I_V</c> and <c>UNITY_MATRIX_I_VP</c>.
+        /// This function has no effect when rendering in stereo. When in stereo rendering you cannot override camera matrices.
+        /// If you need to set general purpose view and projection matrices call <see cref="SetViewAndProjectionMatrices(CommandBuffer, Matrix4x4, Matrix4x4, bool)"/> instead.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
+        /// <param name="cameraData">CameraData containing camera matrices information.</param>
+        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public static void SetCameraMatrices(CommandBuffer cmd, UniversalCameraData cameraData, bool setInverseMatrices) { }
+        
+        /// <summary>
+        /// Returns the camera color target for this renderer.
+        /// It's only valid to call cameraColorTargetHandle in the scope of <c>ScriptableRenderPass</c>.
+        /// <seealso cref="ScriptableRenderPass"/>.
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public RTHandle cameraColorTargetHandle { get => null; set { } }
+
+        /// <summary>
+        /// Returns the camera depth target for this renderer.
+        /// It's only valid to call cameraDepthTargetHandle in the scope of <c>ScriptableRenderPass</c>.
+        /// <seealso cref="ScriptableRenderPass"/>.
+        /// </summary>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public RTHandle cameraDepthTargetHandle { get => null; set { } }
+        
+        /// <summary>
+        /// Configures the camera target.
+        /// </summary>
+        /// <param name="colorTarget">Camera color target. Pass k_CameraTarget if rendering to backbuffer.</param>
+        /// <param name="depthTarget">Camera depth target. Pass k_CameraTarget if color has depth or rendering to backbuffer.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void ConfigureCameraTarget(RTHandle colorTarget, RTHandle depthTarget) { }
+
+        /// <summary>
+        /// Configures the render passes that will execute for this renderer.
+        /// This method is called per-camera every frame.
+        /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
+        /// <param name="renderingData">Current render state information.</param>
+        /// <seealso cref="ScriptableRenderPass"/>
+        /// <seealso cref="ScriptableRendererFeature"/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public virtual void Setup(ScriptableRenderContext context, ref RenderingData renderingData) { }
+
+        /// <summary>
+        /// Override this method to implement the lighting setup for the renderer. You can use this to
+        /// compute and upload light CBUFFER for example.
+        /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
+        /// <param name="renderingData">Current render state information.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public virtual void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData) { }
+
+        /// <summary>
+        /// Execute the enqueued render passes. This automatically handles editor and stereo rendering.
+        /// </summary>
+        /// <param name="context">Use this render context to issue any draw commands during execution.</param>
+        /// <param name="renderingData">Current render state information.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+
+        /// <summary>
+        /// Calls <c>Setup</c> for each feature added to this renderer.
+        /// <seealso cref="ScriptableRendererFeature.SetupRenderPasses(ScriptableRenderer, in RenderingData)"/>
+        /// </summary>
+        /// <param name="renderingData"></param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        protected void SetupRenderPasses(in RenderingData renderingData) { }
+    }
+
+    partial class ScriptableRendererFeature
+    {
+        /// <summary>
+        /// Callback after render targets are initialized. This allows for accessing targets from renderer after they are created and ready.
+        /// </summary>
+        /// <param name="renderer">Renderer used for adding render passes.</param>
+        /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public virtual void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData) { }
+    }
+
+    partial struct CameraData
+    {
+        /// <summary>
+        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Includes camera jitter if required by active features.
+        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
+        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
+        /// </summary>
+        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
+        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
+        /// <returns></returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public Matrix4x4 GetGPUProjectionMatrix(int viewIndex = 0) => default;
+
+        /// <summary>
+        /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z. Does not include any camera jitter.
+        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
+        /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
+        /// </summary>
+        /// <param name="viewIndex"> View index in case of stereo rendering. By default <c>viewIndex</c> is set to 0. </param>
+        /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
+        /// <returns></returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public Matrix4x4 GetGPUProjectionMatrixNoJitter(int viewIndex = 0) => default;
+
+        /// <summary>
+        /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
+        /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
+        /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
+        /// matrix when rendering with for cmd.Draw* and reading from camera textures.
+        /// </summary>
+        /// <returns> True if the camera device projection matrix is flipped. </returns>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public bool IsCameraProjectionMatrixFlipped() => default;
+    }
+
+    namespace Internal
+    {
+        partial class AdditionalLightsShadowCasterPass
+        {
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor) { }
+
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+
+        partial class ColorGradingLutPass
+        {
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+
+        partial class CopyColorPass
+        {
+            /// <inheritdoc />
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData) { }
+
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+
+        partial class CopyDepthPass
+        {
+            /// <inheritdoc />
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData) { }
+        
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+
+        partial class DepthNormalOnlyPass
+        {
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData) { }
+        
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+
+        partial class DepthOnlyPass
+        {
+            /// <inheritdoc />
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData) { }
+        
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+        
+        partial class DrawObjectsPass
+        {
+            /// <summary>
+            /// Used to indicate if the active target of the pass is the back buffer
+            /// </summary>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public bool m_IsActiveTargetBackBuffer; // TODO: Remove this when we remove non-RG path
+            
+            /// <summary>
+            /// Sets up the pass.
+            /// </summary>
+            /// <param name="colorAttachment">Color attachment handle.</param>
+            /// <param name="renderingLayersTexture">Texture used with rendering layers.</param>
+            /// <param name="depthAttachment">Depth attachment handle.</param>
+            /// <exception cref="ArgumentException"></exception>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public void Setup(RTHandle colorAttachment, RTHandle renderingLayersTexture, RTHandle depthAttachment) { }
+
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor) { }
+
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+        
+        partial class ForwardLights
+        {
+            /// <summary>
+            /// Sets up the keywords and data for forward lighting.
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="renderingData"></param>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public void Setup(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+        
+        partial class FinalBlitPass
+        {
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData) { }
+
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+
+        partial class MainLightShadowCasterPass
+        {
+            /// <inheritdoc />
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor) { }
+
+            /// <inheritdoc/>
+            [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+        }
+    }
+
+    partial class DrawSkyboxPass
+    {
+        /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+    }
+
+    partial class RenderObjectsPass
+    {
+        /// <inheritdoc/>
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData) { }
+    }
+
+    partial class UniversalRenderer
+    {
+        /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData) { }
+
+        /// <inheritdoc />
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIHidden)]
+        public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData) { }
+    }
+#endif //!URP_COMPATIBILITY_MODE
 }

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Draw the XR occlusion mesh into the current depth buffer when XR is enabled.
     /// </summary>
-    public class XROcclusionMeshPass : ScriptableRenderPass
+    public partial class XROcclusionMeshPass : ScriptableRenderPass
     {
 #if URP_COMPATIBILITY_MODE
         /// <summary>
