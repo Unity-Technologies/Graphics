@@ -67,8 +67,25 @@ namespace UnityEngine.Rendering.PostProcessing
 
         internal static readonly int DepthOfFieldTemp = Shader.PropertyToID("_DepthOfFieldTemp");
         internal static readonly int DepthOfFieldTex = Shader.PropertyToID("_DepthOfFieldTex");
+        internal static readonly int[] MaxCoCMips = new int[] {
+            Shader.PropertyToID("_CoCMip0"), Shader.PropertyToID("_CoCMip1"), Shader.PropertyToID("_CoCMip2"), Shader.PropertyToID("_CoCMip3"),
+            Shader.PropertyToID("_CoCMip4"), Shader.PropertyToID("_CoCMip5"), Shader.PropertyToID("_CoCMip6"), Shader.PropertyToID("_CoCMip7"),
+            Shader.PropertyToID("_CoCMip8"), Shader.PropertyToID("_CoCMip9"), Shader.PropertyToID("_CoCMip10"), Shader.PropertyToID("_CoCMip11")
+        };
+        internal static readonly int MaxCoCTex = Shader.PropertyToID("_MaxCoCTex");
         internal static readonly int Distance = Shader.PropertyToID("_Distance");
         internal static readonly int LensCoeff = Shader.PropertyToID("_LensCoeff");
+        internal static readonly int CoCKernelLimitsA = Shader.PropertyToID("_CoCKernelLimitsA");
+        internal static readonly int CoCKernelLimitsB = Shader.PropertyToID("_CoCKernelLimitsB");
+        internal static readonly int MaxCoCTexUvScale = Shader.PropertyToID("_MaxCoCTexUvScale");
+        internal static readonly int CoCRingCount = Shader.PropertyToID("_CoCRingCount");
+        internal static readonly int CoCScreen = Shader.PropertyToID("_CoCScreen");
+        internal static readonly int CoCTileXCount = Shader.PropertyToID("_CoCTileXCount");
+        internal static readonly int CoCTileYCount = Shader.PropertyToID("_CoCTileYCount");
+        internal static readonly int CoCTilePixelWidth = Shader.PropertyToID("_CoCTilePixelWidth");
+        internal static readonly int CoCTilePixelHeight = Shader.PropertyToID("_CoCTilePixelHeight");
+        internal static readonly int KernelScale = Shader.PropertyToID("_KernelScale");
+        internal static readonly int MarginFactors = Shader.PropertyToID("_MarginFactors");
         internal static readonly int MaxCoC = Shader.PropertyToID("_MaxCoC");
         internal static readonly int RcpMaxCoC = Shader.PropertyToID("_RcpMaxCoC");
         internal static readonly int RcpAspect = Shader.PropertyToID("_RcpAspect");
