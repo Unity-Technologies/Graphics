@@ -239,4 +239,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/083_GPU_Instancing.unity
     guid: 67d46509b9dfceb43bf64d2d1ae052f5
+  - enabled: 1
+    path: Assets/Scenes/088_TilemapRenderer_MaskInteraction.unity
+    guid: e359a75a73e464ca29b4c0c0d3f80c68
   m_configObjects: {}

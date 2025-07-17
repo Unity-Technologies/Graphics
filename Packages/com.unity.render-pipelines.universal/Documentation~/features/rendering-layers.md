@@ -140,7 +140,7 @@ This section contains information related to the impact of Rendering Layers on p
 
 * When using Rendering Layers only for Lights in the Forward Rendering Path, the performance impact is insignificant.
 
-* Performance impact grows more significantly when the Rendering Layer count exceeds a multiple of 8. For example: increasing the layer count from 8 to 9 layers has a bigger relative impact than increasing the layer count from 9 to 10 layers. The same consideration applies to increasing the count from 16 to 17, from 24 to 25 and so on.
+* Performance impact increases more significantly when the number of Rendering Layers reaches 9, 17, 25, and so on. This is because when the Rendering Layers exceed a multiple of 8, URP adds an extra texture channel the GPU must access.
 
 ## Additional resources
 
