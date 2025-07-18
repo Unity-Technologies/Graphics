@@ -63,7 +63,7 @@ TYPED_TEXTURE2D_X(uint4, GBUFFER_TEX2D_NAME(GBUFFER_IDX_AFTER(GBUFFER_IDX_R_REND
 void LoadGBuffers(uint2 unCoord2, out half4 gBuffer0, out half4 gBuffer1, out half4 gBuffer2, out float depth,
                   out uint renderingLayers, out half4 shadowMask)
 {
-    renderingLayers = 0xffff;
+    renderingLayers = 0xFFFFFFFF;
     shadowMask = half4(1, 1, 1, 1);
 
     #if defined(GBUFFER_FBFETCH_AVAILABLE)
