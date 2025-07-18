@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreNotEqual(hash0, hash1);
         }
 
-        static TestCaseData[] s_TextureParametersCases =
+        public static TestCaseData[] s_TextureParametersCases =
         {
             new TestCaseData(new TextureDesc(Vector2.zero) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm },
                     new TextureDesc(Vector2.zero) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm },

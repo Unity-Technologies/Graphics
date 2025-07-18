@@ -9,7 +9,7 @@ Shader "Hidden/HDRP/BlitColorAndDepth"
         #pragma multi_compile _ BLIT_SINGLE_SLICE
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-        #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/BlitColorAndDepth.hlsl"
+        #include_with_pragmas "Packages/com.unity.render-pipelines.core/Runtime/Utilities/BlitColorAndDepth.hlsl"
     ENDHLSL
 
     SubShader
@@ -39,7 +39,18 @@ Shader "Hidden/HDRP/BlitColorAndDepth"
                 #pragma fragment FragColorAndDepth
             ENDHLSL
         }
+		
+        // 2:  Depth Only
+        Pass
+        {
+            ZWrite On ZTest Always Blend Off Cull Off ColorMask 0
+            Name "DepthOnly"
 
+            HLSLPROGRAM
+                #pragma vertex Vert
+                #pragma fragment FragDepthOnly
+            ENDHLSL
+        }
     }
 
     Fallback Off

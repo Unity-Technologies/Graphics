@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using Unity.Mathematics;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.RenderGraphModule.Util
 {
@@ -121,6 +122,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             if (sourceInfo.volumeDepth != destinationInfo.volumeDepth)
                 return false;
 
+            if (GraphicsFormatUtility.IsDepthFormat(sourceInfo.format) || GraphicsFormatUtility.IsDepthFormat(destinationInfo.format))
+                return false;
+
             // Note: Needs shader model ps_4.1 to support SV_SampleIndex which means the copy pass isn't supported for MSAA on some platforms.
             //       We can check this by checking the amout of shader passes the copy shader has.
             //       It would have 1 if the MSAA pass is not able to be used for target and 2 otherwise.
@@ -185,6 +189,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             if (sourceInfo.volumeDepth != destinationInfo.volumeDepth)
                 throw new ArgumentException("Slice count for source and destination texture doesn't match.");
 
+            if (GraphicsFormatUtility.IsDepthFormat(sourceInfo.format) || GraphicsFormatUtility.IsDepthFormat(destinationInfo.format))
+                throw new ArgumentException("Depth format for source or destination texture is not supported. Use AddBlitPass instead.");
+
             var isMSAA = (int)sourceInfo.msaaSamples > 1;
 
             // Note: Needs shader model ps_4.1 to support SV_SampleIndex which means the copy pass isn't supported for MSAA on some platforms.
@@ -238,7 +245,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// is here for backwards compatibility with existing code.
         ///
         /// When XR is active, array textures containing both eyes will be automatically copied.
-        /// 
+        ///
         /// </summary>
         /// <param name="graph">The RenderGraph adding this pass to.</param>
         /// <param name="source">The texture the data is copied from.</param>
@@ -325,16 +332,19 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             public int numMips;
             public BlitFilterMode filterMode;
             public bool isXR;
-
+            public bool isDepth;
         }
 
         /// <summary>
         /// Add a render graph pass to blit an area of the source texture into the destination texture. Blitting is a high-level way to transfer texture data from a source to a destination texture.
         /// It may scale and texture-filter the transferred data as well as doing data transformations on it (e.g. R8Unorm to float).
         ///
-        /// This function does not have special handling for MSAA textures. This means that when the source is sampled this will be a resolved value (standard Unity behavior when sampling an MSAA render texture)
+        /// This function does not have special handling for MSAA color textures. This means that when the source color is sampled this will be a resolved value (standard Unity behavior when sampling an MSAA render texture)
         /// and when the destination is MSAA all written samples will contain the same values (e.g. as you would expect when rendering a full screen quad to an msaa buffer). If you need special MSAA
         /// handling or custom resolving please use the overload that takes a Material and implement the appropriate behavior in the shader.
+        ///
+        /// For depth textures, MSAA handling is different. If the bindTextureMS flag of the source texture is set to true, then the MSAA values will be resolved by the blit shader and write a single value to a non-MSAA output texture.
+        /// It is not supported to set the source texture bindTextureMS flag to false or to bind an MSAA texture as destination when using a depth texture as source texture.
         ///
         /// This function works transparently with regular textures and XR textures (which may depending on the situation be 2D array textures). In the case of an XR array texture
         /// the operation will be repeated for each slice in the texture if numSlices is set to -1.
@@ -407,10 +417,18 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 throw new ArgumentException($"BlitPass: {passName} attempts to blit too many mips. The pass will be skipped.");
             }
 
+            bool sourceIsDepth = GraphicsFormatUtility.IsDepthFormat(sourceDesc.format);
+            bool destinationIsDepth = GraphicsFormatUtility.IsDepthFormat(destinationDesc.format);
+            if (!sourceIsDepth && destinationIsDepth)
+                throw new ArgumentException($"BlitPass: {passName} attempts to blit from a color texture to a depth texture. This is not allowed.");
+
+            if (sourceIsDepth && !sourceDesc.bindTextureMS && sourceDesc.msaaSamples != MSAASamples.None)
+                throw new ArgumentException($"BlitPass: {passName} source depth render texture is MSAA but doesn't have the bindTextureMS flag set to true, this is not supported. This is not allowed.");
+
             var canUseCopyPass = CanAddCopyPass(graph, source, destination)
                                  && scale == Vector2.one && offset == Vector2.zero && numSlices == 1 && numMips == 1;
 
-            if (canUseCopyPass)
+            if (canUseCopyPass && !destinationIsDepth)
             {
                 return AddCopyPass(graph, source, destination, passName, returnBuilder, file, line);
             }
@@ -430,6 +448,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 passData.destinationMip = destinationMip;
                 passData.numMips = numMips;
                 passData.filterMode = filterMode;
+                passData.isDepth = destinationIsDepth;
                 builder.UseTexture(source, AccessFlags.Read);
                 builder.UseTexture(destination, AccessFlags.Write);
                 builder.SetRenderFunc((BlitPassData data, UnsafeGraphContext context) => BlitRenderFunc(data, context));
@@ -456,9 +475,15 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             s_BlitScaleBias.w = data.offset.y;
 
             CommandBuffer unsafeCmd = CommandBufferHelpers.GetNativeCommandBuffer(context.cmd);
-            if (data.isXR)
+
+            if (data.isDepth)
             {
-                // This is the magic that makes XR work for blit. We set the rendertargets passing -1 for the slices. This means it will bind all (both eyes) slices. 
+                context.cmd.SetRenderTarget(data.destination, 0, CubemapFace.Unknown, -1);
+                Blitter.BlitDepth(unsafeCmd, data.source, s_BlitScaleBias, 0);
+            }
+            else if (data.isXR)
+            {
+                // This is the magic that makes XR work for blit. We set the rendertargets passing -1 for the slices. This means it will bind all (both eyes) slices.
                 // The engine will then also automatically duplicate our draws and the vertex and pixel shader (through macros) will ensure those draws end up in the right eye.
                 context.cmd.SetRenderTarget(data.destination, 0, CubemapFace.Unknown, -1);
                 Blitter.BlitTexture(unsafeCmd, data.source, s_BlitScaleBias, data.sourceMip, data.filterMode == BlitFilterMode.ClampBilinear);
@@ -506,7 +531,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// Use one of the constructor overloads for common use cases.
         ///
         /// By default most constructors will copy all array texture slices. This ensures XR textures are handled "automatically" without additional consideration.
-        /// 
+        ///
         /// The shader properties defined in the struct or constructors is used for most common usecases but they are not required to be used in the shader.
         /// By using the <c>MaterialPropertyBlock</c> can you add your shader properties with custom values.
         /// </summary>
@@ -519,7 +544,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
 
             /// <summary>
             /// Simple constructor that sets only the most common parameters to blit. The other parameters will be set to sensible default values.
-            /// 
+            ///
             /// </summary>
             /// <param name="source">The texture the data is copied from.</param>
             /// <param name="destination">The texture the data is copied to.</param>
@@ -901,7 +926,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
         /// Notes on using this function:
         /// - If you need special handling of MSAA buffers this can be implemented using the bindMS flag on the source texture and per-sample pixel shader invocation on the destination texture (e.g. using SV_SampleIndex).
         /// - MaterialPropertyBlocks used for this function should not contain any textures added by MaterialPropertyBlock.SetTexture(...) as it will cause untracked textures when using RenderGraph causing uninstended behaviour.
-        /// 
+        ///
         /// </summary>
         /// <param name="graph">The RenderGraph adding this pass to.</param>
         /// <param name="blitParameters">Parameters used for rendering.</param>
@@ -1036,7 +1061,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
 
             if (data.isXR)
             {
-                // This is the magic that makes XR work for blit. We set the rendertargets passing -1 for the slices. This means it will bind all (both eyes) slices. 
+                // This is the magic that makes XR work for blit. We set the rendertargets passing -1 for the slices. This means it will bind all (both eyes) slices.
                 // The engine will then also automatically duplicate our draws and the vertex and pixel shader (through macros) will ensure those draws end up in the right eye.
 
                 if (data.sourceSlice != -1)

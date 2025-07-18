@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Tests
 #endif
     }
 
-    class RenderGraphTests
+    class RenderGraphTestsCulling
     {
         static Recorder gcAllocRecorder = Recorder.Get("GC.Alloc");
 

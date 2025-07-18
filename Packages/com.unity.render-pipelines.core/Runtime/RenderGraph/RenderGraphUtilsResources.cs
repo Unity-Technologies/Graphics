@@ -3,6 +3,9 @@ using System.ComponentModel;
 
 namespace UnityEngine.Rendering.RenderGraphModule.Util
 {
+    /// <summary>
+    /// Core Shader Resources.
+    /// </summary>
     [Serializable]
     [HideInInspector]
     [Category("Resources/Render Graph Helper Function Resources")]
