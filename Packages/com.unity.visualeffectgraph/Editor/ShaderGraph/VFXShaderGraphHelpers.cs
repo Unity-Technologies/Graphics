@@ -111,13 +111,23 @@ namespace UnityEditor.VFX
             public string[] keywordsMapping;
         }
 
+        static bool IsExcludedFromSlot(AbstractShaderProperty shaderProperty)
+        {
+            return shaderProperty.hidden || !shaderProperty.isExposed;
+        }
+
+        static bool IsExcludedFromSlot(ShaderGraph.ShaderKeyword shaderKeyword)
+        {
+            return !shaderKeyword.isExposed;
+        }
+
         public static IEnumerable<Property> GetProperties(ShaderGraphVfxAsset shaderGraph)
         {
             foreach (var property in shaderGraph.properties)
             {
                 if (property is AbstractShaderProperty shaderProperty)
                 {
-                    if (shaderProperty.hidden || !shaderProperty.isExposed)
+                    if (IsExcludedFromSlot(shaderProperty))
                         continue;
 
                     var type = GetPropertyType(shaderProperty);
@@ -161,7 +171,7 @@ namespace UnityEditor.VFX
                 }
                 else if (property is ShaderGraph.ShaderKeyword shaderKeyword)
                 {
-                    if (!shaderKeyword.isExposed)
+                    if (IsExcludedFromSlot(shaderKeyword))
                         continue;
 
                     if (shaderKeyword.keywordType == KeywordType.Boolean)
@@ -204,48 +214,81 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static IEnumerable<VFXNamedExpression> GetTextureConstant(ShaderGraphVfxAsset shaderGraph)
+        public static IEnumerable<string> GetTextureOnlyUsedInternally(ShaderGraphVfxAsset shaderGraph)
         {
             foreach (var tex in shaderGraph.textureInfos)
+                yield return tex.name;
+
+
+            foreach (var property in shaderGraph.properties)
             {
-                switch (tex.dimension)
+                if (property is AbstractShaderProperty shaderProperty)
                 {
-                    case TextureDimension.Tex2D:
-                        yield return new VFXNamedExpression(
-                            new VFXTexture2DValue(tex.instanceID, VFXValue.Mode.Variable), tex.name);
-                        break;
-                    case TextureDimension.Tex3D:
-                        yield return new VFXNamedExpression(
-                            new VFXTexture3DValue(tex.instanceID, VFXValue.Mode.Variable), tex.name);
-                        break;
-                    case TextureDimension.Cube:
-                        yield return new VFXNamedExpression(
-                            new VFXTextureCubeValue(tex.instanceID, VFXValue.Mode.Variable), tex.name);
-                        break;
-                    case TextureDimension.Tex2DArray:
-                        yield return new VFXNamedExpression(
-                            new VFXTexture2DArrayValue(tex.instanceID, VFXValue.Mode.Variable), tex.name);
-                        break;
-                    case TextureDimension.CubeArray:
-                        yield return new VFXNamedExpression(
-                            new VFXTextureCubeArrayValue(tex.instanceID, VFXValue.Mode.Variable), tex.name);
-                        break;
+                    if (IsExcludedFromSlot(shaderProperty))
+                    {
+                        var type = GetPropertyType(shaderProperty);
+                        if (type == null)
+                            continue;
+
+                        if (typeof(Texture).IsAssignableFrom(type))
+                            yield return property.referenceName;
+                    }
                 }
             }
         }
 
-        public static bool IsTexture(PropertyType type)
+        static VFXExpression GetConstantTextureExpression(Texture texture, TextureDimension dimension)
+        {
+            var entityID = texture != null ? texture.GetEntityId() : EntityId.None;
+            switch (dimension)
+            {
+                case TextureDimension.Tex2D: return new VFXTexture2DValue(entityID, VFXValue.Mode.Variable);
+                case TextureDimension.Tex3D: return new VFXTexture3DValue(entityID, VFXValue.Mode.Variable);
+                case TextureDimension.Cube: return new VFXTextureCubeValue(entityID, VFXValue.Mode.Variable);
+                case TextureDimension.Tex2DArray: return new VFXTexture2DArrayValue(entityID, VFXValue.Mode.Variable);
+                case TextureDimension.CubeArray:  return new VFXTextureCubeArrayValue(entityID, VFXValue.Mode.Variable);
+            }
+            throw new NotImplementedException("Unexpected dimension: " + dimension);
+        }
+
+        public static IEnumerable<VFXNamedExpression> GetTextureConstant(ShaderGraphVfxAsset shaderGraph)
+        {
+            foreach (var tex in shaderGraph.textureInfos)
+                yield return new VFXNamedExpression(GetConstantTextureExpression(tex.texture, tex.dimension), tex.name);
+
+            foreach (var property in shaderGraph.properties)
+            {
+                if (property is AbstractShaderProperty shaderProperty)
+                {
+                    if (IsExcludedFromSlot(shaderProperty))
+                    {
+                        var dimension = GetDimension(shaderProperty.propertyType);
+                        if (dimension == TextureDimension.Unknown)
+                            continue;
+
+                        var texture = (Texture)GetPropertyValue(shaderProperty); //Can be null
+                        yield return new VFXNamedExpression(GetConstantTextureExpression(texture, dimension), shaderProperty.referenceName);
+                    }
+                }
+            }
+        }
+
+        static TextureDimension GetDimension(PropertyType type)
         {
             switch (type)
             {
-                case PropertyType.Texture2D:
-                case PropertyType.Texture2DArray:
-                case PropertyType.Texture3D:
-                case PropertyType.Cubemap:
-                    return true;
-                default:
-                    return false;
+                case PropertyType.Texture2D: return TextureDimension.Tex2D;
+                case PropertyType.Texture2DArray: return TextureDimension.Tex2DArray;
+                case PropertyType.Texture3D: return TextureDimension.Tex3D;
+                case PropertyType.Cubemap: return TextureDimension.Cube;
             }
+
+            return TextureDimension.Unknown;
+        }
+
+        public static bool IsTexture(PropertyType type)
+        {
+            return GetDimension(type) != TextureDimension.Unknown;
         }
 
         public static ShaderGraphVfxAsset GetShaderGraph(VFXContext context)

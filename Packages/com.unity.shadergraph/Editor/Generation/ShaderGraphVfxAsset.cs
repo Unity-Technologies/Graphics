@@ -22,8 +22,6 @@ namespace UnityEditor.ShaderGraph.Internal
         public string name;
         public Texture texture;
         public TextureDimension dimension;
-
-        public int instanceID => texture != null ? texture.GetInstanceID() : 0;
     }
 
     public sealed class ShaderGraphVfxAsset : ScriptableObject, ISerializationCallbackReceiver
