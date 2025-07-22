@@ -13,7 +13,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    partial class HDWizard : EditorWindowWithHelpButton
+    partial class HDWizard
     {
         #region OBJECT_SELECTOR
 
@@ -408,10 +408,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     () => m_Wizard.IsAFixAvailableInScope(m_Mode) ? Result.OK : Result.Failed,
                     () => m_Wizard.FixAllEntryInScope(m_Mode));
 
-                bool userOnWindows = RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
-
-                if (userOnWindows)
-                    foldout.Add(m_FixAllButton);
+                foldout.Add(m_FixAllButton);
 
                 m_GlobalScope = new ScopeBox(Style.global);
                 foldout.Add(m_GlobalScope);
@@ -419,6 +416,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_CurrentScope = new ScopeBox(Style.currentQuality);
                 foldout.Add(m_CurrentScope);
 
+                bool userOnWindows = RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
                 if (!userOnWindows)
                 {
                     // VR and DXR are only supported on windows

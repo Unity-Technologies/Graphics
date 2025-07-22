@@ -19,8 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static readonly GUIContent title = EditorGUIUtility.TrTextContent("HDRP Wizard");
 
-            public static readonly string hdrpProjectSettingsPathLabel = L10n.Tr("Default Resources Folder");
-            public static readonly string hdrpProjectSettingsPathTooltip = L10n.Tr("Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.");
             public const string hdrpConfigLabel = "HDRP";
             public static readonly string hdrpConfigTooltip = L10n.Tr("This tab contains configuration check for High Definition Render Pipeline.");
             public const string hdrpVRConfigLabel = "VR";
@@ -32,11 +30,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly string defaultSettingsTitle = L10n.Tr("General Settings");
             public static readonly string configurationTitle = L10n.Tr("Configuration Checking");
             public static readonly string migrationTitle = L10n.Tr("Project Migration Quick-links");
-
-            public static readonly string installConfigPackageLabel = L10n.Tr("Embed Configuration Editable Package");
-            public static readonly string installConfigPackageInfoInCheck = L10n.Tr("Checking if the config package is embedded in your project.");
-            public static readonly string installConfigPackageInfoInProgress = L10n.Tr("The config package is being embedded in your project.");
-            public static readonly string installConfigPackageInfoFinished = L10n.Tr("The config package is already embedded in your project.");
 
             public static readonly string migrateAllButton = L10n.Tr("Convert All Built-in Materials to HDRP");
             public static readonly string migrateSelectedButton = L10n.Tr("Convert Selected Built-in Materials to HDRP");
@@ -232,14 +225,12 @@ namespace UnityEditor.Rendering.HighDefinition
         Configuration m_Configuration;
         private List<VisualElementUpdatable> m_UpdatableElements = new();
         VisualElement m_BaseUpdatable;
-        VisualElement m_InstallConfigPackageHelpbox = null;
-        VisualElement m_InstallConfigPackageButton = null;
         UnityEngine.UIElements.Label m_InstallConfigPackageHelpboxLabel;
 
         [MenuItem("Window/Rendering/HDRP Wizard", priority = 10000)]
         static internal void OpenWindow()
         {
-            var window = GetWindow<HDWizard>(Style.title.text);
+            var window = GetWindow<HDWizard>();
             window.minSize = new Vector2(500, 450);
             HDUserSettings.wizardPopupAlreadyShownOnce = true;
         }
@@ -420,11 +411,7 @@ namespace UnityEditor.Rendering.HighDefinition
             rootVisualElement.Add(scrollView);
             var container = scrollView.contentContainer;
 
-            container.Add(CreateTitle(Style.defaultSettingsTitle));
-            container.Add(CreateFolderData());
-
             container.Add(CreateTitle(Style.configurationTitle));
-            container.Add(CreateInstallConfigPackageArea());
 
             var hdrpConfig = new InclusiveModeElement(InclusiveMode.HDRP, Style.hdrpConfigLabel, Style.hdrpConfigTooltip, this);
             container.Add(hdrpConfig);
@@ -470,21 +457,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 element.Init();
         }
 
-        VisualElement CreateFolderData()
-        {
-            var defaultResourceFolder = new TextField(Style.hdrpProjectSettingsPathLabel)
-            {
-                tooltip = Style.hdrpProjectSettingsPathTooltip,
-                name = "DefaultResourceFolder",
-                value = HDProjectSettings.projectSettingsFolderPath
-            };
-            defaultResourceFolder.Q<UnityEngine.UIElements.Label>().AddToClassList("normal");
-            defaultResourceFolder.RegisterValueChangedCallback(evt
-                => HDProjectSettings.projectSettingsFolderPath = evt.newValue);
-
-            return defaultResourceFolder;
-        }
-
         Toggle CreateWizardBehaviour()
         {
             var toggle = new Toggle()
@@ -508,67 +480,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 GraphicsToolUsageAnalytic.ActionPerformed<HDWizard>("Button Pressed", new string[] { context });
             };
             return button;
-        }
-
-        VisualElement CreateInstallConfigPackageArea()
-        {
-            VisualElement area = new VisualElement()
-            {
-                name = "InstallConfigPackageArea",
-                style =
-                {
-                    marginBottom = 3
-                }
-            };
-            m_InstallConfigPackageButton = CreateLargeButton(Style.installConfigPackageLabel, () =>
-            {
-                UpdateDisplayOfConfigPackageArea(ConfigPackageState.BeingFixed);
-                InstallLocalConfigurationPackage(() =>
-                    UpdateDisplayOfConfigPackageArea(ConfigPackageState.Present));
-            });
-            m_InstallConfigPackageHelpbox = new HelpBox(Style.installConfigPackageInfoInCheck, HelpBoxMessageType.Info);
-            m_InstallConfigPackageHelpbox.AddToClassList("InstallConfigPackageMessage");
-            m_InstallConfigPackageHelpboxLabel = m_InstallConfigPackageHelpbox.Q<UnityEngine.UIElements.Label>();
-            area.Add(m_InstallConfigPackageButton);
-            area.Add(m_InstallConfigPackageHelpbox);
-
-            UpdateDisplayOfConfigPackageArea(ConfigPackageState.BeingChecked);
-
-            RefreshDisplayOfConfigPackageArea();
-            return area;
-        }
-
-        void UpdateDisplayOfConfigPackageArea(ConfigPackageState state)
-        {
-            switch (state)
-            {
-                case ConfigPackageState.Present:
-                    m_InstallConfigPackageButton.SetEnabled(false);
-                    m_InstallConfigPackageButton.focusable = false;
-                    m_InstallConfigPackageHelpbox.style.display = DisplayStyle.Flex;
-                    m_InstallConfigPackageHelpboxLabel.text = Style.installConfigPackageInfoFinished;
-                    break;
-
-                case ConfigPackageState.Missing:
-                    m_InstallConfigPackageButton.SetEnabled(true);
-                    m_InstallConfigPackageButton.focusable = true;
-                    m_InstallConfigPackageHelpbox.style.display = DisplayStyle.None;
-                    break;
-
-                case ConfigPackageState.BeingChecked:
-                    m_InstallConfigPackageButton.SetEnabled(false);
-                    m_InstallConfigPackageButton.focusable = false;
-                    m_InstallConfigPackageHelpbox.style.display = DisplayStyle.Flex;
-                    m_InstallConfigPackageHelpboxLabel.text = Style.installConfigPackageInfoInCheck;
-                    break;
-
-                case ConfigPackageState.BeingFixed:
-                    m_InstallConfigPackageButton.SetEnabled(false);
-                    m_InstallConfigPackageButton.focusable = false;
-                    m_InstallConfigPackageHelpbox.style.display = DisplayStyle.Flex;
-                    m_InstallConfigPackageHelpboxLabel.text = Style.installConfigPackageInfoInProgress;
-                    break;
-            }
         }
 
         UnityEngine.UIElements.Label CreateTitle(string title)

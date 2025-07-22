@@ -12,17 +12,14 @@ For example, you can use it to:
 
 ## Using the HDRP Config package
 
-To use the HDRP Config package in your HDRP Project, you need to create a local copy of it and make your Project's package manifest reference it. You can either do this manually or use the [HDRP Wizard](Render-Pipeline-Wizard.md).
+* To check or customize the Config Package:
 
-* **Manual**: In your Project's directory, move and rename the folder "**/Library/PackageCache/com.unity.render-pipelines.high-definition-config@[versionnumber]**" to "**/Packages/com.unity.render-pipelines.high-definition-config**".
-* **HDRP Wizard**: Open the HDRP Wizard (**Windows > Rendering > HDRP Wizard**) and click the **Embed Configuration Editable Package**. This creates a **LocalPackage** folder at the root of your Project and populates it with a compatible HDRP config package.
+1. Go to **Edit > Preferences > Graphics > High Definition Render Pipeline**.
+2. Under **Config Package**, click **View in Package Manager**.
+3. In the Package Manager, select `com.unity.render-pipelines.high-definition-config`.
+4. Click the **Manage** dropdown and choose **Customize** to embed and edit the package.
 
-**Note**: Using the Package Manager to upgrade your HDRP package does not automatically upgrade the local config package. To manually upgrade the local config package:
-
-1. Make a copy of your current config package.
-2. Use the HDRP Wizard to create a new, compatible config package.
-3. Apply the settings from the old config package to the new config package.
-
+Alternatively you can manually embed the package by copying it to your Project's **Packages** folder. In your Project's directory, move and rename the folder "**/Library/PackageCache/com.unity.render-pipelines.high-definition-config@[versionnumber]**" to "**/Packages/com.unity.render-pipelines.high-definition-config**".
 
 ## Configuring HDRP using the config package
 

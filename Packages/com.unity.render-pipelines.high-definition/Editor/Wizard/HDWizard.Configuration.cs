@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => ((~thisScope) & scope) == 0;
     }
 
-    partial class HDWizard : EditorWindowWithHelpButton
+    partial class HDWizard
     {
         #region REFLECTION
 
@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 void DelayedRebuildEntryList()
                 {
                     EditorApplication.update -= DelayedRebuildEntryList;
-                    HDWizard window = EditorWindow.GetWindow<HDWizard>(Style.title.text);
+                    HDWizard window = EditorWindow.GetWindow<HDWizard>();
                     window.ReBuildEntryList();
                 }
             }
@@ -980,18 +980,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorApplication.delayCall += () => WaitForRequest<T>(request, onCompleted);
         }
 
-        void RefreshDisplayOfConfigPackageArea()
-        {
-            IsLocalConfigurationPackageEmbeddedAsync(present => UpdateDisplayOfConfigPackageArea(present ? ConfigPackageState.Present : ConfigPackageState.Missing));
-        }
-
         static void CheckPackages(PackageRegistrationEventArgs args)
         {
             if (EditorWindow.HasOpenInstances<HDWizard>() && !EditorApplication.isPlayingOrWillChangePlaymode)
             {
-                HDWizard window = EditorWindow.GetWindow<HDWizard>(Style.title.text);
-                window.UpdateVRXRManagementInstalledCheck();
-                window.UpdateVRLegacyHelpersInstalledCheck();
+                EditorApplication.delayCall += () =>
+                {
+                    HDWizard window = EditorWindow.GetWindow<HDWizard>();
+                    window.UpdateVRXRManagementInstalledCheck();
+                    window.UpdateVRLegacyHelpersInstalledCheck();
+                };
             }
         }
 
