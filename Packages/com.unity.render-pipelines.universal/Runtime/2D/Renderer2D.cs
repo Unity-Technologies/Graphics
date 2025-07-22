@@ -114,6 +114,15 @@ namespace UnityEngine.Rendering.Universal
             LensFlareCommonSRP.Initialize();
 
             Light2DManager.Initialize();
+
+            PlatformAutoDetect.Initialize();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeXRResources>(out var xrResources))
+            {
+                XRSystem.Initialize(XRPassUniversal.Create, xrResources.xrOcclusionMeshPS, xrResources.xrMirrorViewPS);
+            }
+#endif
         }
 
         protected override void Dispose(bool disposing)
@@ -130,6 +139,9 @@ namespace UnityEngine.Rendering.Universal
             m_DrawOffscreenUIPass?.Dispose();
             m_DrawOverlayUIPass?.Dispose();
             Light2DManager.Dispose();
+#if ENABLE_VR && ENABLE_XR_MODULE
+            XRSystem.Dispose();
+#endif
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_BlitHDRMaterial);
@@ -532,6 +544,11 @@ namespace UnityEngine.Rendering.Universal
         internal static bool IsGLESDevice()
         {
             return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+        }
+
+        internal static bool supportsMRT
+        {
+            get => !IsGLESDevice();
         }
 
         internal override bool supportsNativeRenderPassRendergraphCompiler => true;
