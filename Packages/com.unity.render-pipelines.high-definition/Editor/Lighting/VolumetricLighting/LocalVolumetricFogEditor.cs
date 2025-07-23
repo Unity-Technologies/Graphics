@@ -4,6 +4,8 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering.Utilities;
+
 
 namespace UnityEditor.Rendering.HighDefinition
 {

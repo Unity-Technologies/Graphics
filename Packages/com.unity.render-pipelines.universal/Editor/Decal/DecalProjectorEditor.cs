@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
 using UnityEditor.ShortcutManagement;
 using UnityEditorInternal;
+using UnityEditor.EditorTools;
+using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using static UnityEditorInternal.EditMode;
+
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -116,14 +119,6 @@ namespace UnityEditor.Rendering.Universal
         };
 
         static Func<Vector3, Quaternion, Vector3> s_DrawPivotHandle;
-
-        static GUIContent[] k_EditVolumeLabels = null;
-        static GUIContent[] editVolumeLabels => k_EditVolumeLabels ?? (k_EditVolumeLabels = new GUIContent[]
-        {
-            EditorGUIUtility.TrIconContent("d_ScaleTool", k_EditShapeWithoutPreservingUVTooltip),
-            EditorGUIUtility.TrIconContent("d_RectTool", k_EditShapePreservingUVTooltip),
-            EditorGUIUtility.TrIconContent("d_MoveTool", k_EditUVTooltip),
-        });
 
         static List<DecalProjectorEditor> s_Instances = new List<DecalProjectorEditor>();
 
@@ -557,29 +552,6 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
             {
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                DoInspectorToolbar(k_EditVolumeModes, editVolumeLabels, GetBoundsGetter(target as DecalProjector), this);
-                GUILayout.FlexibleSpace();
-                EditorGUILayout.EndHorizontal();
-
-                EditorGUILayout.Space();
-
-                // Info box for tools
-                GUIStyle style = new GUIStyle(EditorStyles.miniLabel);
-                style.richText = true;
-                GUILayout.BeginVertical(EditorStyles.helpBox);
-                string helpText = k_BaseSceneEditingToolText;
-                if (EditMode.editMode == k_EditShapeWithoutPreservingUV && EditMode.IsOwner(this))
-                    helpText = k_EditShapeWithoutPreservingUVName;
-                if (EditMode.editMode == k_EditShapePreservingUV && EditMode.IsOwner(this))
-                    helpText = k_EditShapePreservingUVName;
-                if (EditMode.editMode == k_EditUVAndPivot && EditMode.IsOwner(this))
-                    helpText = k_EditUVAndPivotName;
-                GUILayout.Label(helpText, style);
-                GUILayout.EndVertical();
-                EditorGUILayout.Space();
-
                 EditorGUILayout.PropertyField(m_ScaleMode, k_ScaleMode);
 
                 bool negativeScale = false;
@@ -819,6 +791,36 @@ namespace UnityEditor.Rendering.Universal
                 return;
 
             QuitEditMode();
+        }
+
+        [EditorTool(Description, typeof(DecalProjector), toolPriority = (int)Mode)]
+        internal class DecalProjectorModifyScaleTool : GenericEditorTool<DecalProjector>
+        {
+            private const string Description = DecalProjectorEditor.k_EditShapeWithoutPreservingUVTooltip;
+            private const EditMode.SceneViewEditMode Mode = DecalProjectorEditor.k_EditShapeWithoutPreservingUV;
+            private const string IconName = "ScaleTool";
+
+            protected DecalProjectorModifyScaleTool() : base(Description, Mode, IconName) { }
+        }
+
+        [EditorTool(Description, typeof(DecalProjector), toolPriority = (int)Mode)]
+        internal class DecalProjectorEditShapeTool : GenericEditorTool<DecalProjector>
+        {
+            private const string Description = DecalProjectorEditor.k_EditShapePreservingUVTooltip;
+            private const EditMode.SceneViewEditMode Mode = DecalProjectorEditor.k_EditShapePreservingUV;
+            private const string IconName = "RectTool";
+
+            protected DecalProjectorEditShapeTool() : base(Description, Mode, IconName) { }
+        }
+
+        [EditorTool(Description, typeof(DecalProjector), toolPriority = (int)Mode)]
+        internal class DecalProjectorEditTool : GenericEditorTool<DecalProjector>
+        {
+            private const string Description = DecalProjectorEditor.k_EditUVTooltip;
+            private const EditMode.SceneViewEditMode Mode = DecalProjectorEditor.k_EditUVAndPivot;
+            private const string IconName = "MoveTool";
+
+            protected DecalProjectorEditTool() : base(Description, Mode, IconName) { }
         }
     }
 

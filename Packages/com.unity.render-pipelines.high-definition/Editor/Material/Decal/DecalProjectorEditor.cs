@@ -11,6 +11,8 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditorInternal.EditMode;
 using RenderingLayerMask = UnityEngine.RenderingLayerMask;
+using UnityEditor.Rendering.Utilities;
+
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -1002,7 +1004,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         private const string Description = DecalProjectorEditor.k_EditShapeWithoutPreservingUVTooltip;
         private const EditMode.SceneViewEditMode Mode = DecalProjectorEditor.k_EditShapeWithoutPreservingUV;
-        private const string IconName = "d_ScaleTool";
+        private const string IconName = "ScaleTool";
 
         protected DecalProjectorModifyScaleTool() : base(Description, Mode, IconName) { }
     }
@@ -1012,7 +1014,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         private const string Description = DecalProjectorEditor.k_EditShapePreservingUVTooltip;
         private const EditMode.SceneViewEditMode Mode = DecalProjectorEditor.k_EditShapePreservingUV;
-        private const string IconName = "d_RectTool";
+        private const string IconName = "RectTool";
 
         protected DecalProjectorEditShapeTool() : base(Description, Mode, IconName) { }
     }
@@ -1022,7 +1024,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         private const string Description = DecalProjectorEditor.k_EditUVTooltip;
         private const EditMode.SceneViewEditMode Mode = DecalProjectorEditor.k_EditUVAndPivot;
-        private const string IconName = "d_MoveTool";
+        private const string IconName = "MoveTool";
 
         protected DecalProjectorEditTool() : base(Description, Mode, IconName) { }
     }
