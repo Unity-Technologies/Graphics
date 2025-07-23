@@ -284,25 +284,51 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly ReadOnlySpan<ResourceHandle> LastUsedResources(CompilerContextData ctx)
             => ctx.destroyData.MakeReadOnlySpan(firstDestroy, numDestroyed);
 
-        private void SetupAndValidateFragmentInfo(ResourceHandle h, CompilerContextData ctx)
+        private bool TrySetupAndValidateFragmentInfo(ResourceHandle h, CompilerContextData ctx, out string errorMessage)
         {
+            errorMessage = null;
+
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (h.type != RenderGraphResourceType.Texture) new Exception("Only textures can be used as a fragment attachment.");
+            if (h.type != RenderGraphResourceType.Texture)
+            {
+                errorMessage = RenderGraph.RenderGraphExceptionMessages.k_NonTextureAsAttachmentError;
+                return false;
+            }
 #endif
 
             ref readonly var resInfo = ref ctx.UnversionedResourceData(h);
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (resInfo.width == 0 || resInfo.height == 0 || resInfo.msaaSamples == 0) throw new Exception("GetRenderTargetInfo returned invalid results.");
+            if (resInfo.width == 0 || resInfo.height == 0 || resInfo.msaaSamples == 0)
+            {
+                errorMessage = RenderGraph.RenderGraphExceptionMessages.k_InvalidGetRenderTargetInfoResultsError;
+                return false;
+            }
 #endif
-            if (fragmentInfoValid)
+            if (RenderGraph.enableValidityChecks && fragmentInfoValid)
             {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if (fragmentInfoWidth != resInfo.width ||
                     fragmentInfoHeight != resInfo.height ||
-                    fragmentInfoVolumeDepth != resInfo.volumeDepth ||
-                    fragmentInfoSamples != resInfo.msaaSamples)
-                    throw new Exception("Mismatch in Fragment dimensions");
+                    fragmentInfoVolumeDepth != resInfo.volumeDepth)
+                {
+                    var name = resInfo.GetName(ctx, h);
+                    if (string.IsNullOrEmpty(name))
+                        name = "unnamed fragment";
+
+                    errorMessage = RenderGraph.RenderGraphExceptionMessages.MismatchInDimensions(name, fragmentInfoWidth, fragmentInfoHeight, fragmentInfoVolumeDepth, resInfo);
+                    return false;
+                }
+
+                if (fragmentInfoSamples != resInfo.msaaSamples)
+                {
+                    var name = resInfo.GetName(ctx, h);
+                    if (string.IsNullOrEmpty(name))
+                        name = "unnamed fragment";
+
+                    errorMessage = RenderGraph.RenderGraphExceptionMessages.MismatchInMSAASamlpes(name, fragmentInfoSamples, resInfo.msaaSamples);
+                    return false;
+                }
 #endif
             }
             else
@@ -313,20 +339,21 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 fragmentInfoVolumeDepth = resInfo.volumeDepth;
                 fragmentInfoValid = true;
             }
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void AddFragment(ResourceHandle h, CompilerContextData ctx)
+        internal void TryAddFragment(ResourceHandle h, CompilerContextData ctx, out string errorMessage)
         {
-            SetupAndValidateFragmentInfo(h, ctx);
-            numFragments++;
+            if (TrySetupAndValidateFragmentInfo(h, ctx, out errorMessage))
+                numFragments++;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void AddFragmentInput(ResourceHandle h, CompilerContextData ctx)
+        internal void TryAddFragmentInput(ResourceHandle h, CompilerContextData ctx, out string errorMessage)
         {
-            SetupAndValidateFragmentInfo(h, ctx);
-            numFragmentInputs++;
+            if (TrySetupAndValidateFragmentInfo(h, ctx, out errorMessage))
+                numFragmentInputs++;
         }
 
         internal void AddRandomAccessResource()
@@ -355,7 +382,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 firstCreate = addedIndex;
             }
 
-            Debug.Assert(addedIndex == firstCreate + numCreated, "you can only incrementally set-up the Creation lists for all passes, AddCreation is called in an arbitrary non-incremental way");
+            Debug.Assert(addedIndex == firstCreate + numCreated, RenderGraph.RenderGraphExceptionMessages.k_NonIncrementalCreationCall);
 
             numCreated++;
         }
@@ -379,7 +406,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 firstDestroy = addedIndex;
             }
 
-            Debug.Assert(addedIndex == firstDestroy + numDestroyed, "you can only incrementally set-up the Destruction lists for all passes, AddCreation is called in an arbitrary non-incremental way");
+            Debug.Assert(addedIndex == firstDestroy + numDestroyed, RenderGraph.RenderGraphExceptionMessages.k_NonIncrementalDestructionCall);
             numDestroyed++;
         }
 
@@ -663,7 +690,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // We should not be calling this method if native pass doesn't have depth.
             if (hasDepth == false)
             {
-                throw new Exception("SubPassFlag for merging can not be determined if native pass doesn't have a depth attachment");
+                throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_CannotDetermineSubPassFlagNoDepth);
             }
 
             // Only do this for mobile using Vulkan.
@@ -1257,7 +1284,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                     if (existingAttach.resource.version > newAttach.resource.version)
-                        throw new Exception("Adding an older version while a higher version is already registered with the pass.");
+                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_AddingOlderAttachmentVersion);
 #endif
                     existingAttach = new PassFragmentData(
                         new ResourceHandle(existingAttach.resource, newAttach.resource.version),
@@ -1291,7 +1318,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                     if (existingAttach.resource.version > newAttach.resource.version)
-                        throw new Exception("Adding an older version while a higher version is already registered with the pass.");
+                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_AddingOlderAttachmentVersion);
 #endif
 
                     existingAttach = new PassFragmentData(
@@ -1330,7 +1357,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 {
                     var indexPass = nativePass.firstGraphPass + i;
 
-                    // This pass was culled and should not be considere
+                    // This pass was culled and should not be considered
                     if (contextData.passData.ElementAt(indexPass).culled)
                     {
                         contextData.passData.ElementAt(indexPass).mergeState = PassMergeState.None;

@@ -771,7 +771,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             };
             LogAssert.Expect(LogType.Error, "Render Graph Execution error");
-            LogAssert.Expect(LogType.Exception, "InvalidOperationException: RenderPass TestPassWithNoRenderFunc was not provided with an execute function.");
+            LogAssert.Expect(LogType.Exception, "InvalidOperationException: In pass TestPassWithNoRenderFunc - " + RenderGraph.RenderGraphExceptionMessages.k_NoRenderFunction);
             m_Camera.Render();
         }
 

@@ -277,7 +277,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
             {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 // You tried to do SetRenderAttachment(tex1, 1, ..); SetRenderAttachment(tex2, 1, ..); that is not valid for different textures on the same index
-                throw new InvalidOperationException("You can only bind a single texture to an MRT index. Verify your indexes are correct.");
+                throw new InvalidOperationException(
+                    $"In pass '{name}' when trying to call SetRenderAttachment with resource of type {resource.handle.type} at index {index} - " +
+                    RenderGraph.RenderGraphExceptionMessages.k_MoreThanOneResourceForMRTIndex);
 #endif
             }
         }
@@ -296,7 +298,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
             {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 // You tried to do SetRenderAttachment(tex1, 1, ..); SetRenderAttachment(tex2, 1, ..); that is not valid for different textures on the same index
-                throw new InvalidOperationException("You can only bind a single texture to an fragment input index. Verify your indexes are correct.");
+                throw new InvalidOperationException(
+                    $"In pass '{name}' when trying to call SetInputAttachment with resource of type {resource.handle.type} at index {index} - " +
+                    RenderGraph.RenderGraphExceptionMessages.k_MoreThanOneTextureForFragInputIndex);
 #endif
             }
         }
@@ -316,7 +320,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
             else
             {
                 // You tried to do SetRenderAttachment(tex1, 1, ..); SetRenderAttachment(tex2, 1, ..); that is not valid for different textures on the same index
-                throw new InvalidOperationException("You can only bind a single texture to an random write input index. Verify your indexes are correct.");
+                throw new InvalidOperationException(
+                    $"In pass '{name}' when trying to call SetRandomAccessAttachment/UseBufferRandomAccess with resource of type {resource.type} at index {index} - " +
+                    RenderGraph.RenderGraphExceptionMessages.k_MoreThanOneTextureRandomWriteInputIndex);
             }
         }
 
@@ -343,7 +349,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             else
             {
-                throw new InvalidOperationException("You can only set a single depth texture per pass.");
+                throw new InvalidOperationException(
+                    $"In pass '{name}' when trying to call SetRenderAttachmentDepth with resource of type {resource.handle.type} at index {index} - " +
+                    RenderGraph.RenderGraphExceptionMessages.k_MultipleDepthTextures);
             }
 #endif
         }

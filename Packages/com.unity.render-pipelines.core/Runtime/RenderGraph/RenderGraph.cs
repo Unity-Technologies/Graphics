@@ -1570,7 +1570,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 // TODO: Do we really want to swallow exceptions here? Not a very c# thing to do.
                 Debug.LogError(RenderGraphExceptionMessages.k_RenderGraphExecutionError);
                 if (!m_ExecutionExceptionWasRaised) // Already logged. TODO: There is probably a better way in C# to handle that.
+                {
                     Debug.LogException(e);
+                }
+
                 m_ExecutionExceptionWasRaised = true;
             }
 

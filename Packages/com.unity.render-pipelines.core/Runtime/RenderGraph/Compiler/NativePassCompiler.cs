@@ -139,6 +139,121 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
+        // Returns true if the RasterFragmentList is successfully set up
+        bool TrySetupRasterFragmentList(ref PassData ctxPass, ref RenderGraphPass inputPass, out string errorMessage)
+        {
+            errorMessage = null;
+            var ctx = contextData;
+            // Grab offset in context fragment list to begin building the fragment list
+            ctxPass.firstFragment = ctx.fragmentData.Length;
+
+            // Depth attachment is always at index 0
+            if (inputPass.depthAccess.textureHandle.handle.IsValid())
+            {
+                ctxPass.fragmentInfoHasDepth = true;
+
+                if (ctx.TryAddToFragmentList(inputPass.depthAccess, ctxPass.firstFragment, ctxPass.numFragments, out errorMessage))
+                {
+                    ctxPass.TryAddFragment(inputPass.depthAccess.textureHandle.handle, ctx, out errorMessage);
+                }
+
+                if (errorMessage != null)
+                {
+                    errorMessage =
+                        $"when trying to add depth attachment of type {inputPass.depthAccess.textureHandle.handle.type} at index {inputPass.depthAccess.textureHandle.handle.index} - {errorMessage}";
+                    return false;
+                }
+            }
+
+            for (var ci = 0; ci < inputPass.colorBufferMaxIndex + 1; ++ci)
+            {
+                // Skip unused color slots
+                if (!inputPass.colorBufferAccess[ci].textureHandle.handle.IsValid()) continue;
+
+                if (ctx.TryAddToFragmentList(inputPass.colorBufferAccess[ci], ctxPass.firstFragment, ctxPass.numFragments, out errorMessage))
+                {
+                    ctxPass.TryAddFragment(inputPass.colorBufferAccess[ci].textureHandle.handle, ctx, out errorMessage);
+                }
+
+                if (errorMessage != null)
+                {
+                    errorMessage =
+                        $"when trying to add render attachment of type {inputPass.colorBufferAccess[ci].textureHandle.handle.type} at index {inputPass.colorBufferAccess[ci].textureHandle.handle.index} - {errorMessage}";
+                    return false;
+                }
+            }
+
+            // shading rate
+            if (inputPass.hasShadingRateImage &&
+                inputPass.shadingRateAccess.textureHandle.handle.IsValid())
+            {
+                ctxPass.shadingRateImageIndex = ctx.fragmentData.Length;
+                ctx.TryAddToFragmentList(inputPass.shadingRateAccess, ctxPass.shadingRateImageIndex, 0, out errorMessage);
+
+                if (errorMessage != null)
+                {
+                    errorMessage = $"when trying to add VRS attachment of type {inputPass.shadingRateAccess.textureHandle.handle.type} at index {inputPass.shadingRateAccess.textureHandle.handle.index} - {errorMessage}";
+                    return false;
+                }
+            }
+
+            // Grab offset in context fragment list to begin building the fragment input list
+            ctxPass.firstFragmentInput = ctx.fragmentData.Length;
+
+            for (var ci = 0; ci < inputPass.fragmentInputMaxIndex + 1; ++ci)
+            {
+                // Skip unused fragment input slots
+                if (!inputPass.fragmentInputAccess[ci].textureHandle.IsValid()) continue;
+
+                var resource = inputPass.fragmentInputAccess[ci].textureHandle;
+                if (ctx.TryAddToFragmentList(inputPass.fragmentInputAccess[ci], ctxPass.firstFragmentInput,
+                        ctxPass.numFragmentInputs, out errorMessage))
+                {
+                    ctxPass.TryAddFragmentInput(inputPass.fragmentInputAccess[ci].textureHandle.handle, ctx, out errorMessage);
+                }
+
+                if (errorMessage != null)
+                {
+                    errorMessage =
+                        $"when trying to add input attachment of type {inputPass.fragmentInputAccess[ci].textureHandle.handle.type} at index {inputPass.fragmentInputAccess[ci].textureHandle.handle.index} - {errorMessage}";
+                    return false;
+                }
+            }
+
+            // Grab offset in context random write list to begin building the per pass random write lists
+            ctxPass.firstRandomAccessResource = ctx.randomAccessResourceData.Length;
+
+            for (var ci = 0; ci < inputPass.randomAccessResourceMaxIndex + 1; ++ci)
+            {
+                ref var uav = ref inputPass.randomAccessResource[ci];
+
+                // Skip unused random write slots
+                if (!uav.h.IsValid()) continue;
+
+                if (ctx.TryAddToRandomAccessResourceList(uav.h, ci, uav.preserveCounterValue,
+                        ctxPass.firstRandomAccessResource, ctxPass.numRandomAccessResources, out errorMessage))
+                {
+                    ctxPass.AddRandomAccessResource();
+                }
+
+                if (errorMessage != null)
+                {
+                    errorMessage = $"when trying to add random access attachment of type {uav.h.type} at index {uav.h.index} - {errorMessage}";
+                    return false;
+                }
+            }
+
+            // This is suspicious, there are frame buffer fetch inputs but nothing is output. We don't allow this for now.
+            // In theory you could fb-fetch inputs and write something to a uav and output nothing? This needs to be investigated
+            // so don't allow it for now.
+            if (ctxPass.numFragments == 0)
+            {
+                Debug.Assert(ctxPass.numFragmentInputs == 0);
+            }
+
+            return true;
+        }
+
         void BuildGraph()
         {
             var ctx = contextData;
@@ -158,9 +273,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                     if (inputPass.type == RenderGraphPassType.Legacy)
                     {
-                        throw new Exception("Pass '" + inputPass.name + "' is using the legacy rendergraph API." +
-                                            " You cannot use legacy passes with the Native Render Pass Compiler." +
-                                            " The APIs that are compatible with the Native Render Pass Compiler are AddUnsafePass, AddComputePass and AddRasterRenderPass.");
+                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.UsingLegacyRenderGraph(inputPass.name));
                     }
 #endif
 
@@ -181,76 +294,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     // will also be in the pass read/write lists accordingly
                     if (ctxPass.type == RenderGraphPassType.Raster)
                     {
-                        // Grab offset in context fragment list to begin building the fragment list
-                        ctxPass.firstFragment = ctx.fragmentData.Length;
-
-                        // Depth attachment is always at index 0
-                        if (inputPass.depthAccess.textureHandle.handle.IsValid())
+                        if (!TrySetupRasterFragmentList(ref ctxPass, ref inputPass, out var errorMessage))
                         {
-                            ctxPass.fragmentInfoHasDepth = true;
-
-                            if (ctx.AddToFragmentList(inputPass.depthAccess, ctxPass.firstFragment, ctxPass.numFragments))
-                            {
-                                ctxPass.AddFragment(inputPass.depthAccess.textureHandle.handle, ctx);
-                            }
-                        }
-
-                        for (var ci = 0; ci < inputPass.colorBufferMaxIndex + 1; ++ci)
-                        {
-                            // Skip unused color slots
-                            if (!inputPass.colorBufferAccess[ci].textureHandle.handle.IsValid()) continue;
-
-                            if (ctx.AddToFragmentList(inputPass.colorBufferAccess[ci], ctxPass.firstFragment, ctxPass.numFragments))
-                            {
-                                ctxPass.AddFragment(inputPass.colorBufferAccess[ci].textureHandle.handle, ctx);
-                            }
-                        }
-
-                        // shading rate
-                        if (inputPass.hasShadingRateImage &&
-                            inputPass.shadingRateAccess.textureHandle.handle.IsValid())
-                        {
-                            ctxPass.shadingRateImageIndex = ctx.fragmentData.Length;
-                            ctx.AddToFragmentList(inputPass.shadingRateAccess, ctxPass.shadingRateImageIndex, 0);
-                        }
-
-                        // Grab offset in context fragment list to begin building the fragment input list
-                        ctxPass.firstFragmentInput = ctx.fragmentData.Length;
-
-                        for (var ci = 0; ci < inputPass.fragmentInputMaxIndex + 1; ++ci)
-                        {
-                            // Skip unused fragment input slots
-                            if (!inputPass.fragmentInputAccess[ci].textureHandle.IsValid()) continue;
-
-                            var resource = inputPass.fragmentInputAccess[ci].textureHandle;
-                            if (ctx.AddToFragmentList(inputPass.fragmentInputAccess[ci], ctxPass.firstFragmentInput, ctxPass.numFragmentInputs))
-                            {
-                                ctxPass.AddFragmentInput(inputPass.fragmentInputAccess[ci].textureHandle.handle, ctx);
-                            }
-                        }
-
-                        // Grab offset in context random write list to begin building the per pass random write lists
-                        ctxPass.firstRandomAccessResource = ctx.randomAccessResourceData.Length;
-
-                        for (var ci = 0; ci < passes[passId].randomAccessResourceMaxIndex + 1; ++ci)
-                        {
-                            ref var uav = ref passes[passId].randomAccessResource[ci];
-
-                            // Skip unused random write slots
-                            if (!uav.h.IsValid()) continue;
-
-                            if (ctx.AddToRandomAccessResourceList(uav.h, ci, uav.preserveCounterValue, ctxPass.firstRandomAccessResource, ctxPass.numRandomAccessResources))
-                            {
-                                ctxPass.AddRandomAccessResource();
-                            }
-                        }
-
-                        // This is suspicious, there are frame buffer fetch inputs but nothing is output. We don't allow this for now.
-                        // In theory you could fb-fetch inputs and write something to a uav and output nothing? This needs to be investigated
-                        // so don't allow it for now.
-                        if (ctxPass.numFragments == 0)
-                        {
-                            Debug.Assert(ctxPass.numFragmentInputs == 0);
+                            throw new Exception($"In pass '{inputPass.name}', {errorMessage}");
                         }
                     }
 
@@ -269,7 +315,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             ref var resData = ref ctx.UnversionedResourceData(resource);
                             if (resData.isImported)
                             {
-                                if (ctxPass.hasSideEffects == false)
+                                if (!ctxPass.hasSideEffects)
                                 {
                                     ctxPass.hasSideEffects = true;
                                     toVisitPassIds.Push(passId);
@@ -1166,9 +1212,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                         // Ensure load/store actions are actually valid for memory less
                         if (loadAction == RenderBufferLoadAction.Load)
-                            throw new Exception("Resource was marked as memoryless but is trying to load.");
+                            throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_LoadingMemorylessResource);
                         if (storeAction != RenderBufferStoreAction.DontCare)
-                            throw new Exception("Resource was marked as memoryless but is trying to store or resolve.");
+                            throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_ResolvignMemorylessResource);
 #endif
                     }
 
@@ -1192,10 +1238,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             if (RenderGraph.enableValidityChecks)
             {
                 if (nativePass.attachments.size == 0 || nativePass.numNativeSubPasses == 0)
-                    throw new Exception("Empty render pass");
+                    throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_RenderPassIsEmpty);
 
                 if (width == 0 || height == 0 || depth == 0 || samples == 0 || nativePass.numNativeSubPasses == 0 || attachmentCount == 0)
-                    throw new Exception("Invalid render pass properties. One or more properties are zero.");
+                    throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_RenderPassHasInvalidProperties);
             }
         }
 
@@ -1211,13 +1257,13 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                     if (attRenderTargetInfo.width != tileSize.x || attRenderTargetInfo.height != tileSize.y || attRenderTargetInfo.msaaSamples != 1)
                     {
-                        throw new Exception("Low level rendergraph error: Shading rate image attachment in renderpass does not match!");
+                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_ShadingRateImageAttachmentDoesNotMatch);
                     }
                 }
                 else
                 {
                     if (attRenderTargetInfo.width != nativePassWidth || attRenderTargetInfo.height != nativePassHeight || attRenderTargetInfo.msaaSamples != nativePassMSAASamples)
-                        throw new Exception("Low level rendergraph error: Attachments in renderpass do not match!");
+                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_AttachmentsDoNotMatch);
                 }
             }
         }
@@ -1428,7 +1474,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                         if (!colorBufferAccess[i].textureHandle.IsValid())
-                            throw new InvalidOperationException("MRT setup is invalid. Some indices are not used.");
+                            throw new InvalidOperationException($"In pass {pass.name}, when trying to use {colorBufferAccess[i].textureHandle.handle.type} attachment at index {colorBufferAccess[i].textureHandle.handle.index} - " + RenderGraph.RenderGraphExceptionMessages.k_InvalidMRTSetup);
 #endif
                         mrtArray[i] = resources.GetTexture(colorBufferAccess[i].textureHandle);
                     }
@@ -1439,7 +1485,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     }
                     else
                     {
-                        throw new InvalidOperationException("Setting MRTs without a depth buffer is not supported.");
+                        throw new InvalidOperationException($"In pass {pass.name} - " + RenderGraph.RenderGraphExceptionMessages.k_NoDepthBufferMRT);
                     }
                 }
                 else
@@ -1463,7 +1509,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             CoreUtils.SetRenderTarget(rgContext.cmd, resources.GetTexture(pass.colorBufferAccess[0].textureHandle));
                         }
                         else
-                            throw new InvalidOperationException("Neither Depth nor color render targets are correctly setup at pass " + pass.name + ".");
+                            throw new InvalidOperationException($"In pass {pass.name} - " + RenderGraph.RenderGraphExceptionMessages.k_InvalidDepthAndColorTargets);
                     }
                 }
             }
@@ -1491,7 +1537,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
             else
             {
-                throw new Exception($"Invalid resource type {resource.type}, expected texture or buffer");
+                var name = resources.GetRenderGraphResourceName(resource);
+                throw new Exception($"When trying to use resource '{name}' of type {resource.type} - " + RenderGraph.RenderGraphExceptionMessages.k_InvalidResourceType);
             }
         }
 
@@ -1502,8 +1549,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             if (!pass.HasRenderFunc())
             {
-                throw new InvalidOperationException(
-                    string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
+                throw new InvalidOperationException($"In pass {pass.name} - " +
+                                                    RenderGraph.RenderGraphExceptionMessages.k_NoRenderFunction);
             }
 
             using (new ProfilingScope(rgContext.cmd, pass.customSampler))
@@ -1577,8 +1624,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
                         if (!inRenderPass)
                         {
-                            throw new Exception(
-                                "Compiler error: Pass is marked as beginning a native sub pass but no pass is currently active.");
+                            throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_BeginNoActivePass);
                         }
 
                         rgContext.cmd.NextSubPass();
@@ -1630,8 +1676,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         {
                             if (!inRenderPass)
                             {
-                                throw new Exception(
-                                    "Compiler error: Generated a subpass pass but no pass is currently active.");
+                                throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_NoActivePassForSubpass);
                             }
 
                             if (nativePass.hasFoveatedRasterization)
