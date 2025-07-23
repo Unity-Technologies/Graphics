@@ -624,6 +624,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing.Tests
 
 
         [Test]
+        [Ignore("Unstable: https://jira.unity3d.com/browse/UUM-112539")]
         public void WithTransparentInstances_ClosestAndAnyHitsFuncsAreCalled()
         {
             Mesh mesh = MeshUtil.CreateSingleTriangleMesh(new float2(1.5f, 1.5f), new float3(-0.5f, -0.5f, 0.0f));
