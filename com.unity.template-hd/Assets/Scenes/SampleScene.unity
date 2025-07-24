@@ -25499,7 +25499,7 @@ Transform:
   m_GameObject: {fileID: 1219882303}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 10, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -25518,12 +25518,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scaleMode: 1
-  regionSize: {x: 100, y: 100}
-  amplitude: -10
+  regionSize: {x: 120, y: 120}
+  amplitude: 10
   surfaceFoamDimmer: 1
   deepFoamDimmer: 1
-  resolution: {x: 256, y: 256}
-  updateMode: 0
+  resolution: {x: 128, y: 128}
+  updateMode: 1
   material: {fileID: 2100000, guid: c21b2ecc423f96349849ca24d1c7ee90, type: 2}
 --- !u!1001 &1225079265
 PrefabInstance:
@@ -31370,7 +31370,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -0, z: -0}
+    textureOffset: {x: -0, y: -152.30923, z: -0}
     falloffMode: 0
     maskMode: 0
     materialMask: {fileID: 0}
@@ -43941,6 +43941,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: FR_SectionA_01
       objectReference: {fileID: 0}
+    - target: {fileID: 5540328433800853362, guid: 7e9b6f9789d8de649bcf0487d29fd33f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8842934981969102177, guid: 7e9b6f9789d8de649bcf0487d29fd33f, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.5
@@ -48725,7 +48729,7 @@ MonoBehaviour:
   debugMode: 0
   waterMaskDebugMode: 0
   waterCurrentDebugMode: 0
-  currentDebugMultiplier: 1
+  currentDebugMultiplier: 5.16
   waterFoamDebugMode: 0
   underWater: 0
   volumeBounds: {fileID: 0}
@@ -48737,10 +48741,10 @@ MonoBehaviour:
   underWaterScatteringColorMode: 0
   underWaterScatteringColor: {r: 0, g: 0.27, b: 0.23, a: 1}
   underWaterRefraction: 0
-  decalRegionSize: {x: 100, y: 50}
+  decalRegionSize: {x: 150, y: 100}
   decalRegionAnchor: {fileID: 1991903406}
-  supportLargeCurrent: 0
-  largeCurrentRes: 512
+  supportLargeCurrent: 1
+  largeCurrentRes: 256
   largeCurrentSpeedValue: 0
   largeCurrentMap: {fileID: 0}
   largeCurrentRegionExtent: {x: 100, y: 100}
@@ -48844,7 +48848,7 @@ Transform:
   m_GameObject: {fileID: 1991903404}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 25, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
