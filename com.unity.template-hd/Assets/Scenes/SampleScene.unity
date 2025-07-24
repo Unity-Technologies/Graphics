@@ -25519,7 +25519,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scaleMode: 1
   regionSize: {x: 120, y: 120}
-  amplitude: 10
+  amplitude: -10
   surfaceFoamDimmer: 1
   deepFoamDimmer: 1
   resolution: {x: 128, y: 128}
@@ -31370,7 +31370,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -152.30923, z: -0}
+    textureOffset: {x: -0, y: -231.32695, z: -0}
     falloffMode: 0
     maskMode: 0
     materialMask: {fileID: 0}
