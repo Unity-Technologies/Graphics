@@ -228,6 +228,10 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// to match the index passed to SetInputAttachment for this texture.
         ///
         /// </summary>
+        /// <remarks>
+        /// This API is not universally supported across all platforms. In particular, using input attachments in combination with MSAA may be unsupported on certain targets.
+        /// To ensure compatibility, use `RenderGraphUtils.IsFramebufferFetchSupportedOnCurrentPlatform` to verify support at runtime, as platform capabilities may vary.
+        /// </remarks>
         /// <param name="tex">Texture to use during this pass.</param>
         /// <param name="index">Index the shader will use to access this texture.</param>
         /// <param name="flags">How this pass will access the texture. Default value is set to AccessFlag.Read. Writing is currently not supported on any platform. </param>
