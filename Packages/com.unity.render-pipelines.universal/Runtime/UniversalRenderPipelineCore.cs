@@ -1811,6 +1811,14 @@ namespace UnityEngine.Rendering.Universal
             float spotAngle, float? innerSpotAngle,
             ref Vector4 lightAttenuation)
         {
+            // UUM-104997: AngleAttenuation() function isn't precise enough for small spot angles on platforms using float16 registers
+            if (spotAngle < 2.6)
+            {
+                spotAngle = 2.6f;
+                if (innerSpotAngle.HasValue)
+                    innerSpotAngle = Mathf.Min(innerSpotAngle.Value, 2.6f);
+            }
+
             // Spot Attenuation with a linear falloff can be defined as
             // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
             // This can be rewritten as
