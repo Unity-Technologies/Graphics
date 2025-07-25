@@ -1,4 +1,4 @@
-# Shared Output Settings and Properties
+# Shared output settings and properties
 
 All outputs share these settings and property ports. In case of Shader Graph Output, some settings are actually provided by the Shader Graph Asset.
 

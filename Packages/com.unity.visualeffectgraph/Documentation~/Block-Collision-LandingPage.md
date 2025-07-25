@@ -1,13 +1,13 @@
 # Collision Blocks reference
 
-Explore the properties of Collision Blocks to configure how particles collide with shapes or the depth buffer.
+Configure how particles collide with shapes or the depth buffer.
 
 | **Page** | **Description** |
-|-|-|
-| [Collision Shape](Block-CollisionShape.md) | Explore the properties of the Collision Shape Block. |
-| [Collision Depth Buffer](Block-CollideWithDepthBuffer.md) | Explore the properties of the Collision Depth Buffer Block. |
-| [Kill Shape](Block-KillShape.md) | Explore the properties of the Kill Shape Block. |
-| [Trigger Shape](Block-TriggerShape.md) | Explore the properties of the Trigger Shape Block. |
+| --- | --- |
+| [Collision Shape](Block-CollisionShape.md) | Define a shape that particles collide with. |
+| [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md) | Make particles collide with a camera's depth buffer. |
+| [Kill Shape](Block-KillShape.md) | Define a shape that destroys particles that collide with it. |
+| [Trigger Shape](Block-TriggerShape.md) | Define a shape that detects particle collisions and updates collision attributes. |
 
 ## Additional resources
 
