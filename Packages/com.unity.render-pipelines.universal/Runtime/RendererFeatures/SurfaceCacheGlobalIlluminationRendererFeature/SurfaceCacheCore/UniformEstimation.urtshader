@@ -1,0 +1,6 @@
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_GROUP_SIZE_Z 1
+#define UNIFIED_RT_RAYGEN_FUNC Estimate
+
+#include "UniformEstimation.hlsl"

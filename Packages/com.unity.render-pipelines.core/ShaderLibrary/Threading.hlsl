@@ -28,6 +28,8 @@
 /// - If defined, forces usage of the fallback groupshared memory implementation
 ///
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
 #ifndef THREADING_BLOCK_SIZE
 #error THREADING_BLOCK_SIZE must be defined as the flattened thread group size.
 #endif
