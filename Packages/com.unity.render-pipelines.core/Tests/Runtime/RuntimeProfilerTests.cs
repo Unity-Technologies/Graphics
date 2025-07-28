@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.Tests
     class RuntimeProfilerTests : RuntimeProfilerTestBase
     {
         [UnityTest]
+        [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsPlayer })] // Unstable: https://jira.unity3d.com/browse/UUM-112472
         public IEnumerator RuntimeProfilerGivesNonZeroOutput()
         {
             if ((Application.platform == RuntimePlatform.LinuxPlayer ||

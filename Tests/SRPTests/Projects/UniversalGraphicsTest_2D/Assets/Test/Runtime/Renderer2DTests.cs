@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.Rendering.Universal;
 
 [TestFixture]
@@ -73,6 +74,7 @@ class Renderer2DTests
     }
 
     [Test]
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsPlayer })] // Unstable: https://jira.unity3d.com/browse/UUM-112466
     public void BaseRendererUsesSeparateDepthAttachmentFromColorTextureIfNoDepthStencilRequested()
     {
         m_BaseCameraData.renderPostProcessing = true;   // This will make the renderer create color texture.
@@ -101,6 +103,7 @@ class Renderer2DTests
     }
 
     [Test]
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsPlayer })] // Unstable: https://jira.unity3d.com/browse/UUM-112466
     public void OverlayRendererSetsTheCreateTextureFlags()
     {
         m_BaseCameraData.cameraStack.Add(m_OverlayCamera);
