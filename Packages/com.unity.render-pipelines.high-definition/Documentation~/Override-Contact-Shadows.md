@@ -1,5 +1,5 @@
 # Contact Shadows
-The Contact Shadows [Volume Override](Volume-Components.md) specifies properties which control the behavior of Contacts Shadows. Contact Shadows are shadows that The High Definition Render Pipeline (HDRP) [ray marches](Glossary.md#RayMarching) in screen space inside the depth buffer. The goal of using Contact Shadows is to capture small details that regular shadow mapping algorithms fail to capture.
+Contact Shadows are shadows that HDRP [ray marches](Glossary.md#RayMarching) in screen space, inside the depth buffer, at a close range. Use Contact Shadows to provide shadows for geometry details that regular shadow mapping algorithms usually fail to capture.
 
 
 ## Enabling Contact Shadows
