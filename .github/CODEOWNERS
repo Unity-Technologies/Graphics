@@ -30,3 +30,6 @@
 /.github/ @Unity-Technologies/gfx-sdets
 /.yamato/ @Unity-Technologies/gfx-sdets
 /Tools/ @Unity-Technologies/gfx-sdets
+
+# Temporary (July 2025 - reach out to us for more context)
+/com.unity.template.hdrp-blank/ @Unity-Technologies/gfx-sdets 
