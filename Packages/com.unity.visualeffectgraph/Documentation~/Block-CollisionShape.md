@@ -1,4 +1,3 @@
-
 # Collision Shape Block reference
 
 The Collision Shape Block defines a shape that particles collide with.
