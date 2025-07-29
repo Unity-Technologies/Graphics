@@ -443,10 +443,8 @@ namespace UnityEditor.Rendering
 
             CommandBuffer cmd = CommandBufferPool.Get();
             cmd.DisableShaderKeyword("FLARE_HAS_OCCLUSION");
-            Vector4 flareData1 = new Vector4(0.0f, 0.0f, 0.0f, ((float)Styles.thumbnailSizeHeight) / ((float)Styles.thumbnailSizeWidth));
             Vector2 screenSize = new Vector2(Styles.thumbnailSizeWidth, Styles.thumbnailSizeHeight);
-            float screenRatio = screenSize.y / screenSize.x;
-            Vector2 vScreenRatio = new Vector2(screenRatio, 1.0f);
+            float aspect = screenSize.y / screenSize.x;
 
             Shader local = Shader.Find("Hidden/Core/LensFlareDataDrivenPreview2");
             Material localMat = new Material(local);
@@ -474,6 +472,8 @@ namespace UnityEditor.Rendering
                 scale = 10.0f / uniformScaleProp.floatValue / Mathf.Max(sizeXYProp.vector2Value.x, sizeXYProp.vector2Value.y);
             }
             cmd.SetGlobalVector(k_FlarePreviewData, new Vector4(Styles.thumbnailSizeWidth, Styles.thumbnailSizeHeight, 1f, 0f));
+            cmd.SetGlobalVector(LensFlareCommonSRP._FlareData1, new Vector4(0.0f, 0.0f, 0.0f, ((float)Styles.thumbnailSizeHeight) / ((float)Styles.thumbnailSizeWidth)));
+            Vector3 unused = new();
             LensFlareCommonSRP.ProcessLensFlareSRPElementsSingle(
                 elementLocal,
                 cmd,
@@ -482,8 +482,8 @@ namespace UnityEditor.Rendering
                 1.0f, scale,
                 localMat, center,
                 false,
-                vScreenRatio,
-                flareData1, false, 0);
+                new Vector2(aspect, 1),
+                unused, false, 0);
 
             Graphics.ExecuteCommandBuffer(cmd);
             cmd.CopyTexture(m_PreviewTexture.rt, computedTexture);

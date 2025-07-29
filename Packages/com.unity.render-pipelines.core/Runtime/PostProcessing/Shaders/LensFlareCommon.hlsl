@@ -49,8 +49,6 @@ SAMPLER(sampler_FlareSunOcclusionTex);
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
-                    // Fragment Shader:
-                    // x: LensFlareType, y: ElementIndex
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
 float4 _FlareData3; // x: Allow Offscreen, y: Edge Offset, z: Falloff, w: invSideCount
                     // For Ring:
@@ -59,6 +57,7 @@ float4 _FlareData4; // x: SDF Roundness, y: Poly Radius, z: PolyParam0, w: PolyP
                     // For Ring:
                     // x: noiseAmplitude, y: noiseFrequency, z: noiseSparsity, w: noiseSpeed
 float4 _FlareData5; // x: ConstantColor, y: Intensity, z: shapeCutOffSpeed, w: cutoffRadius
+float4 _FlareData6; // x: LensFlareType, y: ElementIndex
 
 TEXTURE2D(_FlareRadialTint);
 SAMPLER(sampler_FlareRadialTint);
@@ -86,9 +85,8 @@ float4 _FlareOcclusionIndex;
 #endif
 
 // Fragment _FlareData1
-#define _FlareType              ((int)_FlareData1.x)
-#define _FlareElementIndex      ((int)_FlareData1.y)
-#define _FlareHoopFactor        _FlareData1.z
+#define _FlareType              ((int)_FlareData6.x)
+#define _FlareElementIndex      ((int)_FlareData6.y)
 
 #define _ScreenPos              _FlareData2.xy
 #define _FlareSize              _FlareData2.zw
@@ -184,11 +182,7 @@ float GetOcclusion(float ratio)
         {
             float depth0 = GetLinearDepthValue(pos);
 
-#if UNITY_REVERSED_Z
             if (depth0 > _ScreenPosZ)
-#else
-            if (depth0 < _ScreenPosZ)
-#endif
             {
                 float occlusionValue = 1.0f;
 
