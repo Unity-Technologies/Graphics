@@ -253,6 +253,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START( UnityPerMaterial )
                 half4 _Color;
+                float4 _MainTex_ST;
             CBUFFER_END
 
             Varyings UnlitVertex(Attributes attributes)
@@ -268,7 +269,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 #if defined(DEBUG_DISPLAY)
                 o.positionWS = TransformObjectToWorld(attributes.positionOS);
                 #endif
-                o.uv = attributes.uv;
+                o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
                 o.color = attributes.color * _Color * unity_SpriteColor;
                 return o;
             }
