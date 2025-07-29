@@ -1,0 +1,75 @@
+:root {
+  --link-color: blue;
+}
+
+.title
+{
+	margin: -2px -6px 0px -15px;
+	padding: 20px 6px 20px 22px;
+	flex-direction: row;
+	align-items: center;
+	background-color: var(--unity-colors-inspector_titlebar-background);
+	height: 139px;
+	border-bottom-width: 1px; 
+	border-bottom-color: var(--unity-colors-inspector_titlebar-border);
+}
+
+.title__icon
+{
+	max-width: 120px;
+	max-height: 69px;
+}
+
+.title__text
+{
+	margin-left: 25px;
+	padding: 0px 0px 0px 0px;
+	font-size: 26px;
+	flex-shrink: 1;
+	white-space: normal;
+	overflow: hidden;
+}
+
+.section 
+{
+	align-items:flex-start;
+	margin-bottom: 16px;
+}
+
+.section__header 
+{
+	font-size: 20px;
+	white-space: normal;
+	-unity-font-style: bold;
+}
+
+.section__body
+{
+	font-size: 14px;
+	white-space: normal;
+}
+
+.section__link 
+{
+	font-size: 14px;
+	white-space: nowrap;
+	overflow: hidden;
+	border-bottom-width: 0px; 
+	margin-bottom: 0px;
+	border-bottom-color: var(--link-color);
+	color: var(--link-color);
+}
+
+.section__link:hover
+{
+	border-bottom-width: 1px; 
+	margin-bottom: -1px;
+	cursor: link;
+}
+
+.remove-readme-button 
+{
+	font-size: 13px;
+	-unity-font-style: bold;
+	margin: 1px 0px 1px 0px;
+}
