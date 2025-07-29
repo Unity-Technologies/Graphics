@@ -292,7 +292,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            HDEditorUtils.EnsureVolume((WaterRendering water) => !water.enable.value ? "Water Surface Rendering is not enabled in the Volume System." : null);
+            HDEditorUtils.EnsureVolume((WaterRendering water) => !water.enable.value ? "This Water Surface cannot render properly because Water Rendering override state property in the Volume System is either set to disabled or the current camera is currently not rendering." : null);
             HDEditorUtils.EnsureFrameSetting(FrameSettingsField.Water);
 
             if (target is WaterSurface surface && surface.surfaceIndex == -1)
