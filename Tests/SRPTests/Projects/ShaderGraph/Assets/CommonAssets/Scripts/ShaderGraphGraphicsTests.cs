@@ -23,6 +23,11 @@ public class ShaderGraphGraphicsTests
     [IgnoreGraphicsTest("InstanceIDWithKeywords", "Platform Independent", graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.PlayStation5 })]
     [IgnoreGraphicsTest("InstanceIDWithKeywords", "Platform Independent", graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.PlayStation5NGGC })]
     [IgnoreGraphicsTest("InstanceIDWithKeywords", "Platform Independent", graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.WebGPU })]
+    [IgnoreGraphicsTest("UtilityNodes", "Unstable - see https://jira.unity3d.com/browse/UUM-111610", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
+    [IgnoreGraphicsTest("UVNodes", "Unstable - see https://jira.unity3d.com/browse/UUM-111610", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
+    [IgnoreGraphicsTest("MathNodes", "Unstable - see https://jira.unity3d.com/browse/UUM-111610", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
+    [IgnoreGraphicsTest("ArtisticNodes", "Unstable - see https://jira.unity3d.com/browse/UUM-111610", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
+    [IgnoreGraphicsTest("SamplerStateTests", "Unstable - see https://jira.unity3d.com/browse/UUM-111610", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor })]
     [IgnoreGraphicsTest("TransformNode", "Test is unstable", colorSpaces: new ColorSpace[] { ColorSpace.Linear }, runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.Android }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Vulkan })]
 
     [SceneGraphicsTest("Assets/Scenes")]
