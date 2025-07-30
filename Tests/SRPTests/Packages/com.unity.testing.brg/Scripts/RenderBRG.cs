@@ -484,7 +484,7 @@ public unsafe class RenderBRG : MonoBehaviour
                             flags = BatchDrawCommandFlags.None,
                         };
                         draws.visibleInstances[drawCommandIndex] = instanceIndex;
-                        draws.drawCommandPickingInstanceIDs[drawCommandIndex] = pickingIDs[rendererIndex];
+                        draws.drawCommandPickingEntityIds[drawCommandIndex] = pickingIDs[rendererIndex];
                         ++drawCommandIndex;
                     }
                 }
@@ -554,7 +554,7 @@ public unsafe class RenderBRG : MonoBehaviour
         }
 
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
-        drawCommands.drawCommandPickingInstanceIDs = needInstanceIDs ? Malloc<int>(m_instanceIndices.Length) : null;
+        drawCommands.drawCommandPickingEntityIds = needInstanceIDs ? Malloc<int>(m_instanceIndices.Length) : null;
 
         // Zero init: Culling job sets the values!
         drawCommands.drawRangeCount = 0;

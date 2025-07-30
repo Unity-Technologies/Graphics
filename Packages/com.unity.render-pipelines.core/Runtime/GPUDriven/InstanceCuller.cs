@@ -1323,7 +1323,7 @@ namespace UnityEngine.Rendering
 
             output.drawCommandCount = output.visibleInstanceCount; // for picking/filtering, 1 draw command per instance!
             output.drawCommands = MemoryUtilities.Malloc<BatchDrawCommand>(output.drawCommandCount, Allocator.TempJob);
-            output.drawCommandPickingInstanceIDs = MemoryUtilities.Malloc<int>(output.drawCommandCount, Allocator.TempJob);
+            output.drawCommandPickingEntityIds = MemoryUtilities.Malloc<EntityId>(output.drawCommandCount, Allocator.TempJob);
 
             int outRangeIndex = 0;
             int outCommandIndex = 0;
@@ -1372,7 +1372,7 @@ namespace UnityEngine.Rendering
                             throw new Exception("Draw command created with an invalid BatchID");
 #endif
                         output.visibleInstances[outVisibleInstanceIndex] = instanceDataBuffer.CPUInstanceToGPUInstance(instance).index;
-                        output.drawCommandPickingInstanceIDs[outCommandIndex] = rendererID;
+                        output.drawCommandPickingEntityIds[outCommandIndex] = rendererID;
                         output.drawCommands[outCommandIndex] = new BatchDrawCommand
                         {
                             flags = BatchDrawCommandFlags.None,
