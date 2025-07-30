@@ -44,3 +44,7 @@ The following samples are currently available for Shader Graph.
 |![](images/UIToolsSample.png) |
 | The Shader Graph UGUI Shaders sample is a collection of Shader Graph subgraphs that you can use to build user interface elements. They speed up the process of building widgets, buttons, and backgrounds for the user interface of your project.  With these tools, you can build dynamic, procedural UI elements that don’t require any texture memory and scale correctly for any resolution screen. In addition to the subgraphs, the sample also includes example buttons, indicators, and backgrounds built with the subgraphs.  The examples show how the subgraphs function in context and help you learn how to use them.
 
+| Custom Material Property Drawers |
+|:--------------------|
+|![](images/CustomMaterialPropertySample.png) |
+| This sample contains an example of a Custom Material Property Drawer that allows using a Min/Max Slider to control a Vector2 x and y values, often used for range remapping. It comes with a documented Shader Graph example. |
