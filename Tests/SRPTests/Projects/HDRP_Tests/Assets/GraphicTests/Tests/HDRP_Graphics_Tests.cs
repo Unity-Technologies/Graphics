@@ -187,10 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
             architectures: new[] { Architecture.X64 }
         )]
-        [IgnoreGraphicsTest(
-            "3012_MipMapMode_MipStreamingPerformance$",
-            "There seems to be issues with the texture-streaming behaviour on all platforms."
-        )]
         [IgnoreGraphicsTest("4012_MotionBlur_CameraOnly$", "Missing ref-image.")]
         [IgnoreGraphicsTest(
             "4075_PhysicalCamera-gateFit$",
