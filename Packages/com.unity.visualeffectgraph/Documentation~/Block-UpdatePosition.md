@@ -2,7 +2,9 @@
 
 Menu Path : **Implicit > Integration : Update Position**
 
-The **Integration : Update Position** Block updates particle positions based on their velocity. If the system uses the velocity attribute and you enable **Update Position** in the Update Context's Inspector, Unity implicitly adds this Block to the Context and hides it.
+The **Integration : Update Position** Block updates particle positions based on their velocity.
+
+**Note:** If the system uses the velocity attribute and you enable **Update Position** in the Update Context's Inspector, Unity implicitly adds this Block to the Context and hides it. If you add your own **Integration : Update Position** Block too, Unity updates positions twice.
 
 ![](Images/Block-UpdatePositionInspector.png)
 
