@@ -62,9 +62,9 @@ class VrsTestPass : CustomPass
             return (uint)(c.a << 24 | c.b << 16 | c.g << 8 | c.r);
         }
 
-        uint c1 = Pack(m_VrsLut[ShadingRateFragmentSize.FragmentSize1x1]);
-        uint c2 = Pack(m_VrsLut[ShadingRateFragmentSize.FragmentSize2x2]);
-        uint c4 = Pack(m_VrsLut[ShadingRateFragmentSize.FragmentSize4x4]);
+        uint c1 = Pack(m_VrsLut[ShadingRateFragmentSize.FragmentSize1x1].linear);
+        uint c2 = Pack(m_VrsLut[ShadingRateFragmentSize.FragmentSize2x2].linear);
+        uint c4 = Pack(m_VrsLut[ShadingRateFragmentSize.FragmentSize4x4].linear);
 
         for(uint y = 0; y < m_FullSize.y; y++)
         {
