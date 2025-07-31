@@ -848,6 +848,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public BufferHandle tileList;
             public BufferHandle lightList;
             public BufferHandle perVoxelLightList;
+            public BufferHandle perTileLogBaseTweak;
+            public BufferHandle perVoxelOffset;
             public BufferHandle dispatchIndirect;
             public Material debugViewTilesMaterial;
             public LightingDebugSettings lightingDebugSettings;
@@ -860,7 +862,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!lightLists.tileList.IsValid())
                 return;
 
-            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.None)
+            TileClusterDebug tileClusterDebug = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.tileClusterDebug;
+
+            if (tileClusterDebug == TileClusterDebug.None)
+                return;
+
+            if (tileClusterDebug == TileClusterDebug.MaterialFeatureVariants && !GetFeatureVariantsEnabled(hdCamera.frameSettings))
                 return;
 
             using (var builder = renderGraph.AddUnsafePass<RenderTileClusterDebugOverlayPassData>("RenderTileAndClusterDebugOverlay", out var passData, ProfilingSampler.Get(HDProfileId.TileClusterLightingDebug)))
@@ -871,14 +878,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderAttachment(colorBuffer, 0);
                 passData.depthPyramidTexture = depthPyramidTexture;
                 builder.UseTexture(passData.depthPyramidTexture, AccessFlags.Read);
-                passData.tileList = lightLists.tileList;
-                builder.UseBuffer(passData.tileList, AccessFlags.Read);
-                passData.lightList = lightLists.lightList;
-                builder.UseBuffer(passData.lightList, AccessFlags.Read);
-                passData.perVoxelLightList = lightLists.perVoxelLightLists;
-                builder.UseBuffer(passData.perVoxelLightList, AccessFlags.Read);
-                passData.dispatchIndirect = lightLists.dispatchIndirectBuffer;
-                builder.UseBuffer(passData.dispatchIndirect, AccessFlags.Read);
+                if (tileClusterDebug == TileClusterDebug.MaterialFeatureVariants)
+                {
+                    passData.tileList = lightLists.tileList;
+                    builder.UseBuffer(passData.tileList, AccessFlags.Read);
+                    passData.dispatchIndirect = lightLists.dispatchIndirectBuffer;
+                    builder.UseBuffer(passData.dispatchIndirect, AccessFlags.Read);
+                }
+                else if (tileClusterDebug == TileClusterDebug.Cluster)
+                {
+                    passData.perVoxelLightList = lightLists.perVoxelLightLists;
+                    builder.UseBuffer(passData.perVoxelLightList, AccessFlags.Read);
+                    passData.perTileLogBaseTweak = lightLists.perTileLogBaseTweak;
+                    builder.UseBuffer(passData.perTileLogBaseTweak, AccessFlags.Read);
+                    passData.perVoxelOffset = lightLists.perVoxelOffset;
+                    builder.UseBuffer(passData.perVoxelOffset, AccessFlags.Read);
+                }
+                else
+                {
+                    passData.lightList = lightLists.lightList;
+                    builder.UseBuffer(passData.lightList, AccessFlags.Read);
+                }
                 passData.debugViewTilesMaterial = m_DebugViewTilesMaterial;
                 passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 passData.lightingViewportSize = new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1.0f / (float)hdCamera.actualWidth, 1.0f / (float)hdCamera.actualHeight);
@@ -887,34 +907,32 @@ namespace UnityEngine.Rendering.HighDefinition
                     (RenderTileClusterDebugOverlayPassData data, UnsafeGraphContext ctx) =>
                     {
                         var natCmd = CommandBufferHelpers.GetNativeCommandBuffer(ctx.cmd);
-                        int w = data.hdCamera.actualWidth;
-                        int h = data.hdCamera.actualHeight;
-                        int numTilesX = (w + 15) / 16;
-                        int numTilesY = (h + 15) / 16;
-                        int numTiles = numTilesX * numTilesY;
 
                         var lightingDebug = data.lightingDebugSettings;
 
                         // Debug tiles
                         if (lightingDebug.tileClusterDebug == TileClusterDebug.MaterialFeatureVariants)
                         {
-                            if (GetFeatureVariantsEnabled(data.hdCamera.frameSettings))
-                            {
-                                // featureVariants
-                                data.debugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);
-                                data.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
-                                data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
-                                data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(data.hdCamera));
-                                data.debugViewTilesMaterial.SetVector(HDShaderIDs._ClusterDebugLightViewportSize, data.lightingViewportSize);
-                                data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, data.tileList);
-                                data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, data.dispatchIndirect);
-                                CoreUtils.SetKeyword(ctx.cmd, "USE_FPTL_LIGHTLIST", true);
-                                CoreUtils.SetKeyword(ctx.cmd, "USE_CLUSTERED_LIGHTLIST", false);
+                            int w = data.hdCamera.actualWidth;
+                            int h = data.hdCamera.actualHeight;
+                            int numTilesX = (w + 15) / 16;
+                            int numTilesY = (h + 15) / 16;
+                            int numTiles = numTilesX * numTilesY;
 
-                                data.debugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
-                                data.debugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
-                                natCmd.DrawProcedural(Matrix4x4.identity, data.debugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
-                            }
+                            // featureVariants
+                            data.debugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);
+                            data.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
+                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
+                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(data.hdCamera));
+                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._ClusterDebugLightViewportSize, data.lightingViewportSize);
+                            data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, data.tileList);
+                            data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, data.dispatchIndirect);
+                            CoreUtils.SetKeyword(ctx.cmd, "USE_FPTL_LIGHTLIST", true);
+                            CoreUtils.SetKeyword(ctx.cmd, "USE_CLUSTERED_LIGHTLIST", false);
+
+                            data.debugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
+                            data.debugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
+                            natCmd.DrawProcedural(Matrix4x4.identity, data.debugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
                         }
                         else // tile or cluster
                         {
@@ -927,8 +945,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.debugViewTilesMaterial.SetVector(HDShaderIDs._ClusterDebugLightViewportSize, data.lightingViewportSize);
                             data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
                             data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(data.hdCamera));
-                            data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightList);
-                            data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListCluster, data.perVoxelLightList);
+                            if (bUseClustered)
+                            {
+                                data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListCluster, data.perVoxelLightList);
+                                data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
+                                data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
+                            }
+                            else
+                                data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListTile, data.lightList);
 
                             data.debugViewTilesMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramidTexture);
                             CoreUtils.SetKeyword(natCmd, "USE_FPTL_LIGHTLIST", !bUseClustered);
@@ -1540,6 +1564,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool decalsEnabled;
             public BufferHandle  perVoxelOffset;
             public BufferHandle  lightList;
+            public BufferHandle  perVoxelLightLists;
+            public BufferHandle  perTileLogBaseTweak;
             public DBufferOutput dbuffer;
             public GBufferOutput gbuffer;
             public TextureHandle depthBuffer;
@@ -1624,10 +1650,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseRendererList(passData.transparentRendererList);
 
                     passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
-                    passData.perVoxelOffset = lightLists.perVoxelOffset;
-                    builder.UseBuffer(passData.perVoxelOffset, AccessFlags.Read);
-                    passData.lightList = lightLists.lightList;
-                    builder.UseBuffer(passData.lightList, AccessFlags.Read);
+
+                    if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.Cluster)
+                    {
+                        passData.perVoxelLightLists = lightLists.perVoxelLightLists;
+                        builder.UseBuffer(passData.perVoxelLightLists, AccessFlags.Read);
+                        passData.perTileLogBaseTweak = lightLists.perTileLogBaseTweak;
+                        builder.UseBuffer(passData.perTileLogBaseTweak, AccessFlags.Read);
+                        passData.perVoxelOffset = lightLists.perVoxelOffset;
+                        builder.UseBuffer(passData.perVoxelOffset, AccessFlags.Read);
+                    }
+                    else
+                    {
+                        passData.lightList = lightLists.lightList;
+                        builder.UseBuffer(passData.lightList, AccessFlags.Read);
+                    }
                     passData.dbuffer = ReadDBuffer(dbuffer, builder);
 
                     passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
@@ -1648,7 +1685,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             BindDefaultTexturesLightingBuffers(ctx.defaultResources, natCmd);
 
-                            if (data.lightList.IsValid())
+                            bool bUseClustered = data.perVoxelLightLists.IsValid();
+                            CoreUtils.SetKeyword(natCmd, "USE_FPTL_LIGHTLIST", !bUseClustered);
+                            CoreUtils.SetKeyword(natCmd, "USE_CLUSTERED_LIGHTLIST", bUseClustered);
+
+                            if (bUseClustered)
+                            {
+                                natCmd.SetGlobalBuffer(HDShaderIDs.g_vLightListCluster, data.perVoxelLightLists);
+                                natCmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
+                                natCmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
+                            }
+                            else
                                 natCmd.SetGlobalBuffer(HDShaderIDs.g_vLightListTile, data.lightList);
 
                             BindDBufferGlobalData(data.dbuffer, ctx);
@@ -1656,8 +1703,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (data.decalsEnabled)
                                 DecalSystem.instance.SetAtlas(natCmd); // for clustered decals
-                            if (data.perVoxelOffset.IsValid())
-                                natCmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
+
                             DrawTransparentRendererList(ctx, data.frameSettings, data.transparentRendererList);
                         });
                 }
