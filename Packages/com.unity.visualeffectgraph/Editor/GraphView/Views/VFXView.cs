@@ -2666,13 +2666,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public bool canGroupSelection
-        {
-            get
-            {
-                return canCopySelection && !selection.Any(t => t is Group);
-            }
-        }
+        public bool canGroupSelection => canCopySelection && !selection.Any(x => x is Group);
 
         void OnEnterPanel(AttachToPanelEvent e)
         {
