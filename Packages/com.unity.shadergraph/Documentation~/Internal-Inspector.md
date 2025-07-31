@@ -4,7 +4,7 @@
 
 The **Graph Inspector** makes it possible for you to interact with any selectable graph elements and graph-wide settings for a [Shader Graph Asset](Shader-Graph-Asset.md). You can use the **Graph Inspector** to edit attributes and default values.
 
-When you open a Shader Graph, the **Graph Inspector** displays the **[Graph Settings](Graph-Settings-Menu.md)** tab by default. Graph-wide settings for that specific Shader Graph appear in this tab.
+When you open a Shader Graph, the **Graph Inspector** displays the **[Graph Settings](Graph-Settings-Tab.md)** tab by default. Graph-wide settings for that specific Shader Graph appear in this tab.
 
 ## How to use
 
@@ -30,7 +30,7 @@ Graph elements that currently work with the Graph Inspector:
 
     ![](images/Inspector-SubgraphOutput.png)
 
-- [Per-node precision](Precision-Types.md)
+- [Per-node precision](Precision-Modes.md)
 
     ![](images/Inspector-PerNodePrecision.png)
 

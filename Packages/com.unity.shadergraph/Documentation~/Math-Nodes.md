@@ -104,7 +104,7 @@
 
 ## Trigonometry
 
-| [Arccosine](Arccosine-Node) | [Arcsine](Arcsine-Node.md) |
+| [Arccosine](Arccosine-Node.md) | [Arcsine](Arcsine-Node.md) |
 | :------- | :------ |
 | ![Image](images/ArccosineNodeThumb.png) | ![Image](images/ArcsineNodeThumb.png) |
 | Returns the arccosine of each component the input In as a vector of equal length. | Returns the arcsine of each component the input In as a vector of equal length. |
