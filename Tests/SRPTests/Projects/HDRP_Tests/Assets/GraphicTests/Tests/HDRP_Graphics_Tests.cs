@@ -322,6 +322,21 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             contextTypes: new[] { typeof(GpuResidentDrawerGlobalContext) },
             contextMasks: new[] { (int)GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing }
         )]
+        [IgnoreGraphicsTest(
+            "4107_DRS-FSR2-Hardware",
+            "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
+        [IgnoreGraphicsTest(
+            "4108_DRS-FSR2-Software",
+            "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
+        [IgnoreGraphicsTest(
+            "4109_DRS-FSR2-AfterPost",
+            "Graphics devices type not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {
             yield return HDRP_GraphicTestRunner.Run(testCase);
