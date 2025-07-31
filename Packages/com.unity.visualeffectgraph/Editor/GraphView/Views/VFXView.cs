@@ -1792,7 +1792,8 @@ namespace UnityEditor.VFX.UI
             VisualEffectAssetEditorUtility.CreateTemplateAsset(assetPath, templatePath);
             var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(assetPath);
             var window = VFXViewWindow.GetWindow(vfxAsset, false);
-            window.LoadAsset(vfxAsset, null);
+            // The window can be null if we try to create a new asset from an editor window with another asset opened
+            window?.LoadAsset(vfxAsset, null);
         }
 
         public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode, bool centerInView)
