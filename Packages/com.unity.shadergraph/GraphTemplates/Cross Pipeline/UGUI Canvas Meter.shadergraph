@@ -792,6 +792,15 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.Rendering.Canvas.ShaderGraph.CanvasData",
+    "m_ObjectId": "7e330e481da4480a805697f80ed36b27",
+    "m_Version": 0,
+    "m_AlphaClip": false,
+    "m_DisableTint": true
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
     "m_ObjectId": "7ed0836d408044a8b39c40119ff339b2",
     "m_Id": 1,
@@ -999,6 +1008,9 @@
     "m_Guid": {
         "m_GuidSerialized": "e33db651-e0d2-463a-b43d-ce566f320a4c"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "MainTex",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "MainTex",
@@ -1018,7 +1030,7 @@
         "m_SerializedTexture": "",
         "m_Guid": ""
     },
-    "isMainTexture": false,
+    "isMainTexture": true,
     "useTilingAndOffset": false,
     "useTexelSize": true,
     "m_Modifiable": true,
@@ -1175,6 +1187,9 @@
     "m_Guid": {
         "m_GuidSerialized": "467a0ada-4b23-4d2b-acdc-0f804b922568"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "MeterValue",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "MeterValue",
@@ -1725,6 +1740,9 @@
         },
         {
             "m_Id": "2d43b766fb3b4a979bc5ed4638332782"
+        },
+        {
+            "m_Id": "7e330e481da4480a805697f80ed36b27"
         }
     ],
     "m_ActiveSubTarget": {

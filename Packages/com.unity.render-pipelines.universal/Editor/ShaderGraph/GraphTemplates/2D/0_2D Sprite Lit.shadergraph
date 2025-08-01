@@ -47,9 +47,6 @@
             "m_Id": "28e02ff88fbb4ffa899ba50e51a556da"
         },
         {
-            "m_Id": "ec7034ed2e654c1a9c69351f2427ec1b"
-        },
-        {
             "m_Id": "f4b179e9fe7a4ed0a70351e482563166"
         },
         {
@@ -342,9 +339,6 @@
             },
             {
                 "m_Id": "2437c384dfcf4078bc8e52d64b24b85b"
-            },
-            {
-                "m_Id": "ec7034ed2e654c1a9c69351f2427ec1b"
             },
             {
                 "m_Id": "2f05b7d671124aa5b380d30ab309dbf9"
@@ -943,6 +937,9 @@
     "m_Guid": {
         "m_GuidSerialized": "f5a728a4-369c-45ed-a11d-be58ca753d7a"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "Normal Map",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Normal Map",
@@ -956,6 +953,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": {
         "m_SerializedTexture": "",
         "m_Guid": ""
@@ -1020,6 +1019,9 @@
     "m_Guid": {
         "m_GuidSerialized": "ed78179f-21ae-469b-b0ad-98973dd70676"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "Mask Map",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Mask Map",
@@ -1033,6 +1035,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": {
         "m_SerializedTexture": "",
         "m_Guid": ""
@@ -1291,6 +1295,9 @@
     "m_Guid": {
         "m_GuidSerialized": "b5705445-c2f9-4869-9449-ab518dcbfd7e"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "Use Color",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Use Color",
@@ -2014,21 +2021,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "e02d79117d4540c39fa0b51b9507eb61",
-    "m_Id": 0,
-    "m_DisplayName": "Alpha Clip Threshold",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "AlphaClipThreshold",
-    "m_StageCapability": 2,
-    "m_Value": 0.00800000037997961,
-    "m_DefaultValue": 0.5,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
     "m_ObjectId": "e236312a1042462f911c088878536cf1",
     "m_Id": 1,
@@ -2126,40 +2118,6 @@
         "w": 1.0
     },
     "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "ec7034ed2e654c1a9c69351f2427ec1b",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "SurfaceDescription.AlphaClipThreshold",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "e02d79117d4540c39fa0b51b9507eb61"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "SurfaceDescription.AlphaClipThreshold"
 }
 
 {
@@ -2343,6 +2301,9 @@
     "m_Guid": {
         "m_GuidSerialized": "4747fe67-4822-4c0c-893c-67cf72333a1f"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "Color Map",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Color Map",
@@ -2356,6 +2317,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": {
         "m_SerializedTexture": "",
         "m_Guid": ""
