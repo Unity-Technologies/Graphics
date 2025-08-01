@@ -132,6 +132,7 @@ class Renderer2DTests
     }
 
     [Test]
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsPlayer })] // Unstable on StandaloneWindows64: https://jira.unity3d.com/browse/UUM-112466
     public void PostProcessingEnabled_OverlayCamera()
     {
         m_BaseCameraData.cameraStack.Add(m_OverlayCamera);
@@ -143,6 +144,7 @@ class Renderer2DTests
 
 
     [Test]
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsPlayer })] // Unstable on StandaloneWindows64: https://jira.unity3d.com/browse/UUM-112466
     public void PostProcessingEnabled_BaseCamera()
     {
         m_BaseCameraData.cameraStack.Add(m_OverlayCamera);
@@ -153,6 +155,7 @@ class Renderer2DTests
     }
 
     [Test]
+    [UnityPlatform(exclude = new RuntimePlatform[] { RuntimePlatform.WindowsPlayer })] // Unstable on StandaloneWindows64: https://jira.unity3d.com/browse/UUM-112466
     public void PostProcessingEnabled_BaseAndOverlayCamera()
     {
         m_BaseCameraData.cameraStack.Add(m_OverlayCamera);
