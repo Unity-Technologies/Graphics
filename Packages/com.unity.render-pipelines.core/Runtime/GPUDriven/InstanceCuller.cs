@@ -403,11 +403,11 @@ namespace UnityEngine.Rendering
         private uint ComputeMeshLODLevel(int instanceIndex, int sharedInstanceIndex)
         {
             ref readonly GPUDrivenRendererMeshLodData meshLodData = ref instanceData.meshLodData.UnsafeElementAt(instanceIndex);
+            var meshLodInfo = sharedInstanceData.meshLodInfos[sharedInstanceIndex];
 
             if (meshLodData.forceLod >= 0)
-                return (uint)meshLodData.forceLod;
+                return (uint)math.clamp(meshLodData.forceLod, 0, meshLodInfo.levelCount - 1);
 
-            var levelInfo = sharedInstanceData.meshLodInfos[sharedInstanceIndex];
             ref readonly AABB worldAABB = ref instanceData.worldAABBs.UnsafeElementAt(instanceIndex);
 
             var radiusSqr = math.max(math.lengthsq(worldAABB.extents), 1e-5f);
@@ -417,13 +417,13 @@ namespace UnityEngine.Rendering
 
             var boundsDesiredPercentage = Math.Sqrt(cameraSqrHeightAtDistance / diameterSqr);
 
-            var levelIndexFlt = math.log2(boundsDesiredPercentage) * levelInfo.lodSlope + levelInfo.lodBias;
+            var levelIndexFlt = math.log2(boundsDesiredPercentage) * meshLodInfo.lodSlope + meshLodInfo.lodBias;
 
             // We apply Bias after max to enforce that a positive bias of +N we would select lodN instead of Lod0
             levelIndexFlt = math.max(levelIndexFlt, 0);
             levelIndexFlt += meshLodData.lodSelectionBias;
 
-            levelIndexFlt = math.clamp(levelIndexFlt,0, levelInfo.levelCount - 1);
+            levelIndexFlt = math.clamp(levelIndexFlt, 0, meshLodInfo.levelCount - 1);
 
             return (uint)math.floor(levelIndexFlt);
         }
