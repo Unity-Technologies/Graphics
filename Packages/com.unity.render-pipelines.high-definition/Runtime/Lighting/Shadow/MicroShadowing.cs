@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Shadowing/Micro Shadows")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURLAttribute("Override-Micro-Shadows")]
+    [DisplayInfo(name = "Micro Shadows")]
     public class MicroShadowing : VolumeComponent
     {
         /// <summary>
@@ -22,10 +23,5 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the opacity of the micro shadows.")]
         public ClampedFloatParameter opacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
-
-        MicroShadowing()
-        {
-            displayName = "Micro Shadows";
-        }
     }
 }

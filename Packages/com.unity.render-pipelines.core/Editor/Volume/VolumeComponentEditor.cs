@@ -447,8 +447,17 @@ namespace UnityEditor.Rendering
         /// <returns>A label to display in the component header.</returns>
         public virtual GUIContent GetDisplayTitle()
         {
-            var title = string.IsNullOrEmpty(volumeComponent.displayName) ? ObjectNames.NicifyVariableName(volumeComponent.GetType().Name) : volumeComponent.displayName;
-            return EditorGUIUtility.TrTextContent(title, string.Empty);
+            var volumeComponentType = volumeComponent.GetType();
+            var displayInfo = volumeComponentType.GetCustomAttribute<DisplayInfoAttribute>();
+            if (displayInfo != null && !string.IsNullOrWhiteSpace(displayInfo.name))
+                return EditorGUIUtility.TrTextContent(displayInfo.name, string.Empty);
+            
+            #pragma warning disable CS0618
+            if (!string.IsNullOrWhiteSpace(volumeComponent.displayName))
+                return EditorGUIUtility.TrTextContent(volumeComponent.displayName, string.Empty);
+            #pragma warning restore CS0618
+            
+            return EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(volumeComponentType.Name) , string.Empty);
         }
 
         void AddToggleState(GUIContent content, bool state)

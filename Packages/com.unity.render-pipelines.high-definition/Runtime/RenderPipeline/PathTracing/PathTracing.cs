@@ -132,6 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Ray-Tracing-Path-Tracing")]
+    [DisplayInfo(name = "Path Tracing")]
     public sealed class PathTracing : VolumeComponent
     {
         /// <summary>
@@ -227,17 +228,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [HideInInspector]
         public IntParameter customSeed = new IntParameter(0);
-
-        /// <summary>
-        /// Default constructor for the path tracing volume component.
-        /// </summary>
-        /// <remarks>
-        /// Use the constructor with no arguments to create a new path tracing volume component with default values.
-        /// </remarks>
-        public PathTracing()
-        {
-            displayName = "Path Tracing";
-        }
     }
 
     public partial class HDRenderPipeline

@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Post-processing/Shadows, Midtones, Highlights")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Post-Processing-Shadows-Midtones-Highlights")]
+    [DisplayInfo(name = "Shadows, Midtones, Highlights")]
     public sealed class ShadowsMidtonesHighlights : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -62,7 +63,5 @@ namespace UnityEngine.Rendering.HighDefinition
                 || midtones != defaultState
                 || highlights != defaultState;
         }
-
-        ShadowsMidtonesHighlights() => displayName = "Shadows, Midtones, Highlights";
     }
 }

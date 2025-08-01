@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Post-processing/Screen Space Lens Flare")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("shared/lens-flare/Override-Screen-Space-Lens-Flare")]
+    [DisplayInfo(name = "Screen Space Lens Flare")]
     public class ScreenSpaceLensFlare : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -119,13 +120,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the number of samples HDRP uses to render the Chromatic Aberration effect. A lower sample number results in better performance.
         /// </summary>
         public ClampedIntParameter chromaticAbberationSampleCount = new ClampedIntParameter(3, 3, 8);
-        /// <summary>
-        /// Default constructor for the lens flare volume component.
-        /// </summary>
-        public ScreenSpaceLensFlare()
-        {
-            displayName = "Screen Space Lens Flare";
-        }
 
         /// <summary>
         /// Mandatory function, cannot have an Override without it

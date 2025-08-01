@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Ray Tracing/SubSurface Scattering")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Ray-Traced-Subsurface-Scattering")]
+    [DisplayInfo(name =  "SubSurface Scattering")]
     public sealed class SubSurfaceScattering : VolumeComponent
     {
         /// <summary>
@@ -22,12 +23,5 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Number of samples for sub-surface scattering.")]
         public ClampedIntParameter sampleCount = new ClampedIntParameter(1, 1, 32);
-        /// <summary>
-        /// Default constructor for the subsurface scattering volume component.
-        /// </summary>
-        public SubSurfaceScattering()
-        {
-            displayName = "SubSurface Scattering";
-        }
     }
 }

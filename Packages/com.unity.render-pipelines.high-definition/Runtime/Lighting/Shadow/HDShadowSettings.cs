@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Shadowing/Shadows")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Override-Shadows")]
+    [DisplayInfo(name = "Shadows")]
     public class HDShadowSettings : VolumeComponent, ISerializationCallbackReceiver
     {
         float[] m_CascadeShadowSplits = new float[3];
@@ -125,12 +126,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Border size at the end of the last cascade split.</summary>
         [Tooltip("Sets the border size at the end of the last cascade split.")]
         public CascadeEndBorderParameter cascadeShadowBorder3 = new CascadeEndBorderParameter(0.0f);
-
-
-        HDShadowSettings()
+        
+        /// <inheritdoc/>
+        protected override void OnEnable()
         {
-            displayName = "Shadows";
-
+            base.OnEnable();
+            
             cascadeShadowSplit0.Init(cascadeShadowSplitCount, 2, maxShadowDistance, null, cascadeShadowSplit1);
             cascadeShadowSplit1.Init(cascadeShadowSplitCount, 3, maxShadowDistance, cascadeShadowSplit0, cascadeShadowSplit2);
             cascadeShadowSplit2.Init(cascadeShadowSplitCount, 4, maxShadowDistance, cascadeShadowSplit1, null);

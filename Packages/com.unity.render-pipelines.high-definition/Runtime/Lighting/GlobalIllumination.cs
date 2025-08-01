@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Override-Screen-Space-GI")]
+    [DisplayInfo(name = "Screen Space Global Illumination")]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         bool UsesQualityMode()
@@ -51,12 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the thickness of the depth buffer used for ray marching.")]
         public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.1f, 0.0f, 0.5f);
-
-        GlobalIllumination()
-        {
-            displayName = "Screen Space Global Illumination";
-        }
-
+        
         /// <summary>
         /// Defines if the screen space global illumination should be evaluated at full resolution.
         /// </summary>

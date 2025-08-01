@@ -5,7 +5,8 @@ namespace UnityEngine.Rendering.HighDefinition
     // Deprecated, kept for migration
     [Obsolete("#from(2021.2)")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
-    class ExponentialFog : AtmosphericScattering
+    [DisplayInfo(name = "Exponential Fog (Deprecated)")]
+    sealed class ExponentialFog : AtmosphericScattering
     {
         private readonly static int m_ExpFogParam = Shader.PropertyToID("_ExpFogParameters");
 
@@ -19,7 +20,5 @@ namespace UnityEngine.Rendering.HighDefinition
         internal override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
         }
-
-        ExponentialFog() => displayName = "Exponential Fog (Deprecated)";
     }
 }
