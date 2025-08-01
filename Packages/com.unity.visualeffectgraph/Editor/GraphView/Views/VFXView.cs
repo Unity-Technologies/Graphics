@@ -2942,9 +2942,9 @@ namespace UnityEditor.VFX.UI
 
             if (evt.target is VFXView)
             {
-                evt.menu.InsertAction(0, "Insert Template", (e) => { InsertTemplate(mousePosition); }, (e) => controller.graph.visualEffectResource.isSubgraph ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal);
                 evt.menu.InsertAction(1, "Create Sticky Note", (e) => { AddStickyNote(mousePosition); }, (e) => DropdownMenuAction.Status.Normal);
                 evt.menu.InsertAction(2, "Create Group Node", (e) => { AddGroupNode(mousePosition); }, (e) => DropdownMenuAction.Status.Normal);
+                evt.menu.InsertAction(3, "Insert Template", (e) => { InsertTemplate(mousePosition); }, (e) => controller.graph.visualEffectResource.isSubgraph ? DropdownMenuAction.Status.Disabled : DropdownMenuAction.Status.Normal);
 
                 if (evt.triggerEvent is IMouseEvent)
                 {

@@ -3,12 +3,12 @@
     xmlns:uie="UnityEditor.UIElements"
     xmlns:gv="UnityEditor.Experimental.GraphView">
     <ui:VisualElement name="swatches">
-        <ui:Button name="swatch1" class="swatch" />
-        <ui:Button name="swatch2" class="swatch" />
-        <ui:Button name="swatch3" class="swatch" />
+        <ui:Button name="swatch1" class="swatch" tooltip="Change the sticky note color to yellow" />
+        <ui:Button name="swatch2" class="swatch" tooltip="Change the sticky note color to blue" />
+        <ui:Button name="swatch3" class="swatch" tooltip="Change the sticky note color to red" />
         <!--<ui:DropdownField name="moreColors" />-->
-        <ui:DropdownField name="fontSize" class="text-font" />
-        <ui:Button name="fitToText" class="text-modifier" />
+        <ui:DropdownField name="fontSize" class="text-font" tooltip="Change the sticky note font size" />
+        <ui:Button name="fitToText" class="text-modifier" tooltip="Adjust the sticky note size to its content" />
     </ui:VisualElement>
     <ui:VisualElement name="node-border" pickingMode="Ignore" >
         <ui:VisualElement name="title-bar">
