@@ -1,19 +1,19 @@
 # Keyword parameter reference
 
-There are three types of keywords: Boolean, Enum, and Built-in. Each keyword type has a few specific parameters in addition to the many parameters that all keyword types have in common.
+There are two types of keywords: Boolean and Enum. Each keyword type has a few specific parameters in addition to the many parameters that all keyword types have in common.
 
 ## Common parameters
 
 Parameters that all keyword types have in common.
 
-| **Name**           | **Type** | **Description**                                              |
-| ------------------ | -------- | ------------------------------------------------------------ |
-| **Display Name**   | String   | The display name of the keyword. Unity shows this name in the title bar of nodes that reference the corresponding keyword, and also in the Material Inspector if you expose that keyword. |
-| **Exposed**        | Boolean  | When you set this parameter to **true**, Unity displays this keyword in the Material Inspector. If you set it to **false**, the keyword does not appear in the Material Inspector.<br/><br/>If you intend to access a GLOBAL shader variable, be sure to add it as you would normally add an input variable, but deselect **Exposed**.|
-| **Reference Name** | String   | The internal name for the keyword in the shader.<br/><br/>If you overwrite the Reference Name parameter, take note of the following:<ul><li>Keyword Reference Names are always in full capitals, so Unity converts all lowercase letters to uppercase.<li>If the Reference Name contains any characters that HLSL does not support, Unity replaces those characters with underscores.<li> Right-click on a Reference Name, and select **Reset Reference** to revert to the default Reference Name.</ul> |
-| **Definition**     | Enum     | Sets how the keyword is defined in the shader. Determines when to compile keyword variants.<br/><br/>The options are:<ul><li>**Shader Feature**: Unity only compiles keyword variants when a Material selects the relevant option. For this option to be available in the Player, a Material selecting it must exist at build-time.<li>**Multi Compile**: Pre-compiles all the variant possibilities. This is slower and uses more memory, but allows the option to be dynamically switched in the Player.<li>**Predefined**: The render pipeline defines this keyword and controls the settings for it.</ul> |
-| **Scope**          | Enum     | Sets the scope at which to define the keyword.<br/><br/>The following options are available:<ul><li>**Global keywords**: Defines keyword for the entire project, and it counts towards the global keyword limit.<li>**Local keywords**: Defines keyword for only one shader, which has its own local keyword limit.</ul>When you use Predefined keywords, Unity disables this field. |
-| **Stages** | N/A | Set the stage the keyword applies to.<br/><br/>The following options are available:<ul><li>**All** - Applies this keyword to all shader stages.<<li>**Vertex** - Applies this keyword to the vertex stage.<li>**Fragment** - Applies this keyword to the fragment stage.</ul> |
+| **Name** | **Description** |
+| :--- | :--- |
+| **Name** | The display name of the keyword. Unity shows this name in the title bar of nodes that reference the corresponding keyword, and also in the Material Inspector if you expose that keyword. |
+| **Reference** | The internal name for the keyword in the shader.<br/><br/>If you overwrite this parameter, be aware of the following:<ul><li>A Keyword **Reference** has to be in full capitals. Unity converts any lowercase letters to uppercase.</li><li>If **Reference** contains any characters that HLSL does not support, Unity replaces those characters with underscores.</li><li>You can revert to the default **Reference**: right-click on the **Reference** field label, and select **Reset Reference**.</li></ul> |
+| **Definition** | Sets the keyword declaration type, which determines how Unity compiles the shader code. This allows you to [optimize the balance between build time, runtime, and file sizes](Keywords-concepts.md#keyword-impact-optimization).<br/><br/>The options are:<ul><li>**Shader Feature**: Unity only compiles shader variants for keyword combinations used by materials in your build, and removes other shader variants.</li><li>**Multi Compile**: Unity compiles shader variants for all keyword combinations regardless of whether the build uses these variants.</li><li>**Predefined**: Specifies that the target/sub-target already defines the keyword and you just want to reuse it. Predefined Keywords can either use a [built-in macro](https://docs.unity3d.com/Manual/shader-branching-built-in-macros.html), which results in static branching at build time, or any of the keywords already defined by the Shader Graph Target (for example, [URP](https://docs.unity3d.com/Manual/urp/urp-shaders/shader-keywords-macros.html)), including [Built-In keyword sets](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants-shortcuts.html), and where the branching depends on that definition.</li><li>**Dynamic Branch**: Unity keeps branching code in one compiled shader program.</li></ul> |
+| **Is Overridable** | Indicates whether the keyword's state can be overridden.<br/>For more information, refer to [Toggle shader keywords in a script](https://docs.unity3d.com/Manual/shader-keywords-scripts.html). |
+| **Generate Material Property** | Generates a material property declaration to display the keyword as a property in the material inspector.<br/>This adds a `[Toggle(_KEYWORD)]` attribute to the material property. For more information, refer to [`MaterialPropertyDrawer`](https://docs.unity3d.com/ScriptReference/MaterialPropertyDrawer.html). |
+| **Stages** | Set the stage the keyword applies to.<br/><br/>The following options are available:<ul><li>**All** - Applies this keyword to all shader stages.<li>**Vertex** - Applies this keyword to the vertex stage.<li>**Fragment** - Applies this keyword to the fragment stage.</ul> |
 
 <a name="BooleanKeywords"></a>
 
@@ -21,9 +21,9 @@ Parameters that all keyword types have in common.
 
 Parameter specific to Boolean keywords in addition to the [common parameters](#common-parameters).
 
-| **Name**    | **Type** | **Description**                                              |
-| ----------- | -------- | ------------------------------------------------------------ |
-| **Default** | Boolean  | Enable this parameter to set the keyword's default state to on, and disable it to set the keyword's default state to off.<br/><br/>This parameter determines the value to use for the keyword when Shader Graph generates previews. It also defines the keyword's default value when you use this shader to create a new Material. |
+| **Name** | **Description** |
+| :--- | :--- |
+| **Default Value** | Enable this parameter to set the keyword's default state to on, and disable it to set the keyword's default state to off.<br/><br/>This parameter determines the value to use for the keyword when Shader Graph generates previews. It also defines the keyword's default value when you use this shader to create a new Material. |
 
 <a name="EnumKeywords"></a>
 
@@ -31,10 +31,10 @@ Parameter specific to Boolean keywords in addition to the [common parameters](#c
 
 Parameters specific to Enum keywords in addition to the [common parameters](#common-parameters).
 
-| **Name**    | **Type**         | **Description**                                              |
-| ----------- | ---------------- | ------------------------------------------------------------ |
-| **Default** | Enum             | Select an entry from the drop-down menu to determine which value to use for the keyword when Shader Graph generates previews. This also defines the keyword's default value when you use this shader to create a new Material. When you edit the Entries list, Shader Graph automatically updates the options in this control. |
-| **Entries** | Reorderable List | This list defines all the states for the keyword. Each state has a separate **Entry Name** and **Reference Suffix**.<ul><li> **Entry Name**: The name displayed in drop-down menus for the keyword on the [Internal Inspector](Internal-Inspector.md) and the Material Inspector. Shader Graph also uses this name for port labels on nodes that reference the keyword.<li> **Reference Suffix**: This identifies the final keyword, presented in the format `Reference_ReferenceSuffix`.</ul> |
+| **Name** | **Description** |
+| :--- | :--- |
+| **Default Value** | Select an entry from the drop-down menu to determine which value to use for the keyword when Shader Graph generates previews. This also defines the keyword's default value when you use this shader to create a new Material. When you edit the Entries list, Shader Graph automatically updates the options in this control. |
+| **Entries** | This list defines all the states for the keyword. Each state has a separate **Entry Name** and **Reference Suffix**.<ul><li> **Entry Name**: The name displayed in drop-down menus for the keyword on the [Internal Inspector](Internal-Inspector.md) and the Material Inspector. Shader Graph also uses this name for port labels on nodes that reference the keyword.<li> **Reference Suffix**: This identifies the final keyword, presented in the format `Reference_ReferenceSuffix`.</ul> |
 
 When you define an Enum keyword, Shader Graph displays labels for each state consisting of a version of the Enum's **Entry Name**  appended to the main **Reference** name.
 
