@@ -632,6 +632,8 @@ namespace UnityEditor.Rendering
                     lastMaterialName = material.name;
             }
 
+            AssetDatabase.SaveAssets();
+
             UnityEditor.EditorUtility.ClearProgressBar();
         }
     }
