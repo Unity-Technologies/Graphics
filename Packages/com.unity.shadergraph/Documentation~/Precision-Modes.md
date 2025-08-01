@@ -4,7 +4,7 @@
 
 Shader Graph provides specific [data precision modes](https://en.wikipedia.org/wiki/Precision_(computer_science)) for nodes, graphs, and Sub Graphs to help you optimize your content for different platforms.
 
-To set the precision of an entire graph, select the [**Graph Settings**](Graph-Settings-Menu) tab in the [Graph Inspector](Internal-Inspector.md) and adjust the **Precision** control. Select a node in your graph and select the **Node Settings** tab in the Graph Inspector to adjust the precision of individual nodes.
+To set the precision of an entire graph, select the [**Graph Settings**](Graph-Settings-Tab.md) tab in the [Graph Inspector](Internal-Inspector.md) and adjust the **Precision** control. Select a node in your graph and select the **Node Settings** tab in the Graph Inspector to adjust the precision of individual nodes.
 
 ## Precision mode settings
 | Name | Description |
@@ -32,7 +32,7 @@ To set the default precision for the entire graph to **Single** or **Half**, ope
 Select a node to access its precision setting. The precision you set for a node determines the precision of the data types which that node uses for its calculations.
 
 ### Precision Inheritance
-All nodes use the **Inherit** precision mode by default. In this mode, a node that has one or more edge connections takes on the precision mode of an incoming [edge](Edge). Nodes that do not have any edge connections take on **Graph Precision**. If you change the **Graph Precision** mode, the precision of those nodes also changes.
+All nodes use the **Inherit** precision mode by default. In this mode, a node that has one or more edge connections takes on the precision mode of an incoming [edge](Edge.md). Nodes that do not have any edge connections take on **Graph Precision**. If you change the **Graph Precision** mode, the precision of those nodes also changes.
 
 | **Inputs on the node**                 | **Final precision determined by inheritance**  |
 |------------------------------------|--------------------------------------------|
@@ -67,7 +67,7 @@ In the figure below, node D has the **Inherit** mode. It receives input from the
 
 Mixed inheritance refers to the inheritance behaviour on a node with both simple and complex inheritance types.
 
-Nodes with no input ports, such as [Input nodes](Input-Nodes), inherit the **Graph Precision**. However, complex inheritance rules still affect other nodes in the same group, as illustrated in the figure below.
+Nodes with no input ports, such as [Input nodes](Input-Nodes.md), inherit the **Graph Precision**. However, complex inheritance rules still affect other nodes in the same group, as illustrated in the figure below.
 
 ![](images/precisionmodes3.png)
 
@@ -80,7 +80,7 @@ The **Switchable** mode overrides **Half** mode but not **Single**.
 
 ### Sub Graph precision
 
-Precision behavior and user interface elements for [Sub Graphs](Sub-graph) and their nodes do not differ from other graphs and nodes. Sub Graphs represent a function, and you can affect that function's inputs, outputs, and operators by modifying the relevant set of precision settings.
+Precision behavior and user interface elements for [Sub Graphs](Sub-graph.md) and their nodes do not differ from other graphs and nodes. Sub Graphs represent a function, and you can affect that function's inputs, outputs, and operators by modifying the relevant set of precision settings.
 
 * The Sub Graph properties correspond to the function's inputs.
 * The internal node properties correspond to the function's operators.
@@ -92,11 +92,11 @@ To manually determine the precision of a Sub Graph's output, modify the **Output
 
 #### Inputs
 
-To manually determine the precision of **Sub Graph Inputs**, open the [Graph Inspector](Internal-Inspector) and set precision modes for each individual [Property](Property-Types). Properties that use the Inherit option take on the **Graph Precision** you set for the Sub Graph.
+To manually determine the precision of **Sub Graph Inputs**, open the [Graph Inspector](Internal-Inspector.md) and set precision modes for each individual [Property](Property-Types.md). Properties that use the Inherit option take on the **Graph Precision** you set for the Sub Graph.
 
 #### Sub Graph Precision within other graphs
 
-By default, a Sub Graph has a Precision Mode of `Switchable`. You can modify Precision Mode of any [Sub Graph node](Sub-graph-Node) for that Sub Graph, as long as you set the Precision Mode on the Sub Graph as `Switchable`.
+By default, a Sub Graph has a Precision Mode of `Switchable`. You can modify Precision Mode of any [Sub Graph node](Sub-graph-Node.md) for that Sub Graph, as long as you set the Precision Mode on the Sub Graph as `Switchable`.
 
 Shader Graph won't allow you to change the Precision Mode for any Sub Graph node that doesn't have its Sub Graph set to `Switchable`. This is because the input and output precision you set in a Sub Graph define the precision of its associated Sub Graph Node.
 

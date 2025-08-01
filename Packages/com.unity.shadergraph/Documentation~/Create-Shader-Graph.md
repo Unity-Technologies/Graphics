@@ -27,23 +27,23 @@ The Shader Graph window consists of the Master Stack, the Preview Window, the Bl
 
 ### Master Stack
 
-The final connection that determines your shader output. Refer to [Master Stack](Master-Stack) for more information.
+The final connection that determines your shader output. Refer to [Master Stack](Master-Stack.md) for more information.
 
 ![]()
 
 ### Preview window
 
-An area to preview the current shader output. Here, you can rotate the object, and zoom in and out. You can also change the basic mesh on which the shader is previewed. Refer to [Main Preview](Main-Preview) for more information.
+An area to preview the current shader output. Here, you can rotate the object, and zoom in and out. You can also change the basic mesh on which the shader is previewed. Refer to [Main Preview](Main-Preview.md) for more information.
 
 ![img](images/MainPreview.png)
 
 ### Blackboard
 
-An area that contains all of the shader's properties in a single, collected view. Use the Blackboard to add, remove, rename, and reorder properties. Refer to [Blackboard](Blackboard) for more information.
+An area that contains all of the shader's properties in a single, collected view. Use the Blackboard to add, remove, rename, and reorder properties. Refer to [Blackboard](Blackboard.md) for more information.
 
 ![](images/Blackboard.png)
 
-After you've set up a project, and become familiar with the Shader Graph window, refer to [My first Shader Graph](First-Shader-Graph) for more information on how to get started.
+After you've set up a project, and become familiar with the Shader Graph window, refer to [My first Shader Graph](First-Shader-Graph.md) for more information on how to get started.
 
 ### Internal Inspector
 

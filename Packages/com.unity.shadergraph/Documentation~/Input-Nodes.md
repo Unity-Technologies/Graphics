@@ -4,8 +4,7 @@
 
 |[Boolean](Boolean-Node.md)|[Color](Color-Node.md)|
 |:--------:|:------:|
-|![A flow diagram with a labeled node titled "Boolean" and an output labeled "out(B)". The output is connected via an arrow pointing outward, indicating the result of a Boolean operation.](images/BooleanNodeThumb.png)|![A diagram featuring a single element labeled **"Boolean"** with an output connection marked **"out(B)"**. An arrow extends from this output, indicating the flow of a Boolean value from the node. The design implies a logic or data flow representation centered around Boolean values.
-](images/ColorNodeThumb.png)|
+|![A flow diagram with a labeled node titled "Boolean" and an output labeled "out(B)". The output is connected via an arrow pointing outward, indicating the result of a Boolean operation.](images/BooleanNodeThumb.png)|![A diagram featuring a single element labeled **"Boolean"** with an output connection marked **"out(B)"**. An arrow extends from this output, indicating the flow of a Boolean value from the node. The design implies a logic or data flow representation centered around Boolean values.](images/ColorNodeThumb.png)|
 | Defines a constant Boolean value in the shader. | Defines a constant Vector 4 value in the shader using a Color field. |
 |[**Constant**](Constant-Node.md)|[**Integer**](Integer-Node.md)|
 |![A diagram with a node labeled "Constant" and an output labeled "Out(1)". Below it, the symbol "PI" is displayed, with a downward arrow pointing toward it. ](images/ConstantNodeThumb.png)|![A node labeled "Integer" with an output labeled "out(1)". Next to it is the number 0, indicating that the node outputs the integer value zero.](images/IntegerNodeThumb.png)|
@@ -24,14 +23,13 @@
 
 |[Bitangent Vector](Bitangent-Vector-Node.md)|[Normal Vector](Normal-Vector-Node.md)|
 |:--------:|:------:|
-|[![A Bitangent Vector node with an output labeled out(3). Below the label, there are two options or modes indicated: Space and World, with an arrow pointing down toward World. This suggests the vector can be interpreted or output in different coordinate spaces, with the current selection being World space.](images/BitangentVectorNodeThumb.png)](Combine-Node)|![A Normal Vector node with an output labeled Out(3). Below it, there are two options: Space and World, with an arrow pointing downward toward World. This indicates the vector can be output in different coordinate spaces, currently set to World space.](images/NormalVectorNodeThumb.png)|
+|[![A Bitangent Vector node with an output labeled out(3). Below the label, there are two options or modes indicated: Space and World, with an arrow pointing down toward World. This suggests the vector can be interpreted or output in different coordinate spaces, with the current selection being World space.](images/BitangentVectorNodeThumb.png)](Combine-Node.md)|![A Normal Vector node with an output labeled Out(3). Below it, there are two options: Space and World, with an arrow pointing downward toward World. This indicates the vector can be output in different coordinate spaces, currently set to World space.](images/NormalVectorNodeThumb.png)|
 | Provides access to the mesh vertex or fragment's Bitangent Vector. | Provides access to the mesh vertex or fragment's Normal Vector. |
 |[**Position**](Position-Node.md)|[**Screen Position**](Screen-Position-Node.md)|
 |![A Position node with an output labeled Out(3). Below it, there are two options: Space and World, with a downward arrow pointing at World. This indicates the position value can be represented in different coordinate spaces, currently set to World space.](images/PositionNodeThumb.png)|![A Position node with an output labeled Out(3). Beneath it, there are two selectable options: Space and World, with an arrow indicating the selection is set to World space. This suggests the position value is provided relative to the world coordinate system.](images/ScreenPositionNodeThumb.png)|
 |Provides access to the mesh vertex or fragment's Position.|Provides access to the mesh vertex or fragment's Screen Position.|
 |[**Tangent Vector**](Tangent-Vector-Node.md)|[**UV**](UV-Node.md)|
-|![A Tangent Vector node with an output labeled Out(3). Below it, two options are listed: Space and World, with an arrow pointing downward toward World. This indicates the vector can be output in different coordinate spaces, currently set to World space.](images/TangentVectorNodeThumb.png)|![A Tangent Vector node with an output labeled Out(3). Below it, two options are listed: Space and World, with an arrow pointing downward toward World. This indicates the vector can be output in different coordinate spaces, currently set to World space.
-](images/UVNodeThumb.png)|
+|![A Tangent Vector node with an output labeled Out(3). Below it, two options are listed: Space and World, with an arrow pointing downward toward World. This indicates the vector can be output in different coordinate spaces, currently set to World space.](images/TangentVectorNodeThumb.png)|![A Tangent Vector node with an output labeled Out(3). Below it, two options are listed: Space and World, with an arrow pointing downward toward World. This indicates the vector can be output in different coordinate spaces, currently set to World space.](images/UVNodeThumb.png)|
 |Provides access to the mesh vertex or fragment's Tangent Vector.|Provides access to the mesh vertex or fragment's UV coordinates.|
 |[**Vertex Color**](Vertex-Color-Node.md)|[**View Direction**](View-Direction-Node.md)|
 |![a Vertex Color node with an output labeled Out(4). An arrow extends from the output, indicating the flow of a four-component color value, typically representing RGBA data.](images/VertexColorNodeThumb.png)|![A View Direction node with an output labeled Out(3). Below it, two options are shown: Space and World, with a downward arrow pointing to World, indicating the current coordinate space for the view direction vector.](images/ViewDirectionNodeThumb.png)|
@@ -62,13 +60,13 @@
 |Defines a constant Matrix 4x4 value in the shader.|Defines a constant Matrix 4x4 value for a default Unity Transformation Matrix in the shader.|
 
 ## Mesh Deformation
-| [Compute Deformation Node](Compute-Deformation-Node)         | [Linear Blend Skinning Node](Linear-Blend-Skinning-Node)     |
+| [Compute Deformation Node](Compute-Deformation-Node.md)         | [Linear Blend Skinning Node](Linear-Blend-Skinning-Node.md)     |
 | :----------------------------------------------------------- | :----------------------------------------------------------- |
 | ![A Compute Deformation node with three outputs: Deformed Position, Deformed Normal, Deformed Tangent.](images/ComputeDeformationNodeThumb.png)             | ![A Linear Blend Skinning node with three pairs of inputs and outputs: Vertex Position(3) input connected to Skinned Position(3) output, Vertex Normal(3) input connected to Skinned Normal(3) output, Vertex Tangent(3) input connected to Skinned Tangent(3) output.](images/LinearBlendSkinningNodeThumb.png)            |
 | Passes compute deformed vertex data to a vertex shader. Only works with the [Entities Graphics package](https://docs.unity3d.com/Packages/com.unity.entities.graphics@latest/). | Applies Linear Blend Vertex Skinning. Only works with the [Entities Graphics package](https://docs.unity3d.com/Packages/com.unity.entities.graphics@latest/). |
 
 ## Sprite Deformation
-| [Sprite Skinning Node](Sprite-Skinning-Node)     |
+| [Sprite Skinning Node](Sprite-Skinning-Node.md)     |
 | :----------------------------------------------------------- |
 | ![A Linear Blend Skinning node with three pairs of inputs and outputs, each handling 3-component vectors: Vertex Position(3) connected to Skinned Position(3) output, Vertex Normal(3) connected to Skinned Normal(3) output, Vertex Tangent(3) connected to Skinned Tangent(3) output.](images/SpriteSkinningNodeThumb.png)                 |
 | Applies Vertex Skinning on Sprites. Only works with the [2D Animation](https://docs.unity3d.com/Packages/com.unity.2d.animation@latest/). |
@@ -104,7 +102,7 @@
 
 |[**Cubemap Asset**](Cubemap-Asset-Node.md)|[**Sample Cubemap**](Sample-Cubemap-Node.md)|
 |:--------:|:------:|
-|[![A Cubemap Asset node with an output labeled out(C). Below it, there is a dropdown or selector displaying None (Cubemap).](images/CubemapAssetNodeThumb.png)](Combine-Node)|![A Sample Cubemap node with: An input labeled None (Cubemap), an input labeled World Space connected to pijr(3), an input labeled x set to 0, connected to LoD(1), an output labeled Out(4).](images/SampleCubemapNodeThumb.png)|
+|[![A Cubemap Asset node with an output labeled out(C). Below it, there is a dropdown or selector displaying None (Cubemap).](images/CubemapAssetNodeThumb.png)](Combine-Node.md)|![A Sample Cubemap node with: An input labeled None (Cubemap), an input labeled World Space connected to pijr(3), an input labeled x set to 0, connected to LoD(1), an output labeled Out(4).](images/SampleCubemapNodeThumb.png)|
 | Defines a constant Cubemap Asset for use in the shader. | Samples a Cubemap and returns a Vector 4 color value for use in the shader. |
 |[**Sample Reflected Cubemap Node**](Sample-Reflected-Cubemap-Node.md)|[**Sample Texture 2D**](Sample-Texture-2D-Node.md)|
 |![A Sample Cubemap node with several inputs and an output: An input labeled None (Cubemap) connected to Cube(C), inputs labeled Object Space ViewDir(3) and Object Space Normal(3), an input labeled Sampler(SS), an input labeled X set to 0, connected to LOD(1), an output labeled Out(4).](images/SampleReflectedCubemapThumb.png)|![A Sample Texture 2D node with: An input labeled None (Texture) connected to Texture(T2), an input labeled UV(2), an input labeled Sampler(SS), multiple outputs labeled RGBA(4), R(1), G(1), B(1), and A(1), two dropdown options: Type set to Default, and Space set to Tangent.](images/SampleTexture2DNodeThumb.png)|
