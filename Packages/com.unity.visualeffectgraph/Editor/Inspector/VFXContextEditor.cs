@@ -266,35 +266,9 @@ class VFXContextEditor : VFXSlotContainerEditor
             if (target is VFXContext context)
             {
                 var label = string.IsNullOrEmpty(context.label) ? context.letter.ToString() : context.label;
-                GUIStyle style = null;
-                switch (context.contextType)
+                if (label != null)
                 {
-                    case VFXContextType.Event:
-                    case VFXContextType.SpawnerGPU:
-                    case VFXContextType.Spawner:
-                    case VFXContextType.Init:
-                        style = Styles.spawnStyle;
-                        break;
-                    case VFXContextType.Update:
-                    case VFXContextType.Output:
-                        switch (context.inputType)
-                        {
-                            case VFXDataType.Particle:
-                                style = Styles.particleStyle;
-                                break;
-                            case VFXDataType.ParticleStrip:
-                                style = Styles.particleStripeStyle;
-                                break;
-                            case VFXDataType.Mesh:
-                                style = Styles.meshStyle;
-                                break;
-                        }
-                        break;
-                }
-
-                if (label != null && style != null)
-                {
-                    GUILayout.Label(label, style);
+                    GUILayout.Label(label, Styles.contextHeaderStyle);
                 }
             }
         }
