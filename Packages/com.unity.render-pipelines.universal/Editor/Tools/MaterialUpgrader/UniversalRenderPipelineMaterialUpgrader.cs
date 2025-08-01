@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Rendering.Universal;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using System.Runtime.CompilerServices;
-using System.Linq;
 
 [assembly: InternalsVisibleTo("MaterialPostprocessor")]
 namespace UnityEditor.Rendering.Universal
@@ -13,256 +11,45 @@ namespace UnityEditor.Rendering.Universal
     internal sealed class UniversalRenderPipelineMaterialUpgrader : RenderPipelineConverter
     {
         public override string name => "Material Upgrade";
-        public override string info => "This converter converts Materials from the Built-in Render Pipeline to URP. This converter works best on default pre-built Materials that are supplied by Unity. Custom Materials are not supported.";
+        public override string info => $@"This converter upgrades Materials from the Built-in Render Pipeline to URP.
+It uses {typeof(MaterialUpgrader).Name}instances that implement {typeof(IMaterialUpgradersProvider).Name}.";
+
         public override int priority => -1000;
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
         List<string> m_AssetsToConvert = new List<string>();
 
         static List<MaterialUpgrader> m_Upgraders;
-        private static HashSet<string> m_ShaderNamesToIgnore;
-
-        public IReadOnlyList<MaterialUpgrader> upgraders => m_Upgraders;
-        static UniversalRenderPipelineMaterialUpgrader()
+        
+        public UniversalRenderPipelineMaterialUpgrader()
         {
-            m_Upgraders = new List<MaterialUpgrader>();
-            GetUpgraders(ref m_Upgraders);
-
-            m_ShaderNamesToIgnore = new HashSet<string>();
-            GetShaderNamesToIgnore(ref m_ShaderNamesToIgnore);
-        }
-
-        private static void UpgradeProjectMaterials()
-        {
-            m_Upgraders = new List<MaterialUpgrader>();
-            GetUpgraders(ref m_Upgraders);
-
-            m_ShaderNamesToIgnore = new HashSet<string>();
-            GetShaderNamesToIgnore(ref m_ShaderNamesToIgnore);
-
-            MaterialUpgrader.UpgradeProjectFolder(m_Upgraders, m_ShaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
-            // TODO: return upgrade paths and pass to AnimationClipUpgrader
-            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", true)]
-        static bool MaterialValidate(MenuCommand command)
-        {
-            foreach (var obj in Selection.objects)
-            {
-                if (obj is not Material) return false;
-            }
-
-            return true;
-        }
-
-        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
-        private static void UpgradeSelectedMaterialsMenuItem()
-        {
-            UpgradeSelectedMaterials(false);
-        }
-
-        // Added bool variable in case this method was used by anyone.
-        // Doing this, since the menuitem should behave as it did before,
-        // and then we didn't have the Animation clips upgrader
-        private static void UpgradeSelectedMaterials(bool UpgradeAnimationClips = true)
-        {
-            List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
-            GetUpgraders(ref upgraders);
-
-            HashSet<string> shaderNamesToIgnore = new HashSet<string>();
-            GetShaderNamesToIgnore(ref shaderNamesToIgnore);
-
-            MaterialUpgrader.UpgradeSelection(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
-            if (UpgradeAnimationClips)
-            {
-                // TODO: return upgrade paths and pass to AnimationClipUpgrader
-                AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders, "Upgrade Animation Clips to URP Materials");
-            }
-        }
-
-        private static void GetShaderNamesToIgnore(ref HashSet<string> shadersToIgnore)
-        {
-            shadersToIgnore.Add("Universal Render Pipeline/Baked Lit");
-            shadersToIgnore.Add("Universal Render Pipeline/Lit");
-            shadersToIgnore.Add("Universal Render Pipeline/Particles/Lit");
-            shadersToIgnore.Add("Universal Render Pipeline/Particles/Simple Lit");
-            shadersToIgnore.Add("Universal Render Pipeline/Particles/Unlit");
-            shadersToIgnore.Add("Universal Render Pipeline/Simple Lit");
-            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7");
-            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7 Billboard");
-            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8");
-            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit");
-            shadersToIgnore.Add("Universal Render Pipeline/2D/Sprite-Lit-Default");
-            shadersToIgnore.Add("Universal Render Pipeline/Terrain/Lit");
-            shadersToIgnore.Add("Universal Render Pipeline/Unlit");
-            shadersToIgnore.Add("Sprites/Default");
-        }
-
-        private static void GetUpgraders(ref List<MaterialUpgrader> upgraders)
-        {
-            /////////////////////////////////////
-            //     Unity Standard Upgraders    //
-            /////////////////////////////////////
-            upgraders.Add(new StandardUpgrader("Standard"));
-            upgraders.Add(new StandardUpgrader("Standard (Specular setup)"));
-
-            /////////////////////////////////////
-            // Legacy Shaders upgraders         /
-            /////////////////////////////////////
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Diffuse Detail", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Diffuse Fast", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Specular", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Bumped Specular", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Parallax Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Parallax Specular", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/VertexLit", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Cutout/VertexLit", SupportedUpgradeParams.specularAlphaCutout));
-
-            // Reflective
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped Diffuse", SupportedUpgradeParams.diffuseCubemap));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped Specular", SupportedUpgradeParams.specularCubemap));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped Unlit", SupportedUpgradeParams.diffuseCubemap));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Bumped VertexLit", SupportedUpgradeParams.diffuseCubemap));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Diffuse", SupportedUpgradeParams.diffuseCubemap));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Specular", SupportedUpgradeParams.specularCubemap));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/VertexLit", SupportedUpgradeParams.diffuseCubemap));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Parallax Diffuse", SupportedUpgradeParams.diffuseCubemap));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Reflective/Parallax Specular", SupportedUpgradeParams.specularCubemap));
-
-            // Self-Illum upgrader
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Parallax Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Specular", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Bumped Specular", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/Parallax Specular", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Self-Illumin/VertexLit", SupportedUpgradeParams.specularOpaque));
-
-            // Alpha Blended
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Diffuse", SupportedUpgradeParams.diffuseAlpha));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Specular", SupportedUpgradeParams.specularAlpha));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Bumped Diffuse", SupportedUpgradeParams.diffuseAlpha));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Bumped Specular", SupportedUpgradeParams.specularAlpha));
-
-            // Cutout
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Cutout/Diffuse", SupportedUpgradeParams.diffuseAlphaCutout));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Cutout/Specular", SupportedUpgradeParams.specularAlphaCutout));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Cutout/Bumped Diffuse", SupportedUpgradeParams.diffuseAlphaCutout));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Transparent/Cutout/Bumped Specular", SupportedUpgradeParams.specularAlphaCutout));
-
-            // Lightmapped
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/Specular", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/VertexLit", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Legacy Shaders/Lightmapped/Bumped Specular", SupportedUpgradeParams.specularOpaque));
-
-            /////////////////////////////////////
-            // Sprites Upgraders
-            /////////////////////////////////////
-            upgraders.Add(new StandardSimpleLightingUpgrader("Sprites/Diffuse", SupportedUpgradeParams.diffuseAlpha));
-
-            /////////////////////////////////////
-            // UI Upgraders
-            /////////////////////////////////////
-            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Bumped", SupportedUpgradeParams.diffuseAlphaCutout));
-            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Detail", SupportedUpgradeParams.diffuseAlphaCutout));
-            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Refraction", SupportedUpgradeParams.diffuseAlphaCutout));
-            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Refraction Detail", SupportedUpgradeParams.diffuseAlphaCutout));
-            upgraders.Add(new StandardSimpleLightingUpgrader("UI/Lit/Transparent", SupportedUpgradeParams.diffuseAlpha));
-
-
-            /////////////////////////////////////
-            // Mobile Upgraders                 /
-            /////////////////////////////////////
-            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Bumped Specular", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Bumped Specular (1 Directional Light)", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Bumped Diffuse", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Unlit (Supports Lightmap)", SupportedUpgradeParams.diffuseOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/VertexLit", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/VertexLit (Only Directional Lights)", SupportedUpgradeParams.specularOpaque));
-            upgraders.Add(new StandardSimpleLightingUpgrader("Mobile/Particles/VertexLit Blended", SupportedUpgradeParams.specularOpaque));
-
-            ////////////////////////////////////
-            // Terrain Upgraders              //
-            ////////////////////////////////////
-            upgraders.Add(new TerrainUpgrader("Nature/Terrain/Standard"));
-            upgraders.Add(new SpeedTreeUpgrader("Nature/SpeedTree"));
-            upgraders.Add(new SpeedTreeBillboardUpgrader("Nature/SpeedTree Billboard"));
-            upgraders.Add(new UniversalSpeedTree8Upgrader("Nature/SpeedTree8"));
-
-            ////////////////////////////////////
-            // Particle Upgraders             //
-            ////////////////////////////////////
-            upgraders.Add(new ParticleUpgrader("Particles/Standard Surface"));
-            upgraders.Add(new ParticleUpgrader("Particles/Standard Unlit"));
-            upgraders.Add(new ParticleUpgrader("Particles/VertexLit Blended"));
-
-            ////////////////////////////////////
-            // Autodesk Interactive           //
-            ////////////////////////////////////
-            upgraders.Add(new AutodeskInteractiveUpgrader("Autodesk Interactive"));
-        }
-
-        bool IsMaterialPath(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-            // Making sure it is a .mat file and it is not from a package.
-            return path.EndsWith(".mat", StringComparison.OrdinalIgnoreCase) && !(path.StartsWith("Packages/", StringComparison.OrdinalIgnoreCase));
-        }
-
-        bool ShouldUpgradeShader(Material material, HashSet<string> shaderNamesToIgnore)
-        {
-            if (material == null)
-                return false;
-
-            if (material.shader == null)
-                return false;
-
-            // Checking if the Shader Graph tag exists, if it does it is a Shader Graph and shouldnt be Upgraded here
-            var result = material.GetTag("ShaderGraphShader", false, "sg");
-            if (result != "sg")
-            {
-                return false;
-            }
-            return !shaderNamesToIgnore.Contains(material.shader.name);
+            m_Upgraders = MaterialUpgrader.FetchAllUpgradersForPipeline(typeof(UniversalRenderPipelineAsset));
         }
 
         /// <inheritdoc/>
         public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             List<ConverterItemDescriptor> descriptors = new List<ConverterItemDescriptor>();
-            foreach (string path in AssetDatabase.GetAllAssetPaths())
+
+            var entries = MaterialUpgrader.FetchAllUpgradableMaterialsForPipeline(typeof(UniversalRenderPipelineAsset));
+            foreach (var material in entries)
             {
-                if (IsMaterialPath(path))
+                ConverterItemDescriptor desc = new ConverterItemDescriptor()
                 {
-                    Material m = AssetDatabase.LoadMainAssetAtPath(path) as Material;
+                    name = material.name,
+                    info = AssetDatabase.GetAssetPath(material),
+                    warningMessage = string.Empty,
+                    helpLink = string.Empty,
+                };
 
-                    // We should also check if the material is already URP
-                    if (!ShouldUpgradeShader(m, m_ShaderNamesToIgnore))
-                        continue;
-
-                    ConverterItemDescriptor desc = new ConverterItemDescriptor()
-                    {
-                        name = m.name,
-                        info = path,
-                        warningMessage = String.Empty,
-                        helpLink = String.Empty,
-                    };
-
-                    descriptors.Add(desc);
-                }
+                descriptors.Add(desc);
             }
 
-            // This need to be sorted by name property
-            descriptors = descriptors.OrderBy(o => o.name).ToList();
+            descriptors.Sort(delegate (ConverterItemDescriptor a, ConverterItemDescriptor b)
+            {
+                return string.Compare(a.name, b.name, StringComparison.Ordinal);
+            });
+
             foreach (var desc in descriptors)
             {
                 context.AddAssetToConvert(desc);

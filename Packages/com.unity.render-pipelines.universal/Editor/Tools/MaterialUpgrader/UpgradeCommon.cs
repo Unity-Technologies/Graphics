@@ -1,5 +1,3 @@
-using UnityEngine.Scripting.APIUpdating;
-
 namespace UnityEditor.Rendering.Universal
 {
     /// <summary>

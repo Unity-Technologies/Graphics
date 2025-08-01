@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using UnityEditor.Rendering.Analytics;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -48,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly string resolveAllQuality = L10n.Tr("Fix All Qualities");
             public static readonly string resolveAllBuildTarget = L10n.Tr("Fix All Platforms");
             public static readonly string fixAllOnNonHDRP = L10n.Tr("The active Quality Level is not using a High Definition Render Pipeline asset. If you attempt a Fix All, the Quality Level will be changed to use it.");
-            public static readonly string nonBuiltinMaterialWarning = L10n.Tr("The project contains materials that are not using built-in shaders. These will be skipped in the automated migration process.");
+            public static readonly string nonAutomaticUpgradeMaterials = L10n.Tr("The project contains materials that will be skipped in the automated migration process as there is not a Material Upgrader defined for them.");
 
             public struct ConfigStyle
             {
@@ -435,16 +434,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             container.Add(CreateTitle(Style.migrationTitle));
 
-            if (MaterialUpgrader.ProjectFolderContainsNonBuiltinMaterials(
-                    UpgradeStandardShaderMaterials.GetHDUpgraders()))
+            if (MaterialUpgrader.ProjectContainsNonAutomaticUpgradePath(
+                    MaterialUpgraderEditMenus.GetHDUpgraders()))
             {
-                var nonBuiltinMaterialHelpBox = new HelpBox(Style.nonBuiltinMaterialWarning, HelpBoxMessageType.Warning);
+                var nonBuiltinMaterialHelpBox = new HelpBox(Style.nonAutomaticUpgradeMaterials, HelpBoxMessageType.Warning);
                 nonBuiltinMaterialHelpBox.AddToClassList("NonBuiltinMaterialWarning");
                 container.Add(nonBuiltinMaterialHelpBox);
             }
 
-            container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
-            container.Add(CreateLargeButton(Style.migrateSelectedButton, UpgradeStandardShaderMaterials.UpgradeMaterialsSelection));
+            // TODO: Remove when RP converter is being unified
+            container.Add(CreateLargeButton(Style.migrateAllButton, MaterialUpgraderEditMenus.UpgradeMaterialsProject));
+            container.Add(CreateLargeButton(Style.migrateSelectedButton, MaterialUpgraderEditMenus.UpgradeMaterialsSelection));
             container.Add(CreateLargeButton(Style.migrateMaterials, HDRenderPipelineMenuItems.UpgradeMaterials));
 
             CheckPersistantNeedReboot();

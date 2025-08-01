@@ -600,11 +600,7 @@ namespace UnityEditor.Rendering
                 "Do you want to proceed?"
             );
 
-            if (!EditorUtility.DisplayDialog(
-                L10n.Tr("Upgrade AnimationClips"),
-                dialogMessage,
-                DialogText.proceed,
-                DialogText.cancel))
+            if (!EditorUtility.DisplayDialog(L10n.Tr("Upgrade AnimationClips"), dialogMessage, "Proceed", "Cancel"))
                 return;
 
             // only include scene paths if user requested it
