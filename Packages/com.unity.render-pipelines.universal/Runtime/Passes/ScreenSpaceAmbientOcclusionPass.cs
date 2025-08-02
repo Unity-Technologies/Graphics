@@ -412,8 +412,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderBufferLoadAction finalLoadAction = data.afterOpaque ? RenderBufferLoadAction.Load : RenderBufferLoadAction.DontCare;
 
                     // Setup
-                    if (data.cameraColor.IsValid())
-                        PostProcessUtils.SetSourceSize(cmd, data.cameraColor);
+                    PostProcessUtils.SetSourceSize(cmd, data.cameraData.cameraTargetDescriptor.width, data.cameraData.cameraTargetDescriptor.height, data.cameraColor);
 
                     if (data.cameraNormalsTexture.IsValid())
                         data.material.SetTexture(s_CameraNormalsTextureID, data.cameraNormalsTexture);
