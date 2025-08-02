@@ -25,9 +25,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogWarning("Cannot instantiate AMD device because the version HDRP expects does not match the backend version.");
                 return false;
             }
+
+            bool deviceReady = AMD.GraphicsDevice.device != null;
+            if (!deviceReady)
+            {
+                AMD.GraphicsDevice.CreateGraphicsDevice();
+                deviceReady = AMD.GraphicsDevice.device != null;
+            }
             
-            AMD.GraphicsDevice device = AMD.GraphicsDevice.CreateGraphicsDevice();
-            return device != null;
+            return deviceReady;
 #else
             return false;
 #endif
