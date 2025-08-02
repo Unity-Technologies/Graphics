@@ -101,7 +101,7 @@ Shader "HDRP/NonSRPBatcherCompatible"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
     //-------------------------------------------------------------------------------------
     // Variant

@@ -297,7 +297,7 @@ Shader "HDRP/ShaderPassNotSupported"
             #if TRIGGER_SHADER_UNSUPPORTED
             #pragma only_renderers ps3 // Attempt to make sure the shader always ends up unsupported
             #else
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             #endif
 
             //enable GPU instancing support
