@@ -16,6 +16,8 @@ namespace UnityEditor.ShaderGraph
         internal const int k_MinEnumEntries = 2;
         internal const int k_MaxEnumEntries = 8;
 
+        protected override bool CanPropagateFloatLiteral => true;
+
         public KeywordNode()
         {
             UpdateNodeAfterDeserialization();

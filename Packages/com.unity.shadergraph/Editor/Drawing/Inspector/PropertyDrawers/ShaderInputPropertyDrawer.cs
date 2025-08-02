@@ -831,6 +831,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         vector1ShaderProperty.value,
                         isCurrentPropertyGlobal ? "Preview Value" : "Default Value",
                         out var defaultFloatPropertyField));
+                    if (isSubGraph)
+                    {
+                        var boolPropertyDrawer = new BoolPropertyDrawer();
+                        propertySheet.Add(boolPropertyDrawer.CreateGUI(
+                            newValue =>
+                            {
+                                _preChangeValueCallback("Change Const Int Mode");
+                                vector1ShaderProperty.LiteralFloatMode = newValue;
+                                // see the node in PropertyNode about a potentially better way to handle this
+                                this._precisionChangedCallback();
+                                _postChangeValueCallback();
+                            },
+                            vector1ShaderProperty.LiteralFloatMode,
+                            "Requires Literal Input",
+                            out _));
+                    }
                     break;
             }
         }

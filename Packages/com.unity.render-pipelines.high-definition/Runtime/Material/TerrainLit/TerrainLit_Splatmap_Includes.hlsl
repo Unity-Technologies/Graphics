@@ -10,6 +10,7 @@
 
 #define DECLARE_TERRAIN_LAYER_PROPS(n)  \
     float4 _Splat##n##_ST;              \
+    float4 _Splat##n##_TexelSize;       \
     float _Metallic##n;                 \
     float _Smoothness##n;               \
     float _NormalScale##n;              \
@@ -43,19 +44,11 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
 #define UNITY_TERRAIN_CB_DEBUG_VARS \
     UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Control0); \
-    float4 _Splat0_TexelSize;                                 \
     UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat0);   \
-    float4 _Splat1_TexelSize;                                 \
     UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat1);   \
-    float4 _Splat2_TexelSize;                                 \
     UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat2);   \
-    float4 _Splat3_TexelSize;                                 \
     UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat3);   \
-    float4 _Splat4_TexelSize;                                 \
     UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat4);   \
-    float4 _Splat5_TexelSize;                                 \
     UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat5);   \
-    float4 _Splat6_TexelSize;                                 \
     UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat6);   \
-    float4 _Splat7_TexelSize;                                 \
     UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_Splat7);

@@ -1061,6 +1061,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9970-ScreenSpaceUIOverlay.unity
     guid: df8ad799e8a136e488cc1dc4c39a9c2c
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8213_Terrain4Layers.unity
+    guid: 7143043274939204595aff7a7b1ea29f
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8214_Terrain8Layers.unity
+    guid: 4fb3c8970537d4e48be8af692299ecf8
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8215_TerrainBasemapHoles.unity
+    guid: bc27862b86a4fde4b95d8caf9f434425
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 20e925b8abdd424429b17f709e9d00f8,
       type: 2}

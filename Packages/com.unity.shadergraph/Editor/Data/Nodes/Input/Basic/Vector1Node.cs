@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
@@ -13,11 +10,15 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private float m_Value = 0;
 
+        [SerializeField]
+        bool m_ConstIntMode = false;
+
         const string kInputSlotXName = "X";
         const string kOutputSlotName = "Out";
 
         public const int InputSlotXId = 1;
         public const int OutputSlotId = 0;
+        protected override bool CanPropagateFloatLiteral => true;
 
         public Vector1Node()
         {
@@ -29,7 +30,7 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector1MaterialSlot(InputSlotXId, kInputSlotXName, kInputSlotXName, SlotType.Input, m_Value));
-            AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
+            AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0, literal:m_ConstIntMode));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, InputSlotXId });
         }
 
@@ -42,7 +43,7 @@ namespace UnityEditor.ShaderGraph
         public AbstractShaderProperty AsShaderProperty()
         {
             var slot = FindInputSlot<Vector1MaterialSlot>(InputSlotXId);
-            return new Vector1ShaderProperty { value = slot.value };
+            return new Vector1ShaderProperty { value = slot.value, LiteralFloatMode = m_ConstIntMode};
         }
 
         public override void OnAfterDeserialize()

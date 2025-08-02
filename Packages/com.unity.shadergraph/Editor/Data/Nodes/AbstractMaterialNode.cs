@@ -43,6 +43,8 @@ namespace UnityEditor.ShaderGraph
 
         internal virtual bool ExposeToSearcher => true;
 
+        protected virtual bool CanPropagateFloatLiteral => false;
+
         OnNodeModified m_OnModified;
 
         Action m_UnregisterAll;
@@ -605,6 +607,72 @@ namespace UnityEditor.ShaderGraph
             concretePrecision = graphPrecision.ToConcrete(owner.graphDefaultConcretePrecision);
         }
 
+        public virtual void PropagateFloatLiteral(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
+        {
+            // early out for nodes that don't propagate float literal
+            if (!CanPropagateFloatLiteral)
+                return;
+            // back propagate requirements
+            // if all the output slots are connected to inputs that don't require literals.
+            bool requiresLiteralInput = false;
+            foreach (var outputSlot in outputSlots)
+            {
+                var edges = owner.GetEdges(outputSlot.slotReference).ToList();
+                foreach (var edge in edges)
+                {
+                    var inputSlotRef = edge.inputSlot;
+                    var inputNode = inputSlotRef.node;
+                    if (inputNode == null)
+                        continue;
+
+                    var inputSlot = inputNode.FindInputSlot<MaterialSlot>(inputSlotRef.slotId);
+                    if (inputSlot == null)
+                        continue;
+                    if (inputSlot is IMaterialSlotSupportsLiteralMode{LiteralMode:true})
+                    {
+                        requiresLiteralInput = true;
+                        break;
+                    }
+                }
+            }
+
+            bool allInputsLiteral = true;
+            foreach (var inputSlot in inputSlots)
+            {
+                // finish backpropagation
+                if (inputSlot.owner.CanPropagateFloatLiteral && inputSlot is IMaterialSlotSupportsLiteralMode materialSlot)
+                {
+                    materialSlot.LiteralMode = requiresLiteralInput;
+                }
+
+                var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                if (edges.Count > 0)
+                {
+                    var outputSlotRef = edges[0].outputSlot;
+                    var outputNode = outputSlotRef.node;
+                    if (outputNode == null)
+                        continue;
+
+                    var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
+                    if (outputSlot == null)
+                        continue;
+                    if (outputSlot is IMaterialSlotSupportsLiteralMode{LiteralMode:false})
+                    {
+                        allInputsLiteral = false;
+                        break;
+                    }
+                }
+            }
+            foreach (var outputSlot in outputSlots)
+            {
+                if (outputSlot is IMaterialSlotSupportsLiteralMode materialSlot)
+                {
+                    materialSlot.LiteralMode = allInputsLiteral;
+                }
+            }
+
+        }
+
         public virtual void EvaluateDynamicMaterialSlots(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
         {
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
@@ -736,6 +804,7 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(outputSlots);
 
                 UpdatePrecision(inputSlots);
+                PropagateFloatLiteral(inputSlots, outputSlots);
                 EvaluateDynamicMaterialSlots(inputSlots, outputSlots);
             }
         }
@@ -758,9 +827,12 @@ namespace UnityEditor.ShaderGraph
                     var edge = owner.GetEdges(slot.slotReference).First();
                     var outputNode = edge.outputSlot.node;
                     var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
-                    if (!slot.IsCompatibleWith(outputSlot))
+                    if (!slot.IsCompatibleWith(outputSlot, out bool requiresLiteralMode))
                     {
-                        owner.AddConcretizationError(objectId, $"Slot {slot.RawDisplayName()} cannot accept input of type {outputSlot.concreteValueType}.");
+                        if(requiresLiteralMode)
+                            owner.AddConcretizationError(objectId, $"Slot {slot.RawDisplayName()} cannot accept input of type {outputSlot.concreteValueType}. Requires Literal input. If using a value from a blackboard in a subgraph enable \"Literal Mode\". Only properties that are known at shader compile time are allowed.");
+                        else
+                            owner.AddConcretizationError(objectId, $"Slot {slot.RawDisplayName()} cannot accept input of type {outputSlot.concreteValueType}.");
                         hasError = true;
                         return;
                     }

@@ -1354,7 +1354,8 @@ namespace UnityEditor.ShaderGraph
             {
                 // For VFX Shader generation, we must omit exposed properties from the Material CBuffer.
                 // This is because VFX computes properties on the fly in the vertex stage, and packed into interpolator.
-                if (generationMode == GenerationMode.VFX && prop.isExposed)
+                // this case does not apply to texture2d, which cannot change per element, and are always global
+                if (prop is not Texture2DShaderProperty && generationMode == GenerationMode.VFX && prop.isExposed)
                 {
                     prop.overrideHLSLDeclaration = true;
                     prop.hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare;

@@ -119,6 +119,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kComplexLitMaterialTypeTag = "\"UniversalMaterialType\" = \"ComplexLit\"";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
+        public const string kTerrainMaterialTypeTag = "\"TerrainCompatible\" = \"True\"";
         public const string kAlwaysRenderMotionVectorsTag = "\"AlwaysRenderMotionVectors\" = \"true\"";
         public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]
         {
@@ -377,7 +378,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
 
             SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
-            bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
+            var activeSubTargetType = activeSubTarget.GetType();
+            var worksWithThisSubTarget = subTargetFilter == null;
+            if (subTargetFilter != null)
+            {
+                foreach (var type in subTargetFilter.subTargetTypes)
+                {
+                    if (!type.IsAssignableFrom(activeSubTargetType)) continue;
+                    worksWithThisSubTarget = true;
+                    break;
+                }
+            }
 
             if (activeSubTarget.IsActive())
                 worksWithThisSubTarget &= activeSubTarget.IsNodeAllowedBySubTarget(nodeType);
@@ -427,18 +438,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            // Core blocks
             bool useCoreBlocks = !(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget> | m_ActiveSubTarget.value is UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<UniversalTarget>);
 
             // Core blocks
             if (useCoreBlocks)
             {
                 context.AddBlock(BlockFields.VertexDescription.Position);
-                context.AddBlock(BlockFields.VertexDescription.Normal);
-                context.AddBlock(BlockFields.VertexDescription.Tangent);
+                if (m_ActiveSubTarget.value is not UniversalTerrainLitSubTarget){
+                    context.AddBlock(BlockFields.VertexDescription.Normal);
+                    context.AddBlock(BlockFields.VertexDescription.Tangent);
+                }
                 context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             }
-
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }

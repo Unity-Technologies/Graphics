@@ -89,6 +89,11 @@ namespace UnityEngine.Rendering.HighDefinition
             DecalAPI.SetupCommonDecalMaterialKeywordsAndPass(material);
         }
 
+        public static void ValidateTerrain(Material material)
+        {
+            TerrainLitAPI.ValidateMaterial(material);
+        }
+
         public static void ValidateFogVolumeMaterial(Material material)
         {
             FogVolumeAPI.SetupFogVolumeKeywordsAndProperties(material);

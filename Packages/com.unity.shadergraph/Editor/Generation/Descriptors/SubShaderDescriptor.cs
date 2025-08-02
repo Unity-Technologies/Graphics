@@ -34,6 +34,7 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal struct SubShaderDescriptor
     {
+        public bool hideTags;
         public string pipelineTag;
         public string IgnoreProjector;
         public string customTags;

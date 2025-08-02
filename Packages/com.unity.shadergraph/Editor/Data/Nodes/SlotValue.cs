@@ -75,6 +75,9 @@ namespace UnityEditor.ShaderGraph
         BareTexture2DArray = 1000 + ConcreteSlotValueType.Texture2DArray,
         BareTexture3D = 1000 + ConcreteSlotValueType.Texture3D,
         BareCubemap = 1000 + ConcreteSlotValueType.Cubemap,
+
+        // special cased float
+        LiteralFloat = 2000 + ConcreteSlotValueType.Vector1,
     }
 
     static class SlotValueHelper

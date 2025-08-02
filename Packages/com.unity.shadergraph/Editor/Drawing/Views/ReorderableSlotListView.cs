@@ -108,7 +108,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 ConcreteSlotValueTypePopupName concreteValueTypePopupOrig =
                     oldSlot.concreteValueType.ToConcreteSlotValueTypePopupName(oldSlot.bareResource);
-
+                if (oldSlot.concreteValueType == ConcreteSlotValueType.Vector1 && oldSlot is Vector1MaterialSlot { LiteralMode: true })
+                {
+                    concreteValueTypePopupOrig = ConcreteSlotValueTypePopupName.LiteralFloat;
+                }
                 ConcreteSlotValueTypePopupName concreteValueTypePopupNew = (ConcreteSlotValueTypePopupName)EditorGUI.EnumPopup(
                     new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight),
                     GUIContent.none,
@@ -143,7 +146,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ConcreteSlotValueType concreteValueType = concreteValueTypePopupNew.ToConcreteSlotValueType(out bool isBareResource);
 
                     // Because the type may have changed, we can't (always) just modify the existing slot.  So create a new one and replace it.
-                    var newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, displayName, m_SlotType, Vector4.zero);
+                    MaterialSlot newSlot;
+                    if (concreteValueTypePopupNew == ConcreteSlotValueTypePopupName.LiteralFloat)
+                    {
+                        newSlot = new Vector1MaterialSlot(oldSlot.id, displayName, displayName, m_SlotType, 0, literal:true);
+                    }
+                    else
+                        newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, displayName, m_SlotType, Vector4.zero);
                     newSlot.CopyValuesFrom(oldSlot);
                     m_Node.AddSlot(newSlot, false);
                     newSlot.bareResource = isBareResource;

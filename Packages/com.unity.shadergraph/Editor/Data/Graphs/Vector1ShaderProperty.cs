@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
-using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;
 
@@ -124,6 +122,14 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         [SerializeField]
+        bool m_LiteralFloatMode = false;
+
+        internal bool LiteralFloatMode
+        {
+            get => m_LiteralFloatMode;
+            set => m_LiteralFloatMode = value;
+        }
+
         Vector2 m_RangeValues = new Vector2(0, 1);
 
         public Vector2 rangeValues
@@ -220,6 +226,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 enumType = enumType,
                 enumNames = enumNames,
                 enumValues = enumValues,
+                LiteralFloatMode = LiteralFloatMode
             };
         }
 

@@ -8,6 +8,8 @@ namespace UnityEditor.ShaderGraph
     {
         public override bool hasPreview { get { return true; } }
 
+        protected override bool CanPropagateFloatLiteral => true;
+
         [SerializeField]
         float m_Width;
 

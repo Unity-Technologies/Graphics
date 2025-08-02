@@ -12,6 +12,8 @@ namespace UnityEditor.ShaderGraph
         public const int kInputSlotID = 0;
         public const int kOutputSlotID = 1;
 
+        protected override bool CanPropagateFloatLiteral => true;
+
         public RedirectNodeData()
         {
             name = "Redirect Node";
@@ -48,20 +50,20 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new BooleanMaterialSlot(kOutputSlotID, "", "", SlotType.Output, false));
                     break;
                 case ConcreteSlotValueType.Vector1:
-                    AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
-                    AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
+                    AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero, literalMode:true));
+                    AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero, literalMode:true));
                     break;
                 case ConcreteSlotValueType.Vector2:
-                    AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
-                    AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
+                    AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero, literalMode:true));
+                    AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero, literalMode:true));
                     break;
                 case ConcreteSlotValueType.Vector3:
-                    AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
-                    AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
+                    AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero, literalMode:true));
+                    AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero, literalMode:true));
                     break;
                 case ConcreteSlotValueType.Vector4:
-                    AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
-                    AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
+                    AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero, literalMode:true));
+                    AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero, literalMode:true));
                     break;
                 case ConcreteSlotValueType.Matrix2:
                     AddSlot(new DynamicMatrixMaterialSlot(kInputSlotID, "", "", SlotType.Input));

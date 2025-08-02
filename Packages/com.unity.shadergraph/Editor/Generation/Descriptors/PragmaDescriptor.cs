@@ -17,6 +17,12 @@ namespace UnityEditor.ShaderGraph
             return string.Join(" ", rendererStrings);
         }
 
+        static string GetInstancingOptionList(InstancingOptions[] options)
+        {
+            var optionStrings = options.Select(x => x.ToShaderString());
+            return string.Join(" ", optionStrings);
+        }
+
         public static PragmaDescriptor Target(ShaderModel value) => new PragmaDescriptor { value = $"target {value.ToShaderString()}" };
         public static PragmaDescriptor TargetForKeyword(ShaderModel value, string keyword) => new PragmaDescriptor { value = $"target {value.ToShaderString()} {keyword}" };
         public static PragmaDescriptor Vertex(string value) => new PragmaDescriptor { value = $"vertex {value}" };
@@ -31,6 +37,7 @@ namespace UnityEditor.ShaderGraph
         public static PragmaDescriptor ExcludeRenderers(Platform[] renderers) => new PragmaDescriptor { value = $"exclude_renderers {GetPlatformList(renderers)}" };
         public static PragmaDescriptor PreferHlslCC(Platform[] renderers) => new PragmaDescriptor { value = $"prefer_hlslcc {GetPlatformList(renderers)}" };
         public static PragmaDescriptor InstancingOptions(InstancingOptions value) => new PragmaDescriptor { value = $"instancing_options {value.ToShaderString()}" };
+        public static PragmaDescriptor InstancingOptions(InstancingOptions[] values) => new PragmaDescriptor() { value = $"instancing_options {GetInstancingOptionList(values)}" };
         public static PragmaDescriptor ShaderFeatureLocal(string value) => new PragmaDescriptor { value = $"shader_feature_local {value}" };
         public static PragmaDescriptor ShaderFeatureLocalVertex(string value) => new PragmaDescriptor { value = $"shader_feature_local_vertex {value}" };
         public static PragmaDescriptor MultiCompileInstancing => new PragmaDescriptor { value = "multi_compile_instancing" };

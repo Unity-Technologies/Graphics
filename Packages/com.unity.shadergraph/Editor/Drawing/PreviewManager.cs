@@ -1377,7 +1377,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         ~PreviewManager()
         {
-            throw new Exception("PreviewManager was not disposed of properly.");
+          throw new Exception("PreviewManager was not disposed of properly.");
         }
     }
 
