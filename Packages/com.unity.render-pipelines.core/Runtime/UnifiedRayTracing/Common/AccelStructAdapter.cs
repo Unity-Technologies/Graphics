@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             TerrainData terrainData = terrainDesc.terrain.terrainData;
             float4x4 terrainLocalToWorld = terrainDesc.localToWorldMatrix;
-            float3 positionScale = new float3((float)terrainData.heightmapResolution, 1.0f, (float)terrainData.heightmapResolution) * terrainData.heightmapScale;
+            float3 positionScale = new float3((float)terrainData.heightmapResolution, 1.0f, (float)terrainData.heightmapResolution) * (float3)(terrainData.heightmapScale);
             float3 positionOffset = new float3(terrainLocalToWorld[3].x, terrainLocalToWorld[3].y, terrainLocalToWorld[3].z);
 
             foreach (var treeInstance in terrainData.treeInstances)
