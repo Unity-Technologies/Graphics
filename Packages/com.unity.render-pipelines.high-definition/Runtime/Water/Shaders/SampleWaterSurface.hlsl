@@ -302,7 +302,7 @@ void EvaluateDisplacement(float3 positionOS, float3 verticalDisplacements, out f
     
 #if defined(SUPPORT_WATER_DEFORMATION)
     // Apply the deformation data
-    float4 deformation = EvaluateWaterDeformation(positionAWS + verticalDisplacements);
+    float4 deformation = EvaluateWaterDeformation(positionAWS);
     horizontalDisplacement = deformation.yz;
     verticalDisplacement += deformation.x;
     lowFrequencyHeight += deformation.x;
@@ -317,18 +317,20 @@ struct WaterDisplacementData
 
 void EvaluateWaterDisplacement(float3 positionOS, out WaterDisplacementData displacementData)
 {
-    float2 simulationHorizontalDisplacement;
-    float2 deformationHorizontalDisplacement;
-    float3 verticalDisplacements;
-    EvaluateSimulationDisplacement(positionOS, simulationHorizontalDisplacement, verticalDisplacements);
+    // This is a float 3 because there's one displacement per frequency band. 
+    float3 simulationVerticalDisplacements;
+	float2 simulationHorizontalDisplacement;
 
+    EvaluateSimulationDisplacement(positionOS, simulationHorizontalDisplacement, simulationVerticalDisplacements);
+	
+	// Out parameters to evaluate deformation displacement. 
+	float deformationVerticalDisplacement;
+	float2 deformationHorizontalDisplacement;
     float lowFrequencyHeight;
-    float3 displacement = float3(simulationHorizontalDisplacement.x, 0, simulationHorizontalDisplacement.y);
-    EvaluateDisplacement(positionOS + displacement, verticalDisplacements, displacement.y, deformationHorizontalDisplacement, lowFrequencyHeight);
+    EvaluateDisplacement(positionOS, simulationVerticalDisplacements, deformationVerticalDisplacement, deformationHorizontalDisplacement, lowFrequencyHeight);
 
-    displacement.xz += deformationHorizontalDisplacement.xy;
-    
-    displacementData.displacement = displacement;
+    // Simulation displacement is not included in the displacement to avoid having water decal effects move with the waves if the distand wind is high. 
+    displacementData.displacement = float3(deformationHorizontalDisplacement.x, deformationVerticalDisplacement, deformationHorizontalDisplacement.y);
     displacementData.lowFrequencyHeight = lowFrequencyHeight;
 
 #if defined(SHADER_STAGE_VERTEX) && !defined(WATER_DISPLACEMENT)
