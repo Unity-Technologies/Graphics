@@ -12,9 +12,9 @@ namespace UnityEditor.Rendering.Universal
 
         private bool m_IsInitialized = false;
 
-        private struct Styles
+        static class Styles
         {
-            public static GUIContent Description = EditorGUIUtility.TrTextContent("Description", "This feature resolves the cascaded shadows in screen space, so there is no options now. It might have additional settings later.");
+            public static readonly string k_NoSettingsHelpBox = L10n.Tr("This feature resolves the cascaded shadows in screen space, so there is no options now. It might have additional settings later.");
         }
 
         private void Init()
@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.Universal
                 Init();
             }
 
-            EditorGUILayout.PropertyField(m_SettingsProp, Styles.Description);
+            EditorGUILayout.HelpBox(Styles.k_NoSettingsHelpBox, MessageType.Info);
         }
     }
 }
