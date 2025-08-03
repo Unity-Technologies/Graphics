@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent reflectionProbeBlendingText = EditorGUIUtility.TrTextContent("Probe Blending", "If enabled smooth transitions will be created between reflection probes.");
             public static GUIContent reflectionProbeAtlasText = EditorGUIUtility.TrTextContent("Probe Atlas Blending", "If enabled, reflection probes will be added to the Forward Plus data grid and combined into a single atlas texture. The atlas is used by default when both Forward Plus and the GPU Resident Drawer are used.");
             public static GUIContent reflectionProbeBoxProjectionText = EditorGUIUtility.TrTextContent("Box Projection", "If enabled reflections appear based on the object’s position within the probe’s box, while still using a single probe as the source of the reflection.");
-            public static GUIContent reflectionProbeAtlasGpuResidentDrawerWarningText = EditorGUIUtility.TrTextContent("The Probe Atlas Blending is used by default when both Forward Plus and the GPU Resident Drawer are used.");
+            public static GUIContent reflectionProbeBlendingGpuResidentDrawerWarningText = EditorGUIUtility.TrTextContent("Probe Atlas Blending is currently force enabled because GPUResidentDrawer is in use. GPUResidentDrawer currently only supports Reflection Probes via Probe Atlas Blending.");
 
             // Additional lighting settings
             public static GUIContent mixedLightingSupportLabel = EditorGUIUtility.TrTextContent("Mixed Lighting", "Makes the render pipeline include mixed-lighting Shader Variants in the build.");

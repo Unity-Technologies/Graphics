@@ -831,8 +831,7 @@ namespace UnityEngine.Rendering.Universal
 
                 GPUResidentDrawer.PostCullBeginCameraRendering(new RenderRequestBatcherContext { commandBuffer = cmd });
 
-                var isForwardPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
-                var isDeferredPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.DeferredPlus };
+                RenderingMode? renderingMode = (cameraData.renderer as UniversalRenderer)?.renderingModeActual;
 
                 // Initialize all the data types required for rendering.
                 UniversalLightData lightData;
@@ -842,10 +841,10 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
                     CreateUniversalResourceData(frameData);
-                    lightData = CreateLightData(frameData, asset, data.cullResults.visibleLights, isDeferredPlus);
-                    shadowData = CreateShadowData(frameData, asset, isForwardPlus);
+                    lightData = CreateLightData(frameData, asset, data.cullResults.visibleLights, renderingMode);
+                    shadowData = CreateShadowData(frameData, asset, renderingMode);
                     CreatePostProcessingData(frameData, asset);
-                    CreateRenderingData(frameData, asset, cmd, isForwardPlus, cameraData.renderer);
+                    CreateRenderingData(frameData, asset, cmd, renderingMode, cameraData.renderer);
                     cullData = CreateCullContextData(frameData, context);
                 }
 
@@ -1610,13 +1609,13 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isAlphaOutputEnabled = cameraData.isAlphaOutputEnabled && allowAlphaOutput;
         }
 
-        static UniversalRenderingData CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CommandBuffer cmd, bool isForwardPlus, ScriptableRenderer renderer)
+        static UniversalRenderingData CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CommandBuffer cmd, RenderingMode? renderingMode, ScriptableRenderer renderer)
         {
             UniversalLightData universalLightData = frameData.Get<UniversalLightData>();
 
             UniversalRenderingData data = frameData.Get<UniversalRenderingData>();
             data.supportsDynamicBatching = settings.supportsDynamicBatching;
-            data.perObjectData = GetPerObjectLightFlags(universalLightData, settings, isForwardPlus);
+            data.perObjectData = GetPerObjectLightFlags(universalLightData, settings, renderingMode);
 
 #if URP_COMPATIBILITY_MODE
             // Render graph does not support RenderingData.commandBuffer as its execution timeline might break.
@@ -1641,7 +1640,7 @@ namespace UnityEngine.Rendering.Universal
             return data;
         }
 
-        static UniversalShadowData CreateShadowData(ContextContainer frameData, UniversalRenderPipelineAsset urpAsset, bool isForwardPlus)
+        static UniversalShadowData CreateShadowData(ContextContainer frameData, UniversalRenderPipelineAsset urpAsset, RenderingMode? renderingMode)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeShadowData);
 
@@ -1688,6 +1687,8 @@ namespace UnityEngine.Rendering.Universal
 
             shadowData.mainLightShadowsEnabled = urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel;
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && shadowData.mainLightShadowsEnabled && cameraRenderShadows;
+
+            bool isForwardPlus = renderingMode.HasValue ? renderingMode.Value == RenderingMode.ForwardPlus : false;
 
             shadowData.additionalLightShadowsEnabled = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || isForwardPlus);
             shadowData.supportsAdditionalLightShadows = SystemInfo.supportsShadows && shadowData.additionalLightShadowsEnabled && !lightData.shadeAdditionalLightsPerVertex && cameraRenderShadows;
@@ -1832,7 +1833,7 @@ namespace UnityEngine.Rendering.Universal
             return frameData.Create<UniversalResourceData>();
         }
 
-        static UniversalLightData CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool isDeferredPlus)
+        static UniversalLightData CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, RenderingMode? renderingMode)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeLightData);
 
@@ -1866,9 +1867,19 @@ namespace UnityEngine.Rendering.Universal
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
-            lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
-            lightData.reflectionProbeAtlas = settings.reflectionProbeBlending && (isDeferredPlus || settings.reflectionProbeAtlas || settings.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled);
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
+
+            if (renderingMode.HasValue)
+            {
+                lightData.reflectionProbeBlending = settings.ShouldUseReflectionProbeBlending(renderingMode.Value);
+                lightData.reflectionProbeAtlas = settings.ShouldUseReflectionProbeAtlasBlending(renderingMode.Value);
+            }
+            else
+            {
+                lightData.reflectionProbeBlending = false;
+                lightData.reflectionProbeAtlas = false;
+            }
+
             return lightData;
         }
 
@@ -1973,9 +1984,17 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static PerObjectData GetPerObjectLightFlags(UniversalLightData universalLightData, UniversalRenderPipelineAsset settings, bool isForwardPlus)
+        static PerObjectData GetPerObjectLightFlags(UniversalLightData universalLightData, UniversalRenderPipelineAsset settings, RenderingMode? renderingMode)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.getPerObjectLightFlags);
+
+            bool isForwardPlus = false;
+            bool useReflectionProbeBlending = false;
+            if (renderingMode.HasValue)
+            {
+                isForwardPlus = renderingMode.Value == RenderingMode.ForwardPlus;
+                useReflectionProbeBlending = settings.ShouldUseReflectionProbeBlending(renderingMode.Value);
+            }
 
             var configuration = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
@@ -1983,7 +2002,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 configuration |= PerObjectData.ReflectionProbes | PerObjectData.LightData;
             }
-            else if (!settings.reflectionProbeBlending)
+            else if (!useReflectionProbeBlending)
             {
                 configuration |= PerObjectData.ReflectionProbes;
             }

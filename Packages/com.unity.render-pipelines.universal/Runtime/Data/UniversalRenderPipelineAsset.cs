@@ -9,6 +9,7 @@ using System.ComponentModel;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -1363,6 +1364,15 @@ namespace UnityEngine.Rendering.Universal
             internal set => m_ReflectionProbeBlending = value;
         }
 
+        internal bool ShouldUseReflectionProbeBlending(RenderingMode renderingMode)
+        {
+            // The probe blending with atlas code path is always force enabled with GPUResidentDrawer since that is the only path supported here.
+            if (gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
+                return true;
+
+            return reflectionProbeBlending;
+        }
+
         /// <summary>
         /// Specifies if this <c>UniversalRenderPipelineAsset</c> should allow box projection for the reflection probes in the scene.
         /// </summary>
@@ -1379,6 +1389,20 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ReflectionProbeAtlas;
             internal set => m_ReflectionProbeAtlas = value;
+        }
+
+        internal bool ShouldUseReflectionProbeAtlasBlending(RenderingMode renderingMode)
+        {
+            var useProbeBlending = ShouldUseReflectionProbeBlending(renderingMode);
+
+            // The probe blending with atlas code path is always force enabled with GPUResidentDrawer since that is the only path supported here.
+            if (gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
+            {
+                Assert.IsTrue(useProbeBlending);
+                return true;
+            }
+
+            return useProbeBlending && (reflectionProbeAtlas || renderingMode == RenderingMode.DeferredPlus);
         }
 
         /// <summary>

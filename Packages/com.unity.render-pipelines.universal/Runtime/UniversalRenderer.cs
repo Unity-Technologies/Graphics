@@ -1750,10 +1750,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
             //     asset.maxAdditionalLightsCount == 0)
-            bool usesReflectionProbeAtlas = UniversalRenderPipeline.asset.reflectionProbeBlending &&
-                (renderingModeActual == RenderingMode.DeferredPlus ||
-                UniversalRenderPipeline.asset.reflectionProbeAtlas ||
-                UniversalRenderPipeline.asset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled);
+            bool usesReflectionProbeAtlas = UniversalRenderPipeline.asset.ShouldUseReflectionProbeAtlasBlending(renderingModeActual);
 
             if (usesClusterLightLoop && usesReflectionProbeAtlas)
             {
