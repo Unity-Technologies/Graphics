@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 /// <remarks>
-/// To implement this, the package needs to starts with k_srpPrefixPackage
+/// To implement this, the package needs to be in the allowedPackageList
 /// Then, in the package.json, an array can be added after the path variable of the sample. The path should start from the Packages/ folder, as such:
 /// "samples": [
 /// {
@@ -128,13 +128,11 @@ class SampleDependencyImporter : IPackageManagerExtension
     /// </summary>
     void LoadAssetDependencies(string assetPath)
     {
-
-        ImportTextMeshProEssentialResources();
-
         if (m_SampleList != null)
         {
             var assetsImported = false;
-
+            bool atLeastOneIsSampleDirectory = false;
+            
             for (int i = 0; i < m_Samples.Count; ++i)
             {
                 string pathPrefix = $"Assets/Samples/{m_PackageInfo.displayName}/{m_PackageInfo.version}/";
@@ -143,18 +141,23 @@ class SampleDependencyImporter : IPackageManagerExtension
                 var isSampleDirectory = assetPath.EndsWith(m_Samples[i].displayName) && assetPath.StartsWith(pathPrefix);
                 if (isSampleDirectory)
                 {
+                    atLeastOneIsSampleDirectory = true;
+
                     // Retrieving the dependencies of the sample that is currently being imported.
                     SampleInformation currentSampleInformation = GetSampleInformation(m_Samples[i].displayName);
 
                     if (currentSampleInformation != null)
                     {
                         // Import the common asset dependencies
-                        assetsImported = ImportDependencies(m_PackageInfo, currentSampleInformation.dependencies); 
+                        assetsImported = ImportDependencies(m_PackageInfo, currentSampleInformation.dependencies);
                     }
                 }
             }
-            
-            
+
+            // Only import TMPro resources if a sample is currently imported. 
+            // This is done outside the loop to save cost.
+            if (atLeastOneIsSampleDirectory)
+                ImportTextMeshProEssentialResources();
 
             if (assetsImported)
                 AssetDatabase.Refresh();
