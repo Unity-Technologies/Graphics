@@ -236,11 +236,14 @@ namespace UnityEditor.Rendering
 
             // Even if the asset is not dirty, the list of component may have been changed by another inspector.
             // In this case, only the hash will tell us that we need to refresh.
-            if (asset.isDirty || asset.GetComponentListHashCode() != m_CurrentHashCode)
+            if (asset.dirtyState != VolumeProfile.DirtyState.None || asset.GetComponentListHashCode() != m_CurrentHashCode)
             {
                 RefreshEditors();
                 VolumeManager.instance.OnVolumeProfileChanged(asset);
-                asset.isDirty = false;
+
+                if ((asset.dirtyState & VolumeProfile.DirtyState.DirtyByProfileReset) != 0)
+                    UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+                asset.dirtyState = VolumeProfile.DirtyState.None;
             }
 
             if (m_IsDefaultVolumeProfile && VolumeManager.instance.isInitialized && m_EditorsByCategory.Count == 0)
