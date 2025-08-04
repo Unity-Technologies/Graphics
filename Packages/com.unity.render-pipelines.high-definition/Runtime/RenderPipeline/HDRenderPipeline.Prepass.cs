@@ -1390,7 +1390,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch2;
 
             if (!canReadBoundDepthBuffer)
             {

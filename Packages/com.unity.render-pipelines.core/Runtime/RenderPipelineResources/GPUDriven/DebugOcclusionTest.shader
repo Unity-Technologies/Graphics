@@ -12,7 +12,7 @@ Shader "Hidden/Core/DebugOcclusionTest"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch webgpu
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 webgpu
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -90,7 +90,7 @@ Shader "Hidden/Core/DebugOcclusionTest"
 
                 if(total == 0)
                     return float4(0, 0, 0, 0);
- 
+
                 float cost = log2((float)total);
 
                 uint screenTotal = _OcclusionDebugOverlay[0]; // This should be always >= 1, because total >= 1 at this point.

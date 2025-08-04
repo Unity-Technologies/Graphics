@@ -747,7 +747,9 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
     float finalDelta = max(maxDelta.x, maxDelta.y);
 
     // Local contrast adaptation:
-#if !defined(SHADER_API_GLCORE) || defined(SHADER_API_SWITCH)    // TODO: Bug workaround, switch defines GLCORE when it shouldn't
+	//
+	// Preprocessor condition is a work-around required because Unity might define SHADER_API_GLCORE when target platform is Switch
+#if !defined(SHADER_API_GLCORE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 #endif
 
@@ -819,7 +821,9 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
     float finalDelta = max(maxDelta.x, maxDelta.y);
 
     // Local contrast adaptation:
-#if !defined(SHADER_API_GLCORE) || defined(SHADER_API_SWITCH)    // TODO: Bug workaround, switch defines GLCORE when it shouldn't
+	//
+	// Preprocessor condition is a work-around required because Unity might define SHADER_API_GLCORE when target platform is Switch
+#if !defined(SHADER_API_GLCORE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 #endif
 

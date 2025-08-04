@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxLightsPerClusterCell = ShaderConfig.LightClusterMaxCellElementCount;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
-#if !UNITY_EDITOR && UNITY_SWITCH
+#if !UNITY_EDITOR && (UNITY_SWITCH || UNITY_SWITCH2)
         const int k_ThreadGroupOptimalSize = 32;
 #else
         const int k_ThreadGroupOptimalSize = 64;
@@ -558,7 +558,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
 
-#if !UNITY_EDITOR && UNITY_SWITCH
+#if !UNITY_EDITOR && (UNITY_SWITCH || UNITY_SWITCH2)
         const int k_Log2NumClusters = 5;     // accepted range is from 0 to 5 (NR_THREADS is set to 32). NumClusters is 1<<g_iLog2NumClusters
 #else
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6 (NR_THREADS is set to 64). NumClusters is 1<<g_iLog2NumClusters

@@ -7,7 +7,7 @@
 #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
-#if defined(STEREO_MULTIVIEW_ON) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_VULKAN)) && !(defined(SHADER_API_SWITCH))
+#if defined(STEREO_MULTIVIEW_ON) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_VULKAN)) && !(defined(SHADER_API_SWITCH)) && !(defined(SHADER_API_SWITCH2))
     #define UNITY_STEREO_MULTIVIEW_ENABLED
 #endif
 

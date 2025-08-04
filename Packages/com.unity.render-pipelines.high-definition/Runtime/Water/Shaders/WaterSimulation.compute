@@ -6,7 +6,7 @@
 #pragma kernel EvaluateInstanceData EVALUATE_INSTANCE_DATA=EvaluateInstanceData
 #pragma kernel EvaluateInstanceDataInfinite EVALUATE_INSTANCE_DATA=EvaluateInstanceDataInfinite INFINITE_WATER
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 // #pragma enable_d3d11_debug_symbols
 

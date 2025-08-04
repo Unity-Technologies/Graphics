@@ -17,7 +17,7 @@
 // In addition to that, we intentionally disabled dithering for the ray tracing case as it requires the screen space position.
 #define SHADOW_LOW
 
-#pragma only_renderers d3d11 xboxseries ps5
+#pragma only_renderers d3d11 xboxseries ps5 switch2
 
 // Needed for the ray miss and the last bounce indirect diffuse lighting
 #pragma multi_compile _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2

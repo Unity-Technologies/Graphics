@@ -46,7 +46,9 @@
 //          1. The BitXor, Product, and PrefixProduct SM6 intrinsics fail to compile on Xbox One because they aren't supported.
 //             We could potentially emulate these if necessary, but they aren't particularly useful.
 //             For now, we just skip the native path tests on Xbox One.
-#define ENABLE_SM6_WORKAROUND (defined(SHADER_API_GAMECORE_XBOXONE) || defined(SHADER_API_XBOXONE))
+//
+//          2. On some platforms, we probably cannot access SM6 instrinsics when using the HLSLcc pipeline
+#define ENABLE_SM6_WORKAROUND (defined(SHADER_API_GAMECORE_XBOXONE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_SWITCH2))
 
 // Force emulation on whenever a specific wave size is provided
 #if defined(THREADING_WAVE_SIZE) || ENABLE_SM6_WORKAROUND

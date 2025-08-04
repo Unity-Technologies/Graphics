@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph
         Playstation,
         Switch,
         PS5,
+        Switch2,
     }
 
     [GenerationAPI]
@@ -48,6 +49,8 @@ namespace UnityEditor.ShaderGraph
                     return "playstation";
                 case Platform.Switch:
                     return "switch";
+                case Platform.Switch2:
+                    return "switch2";
                 case Platform.PS5:
                     return "ps5";
                 default:
@@ -61,7 +64,7 @@ namespace UnityEditor.ShaderGraph
         // Return high end platform list for the only renderer directive (The list use by HDRP)
         internal static Platform[] GetHighEndPlatformArray()
         {
-            return new Platform[] { Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.GameCoreXboxSeries, Platform.Vulkan, Platform.Metal, Platform.Switch };
+            return new Platform[] { Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.GameCoreXboxSeries, Platform.Vulkan, Platform.Metal, Platform.Switch2, Platform.Switch };
         }
 
         // Return platform list not compatible with DXC (The list use by HDRP)

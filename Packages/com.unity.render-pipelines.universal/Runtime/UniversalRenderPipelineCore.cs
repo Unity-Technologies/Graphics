@@ -2013,6 +2013,7 @@ namespace UnityEngine.Rendering.Universal
             isXRMobile = isRunningMobile;
             isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
             isSwitch = Application.platform == RuntimePlatform.Switch;
+            isSwitch2 = Application.platform == RuntimePlatform.Switch2;
         }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
@@ -2053,6 +2054,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal static bool isSwitch { get; private set; } = false;
 
+        internal static bool isSwitch2 { get; private set; } = false;
+
         /// <summary>
         /// Gives the SH evaluation mode when set to automatically detect.
         /// </summary>
@@ -2062,7 +2065,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (mode == ShEvalMode.Auto)
             {
-                if (isXRMobile || isShaderAPIMobileDefined || isSwitch)
+                if (isXRMobile || isShaderAPIMobileDefined || isSwitch || isSwitch2)
                     return ShEvalMode.PerVertex;
                 else
                     return ShEvalMode.PerPixel;

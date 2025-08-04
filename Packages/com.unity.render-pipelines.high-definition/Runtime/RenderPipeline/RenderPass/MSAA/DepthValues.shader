@@ -2,7 +2,7 @@ Shader "Hidden/HDRP/DepthValues"
 {
     HLSLINCLUDE
         #pragma target 4.5
-        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
         #pragma multi_compile_fragment _ _HAS_MOTION_VECTORS _DEPTH_ONLY
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

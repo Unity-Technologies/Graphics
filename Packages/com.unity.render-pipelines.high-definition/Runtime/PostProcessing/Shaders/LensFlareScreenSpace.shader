@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/LensFlareScreenSpace"
             ZTest Always
 
             HLSLPROGRAM
-                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
                 #pragma target 5.0
                 #pragma vertex vert
@@ -39,7 +39,7 @@ Shader "Hidden/HDRP/LensFlareScreenSpace"
             ZTest Always
 
             HLSLPROGRAM
-                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
                 #pragma target 5.0
                 #pragma vertex vert
@@ -64,7 +64,7 @@ Shader "Hidden/HDRP/LensFlareScreenSpace"
             ZTest Always
 
             HLSLPROGRAM
-                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
                 #pragma target 5.0
                 #pragma vertex vert
@@ -89,7 +89,7 @@ Shader "Hidden/HDRP/LensFlareScreenSpace"
             ZTest Always
 
             HLSLPROGRAM
-                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
                 #pragma target 5.0
                 #pragma vertex vert
@@ -116,7 +116,7 @@ Shader "Hidden/HDRP/LensFlareScreenSpace"
             ZTest Always
 
             HLSLPROGRAM
-                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+                #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
                 #pragma target 5.0
                 #pragma vertex vert

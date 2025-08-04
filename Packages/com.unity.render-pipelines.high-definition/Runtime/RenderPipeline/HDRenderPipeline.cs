@@ -358,8 +358,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             bool hdrInPlayerSettings = true;
 #endif
+            bool supportsSwitchingHDR = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
+            bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
 
-            if (hdrInPlayerSettings && HDROutputSettings.main.available)
+            if (hdrInPlayerSettings && supportsSwitchingHDR && hdrOutputActive)
             {
                 if (camera.camera.cameraType != CameraType.Game)
                 {

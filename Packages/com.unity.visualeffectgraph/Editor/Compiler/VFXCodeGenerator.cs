@@ -739,6 +739,7 @@ AppendEventTotalCount({2}_{0}, min({1}_{0}, {1}_{0}_Capacity), instanceIndex);
             GraphicsDeviceType.GameCoreXboxSeries => "xboxseries",
             GraphicsDeviceType.PlayStation4 => "playstation",
             GraphicsDeviceType.Switch => "switch",
+            GraphicsDeviceType.Switch2 => "switch2",
             GraphicsDeviceType.PlayStation5 => "ps5",
             GraphicsDeviceType.WebGPU => "webgpu",
             _ => throw new Exception($"Graphics Device Type '{deviceType}' not supported in shader string."),

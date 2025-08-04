@@ -22,7 +22,7 @@ Shader "Hidden/Debug/ReflectionProbePreview"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             #pragma editor_sync_compilation
 
             #pragma vertex vert

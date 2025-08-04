@@ -5,7 +5,7 @@ Shader "Hidden/HDRP/DownsampleDepth"
         #pragma target 4.5
         #pragma editor_sync_compilation
         #pragma multi_compile_local_fragment _ GATHER_DOWNSAMPLE
-        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 

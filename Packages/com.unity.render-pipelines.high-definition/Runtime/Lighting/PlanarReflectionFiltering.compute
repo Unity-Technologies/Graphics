@@ -2,7 +2,7 @@
 #pragma kernel DownScale
 #pragma kernel DepthConversion
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 // #pragma enable_d3d11_debug_symbols
 
 // The process is done in 3 steps. We start by converting the depth from oblique to regular frustum depth.
