@@ -2,6 +2,8 @@
 
 Create different types of sky in the High Definition Render Pipeline (HDRP).
 
+**Note**: Procedural sky is deprecated and no longer built into HDRP. For information on how to add Procedural Sky to your HDRP Project, see the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-From-2019.2-to-2019.3.md#ProceduralSky).
+
 | Page | Description |
 |-|-|
 | [Understand sky](understand-sky.md) | Understand the different ways you can create sky in HDRP. |

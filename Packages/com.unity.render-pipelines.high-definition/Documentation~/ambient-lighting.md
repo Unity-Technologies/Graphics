@@ -1,18 +1,17 @@
 # Ambient lighting
 
-Create and control indirect diffuse lighting.
+Create and control light from the environment in your scene in the High Definition Render Pipeline (HDRP), to create more realistic lighting.
 
-|Page|Description|
+|**Topic**|**Description**|
 |-|-|
-|[Create environment lighting](Environment-lighting.md)|Simulate light that comes from the surroundings of a scene.|
-|[Ambient occlusion](Ambient-Occlusion.md)| Apply ambient occlusion to a material. |
-|[Screen Space Ambient Occlusion (SSAO)](Override-Ambient-Occlusion.md)|Enable and use the Screen Space Ambient Occlusion (SSAO) volume override. |
-|[Ambient light probe](ambient-light-probe.md)| Learn about the method that HDRP uses as the fallback for indirect diffuse lighting. |
-|[Adaptive Probe Volumes](probevolumes.md)| Learn about the method that HDRP proposes for baked indirect diffuse lighting. |
-
+|[Environment lighting](Environment-lighting.md)| Learn about how HDRP calculates ambient light in your scene. |
+|[Configure environment lighting](ambient-lighting-configure.md)| Make scene elements use the ambient probe, or decouple lighting from the sky. |
+|[Ambient occlusion](ambient-occlusion-introduction.md)| Learn about darkening corners in areas where it's difficult for indirect light to reach.|
+|[Assign an ambient occlusion texture](Ambient-Occlusion.md)| Use a texture to create ambient occlusion for a GameObject. |
+|[Screen space ambient occlusion (SSAO)](Override-Ambient-Occlusion.md)| Use a volume override to create ambient occlusion across the screen. |
 
 ## Additional resources
+
+- [Ray-traced ambient occlusion (RTAO)](Ray-Traced-Ambient-Occlusion.md)
+- [Adaptive Probe Volumes](probevolumes.md) 
 - [Volumetric Lighting](Volumetric-Lighting.md)
-- [Ambient Occlusion](Override-Ambient-Occlusion.md)
-- [Visual Environment volume override reference](visual-environment-volume-override-reference.md)
-- [Fog Volume Override reference](fog-volume-override-reference.md)
