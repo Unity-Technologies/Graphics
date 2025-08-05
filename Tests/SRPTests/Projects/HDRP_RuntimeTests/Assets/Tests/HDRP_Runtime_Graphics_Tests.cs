@@ -51,11 +51,13 @@ public class HDRP_Runtime_Graphics_Tests
     )]
     [IgnoreGraphicsTest(
         "003-VirtualTexturing$",
-        "Unstable: https://jira.unity3d.com/browse/UUM-51336"
+        "Artifacts appear at random on objects within the scene, see UUM-113462.",
+        graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.GameCoreXboxSeries }
     )]
     [IgnoreGraphicsTest(
         "003-VirtualTexturing-Forward$",
-        "Unstable: https://jira.unity3d.com/browse/UUM-51336"
+        "Artifacts appear at random on objects within the scene, see UUM-113462.",
+        graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.GameCoreXboxSeries }
     )]
     [IgnoreGraphicsTest(
         "004-CloudsFlaresDecals$",
