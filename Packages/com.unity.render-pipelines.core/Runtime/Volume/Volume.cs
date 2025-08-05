@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering
     [PipelineHelpURL("UniversalRenderPipelineAsset", "Volumes")]
     [ExecuteAlways]
     [AddComponentMenu("Miscellaneous/Volume")]
+    [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/Volume Icon.asset")]
     public class Volume : MonoBehaviour, IVolume
     {
         [SerializeField, FormerlySerializedAs("isGlobal")]
