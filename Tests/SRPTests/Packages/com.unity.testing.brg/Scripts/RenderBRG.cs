@@ -554,7 +554,7 @@ public unsafe class RenderBRG : MonoBehaviour
         }
 
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
-        drawCommands.drawCommandPickingEntityIds = needInstanceIDs ? Malloc<int>(m_instanceIndices.Length) : null;
+        drawCommands.drawCommandPickingEntityIds = needInstanceIDs ? Malloc<EntityId>(m_instanceIndices.Length) : null;
 
         // Zero init: Culling job sets the values!
         drawCommands.drawRangeCount = 0;
