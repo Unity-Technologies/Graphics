@@ -84,7 +84,8 @@ namespace UnityEditor.VFX.UI
     class OutputCategory : PropertyCategory
     {
         public const string Label = "Output";
-        public OutputCategory(bool isExpanded, int id) : base(Label, id, false, isExpanded) { }
+        public OutputCategory(bool isExpanded, int id) : base(Label, id, false, isExpanded) {}
+        public override bool canRename => false;
     }
 
     class AttributeItem : ParameterItem
