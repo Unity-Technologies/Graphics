@@ -225,6 +225,34 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShouldOverrideColorBufferFormat ? m_AOVGraphicsFormat : (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
         }
 
+        /// <summary>
+        /// Returns the current depth buffer format based on the HDRP asset config
+        /// </summary>
+        /// <param name="depthAsColor">Set to true to return a color format capable of storing a depth with enought precision instead of a depth format.</param>
+        /// <returns>Returns either the color or depth format using the configured precision in the HDRP asset.</returns>
+        internal GraphicsFormat GetDepthBufferFormat(bool depthAsColor)
+        {
+            var depthFormat = m_Asset.currentPlatformRenderPipelineSettings.depthBufferFormat;
+            if (depthAsColor)
+            {
+                switch (depthFormat)
+                {
+                    case RenderPipelineSettings.DepthBufferFormat.Auto:
+                        // Auto mode can choose between 32 or 24 bit modes but there is no 24 bit texture format, so we fall back on 32
+                    case RenderPipelineSettings.DepthBufferFormat.ForceD32:
+                    case RenderPipelineSettings.DepthBufferFormat.ForceD24:
+                        return GraphicsFormat.R32_SFloat;
+                    case RenderPipelineSettings.DepthBufferFormat.ForceD16:
+                        return GraphicsFormat.R16_SFloat;
+                }
+            }
+
+            if (depthFormat == RenderPipelineSettings.DepthBufferFormat.Auto)
+                return CoreUtils.GetDefaultDepthStencilFormat();
+            else
+                return (GraphicsFormat)depthFormat;
+        }
+
         GraphicsFormat GetCustomBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.customBufferFormat;
 

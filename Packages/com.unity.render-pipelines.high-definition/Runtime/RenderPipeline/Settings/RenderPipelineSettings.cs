@@ -68,6 +68,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Depth Buffer format.
+        /// </summary>
+        public enum DepthBufferFormat
+        {
+            /// <summary>Automatically switch between 32 and 24 bit depth depending on the platform.</summary>
+            Auto = 0,
+            /// <summary>Forces HDRP to use 32 bit depth + 8 bit stencil buffer</summary>
+            ForceD32 = GraphicsFormat.D32_SFloat_S8_UInt,
+            /// <summary>Forces HDRP to use 24 bit depth + 8 bit stencil buffer</summary>
+            ForceD24 = GraphicsFormat.D24_UNorm_S8_UInt,
+            /// <summary>Forces HDRP to use 16 bit depth + 8 bit stencil buffer. Improves performances of depth related effects but can cause Z-Fighting due to the low precision.</summary>
+            ForceD16 = GraphicsFormat.D16_UNorm_S8_UInt,
+        }
+
+        /// <summary>
         /// Custom Buffers format.
         /// </summary>
         public enum CustomBufferFormat
@@ -116,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportTransparentDepthPrepass = true,
                 supportTransparentDepthPostpass = true,
                 colorBufferFormat = ColorBufferFormat.R11G11B10,
+                depthBufferFormat = DepthBufferFormat.Auto,
                 supportCustomPass = true,
                 supportVariableRateShading = true,
                 customBufferFormat = CustomBufferFormat.R8G8B8A8,
@@ -315,6 +331,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportTransparentDepthPostpass;
         /// <summary>Color buffer format.</summary>
         public ColorBufferFormat colorBufferFormat;
+        /// <summary>Depth buffer format.</summary>
+        public DepthBufferFormat depthBufferFormat;
         /// <summary>Support custom passes.</summary>
         public bool supportCustomPass;
         /// <summary>Support variable rate shading.</summary>

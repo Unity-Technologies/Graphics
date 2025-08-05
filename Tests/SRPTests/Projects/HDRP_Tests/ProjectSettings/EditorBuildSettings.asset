@@ -1062,6 +1062,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/9x_Other/9970-ScreenSpaceUIOverlay.unity
     guid: df8ad799e8a136e488cc1dc4c39a9c2c
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9100_16BitDepth.unity
+    guid: fd5e259685b999b4083690ffdc077e3b
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8213_Terrain4Layers.unity
     guid: 7143043274939204595aff7a7b1ea29f
   - enabled: 1

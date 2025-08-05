@@ -576,11 +576,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.depthTexture = depthTexture;
                     builder.UseTexture(passData.depthTexture, AccessFlags.Read);
                     passData.maxZ8xBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
-                    { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask 8x" });
+                    { format = GetDepthBufferFormat(true), enableRandomWrite = true, name = "MaxZ mask 8x" });
                     passData.maxZBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, true, true)
-                    { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask" });
+                    { format = GetDepthBufferFormat(true), enableRandomWrite = true, name = "MaxZ mask" });
                     passData.dilatedMaxZBuffer = renderGraph.CreateTexture(new TextureDesc(Vector2.one / 16.0f, true, true)
-                    { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Dilated MaxZ mask" });
+                    { format = GetDepthBufferFormat(true), enableRandomWrite = true, name = "Dilated MaxZ mask" });
                     builder.UseTexture(passData.dilatedMaxZBuffer, AccessFlags.ReadWrite);
 
                     builder.SetRenderFunc(
@@ -896,7 +896,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Handle camera-relative rendering.
                     center -= camOffset;
 
-                    
+
                     var bounds = GeometryUtils.OBBToAABB(transform.right, transform.up, transform.forward, scaleSize, center);
 
                     // Frustum cull on the CPU for now. TODO: do it on the GPU.

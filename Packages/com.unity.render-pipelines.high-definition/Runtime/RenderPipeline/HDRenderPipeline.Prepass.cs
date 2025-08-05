@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
             {
-                format = CoreUtils.GetDefaultDepthStencilFormat(),
+                format = GetDepthBufferFormat(false),
                 bindTextureMS = msaa,
                 msaaSamples = msaaSamples,
                 clearBuffer = clear,
@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateDepthAsColorBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { format = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, msaaSamples = msaaSamples, name = "DepthAsColorMSAA" });
+            { format = GetDepthBufferFormat(true), clearBuffer = true, clearColor = Color.black, bindTextureMS = true, msaaSamples = msaaSamples, name = "DepthAsColorMSAA" });
         }
 
         TextureHandle CreateMotionVectorBuffer(RenderGraph renderGraph, bool clear, MSAASamples msaaSamples)
@@ -1206,7 +1206,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.UseTexture(passData.inputDepth, AccessFlags.ReadWrite);
 
                     passData.outputDepth = renderGraph.CreateTexture(new TextureDesc(depthMipchainSize.x, depthMipchainSize.y, true, true)
-                        { format = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "CameraDepthBufferMipChain" });
+                        { format = GetDepthBufferFormat(true), enableRandomWrite = true, name = "CameraDepthBufferMipChain" });
                     builder.UseTexture(passData.outputDepth, AccessFlags.Write);
 
                     passData.GPUCopy = m_GPUCopy;

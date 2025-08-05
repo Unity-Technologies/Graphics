@@ -49,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
+        public SerializedProperty depthBufferFormat;
         public SerializedProperty supportCustomPass;
         public SerializedProperty supportVariableRateShading;
         public SerializedProperty customBufferFormat;
@@ -141,6 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             supportLightLayers = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             colorBufferFormat = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
+            depthBufferFormat = root.Find((RenderPipelineSettings s) => s.depthBufferFormat);
             customBufferFormat = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
             renderingLayerMaskBuffer = root.Find((RenderPipelineSettings s) => s.renderingLayerMaskBuffer);
             supportCustomPass = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
