@@ -8,24 +8,23 @@
 VFXStickyNote > #node-border {
     border-radius: 2px;
     border-width: 1px;
-    padding: 1px 4px;
+    padding: 1px 1px;
     flex-shrink: 1;
 }
 
 VFXStickyNote #title-bar {
     flex-direction: row;
-    padding-right: 12px;
 }
 
 VFXStickyNote #title {
-    margin: 0;
+    margin: 2px 2px -2px 2px;
     border-width: 1px;
     flex-grow: 1;
     flex-shrink: 1;
 }
 
 VFXStickyNote #title-field {
-    margin: 0;
+    margin: 2px 2px -2px 2px;
     flex-grow: 1;
     flex-shrink: 1;
     position: relative;
@@ -50,8 +49,8 @@ VFXStickyNote #title-field TextInput {
     background-color: transparent;
 }
 
-VFXStickyNote TextElement {
-    flex-shrink: 1;
+VFXStickyNote #title-field TextInput TextElement {
+    padding: 0;
 }
 
 VFXStickyNote:checked #swatches {
@@ -132,12 +131,12 @@ VFXStickyNote.color-theme-3 Label, VFXStickyNote.color-theme-3 TextElement {
 }
 
 VFXStickyNote #content-holder {
+    margin: -2px 2px 2px 2px;
     flex-grow: 1;
-    margin-right: 6px;
 }
 
 VFXStickyNote #contents {
-    margin-left: 0;
+    margin: 0;
     padding: 0 2px;
 }
 
@@ -149,7 +148,7 @@ VFXStickyNote #contents-field {
     position: relative;
     white-space: normal;
     flex-grow: 1;
-    margin: 0 6px 0 0;
+    margin: 0;
     border-width: 1px;
     border-radius: 1px;
     border-color: var(--unity-colors-input_field-border-focus);
