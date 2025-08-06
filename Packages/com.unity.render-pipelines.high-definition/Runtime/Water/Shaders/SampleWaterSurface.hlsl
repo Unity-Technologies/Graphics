@@ -429,22 +429,17 @@ void SampleSimulation_PS(WaterSimCoord waterCoord, float3 waterMask, float dista
     }
 }
 
-void EvaluateWaterAdditionalData(float3 positionOS, float3 transformedPosition, float3 meshNormalOS, out WaterAdditionalData waterAdditionalData)
+void EvaluateWaterAdditionalData(float3 positionOS, float3 positionRWS, float3 meshNormalOS, out WaterAdditionalData waterAdditionalData)
 {
     ZERO_INITIALIZE(WaterAdditionalData, waterAdditionalData);
     if (_GridSize.x < 0)
         return;
 
-    // Evaluate the pre-displaced absolute position
-#if defined(WATER_DISPLACEMENT)
-    float3 positionRWS = positionOS;
-#else
-    float3 positionRWS = TransformObjectToWorld_Water(positionOS);
-#endif
-    // Evaluate the distance to the camera
+    // Evaluate the distance to the camera. used only if WATER_DISPLACEMENT is defined.
     float distanceToCamera = length(positionRWS);
+
     // Get the world space transformed postion
-    float3 transformedAWS = GetAbsolutePositionWS(transformedPosition);
+    float3 transformedAWS = GetAbsolutePositionWS(positionRWS);
     float2 decalUV = EvaluateDecalUV(transformedAWS);
 
     // Compute the texture size param for the filtering
