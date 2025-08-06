@@ -1776,7 +1776,7 @@ namespace UnityEngine.Rendering.HighDefinition
             visibleProbe.AllocTexture(probeFormat);
             visibleProbe.SetCameraAnchor(cameraSettings, viewerTransform);
             var isPlanarReflectionProbe = visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe;
-            
+
             ProbeRenderSteps skippedRenderSteps = ProbeRenderSteps.None;
             for (int j = 0; j < cameraSettings.Count; ++j)
             {
@@ -1789,7 +1789,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 DynamicResolutionHandler.UpdateAndUseCamera(camera, settingsCopy);
 
                 foreach (var terrain in m_ActiveTerrains)
-                    terrain.SetKeepUnusedCameraRenderingResources(camera.GetInstanceID(), true);
+                    terrain.SetKeepUnusedCameraRenderingResources(camera.GetEntityId(), true);
 
                 if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
                 {
