@@ -48,3 +48,11 @@ The following samples are currently available for Shader Graph.
 |:--------------------|
 |![](images/CustomMaterialPropertySample.png) |
 | This sample contains an example of a Custom Material Property Drawer that allows using a Min/Max Slider to control a Vector2 x and y values, often used for range remapping. It comes with a documented Shader Graph example. |
+
+| [Custom Lighting](Shader-Graph-Sample-Custom-Lighting.md) |
+|:--------------------|
+|![](images/CustomLightingSample.png) |
+| The Shader Graph Custom Lighting sample shows how you can create your own custom lighting model in Shader Graph and provides dozens of example templates, shaders, and subgraphs to help you get started with your own custom lighting.
+
+
+

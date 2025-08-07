@@ -323,3 +323,7 @@
             * [How to create a functioning button](Shader-Graph-Sample-UGUI-Shaders-How-tos-Button.md)
             * [How to make shapes that adapt to the aspect ratio of the UI element](Shader-Graph-Sample-UGUI-Shaders-How-tos-aspect-ratio.md)
         * [Notes on performance](Shader-Graph-Sample-UGUI-Shaders-Notes-on-performance.md)
+    * [Custom Lighting](Shader-Graph-Sample-Custom-Lighting.md)
+        * [Lighting Models](Shader-Graph-Sample-Custom-Lighting-Lighting-Models.md)
+        * [Components](Shader-Graph-Sample-Custom-Lighting-Components.md)
+

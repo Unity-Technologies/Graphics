@@ -1,0 +1,6 @@
+{
+	"displayName":"Custom Lighting",
+	"interactiveImport": "false",
+	"description":"This sample helps you customize the URP lighting model in Shader Graph to achieve a unique look for your project or make the lighting cheaper. Learn from the included examples to create lit shaders without fog, change the way SSAO and decals are applied, and create stylized rendering. Get additional templates for the template browser and benefit from a comprehensive library of subgraphs for all types of lighting operations.",
+	"createSeparatePackage": true
+}

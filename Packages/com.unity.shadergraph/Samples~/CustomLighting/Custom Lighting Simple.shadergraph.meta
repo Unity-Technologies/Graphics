@@ -1,0 +1,28 @@
+fileFormatVersion: 2
+guid: fbf7e781079821f4a8f49681b42544d3
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 0
+  template:
+    name: Custom Lighting Simple
+    category: URP Custom Lighting
+    description: "This custom lighting model is designed to be similar to the main
+      lighting used by URP - but it uses a slightly cheaper Blinn model for specular
+      highlights. Blinn doesn't look quite as nice, but it should be faster to render
+      in most cases.\r\n\r\n<b>Custom Lighting shaders:</b>\r\n\u2022 allow you to
+      edit the lighting model itself directly in the graph to either stylize it or
+      make it cheaper.\r\n\u2022 are intended for use in Forward, or Forward+ rendering
+      modes. They are not intended to be used in Deferred mode.\r\n\u2022 can be
+      mixed and matched in your scene, so you might use cheaper lighting models on
+      background elements and less important objects to reduce rendering cost, and
+      more complex lighting models on foreground elements and hero objects.\r\n\r\n\r\nSupported
+      Pipeline(s): URP\r\nActive Target: Unit\r\nVFX Graph Support: disabled"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 2d952011e550495499bea1c8a52296e4, type: 3}

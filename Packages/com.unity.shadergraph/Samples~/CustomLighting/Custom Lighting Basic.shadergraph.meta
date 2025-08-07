@@ -1,0 +1,31 @@
+fileFormatVersion: 2
+guid: 6e28cb714c0d2b344b6be40f5a7ea819
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 0
+  template:
+    name: Custom Lighting Basic
+    category: URP Custom Lighting
+    description: "A basic custom lighting shader that calculates diffuse lighing
+      for multiple light sources. In order to reduce the cost of calculations, this
+      shader does not support fog, specular, reflections, light cookies, or SSAO,
+      but any of these could be added back in if needed. The goal with this one is
+      to make the lighting as cheap as possible by leaving out everything but the
+      basics. This type of lighting model may be ideal for XR or low-end mobile devices
+      where performance is critical.\r\n\r\n\r\n<b>Custom Lighting shaders:</b>\r\n\u2022
+      allow you to edit the lighting model itself directly in the graph to either
+      stylize it or make it cheaper.\r\n\u2022 are intended for use in Forward, or
+      Forward+ rendering modes. They are not intended to be used in Deferred mode.\r\n\u2022
+      can be mixed and matched in your scene, so you might use cheaper lighting models
+      on background elements and less important objects to reduce rendering cost,
+      and more complex lighting models on foreground elements and hero objects.\r\n\r\n\r\nSupported
+      Pipeline(s): URP\r\nActive Target: Unit\r\nVFX Graph Support: disabled"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 9c728d3022a43f347a658ed4a53c7a08, type: 3}
