@@ -1459,6 +1459,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static readonly string srcBlend = "[" + Property.SrcBlend + "]";
             public static readonly string dstBlend = "[" + Property.DstBlend + "]";
+            public static readonly string srcBlendAlpha = "[" + Property.SrcBlendAlpha + "]";
+            public static readonly string dstBlendAlpha = "[" + Property.DstBlendAlpha + "]";
             public static readonly string cullMode = "[" + Property.CullMode + "]";
             public static readonly string zWrite = "[" + Property.ZWrite + "]";
             public static readonly string zTest = "[" + Property.ZTest + "]";
@@ -1500,7 +1502,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     RenderState.ZTest(Uniforms.zTest),
                     RenderState.ZWrite(Uniforms.zWrite),
                     RenderState.Cull(Uniforms.cullMode),
-                    RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend),
+                    RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend, Uniforms.srcBlendAlpha, Uniforms.dstBlendAlpha),
                 };
             }
             else

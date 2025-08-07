@@ -124,6 +124,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
                 collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector
                 collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector
+                collector.AddFloatProperty(Property.SrcBlendAlpha, 1.0f);    // always set by material inspector, ok to have incorrect values here
+                collector.AddFloatProperty(Property.DstBlendAlpha, 0.0f);    // always set by material inspector, ok to have incorrect values here
                 collector.AddToggleProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque));
                 collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
