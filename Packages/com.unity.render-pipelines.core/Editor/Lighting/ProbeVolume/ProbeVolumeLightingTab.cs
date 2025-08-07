@@ -964,6 +964,9 @@ namespace UnityEngine.Rendering
             if (!prv.isInitialized || !prv.enabledBySRP)
                 return false;
 
+            // Always baking with a fresh activeSet
+            activeSet = null;
+
             // In case UI was never opened we have to setup some stuff
             FindActiveSet();
 
