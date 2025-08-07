@@ -302,7 +302,9 @@ namespace UnityEngine.Rendering.Universal
             switch (m_Settings.technique)
             {
                 case DecalTechniqueOption.Automatic:
-                    if (IsAutomaticDBuffer() || isDeferred && needsGBufferAccurateNormals)
+                    if (isGLDevice)
+                        technique = isDeferred ? DecalTechnique.GBuffer : DecalTechnique.ScreenSpace;
+                    else if (IsAutomaticDBuffer() || isDeferred && needsGBufferAccurateNormals)
                         technique = DecalTechnique.DBuffer;
                     else if (isDeferred)
                         technique = DecalTechnique.GBuffer;
