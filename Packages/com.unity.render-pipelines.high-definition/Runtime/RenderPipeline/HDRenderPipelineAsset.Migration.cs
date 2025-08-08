@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             APVByDefault,
             MergeDitheringAndLODQualitySetting,
             UpdatedUpscalers,
+            AddNamesToUpscalers,
             // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
@@ -297,14 +298,24 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 618
             MigrationStep.New(Version.UpdatedUpscalers, (HDRenderPipelineAsset data) =>
             {
-                data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Clear();
 #pragma warning disable 618 // Type or member is obsolete
+                data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Clear();
                 if(!data.m_RenderPipelineSettings.dynamicResolutionSettings.enableDLSS)
                     return;
 
                 data.m_RenderPipelineSettings.dynamicResolutionSettings.enableDLSS = false;
-#pragma warning restore 618
                 data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Add(AdvancedUpscalers.DLSS);
+#pragma warning restore 618
+            }),
+            MigrationStep.New(Version.AddNamesToUpscalers, (HDRenderPipelineAsset data) =>
+            {
+                data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames = new List<string>();
+#pragma warning disable 618 // Type or member is obsolete
+                foreach (var u in data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority)
+#pragma warning restore 618
+                {
+                    data.m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Add(u.ToString());
+                }
             })
         );
         #endregion

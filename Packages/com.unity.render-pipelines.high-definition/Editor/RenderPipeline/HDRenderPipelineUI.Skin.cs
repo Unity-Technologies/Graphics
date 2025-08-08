@@ -276,6 +276,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent defaultInjectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The injection point at which to apply the upscaling.");
             public static readonly GUIContent TAAUInjectionPoint = EditorGUIUtility.TrTextContent("TAA Upscale Injection Point", "The injection point at which to apply the upscaling.");
             public static readonly GUIContent STPInjectionPoint = EditorGUIUtility.TrTextContent("STP Injection Point", "The injection point at which to apply the upscaling.");
+#if ENABLE_UPSCALER_FRAMEWORK
+            public static readonly GUIContent IUpscalerInjectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The injection point at which to apply the upscaling.");
+#endif
             public static readonly GUIContent DLSSUseOptimalSettingsContent = EditorGUIUtility.TrTextContent("DLSS Use Optimal Settings", "Sets the scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.");
             public static readonly GUIContent DLSSRenderPresetsContent = EditorGUIUtility.TrTextContent("DLSS Render Presets", "DLSS will use the specified render preset for each quality value.");
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE

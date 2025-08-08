@@ -393,6 +393,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Transform used when Screen Coordinates Override is active.</summary>
         public Vector4 screenCoordScaleBias;
 
+        #region DLSS_OVERRIDES
         /// <summary>Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera.</summary>
         [Tooltip("Allow NVIDIA Deep Learning Super Sampling (DLSS) on this camera")]
         public bool allowDeepLearningSuperSampling = true;
@@ -417,7 +418,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the Sharpening value for NVIDIA Deep Learning Super Sampling (DLSS) for this camera.")]
         [Range(0, 1)]
         public float deepLearningSuperSamplingSharpening = 0;
+        #endregion
 
+        #region FSR2_OVERRIDES
         /// <summary>Allow FidelityFX Super Resolution (FSR2) on this camera.</summary>
         [Tooltip("Allow FidelityFX Super Resolution (FSR2) on this camera.")]
         public bool allowFidelityFX2SuperResolution = true;
@@ -446,6 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the Sharpening value for AMD FidelityFX 2.0 Super Resolution (FSR2) for this camera.")]
         [Range(0, 1)]
         public float fidelityFX2SuperResolutionSharpening = 0;
+        #endregion
 
         /// internal state set by the runtime wether DLSS is enabled or not on this camera, depending on the results of all other settings.
         [ExcludeCopy]
@@ -459,6 +463,17 @@ namespace UnityEngine.Rendering.HighDefinition
         [ExcludeCopy]
         internal bool cameraCanRenderSTP = false;
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        /// internal state set by the runtime whether the upscaler framework is enabled or not on this camera, depending on the results of all other settings.
+        [ExcludeCopy]
+        internal bool cameraCanRenderIUpscaler = false;
+
+        // internal state set by the runtime whether the upscaler using the framework is a temporal upscaler or not.
+        [ExcludeCopy]
+        internal bool cameraIUpscalerIsTemporalUpscaler = false;
+#endif
+
+        #region FSR1_OVERRIDES
         /// <summary>If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.</summary>
         [Tooltip("If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.")]
         public bool fsrOverrideSharpness = false;
@@ -467,6 +482,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets this camera's sharpness value for AMD FidelityFX Super Resolution 1.0 (FSR).")]
         [Range(0, 1)]
         public float fsrSharpness = FSRUtils.kDefaultSharpnessLinear;
+        #endregion
 
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;

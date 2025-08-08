@@ -1380,7 +1380,13 @@ namespace UnityEngine.Rendering.Universal
                     importColorParams.clearColor = Color.black;
                     importColorParams.discardOnLastUse = cameraData.resolveFinalTarget;  // check if last camera in the stack
 
-                    if (cameraData.IsSTPEnabled())
+                    if (cameraData.IsSTPEnabled() || (cameraData.IsTemporalAAEnabled() && 
+#if ENABLE_UPSCALER_FRAMEWORK
+                        cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler
+#else
+                        false
+#endif
+                        ))
                     {
                         // STP is disabled when using camera stacking. In any case, we don't use persistent textures here so we need to make sure there is no next camera in the stack (should always be true).
                         Debug.Assert(cameraData.resolveFinalTarget);

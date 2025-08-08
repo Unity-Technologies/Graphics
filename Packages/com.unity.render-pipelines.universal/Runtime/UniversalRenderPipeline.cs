@@ -215,6 +215,10 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override string ToString() => pipelineAsset?.ToString();
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        internal static Upscaling upscaling;
+#endif
+
         /// <summary>
         /// Creates a new <c>UniversalRenderPipeline</c> instance.
         /// </summary>
@@ -309,6 +313,10 @@ namespace UnityEngine.Rendering.Universal
 
             // Initializes only if VRS is supported.
             Vrs.InitializeResources();
+
+#if ENABLE_UPSCALER_FRAMEWORK
+            upscaling = new Upscaling(asset.iUpscalerOptions);
+#endif
         }
 
         /// <inheritdoc/>
@@ -453,6 +461,9 @@ namespace UnityEngine.Rendering.Universal
 
                 // This is for texture streaming
                 UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateMaterials();
+#endif
+#if ENABLE_UPSCALER_FRAMEWORK
+                upscaling.SetActiveUpscaler(asset.upscalerName);
 #endif
                 // URP uses the camera's allowDynamicResolution flag to decide if useDynamicScale should be enabled for camera render targets.
                 // However, the RTHandle system has an additional setting that controls if useDynamicScale will be set for render targets allocated via RTHandles.
@@ -1205,6 +1216,27 @@ namespace UnityEngine.Rendering.Universal
                 baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
 				baseCameraData.cameraTargetDescriptor.useDynamicScale = false;
             }
+
+            // If upscaling is active, set the scaled width and height
+            baseCameraData.scaledWidth = Mathf.Max(1, (int)(baseCameraData.pixelWidth * baseCameraData.renderScale));
+            baseCameraData.scaledHeight = Mathf.Max(1, (int)(baseCameraData.pixelHeight * baseCameraData.renderScale));
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (baseCameraData.isDefaultViewport && baseCameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler) // baseCameraData.isDefaultViewport only. (XRDisplaySubsystem.scaleOfAllViewports isn't supported.)
+            {
+                // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
+                IUpscaler activeUpscaler = upscaling.GetActiveUpscaler();
+                if (activeUpscaler.IsSupportedXR())
+                {
+                    Vector2Int res = new Vector2Int(baseCameraData.scaledWidth, baseCameraData.scaledHeight);
+                    activeUpscaler.NegotiatePreUpscaleResolution(ref res, new Vector2Int(baseCameraData.pixelWidth, baseCameraData.pixelHeight));
+                    baseCameraData.scaledWidth = res.x;
+                    baseCameraData.scaledHeight = res.y;
+                    // Feedback new scaledWidth and scaledHeight to cameraTargetDescriptor immediately.
+                    baseCameraData.cameraTargetDescriptor.width = baseCameraData.scaledWidth;
+                    baseCameraData.cameraTargetDescriptor.height = baseCameraData.scaledHeight;
+                }
+            }
+#endif
         }
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
@@ -1320,6 +1352,12 @@ namespace UnityEngine.Rendering.Universal
             return renderer;
         }
 
+        internal static void InitializeScaledDimensions(Camera camera, UniversalCameraData cameraData)
+        {
+            cameraData.scaledWidth = Mathf.Max(1, (int) (camera.pixelWidth * cameraData.renderScale));
+            cameraData.scaledHeight = Mathf.Max(1, (int) (camera.pixelHeight * cameraData.renderScale));
+        }
+
         static UniversalCameraData CreateCameraData(ContextContainer frameData, Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeCameraData);
@@ -1336,6 +1374,21 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
             // Descriptor settings                                            /
             ///////////////////////////////////////////////////////////////////
+
+            // If upscaling is active, set the scaled width and height
+            InitializeScaledDimensions(camera, cameraData);
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler)
+            {
+                // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
+                IUpscaler activeUpscaler = upscaling.GetActiveUpscaler();
+                Debug.Assert(activeUpscaler != null);
+                Vector2Int res = new Vector2Int(cameraData.scaledWidth, cameraData.scaledHeight);
+                activeUpscaler.NegotiatePreUpscaleResolution(ref res, new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight));
+                cameraData.scaledWidth = res.x;
+                cameraData.scaledHeight = res.y;
+            }
+#endif
 
             bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
 
@@ -1432,6 +1485,7 @@ namespace UnityEngine.Rendering.Universal
                 Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f));
 
             bool isScenePreviewOrReflectionCamera = cameraData.cameraType == CameraType.SceneView || cameraData.cameraType == CameraType.Preview || cameraData.cameraType == CameraType.Reflection;
+            bool isGameCamera = !isScenePreviewOrReflectionCamera;
 
             // Discard variations lesser than kRenderScaleThreshold.
             // Scale is only enabled for gameview.
@@ -1448,19 +1502,29 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 );
 
+            bool upscalerSupportsTemporalAntiAliasing = cameraData.upscalingFilter == ImageUpscalingFilter.STP;
+            bool upscalerSupportsSharpening = cameraData.upscalingFilter == ImageUpscalingFilter.FSR;
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler)
+            {
+                IUpscaler activeUpscaler = upscaling.GetActiveUpscaler();
+                upscalerSupportsTemporalAntiAliasing = upscalerSupportsTemporalAntiAliasing || activeUpscaler.IsTemporalUpscaler();
+            }
+#endif
+
             if (cameraData.renderScale > 1.0f)
             {
                 cameraData.imageScalingMode = ImageScalingMode.Downscaling;
             }
-            else if ((cameraData.renderScale < 1.0f) || (!isScenePreviewOrReflectionCamera && ((cameraData.upscalingFilter == ImageUpscalingFilter.FSR) || (cameraData.upscalingFilter == ImageUpscalingFilter.STP))))
+            else if ( (cameraData.renderScale < 1.0f) || (isGameCamera && (upscalerSupportsTemporalAntiAliasing || upscalerSupportsSharpening)) )
             {
                 // When certain upscalers are requested, we still consider 100% render scale an upscaling operation. (This behavior is only intended for game view cameras)
                 // This allows us to run the upscaling shader passes all the time since they improve visual quality even at 100% scale.
 
                 cameraData.imageScalingMode = ImageScalingMode.Upscaling;
 
-                // When STP is requested, we force temporal anti-aliasing on since it's a prerequisite.
-                if (cameraData.upscalingFilter == ImageUpscalingFilter.STP)
+                // We force temporal anti-aliasing on when it's a prerequisite.
+                if (upscalerSupportsTemporalAntiAliasing)
                 {
                     cameraData.antialiasing = AntialiasingMode.TemporalAntiAliasing;
                 }
@@ -1474,7 +1538,19 @@ namespace UnityEngine.Rendering.Universal
             cameraData.fsrSharpness = settings.fsrSharpness;
 
             cameraData.xr = XRSystem.emptyPass;
-            XRSystem.SetRenderScale(cameraData.renderScale);
+            var renderScaleXR = cameraData.renderScale;
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler)
+            {
+                IUpscaler activeUpscaler = upscaling.GetActiveUpscaler();
+                // XRSystem.SetRenderScale() will change the resolution for back buffers on XR.
+                // When IUpscaler is enabled, must be set renderScaleXR to 1 to disable this behavior.
+                // If the value of cameraData.renderScale and renderScaleXR are 0.5, the scale for UpscalingIO.preUpscaleResolution is 0.25.
+                if (activeUpscaler.IsSupportedXR())
+                    renderScaleXR = 1.0f;
+            }
+#endif
+            XRSystem.SetRenderScale(renderScaleXR);
 
             var commonOpaqueFlags = SortingCriteria.CommonOpaque;
             var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
@@ -1582,8 +1658,26 @@ namespace UnityEngine.Rendering.Universal
             // Affects the jitter set just below. Do not move.
             ApplyTaaRenderingDebugOverrides(ref cameraData.taaSettings);
 
+            TemporalAA.JitterFunc jitterFunc;
             // Depends on the cameraTargetDesc, size and MSAA also XR modifications of those.
-            TemporalAA.JitterFunc jitterFunc = cameraData.IsSTPEnabled() ? StpUtils.s_JitterFunc : TemporalAA.s_JitterFunc;
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (cameraData.IsTemporalAAEnabled() &&
+                cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler)
+            {
+                IUpscaler activeUpscaler = upscaling.GetActiveUpscaler();
+                Debug.Assert(activeUpscaler != null);
+                jitterFunc = activeUpscaler.CalculateJitter;
+            }
+            else
+#endif
+            if (cameraData.IsSTPEnabled())
+            {
+                jitterFunc = StpUtils.s_JitterFunc;
+            }
+            else
+            {
+                jitterFunc = TemporalAA.s_JitterFunc;
+            }
             Matrix4x4 jitterMat = TemporalAA.CalculateJitterMatrix(cameraData, jitterFunc);
             cameraData.SetViewProjectionAndJitterMatrix(camera.worldToCameraMatrix, projectionMatrix, jitterMat);
 
@@ -1824,6 +1918,15 @@ namespace UnityEngine.Rendering.Universal
             postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
             postProcessingData.supportScreenSpaceLensFlare = settings.supportScreenSpaceLensFlare;
             postProcessingData.supportDataDrivenLensFlare = settings.supportDataDrivenLensFlare;
+
+#if ENABLE_UPSCALER_FRAMEWORK
+            postProcessingData.activeUpscaler = null;
+            if (settings.upscalingFilter == UpscalingFilterSelection.IUpscaler)
+            {
+                postProcessingData.activeUpscaler = upscaling.GetActiveUpscaler();
+                Debug.Assert(postProcessingData.activeUpscaler != null);
+            }
+#endif
 
             return postProcessingData;
         }
@@ -2207,6 +2310,14 @@ namespace UnityEngine.Rendering.Universal
 
                     break;
                 }
+
+#if ENABLE_UPSCALER_FRAMEWORK
+                case UpscalingFilterSelection.IUpscaler:
+                {
+                    filter = ImageUpscalingFilter.IUpscaler;
+                    break;
+                }
+#endif
             }
 
             return filter;

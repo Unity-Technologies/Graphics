@@ -1,4 +1,4 @@
-using UnityEditorInternal;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -21,6 +21,11 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty msaa { get; }
         public SerializedProperty renderScale { get; }
         public SerializedProperty upscalingFilter { get; }
+#if ENABLE_UPSCALER_FRAMEWORK
+        public SerializedProperty iUpscalerName { get; }
+
+        public SerializedProperty upscalerOptions { get; }
+#endif
         public SerializedProperty fsrOverrideSharpness { get; }
         public SerializedProperty fsrSharpness { get; }
 
@@ -113,6 +118,10 @@ namespace UnityEditor.Rendering.Universal
             msaa = serializedObject.FindProperty("m_MSAA");
             renderScale = serializedObject.FindProperty("m_RenderScale");
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
+#if ENABLE_UPSCALER_FRAMEWORK
+            iUpscalerName = serializedObject.FindProperty("m_IUpscalerName");
+            upscalerOptions = serializedObject.FindProperty("m_UpscalerOptions");
+#endif
             fsrOverrideSharpness = serializedObject.FindProperty("m_FsrOverrideSharpness");
             fsrSharpness = serializedObject.FindProperty("m_FsrSharpness");
 
@@ -187,6 +196,15 @@ namespace UnityEditor.Rendering.Universal
 #if ENABLE_ADAPTIVE_PERFORMANCE
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
 #endif
+#if ENABLE_UPSCALER_FRAMEWORK
+            bool referenceModified = UpscalerOptions.ValidateSerializedUpscalerOptionReferencesWithinRPAsset(asset, upscalerOptions);
+            if (referenceModified)
+            {
+                serializedObject.ApplyModifiedProperties();
+                EditorUtility.SetDirty(asset);
+            }
+#endif
+
             string Key = "Universal_Shadow_Setting_Unit:UI_State";
             state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }

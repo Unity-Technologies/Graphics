@@ -392,6 +392,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EnabledAdvancedUpscalerPassMask |= m_DLSSPass != null && camera.IsDLSSEnabled() ? (1 << (int)AdvancedUpscalers.DLSS): 0;
             m_EnabledAdvancedUpscalerPassMask |= m_FSR2Pass != null && camera.IsFSR2Enabled() ? (1 << (int)AdvancedUpscalers.FSR2): 0;
             m_EnabledAdvancedUpscalerPassMask |= camera.IsSTPEnabled() ? (1 << (int)AdvancedUpscalers.STP): 0;
+#if ENABLE_UPSCALER_FRAMEWORK
+            m_EnabledAdvancedUpscalerPassMask |= camera.IsIUpscalerEnabled() ? (1 << (int)AdvancedUpscalers.IUpscaler): 0;
+#endif
 
             m_DebugExposureCompensation = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -579,6 +582,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (hdCamera.IsIUpscalerEnabled())
+            {
+                return new CurrentUpsamplerData
+                {
+                    isAdvancedUpsampler = true,
+                    advancedUpsampler = AdvancedUpscalers.IUpscaler,
+                    schedule = DynamicResolutionHandler.instance.upsamplerSchedule,
+                };
+            }
+#endif
+
             if (hdCamera.DynResRequest.enabled)
             {
                 if (hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
@@ -614,6 +629,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.STP }
                     => DoStpPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
+#if ENABLE_UPSCALER_FRAMEWORK
+                { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.IUpscaler }
+                    => DoIUpscalerPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors, stencilBuffer),
+#endif
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.DLSS}
                     => DoDLSSPasses(renderGraph, hdCamera, upsamplerDataData.schedule, source, depthBuffer, motionVectors),
                 { isAdvancedUpsampler: true, advancedUpsampler: AdvancedUpscalers.FSR2}
@@ -1030,6 +1049,112 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
+        #endregion
+
+        #region IUpscaler
+#if ENABLE_UPSCALER_FRAMEWORK
+        TextureHandle DoIUpscalerPasses(
+            RenderGraph renderGraph,
+            HDCamera hdCamera,
+            TextureHandle inputColor,
+            TextureHandle inputDepth,
+            TextureHandle inputMotion,
+            TextureHandle inputStencil
+        )
+        {
+            // Create a context item containing upscaling inputs
+            UpscalingIO io = hdCamera.contextContainer.Get<UpscalingIO>();
+            io.cameraColor = inputColor;
+            io.cameraDepth = inputDepth;
+            io.motionVectorColor = inputMotion;
+            io.exposureTexture = renderGraph.ImportTexture(GetExposureTexture(hdCamera));
+            io.motionVectorDomain = UpscalingIO.MotionVectorDomain.NDC;
+            io.motionVectorDirection = UpscalingIO.MotionVectorDirection.PreviousFrameToCurrentFrame;
+            io.motionVectorTextureSize = hdCamera.historyRTHandleProperties.currentViewportSize; // is there ever a scenario where MVs are smaller than input color? if not, remove this.
+            io.jitteredMotionVectors = false; // HDRP has no jittering in MVs
+            io.preUpscaleResolution = hdCamera.historyRTHandleProperties.currentViewportSize;
+            io.previousPreUpscaleResolution = hdCamera.historyRTHandleProperties.previousViewportSize;
+            io.postUpscaleResolution = new Vector2Int((int)hdCamera.finalViewport.width, (int)hdCamera.finalViewport.height);
+            io.enableTexArray = TextureXR.useTexArray;
+            io.cameraInstanceID = hdCamera.camera.GetInstanceID();
+            io.nearClipPlane = hdCamera.camera.nearClipPlane;
+            io.farClipPlane = hdCamera.camera.farClipPlane;
+            io.fieldOfViewDegrees = hdCamera.camera.fieldOfView;
+            io.invertedDepth = SystemInfo.usesReversedZBuffer;
+            io.flippedY = SystemInfo.graphicsUVStartsAtTop;
+            io.flippedX = false;
+            io.hdrInput = GraphicsFormatUtility.IsHDRFormat(inputColor.GetDescriptor(renderGraph).format);
+            io.blueNoiseTextureSet = m_BlueNoise.textures16L;
+
+            // The number of active views may vary over time, but it must never be more than we expected during initialization.
+            int numActiveViews = hdCamera.m_XRViewConstants.Length;
+            Debug.Assert(numActiveViews <= STP.perViewConfigs.Length);
+
+            io.numActiveViews = numActiveViews;
+            io.eyeIndex = 0; // Maybe we should rename this to viewIndexBias or maybe even find a way to remove this entirely.
+            io.worldSpaceCameraPositions = new Vector3[numActiveViews];
+            io.previousWorldSpaceCameraPositions = new Vector3[numActiveViews];
+            io.previousPreviousWorldSpaceCameraPositions = new Vector3[numActiveViews];
+            io.projectionMatrices = new Matrix4x4[numActiveViews];
+            io.previousProjectionMatrices = new Matrix4x4[numActiveViews];
+            io.previousPreviousProjectionMatrices = new Matrix4x4[numActiveViews];
+            io.viewMatrices = new Matrix4x4[numActiveViews];
+            io.previousViewMatrices = new Matrix4x4[numActiveViews];
+            io.previousPreviousViewMatrices = new Matrix4x4[numActiveViews];
+            for (int i = 0; i < numActiveViews; i++)
+            {
+                // NOTE: STP assumes the view matrices also contain the camera position. However, HDRP may be configured to perform camera relative rendering which
+                //       removes the camera translation from the view matrices. We inject the camera position directly into the view matrix here to make sure we don't
+                //       run into issues when camera relative rendering is enabled.
+                //
+                //       Also, the previous world space camera position variable is specified as a value relative to the current world space camera position.
+                //       We must add both values together in order to produce the last camera position as an absolute world space value.
+                io.worldSpaceCameraPositions[i] = hdCamera.m_XRViewConstants[i].worldSpaceCameraPos;
+                io.previousWorldSpaceCameraPositions[i] =
+                    hdCamera.m_XRViewConstants[i].prevWorldSpaceCameraPos + hdCamera.m_XRViewConstants[i].worldSpaceCameraPos;
+                io.previousPreviousWorldSpaceCameraPositions[i] =
+                    hdCamera.m_XRViewConstants[i].prevPrevWorldSpaceCameraPos + io.previousWorldSpaceCameraPositions[i];
+
+                io.projectionMatrices[i] = hdCamera.m_XRViewConstants[i].nonJitteredProjMatrix;
+                io.previousProjectionMatrices[i] = hdCamera.m_XRViewConstants[i].prevProjMatrix;
+                io.previousPreviousProjectionMatrices[i] = hdCamera.m_XRViewConstants[i].prevPrevProjMatrix;
+                io.viewMatrices[i] = hdCamera.m_XRViewConstants[i].viewMatrix;
+                io.previousViewMatrices[i] = hdCamera.m_XRViewConstants[i].prevViewMatrix;
+                io.previousPreviousViewMatrices[i] = hdCamera.m_XRViewConstants[i].prevPrevViewMatrix;
+            }
+            io.preExposureValue = hdCamera.GpuExposureValue();
+
+            io.resetHistory = hdCamera.resetPostProcessingHistory;
+            io.frameIndex = hdCamera.taaFrameIndex;
+            io.deltaTime = hdCamera.currentRenderDeltaTime;
+            io.previousDeltaTime = hdCamera.lastRenderDeltaTime;
+            io.hdrDisplayInformation = HDROutputIsActive(hdCamera) ? HDRDisplayInformationForCamera(hdCamera) : new HDROutputUtils.HDRDisplayInformation(-1, -1, -1, 160.0f);
+
+            // The motion scaling feature is only active outside of test environments. If we allowed it to run
+            // during automated graphics tests, the results of each test run would be dependent on system
+            // performance.
+#if HDRP_DEBUG_STATIC_POSTFX
+            io.enableMotionScaling = false;
+#else
+            io.enableMotionScaling = true;
+#endif
+            // Hardware Dynamic Resolution Scaling
+            {
+                // When HW DRS is not enabled, STP is only functional when the dynamic resolution is forced to a fixed value
+                if (hdCamera.DynResRequest.enabled && !hdCamera.DynResRequest.hardwareEnabled)
+                    Debug.Assert(hdCamera.DynResRequest.forcingResolution);
+
+                io.enableHwDrs = hdCamera.DynResRequest.enabled && hdCamera.DynResRequest.hardwareEnabled;
+            }
+
+            // Insert the active upscaler's render graph passes
+            IUpscaler upscaler = upscaling.GetActiveUpscaler();
+            Debug.Assert(upscaler != null);
+            upscaler.RecordRenderGraph(renderGraph, hdCamera.contextContainer);
+
+            return io.cameraColor;
+        }
+#endif
         #endregion
 
         #region Copy Alpha

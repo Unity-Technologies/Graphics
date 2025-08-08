@@ -440,6 +440,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays = null;
 #endif
 
+        internal ContextContainer contextContainer;
         internal Vector4[] frustumPlaneEquations;
         internal int taaFrameIndex;
         internal float taaSharpenStrength;
@@ -850,14 +851,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (isDynResEnabled && !DynResRequest.hardwareEnabled)
                 Debug.Assert(DynResRequest.forcingResolution);
 
-            Vector2Int preUpscaleSize = new Vector2Int(actualWidth, actualHeight);
-            Vector2Int postUpscaleSize = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
+            Vector2Int preUpscaleResolution = new Vector2Int(actualWidth, actualHeight);
+            Vector2Int postUpscaleResolution = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
             useHwDrs = isDynResEnabled && DynResRequest.hardwareEnabled;
 
             STP.HistoryUpdateInfo info;
-            info.preUpscaleSize = preUpscaleSize;
-            info.postUpscaleSize = postUpscaleSize;
+            info.preUpscaleSize = preUpscaleResolution;
+            info.postUpscaleSize = postUpscaleResolution;
             info.useHwDrs = useHwDrs;
             info.useTexArray = TextureXR.useTexArray;
 
@@ -991,6 +992,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Initially, we don't want to clear any history buffer
             m_ClearHistoryRequest = false;
+            contextContainer = new ContextContainer();
+#if ENABLE_UPSCALER_FRAMEWORK
+            contextContainer.Create<UpscalingIO>();
+#endif
 
             Reset();
         }
@@ -1017,6 +1022,17 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderSTP;
         }
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        internal bool IsIUpscalerEnabled()
+        {
+            return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraCanRenderIUpscaler;
+        }
+        internal bool IsIUpscalerTemporalUpscaler()
+        {
+            return m_AdditionalCameraData == null ? false : m_AdditionalCameraData.cameraIUpscalerIsTemporalUpscaler;
+        }
+#endif
 
         internal bool IsPathTracingEnabled()
         {
@@ -1065,6 +1081,31 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.STPInjectionPoint;
             }
+#if ENABLE_UPSCALER_FRAMEWORK
+            else if (IsIUpscalerEnabled())
+            {
+                // get activeUpscalerName
+                // do we need to read this from currentAsset dynamicResolutionSettings upscalerNames (and find the first IUpscaler?)
+                Debug.Assert(HDRenderPipeline.currentPipeline != null);
+                IUpscaler upscaler = HDRenderPipeline.currentPipeline.upscaling.GetActiveUpscaler();
+                Debug.Assert(upscaler != null);
+                string activeUpscalerName = upscaler.GetName();
+
+                // return the injection point of matching options
+                foreach (UpscalerOptions options in HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.IUpscalerOptions)
+                {
+                    if (options.UpscalerName == activeUpscalerName)
+                    {
+                        return options.InjectionPoint;
+                    }
+                }
+
+                // options not found, return a default value
+                return IsIUpscalerTemporalUpscaler()
+                    ? DynamicResolutionHandler.UpsamplerScheduleType.BeforePost // temporal upscaler
+                    : DynamicResolutionHandler.UpsamplerScheduleType.AfterPost; // spatial upscaler
+            }
+#endif
             else if (IsTAAUEnabled())
             {
                 return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.TAAUInjectionPoint;
@@ -1104,7 +1145,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool RequiresCameraJitter()
         {
-            return (antialiasing == AntialiasingMode.TemporalAntialiasing || IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled()) && !IsPathTracingEnabled();
+            bool isTemporalUpscaler = IsFSR2Enabled() || IsDLSSEnabled() || IsTAAUEnabled();
+#if ENABLE_UPSCALER_FRAMEWORK
+            isTemporalUpscaler = isTemporalUpscaler || IsIUpscalerTemporalUpscaler();
+#endif
+
+            return (antialiasing == AntialiasingMode.TemporalAntialiasing || isTemporalUpscaler) && !IsPathTracingEnabled();
         }
 
         internal bool IsSSREnabled(bool transparent = false)
@@ -1407,6 +1453,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
         internal void SetReferenceSize()
         {
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (IsIUpscalerEnabled())
+            {
+                // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
+                Debug.Assert(HDRenderPipeline.currentPipeline != null);
+                IUpscaler activeUpscaler = HDRenderPipeline.currentPipeline.upscaling.GetActiveUpscaler();
+                Debug.Assert(activeUpscaler != null);
+                Vector2Int res = new Vector2Int(actualWidth, actualHeight);
+                activeUpscaler.NegotiatePreUpscaleResolution(ref res,
+                    new Vector2Int(camera.pixelWidth, camera.pixelHeight));
+                actualWidth = res.x;
+                actualHeight = res.y;
+            }
+#endif
+
             RTHandles.SetReferenceSize(actualWidth, actualHeight);
             m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight);
             SetPostProcessScreenSize(actualWidth, actualHeight);
@@ -2274,7 +2335,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Do not add extra jitter in VR unless requested (micro-variations from head tracking are usually enough)
             // Note: We make an exception for STP since it cannot produce correct results without a specific jitter pattern.
-            if (xr.enabled && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter && !IsSTPEnabled())
+            if (xr.enabled
+                && !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.xrSettings.cameraJitter
+                && !IsSTPEnabled()
+#if ENABLE_UPSCALER_FRAMEWORK
+                && !IsIUpscalerEnabled()
+#endif
+                )
             {
                 taaJitter = Vector4.zero;
                 return origProj;
@@ -2295,6 +2362,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 jitterX = stpJit.x;
                 jitterY = stpJit.y;
             }
+#if ENABLE_UPSCALER_FRAMEWORK
+            else if (IsIUpscalerEnabled())
+            {
+                Debug.Assert(HDRenderPipeline.currentPipeline != null);
+                IUpscaler upscaler = HDRenderPipeline.currentPipeline.upscaling.GetActiveUpscaler();
+                Debug.Assert(upscaler != null); // If we're in this condition, upscaler should be non-null.
+                upscaler.CalculateJitter(taaFrameIndex, out Vector2 jitter, out bool allowScaling);
+                // TODO (Apoorva): Re-examine if this negative sign is needed. It's currently there because URP and HDRP
+                // seem to be different in this regard. In URP, the jitter offset is -STP.Jit16(), while in HDRP, it
+                // seems to be STP.Jit16(). Maybe the usage of the jitter vector cancels this sign out, making the math
+                // equivalent. Needs more investigation. Until then, we add a negative sign in HDRP.
+                jitterX = -jitter.x;
+                jitterY = -jitter.y;
+            }
+#endif
             else
             {
                 // The variance between 0 and the actual halton sequence values reveals noticeable

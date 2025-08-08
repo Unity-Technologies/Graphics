@@ -76,7 +76,11 @@ namespace UnityEngine.Rendering.Universal
         FSR,
 
         /// Spatial-Temporal Post-Processing
-        STP
+        STP,
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        IUpscaler
+#endif
     }
 
     /// <summary>

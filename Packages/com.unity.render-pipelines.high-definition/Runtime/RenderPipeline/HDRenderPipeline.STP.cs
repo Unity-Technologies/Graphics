@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void PopulateStpConfig(HDCamera hdCamera, TextureHandle inputColor, TextureHandle inputDepth, TextureHandle inputMotion, TextureHandle inputStencil, int debugViewIndex, TextureHandle debugView, TextureHandle destination, out STP.Config config)
         {
             hdCamera.RequestStpHistory(out var useHwDrs, out var hasValidHistory, out var history);
-            
+
             config.historyContext = history;
 
             config.enableHwDrs = useHwDrs;

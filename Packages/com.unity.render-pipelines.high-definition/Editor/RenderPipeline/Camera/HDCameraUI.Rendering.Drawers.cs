@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             static void Drawer_Draw_DLSS_Section(SerializedHDCamera p, Editor owner)
             {
                 EditorGUI.indentLevel++;
-                bool isDLSSEnabledInQualityAsset = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Contains(UnityEngine.Rendering.AdvancedUpscalers.DLSS);
+                bool isDLSSEnabledInQualityAsset = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains("DLSS");
 
                 EditorGUILayout.PropertyField(p.allowDeepLearningSuperSampling, Styles.DLSSAllow);
                 if (!isDLSSEnabledInQualityAsset && p.allowDeepLearningSuperSampling.boolValue)
@@ -170,7 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
             static void Drawer_Draw_FSR2_Section(SerializedHDCamera p, Editor owner)
             {
                 EditorGUI.indentLevel++;
-                bool isFSR2EnabledInQualityAsset = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Contains(UnityEngine.Rendering.AdvancedUpscalers.FSR2);
+                bool isFSR2EnabledInQualityAsset = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains("FSR2");
 
 
                 EditorGUILayout.PropertyField(p.allowFidelityFX2SuperResolution, Styles.FSR2Allow);
@@ -250,7 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool showAntialiasContentAsFallback = false;
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-                bool isDLSSEnabled = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Contains(UnityEngine.Rendering.AdvancedUpscalers.DLSS)
+                bool isDLSSEnabled = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains("DLSS")
                     && p.allowDeepLearningSuperSampling.boolValue;
                 showAntialiasContentAsFallback = isDLSSEnabled;
 #endif

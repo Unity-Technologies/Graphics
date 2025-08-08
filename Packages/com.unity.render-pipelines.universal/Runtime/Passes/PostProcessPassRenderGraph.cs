@@ -2351,7 +2351,13 @@ namespace UnityEngine.Rendering.Universal
             // This avoids the cost of EASU and is available for other upscaling options.
             // If FSR is enabled then FSR settings override the TAA settings and we perform RCAS only once.
             // If STP is enabled, then TAA sharpening has already been performed inside STP.
-            settings.isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !settings.isFsrEnabled && !cameraData.IsSTPEnabled();
+            settings.isTaaSharpeningEnabled = (cameraData.IsTemporalAAEnabled() && cameraData.taaSettings.contrastAdaptiveSharpening > 0.0f) && !settings.isFsrEnabled && !cameraData.IsSTPEnabled() && 
+#if ENABLE_UPSCALER_FRAMEWORK
+                cameraData.upscalingFilter != ImageUpscalingFilter.IUpscaler
+#else
+                true
+#endif
+                ;
 
             var tempRtDesc = srcDesc;
 
@@ -2694,7 +2700,92 @@ namespace UnityEngine.Rendering.Universal
                 currentSource = DoFTarget;
             }
 
-            // Temporal Anti Aliasing
+            // Temporal Anti Aliasing / Upscaling
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (useTemporalAA && postProcessingData.activeUpscaler != null)
+            {
+                // Create a context item containing upscaling inputs
+                UpscalingIO io = frameData.Create<UpscalingIO>();
+                io.cameraColor = currentSource;
+                io.cameraDepth = resourceData.cameraDepth;
+                io.motionVectorColor = resourceData.motionVectorColor;
+                io.motionVectorDomain = UpscalingIO.MotionVectorDomain.NDC;
+                io.motionVectorDirection = UpscalingIO.MotionVectorDirection.PreviousFrameToCurrentFrame;
+                io.jitteredMotionVectors = false; // URP has no jittering in MVs
+                // io.exposureTexture; // TODO: set exposure texture when available
+                io.preExposureValue = 1.0f; // TODO: set if exposure value is pre-multiplied
+                io.hdrDisplayInformation = cameraData.isHDROutputActive ? cameraData.hdrDisplayInformation : new HDROutputUtils.HDRDisplayInformation(-1, -1, -1, 160.0f);
+                io.preUpscaleResolution = new Vector2Int(
+                    cameraData.cameraTargetDescriptor.width,
+                    cameraData.cameraTargetDescriptor.height
+                );
+                io.previousPreUpscaleResolution = io.preUpscaleResolution; // URP doesn't support Dynamic Resolution Scaling (DRS).
+                io.postUpscaleResolution = new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight);
+                io.motionVectorTextureSize = io.preUpscaleResolution;
+                io.enableTexArray = cameraData.xr.enabled && cameraData.xr.singlePassEnabled;
+
+                MotionVectorsPersistentData motionData = null;
+                {
+                    cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                    Debug.Assert(additionalCameraData != null);
+                    motionData = additionalCameraData.motionVectorsPersistentData;
+                    Debug.Assert(motionData != null);
+                }
+                io.cameraInstanceID = cameraData.camera.GetInstanceID();
+                io.nearClipPlane = cameraData.camera.nearClipPlane;
+                io.farClipPlane = cameraData.camera.farClipPlane;
+                io.fieldOfViewDegrees = cameraData.camera.fieldOfView;
+                io.invertedDepth = SystemInfo.usesReversedZBuffer;
+                io.flippedY = SystemInfo.graphicsUVStartsAtTop;
+                io.flippedX = false;
+                io.hdrInput = GraphicsFormatUtility.IsHDRFormat(currentSource.GetDescriptor(renderGraph).format);
+                io.numActiveViews = cameraData.xr.enabled ? cameraData.xr.viewCount : 1;
+                io.eyeIndex = (cameraData.xr.enabled && !cameraData.xr.singlePassEnabled) ? cameraData.xr.multipassId : 0;
+                io.worldSpaceCameraPositions = new Vector3[io.numActiveViews];
+                io.previousWorldSpaceCameraPositions = new Vector3[io.numActiveViews];
+                io.previousPreviousWorldSpaceCameraPositions = new Vector3[io.numActiveViews];
+                for (int i = 0; i < io.numActiveViews; i++)
+                {
+                    io.worldSpaceCameraPositions[i] = motionData.worldSpaceCameraPos;
+                    io.previousWorldSpaceCameraPositions[i] = motionData.previousWorldSpaceCameraPos;
+                    io.previousPreviousWorldSpaceCameraPositions[i] = motionData.previousPreviousWorldSpaceCameraPos;
+                }
+                io.projectionMatrices = motionData.projectionStereo;
+                io.previousProjectionMatrices = motionData.previousProjectionStereo;
+                io.previousPreviousProjectionMatrices = motionData.previousPreviousProjectionStereo;
+                io.viewMatrices = motionData.viewStereo;
+                io.previousViewMatrices = motionData.previousViewStereo;
+                io.previousPreviousViewMatrices = motionData.previousPreviousViewStereo;
+                io.resetHistory = cameraData.resetHistory;
+                // TODO (Apoorva): Maybe we want to support this?
+                // URP supports adding an offset value to the TAA frame index for testing determinism as follows:
+                //     io.frameIndex = Time.frameCount + settings.jitterFrameCountOffset;
+                io.frameIndex = Time.frameCount;
+                io.deltaTime = motionData.deltaTime;
+                io.previousDeltaTime = motionData.lastDeltaTime;
+                io.blueNoiseTextureSet = m_Materials.resources.textures.blueNoise16LTex;
+
+                // The motion scaling feature is only active outside of test environments. If we allowed it to run
+                // during automated graphics tests, the results of each test run would be dependent on system
+                // performance.
+#if LWRP_DEBUG_STATIC_POSTFX
+                io.enableMotionScaling = false;
+#else
+                io.enableMotionScaling = true;
+#endif
+                io.enableHwDrs = false; // URP doesn't support hardware dynamic resolution scaling
+                // Insert the active upscaler's render graph passes
+                postProcessingData.activeUpscaler.RecordRenderGraph(renderGraph, frameData);
+
+                // Update the camera resolution to reflect the upscaled size
+                var desc = io.cameraColor.GetDescriptor(renderGraph);
+                UpdateCameraResolution(renderGraph, cameraData, new Vector2Int(desc.width, desc.height));
+
+                // Use the output texture of upscaling
+                currentSource = io.cameraColor;
+            }
+            else
+#endif
             if (useTemporalAA)
             {
                 if (useSTP)

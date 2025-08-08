@@ -99,6 +99,9 @@ namespace UnityEditor.Rendering.Universal.Tests
             // Setup needed data for the test
             m_CameraData.renderScale = testCase.renderScale;
             m_Camera.targetTexture = (testCase.cameraTargetIsRenderTexture) ? m_RT : null;
+            
+            // Initialize scaledWidth and scaledHeight using the helper function
+            UniversalRenderPipeline.InitializeScaledDimensions(m_Camera, m_CameraData);
 
             var desc = CreateRenderTextureDescriptor();
             CheckDimensions(desc, testCase);
@@ -113,6 +116,9 @@ namespace UnityEditor.Rendering.Universal.Tests
             // Setup needed data for the test
             m_CameraData.renderScale = testCase.renderScale;
             m_Camera.targetTexture = (testCase.cameraTargetIsRenderTexture) ? m_RT : null;
+            
+            // Initialize scaledWidth and scaledHeight using the helper function
+            UniversalRenderPipeline.InitializeScaledDimensions(m_Camera, m_CameraData);
 
             m_CameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor();
 

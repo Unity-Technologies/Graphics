@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (GraphicsSettings.TryGetRenderPipelineSettings<ShaderResources>(out var defaultShaderResources))
             {
-                if (shaders == null || reset) 
+                if (shaders == null || reset)
                     shaders = new ShaderResources();
 
                 shaders.Populate(defaultShaderResources);
@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (GraphicsSettings.TryGetRenderPipelineSettings<TextureResources>(out var defaultTextureResources))
             {
-                if (textures == null || reset) 
+                if (textures == null || reset)
                     textures = new TextureResources();
 
                 textures.Populate(defaultTextureResources);
@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             [ResourcePath("Shaders/PostProcessing/FinalPost.shader")]
             public Shader finalPostPassPS;
-            
+
 #if UNITY_EDITOR
             /// <summary>
             /// Copies all fields and resources from a source <see cref="ShaderResources"/> object into this object.
@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.Universal
             /// <summary>
             /// Pre-baked Blue noise textures.
             /// </summary>
-            [ResourceFormattedPaths("Textures/BlueNoise16/L/LDR_LLL1_{0}.png", 0, 32)]
+            // [ResourceFormattedPaths("Textures/BlueNoise16/L/LDR_LLL1_{0}.png", 0, 32)]
             public Texture2D[] blueNoise16LTex;
 
             /// <summary>
@@ -263,7 +263,7 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             [ResourcePath("Textures/SMAA/SearchTex.tga")]
             public Texture2D smaaSearchTex;
-            
+
 #if UNITY_EDITOR
             /// <summary>
             /// Copies all fields and resources from a source <see cref="TextureResources"/> object into this object.
