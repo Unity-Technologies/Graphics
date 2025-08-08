@@ -88,8 +88,38 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return cached;
         }
 
+        void HandleExtendedFeatureFlags()
+        {
+            for (int nativePassIndex = 0; nativePassIndex < contextData.nativePassData.Length; nativePassIndex++)
+            {
+                int firstNativeSubPass = contextData.nativePassData[nativePassIndex].firstNativeSubPass;
+                // Does this native pass have any sub passes.
+                if (firstNativeSubPass >= 0)
+                {
+                    int firstGraphPass = contextData.nativePassData[nativePassIndex].firstGraphPass;
+                    int graphPassIndex = 0;
+                    for (int nativeSubPassIndex = 0; nativeSubPassIndex < contextData.nativePassData[nativePassIndex].numNativeSubPasses; nativeSubPassIndex++)
+                    {
+                        SubPassFlags tilePropertiesFlags = SubPassFlags.None;
+                        // Iterate over all graph passes that got merged into this sub pass
+                        while ((graphPassIndex < contextData.nativePassData[nativePassIndex].numGraphPasses) && (contextData.passData[graphPassIndex + firstGraphPass].nativeSubPassIndex == nativeSubPassIndex))
+                        {
+                            if (contextData.passData[graphPassIndex + firstGraphPass].extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.TileProperties))
+                            {
+                                tilePropertiesFlags |= SubPassFlags.TileProperties;
+                            }
+                            graphPassIndex++;
+                        }
+                        contextData.nativeSubPassData.ElementAt(firstNativeSubPass + nativeSubPassIndex).flags |= tilePropertiesFlags;
+                    }
+                }
+            }
+        }
+
         public void Compile(RenderGraphResourceRegistry resources)
         {
+            ValidatePasses();
+
             SetupContextData(resources);
 
             BuildGraph();
@@ -97,6 +127,8 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             CullUnusedRenderPasses();
 
             TryMergeNativePasses();
+
+            HandleExtendedFeatureFlags();
 
             FindResourceUsageRanges();
 
@@ -129,6 +161,26 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             NRPRGComp_ExecuteInitializeResources,
             NRPRGComp_ExecuteBeginRenderpassCommand,
             NRPRGComp_ExecuteDestroyResources,
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void ValidatePasses()
+        {
+            if (RenderGraph.enableValidityChecks)
+            { 
+                int tilePropertiesPassIndex = -1;
+                for (int passId = 0; passId < graph.m_RenderPasses.Count; passId++)
+                {
+                    if (graph.m_RenderPasses[passId].extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.TileProperties))
+                    {
+                        if (tilePropertiesPassIndex > -1)
+                        {
+                            throw new Exception($"ExtendedFeatureFlags.TileProperties can only be set once per render graph (render graph {graph.debugName}, pass {graph.m_RenderPasses[passId].name}), previously set at (pass {graph.m_RenderPasses[tilePropertiesPassIndex].name}).");
+                        }
+                        tilePropertiesPassIndex = passId;
+                    }
+                }
+            }
         }
 
         void SetupContextData(RenderGraphResourceRegistry resources)
@@ -768,7 +820,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         internal static bool IsSameNativeSubPass(ref SubPassDescriptor a, ref SubPassDescriptor b)
         {
-            if (a.flags != b.flags
+            const SubPassFlags k_SubPassMergeIgnoreMask = ~SubPassFlags.TileProperties;
+            // Mask out the flags we can ignore.
+            SubPassFlags aflags = a.flags & k_SubPassMergeIgnoreMask;
+            SubPassFlags bflags = b.flags & k_SubPassMergeIgnoreMask;
+            if (aflags != bflags
                 || a.colorOutputs.Length != b.colorOutputs.Length
                 || a.inputs.Length != b.inputs.Length)
             {

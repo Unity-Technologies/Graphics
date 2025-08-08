@@ -110,6 +110,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public int passId; // Index of self in the passData list, can we calculate this somehow in c#? would use offsetof in c++
         public RenderGraphPassType type;
         public bool hasFoveatedRasterization;
+        public ExtendedFeatureFlags extendedFeatureFlags;
         public int tag; // Arbitrary per node int used by various graph analysis tools
 
         public ShadingRateFragmentSize shadingRateFragmentSize;
@@ -163,6 +164,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             asyncCompute = pass.enableAsyncCompute;
             hasSideEffects = !pass.allowPassCulling;
             hasFoveatedRasterization = pass.enableFoveatedRasterization;
+            extendedFeatureFlags = pass.extendedFeatureFlags;
             mergeState = PassMergeState.None;
             nativePassIndex = -1;
             nativeSubPassIndex = -1;
@@ -211,7 +213,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             asyncCompute = pass.enableAsyncCompute;
             hasSideEffects = !pass.allowPassCulling;
             hasFoveatedRasterization = pass.enableFoveatedRasterization;
-
+            extendedFeatureFlags = pass.extendedFeatureFlags;
             mergeState = PassMergeState.None;
             nativePassIndex = -1;
             nativeSubPassIndex = -1;
@@ -561,6 +563,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         FRStateMismatch, // One pass is using foveated rendering and the other not
         DifferentShadingRateImages, // The next pass uses a different shading rate image (and we only allow one in a whole NRP)
         DifferentShadingRateStates, // The next pass uses different shading rate states (and we only allow one set in a whole NRP)
+        ExtendedFeatureFlagsIncompatible, // Handles the case where flags added via SetExtendedFeatureFlags are not compatible
         PassMergingDisabled, // Wasn't merged because pass merging is disabled
         Merged, // I actually got merged
 
@@ -596,6 +599,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             "The next pass uses a different foveated rendering state",
             "The next pass uses a different shading rate image",
             "The next pass uses a different shading rate rendering state",
+            "Extended feature flags are incompatible",
             "Pass merging is disabled so this pass was not merged",
             "The next pass got merged into this pass.",
         };
@@ -628,6 +632,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public bool hasFoveatedRasterization;
         public bool hasShadingRateImage => shadingRateImageIndex >= 0;
         public bool hasShadingRateStates;
+        public ExtendedFeatureFlags extendedFeatureFlags;
 
         public ShadingRateFragmentSize shadingRateFragmentSize;
         public ShadingRateCombiner primitiveShadingRateCombiner;
@@ -650,6 +655,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             samples = pass.fragmentInfoSamples;
             hasDepth = pass.fragmentInfoHasDepth;
             hasFoveatedRasterization = pass.hasFoveatedRasterization;
+            extendedFeatureFlags = pass.extendedFeatureFlags;
 
             loadAudit = new FixedAttachmentArray<LoadAudit>();
             storeAudit = new FixedAttachmentArray<StoreAudit>();
@@ -760,6 +766,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
+        static bool AreExtendedFeatureFlagsCompatible(ExtendedFeatureFlags flags0, ExtendedFeatureFlags flags1)
+        {
+            // Which of the newly added flags are incompatible? 
+            return true;
+        }
+
         // This function does not modify the current render graph state, it only evaluates and returns the correct PassBreakAudit
         public static PassBreakAudit CanMerge(CompilerContextData contextData, int activeNativePassId, int passIdToMerge)
         {
@@ -808,6 +820,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (nativePass.hasFoveatedRasterization != passToMerge.hasFoveatedRasterization)
                 {
                     return new PassBreakAudit(PassBreakReason.FRStateMismatch, passIdToMerge);
+                }
+
+                if (!AreExtendedFeatureFlagsCompatible(nativePass.extendedFeatureFlags, passToMerge.extendedFeatureFlags))
+                {
+                    return new PassBreakAudit(PassBreakReason.ExtendedFeatureFlagsIncompatible, passIdToMerge);
                 }
 
                 // Different shading rate images; only allow one per NRP
@@ -1211,7 +1228,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 // If depth ends up being bound only because of merging
                 // Set SubPassFlags to best match the pass we are trying to merge with
-                subPassDesc.flags = depthFlag;
+                subPassDesc.flags |= depthFlag;
 
                 // Updating subpass color outputs
                 for (int i = 0; i < subPassDesc.colorOutputs.Length; i++)

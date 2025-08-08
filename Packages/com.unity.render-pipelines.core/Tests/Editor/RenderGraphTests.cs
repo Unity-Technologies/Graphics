@@ -941,6 +941,137 @@ namespace UnityEngine.Rendering.Tests
             }
         }
 
+        [Test]
+        public void RenderGraphTilePropertiesWorksWithDepthOnlyReadFlag()
+        {
+            const int kWidth = 4;
+            const int kHeight = 4;
+          
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle depthTexture = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.D16_UNorm });
+            // no depth with Tile Properties
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.TileProperties);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // with depth
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthTexture, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+            // EXpected result is that ReadOnlyDepth is added to subpass 0 to be able to merge subpass 0 and 1 into the same render pass.
+            // TileProperties flag should be added to subpass 0 and not interfere with merging.
+            Assert.AreEqual(1, passes.Count); // 1 native Pass
+            Assert.AreEqual(2, passes[0].numNativeSubPasses);
+            Assert.True(result.contextData.nativeSubPassData[0].flags.HasFlag(SubPassFlags.ReadOnlyDepth));
+            Assert.True(result.contextData.nativeSubPassData[0].flags.HasFlag(SubPassFlags.TileProperties));
+        }
+
+        [Test]
+        public void RenderGraphTilePropertiesWorksWhenItsLast()
+        {
+            const int kWidth = 4;
+            const int kHeight = 4;
+
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle depthTexture = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.D16_UNorm });
+            
+            // no Tile Properties
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // with Tile Properties
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.TileProperties);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();            
+            // TilePrperties flag should be added to subpass 0 and not interfere with merging.
+            Assert.AreEqual(1, passes.Count); // 1 native Pass
+            Assert.True(result.contextData.nativeSubPassData[0].flags.HasFlag(SubPassFlags.TileProperties));
+        }
+
+        [Test]
+        public void RenderGraphTilePropertiesWorksWhenItsMiddle()
+        {
+            const int kWidth = 4;
+            const int kHeight = 4;
+
+            TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+            TextureHandle depthTexture = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.D16_UNorm });
+
+            // no tile properties
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // with Tile Properties
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.TileProperties);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // no tile properties
+            using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.SetRenderAttachment(texture0, 0, AccessFlags.Write);
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+            // TilePrperties flag should be added to subpass 0 and not interfere with merging.
+            Assert.AreEqual(1, passes.Count); // 1 native Pass
+            Assert.True(result.contextData.nativeSubPassData[0].flags.HasFlag(SubPassFlags.TileProperties));
+        }
+
+        [Test]
+        public void RenderGraphTilePropertiesCanOnlyBeSetForOnePass()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                {
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.TileProperties);
+                }
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                {
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.TileProperties);
+                }
+                LogAssert.Expect(LogType.Error, "Render Graph Execution error");
+                LogAssert.Expect(LogType.Exception, "Exception: ExtendedFeatureFlags.TileProperties can only be set once per render graph (render graph RenderGraph, pass TestPass1), previously set at (pass TestPass0).");
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+            };
+            m_Camera.Render();
+        }
+
         /*
         // Disabled for now as version management is not exposed to user code
         [Test]

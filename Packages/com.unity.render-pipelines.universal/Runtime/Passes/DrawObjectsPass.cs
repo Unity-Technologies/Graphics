@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, uint batchLayerMask = uint.MaxValue)
+        internal void Render(RenderGraph renderGraph, ContextContainer frameData, TextureHandle colorTarget, TextureHandle depthTarget, TextureHandle mainShadowsTexture, TextureHandle additionalShadowsTexture, uint batchLayerMask = uint.MaxValue, bool isMainOpaquePass = false)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
@@ -330,11 +330,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 builder.AllowGlobalStateModification(true);
-
                 if (cameraData.xr.enabled)
                 {
                     bool passSupportsFoveation = cameraData.xrUniversal.canFoveateIntermediatePasses || resourceData.isActiveTargetBackBuffer;
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && passSupportsFoveation);
+#if ENABLE_VR && ENABLE_XR_MODULE && PLATFORM_ANDROID
+                    if (isMainOpaquePass)
+                    {
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.TileProperties);
+                    }
+#endif
                 }
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>

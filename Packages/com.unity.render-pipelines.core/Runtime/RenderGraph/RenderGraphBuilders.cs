@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         RenderGraph m_RenderGraph;
         bool m_Disposed;
 
-
         public RenderGraphBuilders()
         {
             m_RenderPass = null;
@@ -541,6 +540,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public void SetShadingRateCombiner(ShadingRateCombinerStage stage, ShadingRateCombiner combiner)
         {
             m_RenderPass.SetShadingRateCombiner(stage, combiner);
+        }
+
+        public void SetExtendedFeatureFlags(ExtendedFeatureFlags extendedFeatureFlags)
+        {
+            m_RenderPass.SetExtendedFeatureFlags(extendedFeatureFlags);
         }
     }
 }

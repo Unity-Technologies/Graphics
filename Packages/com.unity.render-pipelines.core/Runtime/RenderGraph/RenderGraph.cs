@@ -48,6 +48,18 @@ namespace UnityEngine.Rendering.RenderGraphModule
         ReadWrite = Read | Write
     }
 
+    /// <summary>
+    /// Expresses additional pass properties that can be used to perform optimizations on some platforms.
+    /// </summary>
+    [Flags]
+    public enum ExtendedFeatureFlags
+    {
+        ///<summary>Default state with no extended features enabled.</summary>
+        None = 0,
+        ///<summary>On Meta XR, this flag can be set for the pass that performs the most 3D rendering to achieve better performance.</summary>
+        TileProperties = 1 << 0,
+    }
+
     [Flags]
     internal enum RenderGraphState
     {
@@ -318,6 +330,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             public bool culledByRendererList;
             public bool hasSideEffect;
             public bool enableFoveatedRasterization;
+            public ExtendedFeatureFlags extendedFeatureFlags;
             public bool hasShadingRateImage;
             public bool hasShadingRateStates;
 
@@ -329,6 +342,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 enableAsyncCompute = pass.enableAsyncCompute;
                 allowPassCulling = pass.allowPassCulling;
                 enableFoveatedRasterization = pass.enableFoveatedRasterization;
+                extendedFeatureFlags = ExtendedFeatureFlags.None;
                 hasShadingRateImage = pass.hasShadingRateImage && !pass.enableFoveatedRasterization;
                 hasShadingRateStates = pass.hasShadingRateStates && !pass.enableFoveatedRasterization;
 

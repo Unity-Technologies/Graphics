@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
         public bool allowPassCulling { get; protected set; }
         public bool allowGlobalState { get; protected set; }
         public bool enableFoveatedRasterization { get; protected set; }
+        public ExtendedFeatureFlags extendedFeatureFlags { get; protected set; }
 
         // Before using the AccessFlags use resourceHandle.isValid()
         // to make sure that the data in the colorBuffer/fragmentInput/randomAccessResource buffers are up to date
@@ -588,6 +589,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
                         break;
                 }
             }
+        }
+
+        public void SetExtendedFeatureFlags(ExtendedFeatureFlags value)
+        {
+            extendedFeatureFlags |= value;
         }
     }
 

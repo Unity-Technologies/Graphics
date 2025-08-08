@@ -1203,7 +1203,8 @@ namespace UnityEngine.Rendering.Universal
                             resourceData.activeDepthTexture,
                             resourceData.mainShadowsTexture,
                             resourceData.additionalShadowsTexture,
-                            batchLayerMask);
+                            batchLayerMask,
+                            true);
                     }
 
                     if (needsOccluderUpdate)
