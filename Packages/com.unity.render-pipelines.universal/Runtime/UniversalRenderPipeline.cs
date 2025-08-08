@@ -1868,17 +1868,8 @@ namespace UnityEngine.Rendering.Universal
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
-
-            if (renderingMode.HasValue)
-            {
-                lightData.reflectionProbeBlending = settings.ShouldUseReflectionProbeBlending(renderingMode.Value);
-                lightData.reflectionProbeAtlas = settings.ShouldUseReflectionProbeAtlasBlending(renderingMode.Value);
-            }
-            else
-            {
-                lightData.reflectionProbeBlending = false;
-                lightData.reflectionProbeAtlas = false;
-            }
+            lightData.reflectionProbeBlending = settings.ShouldUseReflectionProbeBlending();
+            lightData.reflectionProbeAtlas = renderingMode.HasValue ? settings.ShouldUseReflectionProbeAtlasBlending(renderingMode.Value) : false;
 
             return lightData;
         }
@@ -1988,13 +1979,10 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.getPerObjectLightFlags);
 
+            bool useReflectionProbeBlending = settings.ShouldUseReflectionProbeBlending();
             bool isForwardPlus = false;
-            bool useReflectionProbeBlending = false;
             if (renderingMode.HasValue)
-            {
                 isForwardPlus = renderingMode.Value == RenderingMode.ForwardPlus;
-                useReflectionProbeBlending = settings.ShouldUseReflectionProbeBlending(renderingMode.Value);
-            }
 
             var configuration = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 

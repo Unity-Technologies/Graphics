@@ -661,7 +661,7 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && urpAsset.useRenderingLayers);
             rsd.needsGBufferAccurateNormals       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && (universalRendererData.renderingMode == RenderingMode.Deferred || universalRendererData.renderingMode == RenderingMode.DeferredPlus) && universalRendererData.accurateGbufferNormals);
             rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.needsDeferredLighting);
-            rsd.needsReflectionProbeBlending      = urpAsset.ShouldUseReflectionProbeBlending(rsd.renderingMode);
+            rsd.needsReflectionProbeBlending      = urpAsset.ShouldUseReflectionProbeBlending();
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
             rsd.needsReflectionProbeAtlas         = urpAsset.ShouldUseReflectionProbeAtlasBlending(rsd.renderingMode) && rsd.needsClusterLightLoop;
             rsd.needsProcedural                   = NeedsProceduralKeyword(ref rsd);
@@ -960,6 +960,9 @@ namespace UnityEditor.Rendering.Universal
             spd.stripScreenCoordOverride = stripScreenCoord;
             spd.stripBicubicLightmapSampling = stripBicubicLightmap;
             spd.stripReflectionProbeRotation = stripReflectionProbeRotation;
+            spd.stripReflectionProbeBlending = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBlending);
+            spd.stripReflectionProbeBoxProjection = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBoxProjection);
+            spd.stripReflectionProbeAtlas = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeAtlas);
             spd.stripScreenSpaceIrradiance = true; // This is currently not exposed to the user nor used by anything internal.
 
             // Rendering Modes
