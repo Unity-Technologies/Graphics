@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace UnityEditor.Rendering.Tools.Tests
                             NotAvailableForUpgradeReason = ""
                         }
                     },
-                    ExpectedLog = "Testing\r\nUpgrading material:  using shader: Standard\r\n"
+                    ExpectedLog = "Testing" + Environment.NewLine + "Upgrading material:  using shader: Standard" + Environment.NewLine
                 }).SetName("Material is upgradable");
 
                 // Case 2: Not upgradable
@@ -57,7 +58,7 @@ namespace UnityEditor.Rendering.Tools.Tests
                             NotAvailableForUpgradeReason = MaterialUpgrader.GenerateReason(info2)
                         }
                     },
-                    ExpectedLog = $"Testing\r\nSkipping material:  - {MaterialUpgrader.GenerateReason(info2)}\r\n"
+                    ExpectedLog = "Testing" + Environment.NewLine + $"Skipping material:  - {MaterialUpgrader.GenerateReason(info2)}" + Environment.NewLine
                 }).SetName("Material is not upgradable");
 
                 // Case 3: Ignored
