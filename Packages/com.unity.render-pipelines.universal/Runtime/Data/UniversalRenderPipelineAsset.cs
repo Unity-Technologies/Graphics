@@ -9,6 +9,7 @@ using System.ComponentModel;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -529,17 +530,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = AdditionalLightsDefaultShadowResolutionTierHigh;
 
         // Reflection Probes
-#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
-        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.ReflectionProbeBlending)]
-#endif
         [SerializeField] bool m_ReflectionProbeBlending = false;
-#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
-        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.ReflectionProbeBoxProjection)]
-#endif
         [SerializeField] bool m_ReflectionProbeBoxProjection = false;
-#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_ATLAS
-        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.ReflectionProbeAtlas)]
-#endif
         [SerializeField] bool m_ReflectionProbeAtlas = true;
 
         // Shadows Settings
@@ -1360,6 +1352,15 @@ namespace UnityEngine.Rendering.Universal
             internal set => m_ReflectionProbeBlending = value;
         }
 
+        internal bool ShouldUseReflectionProbeBlending()
+        {
+            // The probe blending with atlas code path is always force enabled with GPUResidentDrawer since that is the only path supported here.
+            if (gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
+                return true;
+
+            return reflectionProbeBlending;
+        }
+
         /// <summary>
         /// Specifies if this <c>UniversalRenderPipelineAsset</c> should allow box projection for the reflection probes in the scene.
         /// </summary>
@@ -1376,6 +1377,20 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ReflectionProbeAtlas;
             internal set => m_ReflectionProbeAtlas = value;
+        }
+
+        internal bool ShouldUseReflectionProbeAtlasBlending(RenderingMode renderingMode)
+        {
+            var useProbeBlending = ShouldUseReflectionProbeBlending();
+
+            // The probe blending with atlas code path is always force enabled with GPUResidentDrawer since that is the only path supported here.
+            if (gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
+            {
+                Assert.IsTrue(useProbeBlending);
+                return true;
+            }
+
+            return useProbeBlending && (reflectionProbeAtlas || renderingMode == RenderingMode.DeferredPlus);
         }
 
         /// <summary>

@@ -355,11 +355,16 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginDisabledGroup(!serialized.reflectionProbeBlendingProp.boolValue);
             EditorGUILayout.PropertyField(serialized.reflectionProbeAtlasProp, Styles.reflectionProbeAtlasText);
             EditorGUI.EndDisabledGroup();
+
             // Disable probeAtlas when probeBlending is off.
             if (!serialized.reflectionProbeBlendingProp.boolValue)
                 serialized.reflectionProbeAtlasProp.boolValue = false;
-            else if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled && !serialized.reflectionProbeAtlasProp.boolValue)
-                EditorGUILayout.HelpBox(Styles.reflectionProbeAtlasGpuResidentDrawerWarningText.text, MessageType.Warning, true);
+
+            if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
+            {
+                if (!serialized.reflectionProbeBlendingProp.boolValue || !serialized.reflectionProbeAtlasProp.boolValue)
+                    EditorGUILayout.HelpBox(Styles.reflectionProbeBlendingGpuResidentDrawerWarningText.text, MessageType.Warning, true);
+            }
 
             EditorGUI.indentLevel--;
 
