@@ -142,8 +142,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
 
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
-        internal bool needTransparencyPass { get { return !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;; } }
+#if ENABLE_ADAPTIVE_PERFORMANCE
+        internal bool needTransparencyPass { get { return (UniversalRenderPipeline.asset?.useAdaptivePerformance == false) || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;; } }
 #endif
         /// <summary>Property to control the depth priming behavior of the forward rendering path.</summary>
         public DepthPrimingMode depthPrimingMode { get { return m_DepthPrimingMode; } set { m_DepthPrimingMode = value; } }
@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
             if (needTransparencyPass)
 #endif
             {
@@ -826,7 +826,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
                 // TODO: Transparents might have force Z write option in the future.
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
                 if (!needTransparencyPass)
                     return;
 #endif
@@ -1475,7 +1475,7 @@ namespace UnityEngine.Rendering.Universal
             m_ProbeVolumeDebugPass.Setup(m_DepthTexture, m_NormalsTexture);
             EnqueuePass(m_ProbeVolumeDebugPass);
 #endif
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
             if (needTransparencyPass)
 #endif
             {

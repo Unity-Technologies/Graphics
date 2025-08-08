@@ -604,11 +604,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER")]
+        [Conditional("ENABLE_ADAPTIVE_PERFORMANCE")]
         private void ChangeAdaptivePerformanceDrawDistances()
         {
-#if ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER
-            if (UniversalRenderPipeline.asset.useAdaptivePerformance)
+#if ENABLE_ADAPTIVE_PERFORMANCE
+            if (UniversalRenderPipeline.asset?.useAdaptivePerformance == true)
             {
                 if (m_DecalCreateDrawCallSystem != null)
                 {

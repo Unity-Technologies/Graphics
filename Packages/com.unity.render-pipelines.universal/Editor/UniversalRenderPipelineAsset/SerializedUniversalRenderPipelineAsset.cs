@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty smallMeshScreenPercentage { get; }
         public SerializedProperty gpuResidentDrawerEnableOcclusionCullingInCameras { get; }
 
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
         public SerializedProperty useAdaptivePerformance { get; }
 #endif
         public UniversalRenderPipelineAsset asset { get; }
@@ -184,7 +184,7 @@ namespace UnityEditor.Rendering.Universal
             smallMeshScreenPercentage = serializedObject.FindProperty("m_SmallMeshScreenPercentage");
             gpuResidentDrawerEnableOcclusionCullingInCameras = serializedObject.FindProperty("m_GPUResidentDrawerEnableOcclusionCullingInCameras");
 
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
 #endif
             string Key = "Universal_Shadow_Setting_Unit:UI_State";

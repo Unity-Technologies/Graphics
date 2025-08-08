@@ -687,8 +687,8 @@ namespace UnityEngine.Rendering.Universal
             var frameData = GetRenderer(camera, additionalCameraData).frameData;
             var cameraData = CreateCameraData(frameData, camera, additionalCameraData);
             InitializeAdditionalCameraData(camera, additionalCameraData, true, isLastBaseCamera, cameraData);
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-            if (asset.useAdaptivePerformance)
+#if ENABLE_ADAPTIVE_PERFORMANCE
+            if (asset?.useAdaptivePerformance == true)
                 ApplyAdaptivePerformance(cameraData);
 #endif
 
@@ -851,8 +851,8 @@ namespace UnityEngine.Rendering.Universal
                 RenderingData legacyRenderingData = new RenderingData(frameData);
                 CheckAndApplyDebugSettings(ref legacyRenderingData);
 
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                if (asset.useAdaptivePerformance)
+#if ENABLE_ADAPTIVE_PERFORMANCE
+                if (asset?.useAdaptivePerformance == true)
                     ApplyAdaptivePerformance(frameData);
 #endif
 
@@ -1071,8 +1071,8 @@ namespace UnityEngine.Rendering.Universal
                     cameraXRSettings.viewOffset = (uint)baseCameraData.xr.multipassId;
                     VFX.VFXManager.PrepareCamera(baseCamera, cameraXRSettings);
 #endif
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                    if (asset.useAdaptivePerformance)
+#if ENABLE_ADAPTIVE_PERFORMANCE
+                    if (asset?.useAdaptivePerformance == true)
                         ApplyAdaptivePerformance(baseCameraData);
 #endif
                     // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
@@ -2353,7 +2353,7 @@ namespace UnityEngine.Rendering.Universal
             hdrOutputParameters = new Vector4(eetfMode, hueShift, 0.0f, 0.0f);
         }
 
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
         static void ApplyAdaptivePerformance(UniversalCameraData cameraData)
         {
             var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;

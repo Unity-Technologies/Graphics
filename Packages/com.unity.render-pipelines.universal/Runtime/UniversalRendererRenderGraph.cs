@@ -690,7 +690,7 @@ namespace UnityEngine.Rendering.Universal
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle, uint.MaxValue);
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingTransparents);
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
             if (needTransparencyPass)
 #endif
             m_RenderTransparentForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle, uint.MaxValue);
@@ -1258,7 +1258,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
             if (needTransparencyPass)
 #endif
             {
