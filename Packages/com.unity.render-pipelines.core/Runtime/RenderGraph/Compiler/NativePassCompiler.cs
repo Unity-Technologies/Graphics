@@ -748,21 +748,24 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             foreach (ref readonly var res in subPass.FirstUsedResources(contextData))
                             {
                                 ref readonly var resInfo = ref contextData.UnversionedResourceData(res);
+                                bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
+
+                                // This resource is read for the first time as a regular texture and not as a framebuffer attachment
+                                // so if requested we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
+                                resources.forceManualClearOfResource = !usedAsFragmentThisPass;
+
                                 if (!resInfo.memoryLess)
                                 {
                                     if (!resInfo.isImported)
                                     {
-                                        bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
-
                                         // This resource is read for the first time as a regular texture and not as a framebuffer attachment
                                         // so we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
                                         // TODO: Should this be a performance warning?? Maybe rare enough in practice?
-                                        resources.forceManualClearOfResource = !usedAsFragmentThisPass;
                                         resources.CreatePooledResource(rgContext, res.iType, res.index);
                                     }
                                     else // Imported resource
                                     {
-                                        if (resInfo.clear)
+                                        if (resInfo.clear && resources.forceManualClearOfResource)
                                             resources.ClearResource(rgContext, res.iType, res.index);
                                     }
                                 }
