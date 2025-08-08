@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShortcutManagement;
 using UnityEditorInternal;
 using UnityEditor.EditorTools;
 using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.RenderPipelines.Core;
 using UnityEngine.Rendering.Universal;
 using static UnityEditorInternal.EditMode;
-
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -19,6 +20,11 @@ namespace UnityEditor.Rendering.Universal
     {
         const float k_Limit = 100000f;
         const float k_LimitInv = 1f / k_Limit;
+
+        static readonly GUIContent k_NewDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Decal material.");
+        static readonly string k_NewDecalText = "URP Decal";
+        static readonly string k_NewSGDecalText = "ShaderGraph Decal";
+        static readonly string k_DefaultDecalShaderGraphTemplatePath = "Packages/com.unity.render-pipelines.universal/Shaders/Decal.shadergraph";
 
         static Color fullColor
         {
@@ -715,15 +721,54 @@ namespace UnityEditor.Rendering.Universal
             newFieldRect.x = rect.xMax + 2;
             newFieldRect.width = k_NewFieldWidth;
 
-            if (GUI.Button(newFieldRect, k_NewMaterialButtonText))
+            if (!EditorGUI.DropdownButton(newFieldRect, k_NewDecalMaterialButtonText, FocusType.Keyboard))
+                return;
+
+            GenericMenu menu = new GenericMenu();
+
+            menu.AddItem(new GUIContent(k_NewDecalText), false, () => CreateDefaultDecalMaterial(targets));
+            menu.AddItem(new GUIContent(k_NewSGDecalText), false, () => CreateDecalMaterialFromTemplate(targets, k_DefaultDecalShaderGraphTemplatePath));
+
+            // For later introduction of SG Filtered Template Browser
+            //menu.AddItem(new GUIContent(k_NewSGDecalFromTemplateText), false, () => CreateDecalMaterialFromTemplate(targets));
+
+            menu.DropDown(newFieldRect);
+        }
+
+        static void CreateDecalMaterialFromTemplate(UnityEngine.Object[] decalProjectors, string templatePath = null)
+        {
+            CreateShaderGraph.CreateGraphAndMaterialFromTemplate((material) =>
             {
-                string materialName = k_NewDecalMaterialText + ".mat";
-                var materialIcon = AssetPreview.GetMiniTypeThumbnail(typeof(Material));
-                var action = ScriptableObject.CreateInstance<DoCreateDecalDefaultMaterial>();
-                action.decalProjector = target as DecalProjector;
-                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, materialName, materialIcon, null);
+                SetDecalMaterial(decalProjectors, material);
+            },
+            templatePath,
+            $"New {k_NewSGDecalText}");
+        }
+
+        static void CreateDefaultDecalMaterial(UnityEngine.Object[] decalProjectors)
+        {
+            string materialName = "New " + k_NewDecalText;
+
+            AssetCreationUtil.CreateMaterial(
+                materialName,
+                (material) =>
+                {
+                    SetDecalMaterial(decalProjectors, material);
+                },
+                DecalProjector.defaultMaterial.shader
+            );
+        }
+
+        static void SetDecalMaterial(UnityEngine.Object[] decalProjectors, Material material)
+        {
+            var selection = new List<GameObject>();
+            foreach (DecalProjector decalProjector in decalProjectors)
+            {
+                decalProjector.material = material;
+                EditorUtility.SetDirty(decalProjector);
+                selection.Add(decalProjector.gameObject);
             }
-                
+            Selection.objects = selection.ToArray();
         }
 
         [Shortcut("URP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
@@ -821,19 +866,6 @@ namespace UnityEditor.Rendering.Universal
             private const string IconName = "MoveTool";
 
             protected DecalProjectorEditTool() : base(Description, Mode, IconName) { }
-        }
-    }
-
-    class DoCreateDecalDefaultMaterial : ProjectWindowCallback.EndNameEditAction
-    {
-        public DecalProjector decalProjector;
-        public override void Action(int instanceId, string pathName, string resourceFile)
-        {
-            var shader = DecalProjector.defaultMaterial.shader;
-            var material = new Material(shader);
-            AssetDatabase.CreateAsset(material, pathName);
-            ProjectWindowUtil.ShowCreatedAsset(material);
-            decalProjector.material = material;
         }
     }
 }

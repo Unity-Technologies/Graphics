@@ -11,8 +11,8 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditorInternal.EditMode;
 using RenderingLayerMask = UnityEngine.RenderingLayerMask;
+using UnityEditor.RenderPipelines.Core;
 using UnityEditor.Rendering.Utilities;
-
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -23,16 +23,11 @@ namespace UnityEditor.Rendering.HighDefinition
         const float k_Limit = 100000;
         const float k_LimitInv = 1 / k_Limit;
 
+        static readonly GUIContent k_NewDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Decal material.");
+        static readonly string k_NewDecalText = "HDRP Decal";
+        static readonly string k_NewSGDecalText = "ShaderGraph Decal";
+        static readonly string k_DefaultDecalShaderGraphTemplatePath = "Packages/com.unity.shadergraph/GraphTemplates/Cross Pipeline/0_Decal Simple.shadergraph";
 
-        static public readonly GUIContent k_NewDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Decal material.");
-        static public readonly string k_NewDecalText = "HDRP Decal";
-        static public readonly string k_NewSGDecalText = "ShaderGraph Decal";
-
-        internal enum DefaultDecal
-        {
-            HDRPDecal,
-            SGDecal
-        }
         static Color fullColor
         {
             get
@@ -871,35 +866,51 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             GenericMenu menu = new GenericMenu();
-            menu.AddItem(new GUIContent(k_NewDecalText), false, () => CreateDefaultDecalMaterial(target as MonoBehaviour, DefaultDecal.HDRPDecal));
-            menu.AddItem(new GUIContent(k_NewSGDecalText), false, () => CreateDefaultDecalMaterial(target as MonoBehaviour, DefaultDecal.SGDecal));
+            menu.AddItem(new GUIContent(k_NewDecalText), false, () => CreateDefaultDecalMaterial(targets));
+            menu.AddItem(new GUIContent(k_NewSGDecalText), false, () => CreateDecalMaterialFromTemplate(targets, k_DefaultDecalShaderGraphTemplatePath));
+
+            // For later introduction of SG Filtered Template Browser
+            //menu.AddItem(new GUIContent(k_NewSGDecalFromTemplateText), false, () => CreateDecalMaterialFromTemplate(targets));
+
             menu.DropDown(newFieldRect);
         }
 
-        public static void CreateDefaultDecalMaterial(MonoBehaviour obj, DefaultDecal defaultDecal)
+        static void CreateDecalMaterialFromTemplate(UnityEngine.Object[] decalProjectors, string templatePath = null)
         {
-            string materialName = "";
-            var materialIcon = AssetPreview.GetMiniTypeThumbnail(typeof(Material));
-
-            var action = ScriptableObject.CreateInstance<DoCreateDecalDefaultMaterial>();
-            action.decalProjector = obj as DecalProjector;
-
-            switch (defaultDecal)
+            CreateShaderGraph.CreateGraphAndMaterialFromTemplate((material) =>
             {
-                case DefaultDecal.HDRPDecal:
-                    materialName = "New " + k_NewDecalText;
-                    action.isShaderGraph = false;
-                    break;
-                case DefaultDecal.SGDecal:
-                    materialName = "New " + k_NewSGDecalText;
-                    action.isShaderGraph = true;
-                    break;
-                default:
-                    Debug.LogError("Decal creation failed.");
-                    break;
-            }
+                SetDecalMaterial(decalProjectors, material);
+            },
+            templatePath,
+            $"New {k_NewSGDecalText}");
+        }
 
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, materialName, materialIcon, null);
+        static void CreateDefaultDecalMaterial(UnityEngine.Object[] decalProjectors)
+        {
+            string materialName = "New " + k_NewDecalText;
+
+            Shader shader = Shader.Find("HDRP/Decal");
+
+            AssetCreationUtil.CreateMaterial(
+                materialName,
+                (material) =>
+                {
+                    SetDecalMaterial(decalProjectors, material);
+                },
+                shader
+            );
+        }
+
+        static void SetDecalMaterial(UnityEngine.Object[] decalProjectors, Material material)
+        {
+            var selection = new List<GameObject>();
+            foreach (DecalProjector decalProjector in decalProjectors)
+            {
+                decalProjector.material = material;
+                EditorUtility.SetDirty(decalProjector);
+                selection.Add(decalProjector.gameObject);
+            }
+            Selection.objects = selection.ToArray();
         }
 
         [Shortcut("HDRP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
@@ -967,35 +978,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             QuitEditMode();
-        }
-    }
-
-    class DoCreateDecalDefaultMaterial : ProjectWindowCallback.EndNameEditAction
-    {
-        public DecalProjector decalProjector;
-        public bool isShaderGraph = false;
-        public override void Action(int instanceId, string pathName, string resourceFile)
-        {
-            string shaderGraphName = AssetDatabase.GenerateUniqueAssetPath(pathName + ".shadergraph");
-            string materialName = AssetDatabase.GenerateUniqueAssetPath(pathName + ".mat");
-            Shader shader = null;
-
-            if (isShaderGraph)
-            {
-                shader = DecalSubTarget.CreateDecalGraphAtPath(shaderGraphName);
-            }
-            else
-            {
-                shader = Shader.Find("HDRP/Decal");
-            }
-
-            if (shader != null)
-            {
-                var material = new Material(shader);
-                AssetDatabase.CreateAsset(material, materialName);
-                ProjectWindowUtil.ShowCreatedAsset(material);
-                decalProjector.material = material;
-            }
         }
     }
 

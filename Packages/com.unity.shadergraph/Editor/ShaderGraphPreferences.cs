@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -31,6 +30,8 @@ namespace UnityEditor.ShaderGraph
             internal const string autoAddRemoveBlocks = "UnityEditor.ShaderGraph.AutoAddRemoveBlocks";
             internal const string allowDeprecatedBehaviors = "UnityEditor.ShaderGraph.AllowDeprecatedBehaviors";
             internal const string zoomStepSize = "UnityEditor.ShaderGraph.ZoomStepSize";
+            internal const string graphTemplateWorkflow = "UnityEditor.ShaderGraph.GraphTemplateWorkflow";
+            internal const string openNewGraphOnCreation = "UnityEditor.ShaderGraph.OpenNewGraphOnCreation";
         }
 
         static bool m_Loaded = false;
@@ -87,6 +88,41 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        internal enum GraphTemplateWorkflow { MaterialVariant, Material }
+        const GraphTemplateWorkflow defaultGraphTemplateWorkflow = GraphTemplateWorkflow.MaterialVariant;
+        static GraphTemplateWorkflow m_GraphTemplateWorkflow = defaultGraphTemplateWorkflow;
+        static GraphTemplateWorkflow graphTemplateWorkflow
+        {
+            get => m_GraphTemplateWorkflow;
+            set => TrySave(ref m_GraphTemplateWorkflow, value, Keys.graphTemplateWorkflow);
+        }
+
+        internal static GraphTemplateWorkflow GetOrPromptGraphTemplateWorkflow()
+        {
+            if (!EditorPrefs.HasKey(Keys.graphTemplateWorkflow))
+            {
+                bool userPref = EditorUtility.DisplayDialog("Shader Graph Preferences", "Should the new Material be made a variant of the Shader Graph sub asset, or a Material using the Shader?\nThis can be changed later in Editor Preferences.", "Material Variant", "Material");
+                TrySave(ref m_GraphTemplateWorkflow, userPref ? GraphTemplateWorkflow.MaterialVariant : GraphTemplateWorkflow.Material, Keys.graphTemplateWorkflow, true);
+            }
+            return m_GraphTemplateWorkflow;
+        }
+
+        static bool m_OpenNewGraphOnCreation = true;
+        static bool openNewGraphOnCreation
+        {
+            get => m_OpenNewGraphOnCreation;
+            set => TrySave(ref m_OpenNewGraphOnCreation, value, Keys.openNewGraphOnCreation);
+        }
+
+        internal static bool GetOrPromptOpenNewGraphOnCreation()
+        {
+            if (!EditorPrefs.HasKey(Keys.openNewGraphOnCreation))
+            {
+                bool userPref = EditorUtility.DisplayDialog("Shader Graph Preferences", "Should Shader Graph assets open upon creation?\nThis can be changed later in Editor Preferences.", "Yes", "No");
+                TrySave(ref m_OpenNewGraphOnCreation, userPref, Keys.openNewGraphOnCreation, true);
+            }
+            return m_OpenNewGraphOnCreation;
+        }
 
         static ShaderGraphPreferences()
         {
@@ -146,6 +182,20 @@ namespace UnityEditor.ShaderGraph
                 {
                     zoomStepSize = zoomStepSizeValue;
                 }
+
+                EditorGUI.BeginChangeCheck();
+                var graphTemplateWorkflowValue = EditorGUILayout.EnumPopup(new GUIContent("Graph Template Workflow", "When creating a new Shadergraph asset from specific menu items, determine if a reference should use a variant of the newly created material sub-asset or the shader itself."), graphTemplateWorkflow);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    graphTemplateWorkflow = (GraphTemplateWorkflow)graphTemplateWorkflowValue;
+                }
+
+                EditorGUI.BeginChangeCheck();
+                var openNewGraphOnCreationValue = EditorGUILayout.Toggle(new GUIContent("Open new Shader Graphs automatically", "Choose whether new ShaderGraph assets should automatically open for editing."), openNewGraphOnCreation);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    openNewGraphOnCreation = openNewGraphOnCreationValue;
+                }
             }
         }
 
@@ -155,12 +205,14 @@ namespace UnityEditor.ShaderGraph
             m_AutoAddRemoveBlocks = EditorPrefs.GetBool(Keys.autoAddRemoveBlocks, true);
             m_AllowDeprecatedBehaviors = EditorPrefs.GetBool(Keys.allowDeprecatedBehaviors, false);
             m_ZoomStepSize = EditorPrefs.GetFloat(Keys.zoomStepSize, defaultZoomStepSize);
+            m_GraphTemplateWorkflow = (GraphTemplateWorkflow)EditorPrefs.GetInt(Keys.graphTemplateWorkflow, (int)defaultGraphTemplateWorkflow);
+            m_OpenNewGraphOnCreation = EditorPrefs.GetBool(Keys.openNewGraphOnCreation, true);
             m_Loaded = true;
         }
 
-        static void TrySave<T>(ref T field, T newValue, string key)
+        static void TrySave<T>(ref T field, T newValue, string key, bool forceSave = false)
         {
-            if (field.Equals(newValue))
+            if (field.Equals(newValue) && !forceSave)
                 return;
 
             if (typeof(T) == typeof(float))
@@ -171,6 +223,8 @@ namespace UnityEditor.ShaderGraph
                 EditorPrefs.SetBool(key, (bool)(object)newValue);
             else if (typeof(T) == typeof(string))
                 EditorPrefs.SetString(key, (string)(object)newValue);
+            else if (typeof(T).IsEnum)
+                EditorPrefs.SetInt(key, (int)(object)newValue);
 
             field = newValue;
         }
