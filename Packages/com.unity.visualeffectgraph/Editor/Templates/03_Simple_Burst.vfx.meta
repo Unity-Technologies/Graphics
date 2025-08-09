@@ -2,13 +2,16 @@ fileFormatVersion: 2
 guid: 7e41bcd00bd04254eb3028534f7c86bb
 VisualEffectImporter:
   externalObjects: {}
-  serializedVersion: 1
+  serializedVersion: 2
   template:
     name: Simple Burst
     category: Built-in
-    description: A system that loops infinitely, creating a burst of particles in a randomized sphere direction. This starting template can be adjusted to create effects such as hits, impacts, explosions, sparks, etc.
+    description: A system that loops infinitely, creating a burst of particles in
+      a randomized sphere direction. This starting template can be adjusted to create
+      effects such as hits, impacts, explosions, sparks, etc.
     icon: {fileID: 2800000, guid: 521a2f1ecfc48fe41bb234842f8c93cc, type: 3}
     thumbnail: {fileID: 2800000, guid: edc22bdb6d4484a4e87b7ff5a619008b, type: 3}
+  useAsTemplate: 1
   userData: 
   assetBundleName: 
   assetBundleVariant: 

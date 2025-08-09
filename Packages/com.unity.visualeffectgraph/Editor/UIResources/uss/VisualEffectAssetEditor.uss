@@ -1,0 +1,14 @@
+.inspector-header {
+    -unity-font-style: bold;
+    margin: 4px 0;
+    height: 19px;
+    padding-left: 32px;
+    -unity-text-align: middle-left;
+    border-width: 1px 0 0 0;
+    border-color: #1F1F1F;
+    background-color: #323232;
+}
+
+.unity-base-text-field__input--multiline {
+    min-height: 32px;
+}
