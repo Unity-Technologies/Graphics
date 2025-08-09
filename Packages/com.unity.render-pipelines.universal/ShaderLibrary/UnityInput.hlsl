@@ -174,7 +174,12 @@ float4 unity_SpriteColor;
 float4 unity_SpriteProps;
 CBUFFER_END
 
+static const uint unity_RendererUserValue = asuint(unity_RenderingLayer.y);
+
 #endif // UNITY_DOTS_INSTANCING_ENABLED
+
+// The renderer user values are packed in unity_RenderingLayer. So we need a dummy property to be able to use Shader.PropertyToID.
+uint unity_RendererUserValuesPropertyEntry;
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)

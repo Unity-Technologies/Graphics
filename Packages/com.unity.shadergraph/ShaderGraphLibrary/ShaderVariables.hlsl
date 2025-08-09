@@ -135,6 +135,12 @@ CBUFFER_START(UnityPerDraw)
     half4 unity_SpecCube0_HDR;
 CBUFFER_END
 
+// Dummy Renderer User Value static constants to satisfy the shader graph preview mode shader compilation.
+static const uint unity_RendererUserValue;
+
+// The renderer user values are packed in unity_RenderingLayer. So we need a dummy property to be able to use Shader.PropertyToID.
+uint unity_RendererUserValuesPropertyEntry;
+
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoGlobals)
     float4x4 unity_StereoMatrixP[2];
