@@ -714,9 +714,7 @@ namespace UnityEngine.Rendering.Universal
                 if (light.lightType == Light2D.LightType.Point)
                     SetBlendModes(material, BlendMode.One, BlendMode.One);
                 else
-                {
                     SetBlendModes(material, BlendMode.SrcAlpha, BlendMode.One);
-                }
             }
 
             if (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)

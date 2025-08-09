@@ -73,6 +73,22 @@
     half4 _ShapeLightMaskFilter##index;\
     half4 _ShapeLightInvertedFilter##index;
 
+#if USE_SHAPE_LIGHT_TYPE_0
+    SHAPE_LIGHT(0)
+#endif
+
+#if USE_SHAPE_LIGHT_TYPE_1
+    SHAPE_LIGHT(1)
+#endif
+
+#if USE_SHAPE_LIGHT_TYPE_2
+    SHAPE_LIGHT(2)
+#endif
+
+#if USE_SHAPE_LIGHT_TYPE_3
+    SHAPE_LIGHT(3)
+#endif
+
 #if !defined(USE_SHAPE_LIGHT_TYPE_0) && !defined(USE_SHAPE_LIGHT_TYPE_1) && !defined(USE_SHAPE_LIGHT_TYPE_2) && !defined(USE_SHAPE_LIGHT_TYPE_3)
 #define USE_DEFAULT_LIGHT_TYPE 1
 #endif

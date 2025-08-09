@@ -97,12 +97,14 @@ namespace UnityEngine.Rendering.Universal
                 ReloadAllNullProperties();
             }
 #endif
-
+            UnityEngine.RenderAs2DUtil.InitializeCanRenderAs2D();
             return new Renderer2D(this);
         }
 
         internal void Dispose()
         {
+            UnityEngine.RenderAs2DUtil.DisposeCanRenderAs2D();
+
 #if URP_COMPATIBILITY_MODE
             for (var i = 0; i < m_LightBlendStyles.Length; ++i)
                 m_LightBlendStyles[i].renderTargetHandle?.Release();

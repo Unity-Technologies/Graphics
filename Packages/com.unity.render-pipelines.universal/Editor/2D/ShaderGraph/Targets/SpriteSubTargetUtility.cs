@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
+using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Internal;
 using static UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
@@ -117,12 +119,38 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 target.disableTint = evt.newValue;
                 onChange();
             });
+
+            context.AddProperty("Sort 3D as 2D Compatible", new Toggle() { value = target.sort3Das2DCompatible }, (evt) =>
+            {
+                if (Equals(target.sort3Das2DCompatible, evt.newValue))
+                    return;
+
+                registerUndo("Change Sort 3D as 2D Compatible");
+                target.sort3Das2DCompatible = evt.newValue;
+                onChange();
+            });
         }
 
         public static void AddAlphaClipControlToPass(ref PassDescriptor pass, UniversalTarget target)
         {
             if (target.alphaClip)
                 pass.defines.Add(CoreKeywordDescriptors.AlphaClipThreshold, 1);
+        }
+
+        public static void AddSRPIncompatibility(PropertyCollector collector)
+        {
+            var property = new ColorShaderProperty()
+            {
+                overrideReferenceName = "White",
+                value = new Color(1, 1, 1, 1),
+                hidden = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideHLSLDeclaration = true,
+                generatePropertyBlock = true,
+                
+            };
+
+            collector.AddShaderProperty(property);
         }
     }
 }

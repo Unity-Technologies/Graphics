@@ -26,6 +26,15 @@ namespace UnityEngine.Rendering.Universal
 
             switch (materialType)
             {
+                case DefaultMaterialType.Default:
+                {
+                    return m_DefaultMaterialType switch
+                    {
+                        Renderer2DDefaultMaterialType.Lit => resources.defaultMesh2DLitMaterial,
+                        Renderer2DDefaultMaterialType.Unlit => resources.defaultMesh2DLitMaterial,
+                        _ => m_DefaultCustomMaterial
+                    };
+                }
                 case DefaultMaterialType.Sprite:
                 case DefaultMaterialType.Particle:
                 {
@@ -38,6 +47,9 @@ namespace UnityEngine.Rendering.Universal
                 }
                 case DefaultMaterialType.SpriteMask:
                     return resources.defaultMaskMaterial;
+
+                case DefaultMaterialType.RenderAs2D:
+                    return resources.defaultRenderAs2D;
                 default:
                     return null;
             }
