@@ -124,6 +124,12 @@ namespace UnityEditor.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                                     StructFields.Varyings.cullFace),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexID,                                     StructFields.Varyings.vertexID),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.InstanceID,                                   StructFields.Varyings.instanceID),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.color,                                        StructFields.Varyings.color),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.uvClip,                                       StructFields.Varyings.texCoord0),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.typeTexSettings,                              StructFields.Varyings.texCoord1),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.textCoreLoc,                                  StructFields.Varyings.texCoord3),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.layoutUV,                                     StructFields.Varyings.texCoord3),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.circle,                                       StructFields.Varyings.texCoord4),
         };
 
         public static DependencyCollection Default = new DependencyCollection

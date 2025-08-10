@@ -1,15 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
-using UnityEngine;
+using System.Reflection;
+using Unity.Profiling;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
-using UnityEngine.Assertions;
-using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.Assertions.Must;
+using UnityEngine.Rendering;
+using UnityEngine.TextCore.LowLevel;
+using UnityEngine.TextCore.Text;
+using UnityEngine.UIElements;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
-using Unity.Profiling;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -21,6 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         MessageManager m_Messenger;
 
         MaterialPropertyBlock m_SharedPreviewPropertyBlock;         // stores preview properties (shared among ALL preview nodes)
+        Dictionary<string, PreviewProperty> m_SharedPreviewProperties; // need to store UITK preview shader properties separately
 
         Dictionary<AbstractMaterialNode, PreviewRenderData> m_RenderDatas = new Dictionary<AbstractMaterialNode, PreviewRenderData>();  // stores all of the PreviewRendererData, mapped by node
         PreviewRenderData m_MasterRenderData;                                                               // ref to preview renderer data for the master node
@@ -48,6 +55,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         Texture2D m_ErrorTexture;
         Vector2? m_NewMasterPreviewSize;
 
+        // Used to preview the UITK shader directly inside the EditorWindow.
+        // The master preview shader is directly applied to this element via styles.
+        PanelSettings m_PreviewPanelSettings;
+        VisualElement m_PreviewElement;
+        VisualElement m_PreviewShadedElement;
+        FontAsset m_SdfFont;
+        FontAsset m_BitmapFont;
+
+        bool prefersUITKPreview => m_Graph.m_ActiveTargets.Count > 0 && m_Graph.m_ActiveTargets[0].value.prefersUITKPreview;
+
         const AbstractMaterialNode kMasterProxyNode = null;
 
         public PreviewRenderData masterRenderData
@@ -58,6 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public PreviewManager(GraphData graph, MessageManager messenger)
         {
             m_SharedPreviewPropertyBlock = new MaterialPropertyBlock();
+            m_SharedPreviewProperties = new Dictionary<string, PreviewProperty>();
             m_Graph = graph;
             m_Messenger = messenger;
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
@@ -67,6 +85,49 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddPreview(node);
 
             AddMasterPreview();
+        }
+
+        void SetupUITKPanelSettings()
+        {
+            m_PreviewPanelSettings = ScriptableObject.CreateInstance<PanelSettings>();
+            m_PreviewPanelSettings.clearDepthStencil = true;
+            m_PreviewPanelSettings.isTransient = true;
+            m_PreviewPanelSettings.disableNoThemeWarning = true;
+            var root = m_PreviewPanelSettings.panel.visualTree;
+            root.StretchToParentSize();
+            var previewElementUxml = Resources.Load<VisualTreeAsset>("UXML/UITKMasterNodePreview");
+            m_PreviewElement = previewElementUxml.Instantiate();
+            m_PreviewElement.StretchToParentSize();
+            m_PreviewElement.style.top = 16;
+            m_PreviewElement.style.bottom = 16;
+            root.Add(m_PreviewElement);
+            m_PreviewShadedElement = m_PreviewElement.Q("shader");
+            SetupUITKFonts();
+        }
+
+        void SetupUITKFonts()
+        {
+            string familyName = "Inter"; // Use a font you know is on the system, like "Arial"
+            string styleName = "Regular";
+            int pointSize = 90;
+            int padding = 9;
+
+            m_SdfFont = FontAsset.CreateFontAsset(familyName, styleName, pointSize, padding, GlyphRenderMode.SDFAA);
+            m_BitmapFont = FontAsset.CreateFontAsset(familyName, styleName, pointSize, padding, GlyphRenderMode.RASTER);
+
+            if (m_SdfFont == null || m_BitmapFont == null)
+            {
+                Debug.LogError($"Failed to create one or both font assets for '{familyName} {styleName}'. Make sure the font is installed on your system.");
+                return;
+            }
+
+            m_SdfFont.hideFlags = HideFlags.HideAndDontSave;
+            m_BitmapFont.hideFlags = HideFlags.HideAndDontSave;
+
+            m_PreviewElement.Query<UnityEngine.UIElements.TextElement>("ButtonText").ForEach(
+                element => element.style.unityFontDefinition = new StyleFontDefinition(m_SdfFont));
+            m_PreviewElement.Query<UnityEngine.UIElements.TextElement>("ButtonBitmapText").ForEach(
+                element => element.style.unityFontDefinition = new StyleFontDefinition(m_BitmapFont));
         }
 
         static Texture2D GenerateFourSquare(Color c1, Color c2)
@@ -397,6 +458,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_NodesPropertyChanged.UnionWith(m_Graph.GetNodes<AbstractMaterialNode>());
                 m_SharedPreviewPropertyBlock = new();
+                m_SharedPreviewProperties.Clear();
             }
 
             // remove the nodes from the state trackers
@@ -423,6 +485,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var previewProperty in tempPreviewProps)
                 {
                     previewProperty.SetValueOnMaterialPropertyBlock(m_SharedPreviewPropertyBlock);
+
+                    // UITK target does not draw using DrawMesh, but has the preview material
+                    // applied directly to the preview element, so we need to store the properties separately
+                    if (prefersUITKPreview && !string.IsNullOrEmpty(previewProperty.name))
+                        m_SharedPreviewProperties[previewProperty.name] = previewProperty;
 
                     // record guids for any texture properties
                     if ((previewProperty.propType >= PropertyType.Texture2D) && (previewProperty.propType <= PropertyType.Cubemap))
@@ -458,12 +525,30 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void AssignPerMaterialPreviewProperties(Material mat, List<PreviewProperty> perMaterialPreviewProperties)
+        void AssignPerMaterialPreviewProperties(Material mat, IEnumerable<PreviewProperty> perMaterialPreviewProperties)
         {
             foreach (var prop in perMaterialPreviewProperties)
             {
                 switch (prop.propType)
                 {
+                    case PropertyType.Float:
+                        mat.SetFloat(prop.name, prop.floatValue);
+                        break;
+                    case PropertyType.Color:
+                        mat.SetColor(prop.name, prop.colorValue);
+                        break;
+                    case PropertyType.Vector2:
+                        mat.SetVector(prop.name, prop.vector4Value);
+                        break;
+                    case PropertyType.Vector3:
+                        mat.SetVector(prop.name, prop.vector4Value);
+                        break;
+                    case PropertyType.Vector4:
+                        mat.SetVector(prop.name, prop.vector4Value);
+                        break;
+                    case PropertyType.Texture2D:
+                        mat.SetTexture(prop.name, prop.textureValue);
+                        break;
                     case PropertyType.VirtualTexture:
 
                         // setup the VT textures on the material
@@ -501,6 +586,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                             }
 #endif // ENABLE_VIRTUALTEXTURES
                         }
+                        break;
+                    case PropertyType.Gradient:
+                        string name = prop.name;
+                        var gradientValue = prop.gradientValue;
+                        mat.SetFloat(string.Format("{0}_Type", name), (int)gradientValue.mode);
+                        mat.SetFloat(string.Format("{0}_ColorsLength", name), gradientValue.colorKeys.Length);
+                        mat.SetFloat(string.Format("{0}_AlphasLength", name), gradientValue.alphaKeys.Length);
+                        for (int i = 0; i < 8; i++)
+                            mat.SetVector(string.Format("{0}_ColorKey{1}", name, i), i < gradientValue.colorKeys.Length ? GradientUtil.ColorKeyToVector(gradientValue.colorKeys[i]) : Vector4.zero);
+                        for (int i = 0; i < 8; i++)
+                            mat.SetVector(string.Format("{0}_AlphaKey{1}", name, i), i < gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(gradientValue.alphaKeys[i]) : Vector2.zero);
                         break;
                 }
             }
@@ -641,6 +737,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 previewTime += Time.fixedDeltaTime;
                 var timeParameters = new Vector4(previewTime, Mathf.Sin(previewTime), Mathf.Cos(previewTime), 0.0f);
                 m_SharedPreviewPropertyBlock.SetVector("_TimeParameters", timeParameters);
+                if (prefersUITKPreview)
+                {
+                    m_SharedPreviewProperties["_TimeParameters"] = new PreviewProperty(PropertyType.Vector4)
+                    {
+                        name = "_TimeParameters",
+                        vector4Value = timeParameters
+                    };
+                }
 
                 EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, previewTime);
 
@@ -674,7 +778,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         if (masterRenderData.renderTexture != null)
                             Object.DestroyImmediate(masterRenderData.renderTexture, true);
-                        masterRenderData.renderTexture = new RenderTexture((int)m_NewMasterPreviewSize.Value.x, (int)m_NewMasterPreviewSize.Value.y, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+
+                        var previewSize = m_NewMasterPreviewSize.Value;
+                        if (prefersUITKPreview)
+                            previewSize *= editorWindow.rootVisualElement.panel.scaledPixelsPerPoint;
+
+                        masterRenderData.renderTexture = new RenderTexture((int)previewSize.x, (int)previewSize.y, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
                         masterRenderData.renderTexture.Create();
                         masterRenderData.texture = masterRenderData.renderTexture;
                         m_NewMasterPreviewSize = null;
@@ -936,6 +1045,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 Object.DestroyImmediate(shaderData.mat);
                 {
                     shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
+
                     if (renderData == m_MasterRenderData)
                     {
                         // apply active target settings to the Material
@@ -1196,18 +1306,35 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RenderTexture.active = temp;
                 Graphics.Blit(Texture2D.whiteTexture, temp, m_SceneResources.checkerboardMaterial);
 
-                // Mesh is invalid for VFXTarget
-                // We should handle this more gracefully
-                if (renderData != m_MasterRenderData || !m_Graph.isOnlyVFXTarget)
+                if (prefersUITKPreview && renderData.previewName == "Master Preview")
                 {
-                    m_SceneResources.camera.targetTexture = temp;
-                    Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_SharedPreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
-                }
+                    if (m_PreviewPanelSettings == null)
+                        SetupUITKPanelSettings();
 
-                var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-                Unsupported.useScriptableRenderPipeline = (renderData == m_MasterRenderData);
-                m_SceneResources.camera.Render();
-                Unsupported.useScriptableRenderPipeline = previousUseSRP;
+                    AssignPerMaterialPreviewProperties(renderData.shaderData.mat, m_SharedPreviewProperties.Values);
+                    m_PreviewShadedElement.style.unityMaterial = renderData.shaderData.mat;
+                    m_PreviewPanelSettings.targetTexture = temp;
+                    m_PreviewPanelSettings.ApplyPanelSettings();
+
+                    var panel = m_PreviewPanelSettings.panel;
+                    panel.Repaint(Event.current);
+                    panel.Render();
+                }
+                else
+                {
+                    // Mesh is invalid for VFXTarget
+                    // We should handle this more gracefully
+                    if (renderData != m_MasterRenderData || !m_Graph.isOnlyVFXTarget)
+                    {
+                        m_SceneResources.camera.targetTexture = temp;
+                        Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_SharedPreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
+                    }
+
+                    var previousUseSRP = Unsupported.useScriptableRenderPipeline;
+                    Unsupported.useScriptableRenderPipeline = (renderData == m_MasterRenderData);
+                    m_SceneResources.camera.Render();
+                    Unsupported.useScriptableRenderPipeline = previousUseSRP;
+                }
 
                 Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
                 RenderTexture.ReleaseTemporary(temp);
@@ -1367,12 +1494,31 @@ namespace UnityEditor.ShaderGraph.Drawing
                 DestroyRenderData(renderData);
             m_RenderDatas.Clear();
             m_SharedPreviewPropertyBlock.Clear();
+            m_SharedPreviewProperties.Clear();
         }
 
         public void Dispose()
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
+
+            if (m_SdfFont != null)
+            {
+                Object.DestroyImmediate(m_SdfFont);
+                m_SdfFont = null;
+            }
+
+            if (m_BitmapFont != null)
+            {
+                Object.DestroyImmediate(m_BitmapFont);
+                m_BitmapFont = null;
+            }
+
+            if (m_PreviewPanelSettings != null)
+            {
+                Object.DestroyImmediate(m_PreviewPanelSettings);
+                m_PreviewPanelSettings = null;
+            }
         }
 
         ~PreviewManager()

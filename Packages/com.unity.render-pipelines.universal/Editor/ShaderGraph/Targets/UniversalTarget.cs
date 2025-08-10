@@ -1,15 +1,17 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.Rendering.UITK.ShaderGraph;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.VirtualTexturing;
 using UnityEngine.UIElements;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.UIElements;
-using UnityEditor.ShaderGraph.Serialization;
-using UnityEditor.ShaderGraph.Legacy;
 #if HAS_VFX_GRAPH
 using UnityEditor.VFX;
 #endif
@@ -112,6 +114,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endif
     {
         public override int latestVersion => 1;
+        internal override bool prefersUITKPreview => m_ActiveSubTarget.value is IUISubTarget;
 
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("8c72f47fdde33b14a9340e325ce56f4d"); // UniversalTarget.cs
@@ -447,7 +450,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            bool useCoreBlocks = !(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget> | m_ActiveSubTarget.value is UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<UniversalTarget>);
+            // Core blocks
+            bool useCoreBlocks = !(m_ActiveSubTarget.value is UnityEditor.Rendering.Fullscreen.ShaderGraph.FullscreenSubTarget<UniversalTarget>
+                | m_ActiveSubTarget.value is UnityEditor.Rendering.Canvas.ShaderGraph.CanvasSubTarget<UniversalTarget>
+                | m_ActiveSubTarget.value is UnityEditor.Rendering.UITK.ShaderGraph.UISubTarget<UniversalTarget>);
 
             // Core blocks
             if (useCoreBlocks)
@@ -489,6 +495,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             // Core properties
             m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
+            var validationAction = context.graphValidation;
             context.AddProperty("Material", m_SubTargetField, (evt) =>
             {
                 if (Equals(activeSubTargetIndex, m_SubTargetField.index))
@@ -498,6 +505,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
                 ProcessSubTargetDatas(m_ActiveSubTarget.value);
                 onChange();
+                validationAction();
             });
 
             // SubTarget properties

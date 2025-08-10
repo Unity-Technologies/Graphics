@@ -197,8 +197,11 @@ namespace UnityEditor.ShaderGraph
             {
                 if (w.selectedGuid == guid)
                 {
-                    w.Focus();
-                    return true;
+                    if (w.m_Parent != null)
+                    {
+                        w.Focus();
+                        return true;
+                    }
                 }
             }
 
