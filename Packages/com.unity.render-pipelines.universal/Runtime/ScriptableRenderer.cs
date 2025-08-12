@@ -1193,6 +1193,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.cameraData = cameraData;
 
                 builder.AllowGlobalStateModification(true);
+                builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
 
                 builder.SetRenderFunc((EndXRPassData data, RasterGraphContext context) =>
                 {

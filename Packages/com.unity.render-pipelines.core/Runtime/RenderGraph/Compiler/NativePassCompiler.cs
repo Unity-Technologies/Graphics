@@ -100,17 +100,23 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     int graphPassIndex = 0;
                     for (int nativeSubPassIndex = 0; nativeSubPassIndex < contextData.nativePassData[nativePassIndex].numNativeSubPasses; nativeSubPassIndex++)
                     {
-                        SubPassFlags tilePropertiesFlags = SubPassFlags.None;
+                        // Start with the MVPVV compatible flag set so that it can be used for the & operation later
+                        SubPassFlags extendedSubPassFlags = SubPassFlags.MultiviewRenderRegionsCompatible;
                         // Iterate over all graph passes that got merged into this sub pass
                         while ((graphPassIndex < contextData.nativePassData[nativePassIndex].numGraphPasses) && (contextData.passData[graphPassIndex + firstGraphPass].nativeSubPassIndex == nativeSubPassIndex))
                         {
                             if (contextData.passData[graphPassIndex + firstGraphPass].extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.TileProperties))
                             {
-                                tilePropertiesFlags |= SubPassFlags.TileProperties;
+                                extendedSubPassFlags |= SubPassFlags.TileProperties;
+                            }
+                            // A native sub pass is MultiviewRenderRegionsCompatible only if all of its graph passes are compatible
+                            if (!contextData.passData[graphPassIndex + firstGraphPass].extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible))
+                            {
+                                extendedSubPassFlags &= ~SubPassFlags.MultiviewRenderRegionsCompatible;
                             }
                             graphPassIndex++;
                         }
-                        contextData.nativeSubPassData.ElementAt(firstNativeSubPass + nativeSubPassIndex).flags |= tilePropertiesFlags;
+                        contextData.nativeSubPassData.ElementAt(firstNativeSubPass + nativeSubPassIndex).flags |= extendedSubPassFlags;
                     }
                 }
             }
@@ -820,7 +826,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         internal static bool IsSameNativeSubPass(ref SubPassDescriptor a, ref SubPassDescriptor b)
         {
-            const SubPassFlags k_SubPassMergeIgnoreMask = ~SubPassFlags.TileProperties;
+            const SubPassFlags k_SubPassMergeIgnoreMask = ~(SubPassFlags.TileProperties | SubPassFlags.MultiviewRenderRegionsCompatible);
             // Mask out the flags we can ignore.
             SubPassFlags aflags = a.flags & k_SubPassMergeIgnoreMask;
             SubPassFlags bflags = b.flags & k_SubPassMergeIgnoreMask;

@@ -58,6 +58,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
         None = 0,
         ///<summary>On Meta XR, this flag can be set for the pass that performs the most 3D rendering to achieve better performance.</summary>
         TileProperties = 1 << 0,
+        ///<summary>On XR, this flag can be set for passes that are compatible with Multiview Render Regions</summary>
+        MultiviewRenderRegionsCompatible = 1 << 1
     }
 
     [Flags]
