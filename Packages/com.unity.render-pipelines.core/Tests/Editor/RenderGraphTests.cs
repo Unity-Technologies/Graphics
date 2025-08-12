@@ -812,11 +812,13 @@ namespace UnityEngine.Rendering.Tests
         [Test]
         public void UsingAddRenderPassWithNRPThrows()
         {
-            // m_RenderGraph.nativeRenderPassesEnabled is set to true in the setup
+            // m_RenderGraph.nativeRenderPassesEnabled is true by default
             // record and execute render graph calls
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 using var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("HDRP Render Pass", out var passData);
+#pragma warning restore CS0618 // Type or member is obsolete
             };
 
             LogAssert.Expect(LogType.Error, "Render Graph Execution error");

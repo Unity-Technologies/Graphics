@@ -640,6 +640,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     }
 
     [DebuggerDisplay("RenderPass: {name} (Index:{index} Async:{enableAsyncCompute})")]
+    [Obsolete("RenderGraphPass is deprecated, use RasterRenderGraphPass/ComputeRenderGraphPass/UnsafeRenderGraphPass instead.")]
     internal sealed class RenderGraphPass<PassData> : BaseRenderGraphPass<PassData, RenderGraphContext>
         where PassData : class, new()
     {

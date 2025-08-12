@@ -363,7 +363,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
                 m_Resources.GetRenderTargetInfo(tex.handle, out var info);
 
-                // The old path is full of invalid uses that somehow work (or seemt to work) so we skip the tests if not using actual native renderpass
+                // The old path is full of invalid uses that somehow work (or seem to work) so we skip validation if not using actual native renderpass
                 if (m_RenderGraph.nativeRenderPassesEnabled)
                 {
                     if (isDepth)

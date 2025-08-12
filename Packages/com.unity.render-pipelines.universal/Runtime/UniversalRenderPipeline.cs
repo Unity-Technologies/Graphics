@@ -746,12 +746,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             ScriptableRenderer.current = renderer;
-#if RENDER_GRAPH_OLD_COMPILER
-            s_RenderGraph.nativeRenderPassesEnabled = false;
-            Debug.LogWarning("The native render pass compiler is disabled. Use this for debugging only. Mobile performance may be sub-optimal.");
-#else
-            s_RenderGraph.nativeRenderPassesEnabled = renderer.supportsNativeRenderPassRendergraphCompiler;
-#endif
+
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").

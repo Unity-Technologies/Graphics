@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <inheritdoc/>
-        public bool isImmediateModeSupported => true;
+        public bool isImmediateModeSupported => false;
 
         [SerializeField] private CustomPostProcessVolumeComponentList m_CompositorCustomVolumeComponentsList = new(CustomPostProcessInjectionPoint.BeforePostProcess);
 

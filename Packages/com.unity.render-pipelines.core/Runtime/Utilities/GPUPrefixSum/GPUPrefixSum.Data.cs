@@ -89,6 +89,7 @@ namespace UnityEngine.Rendering
                 return resources;
             }
 
+#pragma warning disable CS0618 // Type or member is obsolete
             void Initialize(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder, bool outputIsTemp = false)
             {
                 newMaxElementCount = Math.Max(newMaxElementCount, 1);
@@ -104,6 +105,7 @@ namespace UnityEngine.Rendering
                 maxBufferCount = totalSize;
                 maxLevelCount = levelCounts;
             }
+#pragma warning restore CS0618 // Type or member is obsolete
 
             /// <summary>
             /// Creates the render graph buffer resources from an input count.
