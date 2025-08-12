@@ -1,3 +1,6 @@
+// Surface Cache shaders do not currently work on Switch due to its limited binding range
+// https://jira.unity3d.com/browse/GFXLIGHT-1730
+#pragma exclude_renderers switch switch2
 #pragma kernel FilterTemporally
 
 #include "Common.hlsl"
@@ -25,7 +28,7 @@ void FilterTemporally(uint patchIdx : SV_DispatchThreadID)
 
     const PatchUtil::PatchStatisticsSet stats = _PatchStatistics[patchIdx];
     const uint updateCount = PatchUtil::GetUpdateCount(_PatchCounterSets[patchIdx]);
-    SphericalHarmonics::RGBL1 output = FilterTemporally(_ShortHysteresis, updateCount, stats.variance, stats.mean, newIrradiance, oldIrradiance);
+    SphericalHarmonics::RGBL1 output = FilterTemporallyVarianceGuided(_ShortHysteresis, updateCount, stats.variance, stats.mean, newIrradiance, oldIrradiance);
 
     _OutputPatchIrradiances[patchIdx] = output;
 }

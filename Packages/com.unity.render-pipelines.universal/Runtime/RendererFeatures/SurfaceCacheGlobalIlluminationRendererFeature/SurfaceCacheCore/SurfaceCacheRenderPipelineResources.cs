@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering
     [Serializable]
     [SupportedOnRenderPipeline]
     [Categorization.CategoryInfo(Name = "R: Surface Cache Core Resources", Order = 1000), HideInInspector]
-    sealed class SurfaceCacheRenderPipelineResourceSet : IRenderPipelineResources
+    class SurfaceCacheRenderPipelineResourceSet : IRenderPipelineResources
     {
         [SerializeField, HideInInspector]
         int m_Version = 2;

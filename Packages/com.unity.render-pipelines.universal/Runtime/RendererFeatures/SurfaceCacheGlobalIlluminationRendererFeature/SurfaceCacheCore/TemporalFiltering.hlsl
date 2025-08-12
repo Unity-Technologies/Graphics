@@ -1,7 +1,7 @@
 #include "Common.hlsl"
 #include "PatchUtil.hlsl"
 
-SphericalHarmonics::RGBL1 FilterTemporally(float shortHysteresis, uint updateCount, float3 shortVariance, float3 shortMean, SphericalHarmonics::RGBL1 newSample, SphericalHarmonics::RGBL1 longMean)
+SphericalHarmonics::RGBL1 FilterTemporallyVarianceGuided(float shortHysteresis, uint updateCount, float3 shortVariance, float3 shortMean, SphericalHarmonics::RGBL1 newSample, SphericalHarmonics::RGBL1 longMean)
 {
     if (updateCount == 0)
     {

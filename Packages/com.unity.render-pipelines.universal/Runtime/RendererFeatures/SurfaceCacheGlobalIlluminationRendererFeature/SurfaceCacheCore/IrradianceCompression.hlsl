@@ -13,8 +13,18 @@ namespace IrradianceCompression
 {
     void Compress(inout SphericalHarmonics::RGBL1 irradiance)
     {
-        const float3 multiplier = irradiance.l0 == 0.0f ? 0.0f : sqrt(3.0f) / 4.0f * rcp(irradiance.l0);
-        const float3 addend = irradiance.l0 == 0.0f ? 0.0f : 0.5f;
+        const float3 multiplier = float3(
+            irradiance.l0.x == 0.0f ? 0.0f : sqrt(3.0f) / 4.0f * rcp(irradiance.l0.x),
+            irradiance.l0.y == 0.0f ? 0.0f : sqrt(3.0f) / 4.0f * rcp(irradiance.l0.y),
+            irradiance.l0.z == 0.0f ? 0.0f : sqrt(3.0f) / 4.0f * rcp(irradiance.l0.z)
+        );
+
+        const float3 addend = float3(
+            irradiance.l0.x == 0.0f ? 0.0f : 0.5f,
+            irradiance.l0.y == 0.0f ? 0.0f : 0.5f,
+            irradiance.l0.z == 0.0f ? 0.0f : 0.5f
+        );
+
         [unroll]
         for (uint i = 0; i < 3; ++i)
             irradiance.l1s[i] = irradiance.l1s[i] * multiplier + addend;
@@ -23,7 +33,13 @@ namespace IrradianceCompression
     void Decompress(inout SphericalHarmonics::RGBL1 irradiance)
     {
         const float3 multiplier = 4.0f / sqrt(3.0f) * irradiance.l0;
-        const float3 addend = irradiance.l0 == 0.0f ? 0.0f : -0.5f;
+
+        const float3 addend = float3(
+            irradiance.l0.x == 0.0f ? 0.0f : -0.5f,
+            irradiance.l0.y == 0.0f ? 0.0f : -0.5f,
+            irradiance.l0.z == 0.0f ? 0.0f : -0.5f
+        );
+
         [unroll]
         for (uint i = 0; i < 3; ++i)
             irradiance.l1s[i] = (irradiance.l1s[i] + addend) * multiplier;

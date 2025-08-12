@@ -136,9 +136,9 @@ real2 SampleDiskCubic(real u1, real u2)
     return r * real2(cosPhi, sinPhi);
 }
 
-real3 SampleConeUniform(real u1, real u2, real cos_theta)
+real3 SampleConeUniform(real u1, real u2, real cosTheta)
 {
-    float r0 = cos_theta + u1 * (1.0f - cos_theta);
+    float r0 = cosTheta + u1 * (1.0f - cosTheta);
     float r = sqrt(max(0.0, 1.0 - r0 * r0));
     float phi = TWO_PI * u2;
     return float3(r * cos(phi), r * sin(phi), r0);
@@ -148,7 +148,6 @@ real3 SampleSphereUniform(real u1, real u2)
 {
     real phi      = TWO_PI * u2;
     real cosTheta = 1.0 - 2.0 * u1;
-
     return SphericalToCartesian(phi, cosTheta);
 }
 

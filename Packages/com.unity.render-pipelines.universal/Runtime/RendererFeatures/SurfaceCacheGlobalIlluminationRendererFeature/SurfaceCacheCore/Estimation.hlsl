@@ -20,7 +20,7 @@ void ProcessAndStoreRadianceSample(RWStructuredBuffer<SphericalHarmonics::RGBL1>
     PatchUtil::PatchCounterSet newCounterSet = oldCounterSet;
     PatchUtil::SetUpdateCount(newCounterSet, newUpdateCount);
 
-    SphericalHarmonics::RGBL1 output = FilterTemporally(shortHysteresis, newUpdateCount, newVariance, newL0ShortIrradiance, radianceSample, oldIrradiance);
+    SphericalHarmonics::RGBL1 output = FilterTemporallyVarianceGuided(shortHysteresis, newUpdateCount, newVariance, newL0ShortIrradiance, radianceSample, oldIrradiance);
 
     patchIrradiances[patchIdx] = output;
     if (!PatchUtil::IsEqual(oldCounterSet, newCounterSet))

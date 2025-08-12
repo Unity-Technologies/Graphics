@@ -92,7 +92,7 @@ namespace PatchUtil
 
     float2 OctWrap(float2 v)
     {
-        return (1.0 - abs(v.yx)) * (v.xy >= 0.0 ? 1.0 : -1.0);
+        return (1.0 - abs(v.yx)) * (step(0.0, v.xy) * 2.0 - 1.0);
     }
 
     float2 SphereToSquare(float3 n)
@@ -151,7 +151,9 @@ namespace PatchUtil
         #pragma warning (disable : 3556)
         const int modulusInt = int(modulus);
         const int3 result = x - x / modulusInt * modulusInt;
-        return result < 0 ? result + modulusInt : result;
+        return int3(result.x < 0 ? result.x + modulusInt : result.x,
+                    result.y < 0 ? result.y + modulusInt : result.y,
+                    result.z < 0 ? result.z + modulusInt : result.z);
     }
 
     uint3 ConvertGridSpaceToStorageSpace(uint3 posGridSpace, uint gridSize, int3 cascadeOffset)

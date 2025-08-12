@@ -25,6 +25,9 @@ namespace ShaderStrippingAndPrefiltering
             internal List<ScriptableRendererFeature> rendererFeatures;
             internal bool stripUnusedVariants;
             internal bool containsForwardRenderer;
+#if SURFACE_CACHE
+            internal bool containsSurfaceCache;
+#endif
             internal bool everyRendererHasSSAO;
 
             internal ShaderFeatures defaultURPAssetFeatures
@@ -102,7 +105,11 @@ namespace ShaderStrippingAndPrefiltering
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromAsset()
             {
-                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out bool containsForwardRenderer, out bool everyRendererHasSSAO);
+#if SURFACE_CACHE
+                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out containsForwardRenderer, out containsSurfaceCache, out everyRendererHasSSAO);
+#else
+                return ShaderBuildPreprocessor.GetSupportedShaderFeaturesFromAsset(ref urpAsset, ref rendererShaderFeatures, ref ssaoRendererFeatures, stripUnusedVariants, out containsForwardRenderer, out everyRendererHasSSAO);
+#endif
             }
 
             internal ShaderFeatures GetSupportedShaderFeaturesFromRenderer(RendererRequirements rendererRequirements, ShaderFeatures urpAssetShaderFeatures)
@@ -909,6 +916,33 @@ namespace ShaderStrippingAndPrefiltering
 
             Object.DestroyImmediate(ssaoFeature);
         }
+
+#if SURFACE_CACHE
+        // Surface Cache Global Illumination...
+        [Test]
+        public void TestGetSupportedShaderFeaturesFromRendererFeatures_SurfaceCacheGlobalIllumination()
+        {
+            SurfaceCacheGlobalIlluminationRendererFeature surfaceCacheFeature = ScriptableObject.CreateInstance<SurfaceCacheGlobalIlluminationRendererFeature>();
+            m_TestHelper.rendererFeatures.Add(surfaceCacheFeature);
+
+            // Enabled feature
+            m_TestHelper.rendererFeatures[0].SetActive(true);
+
+            RendererRequirements rendererRequirements = m_TestHelper.defaultRendererRequirements;
+            ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
+            ShaderFeatures expected = ShaderFeatures.SurfaceCache;
+            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
+            // Disabled feature
+            m_TestHelper.rendererFeatures[0].SetActive(false);
+            rendererRequirements = m_TestHelper.defaultRendererRequirements;
+            actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
+            expected = ShaderFeatures.None;
+            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
+            Object.DestroyImmediate(surfaceCacheFeature);
+        }
+#endif
 
         [Test]
         public void TestGetSupportedShaderFeaturesFromRendererFeatures_Decals()

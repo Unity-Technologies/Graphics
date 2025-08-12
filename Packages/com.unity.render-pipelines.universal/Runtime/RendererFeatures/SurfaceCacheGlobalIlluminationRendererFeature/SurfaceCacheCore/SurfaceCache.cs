@@ -385,6 +385,7 @@ namespace UnityEngine.Rendering
             internal uint SampleCount;
             internal float VoxelMinSize;
             internal Vector3 GridTargetPos;
+            internal GraphicsBuffer TraceScratchBuffer;
         }
 
         private class RestirCandidateTemporalPassData
@@ -407,6 +408,7 @@ namespace UnityEngine.Rendering
             internal uint ConfidenceCap;
             internal float VoxelMinSize;
             internal uint ValidationFrameInterval;
+            internal GraphicsBuffer TraceScratchBuffer;
         }
 
         private class RestirSpatialPassData
@@ -470,6 +472,7 @@ namespace UnityEngine.Rendering
             internal Vector3 GridTargetPos;
             internal float TargetFunctionUpdateWeight;
             internal float VoxelMinSize;
+            internal GraphicsBuffer TraceScratchBuffer;
         }
 
         private class SpatialFilterPassData
@@ -749,8 +752,11 @@ namespace UnityEngine.Rendering
                     passData.SampleCount = _uniformEstimationSampleCount;
                     passData.VoxelMinSize = Grid.VoxelMinSize;
 
+                    RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
+                    passData.TraceScratchBuffer = _traceScratch;
+
                     builder.AllowGlobalStateModification(true); // Set to ensure ordering.
-                    builder.SetRenderFunc((UniformEstimationPassData data, UnsafeGraphContext cgContext) => UniformEstimate(data, cgContext, ref _traceScratch));
+                    builder.SetRenderFunc((UniformEstimationPassData data, UnsafeGraphContext cgContext) => UniformEstimate(data, cgContext));
                 }
             }
             else if (_estimationMethod == SurfaceCacheEstimationMethod.Restir)
@@ -776,8 +782,11 @@ namespace UnityEngine.Rendering
                     passData.VoxelMinSize = Grid.VoxelMinSize;
                     passData.ValidationFrameInterval = _restirEstimationValidationFrameInterval;
 
+                    RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
+                    passData.TraceScratchBuffer = _traceScratch;
+
                     builder.AllowGlobalStateModification(true);
-                    builder.SetRenderFunc((RestirCandidateTemporalPassData data, UnsafeGraphContext cgContext) => RestirGenerateCandidateAndResampleTemporally(data, cgContext, ref _traceScratch));
+                    builder.SetRenderFunc((RestirCandidateTemporalPassData data, UnsafeGraphContext cgContext) => RestirGenerateCandidateAndResampleTemporally(data, cgContext));
                 }
 
                 using (var builder = renderGraph.AddComputePass("Surface Cache Restir Spatial", out RestirSpatialPassData passData))
@@ -850,8 +859,11 @@ namespace UnityEngine.Rendering
                     passData.VoxelMinSize = Grid.VoxelMinSize;
                     passData.PatchAccumulatedLuminances = PatchList.RisAccumulatedLuminances;
 
+                    RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
+                    passData.TraceScratchBuffer = _traceScratch;
+
                     builder.AllowGlobalStateModification(true); // Set to ensure ordering.
-                    builder.SetRenderFunc((RisEstimationPassData data, UnsafeGraphContext cgContext) => RisEstimate(data, cgContext, ref _traceScratch));
+                    builder.SetRenderFunc((RisEstimationPassData data, UnsafeGraphContext cgContext) => RisEstimate(data, cgContext));
                 }
             }
             else
@@ -900,7 +912,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static void UniformEstimate(UniformEstimationPassData data, UnsafeGraphContext graphCtx, ref GraphicsBuffer scratch)
+        static void UniformEstimate(UniformEstimationPassData data, UnsafeGraphContext graphCtx)
         {
             var shader = data.Shader;
             var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
@@ -925,11 +937,10 @@ namespace UnityEngine.Rendering
             PathTracing.Core.Util.BindWorld(cmd, data.Shader, data.World, 32);
             shader.SetFloatParam(cmd, UnityEngine.PathTracing.Core.Util.ShaderProperties.AlbedoBoost, 1.0f);
 
-            RayTracingHelper.ResizeScratchBufferForTrace(shader, data.PatchCapacity, 1, 1, ref scratch);
-            shader.Dispatch(cmd, scratch, data.PatchCapacity, 1, 1);
+            shader.Dispatch(cmd, data.TraceScratchBuffer, data.PatchCapacity, 1, 1);
         }
 
-        static void RestirGenerateCandidateAndResampleTemporally(RestirCandidateTemporalPassData data, UnsafeGraphContext graphCtx, ref GraphicsBuffer scratch)
+        static void RestirGenerateCandidateAndResampleTemporally(RestirCandidateTemporalPassData data, UnsafeGraphContext graphCtx)
         {
             var shader = data.Shader;
             var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
@@ -953,8 +964,7 @@ namespace UnityEngine.Rendering
             PathTracing.Core.Util.BindWorld(cmd, data.Shader, data.World, 32);
             shader.SetFloatParam(cmd, PathTracing.Core.Util.ShaderProperties.AlbedoBoost, 1.0f);
 
-            RayTracingHelper.ResizeScratchBufferForTrace(shader, data.PatchCapacity, 1, 1, ref scratch);
-            shader.Dispatch(cmd, scratch, data.PatchCapacity, 1, 1);
+            shader.Dispatch(cmd, data.TraceScratchBuffer, data.PatchCapacity, 1, 1);
         }
 
         static void RestirResampleSpatially(RestirSpatialPassData data, ComputeGraphContext cgContext)
@@ -999,7 +1009,7 @@ namespace UnityEngine.Rendering
             cmd.DispatchCompute(shader, kernelIndex, (int)groupCount.x, (int)groupCount.y, 1);
         }
 
-        static void RisEstimate(RisEstimationPassData data, UnsafeGraphContext graphCtx, ref GraphicsBuffer scratch)
+        static void RisEstimate(RisEstimationPassData data, UnsafeGraphContext graphCtx)
         {
             var shader = data.Shader;
             var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
@@ -1026,8 +1036,7 @@ namespace UnityEngine.Rendering
             PathTracing.Core.Util.BindWorld(cmd, data.Shader, data.World, 32);
             shader.SetFloatParam(cmd, PathTracing.Core.Util.ShaderProperties.AlbedoBoost, 1.0f);
 
-            RayTracingHelper.ResizeScratchBufferForTrace(shader, data.PatchCapacity, 1, 1, ref scratch);
-            shader.Dispatch(cmd, scratch, data.PatchCapacity, 1, 1);
+            shader.Dispatch(cmd, data.TraceScratchBuffer, data.PatchCapacity, 1, 1);
         }
 
         static void Defrag(DefragPassData data, ComputeGraphContext cgContext)

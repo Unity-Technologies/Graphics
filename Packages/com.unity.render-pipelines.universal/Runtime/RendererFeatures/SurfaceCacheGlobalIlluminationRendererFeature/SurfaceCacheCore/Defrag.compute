@@ -1,3 +1,6 @@
+// Surface Cache shaders do not currently work on Switch due to its limited binding range
+// https://jira.unity3d.com/browse/GFXLIGHT-1730
+#pragma exclude_renderers switch switch2
 #pragma multi_compile_local SUB_GROUP_SIZE_8 SUB_GROUP_SIZE_16 SUB_GROUP_SIZE_32 SUB_GROUP_SIZE_48 SUB_GROUP_SIZE_64
 
 #ifdef SUB_GROUP_SIZE_8
