@@ -281,5 +281,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/088_TilemapRenderer_MaskInteraction.unity
     guid: f5c31dad7aab75241a867c300ce2bc5e
+  - enabled: 1
+    path: Assets/Scenes/091_SpriteMask_SupportedRenderers.unity
+    guid: b3db030be38d9441eba28d8038467ba7
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
