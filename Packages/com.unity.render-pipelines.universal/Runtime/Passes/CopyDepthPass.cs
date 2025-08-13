@@ -99,6 +99,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsoleteFrom2023_3)]
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+#if UNITY_ANDROID
+            // Mali Valhall + SSAO compatibility: Override timing when accessing depth data
+            if (PlatformAutoDetect.isRunningOnMaliValhallGPU && renderingData.cameraData.postProcessEnabled)
+            {
+                renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+            }
+#endif
+
             // Disable obsolete warning for internal usage
             #pragma warning disable CS0618
 #if UNITY_EDITOR
@@ -285,6 +293,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.copyResolvedDepth = m_CopyResolvedDepth;
                 passData.copyToDepth = CopyToDepth || CopyToDepthXR;
                 passData.isDstBackbuffer = CopyToBackbuffer || CopyToDepthXR;
+
+                if (cameraData.xr.enabled)
+                {
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                }
 
                 if (CopyToDepth)
                 {

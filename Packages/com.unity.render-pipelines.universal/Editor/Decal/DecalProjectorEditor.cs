@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShortcutManagement;
 using UnityEditorInternal;
+using UnityEditor.EditorTools;
+using UnityEditor.Rendering.Utilities;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.RenderPipelines.Core;
 using UnityEngine.Rendering.Universal;
 using static UnityEditorInternal.EditMode;
 
@@ -16,6 +20,11 @@ namespace UnityEditor.Rendering.Universal
     {
         const float k_Limit = 100000f;
         const float k_LimitInv = 1f / k_Limit;
+
+        static readonly GUIContent k_NewDecalMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Decal material.");
+        static readonly string k_NewDecalText = "URP Decal";
+        static readonly string k_NewSGDecalText = "ShaderGraph Decal";
+        static readonly string k_DefaultDecalShaderGraphTemplatePath = "Packages/com.unity.render-pipelines.universal/Shaders/Decal.shadergraph";
 
         static Color fullColor
         {
@@ -116,14 +125,6 @@ namespace UnityEditor.Rendering.Universal
         };
 
         static Func<Vector3, Quaternion, Vector3> s_DrawPivotHandle;
-
-        static GUIContent[] k_EditVolumeLabels = null;
-        static GUIContent[] editVolumeLabels => k_EditVolumeLabels ?? (k_EditVolumeLabels = new GUIContent[]
-        {
-            EditorGUIUtility.TrIconContent("d_ScaleTool", k_EditShapeWithoutPreservingUVTooltip),
-            EditorGUIUtility.TrIconContent("d_RectTool", k_EditShapePreservingUVTooltip),
-            EditorGUIUtility.TrIconContent("d_MoveTool", k_EditUVTooltip),
-        });
 
         static List<DecalProjectorEditor> s_Instances = new List<DecalProjectorEditor>();
 
@@ -557,29 +558,6 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.BeginChangeCheck();
             {
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                DoInspectorToolbar(k_EditVolumeModes, editVolumeLabels, GetBoundsGetter(target as DecalProjector), this);
-                GUILayout.FlexibleSpace();
-                EditorGUILayout.EndHorizontal();
-
-                EditorGUILayout.Space();
-
-                // Info box for tools
-                GUIStyle style = new GUIStyle(EditorStyles.miniLabel);
-                style.richText = true;
-                GUILayout.BeginVertical(EditorStyles.helpBox);
-                string helpText = k_BaseSceneEditingToolText;
-                if (EditMode.editMode == k_EditShapeWithoutPreservingUV && EditMode.IsOwner(this))
-                    helpText = k_EditShapeWithoutPreservingUVName;
-                if (EditMode.editMode == k_EditShapePreservingUV && EditMode.IsOwner(this))
-                    helpText = k_EditShapePreservingUVName;
-                if (EditMode.editMode == k_EditUVAndPivot && EditMode.IsOwner(this))
-                    helpText = k_EditUVAndPivotName;
-                GUILayout.Label(helpText, style);
-                GUILayout.EndVertical();
-                EditorGUILayout.Space();
-
                 EditorGUILayout.PropertyField(m_ScaleMode, k_ScaleMode);
 
                 bool negativeScale = false;
@@ -743,15 +721,54 @@ namespace UnityEditor.Rendering.Universal
             newFieldRect.x = rect.xMax + 2;
             newFieldRect.width = k_NewFieldWidth;
 
-            if (GUI.Button(newFieldRect, k_NewMaterialButtonText))
+            if (!EditorGUI.DropdownButton(newFieldRect, k_NewDecalMaterialButtonText, FocusType.Keyboard))
+                return;
+
+            GenericMenu menu = new GenericMenu();
+
+            menu.AddItem(new GUIContent(k_NewDecalText), false, () => CreateDefaultDecalMaterial(targets));
+            menu.AddItem(new GUIContent(k_NewSGDecalText), false, () => CreateDecalMaterialFromTemplate(targets, k_DefaultDecalShaderGraphTemplatePath));
+
+            // For later introduction of SG Filtered Template Browser
+            //menu.AddItem(new GUIContent(k_NewSGDecalFromTemplateText), false, () => CreateDecalMaterialFromTemplate(targets));
+
+            menu.DropDown(newFieldRect);
+        }
+
+        static void CreateDecalMaterialFromTemplate(UnityEngine.Object[] decalProjectors, string templatePath = null)
+        {
+            CreateShaderGraph.CreateGraphAndMaterialFromTemplate((material) =>
             {
-                string materialName = k_NewDecalMaterialText + ".mat";
-                var materialIcon = AssetPreview.GetMiniTypeThumbnail(typeof(Material));
-                var action = ScriptableObject.CreateInstance<DoCreateDecalDefaultMaterial>();
-                action.decalProjector = target as DecalProjector;
-                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, materialName, materialIcon, null);
+                SetDecalMaterial(decalProjectors, material);
+            },
+            templatePath,
+            $"New {k_NewSGDecalText}");
+        }
+
+        static void CreateDefaultDecalMaterial(UnityEngine.Object[] decalProjectors)
+        {
+            string materialName = "New " + k_NewDecalText;
+
+            AssetCreationUtil.CreateMaterial(
+                materialName,
+                (material) =>
+                {
+                    SetDecalMaterial(decalProjectors, material);
+                },
+                DecalProjector.defaultMaterial.shader
+            );
+        }
+
+        static void SetDecalMaterial(UnityEngine.Object[] decalProjectors, Material material)
+        {
+            var selection = new List<GameObject>();
+            foreach (DecalProjector decalProjector in decalProjectors)
+            {
+                decalProjector.material = material;
+                EditorUtility.SetDirty(decalProjector);
+                selection.Add(decalProjector.gameObject);
             }
-                
+            Selection.objects = selection.ToArray();
         }
 
         [Shortcut("URP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
@@ -820,18 +837,35 @@ namespace UnityEditor.Rendering.Universal
 
             QuitEditMode();
         }
-    }
 
-    class DoCreateDecalDefaultMaterial : ProjectWindowCallback.EndNameEditAction
-    {
-        public DecalProjector decalProjector;
-        public override void Action(int instanceId, string pathName, string resourceFile)
+        [EditorTool(Description, typeof(DecalProjector), toolPriority = (int)Mode)]
+        internal class DecalProjectorModifyScaleTool : GenericEditorTool<DecalProjector>
         {
-            var shader = DecalProjector.defaultMaterial.shader;
-            var material = new Material(shader);
-            AssetDatabase.CreateAsset(material, pathName);
-            ProjectWindowUtil.ShowCreatedAsset(material);
-            decalProjector.material = material;
+            private const string Description = DecalProjectorEditor.k_EditShapeWithoutPreservingUVTooltip;
+            private const EditMode.SceneViewEditMode Mode = DecalProjectorEditor.k_EditShapeWithoutPreservingUV;
+            private const string IconName = "ScaleTool";
+
+            protected DecalProjectorModifyScaleTool() : base(Description, Mode, IconName) { }
+        }
+
+        [EditorTool(Description, typeof(DecalProjector), toolPriority = (int)Mode)]
+        internal class DecalProjectorEditShapeTool : GenericEditorTool<DecalProjector>
+        {
+            private const string Description = DecalProjectorEditor.k_EditShapePreservingUVTooltip;
+            private const EditMode.SceneViewEditMode Mode = DecalProjectorEditor.k_EditShapePreservingUV;
+            private const string IconName = "RectTool";
+
+            protected DecalProjectorEditShapeTool() : base(Description, Mode, IconName) { }
+        }
+
+        [EditorTool(Description, typeof(DecalProjector), toolPriority = (int)Mode)]
+        internal class DecalProjectorEditTool : GenericEditorTool<DecalProjector>
+        {
+            private const string Description = DecalProjectorEditor.k_EditUVTooltip;
+            private const EditMode.SceneViewEditMode Mode = DecalProjectorEditor.k_EditUVAndPivot;
+            private const string IconName = "MoveTool";
+
+            protected DecalProjectorEditTool() : base(Description, Mode, IconName) { }
         }
     }
 }

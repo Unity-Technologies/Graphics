@@ -115,17 +115,15 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderConstants._Grain_TilingParams, tilingParams);
         }
 
-        internal static void SetSourceSize(RasterCommandBuffer cmd, RTHandle source)
+        internal static void SetSourceSize(RasterCommandBuffer cmd, float width, float height, RenderTexture rt)
         {
-            float width = source.rt.width;
-            float height = source.rt.height;
-            if (source.rt.useDynamicScale)
+            if (rt != null && rt.useDynamicScale)
             {
 #if ENABLE_VR && ENABLE_XR_MODULE
-                if (source.rt.vrUsage != VRTextureUsage.None)
+                if (rt.vrUsage != VRTextureUsage.None)
                 {
-                    width = XRSystem.ScaleTextureWidthForXR(source.rt);
-                    height = XRSystem.ScaleTextureHeightForXR(source.rt);
+                    width = XRSystem.ScaleTextureWidthForXR(rt);
+                    height = XRSystem.ScaleTextureHeightForXR(rt);
                 }
                 else
 #endif
@@ -135,6 +133,16 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
             cmd.SetGlobalVector(ShaderConstants._SourceSize, new Vector4(width, height, 1.0f / width, 1.0f / height));
+        }
+
+        internal static void SetSourceSize(CommandBuffer cmd, float width, float height, RenderTexture rt)
+        {
+            SetSourceSize(CommandBufferHelpers.GetRasterCommandBuffer(cmd), width, height, rt);
+        }
+
+        internal static void SetSourceSize(RasterCommandBuffer cmd, RTHandle source)
+        {
+            SetSourceSize(cmd, source.rt.width, source.rt.height, source.rt);
         }
 
         internal static void SetSourceSize(CommandBuffer cmd, RTHandle source)

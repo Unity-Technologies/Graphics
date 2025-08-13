@@ -1,0 +1,51 @@
+// Surface Cache shaders do not currently work on Switch due to its limited binding range
+// https://jira.unity3d.com/browse/GFXLIGHT-1730
+#pragma exclude_renderers switch switch2
+#pragma kernel Evict
+
+#include "PatchUtil.hlsl"
+
+StructuredBuffer<uint> _RingConfigBuffer;
+StructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
+RWStructuredBuffer<uint> _CellAllocationMarks;
+RWStructuredBuffer<uint> _CellPatchIndices;
+RWStructuredBuffer<uint> _PatchCellIndices;
+
+uint _RingConfigOffset;
+uint _FrameIdx;
+
+uint ModuloDistance(uint a, uint b, uint modulo)
+{
+    int dif = abs(int(a) - int(b));
+    return min(dif, modulo - dif);
+}
+
+[numthreads(256, 1, 1)]
+void Evict(uint patchIdx : SV_DispatchThreadID)
+{
+    if (patchCapacity <= patchIdx)
+        return;
+
+    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+        return;
+
+    const uint cellIdx = _PatchCellIndices[patchIdx];
+    if (cellIdx == PatchUtil::invalidCellIndex)
+        return;
+
+    const PatchUtil::PatchCounterSet counterSet = _PatchCounterSets[patchIdx];
+    const uint lastAccessFrameIdx = PatchUtil::GetLastAccessFrame(counterSet);
+
+    // Here we take into account that last frame access index is in [0, 2^16-1].
+    // We use that the last frame index can never be later than current frame index.
+    const uint modulo = 65536; // 2^16
+    const uint frameSinceLastUse = ModuloDistance(_FrameIdx % modulo, lastAccessFrameIdx, modulo);
+
+    const uint evictionThreshold = 60 * 4;
+    if (evictionThreshold < frameSinceLastUse)
+    {
+        _PatchCellIndices[patchIdx] = PatchUtil::invalidCellIndex;
+        _CellAllocationMarks[cellIdx] = 0;
+        _CellPatchIndices[cellIdx] = PatchUtil::invalidPatchIndex;
+    }
+}

@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal Matrix4x4 GetGPUProjectionMatrix(bool renderIntoTexture, int viewIndex = 0)
         {
-            return m_JitterMatrix * GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), renderIntoTexture);
+            return GL.GetGPUProjectionMatrix(GetProjectionMatrix(viewIndex), renderIntoTexture);
         }
 
         /// <summary>
@@ -173,15 +173,14 @@ namespace UnityEngine.Rendering.Universal
         /// By obtaining the pixelWidth of the camera and taking into account the render scale
         /// The min dimension is 1.
         /// </summary>
-        public int scaledWidth => Mathf.Max(1, (int)(camera.pixelWidth * renderScale));
+        public int scaledWidth;
 
         /// <summary>
         /// Returns the scaled height of the Camera
         /// By obtaining the pixelHeight of the camera and taking into account the render scale
         /// The min dimension is 1.
         /// </summary>
-        public int scaledHeight => Mathf.Max(1, (int)(camera.pixelHeight * renderScale));
-
+        public int scaledHeight;
 
         // NOTE: This is internal instead of private to allow ref return in the old CameraData compatibility property.
         // We can make this private when it is removed.

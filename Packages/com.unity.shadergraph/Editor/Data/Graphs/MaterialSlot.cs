@@ -138,7 +138,15 @@ namespace UnityEditor.ShaderGraph
             return m_DisplayName;
         }
 
-        public static MaterialSlot CreateMaterialSlot(SlotValueType type, int slotId, string displayName, string shaderOutputName, SlotType slotType, Vector4 defaultValue, ShaderStageCapability shaderStageCapability = ShaderStageCapability.All, bool hidden = false)
+        public static MaterialSlot CreateMaterialSlot(
+            SlotValueType type,
+            int slotId,
+            string displayName,
+            string shaderOutputName,
+            SlotType slotType,
+            Vector4 defaultValue,
+            ShaderStageCapability shaderStageCapability = ShaderStageCapability.All,
+            bool hidden = false)
         {
             switch (type)
             {
@@ -279,14 +287,33 @@ namespace UnityEditor.ShaderGraph
 
         public bool IsCompatibleWith(MaterialSlot otherSlot)
         {
-            return otherSlot != null
-                && otherSlot.owner != owner
-                && otherSlot.isInputSlot != isInputSlot
-                && !hidden
-                && !otherSlot.hidden
-                && ((isInputSlot
-                    ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType, otherSlot.IsConnectionTestable())
-                    : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType, IsConnectionTestable())));
+            bool requiresLiteralMode;
+            return IsCompatibleWith(otherSlot, out requiresLiteralMode);
+        }
+
+        public bool IsCompatibleWith(MaterialSlot otherSlot, out bool requiresLiteralMode)
+        {
+            requiresLiteralMode = false;
+            var res = otherSlot != null
+                      && otherSlot.owner != owner
+                      && otherSlot.isInputSlot != isInputSlot
+                      && !hidden
+                      && !otherSlot.hidden
+                      && ((isInputSlot
+                          ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType, otherSlot.IsConnectionTestable())
+                          : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType, IsConnectionTestable())));
+            if (res == false)
+                return false;
+            if (isInputSlot && this is IMaterialSlotSupportsLiteralMode { LiteralMode: true })
+            {
+                res = otherSlot is IMaterialSlotSupportsLiteralMode { LiteralMode: true };
+            }
+            else if (otherSlot.isInputSlot && otherSlot is IMaterialSlotSupportsLiteralMode { LiteralMode: true })
+            {
+                res = this is IMaterialSlotSupportsLiteralMode { LiteralMode: true };
+            }
+            requiresLiteralMode = !res;
+            return res;
         }
 
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)

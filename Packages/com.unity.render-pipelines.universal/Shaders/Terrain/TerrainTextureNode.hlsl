@@ -1,0 +1,6 @@
+#ifndef UNITY_TERRAIN_PREVIEW_TEXTURE
+#define UNITY_TERRAIN_PREVIEW_TEXTURE
+TEXTURE2D(_TerrainPreviewTexture);
+SAMPLER(sampler_TerrainPreviewTexture);
+float4 _TerrainPreviewTexture_TexelSize;
+#endif

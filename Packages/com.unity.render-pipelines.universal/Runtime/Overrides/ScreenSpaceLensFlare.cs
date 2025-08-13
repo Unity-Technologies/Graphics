@@ -163,6 +163,7 @@ namespace UnityEngine.Rendering.Universal
     [Serializable, VolumeComponentMenu("Post-processing/Screen Space Lens Flare")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [URPHelpURL("shared/lens-flare/lens-flare-component")]
+    [DisplayInfo(name = "Screen Space Lens Flare")]
     public class ScreenSpaceLensFlare : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -245,14 +246,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         [Header("Chromatic Abberation")]
         public ClampedFloatParameter chromaticAbberationIntensity = new ClampedFloatParameter(0.5f, 0f, 1f);
-        /// <summary>
-        /// Default constructor for the lens flare volume component.
-        /// </summary>
-        public ScreenSpaceLensFlare()
-        {
-            displayName = "Screen Space Lens Flare";
-        }
-
+        
         /// <summary>
         /// Tells if the post process needs to be rendered or not.
         /// </summary>

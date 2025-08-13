@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.Block
         public string message { get; }
         public VFXErrorType type => VFXErrorType.Error;
     }
-    
+
     class HLSLUnsupportedAttributes : IHLSMessage
     {
         public HLSLUnsupportedAttributes(IEnumerable<string> attributesName)
@@ -321,7 +321,7 @@ namespace UnityEditor.VFX.Block
             foreach (var m in s_DocParser.Matches(rawDoc))
             {
                 var match = (Match)m;
-                doc[match.Groups["parameter"].Value] = match.Groups["tooltip"].Value;
+                doc[match.Groups["parameter"].Value] = match.Groups["tooltip"].Value.TrimEnd('\n', '\r');
             }
 
             return doc;

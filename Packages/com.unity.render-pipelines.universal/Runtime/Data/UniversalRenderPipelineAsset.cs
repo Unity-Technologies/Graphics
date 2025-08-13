@@ -9,6 +9,8 @@ using System.ComponentModel;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Assertions;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -367,7 +369,11 @@ namespace UnityEngine.Rendering.Universal
         /// Unity uses the Spatial-Temporal Post-Processing technique to perform upscaling.
         /// </summary>
         [InspectorName("Spatial-Temporal Post-Processing"), Tooltip("If the target device does not support compute shaders or is running GLES, Unity falls back to the Automatic option.")]
-        STP
+        STP,
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        IUpscaler // Should always be last
+#endif
     }
 
     /// <summary>
@@ -480,6 +486,15 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
+        // The upscaler name is null if the upscaling filter is coming from a built-in upscaler. It will be non-null if
+        // the upscaling filter is coming from an IUpscaler, which can be a separate package, or part of Unity code.
+#if ENABLE_UPSCALER_FRAMEWORK
+        [SerializeField] string m_IUpscalerName = string.Empty;
+
+        [SerializeField]
+        [SerializeReference]
+        List<UpscalerOptions> m_UpscalerOptions = new List<UpscalerOptions>();
+#endif
         [SerializeField] bool m_FsrOverrideSharpness = false;
         [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
 
@@ -532,17 +547,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = AdditionalLightsDefaultShadowResolutionTierHigh;
 
         // Reflection Probes
-#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
-        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.ReflectionProbeBlending)]
-#endif
         [SerializeField] bool m_ReflectionProbeBlending = false;
-#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
-        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.ReflectionProbeBoxProjection)]
-#endif
         [SerializeField] bool m_ReflectionProbeBoxProjection = false;
-#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_ATLAS
-        [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.ReflectionProbeAtlas)]
-#endif
         [SerializeField] bool m_ReflectionProbeAtlas = true;
 
         // Shadows Settings
@@ -1123,6 +1129,39 @@ namespace UnityEngine.Rendering.Universal
             set => m_UpscalingFilter = value;
         }
 
+
+        /// <summary>
+        /// Returns the name of the selected upscaling filter.
+        /// </summary>
+        public string upscalerName
+        {
+#if ENABLE_UPSCALER_FRAMEWORK
+            get => m_IUpscalerName;
+#else
+            get => string.Empty;
+#endif
+        }
+
+#if ENABLE_UPSCALER_FRAMEWORK
+
+        public List<UpscalerOptions> iUpscalerOptions
+        {
+            get => m_UpscalerOptions;
+        }
+
+        public UpscalerOptions GetIUpscalerOptions(string UpscalerName)
+        {
+            foreach(UpscalerOptions option in m_UpscalerOptions)
+            {
+                if (option == null)
+                    continue;
+                if (option.UpscalerName == UpscalerName)
+                    return option;
+            }
+            return null;
+        }
+#endif
+
         /// <summary>
         /// If this property is set to true, the value from the fsrSharpness property will control the intensity of the
         /// sharpening filter associated with FidelityFX Super Resolution.
@@ -1363,6 +1402,15 @@ namespace UnityEngine.Rendering.Universal
             internal set => m_ReflectionProbeBlending = value;
         }
 
+        internal bool ShouldUseReflectionProbeBlending()
+        {
+            // The probe blending with atlas code path is always force enabled with GPUResidentDrawer since that is the only path supported here.
+            if (gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
+                return true;
+
+            return reflectionProbeBlending;
+        }
+
         /// <summary>
         /// Specifies if this <c>UniversalRenderPipelineAsset</c> should allow box projection for the reflection probes in the scene.
         /// </summary>
@@ -1379,6 +1427,20 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ReflectionProbeAtlas;
             internal set => m_ReflectionProbeAtlas = value;
+        }
+
+        internal bool ShouldUseReflectionProbeAtlasBlending(RenderingMode renderingMode)
+        {
+            var useProbeBlending = ShouldUseReflectionProbeBlending();
+
+            // The probe blending with atlas code path is always force enabled with GPUResidentDrawer since that is the only path supported here.
+            if (gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
+            {
+                Assert.IsTrue(useProbeBlending);
+                return true;
+            }
+
+            return useProbeBlending && (reflectionProbeAtlas || renderingMode == RenderingMode.DeferredPlus);
         }
 
         /// <summary>
@@ -1986,7 +2048,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool isStpUsed
         {
-            get { return m_UpscalingFilter == UpscalingFilterSelection.STP; }
+            get
+            {
+                return m_UpscalingFilter == UpscalingFilterSelection.STP
+#if ENABLE_UPSCALER_FRAMEWORK
+                || m_UpscalingFilter == UpscalingFilterSelection.IUpscaler
+#endif
+                ;
+            }
         }
     }
 }

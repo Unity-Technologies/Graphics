@@ -402,7 +402,16 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_ScreenSpaceIrradiance(ref IShaderScriptableStrippingData strippingData)
         {
-            return strippingData.IsKeywordEnabled(m_ScreenSpaceIrradiance); // Screen space irradiance is currently not exposed to the user nor used by anything internal.
+#if SURFACE_CACHE
+            if (strippingData.PassHasKeyword(m_ScreenSpaceIrradiance))
+            {
+                bool useScreenSpaceIrradiance = strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache);
+                return !strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache) && strippingData.IsKeywordEnabled(m_ScreenSpaceIrradiance);
+            }
+            return false;
+#else
+            return strippingData.IsKeywordEnabled(m_ScreenSpaceIrradiance);
+#endif
         }
 
         internal bool StripUnusedFeatures_BicubicLightmapSampling(ref IShaderScriptableStrippingData strippingData)
@@ -1057,7 +1066,11 @@ namespace UnityEditor.Rendering.Universal
             if (strippingData.passType == PassType.Meta)
             {
                 if (SupportedRenderingFeatures.active.enlighten == false
-                    || ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0)
+                    || ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0
+#if SURFACE_CACHE
+                    || !strippingData.IsShaderFeatureEnabled(ShaderFeatures.SurfaceCache)
+#endif
+                   )
                     return true;
             }
             return false;

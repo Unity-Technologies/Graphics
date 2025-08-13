@@ -6,7 +6,7 @@ Shader "Hidden/HDRP/XRMirrorView"
 
         HLSLINCLUDE
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             #pragma multi_compile_local_fragment _ HDR_COLORSPACE_CONVERSION_AND_ENCODING
             #pragma multi_compile_fragment _ DISABLE_TEXTURE2D_X_ARRAY
         ENDHLSL

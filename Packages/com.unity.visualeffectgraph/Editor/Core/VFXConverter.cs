@@ -156,7 +156,10 @@ namespace UnityEditor.VFX
                     else
                     {
                         implicitMethod = toType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
-                            .FirstOrDefault(m => m.Name == "op_Implicit" && m.GetParameters()[0].ParameterType == fromType && m.ReturnType == toType);
+                            .FirstOrDefault(m => {
+                                var parameters = m.GetParameters();
+                                return m.Name == "op_Implicit" && parameters.Length > 0 && (parameters[0].ParameterType.GetElementType() ?? parameters[0].ParameterType) == fromType && m.ReturnType == toType;
+                            });
                         if (implicitMethod != null)
                         {
                             converter = t => implicitMethod.Invoke(null, new object[] { t });

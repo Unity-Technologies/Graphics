@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using UnityEditor.RenderPipelines.Core;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using static UnityEditor.Rendering.InspectorCurveEditor;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -26,6 +29,12 @@ namespace UnityEditor.Rendering.Universal
         private static readonly GUIContent k_PassMaterialGuiContent = new GUIContent("Pass Material", "The material used to render the full screen pass.");
         private static readonly GUIContent k_PassGuiContent = new GUIContent("Pass", "The name of the shader pass to use from the assigned material.");
 
+        static readonly GUIContent k_NewFullscreenMaterialButtonText = EditorGUIUtility.TrTextContent("New", "Creates a new Fullscreen material.");
+        static readonly string k_NewBlitShaderText = "SRP Blit Shader";
+        static readonly string k_NewSGFullscreenText = "ShaderGraph Fullscreen";
+        static readonly string k_BlitShaderTemplatePath = "Packages/com.unity.render-pipelines.core/Editor/ScriptTemplates/BlitSRP.txt";
+        static readonly string k_DefaultFullscreenShaderGraphTemplatePath = "Packages/com.unity.render-pipelines.universal/Shaders/FullscreenInvertColors.shadergraph";
+
         private void OnEnable()
         {
             m_InjectionPointProperty = serializedObject.FindProperty("injectionPoint");
@@ -50,7 +59,11 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_RequirementsProperty, k_RequirementsGuiContent);
             EditorGUILayout.PropertyField(m_FetchColorBufferProperty, k_FetchColorBufferGuiContent);
             EditorGUILayout.PropertyField(m_BindDepthStencilAttachmentProperty, k_BindDepthStencilAttachmentGuiContent);
-            EditorGUILayout.PropertyField(m_PassMaterialProperty, k_PassMaterialGuiContent);
+
+            MaterialFieldWithButton(m_PassMaterialProperty, k_PassMaterialGuiContent);
+
+            if (m_PassMaterialProperty.objectReferenceValue == null)
+                EditorGUILayout.HelpBox("The full screen feature will not execute - no material is assigned. Please make sure a material is assigned for this feature on the renderer asset.", MessageType.Warning, true);
 
             if (AdvancedProperties.BeginGroup())
             {
@@ -59,6 +72,62 @@ namespace UnityEditor.Rendering.Universal
             AdvancedProperties.EndGroup();
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        internal void MaterialFieldWithButton(SerializedProperty prop, GUIContent label)
+        {
+            const int k_NewFieldWidth = 70;
+
+            var rect = EditorGUILayout.GetControlRect();
+            rect.xMax -= k_NewFieldWidth + 2;
+
+            EditorGUI.PropertyField(rect, prop, label);
+
+            var newFieldRect = rect;
+            newFieldRect.x = rect.xMax + 2;
+            newFieldRect.width = k_NewFieldWidth;
+
+            if (!EditorGUI.DropdownButton(newFieldRect, k_NewFullscreenMaterialButtonText, FocusType.Keyboard))
+                return;
+
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent(k_NewSGFullscreenText), false, () => CreateFullscreenMaterialFromTemplate(target as FullScreenPassRendererFeature, k_DefaultFullscreenShaderGraphTemplatePath));
+
+            // For later introduction of SG Filtered Template Browser
+            //menu.AddItem(new GUIContent(k_NewSGFullscreenFromTemplateText), false, () => CreateFullscreenMaterialFromTemplate(target as FullScreenPassRendererFeature));
+
+            menu.AddItem(new GUIContent(k_NewBlitShaderText), false, () => CreateDefaultFullscreenMaterial(target as FullScreenPassRendererFeature));
+            menu.DropDown(newFieldRect);
+        }
+
+        internal static void CreateFullscreenMaterialFromTemplate(FullScreenPassRendererFeature obj, string templatePath = null)
+        {
+            var selection = Selection.activeObject; // holding selection
+            CreateShaderGraph.CreateGraphAndMaterialFromTemplate((material) =>
+            {
+                obj.passMaterial = material;
+                EditorUtility.SetDirty(obj);
+                Selection.activeObject = selection; //restoring selection
+            },
+            templatePath,
+            $"New {k_NewSGFullscreenText}");
+        }
+
+        internal static void CreateDefaultFullscreenMaterial(FullScreenPassRendererFeature obj)
+        {
+            string materialName = "New " + k_NewBlitShaderText;
+
+            var selection = Selection.activeObject; // holding selection
+            AssetCreationUtil.CreateShaderAndMaterial(
+                materialName,
+                (material) =>
+                {
+                    obj.passMaterial = material;
+                    EditorUtility.SetDirty(obj);
+                    Selection.activeObject = selection; //restoring selection
+                },
+                k_BlitShaderTemplatePath
+            );
         }
 
         private void DrawMaterialPassProperty(FullScreenPassRendererFeature feature)

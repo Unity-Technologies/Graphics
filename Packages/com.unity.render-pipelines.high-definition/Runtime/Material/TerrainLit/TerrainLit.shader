@@ -122,7 +122,7 @@ Shader "HDRP/TerrainLit"
             }
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             // All our shaders use same name for entry point
             #pragma vertex Vert
             #pragma fragment Frag
@@ -160,7 +160,7 @@ Shader "HDRP/TerrainLit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             // All our shaders use same name for entry point
             #pragma vertex Vert
             #pragma fragment Frag
@@ -195,7 +195,7 @@ Shader "HDRP/TerrainLit"
             ColorMask 0
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             // All our shaders use same name for entry point
             #pragma vertex Vert
             #pragma fragment Frag
@@ -230,7 +230,7 @@ Shader "HDRP/TerrainLit"
             ZWrite On
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             // All our shaders use same name for entry point
             #pragma vertex Vert
             #pragma fragment Frag
@@ -278,7 +278,7 @@ Shader "HDRP/TerrainLit"
             Cull [_CullMode]
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             // All our shaders use same name for entry point
             #pragma vertex Vert
             #pragma fragment Frag
@@ -321,7 +321,7 @@ Shader "HDRP/TerrainLit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             // All our shaders use same name for entry point
             #pragma vertex Vert
             #pragma fragment Frag
@@ -366,7 +366,7 @@ Shader "HDRP/TerrainLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -401,7 +401,7 @@ Shader "HDRP/TerrainLit"
             Tags{ "LightMode" = "ForwardDXR" }
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -437,7 +437,7 @@ Shader "HDRP/TerrainLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -470,7 +470,7 @@ Shader "HDRP/TerrainLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -491,7 +491,7 @@ Shader "HDRP/TerrainLit"
             Tags{ "LightMode" = "DebugDXR" }
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -517,7 +517,7 @@ Shader "HDRP/TerrainLit"
             Tags{ "LightMode" = "PathTracingDXR" }
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

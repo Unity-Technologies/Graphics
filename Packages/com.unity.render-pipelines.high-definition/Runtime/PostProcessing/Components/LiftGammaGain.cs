@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Post-processing/Lift, Gamma, Gain")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Post-Processing-Lift-Gamma-Gain")]
+    [DisplayInfo(name = "Lift, Gamma, Gain")]
     public sealed class LiftGammaGain : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -36,7 +37,5 @@ namespace UnityEngine.Rendering.HighDefinition
                 || gamma != defaultState
                 || gain != defaultState;
         }
-
-        LiftGammaGain() => displayName = "Lift, Gamma, Gain";
     }
 }

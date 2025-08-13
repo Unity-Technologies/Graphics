@@ -91,10 +91,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             if (passMaterial == null)
-            {
-                Debug.LogWarningFormat("The full screen feature \"{0}\" will not execute - no material is assigned. Please make sure a material is assigned for this feature on the renderer asset.", name);
                 return;
-            }
 
             if (passIndex < 0 || passIndex >= passMaterial.passCount)
             {

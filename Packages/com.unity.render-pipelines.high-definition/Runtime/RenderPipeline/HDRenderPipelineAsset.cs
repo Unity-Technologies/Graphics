@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <inheritdoc/>
-        public bool isImmediateModeSupported => true;
+        public bool isImmediateModeSupported => false;
 
         [SerializeField] private CustomPostProcessVolumeComponentList m_CompositorCustomVolumeComponentsList = new(CustomPostProcessInjectionPoint.BeforePostProcess);
 
@@ -290,7 +290,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                return m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority.Contains(AdvancedUpscalers.STP);
+                return m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains("STP")
+  #if ENABLE_UPSCALER_FRAMEWORK
+              || m_RenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames.Contains("STP (IUpscaler)")
+  #endif
+              ;
             }
         }
     }

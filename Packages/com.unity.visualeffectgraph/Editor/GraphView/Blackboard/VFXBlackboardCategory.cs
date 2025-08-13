@@ -31,6 +31,10 @@ namespace UnityEditor.VFX.UI
                 m_TextField.RegisterCallback<FocusOutEvent>(OnEditTextSucceed, TrickleDown.TrickleDown);
                 RegisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
             }
+            else
+            {
+                capabilities &= ~(Capabilities.Deletable | Capabilities.Renamable | Capabilities.Copiable);
+            }
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
@@ -57,6 +61,7 @@ namespace UnityEditor.VFX.UI
         {
             switch (m_Category)
             {
+                case OutputCategory: return DropdownMenuAction.Status.Disabled;
                 case PropertyCategory { isRoot: false }: return DropdownMenuAction.Status.Normal;
                 default: return DropdownMenuAction.Status.Disabled;
             }

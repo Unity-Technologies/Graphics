@@ -310,7 +310,7 @@ half4 DeferredShading(Varyings input) : SV_Target
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(posWS.xyz);
 
     #if defined(_LIT)
-        #if SHADER_API_MOBILE || SHADER_API_SWITCH
+        #if SHADER_API_MOBILE || SHADER_API_SWITCH || SHADER_API_SWITCH2
         // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
         bool materialSpecularHighlightsOff = false;
         #else

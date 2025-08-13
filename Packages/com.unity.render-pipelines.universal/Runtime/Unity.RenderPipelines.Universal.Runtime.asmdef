@@ -10,7 +10,9 @@
         "GUID:2665a8d13d1b3f18800f46e256720795",
         "GUID:4fd6538c1c56b409fb53fdf0183170ec",
         "GUID:86bc95e6fdb13ff43aa04316542905ae",
-        "GUID:d04eb9c554ad44ceab303cecf0c0cf82"
+        "GUID:d04eb9c554ad44ceab303cecf0c0cf82",
+        "GUID:214c0945bb158c940aada223f3223ee8",
+        "GUID:c49c619b6af2be941af9bcbca2641964"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -26,19 +28,9 @@
             "define": "VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER"
         },
         {
-            "name": "com.unity.adaptiveperformance",
-            "expression": "2.0.0-preview.7",
-            "define": "ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER"
-        },
-        {
-            "name": "com.unity.adaptiveperformance",
-            "expression": "2.1.0",
-            "define": "ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER"
-        },
-        {
-            "name": "com.unity.adaptiveperformance",
-            "expression": "4.0.0-pre.1",
-            "define": "ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER"
+            "name": "com.unity.modules.adaptiveperformance",
+            "expression": "1.0.0",
+            "define": "ENABLE_ADAPTIVE_PERFORMANCE"
         },
         {
             "name": "com.unity.burst",

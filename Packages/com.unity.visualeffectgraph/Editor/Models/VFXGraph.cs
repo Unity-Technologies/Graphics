@@ -484,7 +484,7 @@ namespace UnityEditor.VFX
         // 19: Change sticky notes theme serialization
         public static readonly int CurrentVersion = 19;
 
-        public void OnDisable()
+        void OnDestroy()
         {
             ClearPreviewAssets();
         }

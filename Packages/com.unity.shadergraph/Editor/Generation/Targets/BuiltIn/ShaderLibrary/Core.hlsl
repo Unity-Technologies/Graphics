@@ -11,7 +11,7 @@
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Input.hlsl"
 
 #if !defined(SHADER_HINT_NICE_QUALITY)
-    #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+    #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)|| defined(SHADER_API_SWITCH2)
         #define SHADER_HINT_NICE_QUALITY 0
     #else
         #define SHADER_HINT_NICE_QUALITY 1
@@ -37,7 +37,7 @@
 
 #if UNITY_REVERSED_Z
     // TODO: workaround. There's a bug where SHADER_API_GL_CORE gets erroneously defined on switch.
-    #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES3)
+    #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH) &&!defined(SHADER_API_SWITCH2)) || defined(SHADER_API_GLES3)
         //GL with reversed z => z clip range is [near, -far] -> should remap in theory but dont do it in practice to save some perf (range is close enough)
         #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) max(-(coord), 0)
     #else

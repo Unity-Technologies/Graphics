@@ -187,10 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
             architectures: new[] { Architecture.X64 }
         )]
-        [IgnoreGraphicsTest(
-            "3012_MipMapMode_MipStreamingPerformance$",
-            "There seems to be issues with the texture-streaming behaviour on all platforms."
-        )]
         [IgnoreGraphicsTest("4012_MotionBlur_CameraOnly$", "Missing ref-image.")]
         [IgnoreGraphicsTest(
             "4075_PhysicalCamera-gateFit$",
@@ -325,6 +321,21 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             architectures: new[] { Architecture.X64 },
             contextTypes: new[] { typeof(GpuResidentDrawerGlobalContext) },
             contextMasks: new[] { (int)GpuResidentDrawerContext.GpuResidentDrawerInstancedDrawing }
+        )]
+        [IgnoreGraphicsTest(
+            "4107_DRS-FSR2-Hardware",
+            "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
+        [IgnoreGraphicsTest(
+            "4108_DRS-FSR2-Software",
+            "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
+        )]
+        [IgnoreGraphicsTest(
+            "4109_DRS-FSR2-AfterPost",
+            "Graphics devices type not supported", // FSR is DX12/DX11/Vulkan on PC-only
+            graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU, GraphicsDeviceType.Switch2 }
         )]
         public IEnumerator Run(SceneGraphicsTestCase testCase)
         {

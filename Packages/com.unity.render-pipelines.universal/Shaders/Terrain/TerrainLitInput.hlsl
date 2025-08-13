@@ -50,23 +50,19 @@ CBUFFER_END
 
 TEXTURE2D(_Control);    SAMPLER(sampler_Control);
 TEXTURE2D(_Splat0);     SAMPLER(sampler_Splat0);
-TEXTURE2D(_Splat1);
-TEXTURE2D(_Splat2);
-TEXTURE2D(_Splat3);
+TEXTURE2D(_Splat1);     SAMPLER(sampler_Splat1);
+TEXTURE2D(_Splat2);     SAMPLER(sampler_Splat2);
+TEXTURE2D(_Splat3);     SAMPLER(sampler_Splat3);
 
-#ifdef _NORMALMAP
 TEXTURE2D(_Normal0);     SAMPLER(sampler_Normal0);
-TEXTURE2D(_Normal1);
-TEXTURE2D(_Normal2);
-TEXTURE2D(_Normal3);
-#endif
+TEXTURE2D(_Normal1);     SAMPLER(sampler_Normal1);
+TEXTURE2D(_Normal2);     SAMPLER(sampler_Normal2);
+TEXTURE2D(_Normal3);     SAMPLER(sampler_Normal3);
 
-#ifdef _MASKMAP
 TEXTURE2D(_Mask0);      SAMPLER(sampler_Mask0);
-TEXTURE2D(_Mask1);
-TEXTURE2D(_Mask2);
-TEXTURE2D(_Mask3);
-#endif
+TEXTURE2D(_Mask1);      SAMPLER(sampler_Mask1);
+TEXTURE2D(_Mask2);      SAMPLER(sampler_Mask2);
+TEXTURE2D(_Mask3);      SAMPLER(sampler_Mask3);
 
 TEXTURE2D(_MainTex);       SAMPLER(sampler_MainTex);
 TEXTURE2D(_SpecGlossMap);  SAMPLER(sampler_SpecGlossMap);
@@ -90,13 +86,32 @@ UNITY_INSTANCING_BUFFER_END(Terrain)
 TEXTURE2D(_TerrainHolesTexture);
 SAMPLER(sampler_TerrainHolesTexture);
 
+float SampleTerrainHolesTexture(float2 uv)
+{
+    return SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+}
+
 void ClipHoles(float2 uv)
 {
-    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+    float hole = SampleTerrainHolesTexture(uv);
     // Fixes bug where compression is enabled and 0 isn't actually 0 but low like 1/2047. (UUM-61913)
     float epsilon = 0.0005f;
     clip(hole < epsilon ? -1 : 1);
 }
+#endif
+
+#define SampleLayerAlbedo(i) (SAMPLE_TEXTURE2D(_Splat##i, sampler_Splat0, splat##i##uv) * half4(_DiffuseRemapScale##i.rgb, 1.0h))
+
+#ifdef _NORMALMAP
+    #define SampleLayerNormal(i) UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal##i, sampler_Normal0, splat##i##uv), _NormalScale##i)
+#else
+    #define SampleLayerNormal(i) half3(0.0, 0.0, 1.0)
+#endif
+
+#ifdef _MASKMAP
+    #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * lerp(0.5h, SAMPLE_TEXTURE2D(_Mask##i, sampler_Mask0, splat##i##uv), _LayerHasMask##i));
+#else
+    #define SampleLayerMasks(i) (_MaskMapRemapOffset##i + _MaskMapRemapScale##i * 0.5h);
 #endif
 
 half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
@@ -125,7 +140,6 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     outSurfaceData.emission = 0;
 }
 
-
 void TerrainInstancing(inout float4 positionOS, inout float3 normal, inout float2 uv)
 {
 #ifdef UNITY_INSTANCING_ENABLED
@@ -151,5 +165,11 @@ void TerrainInstancing(inout float4 positionOS, inout float3 normal)
 {
     float2 uv = { 0, 0 };
     TerrainInstancing(positionOS, normal, uv);
+}
+
+void TerrainInstancing(inout float4 positionOS)
+{
+    float3 normal = { 0, 0, 0 };
+    TerrainInstancing(positionOS, normal);
 }
 #endif

@@ -1,37 +1,36 @@
-# Screen Space Ambient Occlusion (SSAO)
+# Screen space ambient occlusion (SSAO)
 
-The **Screen Space Ambient Occlusion** override is a real-time, full-screen lighting effect available in the High Definition Render Pipeline (HDRP). This effect approximates [ambient occlusion](https://en.wikipedia.org/wiki/Ambient_occlusion) in the current field of view. It approximates the intensity and position of ambient light on a GameObject’s surface, based on the light in the Scene and the environment around the GameObject. To achieve this, it darkens creases, holes, intersections, and surfaces that are close to one another. In real life, these areas tend to block out, or occlude, ambient light, and so appear darker.
+The Screen Space Ambient Occlusion (SSAO) volume override simulates [ambient occlusion](ambient-occlusion-introduction.md) in real-time.
 
-For information on how to use a Texture to specify ambient occlusion caused by details present in a GameObject's Material but not on it's surface geometry, see [Ambient Occlusion](Ambient-Occlusion.md).
+![A single-channel screen space ambient occlusion texture of a gothic corridor. The scene is white with shades of grey representing corners and crevices.](Images/RayTracedAmbientOcclusion1.png)<br/>
+A single-channel screen space ambient occlusion texture of a gothic corridor. The scene is white with shades of grey representing corners and crevices.
 
-HDRP implements [ray-traced ambient occlusion](Ray-Traced-Ambient-Occlusion.md) on top of this override. This means that the properties visible in the Inspector change depending on whether you enable ray tracing.
+For each frame, SSAO creates a texture containing occluded areas in the camera view, which HDRP uses to reduce indirect lighting in those areas.
 
-<a name="enable-screen-space-ambient-occlusion"></md>
+SSAO doesn't affect direct lighting, or the indirect light from Reflection Probes.
 
-## Enable Screen Space Ambient Occlusion
+A screen-space effect only processes what's on-screen, so objects outside the camera view don't occlude objects in the camera view. You can sometimes see this at the edges of the screen. To include off-screen objects for better results, enable [Ray-traced ambient occlusion](Ray-Traced-Ambient-Occlusion.md) instead.
 
-[!include[](snippets/Volume-Override-Enable-Override.md)]
+## Enable screen space ambient occlusion
 
-* To enable SSAO in your HDRP Asset go to **Lighting** > **Screen Space Ambient Occlusion**.
-* To enable SSAO in your Frame Settings go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings (Default Values)** > **Camera** > **Lighting** > **Screen Space Ambient Occlusion**.
+Follow these steps:
 
-<a name="use-screen-space-ambient-occlusion"></md>
+1. Enable screen space ambient occlusion in your project.
 
-## Use Screen Space Ambient Occlusion
+   [!include[](snippets/Volume-Override-Enable-Override.md)]
 
-**Screen Space Ambient Occlusion** uses the [Volume](understand-volumes.md) framework, so to enable and modify **Screen Space Ambient Occlusion** properties, you must add an **Screen Space Ambient Occlusion** override to a [Volume](understand-volumes.md) in your Scene. To add **Ambient Occlusion** to a Volume:
+   * To enable SSAO in your HDRP Asset, go to **Lighting** > **Screen Space Ambient Occlusion**.
+   * To enable SSAO in your Frame Settings, go to **Edit** > **Project Settings** > **Graphics** > **Pipeline Specific Settings** > **HDRP** > **Frame Settings (Default Values)** > **Camera** > **Lighting** > **Screen Space Ambient Occlusion**.
 
-1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to **Add Override** > **Lighting** and click on **Ambient Occlusion**.
-   HDRP now applies **Ambient Occlusion** to any Camera this Volume affects.
+2. [Add a volume component](set-up-a-volume.md#add-a-volume) to any GameObject in your scene.
 
-[!include[](snippets/volume-override-api.md)]
+3. Select the GameObject, then in the **Inspector** window select **Add Override** > **Lighting** > **Ambient Occlusion**.
 
+   HDRP now applies screen space ambient occlusion to any camera this volume affects.
 
-## Limitations
+To access and control the volume override at runtime, refer to [Volume scripting API](Volumes-API.md#changing-volume-profile-properties).
 
-### Screen-space ambient occlusion
+## Additional resources
 
-A screen-space effect only processes what's on the screen at a given point. This means that objects outside of the field of view can't visually occlude objects in the view. You can sometimes see this on the edges of the screen.
-When rendering [Reflection Probes](Reflection-Probe.md) screen space ambient occlusion isn't supported.
-
+- [Assign an ambient occlusion texture](Ambient-Occlusion.md)
+- [Ray-traced ambient occlusion](Ray-Traced-Ambient-Occlusion.md)

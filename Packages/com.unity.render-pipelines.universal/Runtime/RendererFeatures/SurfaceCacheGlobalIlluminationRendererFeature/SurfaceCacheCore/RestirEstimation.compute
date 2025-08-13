@@ -1,0 +1,49 @@
+// Surface Cache shaders do not currently work on Switch due to its limited binding range
+// https://jira.unity3d.com/browse/GFXLIGHT-1730
+#pragma exclude_renderers switch switch2
+#pragma kernel Estimate
+
+#include "Common.hlsl"
+#include "Estimation.hlsl"
+#include "RingBuffer.hlsl"
+#include "RestirEstimation.hlsl"
+
+StructuredBuffer<uint> _RingConfigBuffer;
+StructuredBuffer<Realization> _PatchRealizations;
+StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
+RWStructuredBuffer<SphericalHarmonics::RGBL1> _PatchIrradiances;
+RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
+RWStructuredBuffer<PatchUtil::PatchCounterSet> _PatchCounterSets;
+
+uint _RingConfigOffset;
+float _ShortHysteresis;
+
+[numthreads(64, 1, 1)]
+void Estimate(uint patchIdx : SV_DispatchThreadID)
+{
+    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+        return;
+
+    const Realization realization = _PatchRealizations[patchIdx];
+
+    float3 rayDirection;
+    if (realization.sample.sampleType == SAMPLE_TYPE_ENV)
+    {
+        rayDirection = realization.sample.hitPointOrDirection;
+    }
+    else
+    {
+        const float3 patchPosition = _PatchGeometries[patchIdx].position;
+        rayDirection = normalize(realization.sample.hitPointOrDirection - patchPosition);
+    }
+
+    if (realization.weight != 0.0f)
+    {
+        SphericalHarmonics::RGBL1 estimate;
+        estimate.l0 = realization.sample.radiance * SphericalHarmonics::y0 * realization.weight;
+        estimate.l1s[0] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.x * realization.weight;
+        estimate.l1s[1] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.z * realization.weight;
+        estimate.l1s[2] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.y * realization.weight;
+        ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, _PatchCounterSets, patchIdx, estimate, _ShortHysteresis);
+    }
+}

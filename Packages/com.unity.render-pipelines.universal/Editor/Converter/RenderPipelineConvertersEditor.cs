@@ -254,8 +254,11 @@ namespace UnityEditor.Rendering.Universal
             for (int i = 0; i < converterList.Count; ++i)
             {
                 // Iterate over the converters that are used by the current container
-                RenderPipelineConverter conv = (RenderPipelineConverter)Activator.CreateInstance(converterList[i]);
-                m_CoreConvertersList.Add(conv);
+                if (!converterList[i].IsAbstract)
+                {
+                    RenderPipelineConverter conv = (RenderPipelineConverter)Activator.CreateInstance(converterList[i]);
+                    m_CoreConvertersList.Add(conv);
+                }
             }
 
             // this need to be sorted by Priority property

@@ -6,6 +6,8 @@ namespace UnityEditor.ShaderGraph
     [Title("Utility", "Logic", "Branch")]
     class BranchNode : CodeFunctionNode
     {
+        protected override bool CanPropagateFloatLiteral => true;
+
         public BranchNode()
         {
             name = "Branch";

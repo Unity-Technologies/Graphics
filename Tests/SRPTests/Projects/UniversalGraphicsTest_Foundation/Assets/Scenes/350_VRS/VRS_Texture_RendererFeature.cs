@@ -116,9 +116,9 @@ public class VRSHistory : CameraHistoryItem
         }
 
         var vrsLut = VrsLut.CreateDefault();
-        uint c1 = Pack(vrsLut[ShadingRateFragmentSize.FragmentSize1x1]);
-        uint c2 = Pack(vrsLut[ShadingRateFragmentSize.FragmentSize2x2]);
-        uint c4 = Pack(vrsLut[ShadingRateFragmentSize.FragmentSize4x4]);
+        uint c1 = Pack(vrsLut[ShadingRateFragmentSize.FragmentSize1x1].linear);
+        uint c2 = Pack(vrsLut[ShadingRateFragmentSize.FragmentSize2x2].linear);
+        uint c4 = Pack(vrsLut[ShadingRateFragmentSize.FragmentSize4x4].linear);
 
         Texture2D CPUColorMask = new Texture2D(width, height, GraphicsFormat.R8G8B8A8_UNorm,
             TextureCreationFlags.DontInitializePixels | TextureCreationFlags.DontUploadUponCreate);

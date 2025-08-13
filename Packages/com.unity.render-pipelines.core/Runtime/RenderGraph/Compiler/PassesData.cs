@@ -110,6 +110,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public int passId; // Index of self in the passData list, can we calculate this somehow in c#? would use offsetof in c++
         public RenderGraphPassType type;
         public bool hasFoveatedRasterization;
+        public ExtendedFeatureFlags extendedFeatureFlags;
         public int tag; // Arbitrary per node int used by various graph analysis tools
 
         public ShadingRateFragmentSize shadingRateFragmentSize;
@@ -163,6 +164,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             asyncCompute = pass.enableAsyncCompute;
             hasSideEffects = !pass.allowPassCulling;
             hasFoveatedRasterization = pass.enableFoveatedRasterization;
+            extendedFeatureFlags = pass.extendedFeatureFlags;
             mergeState = PassMergeState.None;
             nativePassIndex = -1;
             nativeSubPassIndex = -1;
@@ -211,7 +213,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             asyncCompute = pass.enableAsyncCompute;
             hasSideEffects = !pass.allowPassCulling;
             hasFoveatedRasterization = pass.enableFoveatedRasterization;
-
+            extendedFeatureFlags = pass.extendedFeatureFlags;
             mergeState = PassMergeState.None;
             nativePassIndex = -1;
             nativeSubPassIndex = -1;
@@ -284,25 +286,51 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly ReadOnlySpan<ResourceHandle> LastUsedResources(CompilerContextData ctx)
             => ctx.destroyData.MakeReadOnlySpan(firstDestroy, numDestroyed);
 
-        private void SetupAndValidateFragmentInfo(ResourceHandle h, CompilerContextData ctx)
+        private bool TrySetupAndValidateFragmentInfo(ResourceHandle h, CompilerContextData ctx, out string errorMessage)
         {
+            errorMessage = null;
+
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (h.type != RenderGraphResourceType.Texture) new Exception("Only textures can be used as a fragment attachment.");
+            if (h.type != RenderGraphResourceType.Texture)
+            {
+                errorMessage = RenderGraph.RenderGraphExceptionMessages.k_NonTextureAsAttachmentError;
+                return false;
+            }
 #endif
 
             ref readonly var resInfo = ref ctx.UnversionedResourceData(h);
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (resInfo.width == 0 || resInfo.height == 0 || resInfo.msaaSamples == 0) throw new Exception("GetRenderTargetInfo returned invalid results.");
+            if (resInfo.width == 0 || resInfo.height == 0 || resInfo.msaaSamples == 0)
+            {
+                errorMessage = RenderGraph.RenderGraphExceptionMessages.k_InvalidGetRenderTargetInfoResultsError;
+                return false;
+            }
 #endif
-            if (fragmentInfoValid)
+            if (RenderGraph.enableValidityChecks && fragmentInfoValid)
             {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                 if (fragmentInfoWidth != resInfo.width ||
                     fragmentInfoHeight != resInfo.height ||
-                    fragmentInfoVolumeDepth != resInfo.volumeDepth ||
-                    fragmentInfoSamples != resInfo.msaaSamples)
-                    throw new Exception("Mismatch in Fragment dimensions");
+                    fragmentInfoVolumeDepth != resInfo.volumeDepth)
+                {
+                    var name = resInfo.GetName(ctx, h);
+                    if (string.IsNullOrEmpty(name))
+                        name = "unnamed fragment";
+
+                    errorMessage = RenderGraph.RenderGraphExceptionMessages.MismatchInDimensions(name, fragmentInfoWidth, fragmentInfoHeight, fragmentInfoVolumeDepth, resInfo);
+                    return false;
+                }
+
+                if (fragmentInfoSamples != resInfo.msaaSamples)
+                {
+                    var name = resInfo.GetName(ctx, h);
+                    if (string.IsNullOrEmpty(name))
+                        name = "unnamed fragment";
+
+                    errorMessage = RenderGraph.RenderGraphExceptionMessages.MismatchInMSAASamlpes(name, fragmentInfoSamples, resInfo.msaaSamples);
+                    return false;
+                }
 #endif
             }
             else
@@ -313,20 +341,21 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 fragmentInfoVolumeDepth = resInfo.volumeDepth;
                 fragmentInfoValid = true;
             }
+            return true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void AddFragment(ResourceHandle h, CompilerContextData ctx)
+        internal void TryAddFragment(ResourceHandle h, CompilerContextData ctx, out string errorMessage)
         {
-            SetupAndValidateFragmentInfo(h, ctx);
-            numFragments++;
+            if (TrySetupAndValidateFragmentInfo(h, ctx, out errorMessage))
+                numFragments++;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void AddFragmentInput(ResourceHandle h, CompilerContextData ctx)
+        internal void TryAddFragmentInput(ResourceHandle h, CompilerContextData ctx, out string errorMessage)
         {
-            SetupAndValidateFragmentInfo(h, ctx);
-            numFragmentInputs++;
+            if (TrySetupAndValidateFragmentInfo(h, ctx, out errorMessage))
+                numFragmentInputs++;
         }
 
         internal void AddRandomAccessResource()
@@ -355,7 +384,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 firstCreate = addedIndex;
             }
 
-            Debug.Assert(addedIndex == firstCreate + numCreated, "you can only incrementally set-up the Creation lists for all passes, AddCreation is called in an arbitrary non-incremental way");
+            Debug.Assert(addedIndex == firstCreate + numCreated, RenderGraph.RenderGraphExceptionMessages.k_NonIncrementalCreationCall);
 
             numCreated++;
         }
@@ -379,7 +408,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 firstDestroy = addedIndex;
             }
 
-            Debug.Assert(addedIndex == firstDestroy + numDestroyed, "you can only incrementally set-up the Destruction lists for all passes, AddCreation is called in an arbitrary non-incremental way");
+            Debug.Assert(addedIndex == firstDestroy + numDestroyed, RenderGraph.RenderGraphExceptionMessages.k_NonIncrementalDestructionCall);
             numDestroyed++;
         }
 
@@ -534,6 +563,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         FRStateMismatch, // One pass is using foveated rendering and the other not
         DifferentShadingRateImages, // The next pass uses a different shading rate image (and we only allow one in a whole NRP)
         DifferentShadingRateStates, // The next pass uses different shading rate states (and we only allow one set in a whole NRP)
+        ExtendedFeatureFlagsIncompatible, // Handles the case where flags added via SetExtendedFeatureFlags are not compatible
         PassMergingDisabled, // Wasn't merged because pass merging is disabled
         Merged, // I actually got merged
 
@@ -569,6 +599,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             "The next pass uses a different foveated rendering state",
             "The next pass uses a different shading rate image",
             "The next pass uses a different shading rate rendering state",
+            "Extended feature flags are incompatible",
             "Pass merging is disabled so this pass was not merged",
             "The next pass got merged into this pass.",
         };
@@ -601,6 +632,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public bool hasFoveatedRasterization;
         public bool hasShadingRateImage => shadingRateImageIndex >= 0;
         public bool hasShadingRateStates;
+        public ExtendedFeatureFlags extendedFeatureFlags;
 
         public ShadingRateFragmentSize shadingRateFragmentSize;
         public ShadingRateCombiner primitiveShadingRateCombiner;
@@ -623,6 +655,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             samples = pass.fragmentInfoSamples;
             hasDepth = pass.fragmentInfoHasDepth;
             hasFoveatedRasterization = pass.hasFoveatedRasterization;
+            extendedFeatureFlags = pass.extendedFeatureFlags;
 
             loadAudit = new FixedAttachmentArray<LoadAudit>();
             storeAudit = new FixedAttachmentArray<StoreAudit>();
@@ -663,7 +696,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             // We should not be calling this method if native pass doesn't have depth.
             if (hasDepth == false)
             {
-                throw new Exception("SubPassFlag for merging can not be determined if native pass doesn't have a depth attachment");
+                throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_CannotDetermineSubPassFlagNoDepth);
             }
 
             // Only do this for mobile using Vulkan.
@@ -733,6 +766,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
+        static bool AreExtendedFeatureFlagsCompatible(ExtendedFeatureFlags flags0, ExtendedFeatureFlags flags1)
+        {
+            // Which of the newly added flags are incompatible? 
+            return true;
+        }
+
         // This function does not modify the current render graph state, it only evaluates and returns the correct PassBreakAudit
         public static PassBreakAudit CanMerge(CompilerContextData contextData, int activeNativePassId, int passIdToMerge)
         {
@@ -781,6 +820,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (nativePass.hasFoveatedRasterization != passToMerge.hasFoveatedRasterization)
                 {
                     return new PassBreakAudit(PassBreakReason.FRStateMismatch, passIdToMerge);
+                }
+
+                if (!AreExtendedFeatureFlagsCompatible(nativePass.extendedFeatureFlags, passToMerge.extendedFeatureFlags))
+                {
+                    return new PassBreakAudit(PassBreakReason.ExtendedFeatureFlagsIncompatible, passIdToMerge);
                 }
 
                 // Different shading rate images; only allow one per NRP
@@ -1184,7 +1228,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 // If depth ends up being bound only because of merging
                 // Set SubPassFlags to best match the pass we are trying to merge with
-                subPassDesc.flags = depthFlag;
+                subPassDesc.flags |= depthFlag;
 
                 // Updating subpass color outputs
                 for (int i = 0; i < subPassDesc.colorOutputs.Length; i++)
@@ -1257,7 +1301,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                     if (existingAttach.resource.version > newAttach.resource.version)
-                        throw new Exception("Adding an older version while a higher version is already registered with the pass.");
+                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_AddingOlderAttachmentVersion);
 #endif
                     existingAttach = new PassFragmentData(
                         new ResourceHandle(existingAttach.resource, newAttach.resource.version),
@@ -1291,7 +1335,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                     if (existingAttach.resource.version > newAttach.resource.version)
-                        throw new Exception("Adding an older version while a higher version is already registered with the pass.");
+                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_AddingOlderAttachmentVersion);
 #endif
 
                     existingAttach = new PassFragmentData(
@@ -1330,7 +1374,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 {
                     var indexPass = nativePass.firstGraphPass + i;
 
-                    // This pass was culled and should not be considere
+                    // This pass was culled and should not be considered
                     if (contextData.passData.ElementAt(indexPass).culled)
                     {
                         contextData.passData.ElementAt(indexPass).mergeState = PassMergeState.None;

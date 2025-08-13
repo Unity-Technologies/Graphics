@@ -39,7 +39,7 @@ class IssueUIPass
     {
         UniversalRenderPipeline.SingleCameraRequest request = new UniversalRenderPipeline.SingleCameraRequest();
 
-        RenderTextureDescriptor desc = new RenderTextureDescriptor(m_Camera.pixelWidth, m_Camera.pixelHeight, RenderTextureFormat.Default, 32);
+        RenderTextureDescriptor desc = new RenderTextureDescriptor(m_Camera.pixelWidth, m_Camera.pixelHeight, RenderTextureFormat.Default, (int)CoreUtils.GetDefaultDepthBufferBits());
         request.destination = RenderTexture.GetTemporary(desc);
         
         // Check if the active render pipeline supports the render request

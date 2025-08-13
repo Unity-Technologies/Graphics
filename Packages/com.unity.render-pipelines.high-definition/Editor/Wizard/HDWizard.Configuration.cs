@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => ((~thisScope) & scope) == 0;
     }
 
-    partial class HDWizard : EditorWindowWithHelpButton
+    partial class HDWizard
     {
         #region REFLECTION
 
@@ -165,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 void DelayedRebuildEntryList()
                 {
                     EditorApplication.update -= DelayedRebuildEntryList;
-                    HDWizard window = EditorWindow.GetWindow<HDWizard>(Style.title.text);
+                    HDWizard window = EditorWindow.GetWindow<HDWizard>();
                     window.ReBuildEntryList();
                 }
             }
@@ -402,6 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 && GetLightmapEncodingQualityForPlatform(BuildTarget.Android) == LightmapEncodingQualityCopy.High
                 && GetLightmapEncodingQualityForPlatform(BuildTarget.iOS) == LightmapEncodingQualityCopy.High
                 && GetLightmapEncodingQualityForPlatform(BuildTarget.Switch) == LightmapEncodingQualityCopy.High
+                && GetLightmapEncodingQualityForPlatform(BuildTarget.Switch2) == LightmapEncodingQualityCopy.High
                 && GetLightmapEncodingQualityForPlatform(BuildTarget.WSAPlayer) == LightmapEncodingQualityCopy.High;
         }
 
@@ -414,6 +415,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SetLightmapEncodingQualityForPlatform(BuildTarget.Android, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatform(BuildTarget.iOS, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatform(BuildTarget.Switch, LightmapEncodingQualityCopy.High);
+            SetLightmapEncodingQualityForPlatform(BuildTarget.Switch2, LightmapEncodingQualityCopy.High);
             SetLightmapEncodingQualityForPlatform(BuildTarget.WSAPlayer, LightmapEncodingQualityCopy.High);
 
             // After we update the lightmap encoding, we need to notify the C++ lightmapping logic so it can re-encode the lightmaps.
@@ -461,7 +463,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return true;
         }
-        
+
 
         void FixHdrpAssetQualityUsed(bool fromAsync)
             => QualitySettings.renderPipeline = null;
@@ -980,18 +982,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorApplication.delayCall += () => WaitForRequest<T>(request, onCompleted);
         }
 
-        void RefreshDisplayOfConfigPackageArea()
-        {
-            IsLocalConfigurationPackageEmbeddedAsync(present => UpdateDisplayOfConfigPackageArea(present ? ConfigPackageState.Present : ConfigPackageState.Missing));
-        }
-
         static void CheckPackages(PackageRegistrationEventArgs args)
         {
             if (EditorWindow.HasOpenInstances<HDWizard>() && !EditorApplication.isPlayingOrWillChangePlaymode)
             {
-                HDWizard window = EditorWindow.GetWindow<HDWizard>(Style.title.text);
-                window.UpdateVRXRManagementInstalledCheck();
-                window.UpdateVRLegacyHelpersInstalledCheck();
+                EditorApplication.delayCall += () =>
+                {
+                    HDWizard window = EditorWindow.GetWindow<HDWizard>();
+                    window.UpdateVRXRManagementInstalledCheck();
+                    window.UpdateVRLegacyHelpersInstalledCheck();
+                };
             }
         }
 

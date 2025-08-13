@@ -23,13 +23,9 @@ namespace UnityEngine.Rendering
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Adaptive Probe Volumes Options"), SupportedOnRenderPipeline]
     [CurrentPipelineHelpURL("probevolumes")]
+    [DisplayInfo(name = "Adaptive Probe Volumes Options")]
     public sealed class ProbeVolumesOptions : VolumeComponent
     {
-        ProbeVolumesOptions()
-        {
-            displayName = "Adaptive Probe Volumes Options";
-        }
-
         /// <summary>
         /// The overridden normal bias to be applied to the world position when sampling the Adaptive Probe Volumes data structure. Unit is meters.
         /// </summary>

@@ -90,7 +90,8 @@ namespace UnityEditor.ShaderGraph
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Vector1:
-                    AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
+                    bool literal = (property is Vector1ShaderProperty { LiteralFloatMode: true });
+                    AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0, literal:literal));
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Vector2:
@@ -266,12 +267,21 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public override void PropagateFloatLiteral(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
+        {
+            if (property is Vector1ShaderProperty { propertyType: PropertyType.Float } vector1ShaderProperty && FindSlot<MaterialSlot>(OutputSlotId) is Vector1MaterialSlot vector1MaterialSlot)
+            {
+                vector1MaterialSlot.LiteralMode = vector1ShaderProperty.LiteralFloatMode;
+            }
+            base.PropagateFloatLiteral(inputSlots, outputSlots);
+        }
+
         public override void UpdatePrecision(List<MaterialSlot> inputSlots)
         {
             // Get precision from Property
             if (property == null)
             {
-                owner.AddConcretizationError(objectId, string.Format("No matching poperty found on owner for node {0}", objectId));
+                owner.AddConcretizationError(objectId, string.Format("No matching property found on owner for node {0}", objectId));
                 hasError = true;
                 return;
             }

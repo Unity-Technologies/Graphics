@@ -17,7 +17,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
-    #if _ALPHATEST_ON
+    #if (!defined(UNIVERSAL_TERRAIN_ENABLED) && defined(_ALPHATEST_ON)) || defined(_TERRAIN_SG_ALPHA_CLIP)
         // This isn't defined in the sprite passes. It looks like the built-in legacy shader will use this as it's default constant
         float alphaClipThreshold = 0.01f;
         #if ALPHA_CLIP_THRESHOLD

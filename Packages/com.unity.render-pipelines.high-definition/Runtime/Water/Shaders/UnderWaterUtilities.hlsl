@@ -62,7 +62,7 @@ bool IsUnderWater(uint2 coord)
 TEXTURE2D_X(_WaterGBufferTexture0);
 TEXTURE2D_X(_WaterGBufferTexture1);
 TEXTURE2D_X(_WaterGBufferTexture2);
-TEXTURE2D_X(_WaterGBufferTexture3);
+TEXTURE2D_X_FLOAT(_WaterGBufferTexture3);   // force high-precision else UnpackSurfaceIndex gives incorrect values on builds defaulting to mediump
 StructuredBuffer<WaterSurfaceProfile> _WaterSurfaceProfiles;
 
 uint UnpackSurfaceIndex(uint2 positionSS)

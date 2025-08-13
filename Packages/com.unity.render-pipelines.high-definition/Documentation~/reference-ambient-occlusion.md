@@ -1,4 +1,4 @@
-# Ambient Occlusion reference
+# Screen Space Ambient Occlusion (SSAO) volume override reference
 
 ## Properties
 

@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
     [HDRPHelpURL("create-a-physically-based-sky")]
+    [DisplayInfo(name = "Physically Based Sky")]
     public partial class PhysicallyBasedSky : SkySettings
     {
         /// <summary>
@@ -319,12 +320,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ozoneMinimumAltitude.value;
             return k_DefaultOzoneMinimumAltitude;
         }
-
-        PhysicallyBasedSky()
-        {
-            displayName = "Physically Based Sky";
-        }
-
 
         internal int GetPrecomputationHashCode(HDCamera hdCamera)
         {

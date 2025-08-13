@@ -6,7 +6,7 @@
 #pragma kernel VoxelizeProbeVolumeData
 #pragma kernel Subdivide
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch webgpu
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 webgpu
 
 // #pragma enable_d3d11_debug_symbols
 

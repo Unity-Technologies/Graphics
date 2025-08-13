@@ -9,31 +9,17 @@ ScriptedImporter:
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
   useAsTemplate: 1
+  exposeTemplateAsShader: 0
   template:
     name: Fullscreen Basic - HDRP
     category: Image Processing
-    description: 'An HDRP Shader Graph template that does simple fullscreen image
-      adjustments including tinting, saturation, and contrast.
-
-
-      Fullscreen
+    description: "An HDRP Shader Graph template that does simple fullscreen image
+      adjustments including tinting, saturation, and contrast.\r\n\r\nFullscreen
       shaders are intended to be used to apply image adjustments for applications
       like post-process filters. They are not intended to be applied to individual
-      meshes.
-
-
-      To apply a fullscreen shader as a post-process filter, select
-      HDRP''s renderer data asset and click the Add Renderer Feature button at the
-      bottom of the Inspector. Choose Full Screen Pass Renderer Feature. Then create
-      a material from your fullscreen shader and apply it to the Pass Material slot
-      of the Full Screen Pass Renderer Feature.
-
-
-      <i>Supported Pipeline(s):
-      HDRP
-
-      Active Target: Fullscreen
-
-      VFX Graph Support: disabled</i>'
+      meshes.\r\n\r\nTo apply a fullscreen shader as a post-process filter, create
+      a Custom Pass Volume, add a Fullscreen Custom Pass and assign a material created
+      from your fullscreen shader.\r\n\r\n<i>Supported Pipeline(s): HDRP\r\nActive
+      Target: Fullscreen\r\nVFX Graph Support: disabled</i>\r"
     icon: {instanceID: 0}
     thumbnail: {fileID: 2800000, guid: d62e6a58a6263764faa13fa5481cbf1e, type: 3}

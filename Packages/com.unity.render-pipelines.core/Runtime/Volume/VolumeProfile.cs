@@ -23,8 +23,28 @@ namespace UnityEngine.Rendering
         /// A dirty check used to redraw the profile inspector when something has changed. This is
         /// currently only used in the editor.
         /// </summary>
-        [NonSerialized]
-        public bool isDirty = true; // Editor only, doesn't have any use outside of it
+        [Obsolete("This field was only public for editor access. #from(6000.0)")]
+        public bool isDirty
+        {
+            get => dirtyState != DirtyState.None;
+            set
+            {
+                if (value)
+                    dirtyState |= DirtyState.Other;
+                else
+                    dirtyState &= ~DirtyState.Other;
+            }
+        }
+
+        [Flags] internal enum DirtyState
+        {
+            None = 0,
+            DirtyByComponentChange = 1,
+            DirtyByProfileReset = 2,
+            Other = 4
+        }
+
+        internal DirtyState dirtyState;
 
         void OnEnable()
         {
@@ -56,9 +76,7 @@ namespace UnityEngine.Rendering
         /// Volume Profile editor when you modify the Asset via script instead of the Inspector.
         /// </summary>
         public void Reset()
-        {
-            isDirty = true;
-        }
+            => dirtyState |= DirtyState.DirtyByProfileReset;
 
         /// <summary>
         /// Adds a <see cref="VolumeComponent"/> to this Volume Profile.
@@ -100,7 +118,7 @@ namespace UnityEngine.Rendering
 #endif
             component.SetAllOverridesTo(overrides);
             components.Add(component);
-            isDirty = true;
+            dirtyState |= DirtyState.DirtyByComponentChange;
             return component;
         }
 
@@ -142,7 +160,7 @@ namespace UnityEngine.Rendering
             if (toRemove >= 0)
             {
                 components.RemoveAt(toRemove);
-                isDirty = true;
+                dirtyState |= DirtyState.DirtyByComponentChange;
             }
         }
 

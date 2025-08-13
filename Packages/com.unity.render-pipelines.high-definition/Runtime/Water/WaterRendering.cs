@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Rendering/Water Rendering")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("water-use-the-water-system-in-your-project")]
+    [DisplayInfo(name = "Water Rendering")]
     public sealed partial class WaterRendering : VolumeComponent
     {
         /// <summary>
@@ -27,10 +28,5 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the influence of the ambient light probe on the water surfaces.")]
         public ClampedFloatParameter ambientProbeDimmer = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
-
-        WaterRendering()
-        {
-            displayName = "Water Rendering";
-        }
     }
 }

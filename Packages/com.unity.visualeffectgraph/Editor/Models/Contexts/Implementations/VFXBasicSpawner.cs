@@ -161,7 +161,7 @@ namespace UnityEditor.VFX
         private void DisplayName(VFXContext context)
         {
             var label = string.IsNullOrEmpty(context.label) ? context.letter.ToString() : context.label;
-            GUILayout.Label(label, VFXSlotContainerEditor.Styles.spawnStyle);
+            GUILayout.Label(label, VFXSlotContainerEditor.Styles.contextHeaderStyle);
         }
     }
 

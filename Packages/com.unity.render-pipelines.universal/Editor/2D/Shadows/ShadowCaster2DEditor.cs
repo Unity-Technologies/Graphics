@@ -114,6 +114,7 @@ namespace UnityEditor.Rendering.Universal
             m_CastingSourceDropDown.OnCastingSource(serializedObject, targets, Styles.castingSourcePrefixLabel);
 
             EditorGUILayout.PropertyField(m_CastingOption, Styles.castingOption);
+
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.sortingLayerPrefixLabel, null);
 
             bool usingShapeProvider = m_CastingSource.intValue == (int)ShadowCaster2D.ShadowCastingSources.ShapeProvider;
@@ -133,6 +134,7 @@ namespace UnityEditor.Rendering.Universal
 
             if(m_ShadowShape2DProvider != null)
                 EditorGUILayout.PropertyField(m_ShadowShape2DProvider, Styles.shadowShape2DProvider, true);
+
 
             serializedObject.ApplyModifiedProperties();
         }

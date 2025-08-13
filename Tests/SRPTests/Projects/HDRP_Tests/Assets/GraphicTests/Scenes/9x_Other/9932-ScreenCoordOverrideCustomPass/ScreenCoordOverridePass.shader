@@ -5,7 +5,7 @@ Shader "FullScreen/ScreenCoordOverridePass"
     #pragma vertex Vert
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
     #pragma multi_compile _ SCREEN_COORD_OVERRIDE
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"

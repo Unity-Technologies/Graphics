@@ -403,11 +403,11 @@ namespace UnityEngine.Rendering
         private uint ComputeMeshLODLevel(int instanceIndex, int sharedInstanceIndex)
         {
             ref readonly GPUDrivenRendererMeshLodData meshLodData = ref instanceData.meshLodData.UnsafeElementAt(instanceIndex);
+            var meshLodInfo = sharedInstanceData.meshLodInfos[sharedInstanceIndex];
 
             if (meshLodData.forceLod >= 0)
-                return (uint)meshLodData.forceLod;
+                return (uint)math.clamp(meshLodData.forceLod, 0, meshLodInfo.levelCount - 1);
 
-            var levelInfo = sharedInstanceData.meshLodInfos[sharedInstanceIndex];
             ref readonly AABB worldAABB = ref instanceData.worldAABBs.UnsafeElementAt(instanceIndex);
 
             var radiusSqr = math.max(math.lengthsq(worldAABB.extents), 1e-5f);
@@ -417,13 +417,13 @@ namespace UnityEngine.Rendering
 
             var boundsDesiredPercentage = Math.Sqrt(cameraSqrHeightAtDistance / diameterSqr);
 
-            var levelIndexFlt = math.log2(boundsDesiredPercentage) * levelInfo.lodSlope + levelInfo.lodBias;
+            var levelIndexFlt = math.log2(boundsDesiredPercentage) * meshLodInfo.lodSlope + meshLodInfo.lodBias;
 
             // We apply Bias after max to enforce that a positive bias of +N we would select lodN instead of Lod0
             levelIndexFlt = math.max(levelIndexFlt, 0);
             levelIndexFlt += meshLodData.lodSelectionBias;
 
-            levelIndexFlt = math.clamp(levelIndexFlt,0, levelInfo.levelCount - 1);
+            levelIndexFlt = math.clamp(levelIndexFlt, 0, meshLodInfo.levelCount - 1);
 
             return (uint)math.floor(levelIndexFlt);
         }
@@ -1323,7 +1323,7 @@ namespace UnityEngine.Rendering
 
             output.drawCommandCount = output.visibleInstanceCount; // for picking/filtering, 1 draw command per instance!
             output.drawCommands = MemoryUtilities.Malloc<BatchDrawCommand>(output.drawCommandCount, Allocator.TempJob);
-            output.drawCommandPickingInstanceIDs = MemoryUtilities.Malloc<int>(output.drawCommandCount, Allocator.TempJob);
+            output.drawCommandPickingEntityIds = MemoryUtilities.Malloc<EntityId>(output.drawCommandCount, Allocator.TempJob);
 
             int outRangeIndex = 0;
             int outCommandIndex = 0;
@@ -1372,7 +1372,7 @@ namespace UnityEngine.Rendering
                             throw new Exception("Draw command created with an invalid BatchID");
 #endif
                         output.visibleInstances[outVisibleInstanceIndex] = instanceDataBuffer.CPUInstanceToGPUInstance(instance).index;
-                        output.drawCommandPickingInstanceIDs[outCommandIndex] = rendererID;
+                        output.drawCommandPickingEntityIds[outCommandIndex] = rendererID;
                         output.drawCommands[outCommandIndex] = new BatchDrawCommand
                         {
                             flags = BatchDrawCommandFlags.None,

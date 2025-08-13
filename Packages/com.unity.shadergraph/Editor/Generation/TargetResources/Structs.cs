@@ -161,6 +161,13 @@ namespace UnityEditor.ShaderGraph
                 StructFields.SurfaceDescriptionInputs.BoneIndices,
                 StructFields.SurfaceDescriptionInputs.VertexID,
                 StructFields.SurfaceDescriptionInputs.InstanceID,
+
+                StructFields.SurfaceDescriptionInputs.color,
+                StructFields.SurfaceDescriptionInputs.uvClip,
+                StructFields.SurfaceDescriptionInputs.typeTexSettings,
+                StructFields.SurfaceDescriptionInputs.textCoreLoc,
+                StructFields.SurfaceDescriptionInputs.layoutUV,
+                StructFields.SurfaceDescriptionInputs.circle,
             }
         };
     }

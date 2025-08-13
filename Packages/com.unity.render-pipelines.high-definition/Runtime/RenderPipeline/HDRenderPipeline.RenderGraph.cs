@@ -461,8 +461,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 commandBuffer = commandBuffer
             };
 
-            m_RenderGraph.nativeRenderPassesEnabled = true;
-
             try
             {
                 m_RenderGraph.BeginRecording(parameters);

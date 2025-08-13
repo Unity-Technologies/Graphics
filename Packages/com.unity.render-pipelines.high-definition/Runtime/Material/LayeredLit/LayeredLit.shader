@@ -586,7 +586,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -624,7 +624,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -671,7 +671,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -769,7 +769,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -866,7 +866,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -934,7 +934,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -977,7 +977,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -1055,7 +1055,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -1186,7 +1186,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
             #define SHADERPASS SHADERPASS_CONSTANT
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -1213,7 +1213,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -1245,7 +1245,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -1300,7 +1300,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -1352,7 +1352,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -1398,7 +1398,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
@@ -1429,7 +1429,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -1470,7 +1470,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma shader_feature_local_raytracing _DISABLE_DECALS
@@ -1499,7 +1499,7 @@ Shader "HDRP/LayeredLit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY

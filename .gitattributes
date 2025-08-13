@@ -378,3 +378,7 @@ Editor/Resources/unity[[:space:]]editor[[:space:]]resources filter=lfs diff=lfs 
 
 # buginfo tools
 /Tools/Unity.BugInfo.Coverage/bin/* filter=lfs diff=lfs merge=lfs -text
+
+# search test cases
+/Modules/QuickSearch/Tests/QuickSearch/Assets/Cases/UUM-113048/uum-113048.index filter=lfs diff=lfs merge=lfs -text
+

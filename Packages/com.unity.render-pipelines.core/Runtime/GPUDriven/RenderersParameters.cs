@@ -4,6 +4,7 @@ using UnityEngine.Assertions;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering
 {
@@ -44,6 +45,7 @@ namespace UnityEngine.Rendering
             public static readonly int unity_MatrixPreviousM = Shader.PropertyToID("unity_MatrixPreviousM");
             public static readonly int unity_MatrixPreviousMI = Shader.PropertyToID("unity_MatrixPreviousMI");
             public static readonly int unity_WorldBoundingSphere = Shader.PropertyToID("unity_WorldBoundingSphere");
+            public static readonly int unity_RendererUserValuesPropertyEntry = Shader.PropertyToID("unity_RendererUserValuesPropertyEntry");
 
             public static readonly int[] DOTS_ST_WindParams = new int[(int)SpeedTreeWindParamIndex.MaxWindParamsCount];
             public static readonly int[] DOTS_ST_WindHistoryParams = new int[(int)SpeedTreeWindParamIndex.MaxWindParamsCount];
@@ -70,6 +72,7 @@ namespace UnityEngine.Rendering
                 builder.AddComponent<PackedMatrix>(ParamNames.unity_WorldToObject, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer);
                 builder.AddComponent<PackedMatrix>(ParamNames.unity_MatrixPreviousM, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer);
                 builder.AddComponent<PackedMatrix>(ParamNames.unity_MatrixPreviousMI, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer);
+                builder.AddComponent<uint>(ParamNames.unity_RendererUserValuesPropertyEntry, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer);
                 if ((flags & Flags.UseBoundingSphereParameter) != 0)
                 {
                     builder.AddComponent<Vector4>(ParamNames.unity_WorldBoundingSphere, isOverriden: true, isPerInstance: true, InstanceType.MeshRenderer);
@@ -99,6 +102,7 @@ namespace UnityEngine.Rendering
         public ParamInfo matrixPreviousM;
         public ParamInfo matrixPreviousMI;
         public ParamInfo shCoefficients;
+        public ParamInfo rendererUserValues;
         public ParamInfo boundingSphere;
 
         public ParamInfo[] windParams;
@@ -124,6 +128,7 @@ namespace UnityEngine.Rendering
             matrixPreviousM = GetParamInfo(instanceDataBuffer, ParamNames.unity_MatrixPreviousM);
             matrixPreviousMI = GetParamInfo(instanceDataBuffer, ParamNames.unity_MatrixPreviousMI);
             shCoefficients = GetParamInfo(instanceDataBuffer, ParamNames.unity_SHCoefficients);
+            rendererUserValues = GetParamInfo(instanceDataBuffer, ParamNames.unity_RendererUserValuesPropertyEntry);
             boundingSphere = GetParamInfo(instanceDataBuffer, ParamNames.unity_WorldBoundingSphere, assertOnFail: false);
 
             windParams = new ParamInfo[(int)SpeedTreeWindParamIndex.MaxWindParamsCount];

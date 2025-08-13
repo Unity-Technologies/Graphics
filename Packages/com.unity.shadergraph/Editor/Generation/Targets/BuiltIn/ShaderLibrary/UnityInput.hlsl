@@ -7,7 +7,7 @@
 #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
-#if defined(STEREO_MULTIVIEW_ON) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_VULKAN)) && !(defined(SHADER_API_SWITCH))
+#if defined(STEREO_MULTIVIEW_ON) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_VULKAN)) && !(defined(SHADER_API_SWITCH)) && !(defined(SHADER_API_SWITCH2))
     #define UNITY_STEREO_MULTIVIEW_ENABLED
 #endif
 
@@ -130,6 +130,12 @@ real4 unity_SHBg;
 real4 unity_SHBb;
 real4 unity_SHC;
 CBUFFER_END
+
+// Dummy Renderer User Value static constants to satisfy the shader graph preview mode shader compilation.
+static const uint unity_RendererUserValue;
+
+// The renderer user values are packed in unity_RenderingLayer. So we need a dummy property to be able to use Shader.PropertyToID.
+uint unity_RendererUserValuesPropertyEntry;
 
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)

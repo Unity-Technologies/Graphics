@@ -68,9 +68,7 @@ namespace UnityEditor.VFX
         internal static bool TryGetTemplateStatic(string vfxPath, out GraphViewTemplateDescriptor graphViewTemplate)
         {
             var importer = (VisualEffectImporter)AssetImporter.GetAtPath(vfxPath);
-            var nativeTemplate = importer.templateProperty;
-
-            if (!string.IsNullOrEmpty(nativeTemplate.name))
+            if (importer is { useAsTemplateProperty: true, templateProperty: var nativeTemplate } && !string.IsNullOrEmpty(nativeTemplate.name))
             {
                 graphViewTemplate = new GraphViewTemplateDescriptor
                 {
@@ -104,6 +102,7 @@ namespace UnityEditor.VFX
                     icon = graphViewTemplate.icon,
                     thumbnail = graphViewTemplate.thumbnail,
                 };
+                importer.useAsTemplateProperty = true;
                 importer.templateProperty = nativeTemplate;
                 return true;
             }

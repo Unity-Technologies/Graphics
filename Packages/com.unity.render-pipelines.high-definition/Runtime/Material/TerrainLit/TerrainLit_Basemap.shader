@@ -42,7 +42,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
@@ -266,7 +266,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -301,7 +301,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             Tags{ "LightMode" = "ForwardDXR" }
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -337,7 +337,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -370,7 +370,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -391,7 +391,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             Tags{ "LightMode" = "DebugDXR" }
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -417,7 +417,7 @@ Shader "Hidden/HDRP/TerrainLit_Basemap"
             Tags{ "LightMode" = "PathTracingDXR" }
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 xboxseries ps5
+            #pragma only_renderers d3d11 xboxseries ps5 switch2
             #pragma raytracing surface_shader
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

@@ -683,6 +683,9 @@
     "m_Guid": {
         "m_GuidSerialized": "e33db651-e0d2-463a-b43d-ce566f320a4c"
     },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
     "m_Name": "MainTex",
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "MainTex",
@@ -702,7 +705,7 @@
         "m_SerializedTexture": "",
         "m_Guid": ""
     },
-    "isMainTexture": false,
+    "isMainTexture": true,
     "useTilingAndOffset": false,
     "useTexelSize": true,
     "m_Modifiable": true,
@@ -994,6 +997,15 @@
 }
 
 {
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.Rendering.Canvas.ShaderGraph.CanvasData",
+    "m_ObjectId": "d489365c63a54ac6b1ac812936dd1002",
+    "m_Version": 0,
+    "m_AlphaClip": false,
+    "m_DisableTint": true
+}
+
+{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
     "m_ObjectId": "e30908d8794b4ead8a5495bf3ebdcaa9",
@@ -1003,6 +1015,9 @@
         },
         {
             "m_Id": "2d43b766fb3b4a979bc5ed4638332782"
+        },
+        {
+            "m_Id": "d489365c63a54ac6b1ac812936dd1002"
         }
     ],
     "m_ActiveSubTarget": {

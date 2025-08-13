@@ -109,6 +109,10 @@ Varyings BuildVaryings(Attributes input
     {
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
+        #ifdef UNIVERSAL_TERRAIN_ENABLED
+        TerrainVaryingGeneration(input, output);
+        #endif
+
     #if defined(FEATURES_GRAPH_VERTEX)
         #if defined(HAVE_VFX_MODIFICATION)
             GraphProperties properties;
@@ -135,7 +139,7 @@ Varyings BuildVaryings(Attributes input
         VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
 
         // Returns the camera relative position (if enabled)
-        float3 positionWS = TransformObjectToWorld(input.positionOS);
+        float3 positionWS = vertexInput.positionWS;
 
     #if (SHADERPASS == SHADERPASS_MOTION_VECTORS)
         motionVectorOutput.positionOS = input.positionOS;
@@ -155,11 +159,25 @@ Varyings BuildVaryings(Attributes input
         // Required to compile ApplyVertexModification that doesn't use normal.
         float3 normalWS = float3(0.0, 0.0, 0.0);
     #endif
+    #ifdef UNIVERSAL_TERRAIN_ENABLED
+        #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+            half3 viewDirWS = GetWorldSpaceNormalizeViewDir(positionWS);
+            float4 vertexTangent = float4(cross(float3(0.0, 0.0, 1.0), input.normalOS), 1.0);
+            VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, vertexTangent);
 
-    #ifdef ATTRIBUTES_NEED_TANGENT
-        float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+            output.normalViewDir = float4(normalInput.normalWS, viewDirWS.x);
+            output.tangentViewDir = float4(normalInput.tangentWS, viewDirWS.y);
+            output.bitangentViewDir = float4(normalInput.bitangentWS, viewDirWS.z);
+
+            float4 tangentWS = float4(normalInput.tangentWS, 1.0);
+        #else
+            float4 tangentWS = float4(1.0, 0.0, 0.0, 0.0);
+        #endif
+    #else
+        #ifdef ATTRIBUTES_NEED_TANGENT
+            float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+        #endif
     #endif
-
         // TODO: Change to inline ifdef
         // Do vertex modification in camera relative space (if enabled)
     #if defined(HAVE_VERTEX_MODIFICATION)
@@ -246,15 +264,23 @@ Varyings BuildVaryings(Attributes input
     #ifdef VARYINGS_NEED_SCREENPOSITION
         output.screenPosition = vertexInput.positionNDC;
     #endif
-
-    #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
-        OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.staticLightmapUV);
-    #if defined(DYNAMICLIGHTMAP_ON)
-        output.dynamicLightmapUV.xy = input.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    #ifdef UNIVERSAL_TERRAIN_ENABLED
+        #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
+            OUTPUT_LIGHTMAP_UV(input.uv0, unity_LightmapST, output.staticLightmapUV);
+        #if defined(DYNAMICLIGHTMAP_ON)
+            output.dynamicLightmapUV.xy = input.uv0.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+        #endif
+            OUTPUT_SH4(vertexInput.positionWS, normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.sh, output.probeOcclusion);
+        #endif
+    #else
+        #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
+            OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.staticLightmapUV);
+        #if defined(DYNAMICLIGHTMAP_ON)
+            output.dynamicLightmapUV.xy = input.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+        #endif
+            OUTPUT_SH4(vertexInput.positionWS, normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.sh, output.probeOcclusion);
+        #endif
     #endif
-        OUTPUT_SH4(vertexInput.positionWS, normalWS.xyz, GetWorldSpaceNormalizeViewDir(vertexInput.positionWS), output.sh, output.probeOcclusion);
-    #endif
-
     #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
         half fogFactor = 0;
     #if !defined(_FOG_FRAGMENT)

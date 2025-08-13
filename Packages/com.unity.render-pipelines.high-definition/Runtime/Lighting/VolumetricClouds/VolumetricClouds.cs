@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Sky/Volumetric Clouds")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("create-realistic-clouds-volumetric-clouds")]
+    [DisplayInfo(name = "Volumetric Clouds")]
     public sealed partial class VolumetricClouds : VolumeComponent
     {
         /// <summary>
@@ -630,11 +631,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 default:
                     break;
             }
-        }
-
-        VolumetricClouds()
-        {
-            displayName = "Volumetric Clouds";
         }
     }
 }

@@ -1,0 +1,23 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.unity.shadergraph/Editor/Resources/Styles/UITKMasterNodePreview.uss?fileID=7433441132597879392&amp;guid=7471d1c0502da124ba03a8b0379a265e&amp;type=3#UITKMasterNodePreview"/>
+    <ui:VisualElement name="root" style="flex-grow: 1; flex-direction: row;">
+        <ui:VisualElement name="left" class="pane">
+            <ui:Label text="No Shader" name="heading" class="heading"/>
+            <ui:VisualElement name="noshader" class="column" style="justify-content: space-evenly; flex-grow: 1;">
+                <ui:VisualElement name="Texture" class="texture image"/>
+                <ui:VisualElement name="SVG" tooltip="SVG (UI Toolkit Vector Image)" class="svg image"/>
+                <ui:Button text="   SDF Text   " name="ButtonText" class="buttonText preview-button"/>
+                <ui:Button text="Bitmap Text" name="ButtonBitmapText" class="buttonBitmapText preview-button"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="right" class="pane">
+            <ui:Label text="With Shader" name="heading" class="heading"/>
+            <ui:VisualElement name="shader" class="column" style="justify-content: space-evenly; flex-grow: 1;">
+                <ui:VisualElement name="Texture" class="texture image"/>
+                <ui:VisualElement name="SVG" class="svg image"/>
+                <ui:Button text="   SDF Text   " name="ButtonText" class="buttonText preview-button"/>
+                <ui:Button text="Bitmap Text" name="ButtonBitmapText" class="buttonBitmapText preview-button"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

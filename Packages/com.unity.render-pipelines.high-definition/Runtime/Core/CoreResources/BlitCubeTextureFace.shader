@@ -20,7 +20,7 @@ Shader "Hidden/SRP/BlitCubeTextureFace"
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 3.0
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
             TEXTURECUBE(_InputTex);
             SAMPLER(sampler_InputTex);

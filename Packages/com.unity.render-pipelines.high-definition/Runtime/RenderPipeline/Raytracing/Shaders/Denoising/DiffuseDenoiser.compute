@@ -6,7 +6,7 @@
 #pragma kernel GatherSingle                 GATHER_FILTER=GatherSingle     SINGLE_CHANNEL
 #pragma kernel GatherColor                  GATHER_FILTER=GatherColor
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 // We need the stencil flag of this.
 #define BILATERLAL_UNLIT

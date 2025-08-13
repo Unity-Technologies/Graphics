@@ -258,10 +258,18 @@ namespace UnityEditor.Rendering
                                 options[i] = "Mask " + (i + 1);
                         }
 
-                        EditorGUI.BeginChangeCheck();
-                        int newMask = EditorGUILayout.MaskField(Styles.renderingLayerMask, serialized.renderingLayerMask.intValue, options);
-                        if (EditorGUI.EndChangeCheck())
-                             serialized.renderingLayerMask.uintValue = (uint)newMask;
+                        if (options.Length == 0)
+                        {
+                            using (new EditorGUI.DisabledScope(true))
+                                EditorGUILayout.MaskField(Styles.renderingLayerMask, 0, new[] { "Nothing" });
+                        }
+                        else
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            int newMask = EditorGUILayout.MaskField(Styles.renderingLayerMask, serialized.renderingLayerMask.intValue, options);
+                            if (EditorGUI.EndChangeCheck())
+                                serialized.renderingLayerMask.uintValue = (uint)newMask;
+                        }
                     }
                 }
             }

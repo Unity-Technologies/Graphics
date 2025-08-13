@@ -68,7 +68,11 @@ namespace UnityEngine.Rendering
         /// Spatial-Temporal Post-Processing
         /// </summary>
         [InspectorName("Spatial-Temporal Post-Processing (STP)")]
-        STP = 2
+        STP = 2,
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        IUpscaler = 3
+#endif
     }
 
     /// <summary>User-facing settings for dynamic resolution.</summary>
@@ -90,6 +94,10 @@ namespace UnityEngine.Rendering
             lowResVolumetricCloudsMinimumThreshold = 50.0f,
             rayTracingHalfResThreshold = 50.0f,
 
+#if ENABLE_UPSCALER_FRAMEWORK
+            IUpscalerOptions = new List<UpscalerOptions>(),
+#endif
+
             DLSSUseOptimalSettings = true,
             DLSSPerfQualitySetting = 0,
             DLSSSharpness = 0.5f,
@@ -102,7 +110,7 @@ namespace UnityEngine.Rendering
             FSR2InjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
             TAAUInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.BeforePost,
             defaultInjectionPoint = DynamicResolutionHandler.UpsamplerScheduleType.AfterPost,
-            advancedUpscalersByPriority = new List<AdvancedUpscalers>() { AdvancedUpscalers.STP },
+            advancedUpscalerNames = new List<string>() { AdvancedUpscalers.STP.ToString() },
 
             fsrOverrideSharpness = false,
             fsrSharpness = FSRUtils.kDefaultSharpnessLinear
@@ -114,7 +122,11 @@ namespace UnityEngine.Rendering
         public bool useMipBias;
 
         /// <summary> Enables upsamplers available for certain platforms by priority. </summary>
+        [Obsolete("Obsolete, use advancedUpscalerNames list instead.")]
         public List<AdvancedUpscalers> advancedUpscalersByPriority;
+
+        /// <summary> List of upsamplers available for certain platforms by priority. </summary>
+        public List<string> advancedUpscalerNames;
 
         /// <summary>Opaque quality setting of NVIDIA Deep Learning Super Sampling (DLSS). Use the system enum UnityEngine.NVIDIA.DLSSQuality to set the quality.</summary>
         public uint DLSSPerfQualitySetting;
@@ -179,6 +191,11 @@ namespace UnityEngine.Rendering
         /// <summary>Pixel sharpness of AMD FidelityFX Super Resolution (FSR).</summary>
         [Range(0, 1)]
         public float fsrSharpness;
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        [SerializeReference]
+        public List<UpscalerOptions> IUpscalerOptions;
+#endif
 
         /// <summary>The maximum resolution percentage that dynamic resolution can reach.</summary>
         public float maxPercentage;

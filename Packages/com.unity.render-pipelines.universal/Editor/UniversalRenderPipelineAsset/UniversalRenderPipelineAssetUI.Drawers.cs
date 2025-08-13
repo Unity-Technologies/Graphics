@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -16,7 +17,7 @@ namespace UnityEditor.Rendering.Universal
             Lighting = 1 << 3,
             Shadows = 1 << 4,
             PostProcessing = 1 << 5,
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
             AdaptivePerformance = 1 << 6,
 #endif
             Volumes = 1 << 7,
@@ -106,7 +107,7 @@ namespace UnityEditor.Rendering.Universal
             CED.AdditionalPropertiesFoldoutGroup(Styles.shadowSettingsText, Expandable.Shadows, k_ExpandedState, ExpandableAdditional.Shadows, k_AdditionalPropertiesState, DrawShadows, DrawShadowsAdditional),
             CED.FoldoutGroup(Styles.postProcessingSettingsText, Expandable.PostProcessing, k_ExpandedState, DrawPostProcessing),
             CED.FoldoutGroup(Styles.volumeSettingsText, Expandable.Volumes, k_ExpandedState, DrawVolumes)
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
             , CED.FoldoutGroup(Styles.adaptivePerformanceText, Expandable.AdaptivePerformance, k_ExpandedState, CED.Group(DrawAdaptivePerformance))
 #endif
         );
@@ -189,37 +190,8 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);
             serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
-            EditorGUILayout.PropertyField(serialized.upscalingFilter, Styles.upscalingFilterText);
-            if (serialized.asset.upscalingFilter == UpscalingFilterSelection.FSR)
-            {
-                ++EditorGUI.indentLevel;
 
-                EditorGUILayout.PropertyField(serialized.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
-
-                // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
-                if (serialized.fsrOverrideSharpness.boolValue)
-                {
-                    serialized.fsrSharpness.floatValue = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
-                }
-
-                --EditorGUI.indentLevel;
-            }
-            else if (serialized.asset.upscalingFilter == UpscalingFilterSelection.STP)
-            {
-#if URP_COMPATIBILITY_MODE
-                // Warn users if they attempt to enable STP without render graph
-                if (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
-                {
-                    EditorGUILayout.HelpBox(Styles.stpRequiresRenderGraph, MessageType.Warning, true);
-                }
-#endif
-
-                // Warn users about performance expectations if they attempt to enable STP on a mobile platform
-                if (PlatformAutoDetect.isShaderAPIMobileDefined)
-                {
-                    EditorGUILayout.HelpBox(Styles.stpMobilePlatformWarning, MessageType.Warning, true);
-                }
-            }
+            DrawUpscalingFilterDropdownAndOptions(serialized);
 
             EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
             EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
@@ -234,6 +206,153 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUI.EndDisabledGroup();
+        }
+
+        static void DrawUpscalingFilterDropdownAndOptions(SerializedUniversalRenderPipelineAsset serialized)
+        {
+            // Get the names of IUpscalers currently present
+            string[] iUpscalerNames = { };
+#if ENABLE_UPSCALER_FRAMEWORK
+            if (UniversalRenderPipeline.upscaling != null)
+            {
+                iUpscalerNames = UniversalRenderPipeline.upscaling.upscalerNames;
+            }
+#endif
+
+            // Count builtin and IUpscalers
+#if ENABLE_UPSCALER_FRAMEWORK
+            int numBuiltInUpscalers = (int)UpscalingFilterSelection.IUpscaler;
+#else
+            int numBuiltInUpscalers = (int)UpscalingFilterSelection.STP + 1;
+#endif
+            int numIUpscalers = iUpscalerNames.Length;
+            int numTotalUpscalers = numBuiltInUpscalers + numIUpscalers;
+
+            // Create arrays for options and enum values
+            string[] names = new string[numTotalUpscalers];
+
+            // Get names and values for builtin upscalers
+            {
+                var bnames = Enum.GetNames(typeof(UpscalingFilterSelection));
+
+                for (int i = 0; i < numBuiltInUpscalers; i++)
+                {
+                    // Get the display name from the InspectorName attribute if it exists
+                    var field = typeof(UpscalingFilterSelection).GetField(bnames[i]);
+                    var inspectorNameAttribute = field.GetCustomAttribute<InspectorNameAttribute>();
+                    names[i] = inspectorNameAttribute != null ? inspectorNameAttribute.displayName : bnames[i];
+                }
+            }
+
+            // Get names and values for IUpscalers
+            for (int i = 0; i < numIUpscalers; i++)
+            {
+                var dst = numBuiltInUpscalers + i;
+                names[dst] = iUpscalerNames[i];
+            }
+
+            // Get the current enum value
+            UpscalingFilterSelection curUpscaler =
+                (UpscalingFilterSelection)serialized.upscalingFilter.enumValueIndex;
+
+            // Find the current selected index
+            int selectedIndex = 0;           // [0, iUpscalerCount + BuiltinUpscalerCount)
+#if ENABLE_UPSCALER_FRAMEWORK
+            int selectedIUpscalerIndex = -1; // [0, iUpscalerCount)
+            if (curUpscaler == UpscalingFilterSelection.IUpscaler) // An IUpscaler is selected.
+            {
+                // Find the package by name in our options
+                selectedIUpscalerIndex = Array.IndexOf(iUpscalerNames, serialized.iUpscalerName.stringValue);
+
+                selectedIndex = selectedIUpscalerIndex == -1
+                    ? 0 // The IUpscaler that was serialized in the asset wasn't found. This can happen if an upscaling package was removed.
+                    : numBuiltInUpscalers + selectedIUpscalerIndex;
+            }
+            else // A built-in upscaler is selected.
+#else
+            // A built-in upscaler is selected (IUpscaler not available).
+#endif
+            {
+                selectedIndex = serialized.upscalingFilter.enumValueIndex;
+            }
+
+            // --------------------------------------------------- GUI ---------------------------------------------------
+
+            // Show the dropdown
+            EditorGUI.BeginChangeCheck();
+            selectedIndex = EditorGUILayout.Popup(Styles.upscalingFilterText, selectedIndex, names);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serialized.upscalingFilter.enumValueIndex = Math.Min(selectedIndex,
+#if ENABLE_UPSCALER_FRAMEWORK
+                    (int)UpscalingFilterSelection.IUpscaler
+#else
+                    (int)UpscalingFilterSelection.STP
+#endif
+                    );
+
+#if ENABLE_UPSCALER_FRAMEWORK
+                serialized.iUpscalerName.stringValue = selectedIndex < numBuiltInUpscalers ?
+                    string.Empty : // A built-in upscaler is selected
+                    names[selectedIndex]; // An IUpscaler is selected.
+#endif
+            }
+
+            // draw upscaler options, if any
+            switch (serialized.asset.upscalingFilter)
+            {
+                case UpscalingFilterSelection.FSR:
+                {
+                    ++EditorGUI.indentLevel;
+
+                    EditorGUILayout.PropertyField(serialized.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
+
+                    // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
+                    if (serialized.fsrOverrideSharpness.boolValue)
+                    {
+                        serialized.fsrSharpness.floatValue = EditorGUILayout.Slider(Styles.fsrSharpnessText, serialized.fsrSharpness.floatValue, 0.0f, 1.0f);
+                    }
+
+                    --EditorGUI.indentLevel;
+                } break;
+
+                case UpscalingFilterSelection.STP:
+                {
+#if URP_COMPATIBILITY_MODE
+                    // Warn users if they attempt to enable STP without render graph
+                    if (GraphicsSettings.GetRenderPipelineSettings<RenderGraphSettings>().enableRenderCompatibilityMode)
+                    {
+                        EditorGUILayout.HelpBox(Styles.stpRequiresRenderGraph, MessageType.Warning, true);
+                    }
+#endif
+                    // Warn users about performance expectations if they attempt to enable STP on a mobile platform
+                    if (PlatformAutoDetect.isShaderAPIMobileDefined)
+                    {
+                        EditorGUILayout.HelpBox(Styles.stpMobilePlatformWarning, MessageType.Warning, true);
+                    }
+                } break;
+
+#if ENABLE_UPSCALER_FRAMEWORK
+                case UpscalingFilterSelection.IUpscaler:
+                {
+                    if (RenderPipelineManager.currentPipeline is UniversalRenderPipeline && selectedIUpscalerIndex != -1)
+                    {
+                        UpscalerOptions options = serialized.asset.GetIUpscalerOptions(serialized.iUpscalerName.stringValue);
+                        if (options != null)
+                        {
+                            ++EditorGUI.indentLevel;
+                            bool optionChanged = options.DrawOptionsEditorGUI();
+                            if (optionChanged)
+                            {
+                                EditorUtility.SetDirty(serialized.asset);
+                            }
+                            --EditorGUI.indentLevel;
+                        }
+                    }
+                } break;
+#endif
+            }
+
         }
 
         static void DrawHDR(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
@@ -359,11 +478,16 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginDisabledGroup(!serialized.reflectionProbeBlendingProp.boolValue);
             EditorGUILayout.PropertyField(serialized.reflectionProbeAtlasProp, Styles.reflectionProbeAtlasText);
             EditorGUI.EndDisabledGroup();
+
             // Disable probeAtlas when probeBlending is off.
             if (!serialized.reflectionProbeBlendingProp.boolValue)
                 serialized.reflectionProbeAtlasProp.boolValue = false;
-            else if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled && !serialized.reflectionProbeAtlasProp.boolValue)
-                EditorGUILayout.HelpBox(Styles.reflectionProbeAtlasGpuResidentDrawerWarningText.text, MessageType.Warning, true);
+
+            if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
+            {
+                if (!serialized.reflectionProbeBlendingProp.boolValue || !serialized.reflectionProbeAtlasProp.boolValue)
+                    EditorGUILayout.HelpBox(Styles.reflectionProbeBlendingGpuResidentDrawerWarningText.text, MessageType.Warning, true);
+            }
 
             EditorGUI.indentLevel--;
 
@@ -707,7 +831,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
         static void DrawAdaptivePerformance(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             EditorGUILayout.PropertyField(serialized.useAdaptivePerformance, Styles.useAdaptivePerformance);

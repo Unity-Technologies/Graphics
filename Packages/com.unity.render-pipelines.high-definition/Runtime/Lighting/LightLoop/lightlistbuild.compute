@@ -18,11 +18,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightingConvexHullUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightCullUtils.hlsl"
 
-#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_GAMECORE)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_GAMECORE) && !defined(SHADER_API_SWITCH2)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/SortingComputeUtils.hlsl"
 #endif
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -204,7 +204,11 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
         InterlockedMax(ldsZMax, asuint(dpt_ma));
         InterlockedMin(ldsZMin, asuint(dpt_mi));
 
-#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) // not sure why Switch needs the barrier (it will not be correct without)
+        // For some platforms we always need GroupMemoryBarrierWithGroupSync() otherwise results are incorrect.
+		// Reason is under investigation, related discussions:
+		// https://unity.slack.com/archives/C02C8FWPNHE/p1704321597295329
+		// https://unity.slack.com/archives/G3JUQKYV8/p1705081617447289
+#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
         GroupMemoryBarrierWithGroupSync();
 #endif
     }
@@ -260,6 +264,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
 
 #ifndef FINE_PRUNING_ENABLED
     {
+        UNITY_UNROLL
         for(i=t; i<LIGHT_LIST_MAX_COARSE_ENTRIES; i+=NR_THREADS) if(i<iNrCoarseLights) prunedList[i] = coarseList[i];
         if(t==0) ldsNrLightsFinal=iNrCoarseLights;
     }
@@ -570,7 +575,11 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
             InterlockedOr(ldsDoesLightIntersect[ii], uLightsFlags[ii]);
     }
 
-#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) // not sure why Switch needs the barrier (it will not be correct without)
+    // For some platforms we always need GroupMemoryBarrierWithGroupSync() otherwise results are incorrect.
+	// Reason is under investigation, related discussions:
+	// https://unity.slack.com/archives/C02C8FWPNHE/p1704321597295329
+	// https://unity.slack.com/archives/G3JUQKYV8/p1705081617447289
+#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     GroupMemoryBarrierWithGroupSync();
 #endif
 

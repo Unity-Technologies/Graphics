@@ -88,7 +88,7 @@
             "typeInfo": {
                 "fullName": "UnityEditor.ShaderGraph.BooleanShaderProperty"
             },
-            "JSONnodeData": "{\n    \"m_Name\": \"UseOpacityMap\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"86ed0329-e72d-4828-b2fe-4f3d4ba88ac4\"\n    },\n    \"m_DefaultReferenceName\": \"Boolean_8A2B8817\",\n    \"m_OverrideReferenceName\": \"\",\n    \"m_Precision\": 0,\n    \"m_Value\": false,\n    \"m_Hidden\": false\n}"
+            "JSONnodeData": "{\n    \"m_Name\": \"UseOpacityMap\",\n    \"m_GeneratePropertyBlock\": true,\n    \"m_Guid\": {\n        \"m_GuidSerialized\": \"86ed0329-e72d-4828-b2fe-4f3d4ba88ac4\"\n    },\n    \"m_DefaultReferenceName\": \"_UseOpacityMap\",\n    \"m_OverrideReferenceName\": \"\",\n    \"m_Precision\": 0,\n    \"m_Value\": false,\n    \"m_Hidden\": false\n}"
         },
         {
             "typeInfo": {

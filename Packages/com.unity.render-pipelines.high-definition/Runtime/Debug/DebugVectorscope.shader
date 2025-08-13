@@ -4,7 +4,7 @@ Shader "Hidden/PostProcessing/Debug/Vectorscope"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
-        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
         #pragma target 4.5
 
     StructuredBuffer<uint> _VectorscopeBuffer;

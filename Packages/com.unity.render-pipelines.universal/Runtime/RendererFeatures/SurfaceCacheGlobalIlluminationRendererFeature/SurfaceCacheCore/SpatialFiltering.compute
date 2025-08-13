@@ -1,0 +1,77 @@
+// Surface Cache shaders do not currently work on Switch due to its limited binding range
+// https://jira.unity3d.com/browse/GFXLIGHT-1730
+#pragma exclude_renderers switch switch2
+#pragma kernel FilterSpatially
+
+#include "Common.hlsl"
+#include "PatchUtil.hlsl"
+#include "RingBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/QuasiRandom.hlsl"
+
+StructuredBuffer<uint> _RingConfigBuffer;
+StructuredBuffer<SphericalHarmonics::RGBL1> _InputPatchIrradiances;
+StructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
+RWStructuredBuffer<SphericalHarmonics::RGBL1> _OutputPatchIrradiances;
+StructuredBuffer<uint> _CellPatchIndices;
+StructuredBuffer<int3> _CascadeOffsets;
+
+uint _FrameIdx;
+float _VoxelMinSize;
+uint _CascadeCount;
+uint _GridSize;
+uint _SampleCount;
+uint _RingConfigOffset;
+float _Radius;
+float3 _GridTargetPos;
+
+[numthreads(64, 1, 1)]
+void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
+{
+    if (RingBuffer::IsPositionUnused(_RingConfigBuffer, _RingConfigOffset, patchIdx))
+        return;
+
+    const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
+
+    QrngKronecker rng;
+    rng.Init(uint2(patchIdx, 0), _FrameIdx * _SampleCount);
+
+    SphericalHarmonics::RGBL1 patchIrradianceSum = _InputPatchIrradiances[patchIdx];
+    float weightSum = 1.0f;
+
+    float3 up;
+    float3 right;
+    OrthoBasisFromVector(patchGeo.normal, up, right);
+
+    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_GridTargetPos, patchGeo.position, _GridSize, _CascadeCount, _VoxelMinSize);
+    const uint cascadeIdx = cascadeResolution != -1 ? cascadeResolution : _CascadeCount - 1;
+
+    for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)
+    {
+        const float2 jitter = float2(rng.GetFloat(0), rng.GetFloat(1)) * 2.0f - 1.0f;
+        const float3 displacement = (up * jitter.x + right * jitter.y) * PatchUtil::GetVoxelSize(_VoxelMinSize, cascadeIdx) * _Radius;
+
+        SphericalHarmonics::RGBL1 irradiance;
+        bool result = PatchUtil::ReadHemisphericalIrradiance(
+            _InputPatchIrradiances, _CellPatchIndices, _GridSize, _CascadeOffsets, _GridTargetPos, _CascadeCount, _VoxelMinSize,
+            patchGeo.position + displacement, patchGeo.normal, irradiance);
+
+        if (result)
+        {
+            float weight = 1.0f - length(jitter) * INV_SQRT2;
+            weightSum += weight;
+            patchIrradianceSum.l0 += irradiance.l0 * weight;
+            patchIrradianceSum.l1s[0] += irradiance.l1s[0] * weight;
+            patchIrradianceSum.l1s[1] += irradiance.l1s[1] * weight;
+            patchIrradianceSum.l1s[2] += irradiance.l1s[2] * weight;
+        }
+
+        rng.NextSample();
+    }
+
+    SphericalHarmonics::RGBL1 output;
+    output.l0 = patchIrradianceSum.l0 / weightSum;
+    output.l1s[0] = patchIrradianceSum.l1s[0] / weightSum;
+    output.l1s[1] = patchIrradianceSum.l1s[1] / weightSum;
+    output.l1s[2] = patchIrradianceSum.l1s[2] / weightSum;
+    _OutputPatchIrradiances[patchIdx] = output;
+}

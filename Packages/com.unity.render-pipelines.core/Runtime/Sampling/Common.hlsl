@@ -105,6 +105,16 @@ float3 CosineSample(float2 u, float3 normal)
     return mul(basis, localDir);
 }
 
+float3 UniformHemisphereSample(float2 u, float3 normal)
+{
+    float z = u[0];
+    float r = sqrt(max(0.0f, 1.0f - z * z));
+    float phi = 2.0f * PI * u[1];
+    float3 localDir = float3(r * cos(phi), r * sin(phi), z);
+    float3x3 basis = OrthoBasisFromVector(normal);
+    return mul(basis, localDir);
+}
+
 float PowerHeuristic(float f, float b)
 {
     float q = (f * f) + (b * b);

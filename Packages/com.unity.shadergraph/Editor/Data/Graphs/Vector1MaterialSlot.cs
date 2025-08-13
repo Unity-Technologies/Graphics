@@ -4,12 +4,13 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class Vector1MaterialSlot : MaterialSlot, IMaterialSlotHasValue<float>
+    class Vector1MaterialSlot : MaterialSlot, IMaterialSlotHasValue<float>, IMaterialSlotSupportsLiteralMode
     {
         [SerializeField]
         float m_Value;
@@ -31,6 +32,15 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        [SerializeField]
+        bool m_LiteralMode = false;
+
+        public bool LiteralMode
+        {
+            get => m_LiteralMode;
+            set => m_LiteralMode = value;
+        }
+
         public Vector1MaterialSlot()
         {
         }
@@ -43,11 +53,13 @@ namespace UnityEditor.ShaderGraph
             float value,
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
             string label1 = null,
-            bool hidden = false)
+            bool hidden = false,
+            bool literal = false)
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {
             m_DefaultValue = value;
             m_Value = value;
+            m_LiteralMode = literal;
             if (label1 != null)
                 m_Labels = new[] { label1 };
         }
@@ -107,7 +119,10 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = foundSlot as Vector1MaterialSlot;
             if (slot != null)
+            {
                 value = slot.value;
+                LiteralMode = slot.LiteralMode;
+            }
         }
 
         public override void CopyDefaultValue(MaterialSlot other)

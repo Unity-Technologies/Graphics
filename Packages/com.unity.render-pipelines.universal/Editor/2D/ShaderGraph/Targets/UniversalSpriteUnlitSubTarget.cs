@@ -70,6 +70,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return true;
         }
 
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            base.CollectShaderProperties(collector, generationMode);
+            SpriteSubTargetUtility.AddSRPIncompatibility(collector);
+        }
+
         #region SubShader
         static class SubShaders
         {
@@ -125,11 +131,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = SpriteSubTargetUtility.GetDefaultRenderState(target),
+                    renderStates = target.sort3Das2DCompatible ? Universal2DSubTargetDescriptors.RenderStateCollections.Sort3Das2DCompatible : SpriteSubTargetUtility.GetDefaultRenderState(target),
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
                     keywords = SpriteUnlitKeywords.Unlit,
-                    includes = SpriteUnlitIncludes.Unlit,
+                    includes = target.sort3Das2DCompatible ? MeshUnlitIncludes.Unlit : SpriteUnlitIncludes.Unlit,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common

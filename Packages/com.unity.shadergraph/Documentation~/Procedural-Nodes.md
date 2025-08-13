@@ -11,7 +11,7 @@
 | :------------------------ | :---------------------------- |
 | ![A Gradient Noise node. A UV0 value is connected to the UV(2) slot. A 10 scalar is attached to the Scale(1) slot. No value is connected to the Out(1) slot. A textured, abstract grayscale pattern that resembles soft, cloudy noise is displayed in the lower part of the node.](images/GradientNoiseNodeThumb.png) | ![A Simple Noise node. A UV0 value is connected to the UV(2) slot. A 500 scalar is attached to the Scale(1) slot. No value is connected to the Out(1) slot. A TV static pattern is displayed in the lower part of the node.](images/SimpleNoiseNodeThumb.png) |
 | Generates a gradient, or Perlin, noise based on input UV. | Generates a simple, or Value, noise based on input UV. |
-| [**Voronoi**](Voronoi-Node) |           |
+| [**Voronoi**](Voronoi-Node.md) |           |
 | ![A Voronoi node. A UV0 value is connected to the UV(2) slot. A 2 scalar is attached to the Angle Offset(1) slot. A 5 scalar is attached to the Cell Density(1) slot. No value is connected to the Out(1) slot or the Cells(1) slot. A pattern of cells is displayed in the lower part of the node.](images/VoronoiNodeThumb.png) ||
 |Generates a Voronoi, or Worley, noise based on input UV.  ||
 

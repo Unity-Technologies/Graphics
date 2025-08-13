@@ -43,18 +43,25 @@ namespace UnityEngine.Rendering
 
         static LocalKeyword s_DecodeHdrKeyword;
 
+        static LocalKeyword s_ResolveDepthMSAA2X;
+        static LocalKeyword s_ResolveDepthMSAA4X;
+        static LocalKeyword s_ResolveDepthMSAA8X;
+
         static class BlitShaderIDs
         {
             public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");
             public static readonly int _BlitCubeTexture = Shader.PropertyToID("_BlitCubeTexture");
             public static readonly int _BlitScaleBias = Shader.PropertyToID("_BlitScaleBias");
             public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
+            public static readonly int _SourceResolution = Shader.PropertyToID("_SourceResolution");
             public static readonly int _BlitMipLevel = Shader.PropertyToID("_BlitMipLevel");
             public static readonly int _BlitTexArraySlice = Shader.PropertyToID("_BlitTexArraySlice");
             public static readonly int _BlitTextureSize = Shader.PropertyToID("_BlitTextureSize");
             public static readonly int _BlitPaddingSize = Shader.PropertyToID("_BlitPaddingSize");
             public static readonly int _BlitDecodeInstructions = Shader.PropertyToID("_BlitDecodeInstructions");
             public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
+            public static readonly int _InputDepthXR = Shader.PropertyToID("_InputDepthTextureXR");
+            public static readonly int _InputDepthXRMS = Shader.PropertyToID("_InputDepthTextureXR_MS");
         }
 
         // This enum needs to be in sync with the shader pass names and indices of the Blit.shader in every pipeline.
@@ -90,6 +97,7 @@ namespace UnityEngine.Rendering
         {
             ColorOnly = 0,
             ColorAndDepth = 1,
+            DepthOnly = 2,
         }
 
         // This maps the requested shader indices to actual existing shader indices. When running in a build, it's possible
@@ -161,10 +169,15 @@ namespace UnityEngine.Rendering
 
             s_DecodeHdrKeyword = new LocalKeyword(blitPS, "BLIT_DECODE_HDR");
 
+            s_ResolveDepthMSAA2X = new(s_BlitColorAndDepth.shader, "_MSAA_2X");
+            s_ResolveDepthMSAA4X = new(s_BlitColorAndDepth.shader, "_MSAA_4X");
+            s_ResolveDepthMSAA8X = new(s_BlitColorAndDepth.shader, "_MSAA_8X");
+
             // With texture array enabled, we still need the normal blit version for other systems like atlas
             if (TextureXR.useTexArray)
             {
                 s_Blit.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
+                s_BlitColorAndDepth.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
                 s_BlitTexArray = CoreUtils.CreateEngineMaterial(blitPS);
                 s_BlitTexArraySingleSlice = CoreUtils.CreateEngineMaterial(blitPS);
                 s_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
@@ -674,6 +687,43 @@ namespace UnityEngine.Rendering
             if (blitDepth)
                 s_PropertyBlock.SetTexture(BlitShaderIDs._InputDepth, sourceDepth, RenderTextureSubElement.Depth);
             DrawTriangle(cmd, s_BlitColorAndDepth, s_BlitColorAndDepthShaderPassIndicesMap[blitDepth ? 1 : 0]);
+        }
+
+        /// <summary>
+        /// Adds in a <see cref="CommandBuffer"/> a command to blit an XR compatible depth texture into
+        /// the currently bound depth render target.
+        /// </summary>
+        /// <remarks>
+        /// This function is meant for textures and render targets which depend on XR output modes by proper handling, when
+        /// necessary, of left / right eye data copying. This generally corresponds to textures which represent full screen
+        /// data that may differ between eyes.
+        ///
+        /// The <c>scaleBias</c> parameter controls the rectangle of pixels in the source texture to copy by manipulating
+        /// the source texture coordinates. The X and Y coordinates store the scaling factor to apply to these texture
+        /// coordinates, while the Z and W coordinates store the texture coordinate offsets. The operation will always
+        /// write to the full destination render target rectangle.
+        /// </remarks>
+        /// <param name="cmd">Command Buffer used for recording the action.</param>
+        /// <param name="sourceDepth">Source depth render texture to copy from.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the source texture.</param>
+        /// <param name="mipLevel">Mip level of the source texture to copy from.</param>
+        public static void BlitDepth(CommandBuffer cmd, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel)
+        {
+            s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevel);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, scaleBias);
+            s_PropertyBlock.SetVector(BlitShaderIDs._SourceResolution, new Vector2(sourceDepth.width, sourceDepth.height));
+
+            // Setup MSAA keywords
+            cmd.SetKeyword(s_BlitColorAndDepth, s_ResolveDepthMSAA2X, sourceDepth.antiAliasing == 2);
+            cmd.SetKeyword(s_BlitColorAndDepth, s_ResolveDepthMSAA4X, sourceDepth.antiAliasing == 4);
+            cmd.SetKeyword(s_BlitColorAndDepth, s_ResolveDepthMSAA8X, sourceDepth.antiAliasing == 8);
+
+            if (sourceDepth.antiAliasing > 1)
+                s_PropertyBlock.SetTexture(BlitShaderIDs._InputDepthXRMS, sourceDepth, RenderTextureSubElement.Depth);
+            else
+                s_PropertyBlock.SetTexture(BlitShaderIDs._InputDepthXR, sourceDepth, RenderTextureSubElement.Depth);
+
+            DrawTriangle(cmd, s_BlitColorAndDepth, s_BlitColorAndDepthShaderPassIndicesMap[2]);
         }
 
         /// <summary>

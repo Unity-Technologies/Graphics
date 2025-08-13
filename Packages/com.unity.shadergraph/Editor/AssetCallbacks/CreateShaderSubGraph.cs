@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
@@ -23,6 +24,12 @@ namespace UnityEditor.ShaderGraph
             graph.path = "Sub Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
+
+            if (ShaderGraphPreferences.GetOrPromptOpenNewGraphOnCreation())
+            {
+                var obj = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(pathName);
+                AssetDatabase.OpenAsset(obj);
+            }
         }
     }
 }

@@ -5,7 +5,7 @@
     #define UNITY_SUPPORT_INSTANCING
 #endif
 
-#if defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     #define UNITY_SUPPORT_INSTANCING
 #endif
 
@@ -14,7 +14,7 @@
 #endif
 
 // These platforms support dynamically adjusting the instancing CB size according to the current batch.
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH) || defined(SHADER_API_WEBGPU)
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2) || defined(SHADER_API_WEBGPU)
     #define UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE
 #endif
 
@@ -38,7 +38,7 @@
     #define UNITY_DOTS_INSTANCING_ENABLED
 
     // On GL & GLES, use UBO path, on every other platform use SSBO path (including Switch, even if it defines SHADER_API_GLCORE)
-    #if (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)) && (!defined(SHADER_API_SWITCH))
+    #if (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)) && (!defined(SHADER_API_SWITCH))  && (!defined(SHADER_API_SWITCH2))
         #define UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
     #endif
 
@@ -262,7 +262,7 @@
     #elif defined(UNITY_MAX_INSTANCE_COUNT)
         #define UNITY_INSTANCED_ARRAY_SIZE  UNITY_MAX_INSTANCE_COUNT
     #else
-        #if (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)) || defined(SHADER_API_SWITCH) || defined(SHADER_API_WEBGPU)
+        #if (defined(SHADER_API_VULKAN) && defined(SHADER_API_MOBILE)) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2) || defined(SHADER_API_WEBGPU)
             #define UNITY_INSTANCED_ARRAY_SIZE  250
         #else
             #define UNITY_INSTANCED_ARRAY_SIZE  500
@@ -366,6 +366,8 @@
         #if defined(UNITY_USE_RENDERINGLAYER_ARRAY) && defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
             UNITY_DEFINE_INSTANCED_PROP(float, unity_RenderingLayerArray)
             #define unity_RenderingLayer UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_RenderingLayerArray).xxxx
+            UNITY_DEFINE_INSTANCED_PROP(float, unity_RendererUserValueArray)
+            #define unity_RendererUserValue asuint(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_RendererUserValueArray).x)
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins0)
 
@@ -380,7 +382,9 @@
         #if defined(UNITY_USE_RENDERINGLAYER_ARRAY) && !defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
             UNITY_DEFINE_INSTANCED_PROP(float, unity_RenderingLayerArray)
             #define unity_RenderingLayer UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_RenderingLayerArray).xxxx
-        #endif
+            UNITY_DEFINE_INSTANCED_PROP(float, unity_RendererUserValueArray)
+            #define unity_RendererUserValue asuint(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_RendererUserValueArray).x)
+    #endif
         #if defined(UNITY_USE_RENDERER_BOUNDS)
             UNITY_DEFINE_INSTANCED_PROP(float4, unity_RendererBounds_MinArray)
             UNITY_DEFINE_INSTANCED_PROP(float4, unity_RendererBounds_MaxArray)

@@ -81,6 +81,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
+#if ENABLE_UPSCALER_FRAMEWORK
+        internal Upscaling upscaling;
+#endif
 
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
         bool m_PreviousLightsUseLinearIntensity;
@@ -225,6 +228,34 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ShouldOverrideColorBufferFormat ? m_AOVGraphicsFormat : (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
         }
 
+        /// <summary>
+        /// Returns the current depth buffer format based on the HDRP asset config
+        /// </summary>
+        /// <param name="depthAsColor">Set to true to return a color format capable of storing a depth with enought precision instead of a depth format.</param>
+        /// <returns>Returns either the color or depth format using the configured precision in the HDRP asset.</returns>
+        internal GraphicsFormat GetDepthBufferFormat(bool depthAsColor)
+        {
+            var depthFormat = m_Asset.currentPlatformRenderPipelineSettings.depthBufferFormat;
+            if (depthAsColor)
+            {
+                switch (depthFormat)
+                {
+                    case RenderPipelineSettings.DepthBufferFormat.Auto:
+                        // Auto mode can choose between 32 or 24 bit modes but there is no 24 bit texture format, so we fall back on 32
+                    case RenderPipelineSettings.DepthBufferFormat.ForceD32:
+                    case RenderPipelineSettings.DepthBufferFormat.ForceD24:
+                        return GraphicsFormat.R32_SFloat;
+                    case RenderPipelineSettings.DepthBufferFormat.ForceD16:
+                        return GraphicsFormat.R16_SFloat;
+                }
+            }
+
+            if (depthFormat == RenderPipelineSettings.DepthBufferFormat.Auto)
+                return CoreUtils.GetDefaultDepthStencilFormat();
+            else
+                return (GraphicsFormat)depthFormat;
+        }
+
         GraphicsFormat GetCustomBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.customBufferFormat;
 
@@ -358,8 +389,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             bool hdrInPlayerSettings = true;
 #endif
+            bool supportsSwitchingHDR = SystemInfo.hdrDisplaySupportFlags.HasFlag(HDRDisplaySupportFlags.RuntimeSwitchable);
+            bool hdrOutputActive = HDROutputSettings.main.available && HDROutputSettings.main.active;
 
-            if (hdrInPlayerSettings && HDROutputSettings.main.available)
+            if (hdrInPlayerSettings && supportsSwitchingHDR && hdrOutputActive)
             {
                 if (camera.camera.cameraType != CameraType.Game)
                 {
@@ -712,6 +745,9 @@ namespace UnityEngine.Rendering.HighDefinition
             LocalVolumetricFogManager.manager.InitializeGraphicsBuffers(asset.currentPlatformRenderPipelineSettings.lightLoopSettings.maxLocalVolumetricFogOnScreen);
 
             VrsInitializeResources();
+#if ENABLE_UPSCALER_FRAMEWORK
+            upscaling = new Upscaling(asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.IUpscalerOptions);
+#endif
 
 #if UNITY_EDITOR
             GPUInlineDebugDrawer.Initialize();
@@ -1354,23 +1390,32 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCam.cameraCanRenderDLSS = false;
             hdCam.cameraCanRenderFSR2 = false;
             hdCam.cameraCanRenderSTP = false;
+#if ENABLE_UPSCALER_FRAMEWORK
+            hdCam.cameraCanRenderIUpscaler = false;
+            hdCam.cameraIUpscalerIsTemporalUpscaler = false;
+#endif
 
             if (!cameraRequestedDynamicRes || !m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled)
                 return;
 
-            var upscalerList = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalersByPriority;
-            if (upscalerList == null || upscalerList.Count == 0)
+            var upscalerNames = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.advancedUpscalerNames;
+            if (upscalerNames == null || upscalerNames.Count == 0)
                 return;
+
+            // STP cannot support dynamic resolution when hardware support is not available.
+            // However, we make an exception for cases where the dynamic resolution is known to be forced to a fixed value.
+            bool isHwDrsSupported = HDUtils.IsHardwareDynamicResolutionSupportedByDevice(SystemInfo.graphicsDeviceType);
+            var drsSettings = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+            bool isStpSupported = ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported) || drsSettings.forceResolution;
 
             // External upscaler priority system: we pick the first upscaler in the pre sorted priority list to activate for the frame.
             bool found = false;
-            for (int i = 0; i < upscalerList.Count && !found; ++i)
+            for (int i = 0; i < upscalerNames.Count && !found; ++i)
             {
-                var scaler = upscalerList[i];
-                switch (scaler)
+                var name = upscalerNames[i];
+                switch(name)
                 {
-                case AdvancedUpscalers.DLSS:
-                    {
+                    case "DLSS":
                         hdCam.cameraCanRenderDLSS = HDDynamicResolutionPlatformCapabilities.DLSSDetected && hdCam.allowDeepLearningSuperSampling;
                         found = hdCam.cameraCanRenderDLSS;
                         if (m_DLSSPass != null && hdCam.cameraCanRenderDLSS)
@@ -1380,10 +1425,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
                             m_DLSSPass.SetupDRSScaling(useOptimalSettings, camera, hdCam, xrPass, ref outDrsSettings);
                         }
-                    }
-                    break;
-                case AdvancedUpscalers.FSR2:
-                    {
+                        break;
+
+                    case "FSR2":
                         hdCam.cameraCanRenderFSR2 = HDDynamicResolutionPlatformCapabilities.FSR2Detected && hdCam.allowFidelityFX2SuperResolution;
                         found = hdCam.cameraCanRenderFSR2;
                         if (m_FSR2Pass != null && hdCam.cameraCanRenderFSR2)
@@ -1393,23 +1437,54 @@ namespace UnityEngine.Rendering.HighDefinition
                                 : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.FSR2UseOptimalSettings;
                             m_FSR2Pass.SetupDRSScaling(useOptimalSettings, camera, hdCam, xrPass, ref outDrsSettings);
                         }
-                    }
-                    break;
-                case AdvancedUpscalers.STP:
-                    {
-                        bool isHwDrsSupported = HDUtils.IsHardwareDynamicResolutionSupportedByDevice(SystemInfo.graphicsDeviceType);
+                        break;
 
-                        var drsSettings = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
-
-                        // STP cannot support dynamic resolution when hardware support is not available.
-                        // However, we make an exception for cases where the dynamic resolution is known to be forced to a fixed value.
-                        bool isStpSupported = ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported) || drsSettings.forceResolution;
-
+                    case "STP":
                         hdCam.cameraCanRenderSTP = isStpSupported;
                         found = hdCam.cameraCanRenderSTP;
+                        break;
+
+#if ENABLE_UPSCALER_FRAMEWORK
+                    default:
+                    {
+                        // The upscaler name should be an IUpscaler
+                        IUpscaler optActiveIUpscaler = this.upscaling.GetActiveUpscaler();
+
+
+                        // TODO (Apoorva): Make this condition dynamic from the IUpscaler interface, so that an
+                        // individual upscaling package can decide whether it is supported in the current config.
+                        bool isSupported = ((drsSettings.dynResType == DynamicResolutionType.Hardware) && isHwDrsSupported) || drsSettings.forceResolution;
+                        if (isSupported)
+                        {
+                            if (optActiveIUpscaler == null || name != optActiveIUpscaler.GetName())
+                            {
+                                // The active upscaler should be an IUpscaler, but it isn't currently set active in the
+                                // upscaling manager.
+                                bool ok = this.upscaling.SetActiveUpscaler(name);
+                                if (!ok)
+                                {
+                                    Debug.LogWarning(
+                                        $"Upscaler with name '{name}' is listed in the HDRP asset, but not found at run-time. Maybe an upscaling package is missing. Skipping over this upscaler.");
+                                }
+                                else
+                                {
+                                    // The upscaler was successfully set. Get a handle to it.
+                                    optActiveIUpscaler = this.upscaling.GetActiveUpscaler();
+                                    Debug.Assert(optActiveIUpscaler != null);
+                                }
+                            }
+
+                            if (optActiveIUpscaler != null)
+                            {
+                                hdCam.cameraCanRenderIUpscaler = true;
+                                hdCam.cameraIUpscalerIsTemporalUpscaler = optActiveIUpscaler.IsTemporalUpscaler();
+                                found = true;
+                            }
+                        }
                     }
                     break;
-                }
+#endif // ENABLE_UPSCALER_FRAMEWORK
+                } // switch(upscalerNames[i])
             }
         }
 
@@ -1746,7 +1821,7 @@ namespace UnityEngine.Rendering.HighDefinition
             visibleProbe.AllocTexture(probeFormat);
             visibleProbe.SetCameraAnchor(cameraSettings, viewerTransform);
             var isPlanarReflectionProbe = visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe;
-            
+
             ProbeRenderSteps skippedRenderSteps = ProbeRenderSteps.None;
             for (int j = 0; j < cameraSettings.Count; ++j)
             {
@@ -1759,7 +1834,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 DynamicResolutionHandler.UpdateAndUseCamera(camera, settingsCopy);
 
                 foreach (var terrain in m_ActiveTerrains)
-                    terrain.SetKeepUnusedCameraRenderingResources(camera.GetInstanceID(), true);
+                    terrain.SetKeepUnusedCameraRenderingResources(camera.GetEntityId(), true);
 
                 if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
                 {
@@ -2259,7 +2334,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Notify the hanlder if this camera requests DRS.
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
-                    dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && (hdCam.cameraCanRenderDLSS || hdCam.cameraCanRenderFSR2 || hdCam.cameraCanRenderSTP)) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
+                    dynResHandler.runUpscalerFilterOnFullResolution =
+                        (
+                            hdCam != null &&
+                            (hdCam.cameraCanRenderDLSS || hdCam.cameraCanRenderFSR2 || hdCam.cameraCanRenderSTP
+#if ENABLE_UPSCALER_FRAMEWORK
+                            || hdCam.cameraCanRenderIUpscaler
+#endif
+                            )
+                        )
+                        || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
                     // Finally, our configuration is prepared. Push it to the drs handler
                     dynResHandler.Update(drsSettings);
@@ -2903,9 +2987,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId, m_CurrentCameraHistoryChannel);
 
-            //Forcefully disable antialiasing if DLSS is enabled.
+            //Forcefully disable antialiasing if a temporal upscaler (other than STP) is enabled.
             if (additionalCameraData != null)
-                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS && !additionalCameraData.cameraCanRenderFSR2);
+            {
+                bool currentAntiAliasingValue = currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+                bool antiAliasingValue = currentAntiAliasingValue && !additionalCameraData.cameraCanRenderDLSS && !additionalCameraData.cameraCanRenderFSR2;
+
+#if ENABLE_UPSCALER_FRAMEWORK
+                if(additionalCameraData.cameraIUpscalerIsTemporalUpscaler)
+                {
+                    antiAliasingValue = antiAliasingValue && !additionalCameraData.cameraCanRenderIUpscaler;
+                }
+#endif
+
+                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, antiAliasingValue);
+            }
 
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, xrPass);

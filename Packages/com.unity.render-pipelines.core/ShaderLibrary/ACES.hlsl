@@ -1,7 +1,7 @@
 #ifndef __ACES__
 #define __ACES__
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -347,7 +347,7 @@ half rgb_2_yc(half3 rgb)
     half b = rgb.z;
     half k = b * (b - g) + g * (g - r) + r * (r - b);
     k = max(k, 0.0); // Clamp to avoid precision issue causing k < 0, making sqrt(k) undefined
-#if defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     half chroma = k == 0.0 ? 0.0 : sqrt(k); // Avoid Nan
 #else
     half chroma = sqrt(k);
@@ -1514,7 +1514,7 @@ half3 ODT_4000nits_ToAP1(half3 oces)
 
     return rgbPost;
 }
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

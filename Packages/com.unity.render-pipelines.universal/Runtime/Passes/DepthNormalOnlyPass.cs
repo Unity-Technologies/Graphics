@@ -226,7 +226,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.rendererList = renderGraph.CreateRendererList(param);
                 builder.UseRendererList(passData.rendererList);
                 if (cameraData.xr.enabled)
+                {
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                }
 
                 if (setGlobalTextures)
                 {

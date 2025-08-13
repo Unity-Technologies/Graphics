@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class TerrainLitGUI : HDShaderGUI, ITerrainLayerCustomUI
     {
-        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal;
+        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.AlphaCutoff;
         const AdvancedOptionsUIBlock.Features advancedOptionsFeatures = AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion;
 
         [Flags]

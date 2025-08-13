@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Rendering.Universal;
 using ShaderPathID = UnityEngine.Rendering.Universal.ShaderPathID;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.Universal.ShaderGraph;
@@ -39,6 +40,7 @@ namespace Unity.Rendering.Universal
             SG_Decal,               // UniversalDecalSubTarget
             SG_SpriteUnlit,         // UniversalSpriteUnlitSubTarget
             SG_SpriteLit,           // UniversalSpriteLitSubTarget
+            SG_TerrainLit,          // UniversalTerrainLitSubTarget
             SG_SpriteCustomLit,      // UniversalSpriteCustomLitSubTarget
             SG_SixWaySmokeLit       // UniversalSixWaySubTarget
         }
@@ -189,6 +191,9 @@ namespace Unity.Rendering.Universal
                     ShaderGraphUnlitGUI.UpdateMaterial(material, updateType);
                     break;
                 case ShaderID.SG_Decal:
+                    break;
+                case ShaderID.SG_TerrainLit:
+                    TerrainLitShaderGUI.SetupMaterialKeywords(material);
                     break;
                 case ShaderID.SG_SpriteUnlit:
                     break;

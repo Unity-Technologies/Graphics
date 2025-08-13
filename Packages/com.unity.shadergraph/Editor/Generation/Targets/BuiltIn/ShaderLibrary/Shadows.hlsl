@@ -85,8 +85,10 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 
 #else
 
-
-#if defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES3) || defined(SHADER_API_WEBGPU) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
+// MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO
+//
+// Part of preprocessor condition below is a work-around required because Unity might define SHADER_API_GLCORE when target platform is Switch
+#if defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_SWITCH2)) || defined(SHADER_API_GLES3) || defined(SHADER_API_WEBGPU)
 // Point lights can use 6 shadow slices, but on some mobile GPUs performance decrease drastically with uniform blocks bigger than 8kb. This number ensures size of buffer AdditionalLightShadows stays reasonable.
 // It also avoids shader compilation errors on SHADER_API_GLES30 devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
 // Keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in AdditionalLightsShadowCasterPass.cs
@@ -136,7 +138,7 @@ ShadowSamplingData GetMainLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
 
-    // shadowOffsets are used in SampleShadowmapFiltered #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+    // shadowOffsets are used in SampleShadowmapFiltered #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     shadowSamplingData.shadowOffset0 = _MainLightShadowOffset0;
     shadowSamplingData.shadowOffset1 = _MainLightShadowOffset1;
     shadowSamplingData.shadowOffset2 = _MainLightShadowOffset2;
@@ -152,7 +154,7 @@ ShadowSamplingData GetAdditionalLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
 
-    // shadowOffsets are used in SampleShadowmapFiltered #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+    // shadowOffsets are used in SampleShadowmapFiltered #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     shadowSamplingData.shadowOffset0 = _AdditionalShadowOffset0;
     shadowSamplingData.shadowOffset1 = _AdditionalShadowOffset1;
     shadowSamplingData.shadowOffset2 = _AdditionalShadowOffset2;
@@ -207,7 +209,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
 {
     real attenuation;
 
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     // 4-tap hardware comparison
     real4 attenuation4;
     attenuation4.x = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + samplingData.shadowOffset0.xyz);

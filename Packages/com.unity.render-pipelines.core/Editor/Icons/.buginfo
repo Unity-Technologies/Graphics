@@ -1,4 +1,5 @@
-area: SRP Settings
+default:
+  area: SRP Settings
 
 graphic-tools:
   when:

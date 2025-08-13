@@ -29,6 +29,7 @@
 {"supportTransparentDepthPrepass":"True"},
 {"supportTransparentDepthPostpass":"True"},
 {"colorBufferFormat":"R11G11B10"},
+{"depthBufferFormat":"Auto"},
 {"supportCustomPass":"True"},
 {"supportVariableRateShading":"True"},
 {"customBufferFormat":"R8G8B8A8"},

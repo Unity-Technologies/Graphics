@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Ray Tracing/Ray Tracing Settings")]
     [SupportedOnRenderPipeline(typeof(HDRenderPipelineAsset))]
     [HDRPHelpURL("Ray-Tracing-Settings")]
+    [DisplayInfo(name = "Ray Tracing Settings")]
     public sealed class RayTracingSettings : VolumeComponent
     {
         /// <summary>
@@ -127,13 +128,5 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Specifies the minimum object solid angle in degrees relative to the camera position to accept objects to the ray tracing acceleration structure when the culling mode is set to Solid Angle.")]
         public ClampedFloatParameter minSolidAngle = new ClampedFloatParameter(4.0f, 0.01f, 180f);
-
-        /// <summary>
-        /// Default constructor for the ray tracing settings volume component.
-        /// </summary>
-        public RayTracingSettings()
-        {
-            displayName = "Ray Tracing Settings";
-        }
     }
 }

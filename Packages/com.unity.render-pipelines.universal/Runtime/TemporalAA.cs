@@ -494,6 +494,11 @@ namespace UnityEngine.Rendering.Universal
                 passData.srcTaaAccumTex = srcAccumulation;
                 builder.UseTexture(srcAccumulation, AccessFlags.Read);
 
+                if (cameraData.xr.enabled)
+                {
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                }
+
                 passData.material = taaMaterial;
                 passData.passIndex = (int)taa.quality;
 
@@ -546,6 +551,11 @@ namespace UnityEngine.Rendering.Universal
                     builder.SetRenderAttachment(srcAccumulation, 0, AccessFlags.Write);
                     passData.srcColorTex = dstColor;
                     builder.UseTexture(dstColor, AccessFlags.Read);   // Resolved color is the new history
+
+                    if (cameraData.xr.enabled)
+                    {
+                        builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                    }
 
                     passData.material = taaMaterial;
                     passData.passIndex = kHistoryCopyPass;

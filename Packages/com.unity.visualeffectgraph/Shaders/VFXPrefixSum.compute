@@ -5,7 +5,7 @@
 #pragma kernel CSVFXBuildPrefixSum VFX_BUILD_PREFIX_SUM=CSVFXBuildPrefixSum VFX_USE_INSTANCING=1 PREFIX_SUM_THREAD_COUNT=1024
 #pragma kernel CSVFXBuildPrefixSum_128 VFX_BUILD_PREFIX_SUM=CSVFXBuildPrefixSum_128 VFX_USE_INSTANCING=1 PREFIX_SUM_THREAD_COUNT=128
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch glcore gles3 webgpu
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2 glcore gles3 webgpu
 
 #include "HLSLSupport.cginc"
 

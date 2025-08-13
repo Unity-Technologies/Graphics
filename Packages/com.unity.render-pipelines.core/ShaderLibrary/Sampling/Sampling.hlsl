@@ -1,7 +1,7 @@
 #ifndef UNITY_SAMPLING_INCLUDED
 #define UNITY_SAMPLING_INCLUDED
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2 || defined(UNITY_UNIFIED_SHADER_PRECISION_MODEL)
 #pragma warning (disable : 3205) // conversion of larger type to smaller
 #endif
 
@@ -136,9 +136,9 @@ real2 SampleDiskCubic(real u1, real u2)
     return r * real2(cosPhi, sinPhi);
 }
 
-real3 SampleConeUniform(real u1, real u2, real cos_theta)
+real3 SampleConeUniform(real u1, real u2, real cosTheta)
 {
-    float r0 = cos_theta + u1 * (1.0f - cos_theta);
+    float r0 = cosTheta + u1 * (1.0f - cosTheta);
     float r = sqrt(max(0.0, 1.0 - r0 * r0));
     float phi = TWO_PI * u2;
     return float3(r * cos(phi), r * sin(phi), r0);
@@ -148,7 +148,6 @@ real3 SampleSphereUniform(real u1, real u2)
 {
     real phi      = TWO_PI * u2;
     real cosTheta = 1.0 - 2.0 * u1;
-
     return SphericalToCartesian(phi, cosTheta);
 }
 
@@ -322,7 +321,7 @@ real3 SampleConeStrata(uint sampleIdx, real rcpSampleCount, real cosHalfApexAngl
     return real3(r * cphi, r * sphi, z);
 }
 
-#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH
+#if SHADER_API_MOBILE || SHADER_API_GLES3 || SHADER_API_SWITCH || SHADER_API_SWITCH2
 #pragma warning (enable : 3205) // conversion of larger type to smaller
 #endif
 

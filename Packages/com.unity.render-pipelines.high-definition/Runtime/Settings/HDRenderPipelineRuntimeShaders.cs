@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_CopyDepthBufferPS;
             set => this.SetValueAndNotify(ref m_CopyDepthBufferPS, value);
         }
-
+		
         [SerializeField, ResourcePath("Runtime/ShaderLibrary/Blit.shader")]
         private Shader m_BlitPS;
 

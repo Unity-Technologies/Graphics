@@ -234,7 +234,7 @@ namespace UnityEditor.VFX
             //However, if we are sampling a texture (or a mesh), we have to declare them before the VFX code generation.
             //Thus, remove texture used in SG from VFX declaration and let the remainder.
             var shaderGraph = VFXShaderGraphHelpers.GetShaderGraph(context);
-            var texureUsedInternallyInSG = shaderGraph.textureInfos.Select(o => o.name);
+            var texureUsedInternallyInSG = VFXShaderGraphHelpers.GetTextureOnlyUsedInternally(shaderGraph);
 
             var textureExposedFromSG = context.inputSlots.Where(o =>
             {

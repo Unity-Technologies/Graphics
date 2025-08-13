@@ -105,7 +105,7 @@ public class SortingPositionsSplit : MonoBehaviour
             alignment, Allocator.TempJob);
         drawCommands->visibleInstances =
             (int*)UnsafeUtility.Malloc(kNumInstances * sizeof(int), alignment, Allocator.TempJob);
-        drawCommands->drawCommandPickingInstanceIDs = null;
+        drawCommands->drawCommandPickingEntityIds = null;
 
         drawCommands->drawCommandCount = 1;
         drawCommands->drawRangeCount = 1;

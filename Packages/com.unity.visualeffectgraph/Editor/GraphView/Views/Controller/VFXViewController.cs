@@ -1462,8 +1462,7 @@ namespace UnityEditor.VFX.UI
             if (ui.groupInfos != null)
             {
                 HashSet<VFXNodeID> usedNodeIds = new HashSet<VFXNodeID>();
-                // first make sure that nodesID are at most in one groupnode.
-
+                // first make sure that nodesID are at most in one group.
                 for (int i = 0; i < ui.groupInfos.Length; ++i)
                 {
                     if (ui.groupInfos[i].contents != null)
@@ -1473,8 +1472,8 @@ namespace UnityEditor.VFX.UI
                             if (usedNodeIds.Contains(ui.groupInfos[i].contents[j]))
                             {
                                 Debug.Log("Element present in multiple groupnodes");
-                                --j;
                                 ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, k) => k != j).ToArray();
+                                --j;
                             }
                             else
                             {
@@ -1939,7 +1938,12 @@ namespace UnityEditor.VFX.UI
 
             }
 
-            var info = PrivateAddGroupNode(Vector2.zero);
+            // Use a node or a sticky note position when possible to avoid the group to go back to (0,0) when emptied
+            var position = nodes.Length > 0
+                ? nodes[0].position
+                : stickyNoteControllers.Length > 0 ? stickyNoteControllers[0].position.position : Vector2.zero;
+
+            var info = PrivateAddGroupNode(position);
 
             info.contents = nodes.Select(t => new VFXNodeID(t.model, t.id))
                 .Concat(stickyNoteControllers.Select(x => new VFXNodeID(x.index)))

@@ -375,6 +375,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
         void SetShadingRateCombiner(ShadingRateCombinerStage stage, ShadingRateCombiner combiner);
 
         /// <summary>
+        /// Enables the configuration of extended pass properties that may allow platform-specific optimizations.
+        /// </summary>
+        /// <param name="extendedFeatureFlags">Specifies additional pass properties that may enable optimizations on certain platforms.</param>
+        public void SetExtendedFeatureFlags(ExtendedFeatureFlags extendedFeatureFlags);
+
+        /// <summary>
         /// Specify the render function to use for this pass.
         /// A call to this is mandatory for the pass to be valid.
         /// </summary>

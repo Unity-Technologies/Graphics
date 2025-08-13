@@ -157,7 +157,8 @@ namespace UnityEngine.Rendering
         /// The name displayed in the component header. If you do not set a name, Unity generates one from
         /// the class name automatically.
         /// </summary>
-        public string displayName { get; protected set; } = "";
+        [Obsolete("Use DisplayInfo attribute to define a display name instead. #from(6000.3)", false)]
+        public string displayName { get; protected set; }
 
         /// <summary>
         /// The backing storage of <see cref="parameters"/>. Use this for performance-critical work.
@@ -165,6 +166,7 @@ namespace UnityEngine.Rendering
         internal VolumeParameter[] parameterList;
         
         ReadOnlyCollection<VolumeParameter> m_ParameterReadOnlyCollection;
+
         /// <summary>
         /// A read-only collection of all the <see cref="VolumeParameter"/>s defined in this class.
         /// </summary>

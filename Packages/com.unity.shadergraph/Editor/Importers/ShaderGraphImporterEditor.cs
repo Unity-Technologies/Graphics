@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor.Callbacks;
 #if UNITY_2020_2_OR_NEWER
@@ -81,16 +82,34 @@ namespace UnityEditor.ShaderGraph
                 if (alreadyExists && GUILayout.Button("Regenerate"))
                     update = true;
 
+                var pathList = new List<string>();
+                pathList.Add(path);
+
                 if (update)
                 {
                     var graphData = GetGraphData(importer);
                     var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, humanReadable: true);
                     if (!GraphUtil.WriteToFile(path, generator.generatedShader))
                         open = false;
+                    var generatedShaderCount = 0;
+                    foreach (var generatedShader in generator.allGeneratedShaders)
+                    {
+                        if (generatedShaderCount > 1)
+                        {
+                            string pathSub = String.Format("Temp/GeneratedFromGraph-{0}_{1}.shader", assetName.Replace(" ", ""), generatedShaderCount);
+                            pathList.Add(pathSub);
+                            GraphUtil.WriteToFile(pathSub, generatedShader.codeString);
+                        }
+                        generatedShaderCount++;
+                    }
                 }
 
                 if (open)
-                    GraphUtil.OpenFile(path);
+                {
+                    for (int i = 1; i < pathList.Count; ++i)
+                        GraphUtil.OpenFile(pathList[i]);
+                    GraphUtil.OpenFile(pathList[0]);
+                }
             }
             if (Unsupported.IsDeveloperMode())
             {
@@ -178,8 +197,11 @@ namespace UnityEditor.ShaderGraph
             {
                 if (w.selectedGuid == guid)
                 {
-                    w.Focus();
-                    return true;
+                    if (w.m_Parent != null)
+                    {
+                        w.Focus();
+                        return true;
+                    }
                 }
             }
 

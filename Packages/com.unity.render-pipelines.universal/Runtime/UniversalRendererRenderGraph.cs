@@ -690,7 +690,7 @@ namespace UnityEngine.Rendering.Universal
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRenderingShadows, RenderPassEvent.BeforeRenderingOpaques);
             m_RenderOpaqueForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle, uint.MaxValue);
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingOpaques, RenderPassEvent.BeforeRenderingTransparents);
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
             if (needTransparencyPass)
 #endif
             m_RenderTransparentForwardPass.Render(renderGraph, frameData, TextureHandle.nullHandle, resourceData.backBufferDepth, TextureHandle.nullHandle, TextureHandle.nullHandle, uint.MaxValue);
@@ -1203,7 +1203,8 @@ namespace UnityEngine.Rendering.Universal
                             resourceData.activeDepthTexture,
                             resourceData.mainShadowsTexture,
                             resourceData.additionalShadowsTexture,
-                            batchLayerMask);
+                            batchLayerMask,
+                            true);
                     }
 
                     if (needsOccluderUpdate)
@@ -1257,7 +1258,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             // TODO RENDERGRAPH: bind _CameraOpaqueTexture, _CameraDepthTexture in transparent pass?
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ENABLE_ADAPTIVE_PERFORMANCE
             if (needTransparencyPass)
 #endif
             {
@@ -1379,7 +1380,13 @@ namespace UnityEngine.Rendering.Universal
                     importColorParams.clearColor = Color.black;
                     importColorParams.discardOnLastUse = cameraData.resolveFinalTarget;  // check if last camera in the stack
 
-                    if (cameraData.IsSTPEnabled())
+                    if (cameraData.IsSTPEnabled() || (cameraData.IsTemporalAAEnabled() && 
+#if ENABLE_UPSCALER_FRAMEWORK
+                        cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler
+#else
+                        false
+#endif
+                        ))
                     {
                         // STP is disabled when using camera stacking. In any case, we don't use persistent textures here so we need to make sure there is no next camera in the stack (should always be true).
                         Debug.Assert(cameraData.resolveFinalTarget);

@@ -220,7 +220,10 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowGlobalStateModification(true);
                 if (cameraData.xr.enabled)
+                {
                     builder.EnableFoveatedRasterization(cameraData.xr.supportsFoveatedRendering && cameraData.xrUniversal.canFoveateIntermediatePasses);
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultiviewRenderRegionsCompatible);
+                }
 
                 builder.SetRenderAttachment(motionVectorColor, 0, AccessFlags.Write);
                 builder.SetRenderAttachmentDepth(motionVectorDepth, AccessFlags.Write);

@@ -1,7 +1,7 @@
 # Use contact shadows
-Contact Shadows are shadows that HDRP [ray marches](Glossary.md#RayMarching) in screen space, inside the depth buffer, at a close range. They provide small, detailed, shadows for details in geometry that shadow maps can't usually capture.
+Contact Shadows are shadows that HDRP [ray marches](Glossary.md#RayMarching) in screen space, inside the depth buffer, at a close range. Use Contact Shadows to provide shadows for geometry details that regular shadow mapping algorithms usually fail to capture.
 
-The Contact Shadows [Volume Override](volume-component.md) specifies properties which control the behavior of Contact Shadows. Contact Shadows are shadows that The High Definition Render Pipeline (HDRP) [ray marches](Glossary.md#RayMarching) in screen space inside the depth buffer. The goal of using Contact Shadows is to capture small details that regular shadow mapping algorithms fail to capture.
+
 
 24 Lights (Direction, Point or Spot) can cast Contact Shadows at a time.
 

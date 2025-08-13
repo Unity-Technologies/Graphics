@@ -1,0 +1,60 @@
+{
+    "name": "Unity.RenderPipelines.Universal.2D.Editor.Overrides",
+    "rootNamespace": "",
+    "references": [
+        "GUID:15fc0a57446b3144c949da3e2b9737a9",
+        "GUID:d60799ab2a985554ea1a39cd38695018",
+        "GUID:a35efad8797223d499f8c68b1f545dbc",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:69257879134bba646869b21467b3338d",
+        "GUID:3eae0364be2026648bf74846acb8a731",
+        "GUID:2a69708d171a17043a9d0ad45f205cfe",
+        "GUID:be0903cd8e1546f498710afdc59db5eb",
+        "GUID:b75d3cd3037d383a8d1e2f9a26d73d8a",
+        "GUID:329b4ccd385744985bf3f83cfd77dfe7",
+        "GUID:9604b18aafdbc9346bceb5e19ac9c746",
+        "GUID:f9fe0089ec81f4079af78eb2287a6163",
+        "GUID:116a4d4dbf5c04973bbf517077a062a1",
+        "GUID:e40ba710768534012815d3193fa296cb",
+        "GUID:516a5277b8c3b4f4c8cc86b77b1591ff",
+        "GUID:4fd6538c1c56b409fb53fdf0183170ec",
+        "GUID:41524c21c95e5fe4dbc5b48bd21995a4"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.adaptiveperformance",
+            "expression": "2.0.0-preview.7",
+            "define": "ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.modules.xr",
+            "expression": "1.0.0",
+            "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.xr.management",
+            "expression": "4.0.1",
+            "define": "XR_MANAGEMENT_4_0_1_OR_NEWER"
+        },
+        {
+            "name": "com.unity.visualeffectgraph",
+            "expression": "1.0.0",
+            "define": "HAS_VFX_GRAPH"
+        },
+        {
+            "name": "com.unity.2d.animation",
+            "expression": "10.0.0-pre.1",
+            "define": "USING_2DANIMATION"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -8,7 +8,8 @@
         "GUID:ab67fb10353d84448ac887a7367cbda8",
         "GUID:41524c21c95e5fe4dbc5b48bd21995a4",
         "GUID:caccfbdb442cdc64fa722b4c5585521f",
-        "GUID:2665a8d13d1b3f18800f46e256720795"
+        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "RenderAs2DModule"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

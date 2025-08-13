@@ -1,0 +1,156 @@
+Pass
+{
+    Tags
+    {
+        $splice(BaseGenName)
+        $splice(BaseGenTexFormat)
+        $splice(BaseGenTexSize)
+    }
+
+    // Render State
+    $splice(RenderState)
+
+    // --------------------------------------------------
+    // Pass
+
+    HLSLPROGRAM
+
+    // Pragmas
+    $splice(PassPragmas)
+
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
+
+    // For custom interpolators to inject a substruct definition before FragInputs definition,
+    // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
+    $splice(CustomInterpolatorPreInclude)
+
+    #define SURFACE_GRADIENT
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl" // Required by terrain
+
+    // --------------------------------------------------
+    // Defines
+
+    // Attribute
+    $AttributesMesh.normalOS:                           #define ATTRIBUTES_NEED_NORMAL
+    $AttributesMesh.tangentOS:                          #define ATTRIBUTES_NEED_TANGENT
+    $AttributesMesh.uv0:                                #define ATTRIBUTES_NEED_TEXCOORD0
+    $AttributesMesh.uv1:                                #define ATTRIBUTES_NEED_TEXCOORD1
+    $AttributesMesh.uv2:                                #define ATTRIBUTES_NEED_TEXCOORD2
+    $AttributesMesh.uv3:                                #define ATTRIBUTES_NEED_TEXCOORD3
+    $AttributesMesh.color:                              #define ATTRIBUTES_NEED_COLOR
+    $AttributesMesh.vertexID:                           #define ATTRIBUTES_NEED_VERTEXID
+    $VaryingsMeshToPS.positionRWS:                      #define VARYINGS_NEED_POSITION_WS
+    $VaryingsMeshToPS.positionPredisplacementRWS:       #define VARYINGS_NEED_POSITIONPREDISPLACEMENT_WS
+    $VaryingsMeshToPS.normalWS:                         #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToPS.texCoord0:                        #define VARYINGS_NEED_TEXCOORD0
+    $VaryingsMeshToPS.texCoord1:                        #define VARYINGS_NEED_TEXCOORD1
+    $VaryingsMeshToPS.texCoord2:                        #define VARYINGS_NEED_TEXCOORD2
+    $VaryingsMeshToPS.texCoord3:                        #define VARYINGS_NEED_TEXCOORD3
+    $VaryingsMeshToPS.color:                            #define VARYINGS_NEED_COLOR
+    $VaryingsMeshToPS.elementToWorld0:                  #define VARYINGS_NEED_ELEMENT_TO_WORLD
+    $VaryingsMeshToPS.worldToElement0:                  #define VARYINGS_NEED_WORLD_TO_ELEMENT
+
+    $features.graphVertex:                              #define HAVE_MESH_MODIFICATION
+
+    $SurfaceDescriptionInputs.FaceSign:                 // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:                 #define VARYINGS_NEED_CULLFACE
+
+    $VertexDescription.CustomVelocity: #define _ADD_CUSTOM_VELOCITY
+
+    $splice(GraphDefines)
+
+    $features.graphTessellation: #ifdef TESSELLATION_ON
+    $features.graphTessellation: // World and normal are always available
+    $features.graphTessellation: $VaryingsMeshToDS.positionPredisplacementRWS:          #define VARYINGS_DS_NEED_POSITIONPREDISPLACEMENT
+    $features.graphTessellation: $VaryingsMeshToDS.tangentWS:                           #define VARYINGS_DS_NEED_TANGENT
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord0:                           #define VARYINGS_DS_NEED_TEXCOORD0
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord1:                           #define VARYINGS_DS_NEED_TEXCOORD1
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord2:                           #define VARYINGS_DS_NEED_TEXCOORD2
+    $features.graphTessellation: $VaryingsMeshToDS.texCoord3:                           #define VARYINGS_DS_NEED_TEXCOORD3
+    $features.graphTessellation: $VaryingsMeshToDS.color:                               #define VARYINGS_DS_NEED_COLOR
+	$features.graphTessellation: #endif
+
+    // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
+    // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
+    // in the json file making it impossible to uprgrade. Until we get a fix, we do a workaround here
+    // to still allow us to rename the field and keyword of this node without breaking existing code.
+    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT
+    #define RAYTRACING_SHADER_GRAPH_HIGH
+    #endif
+
+    #ifdef RAYTRACING_SHADER_GRAPH_RAYTRACED
+    #define RAYTRACING_SHADER_GRAPH_LOW
+    #endif
+    // end
+
+    #ifndef SHADER_UNLIT
+    // We need isFrontFace when using double sided - it is not required for unlit as in case of unlit double sided only drive the cullmode
+    // VARYINGS_NEED_CULLFACE can be define by VaryingsMeshToPS.FaceSign input if a IsFrontFace Node is included in the shader graph.
+    #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
+        #define VARYINGS_NEED_CULLFACE
+    #endif
+    #endif
+
+    #ifndef HD_TERRAIN_ENABLED
+        #ifndef UNITY_TERRAIN_CB_VARS
+    #define UNITY_TERRAIN_CB_VARS
+        #endif
+        #ifndef UNITY_TERRAIN_CB_DEBUG_VARS
+    #define UNITY_TERRAIN_CB_DEBUG_VARS
+        #endif
+    #endif
+
+    // Caution: we can use the define SHADER_UNLIT onlit after the above Material include as it is the Unlit template who define it
+
+    // -- Graph Properties
+    $splice(GraphProperties)
+
+    // -- Properties used by TerrainPass
+    #if HD_TERRAIN_ENABLED
+    CBUFFER_START(UnityTerrain)
+        UNITY_TERRAIN_CB_VARS
+        float4 _Control0_ST;
+    CBUFFER_END
+    #endif // HD_TERRAIN_ENABLED
+
+    // Includes
+    $splice(PreGraphIncludes)
+	$splice(GraphIncludes)
+
+    // Specific Material Define
+    $include("ShaderPassDefine.template.hlsl")
+
+    // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+
+    // --------------------------------------------------
+    // Graph
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Main
+
+    $include("BaseMapGenPass.template.hlsl")
+
+    ENDHLSL
+}

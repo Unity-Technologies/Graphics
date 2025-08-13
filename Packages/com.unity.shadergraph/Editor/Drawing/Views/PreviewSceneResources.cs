@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Material m_CheckerboardMaterial;
         Material m_BlitNoAlphaMaterial;
 
-        static readonly Mesh[] s_Meshes = { null, null, null, null, null };
+        static readonly Mesh[] s_Meshes = { null, null, null, null, null, null };
         static readonly GUIContent[] s_MeshIcons = { null, null, null, null, null };
         static readonly GUIContent[] s_LightIcons = { null, null };
         static readonly GUIContent[] s_TimeIcons = { null, null };
@@ -118,6 +119,33 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 Mesh quadMesh = Resources.GetBuiltinResource(typeof(Mesh), "Quad.fbx") as Mesh;
                 s_Meshes[4] = quadMesh;
+
+                // UITK Quad mesh data
+                Mesh quadMeshForUITK = new Mesh();
+                quadMeshForUITK.vertices = new Vector3[]
+                {
+                    new Vector3(-0.5f, -0.5f, 0),
+                    new Vector3( 0.5f, -0.5f, 0),
+                    new Vector3(-0.5f,  0.5f, 0),
+                    new Vector3( 0.5f,  0.5f, 0)
+                };
+
+                quadMeshForUITK.triangles = new int[]
+                {
+                    0, 3, 1,
+                    3, 0, 2
+                };
+
+                quadMeshForUITK.SetUVs(3, new List<Vector4>
+                {
+                    new Vector4(0, 0, 0.0f, 0.0f),
+                    new Vector4(0, 0, 1.0f, 0.0f),
+                    new Vector4(0, 0, 0.0f, 1.0f),
+                    new Vector4(0, 0, 1.0f, 1.0f)
+                });
+
+                quadMeshForUITK.RecalculateNormals();
+                s_Meshes[5] = quadMeshForUITK;
             }
         }
 
@@ -129,6 +157,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Mesh quad
         {
             get { return s_Meshes[4]; }
+        }
+
+        public Mesh uitk_quad
+        {
+            get { return s_Meshes[5]; }
         }
 
         public Material checkerboardMaterial

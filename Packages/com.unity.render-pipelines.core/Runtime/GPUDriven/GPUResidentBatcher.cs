@@ -173,9 +173,15 @@ namespace UnityEngine.Rendering
 
                     GPUInstanceDataBufferUploader uploader = m_BatchersContext.CreateDataBufferUploader(instances.Length, InstanceType.MeshRenderer);
                     uploader.AllocateUploadHandles(instances.Length);
-                    JobHandle writeJobHandle = default;
-                    writeJobHandle = uploader.WriteInstanceDataJob(m_BatchersContext.renderersParameters.lightmapScale.index, rendererData.lightmapScaleOffset, rendererData.rendererGroupIndex);
-                    writeJobHandle.Complete();
+                    JobHandle lightmapSTWriteJobHandle = uploader.WriteInstanceDataJob(m_BatchersContext.renderersParameters.lightmapScale.index,
+                        rendererData.lightmapScaleOffset,
+                        rendererData.rendererGroupIndex);
+
+                    JobHandle rendererUserValuesWriteJobHandle = uploader.WriteInstanceDataJob(m_BatchersContext.renderersParameters.rendererUserValues.index,
+                        rendererData.rendererUserValues,
+                        rendererData.rendererGroupIndex);
+
+                    JobHandle.CombineDependencies(lightmapSTWriteJobHandle, rendererUserValuesWriteJobHandle).Complete();
 
                     m_BatchersContext.SubmitToGpu(instances, ref uploader, submitOnlyWrittenParams: true);
                     m_BatchersContext.ChangeInstanceBufferVersion();

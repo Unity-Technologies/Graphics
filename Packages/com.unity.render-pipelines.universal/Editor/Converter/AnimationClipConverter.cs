@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEditor.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 using ClipPath = UnityEditor.Rendering.AnimationClipUpgrader.ClipPath;
 using ClipProxy = UnityEditor.Rendering.AnimationClipUpgrader.AnimationClipProxy;
 using UnityObject = UnityEngine.Object;
@@ -68,8 +69,8 @@ namespace UnityEditor.Rendering.Universal
                 .ToArray();
 
             // create table mapping all upgrade paths to new shaders
-            var upgraders = new UniversalRenderPipelineMaterialUpgrader().upgraders;
-            var allUpgradePathsToNewShaders = UpgradeUtility.GetAllUpgradePathsToShaders(upgraders);
+            var allUpgradePathsToNewShaders = UpgradeUtility.GetAllUpgradePathsToShaders(
+                MaterialUpgrader.FetchAllUpgradersForPipeline(typeof(UniversalRenderPipelineAsset)));
 
             // TODO: could pass in upgrade paths used by materials in the future
 

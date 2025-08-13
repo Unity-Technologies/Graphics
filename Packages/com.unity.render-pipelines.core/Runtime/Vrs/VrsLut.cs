@@ -17,15 +17,15 @@ namespace UnityEngine.Rendering
         {
             return new VrsLut()
             {
-                [ShadingRateFragmentSize.FragmentSize1x1] = Color.red,
-                [ShadingRateFragmentSize.FragmentSize1x2] = Color.yellow,
-                [ShadingRateFragmentSize.FragmentSize2x1] = Color.white,
-                [ShadingRateFragmentSize.FragmentSize2x2] = Color.green,
-                [ShadingRateFragmentSize.FragmentSize1x4] = new Color(0.75f, 0.75f, 0.00f, 1),
-                [ShadingRateFragmentSize.FragmentSize4x1] = new Color(0.00f, 0.75f, 0.55f, 1),
-                [ShadingRateFragmentSize.FragmentSize2x4] = new Color(0.50f, 0.00f, 0.50f, 1),
-                [ShadingRateFragmentSize.FragmentSize4x2] = Color.grey,
-                [ShadingRateFragmentSize.FragmentSize4x4] = Color.blue,
+                [ShadingRateFragmentSize.FragmentSize1x1] = new Color(0.785f, 0.23f, 0.20f, 1), // Red
+                [ShadingRateFragmentSize.FragmentSize1x2] = new Color(1.00f, 0.80f, 0.80f, 1),  // Light Red
+                [ShadingRateFragmentSize.FragmentSize2x1] = new Color(0.40f, 0.20f, 0.20f, 1),  // Dark Red
+                [ShadingRateFragmentSize.FragmentSize2x2] = new Color(0.51f, 0.80f, 0.60f, 1),  // Green
+                [ShadingRateFragmentSize.FragmentSize1x4] = new Color(0.60f, 0.80f, 1.00f, 1),  // Light Blue
+                [ShadingRateFragmentSize.FragmentSize4x1] = new Color(0.20f, 0.40f, 0.60f, 1),  // Medium Blue
+                [ShadingRateFragmentSize.FragmentSize2x4] = new Color(0.80f, 1.00f, 0.80f, 1),  // Light Green
+                [ShadingRateFragmentSize.FragmentSize4x2] = new Color(0.20f, 0.40f, 0.20f, 1),  // Dark Green
+                [ShadingRateFragmentSize.FragmentSize4x4] = new Color(0.125f, 0.22f, 0.36f, 1), // Dark Blue
             };
         }
 

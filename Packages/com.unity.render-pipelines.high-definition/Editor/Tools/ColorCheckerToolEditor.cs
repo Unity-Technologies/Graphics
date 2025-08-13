@@ -72,7 +72,8 @@ public class ColorCheckerToolEditor : Editor
         //Prepare metallic toggles for material mode
         for(int i=0; i<12;i++)
         {
-            Toggle metallicToggle = new Toggle() { name ="metallic" + i, label = "is Metallic", tabIndex = i};
+            Toggle metallicToggle = new Toggle() { name ="metallic" + i, label = "Metallic", tabIndex = i};
+            metallicToggle.Q<Label>().style.minWidth = 60;
             metallicToggle.bindingPath="isMetalBools.Array.data["+i+"]"; 
             metallicToggle.style.display = UnityEngine.UIElements.DisplayStyle.None;//hidden in UI until used
             root.Add(metallicToggle);
@@ -93,6 +94,7 @@ public class ColorCheckerToolEditor : Editor
                 self.ResetColors();
                 self.UpdateMaterial();
              };
+
 
         onChange(self, root); // Initialize
         return root;
@@ -127,12 +129,19 @@ public class ColorCheckerToolEditor : Editor
         //Creates the Rows Containers
         for (int i = 0; i < rows; i++)
         {
-            VisualElement newRow = new VisualElement() { name = "colorfieldsRow" + i };
-            newRow.style.flexDirection = UnityEngine.UIElements.FlexDirection.Row;
-            newRow.style.alignItems = UnityEngine.UIElements.Align.FlexStart;
-            newRow.style.justifyContent = UnityEngine.UIElements.Justify.SpaceAround;
-            newRow.style.alignSelf = UnityEngine.UIElements.Align.Stretch;
-            newRow.style.maxHeight = 22; 
+            VisualElement newRow = new()
+            {
+                name = "colorfieldsRow" + i,
+                style =
+                {
+                    flexDirection = UnityEngine.UIElements.FlexDirection.Row,
+                    alignItems = UnityEngine.UIElements.Align.FlexStart,
+                    justifyContent = UnityEngine.UIElements.Justify.SpaceAround,
+                    alignSelf = UnityEngine.UIElements.Align.Stretch,
+                    maxHeight = 22,
+                    flexWrap = Wrap.Wrap
+                }
+            };
             colorfieldsRoot.Add(newRow);
         }
 

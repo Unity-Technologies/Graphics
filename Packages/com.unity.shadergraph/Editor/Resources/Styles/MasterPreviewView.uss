@@ -10,6 +10,7 @@ MasterPreviewView {
 }
 
 .mainContainer {
+    flex-grow: 1;
     margin: 6px;
     background-color: #2e2e2e;
     justify-content: flex-start;

@@ -39,6 +39,13 @@ namespace UnityEngine.Rendering.Universal
         public bool supportDataDrivenLensFlare;
 
         /// <summary>
+        /// Returns null if there isn't an active upscaler
+        /// </summary>
+#if ENABLE_UPSCALER_FRAMEWORK
+        public IUpscaler activeUpscaler;
+#endif
+
+        /// <summary>
         /// Empty function added for the IDisposable interface.
         /// </summary>
         public override void Reset()

@@ -66,6 +66,24 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.uv7:                                      output.uv7 =                                        input.texCoord7;
     $SurfaceDescriptionInputs.VertexColor:                              output.VertexColor =                                input.color;
     $SurfaceDescriptionInputs.VertexID:                                 output.VertexID =                                   input.vertexID;
+
+    $SurfaceDescriptionInputs.color:                                    output.color =                                      input.color;
+    $SurfaceDescriptionInputs.uvClip:                                   output.uvClip =                                     input.texCoord0;
+    $SurfaceDescriptionInputs.typeTexSettings:                          output.typeTexSettings =                            input.texCoord1;
+    $SurfaceDescriptionInputs.textCoreLoc:                              output.textCoreLoc =                                input.texCoord3.xy;
+    $SurfaceDescriptionInputs.layoutUV:                                 output.layoutUV =                                   input.texCoord3.zw;
+    
+    $SurfaceDescriptionInputs.layoutUV_uv0:                             output.uv0 =                                        float4(input.texCoord3.zw, 0, 0);
+    $SurfaceDescriptionInputs.layoutUV_uv1:                             output.uv1 =                                        float4(input.texCoord3.zw, 0, 0);
+    $SurfaceDescriptionInputs.layoutUV_uv2:                             output.uv2 =                                        float4(input.texCoord3.zw, 0, 0);
+    $SurfaceDescriptionInputs.layoutUV_uv3:                             output.uv3 =                                        float4(input.texCoord3.zw, 0, 0);    
+    $SurfaceDescriptionInputs.layoutUV_uv4:                             output.uv4 =                                        float4(input.texCoord3.zw, 0, 0);
+    $SurfaceDescriptionInputs.layoutUV_uv5:                             output.uv5 =                                        float4(input.texCoord3.zw, 0, 0);
+    $SurfaceDescriptionInputs.layoutUV_uv6:                             output.uv6 =                                        float4(input.texCoord3.zw, 0, 0);
+    $SurfaceDescriptionInputs.layoutUV_uv7:                             output.uv7 =                                        float4(input.texCoord3.zw, 0, 0);    
+    
+    $SurfaceDescriptionInputs.circle:                                   output.circle =                                     input.texCoord4;
+    
 #if UNITY_ANY_INSTANCING_ENABLED
     $SurfaceDescriptionInputs.InstanceID:                               output.InstanceID =                                 unity_InstanceID;
 #else // TODO: XR support for procedural instancing because in this case UNITY_ANY_INSTANCING_ENABLED is not defined and instanceID is incorrect.

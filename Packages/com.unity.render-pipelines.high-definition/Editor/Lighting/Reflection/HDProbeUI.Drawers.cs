@@ -10,6 +10,8 @@ using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
+using UnityEditor.Rendering.Utilities;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     static partial class HDProbeUI
@@ -515,49 +517,5 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ReflectionProbeModifyCapturePositionTool() : base(Description, Mode, IconName) { }
     }
 
-    internal class GenericEditorTool<T> : EditorTool where T : Component
-    {
-        private readonly string _description;
-        private readonly EditMode.SceneViewEditMode _mode;
-        private readonly string _iconName;
-        private GUIContent _iconContent;
-
-        protected GenericEditorTool(string description, EditMode.SceneViewEditMode mode, string iconName)
-        {
-            _description = description;
-            _mode = mode;
-            _iconName = iconName;
-        }
-
-        public override GUIContent toolbarIcon => _iconContent;
-        public override void OnWillBeDeactivated() => EditMode.SetEditModeToNone();
-        public override void OnToolGUI(EditorWindow window)
-        {
-            if (EditMode.editMode == _mode)
-                return;
-
-            List<T> usefulTargets = new();
-            foreach (Object thisTarget in targets)
-                if (thisTarget is T usefulTarget)
-                    usefulTargets.Add(usefulTarget);
-
-            if (usefulTargets.Count == 0)
-                return;
-
-            Bounds bounds = GetBoundsOfTargets(usefulTargets);
-            EditMode.ChangeEditMode(_mode, bounds);
-            ToolManager.SetActiveTool(this);
-        }
-
-        private static Bounds GetBoundsOfTargets(IEnumerable<T> targets) 
-        {
-            var bounds = new Bounds { min = Vector3.positiveInfinity, max = Vector3.negativeInfinity };
-            foreach (T t in targets)
-                bounds.Encapsulate(t.transform.position);
-
-            return bounds;
-        }
-
-        private void OnEnable() => _iconContent = EditorGUIUtility.TrIconContent(_iconName, _description);
-    }
+   
 }

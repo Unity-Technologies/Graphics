@@ -20,7 +20,7 @@ internal static class URP2DConverterUtility
     }
 
 
-    public static bool IsMaterialPath(string path, string id)
+    public static bool IsMaterialPath(string path, string[] ids)
     {
         if (string.IsNullOrEmpty(path))
             throw new ArgumentNullException(nameof(path));
@@ -29,7 +29,10 @@ internal static class URP2DConverterUtility
             return false;
 
         if (path.EndsWith(".mat"))
-            return URP2DConverterUtility.DoesFileContainString(path, new string[] { id });
+        {
+            return URP2DConverterUtility.DoesFileContainString(path, ids);
+        }
+            
 
         return false;
     }
@@ -138,11 +141,10 @@ internal static class URP2DConverterUtility
             EditorSceneManager.CloseScene(scene, true);
     }
 
-    public static void UpgradeMaterial(string path, Shader oldShader, Shader newShader)
+    public static void UpgradeMaterial(string path, Action<Material> materialUpgrader)
     {
         Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (material.shader == oldShader)
-            material.shader = newShader;
+        materialUpgrader(material);
 
         GUID guid = AssetDatabase.GUIDFromAssetPath(path);
         AssetDatabase.SaveAssetIfDirty(guid);

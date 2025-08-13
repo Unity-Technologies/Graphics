@@ -4,20 +4,20 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.Graphs;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.ShaderGraph.Serialization;
-using UnityEditor.ShaderGraph.Drawing;
-using Edge = UnityEditor.Graphing.Edge;
-
-using UnityEngine.UIElements;
+using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
 using UnityEngine.Serialization;
+using UnityEngine.UIElements;
+using Edge = UnityEditor.Graphing.Edge;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -1354,7 +1354,8 @@ namespace UnityEditor.ShaderGraph
             {
                 // For VFX Shader generation, we must omit exposed properties from the Material CBuffer.
                 // This is because VFX computes properties on the fly in the vertex stage, and packed into interpolator.
-                if (generationMode == GenerationMode.VFX && prop.isExposed)
+                // this case does not apply to texture2d, which cannot change per element, and are always global
+                if (prop is not Texture2DShaderProperty && generationMode == GenerationMode.VFX && prop.isExposed)
                 {
                     prop.overrideHLSLDeclaration = true;
                     prop.hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare;

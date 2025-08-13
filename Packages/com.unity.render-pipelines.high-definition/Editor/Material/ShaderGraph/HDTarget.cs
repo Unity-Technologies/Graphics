@@ -91,6 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Currently there is not support for VFX decals via HDRP master node.
             typeof(DecalSubTarget),
+            typeof(TerrainLitSubTarget),
             typeof(HDCanvasSubTarget),
             typeof(HDFullscreenSubTarget),
             typeof(WaterSubTarget),
@@ -119,7 +120,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(HDRenderPipeline));
 
             SubTargetFilterAttribute subTargetFilter = NodeClassCache.GetAttributeOnNodeType<SubTargetFilterAttribute>(nodeType);
-            bool worksWithThisSubTarget = subTargetFilter == null || subTargetFilter.subTargetTypes.Contains(activeSubTarget.GetType());
+            var activeSubTargetType = activeSubTarget.GetType();
+            var worksWithThisSubTarget = subTargetFilter == null;
+            if (subTargetFilter != null)
+            {
+                foreach (var type in subTargetFilter.subTargetTypes)
+                {
+                    if (!type.IsAssignableFrom(activeSubTargetType)) continue;
+                    worksWithThisSubTarget = true;
+                    break;
+                }
+            }
 
             if (activeSubTarget.IsActive())
                 worksWithThisSubTarget &= activeSubTarget.IsNodeAllowedBySubTarget(nodeType);
@@ -1238,6 +1249,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kStackLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitPathTracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
         public const string kHairPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairPathTracing.hlsl";
+        public const string kTerrainRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitRaytracing.hlsl";
+        public const string kTerrainPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitPathtracing.hlsl";
         public const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
         public const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
         public const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";
@@ -1269,6 +1282,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kFabric = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl";
         public const string kHair = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/Hair.hlsl";
         public const string kStackLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLit.hlsl";
+        public const string kTerrainLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit.hlsl";
         public const string kSixWayLit = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SixWayLit/SixWaySmokeLit.hlsl";
 
         // Public Pregraph Misc

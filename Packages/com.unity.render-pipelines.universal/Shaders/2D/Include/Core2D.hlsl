@@ -1,6 +1,52 @@
 #ifndef INPUT_CORE_2D_INCLUDED
 #define INPUT_CORE_2D_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DebugMipmapStreamingMacros.hlsl"
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/InputData2D.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
+#if defined(DEBUG_DISPLAY)
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging2D.hlsl"
+#endif
+
+// Lit
+#define COMMON_2D_LIT_OUTPUTS           \
+        COMMON_2D_OUTPUTS               \
+        half2 lightingUV  : TEXCOORD1;
+
+// Unlit
+#define COMMON_2D_INPUTS                 \
+        float3 positionOS   : POSITION;  \
+        float2 uv           : TEXCOORD0; \
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+
+#define COMMON_2D_OUTPUTS_SHARED              \
+        float4 positionCS      : SV_POSITION; \
+        float2 uv              : TEXCOORD0;   \
+        UNITY_VERTEX_OUTPUT_STEREO
+
+#if defined(DEBUG_DISPLAY)
+    #define COMMON_2D_OUTPUTS                \
+            COMMON_2D_OUTPUTS_SHARED         \
+            float3 positionWS  : TEXCOORD2;    
+#else
+    #define COMMON_2D_OUTPUTS                \
+            COMMON_2D_OUTPUTS_SHARED             
+#endif
+
+// Normals
+#define COMMON_2D_NORMALS_INPUTS       \
+        COMMON_2D_INPUTS               \
+        float3 normal       : NORMAL;  \
+        float4 tangent      : TANGENT; \
+
+#define COMMON_2D_NORMALS_OUTPUTS          \
+        COMMON_2D_OUTPUTS_SHARED           \
+        half3 normalWS        : TEXCOORD1; \
+        half3 tangentWS       : TEXCOORD2; \
+        half3 bitangentWS     : TEXCOORD3;
+
 #if defined(SKINNED_SPRITE)
 
     #define UNITY_SKINNED_VERTEX_INPUTS         float4 weights : BLENDWEIGHTS; uint4 indices : BLENDINDICES;

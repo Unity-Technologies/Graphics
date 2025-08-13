@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Legacy;
+using UnityEngine.UIElements;
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
 using static Unity.Rendering.Universal.ShaderUtils;
 
@@ -14,6 +15,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         static readonly GUID kSourceCodeGuid = new GUID("97c3f7dcb477ec842aa878573640313a"); // UniversalUnlitSubTarget.cs
 
         public override int latestVersion => 2;
+
+        [SerializeField]
+        bool m_KeepLightingVariants = false;
+
+        [SerializeField]
+        bool m_DefaultDecalBlending = true;
+
+        [SerializeField]
+        bool m_DefaultSSAO = true;
+
+        public bool keepLightingVariants
+        {
+            get => m_KeepLightingVariants;
+            set => m_KeepLightingVariants = value;
+        }
+
+        public bool defaultDecalBlending
+        {
+            get => m_DefaultDecalBlending;
+            set => m_DefaultDecalBlending = value;
+        }
+
+        public bool defaultSSAO
+        {
+            get => m_DefaultSSAO;
+            set => m_DefaultSSAO = value;
+        }
 
         public UniversalUnlitSubTarget()
         {
@@ -96,6 +124,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
                 collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector
                 collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector
+                collector.AddFloatProperty(Property.SrcBlendAlpha, 1.0f);    // always set by material inspector, ok to have incorrect values here
+                collector.AddFloatProperty(Property.DstBlendAlpha, 0.0f);    // always set by material inspector, ok to have incorrect values here
                 collector.AddToggleProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque));
                 collector.AddFloatProperty(Property.ZWriteControl, (float)target.zWriteControl);
                 collector.AddFloatProperty(Property.ZTest, (float)target.zTestMode);    // ztest mode is designed to directly pass as ztest
@@ -120,6 +150,39 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var universalTarget = (target as UniversalTarget);
             universalTarget.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
             universalTarget.AddDefaultSurfacePropertiesGUI(ref context, onChange, registerUndo, showReceiveShadows: false);
+
+            // Unlit option to add additional realtime lighting variants. Useful for custom lighting.
+            context.AddProperty("Keep Lighting Variants", new Toggle() { value = keepLightingVariants }, (evt) =>
+            {
+                if (Equals(keepLightingVariants, evt.newValue))
+                    return;
+
+                registerUndo("Change Keep Lighting Variants");
+                keepLightingVariants = evt.newValue;
+                onChange();
+            });
+
+            // Unlit option to disable default decal blending behaviour.
+            context.AddProperty("Default Decal Blending", new Toggle() { value = defaultDecalBlending }, (evt) =>
+            {
+                if (Equals(defaultDecalBlending, evt.newValue))
+                    return;
+
+                registerUndo("Change Default Decal Blending");
+                defaultDecalBlending = evt.newValue;
+                onChange();
+            });
+
+            // Unlit option to disable default SSAO behaviour.
+            context.AddProperty("Default SSAO", new Toggle() { value = defaultSSAO }, (evt) =>
+            {
+                if (Equals(defaultSSAO, evt.newValue))
+                    return;
+
+                registerUndo("Change Default SSAO");
+                defaultSSAO = evt.newValue;
+                onChange();
+            });
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
@@ -207,9 +270,35 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
         #endregion
 
-        #region Pass
+        #region Passes
         static class UnlitPasses
         {
+            internal static void AddLightingVariantsControlToPass(ref PassDescriptor pass, UniversalUnlitSubTarget unlitSubTarget)
+            {
+                if (unlitSubTarget.keepLightingVariants)
+                {
+                    pass.includes.Add(UnlitIncludes.LightingIncludes);
+                    pass.keywords.Add(UnlitKeywords.LightingVariants);
+                    pass.defines.Add(UnlitDefines.LightingDefine, 1);
+                }
+            }
+
+            internal static void AddDefaultDecalBlendingControlToPass(ref PassDescriptor pass, UniversalUnlitSubTarget unlitSubTarget)
+            {
+                if (unlitSubTarget.defaultDecalBlending)
+                {
+                    pass.defines.Add(UnlitDefines.DefaultDecalBlendingDefine, 1);
+                }
+            }
+
+            internal static void AddDefaultSSAOControlToPass(ref PassDescriptor pass, UniversalUnlitSubTarget unlitSubTarget)
+            {
+                if (unlitSubTarget.defaultSSAO)
+                {
+                    pass.defines.Add(UnlitDefines.DefaultSSAODefine, 1);
+                }
+            }
+
             public static PassDescriptor Forward(UniversalTarget target, KeywordCollection keywords)
             {
                 var result = new PassDescriptor
@@ -246,6 +335,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
                 CorePasses.AddAlphaToMaskControlToPass(ref result, target);
                 CorePasses.AddLODCrossFadeControlToPass(ref result, target);
+
+                if (target.activeSubTarget is UniversalUnlitSubTarget unlitSubTarget)
+                {
+                    UnlitPasses.AddLightingVariantsControlToPass(ref result, unlitSubTarget);
+                    UnlitPasses.AddDefaultDecalBlendingControlToPass(ref result, unlitSubTarget);
+                    UnlitPasses.AddDefaultSSAOControlToPass(ref result, unlitSubTarget);
+                }
 
                 return result;
             }
@@ -370,6 +466,41 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
         #endregion
 
+        #region Defines
+        static class UnlitDefines
+        {
+            public static readonly KeywordDescriptor LightingDefine = new KeywordDescriptor()
+            {
+                displayName = "Keep Lighting Variants",
+                referenceName = "UNLIT_REALTIME_LIGHTING",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Vertex | KeywordShaderStage.Fragment
+            };
+
+            public static readonly KeywordDescriptor DefaultDecalBlendingDefine = new KeywordDescriptor()
+            {
+                displayName = "Default Decal Blending",
+                referenceName = "UNLIT_DEFAULT_DECAL_BLENDING",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment
+            };
+
+            public static readonly KeywordDescriptor DefaultSSAODefine = new KeywordDescriptor()
+            {
+                displayName = "Default SSAO",
+                referenceName = "UNLIT_DEFAULT_SSAO",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.Predefined,
+                scope = KeywordScope.Local,
+                stages = KeywordShaderStage.Fragment
+            };
+        }
+        #endregion
+
         #region Keywords
         static class UnlitKeywords
         {
@@ -382,8 +513,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.DirectionalLightmapCombined,
                 CoreKeywordDescriptors.UseLegacyLightmaps,
                 CoreKeywordDescriptors.LightmapBicubicSampling,
-                CoreKeywordDescriptors.ReflectionProbeRotation,
-                CoreKeywordDescriptors.SampleGI,
                 CoreKeywordDescriptors.DBuffer,
                 CoreKeywordDescriptors.DebugDisplay,
                 CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion,
@@ -397,6 +526,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 CoreKeywordDescriptors.GBufferNormalsOct,
                 CoreKeywordDescriptors.ShadowsShadowmask
             };
+
+            public static readonly KeywordCollection LightingVariants = new KeywordCollection()
+            {
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.AdditionalLights },
+                { CoreKeywordDescriptors.AdditionalLightShadows },
+                { CoreKeywordDescriptors.ReflectionProbeBlending },
+                { CoreKeywordDescriptors.ReflectionProbeBoxProjection },
+                { CoreKeywordDescriptors.ReflectionProbeAtlas },
+                { CoreKeywordDescriptors.ReflectionProbeRotation },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.ShadowsShadowmask },
+                { CoreKeywordDescriptors.LightLayers },
+                { CoreKeywordDescriptors.LightCookies },
+                { CoreKeywordDescriptors.ClusterLightLoop },
+            };
         }
         #endregion
 
@@ -405,6 +551,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             const string kUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
             const string kUnlitGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitGBufferPass.hlsl";
+            const string kLighting = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl";
 
             public static IncludeCollection Forward = new IncludeCollection
             {
@@ -434,6 +581,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kUnlitGBufferPass, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection LightingIncludes = new IncludeCollection
+            {
+                // Pre-graph
+                { kLighting, IncludeLocation.Pregraph },
             };
         }
         #endregion

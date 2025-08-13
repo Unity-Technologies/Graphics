@@ -76,7 +76,11 @@ namespace UnityEngine.Rendering.Universal
         FSR,
 
         /// Spatial-Temporal Post-Processing
-        STP
+        STP,
+
+#if ENABLE_UPSCALER_FRAMEWORK
+        IUpscaler
+#endif
     }
 
     /// <summary>
@@ -1811,6 +1815,14 @@ namespace UnityEngine.Rendering.Universal
             float spotAngle, float? innerSpotAngle,
             ref Vector4 lightAttenuation)
         {
+            // UUM-104997: AngleAttenuation() function isn't precise enough for small spot angles on platforms using float16 registers
+            if (spotAngle < 2.6)
+            {
+                spotAngle = 2.6f;
+                if (innerSpotAngle.HasValue)
+                    innerSpotAngle = Mathf.Min(innerSpotAngle.Value, 2.6f);
+            }
+
             // Spot Attenuation with a linear falloff can be defined as
             // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
             // This can be rewritten as
@@ -2005,6 +2017,7 @@ namespace UnityEngine.Rendering.Universal
             isXRMobile = isRunningMobile;
             isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
             isSwitch = Application.platform == RuntimePlatform.Switch;
+            isSwitch2 = Application.platform == RuntimePlatform.Switch2;
         }
 
 #if ENABLE_VR && ENABLE_VR_MODULE
@@ -2045,6 +2058,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal static bool isSwitch { get; private set; } = false;
 
+        internal static bool isSwitch2 { get; private set; } = false;
+
         /// <summary>
         /// Gives the SH evaluation mode when set to automatically detect.
         /// </summary>
@@ -2054,7 +2069,7 @@ namespace UnityEngine.Rendering.Universal
         {
             if (mode == ShEvalMode.Auto)
             {
-                if (isXRMobile || isShaderAPIMobileDefined || isSwitch)
+                if (isXRMobile || isShaderAPIMobileDefined || isSwitch || isSwitch2)
                     return ShEvalMode.PerVertex;
                 else
                     return ShEvalMode.PerPixel;
@@ -2064,5 +2079,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal static bool isRunningOnPowerVRGPU = SystemInfo.graphicsDeviceName.Contains("PowerVR");
+
+        // Mali Valhall architecture GPUs (G76, G77, G78, etc.) have issues with separate depth textures when SSAO is enabled
+        // This affects depth texture sampling patterns in SSAO passes
+        internal static bool isRunningOnMaliValhallGPU = SystemInfo.graphicsDeviceName.StartsWith("Mali-G5") ||
+                                                         SystemInfo.graphicsDeviceName.StartsWith("Mali-G6") ||
+                                                         SystemInfo.graphicsDeviceName.StartsWith("Mali-G7");
     }
 }

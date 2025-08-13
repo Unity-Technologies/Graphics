@@ -38,11 +38,11 @@
 #endif
 
 // Mobile platforms use a simplified version of STP to reduce runtime overhead.
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     #define STP_TAA_Q 0
 #endif
 
-#if defined(SHADER_API_SWITCH)
+#if defined(SHADER_API_SWITCH) || defined(SHADER_API_SWITCH2)
     #define STP_BUG_SAT_INF 1
 #endif
 

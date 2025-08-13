@@ -104,7 +104,12 @@ CBUFFER_START(UnityPerDraw)
 
 CBUFFER_END
 
+static const uint unity_RendererUserValue = asuint(unity_RenderingLayer.y);
+
 #endif // DOTS_INSTANCING_ON
+
+// The renderer user values are packed in unity_RenderingLayer. So we need a dummy property to be able to use Shader.PropertyToID.
+uint unity_RendererUserValuesPropertyEntry;
 
 CBUFFER_START(UnityPerDrawRare)
     float4x4 glstate_matrix_transpose_modelview0;
@@ -619,12 +624,14 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(float3x4, unity_MatrixPreviousMI)
     UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(SH,       unity_SHCoefficients)
     UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(uint2,    unity_EntityId)
+    UNITY_DOTS_INSTANCED_PROP_OVERRIDE_SUPPORTED(uint,     unity_RendererUserValuesPropertyEntry)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 #define unity_LODFade               LoadDOTSInstancedData_LODFade()
 #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapST)
 #define unity_LightmapIndex         UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_LightmapIndex)
 #define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP(float4,   unity_DynamicLightmapST)
+#define unity_RendererUserValue    (UNITY_ACCESS_DOTS_INSTANCED_PROP(uint,   unity_RendererUserValuesPropertyEntry))
 #define unity_SHAr                  LoadDOTSInstancedData_SHAr()
 #define unity_SHAg                  LoadDOTSInstancedData_SHAg()
 #define unity_SHAb                  LoadDOTSInstancedData_SHAb()

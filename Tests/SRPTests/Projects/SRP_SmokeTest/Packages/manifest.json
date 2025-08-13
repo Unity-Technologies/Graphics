@@ -11,6 +11,7 @@
     "com.unity.render-pipelines.universal-config": "file:../../../../../Packages/com.unity.render-pipelines.universal-config",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
+    "com.unity.testframework.graphics": "file:../../../../../Tests/SRPTests/Packages/com.unity.test-framework.graphics",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph"
   },
   "testables": [

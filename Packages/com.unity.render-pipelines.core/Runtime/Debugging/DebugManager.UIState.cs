@@ -6,7 +6,7 @@ using UnityEngine.Rendering.UI;
 using UnityEditor;
 #endif
 
-#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH
+#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH || UNITY_SWITCH2
 using UnityEngine.UI;
 #endif
 
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering
                     m_Root.transform.localPosition = Vector3.zero;
                     m_RootUICanvas = m_Root.GetComponent<DebugUIHandlerCanvas>();
 
-#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH
+#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SWITCH || UNITY_SWITCH2
                     var canvasScaler = m_Root.GetComponent<CanvasScaler>();
                     canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
 #endif

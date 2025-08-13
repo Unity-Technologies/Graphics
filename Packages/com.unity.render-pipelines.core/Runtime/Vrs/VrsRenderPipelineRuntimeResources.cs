@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     [Serializable]
     [SupportedOnRenderPipeline]
-    [Categorization.CategoryInfo(Name = "R: VRS - Runtime Resources", Order = 1000), HideInInspector]
+    [Categorization.CategoryInfo(Name = "R: VRS - Runtime Resources", Order = 1000)]
     public sealed class VrsRenderPipelineRuntimeResources : IRenderPipelineResources
     {
         /// <summary>

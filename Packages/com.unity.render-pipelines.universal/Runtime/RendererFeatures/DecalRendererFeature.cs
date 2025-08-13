@@ -302,7 +302,9 @@ namespace UnityEngine.Rendering.Universal
             switch (m_Settings.technique)
             {
                 case DecalTechniqueOption.Automatic:
-                    if (IsAutomaticDBuffer() || isDeferred && needsGBufferAccurateNormals)
+                    if (isGLDevice)
+                        technique = isDeferred ? DecalTechnique.GBuffer : DecalTechnique.ScreenSpace;
+                    else if (IsAutomaticDBuffer() || isDeferred && needsGBufferAccurateNormals)
                         technique = DecalTechnique.DBuffer;
                     else if (isDeferred)
                         technique = DecalTechnique.GBuffer;
@@ -602,11 +604,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Conditional("ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER")]
+        [Conditional("ENABLE_ADAPTIVE_PERFORMANCE")]
         private void ChangeAdaptivePerformanceDrawDistances()
         {
-#if ADAPTIVE_PERFORMANCE_4_0_0_OR_NEWER
-            if (UniversalRenderPipeline.asset.useAdaptivePerformance)
+#if ENABLE_ADAPTIVE_PERFORMANCE
+            if (UniversalRenderPipeline.asset?.useAdaptivePerformance == true)
             {
                 if (m_DecalCreateDrawCallSystem != null)
                 {

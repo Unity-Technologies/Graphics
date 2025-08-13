@@ -163,6 +163,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent volumetricResolutionContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP increases the resolution of volumetric lighting buffers. Warning: There is a high performance cost, do not enable on consoles.");
             public static readonly GUIContent supportLightLayerContent = EditorGUIUtility.TrTextContent("Light Layers", "When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
             public static readonly GUIContent colorBufferFormatContent = EditorGUIUtility.TrTextContent("Color Buffer Format", "Specifies the format used by the scene color render target. R11G11B10 is a faster option and should have sufficient precision.");
+            public static readonly GUIContent depthBufferFormatContent = EditorGUIUtility.TrTextContent("Depth Buffer Format", "Specifies the format used by the scene depth render target.");
             public static readonly GUIContent supportCustomPassContent = EditorGUIUtility.TrTextContent("Custom Pass", "When enabled, HDRP allocates a custom pass buffer. It also enable custom passes inside Custom Pass Volume components.");
             public static readonly GUIContent supportVariableRateShadingContent = EditorGUIUtility.TrTextContent("Variable Rate Shading", "When enabled, HDRP enables the usage of variable rate shading in custom passes.");
             public static readonly GUIContent customBufferFormatContent = EditorGUIUtility.TrTextContent("Custom Buffer Format", "Specifies the format used by the custom pass render target.");
@@ -275,6 +276,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent defaultInjectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The injection point at which to apply the upscaling.");
             public static readonly GUIContent TAAUInjectionPoint = EditorGUIUtility.TrTextContent("TAA Upscale Injection Point", "The injection point at which to apply the upscaling.");
             public static readonly GUIContent STPInjectionPoint = EditorGUIUtility.TrTextContent("STP Injection Point", "The injection point at which to apply the upscaling.");
+#if ENABLE_UPSCALER_FRAMEWORK
+            public static readonly GUIContent IUpscalerInjectionPoint = EditorGUIUtility.TrTextContent("Injection Point", "The injection point at which to apply the upscaling.");
+#endif
             public static readonly GUIContent DLSSUseOptimalSettingsContent = EditorGUIUtility.TrTextContent("DLSS Use Optimal Settings", "Sets the scale automatically for NVIDIA Deep Learning Super Sampling, depending on the values of quality settings. When DLSS Optimal Settings is on, the percentage settings for Dynamic Resolution Scaling are ignored.");
             public static readonly GUIContent DLSSRenderPresetsContent = EditorGUIUtility.TrTextContent("DLSS Render Presets", "DLSS will use the specified render preset for each quality value.");
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE

@@ -47,8 +47,6 @@ Shader "Custom/075_Material"
                     float2 maskUV  : TEXCOORD2;
                     UNITY_VERTEX_OUTPUT_STEREO
                 };
-                #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
-                SHAPE_LIGHT(0)
                 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/CombinedShapeLightShared.hlsl"
                 CBUFFER_START(UnityPerMaterial)
                 half4 _WindDir;

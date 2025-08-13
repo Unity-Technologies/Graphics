@@ -46,6 +46,11 @@
       "displayName": "Custom Material Property Drawers",
       "description": "This sample contains an example of a Custom Material Property Drawer that allows using a Min/Max Slider to control a Vector2 x and y values, often used for range remapping. It comes with a documented Shader Graph example.",
       "path": "Samples~/CustomMaterialPropertyDrawers"
+    },
+    {
+      "displayName": "Custom Lighting",
+      "description": "This sample helps you customize the URP lighting model in Shader Graph to achieve a unique look for your project or make the lighting cheaper. Learn from the included examples to create lit shaders without fog, change the way SSAO and decals are applied, and create stylized rendering. Get additional templates for the template browser and benefit from a comprehensive library of subgraphs for all types of lighting operations.",
+      "path": "Samples~/CustomLighting"
     }
   ]
 }

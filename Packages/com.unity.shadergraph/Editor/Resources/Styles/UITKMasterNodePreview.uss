@@ -1,0 +1,79 @@
+.image {
+    aspect-ratio: 1.5;
+}
+
+.texture {
+    background-image: resource("GraphView/Nodes/UITKShaderPreview-Texture");
+    margin-bottom: 4px;
+}
+
+.svg {
+    background-image: url("project://database/Packages/com.unity.shadergraph/Editor/Resources/GraphView/Nodes/UITKShaderPreview-Vector.svg?fileID=7388822144124034973&guid=a8d7d25cc14c27f4e9257da19b888497&type=3#UITKShaderPreview-Vector");
+    margin-bottom: 4px;
+    margin-left: 2%;
+}
+
+.preview-button {
+    -unity-text-generator: advanced;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 0;
+    padding-bottom: 0;
+    -unity-text-auto-size: best-fit 10px 100px;
+}
+
+.buttonText {
+    background-color: rgb(98, 190, 156);
+    border-top-width: 6px;
+    border-right-width: 6px;
+    border-bottom-width: 6px;
+    border-left-width: 6px;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    border-bottom-right-radius: 24px;
+    border-bottom-left-radius: 24px;
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    white-space: pre;
+}
+
+.buttonBitmapText {
+    background-color: rgb(44, 40, 75);
+    border-top-width: 4px;
+    border-right-width: 4px;
+    border-bottom-width: 4px;
+    border-left-width: 4px;
+    border-top-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    color: rgb(255, 255, 255);
+    border-left-color: rgb(115, 107, 173);
+    border-right-color: rgb(115, 107, 173);
+    border-top-color: rgb(115, 107, 173);
+    border-bottom-color: rgb(115, 107, 173);
+    padding-top: 5px;
+    padding-right: 10px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+}
+
+.column {
+    margin-top: 4px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    margin-left: 4px;
+    align-items: stretch;
+}
+
+.pane {
+    width: 50%;
+}
+
+.heading {
+    -unity-text-align: upper-center;
+    color: rgb(255, 255, 255);
+}
+
+.images-container {
+}

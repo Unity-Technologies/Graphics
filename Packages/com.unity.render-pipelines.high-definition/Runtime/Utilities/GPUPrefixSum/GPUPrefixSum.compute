@@ -9,7 +9,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/GPUPrefixSum/GPUPrefixSum.Data.cs.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch switch2
 
 // #pragma enable_d3d11_debug_symbols
 
@@ -139,7 +139,11 @@ void MainPrefixSumOnGroupCommon(int3 dispatchThreadID, int groupThreadIndex, boo
     //Hillis Steele Scan
     for (int i = 1; i < GROUP_SIZE; i <<= 1)
     {
-        uint val = groupThreadIndex >= i ? gs_prefixCache[groupThreadIndex - i] : 0u;
+        //Avoiding ternary operator (it would evaluate both sides and fetch invalid indices, causing crash on some GPUs)
+        uint val = 0u;
+        if (groupThreadIndex >= i)
+            val = gs_prefixCache[groupThreadIndex - i];
+
         GroupMemoryBarrierWithGroupSync();
 
         gs_prefixCache[groupThreadIndex] += val;

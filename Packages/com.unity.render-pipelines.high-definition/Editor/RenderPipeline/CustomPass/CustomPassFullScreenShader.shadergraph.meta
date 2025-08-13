@@ -8,3 +8,17 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 1
+  template:
+    name: Fullscreen (Empty) - HDRP
+    category: Image Processing
+    description: "An HDRP Shader Graph template that does nothing, ready for editing.\r\n\r\nFullscreen
+      shaders are intended to be used to apply image adjustments for applications
+      like post-process filters. They are not intended to be applied to individual
+      meshes.\r\n\r\nTo apply a fullscreen shader as a post-process filter, create
+      a Custom Pass Volume, add a Fullscreen Custom Pass and assign a material created
+      from your fullscreen shader.\r\n\n<i>Supported Pipeline(s): HDRP\r\nActive
+      Target: Fullscreen\r\nVFX Graph Support: disabled</i>\r"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 735f538caff1db74f943ce9ea87633e9, type: 3}

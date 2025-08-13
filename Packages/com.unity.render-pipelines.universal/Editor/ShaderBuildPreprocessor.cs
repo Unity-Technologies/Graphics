@@ -73,6 +73,9 @@ namespace UnityEditor.Rendering.Universal
         StencilLODCrossFade = (1L << 50),
         DeferredPlus = (1L << 51),
         ReflectionProbeAtlas = (1L << 52),
+#if SURFACE_CACHE
+        SurfaceCache = (1L << 53),
+#endif
         All = ~0
     }
 
@@ -169,11 +172,13 @@ namespace UnityEditor.Rendering.Universal
             internal bool isHololens { get; private set; }
             internal bool isQuest { get; private set; }
             internal bool isSwitch { get; private set; }
+            internal bool isSwitch2 { get; private set; }
 
             private PlatformBuildTimeDetect()
             {
                 BuildTargetGroup buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
                 isSwitch = buildTargetGroup == BuildTargetGroup.Switch;
+                isSwitch2 = buildTargetGroup == BuildTargetGroup.Switch2;
 
 #if XR_MANAGEMENT_4_0_1_OR_NEWER
                 var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
@@ -296,7 +301,7 @@ namespace UnityEditor.Rendering.Universal
 
             PlatformBuildTimeDetect platformBuildTimeDetect = PlatformBuildTimeDetect.GetInstance();
             bool isShaderAPIMobileDefined = GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.SHADER_API_MOBILE);
-            if (platformBuildTimeDetect.isSwitch || isShaderAPIMobileDefined)
+            if (platformBuildTimeDetect.isSwitch || platformBuildTimeDetect.isSwitch2 || isShaderAPIMobileDefined)
                 s_UseSHPerVertexForSHAuto = true;
 
             // XR Stripping
@@ -457,8 +462,16 @@ namespace UnityEditor.Rendering.Universal
                     ref ssaoRendererFeatures,
                     stripUnusedVariants,
                     out bool containsForwardRenderer,
+#if SURFACE_CACHE
+                    out bool containsSurfaceCache,
+#endif
                     out bool everyRendererHasSSAO
                 );
+
+#if SURFACE_CACHE
+                // Check if we can strip the Screen Space Irradiance keyword. Currently, it only depends on the presence of the Surface Cache feature.
+                bool stripScreenSpaceIrradiance = !containsSurfaceCache;
+#endif
 
                 // Creates a struct containing all the prefiltering settings for this asset
                 ShaderPrefilteringData spd = CreatePrefilteringSettings(
@@ -471,6 +484,9 @@ namespace UnityEditor.Rendering.Universal
                     s_StripScreenCoordOverrideVariants,
                     s_StripBicubicLightmapSamplingVariants,
                     s_StripReflectionProbeRotationVariants,
+#if SURFACE_CACHE
+                    stripScreenSpaceIrradiance,
+#endif
                     s_StripUnusedVariants,
                     ref ssaoRendererFeatures
                     );
@@ -493,6 +509,9 @@ namespace UnityEditor.Rendering.Universal
             ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures,
             bool stripUnusedVariants,
             out bool containsForwardRenderer,
+#if SURFACE_CACHE
+            out bool containsSurfaceCache,
+#endif
             out bool everyRendererHasSSAO)
         {
             ShaderFeatures urpAssetShaderFeatures = ShaderFeatures.MainLight;
@@ -578,6 +597,9 @@ namespace UnityEditor.Rendering.Universal
                 ref ssaoRendererFeatures,
                 stripUnusedVariants,
                 out containsForwardRenderer,
+#if SURFACE_CACHE
+                out containsSurfaceCache,
+#endif
                 out everyRendererHasSSAO);
 
             return urpAssetShaderFeatures;
@@ -591,6 +613,9 @@ namespace UnityEditor.Rendering.Universal
             ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures,
             bool stripUnusedVariants,
             out bool containsForwardRenderer,
+#if SURFACE_CACHE
+            out bool containsSurfaceCache,
+#endif
             out bool everyRendererHasSSAO)
         {
             // Sanity check
@@ -603,6 +628,9 @@ namespace UnityEditor.Rendering.Universal
             ShaderFeatures combinedURPAssetShaderFeatures = ShaderFeatures.None;
 
             containsForwardRenderer = false;
+#if SURFACE_CACHE
+            containsSurfaceCache = false;
+#endif
             everyRendererHasSSAO = true;
             ScriptableRendererData[] rendererDataArray = urpAsset.m_RendererDataList;
             for (int rendererIndex = 0; rendererIndex < rendererDataArray.Length; ++rendererIndex)
@@ -617,6 +645,11 @@ namespace UnityEditor.Rendering.Universal
                 // Get & add Supported features from renderers used for Scriptable Stripping and prefiltering.
                 ShaderFeatures rendererShaderFeatures = GetSupportedShaderFeaturesFromRenderer(ref rendererRequirements, ref rendererData, ref ssaoRendererFeatures, ref containsForwardRenderer, urpAssetShaderFeatures);
                 rendererFeaturesList.Add(rendererShaderFeatures);
+
+#if SURFACE_CACHE
+                // Check to see if the Surface Cache feature is enabled
+                containsSurfaceCache |= IsFeatureEnabled(rendererShaderFeatures, ShaderFeatures.SurfaceCache);
+#endif
 
                 // Check to see if it's possible to remove the OFF variant for SSAO
                 everyRendererHasSSAO &= IsFeatureEnabled(rendererShaderFeatures, ShaderFeatures.ScreenSpaceOcclusion);
@@ -659,9 +692,9 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && urpAsset.useRenderingLayers);
             rsd.needsGBufferAccurateNormals       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && (universalRendererData.renderingMode == RenderingMode.Deferred || universalRendererData.renderingMode == RenderingMode.DeferredPlus) && universalRendererData.accurateGbufferNormals);
             rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.needsDeferredLighting);
-            rsd.needsReflectionProbeBlending      = urpAsset.reflectionProbeBlending;
+            rsd.needsReflectionProbeBlending      = urpAsset.ShouldUseReflectionProbeBlending();
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
-            rsd.needsReflectionProbeAtlas         = urpAsset.reflectionProbeBlending && (rsd.renderingMode == RenderingMode.DeferredPlus || urpAsset.reflectionProbeAtlas || urpAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled) && rsd.needsClusterLightLoop;
+            rsd.needsReflectionProbeAtlas         = urpAsset.ShouldUseReflectionProbeAtlasBlending(rsd.renderingMode) && rsd.needsClusterLightLoop;
             rsd.needsProcedural                   = NeedsProceduralKeyword(ref rsd);
             rsd.needsSHVertexForSHAuto            = s_UseSHPerVertexForSHAuto;
 
@@ -832,6 +865,16 @@ namespace UnityEditor.Rendering.Universal
                     continue;
                 }
 
+#if SURFACE_CACHE
+                // Surface Cache GI...
+                SurfaceCacheGlobalIlluminationRendererFeature surfaceCacheFeature = rendererFeature as SurfaceCacheGlobalIlluminationRendererFeature;
+                if(surfaceCacheFeature != null)
+                {
+                    shaderFeatures |= ShaderFeatures.SurfaceCache;
+                    continue;
+                }
+#endif
+
                 // Decals...
                 DecalRendererFeature decal = rendererFeature as DecalRendererFeature;
                 if (decal != null && rendererRequirements.isUniversalRenderer)
@@ -939,6 +982,9 @@ namespace UnityEditor.Rendering.Universal
             bool stripScreenCoord,
             bool stripBicubicLightmap,
             bool stripReflectionProbeRotation,
+#if SURFACE_CACHE
+            bool stripScreenSpaceIrradiance,
+#endif
             bool stripUnusedVariants,
             ref List<ScreenSpaceAmbientOcclusionSettings> ssaoRendererFeatures
             )
@@ -958,7 +1004,14 @@ namespace UnityEditor.Rendering.Universal
             spd.stripScreenCoordOverride = stripScreenCoord;
             spd.stripBicubicLightmapSampling = stripBicubicLightmap;
             spd.stripReflectionProbeRotation = stripReflectionProbeRotation;
-            spd.stripScreenSpaceIrradiance = true; // This is currently not exposed to the user nor used by anything internal.
+            spd.stripReflectionProbeBlending = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBlending);
+            spd.stripReflectionProbeBoxProjection = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBoxProjection);
+            spd.stripReflectionProbeAtlas = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeAtlas);
+#if SURFACE_CACHE
+            spd.stripScreenSpaceIrradiance = stripScreenSpaceIrradiance;
+#else
+            spd.stripScreenSpaceIrradiance = true;
+#endif
 
             // Rendering Modes
             // Check if only Deferred is being used

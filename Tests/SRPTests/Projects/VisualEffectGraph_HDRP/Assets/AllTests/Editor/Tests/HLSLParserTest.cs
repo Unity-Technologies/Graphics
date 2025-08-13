@@ -159,7 +159,7 @@ namespace UnityEditor.VFX.Test
             // Arrange
             var hlslCode =
                 "/// offset: this is the offset" + "\n" +
-                "/// speedFactor: this is the speedFactor" + "\n" +
+                "/// speedFactor: this is the speedFactor" + "\r\n" +
                 "void CustomHLSL(inout VFXAttributes attributes, in float3 offset, in float speedFactor)" + "\n" +
                 "{" + "\n" +
                 "  attributes.position += offset;" + "\n" +
