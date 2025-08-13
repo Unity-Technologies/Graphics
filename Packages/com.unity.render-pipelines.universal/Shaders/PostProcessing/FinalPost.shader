@@ -1,7 +1,7 @@
 Shader "Hidden/Universal Render Pipeline/FinalPost"
 {
     HLSLINCLUDE
-        #pragma multi_compile_local_fragment _ _POINT_SAMPLING _RCAS _EASU_RCAS_AND_HDR_INPUT
+        #pragma multi_compile_local_fragment _ _POINT_SAMPLING _RCAS _EASU_RCAS_AND_HDR_INPUT _SGSR
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
@@ -57,6 +57,49 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
         #endif
 
+        #if defined(_SGSR)
+            #define SGSR_MOBILE
+
+            half4 SGSRRH(float2 p)
+            {
+                half4 res = _BlitTexture.GatherRed(sampler_LinearClamp, p);
+                return res;
+            }
+            half4 SGSRGH(float2 p)
+            {
+                half4 res = _BlitTexture.GatherGreen(sampler_LinearClamp, p);
+                return res;
+            }
+            half4 SGSRBH(float2 p)
+            {
+                half4 res = _BlitTexture.GatherBlue(sampler_LinearClamp, p);
+                return res;
+            }
+            half4 SGSRAH(float2 p)
+            {
+                half4 res = _BlitTexture.GatherAlpha(sampler_LinearClamp, p);
+                return res;
+            }
+            half4 SGSRRGBH(float2 p)
+            {
+                half4 res = _BlitTexture.SampleLevel(sampler_LinearClamp, p, 0);
+                return res;
+            }
+
+            half4 SGSRH(float2 p, uint channel)
+            {
+                if (channel == 0)
+                    return SGSRRH(p);
+                if (channel == 1)
+                    return SGSRGH(p);
+                if (channel == 2)
+                    return SGSRBH(p);
+                return SGSRAH(p);
+            }
+
+            #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/sgsr/sgsr_mobile.hlsl"
+        #endif
+
         half4 FragFinalPost(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -82,6 +125,13 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             #if _ENABLE_ALPHA_OUTPUT
                 color.a = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv).a;
             #endif
+            #elif _SGSR
+                half4 color = half4(0, 0, 0, 1);
+                // ViewportInfo should be a float4 containing {1.0/low_res_tex_width, 1.0/low_res_tex_height, low_res_tex_width, low_res_tex_height}.
+                // The `xy` components will be used to shift UVs to read adjacent texels.
+                // The `zw` components will be used to map from UV space [0, 1][0, 1] to image space [0, w][0, h].
+                // _SourceSize contains the same data as ViewportInfo except xy are swapped with zw
+                SgsrYuvH(color, uv, _SourceSize.zwxy);
             #else
                 half4 color = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uv);
             #endif
