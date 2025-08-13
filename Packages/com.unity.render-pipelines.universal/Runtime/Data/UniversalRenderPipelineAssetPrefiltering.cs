@@ -183,6 +183,14 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.USE_LEGACY_LIGHTMAPS)]
         [SerializeField] private bool m_PrefilterUseLegacyLightmaps = false;
 
+        // Reflection probe blending (_REFLECTION_PROBE_BLENDING)
+        [ShaderKeywordFilter.SelectOrRemove(false, keywordNames: ShaderKeywordStrings.ReflectionProbeBlending)]
+        [SerializeField] private bool m_PrefilterReflectionProbeBlending = false;
+
+        // Reflection probe box projection (_REFLECTION_PROBE_BOX_PROJECTION)
+        [ShaderKeywordFilter.SelectOrRemove(false, keywordNames: ShaderKeywordStrings.ReflectionProbeBoxProjection)]
+        [SerializeField] private bool m_PrefilterReflectionProbeBoxProjection = false;
+
         /// <summary>
         /// Data used for Shader Prefiltering. Gathered after going through the URP Assets,
         /// Renderers and Renderer Features in OnPreprocessBuild() inside ShaderPreprocessor.cs.
@@ -220,6 +228,9 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSSAOSampleCountLow;
             public bool stripSSAOSampleCountMedium;
             public bool stripSSAOSampleCountHigh;
+
+            public bool stripReflectionProbeBlending;
+            public bool stripReflectionProbeBoxProjection;
 
             public static ShaderPrefilteringData GetDefault()
             {
@@ -274,6 +285,9 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterSSAOSampleCountLow            = prefilteringData.stripSSAOSampleCountLow;
             m_PrefilterSSAOSampleCountMedium         = prefilteringData.stripSSAOSampleCountMedium;
             m_PrefilterSSAOSampleCountHigh           = prefilteringData.stripSSAOSampleCountHigh;
+
+            m_PrefilterReflectionProbeBlending       = prefilteringData.stripReflectionProbeBlending;
+            m_PrefilterReflectionProbeBoxProjection  = prefilteringData.stripReflectionProbeBoxProjection;
         }
     }
 }

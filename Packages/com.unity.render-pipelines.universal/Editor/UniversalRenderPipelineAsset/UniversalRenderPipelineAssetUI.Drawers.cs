@@ -335,6 +335,13 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.LabelField(Styles.reflectionProbesSettingsText);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(serialized.reflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
+
+            if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
+            {
+                if (!serialized.reflectionProbeBlendingProp.boolValue)
+                    EditorGUILayout.HelpBox(Styles.reflectionProbeBlendingGpuResidentDrawerWarningText.text, MessageType.Warning, true);
+            }
+
             EditorGUILayout.PropertyField(serialized.reflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
             EditorGUI.indentLevel--;
         }

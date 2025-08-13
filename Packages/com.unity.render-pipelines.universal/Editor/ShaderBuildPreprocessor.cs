@@ -635,7 +635,7 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred && urpAsset.useRenderingLayers);
             rsd.needsGBufferAccurateNormals       = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred && universalRendererData.accurateGbufferNormals);
             rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.renderingMode == RenderingMode.Deferred);
-            rsd.needsReflectionProbeBlending      = urpAsset.reflectionProbeBlending;
+            rsd.needsReflectionProbeBlending      = urpAsset.ShouldUseReflectionProbeBlending();
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
             rsd.needsProcedural                   = NeedsProceduralKeyword(ref rsd);
             rsd.needsSHVertexForSHAuto            = s_UseSHPerVertexForSHAuto;
@@ -922,6 +922,8 @@ namespace UnityEditor.Rendering.Universal
             spd.stripAlphaOutputKeywords = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.AlphaOutput);
             spd.stripDebugDisplay = stripDebug;
             spd.stripScreenCoordOverride = stripScreenCoord;
+            spd.stripReflectionProbeBlending = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBlending);
+            spd.stripReflectionProbeBoxProjection = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBoxProjection);
 
             // Rendering Modes
             // Check if only Deferred is being used

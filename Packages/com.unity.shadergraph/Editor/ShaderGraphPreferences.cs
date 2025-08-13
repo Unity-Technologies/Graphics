@@ -109,8 +109,10 @@ namespace UnityEditor.ShaderGraph
 
             using (var scope = new LabelWidthScope(10, 300))
             {
-                var actualLimit = ShaderGraphProjectSettings.instance.shaderVariantLimit;
-                var willPreviewVariantBeIgnored = ShaderGraphPreferences.previewVariantLimit > actualLimit;
+                var actualLimit = ShaderGraphProjectSettings.instance.overrideShaderVariantLimit
+                    ? ShaderGraphProjectSettings.instance.shaderVariantLimit
+                    : ShaderGraphProjectSettings.defaultVariantLimit;
+                var willPreviewVariantBeIgnored = ShaderGraphPreferences.previewVariantLimit > actualLimit || ShaderGraphProjectSettings.instance.overrideShaderVariantLimit;
 
                 var variantLimitLabel = willPreviewVariantBeIgnored
                     ? new GUIContent("Preview Variant Limit", EditorGUIUtility.IconContent("console.infoicon").image, $"The Preview Variant Limit is higher than the Shader Variant Limit in Project Settings: {actualLimit}. The Preview Variant Limit will be ignored.")

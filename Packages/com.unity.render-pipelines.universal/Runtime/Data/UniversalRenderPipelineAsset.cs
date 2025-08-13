@@ -524,13 +524,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = AdditionalLightsDefaultShadowResolutionTierHigh;
 
         // Reflection Probes
-#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
-        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.ReflectionProbeBlending)]
-#endif
         [SerializeField] bool m_ReflectionProbeBlending = false;
-#if UNITY_EDITOR // multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
-        [ShaderKeywordFilter.SelectOrRemove(true, keywordNames: ShaderKeywordStrings.ReflectionProbeBoxProjection)]
-#endif
         [SerializeField] bool m_ReflectionProbeBoxProjection = false;
 
         // Shadows Settings
@@ -1349,6 +1343,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ReflectionProbeBlending;
             internal set => m_ReflectionProbeBlending = value;
+        }
+
+        internal bool ShouldUseReflectionProbeBlending()
+        {
+            // The probe blending with atlas code path is always force enabled with GPUResidentDrawer since that is the only path supported here.
+            if (gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled)
+                return true;
+
+            return reflectionProbeBlending;
         }
 
         /// <summary>

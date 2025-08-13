@@ -137,8 +137,8 @@ namespace UnityEngine.Rendering
 
                 parameters.skyOcclusionIntensity = skyOcclusion ? probeVolumeOptions.skyOcclusionIntensityMultiplier.value : 0.0f;
                 parameters.skyOcclusionShadingDirection = skyOcclusion && skyOcclusionShadingDirection;
-                parameters.regionCount = m_CurrentBakingSet.bakedMaskCount;
-                parameters.regionLayerMasks = supportRenderingLayers ? m_CurrentBakingSet.bakedLayerMasks : 0xFFFFFFFF;
+                parameters.regionCount = m_CurrentBakingSet != null ? m_CurrentBakingSet.bakedMaskCount : 0;
+                parameters.regionLayerMasks = (supportRenderingLayers && m_CurrentBakingSet != null) ? m_CurrentBakingSet.bakedLayerMasks : 0xFFFFFFFF;
                 parameters.worldOffset = probeVolumeOptions.worldOffset.value;
                 UpdateConstantBuffer(cmd, parameters);
             }

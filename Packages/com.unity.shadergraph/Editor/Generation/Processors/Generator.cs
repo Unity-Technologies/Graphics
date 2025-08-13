@@ -256,6 +256,9 @@ namespace UnityEditor.ShaderGraph
             var variantLimit = this.m_Mode == GenerationMode.Preview
                 ? Mathf.Min(ShaderGraphPreferences.previewVariantLimit, ShaderGraphProjectSettings.instance.shaderVariantLimit)
                 : ShaderGraphProjectSettings.instance.shaderVariantLimit;
+            if (!ShaderGraphProjectSettings.instance.overrideShaderVariantLimit)
+                variantLimit = ShaderGraphProjectSettings.defaultVariantLimit;
+
             // Send an action about our current variant usage. This will either add or clear a warning if it exists
             var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, variantLimit);
             m_GraphData.owner?.graphDataStore?.Dispatch(action);

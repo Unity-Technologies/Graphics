@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             // OpenGL has a bug with MRTs - support single RTs by using low level pass
-            if (!isVolumetric && Renderer2D.IsGLDevice())
+            if (!isVolumetric && !Renderer2D.supportsMRT)
             {
                 using (var builder = graph.AddUnsafePass<PassData>( k_LightLowLevelPass, out var passData, m_ProfilingSamplerLowLevel))
                 {
