@@ -1,6 +1,8 @@
 # Terrain Lit shader
 
-URP uses the Terrain Lit shader for Unity Terrain. This shader is a simpler version of the [Lit shader](lit-shader.md). A Terrain can use a Terrain Lit Material with up to eight [Terrain Layers](https://docs.unity3d.com/Manual/class-TerrainLayer.html).
+URP uses the Terrain Lit shader for Unity Terrain. This shader is a simpler version of the [Lit shader](lit-shader). 
+
+For more information about Terrain Layers, refer to [Terrain Layers](../class-TerrainLayer.md).
 
 ![A Terrain GameObject rendered with the Terrain Lit shader.](Images/terrain/terrain-rendered-with-terrain-lit.png)<br/>*A Terrain GameObject rendered with the Terrain Lit shader.*
 

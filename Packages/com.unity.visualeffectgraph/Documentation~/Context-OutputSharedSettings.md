@@ -1,4 +1,4 @@
-# Shared Output Settings and Properties
+# Shared output settings and properties
 
 All outputs share these settings and property ports. The only exception is the Shader Graph setting which most outputs support, but not all of them.
 

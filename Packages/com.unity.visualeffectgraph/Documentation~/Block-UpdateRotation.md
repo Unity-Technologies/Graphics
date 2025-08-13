@@ -2,7 +2,9 @@
 
 Menu Path : **Implicit > Integration : Update Rotation**
 
-The **Integration : Update Rotation** Block updates particle orientation based on their angular velocity. If the system uses the angular velocity attribute and you enable **Update Rotation** in the Update Context's Inspector, Unity implicitly adds this Block to the Context and hides it.
+The **Integration : Update Rotation** Block updates particle orientation based on their angular velocity.
+
+**Note:** If the system uses the angular velocity attribute and you enable **Update Rotation** in the Update Context's Inspector, Unity implicitly adds this Block to the Context and hides it. If you add your own **Integration : Update Rotation** Block too, Unity updates rotation twice.
 
 ![](Images/Block-UpdateRotationInspector.png)
 
