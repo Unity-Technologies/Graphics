@@ -63,7 +63,7 @@ Shader "Hidden/Light2D-Point"
             float4x4    _LightInvMatrix;
             float4x4    _LightNoRotInvMatrix;
             half        _OuterAngle;                // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half        _InnerAngleMult;            // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half        _InnerAngle;                // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
             half        _InnerRadiusMult;           // 1-0 where 1 is the value at the center and 0 is the value at the outer radius
             half        _InverseHDREmulationScale;
             half        _IsFullSpotlight;
@@ -97,7 +97,7 @@ Shader "Hidden/Light2D-Point"
                 half attenuation = saturate(_InnerRadiusMult * lookupValue.r);   // This is the code to take care of our inner radius
 
                 // Spotlight
-                half  spotAttenuation = saturate((_OuterAngle - lookupValue.g + _IsFullSpotlight) * _InnerAngleMult);
+                half  spotAttenuation = saturate((_OuterAngle - lookupValue.g + _IsFullSpotlight) * (1.0f / (_OuterAngle - _InnerAngle)));
                 attenuation = attenuation * spotAttenuation;
 
                 half2 mappedUV;
