@@ -1619,8 +1619,13 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled && xr.singlePassEnabled)
             {
-                material.SetMatrixArray(ShaderConstants._PrevViewProjMStereo, motionData.previousViewProjectionStereo);
-                material.SetMatrixArray(ShaderConstants._ViewProjMStereo, motionData.viewProjectionStereo);
+                // pass maximum of 2 matrices per pass. Need to access into the matrix array
+                var viewStartIndex = xr.viewCount * xr.multipassId;
+                // Using motionData.stagingMatrixStereo as staging buffer to avoid allocation
+                Array.Copy(motionData.previousViewProjectionStereo, viewStartIndex, motionData.stagingMatrixStereo, 0, xr.viewCount);
+                material.SetMatrixArray(ShaderConstants._PrevViewProjMStereo, motionData.stagingMatrixStereo);
+                Array.Copy(motionData.viewProjectionStereo, viewStartIndex, motionData.stagingMatrixStereo, 0, xr.viewCount);
+                material.SetMatrixArray(ShaderConstants._ViewProjMStereo, motionData.stagingMatrixStereo);
             }
             else
 #endif
@@ -1628,7 +1633,7 @@ namespace UnityEngine.Rendering.Universal
                 int viewProjMIdx = 0;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xr.enabled)
-                    viewProjMIdx = xr.multipassId;
+                    viewProjMIdx = xr.multipassId * xr.viewCount;
 #endif
 
                 // TODO: These should be part of URP main matrix set. For now, we set them here for motion vector rendering.
