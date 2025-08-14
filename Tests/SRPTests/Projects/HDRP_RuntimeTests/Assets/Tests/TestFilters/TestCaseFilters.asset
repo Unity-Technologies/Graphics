@@ -37,6 +37,16 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 897c2870240f77a46a18884a0446b797, type: 3}
     ColorSpace: -1
+    BuildPlatform: 48
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: VT not supported on Switch2
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 897c2870240f77a46a18884a0446b797, type: 3}
+    ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 16
     Architecture: 0
@@ -85,6 +95,16 @@ MonoBehaviour:
     Reason: https://jira.unity3d.com/browse/UUM-51336
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 32f9dd5fabc57284bb43468761c84f36, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 48
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: VT not supported on Switch2
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -93,6 +113,16 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-54029
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: d543283fd8f184240bc05dc13b5807a5, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 48
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: 
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: fc20c9b41da07ae499a8ed25f7c4aa85, type: 3}
@@ -113,3 +143,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://jira.unity3d.com/browse/UUM-70791
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: fc20c9b41da07ae499a8ed25f7c4aa85, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 48
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Switch2 does not support ConsoleLogPath

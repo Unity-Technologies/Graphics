@@ -473,6 +473,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // In practice though, when resolution stays the same, buffers will be the same reused from one frame to another
             // because for now buffers are pooled based on their passData. When we do proper aliasing though, we might end up with any random chunk of memory.
 
+            if (!tileAndClusterData.listsAreInitialized)
+            {
+                // On some platforms initial values in buffer might not be zero but random data.
+                // In the case of buffer "PerVoxelOffset" this can cause GPU to access incorrect memory locations and crash.
+                // To avoid that we make sure that the buffers are cleared at least once before they start being used.
+                passData.clearLightLists = true;
+                tileAndClusterData.listsAreInitialized = true;
+            }
+			
             // Always build the light list in XR mode to avoid issues with multi-pass
             if (hdCamera.xr.enabled)
             {

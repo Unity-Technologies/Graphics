@@ -2634,14 +2634,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
                 if (executedWorkDuringResourceCreation)
                 {
-                    rgContext.cmd.WaitOnAsyncGraphicsFence(previousFence);
+                    rgContext.cmd.WaitOnAsyncGraphicsFence(previousFence, SynchronisationStageFlags.PixelProcessing);
                 }
             }
 
             // Synchronize with graphics or compute pipe if needed.
             if (passInfo.syncToPassIndex != -1)
             {
-                rgContext.cmd.WaitOnAsyncGraphicsFence(m_CurrentCompiledGraph.compiledPassInfos[passInfo.syncToPassIndex].fence);
+                rgContext.cmd.WaitOnAsyncGraphicsFence(m_CurrentCompiledGraph.compiledPassInfos[passInfo.syncToPassIndex].fence, SynchronisationStageFlags.PixelProcessing);
             }
         }
 

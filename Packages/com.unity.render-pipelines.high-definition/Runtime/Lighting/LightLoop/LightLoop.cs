@@ -394,6 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public GraphicsBuffer convexBoundsBuffer { get; private set; }
 
             public bool listsAreClear = false;
+            public bool listsAreInitialized = false;
 
             public bool clusterNeedsDepth { get; private set; }
             public bool hasTileBuffers { get; private set; }

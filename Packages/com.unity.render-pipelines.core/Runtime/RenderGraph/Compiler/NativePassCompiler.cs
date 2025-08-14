@@ -1658,7 +1658,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (passData.waitOnGraphicsFencePassId != -1)
                 {
                     var fence = contextData.fences[passData.waitOnGraphicsFencePassId];
-                    rgContext.cmd.WaitOnAsyncGraphicsFence(fence);
+                    rgContext.cmd.WaitOnAsyncGraphicsFence(fence, SynchronisationStageFlags.PixelProcessing);
                 }
 
                 if (passData.type == RenderGraphPassType.Raster && passData.mergeState <= PassMergeState.Begin)
