@@ -32,7 +32,9 @@ To be able to control a keyword from the Material Inspector, make sure to enable
 
 To enable a Boolean keyword from a script, use `EnableKeyword` on the keyword's **Reference Name**. `DisableKeyword` disables the keyword. To learn more about Boolean keywords, refer to [Shader variants and keywords](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
 
-When controlling an Enum keyword via script with a `Material.EnableKeyword` or `Shader.EnableKeyword` function, enter the state label in the format `{REFERENCE}_{REFERENCESUFFIX}`. For example, if your reference name is MYENUM and the desired entry is OPTION1, then you would call `Material.EnableKeyword("MYENUM_OPTION1")`. When you select an option, this disables the other options.
+When controlling an Enum keyword via script with a `Material.EnableKeyword` or `Shader.EnableKeyword` function, enter the state label in the format `{REFERENCE}_{REFERENCESUFFIX}`. For example, if your reference name is MYENUM and the desired entry is OPTION1, then you would call `Material.EnableKeyword("MYENUM_OPTION1")`. When you select an option, you must also disable the other options to see the effect.
+
+**Note:** By default, when you add a keyword, Unity adds an underscore to the start of **Reference Name**. As a result, a keyword with the name **MYENUM** has the reference name **_MYENUM**.
 
 ## Additional resources
 
