@@ -3,6 +3,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.RadeonRays;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering.UnifiedRayTracing
 {
@@ -62,14 +63,16 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             if (!verticesAllocation.valid)
             {
                 int oldCapacity = m_VerticesAllocator.capacity;
+                // Capping capacity to 2,147,483,647 vertices because m_VerticesAllocator is using NativeList which has int max capacity
+                int maxCapacity = (int)math.min((long)Int32.MaxValue, GraphicsHelpers.MaxGraphicsBufferSizeInBytes / (long)UnsafeUtility.SizeOf<float3>());
 
-                if (!m_VerticesAllocator.GetExpectedGrowthToFitAllocation((int)info.vertexCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / UnsafeUtility.SizeOf<float3>()), out int newCapacity))
-                    throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
+                if (!m_VerticesAllocator.GetExpectedGrowthToFitAllocation((int)info.vertexCount, maxCapacity, out int newCapacity))
+                    throw new UnifiedRayTracingException($"VerticesAllocator can't grow to {maxCapacity } elements", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
                 if (!GraphicsHelpers.ReallocateBuffer(m_CopyShader, oldCapacity, newCapacity, UnsafeUtility.SizeOf<float3>(), ref m_VerticesBuffer))
                     throw new UnifiedRayTracingException($"Failed to allocate buffer of size: {newCapacity * UnsafeUtility.SizeOf<float3>()} bytes", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
-                verticesAllocation = m_VerticesAllocator.GrowAndAllocate((int)info.vertexCount, (int)(GraphicsHelpers.MaxGraphicsBufferSizeInBytes / UnsafeUtility.SizeOf<float3>()), out oldCapacity, out newCapacity);
+                verticesAllocation = m_VerticesAllocator.GrowAndAllocate((int)info.vertexCount, maxCapacity, out oldCapacity, out newCapacity);
                 Debug.Assert(verticesAllocation.valid);
             }
 
