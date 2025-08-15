@@ -662,11 +662,9 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public void RenderBloomTexture(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, bool enableAlphaOutput)
+        public Vector2Int CalcBloomResolution(Bloom bloom, in TextureDesc bloomSourceDesc)
         {
-            var srcDesc = source.GetDescriptor(renderGraph);
-
-            // Start at half-res
+                        // Start at half-res
             int downres = 1;
             switch (m_Bloom.downscale.value)
             {
@@ -682,13 +680,29 @@ namespace UnityEngine.Rendering.Universal
 
             //We should set the limit the downres result to ensure we dont turn 1x1 textures, which should technically be valid
             //into 0x0 textures which will be invalid
-            int tw = Mathf.Max(1, srcDesc.width >> downres);
-            int th = Mathf.Max(1, srcDesc.height >> downres);
+            int tw = Mathf.Max(1, bloomSourceDesc.width >> downres);
+            int th = Mathf.Max(1, bloomSourceDesc.height >> downres);
 
+            return new Vector2Int(tw, th);
+        }
+
+        public int CalcBloomMipCount(Bloom bloom, Vector2Int bloomResolution)
+        {
             // Determine the iteration count
-            int maxSize = Mathf.Max(tw, th);
+            int maxSize = Mathf.Max(bloomResolution.x, bloomResolution.y);
             int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 1);
             int mipCount = Mathf.Clamp(iterations, 1, m_Bloom.maxIterations.value);
+            return mipCount;
+        }
+
+        public void RenderBloomTexture(RenderGraph renderGraph, in TextureHandle source, out TextureHandle destination, bool enableAlphaOutput)
+        {
+            var srcDesc = source.GetDescriptor(renderGraph);
+
+            Vector2Int bloomRes = CalcBloomResolution(m_Bloom, in srcDesc);
+            int mipCount = CalcBloomMipCount(m_Bloom, bloomRes);
+            int tw = bloomRes.x;
+            int th = bloomRes.y;
 
             // Setup
             using(new ProfilingScope(ProfilingSampler.Get(URPProfileId.RG_BloomSetup)))
@@ -862,7 +876,8 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
                 });
-                return passData.bloomMipUp[0];
+                // 1st mip is the prefilter.
+                return mipCount == 1 ? passData.bloomMipDown[0] : passData.bloomMipUp[0];
             }
         }
 
@@ -981,7 +996,8 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
                 });
-                return passData.bloomMipUp[0];
+                // 1st mip is the prefilter.
+                return mipCount == 1 ? passData.bloomMipDown[0] : passData.bloomMipUp[0];
             }
         }
 
@@ -2842,9 +2858,22 @@ namespace UnityEngine.Rendering.Universal
 
                     if (useLensFlareScreenSpace)
                     {
-                        int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
-                        TextureHandle bloomMipFlareSource = _BloomMipUp[maxBloomMip];
-                        bool sameBloomInputOutputTex = maxBloomMip == 0;
+                        // We need to take into account how many valid mips the bloom pass produced.
+                        int bloomMipCount = CalcBloomMipCount(m_Bloom, CalcBloomResolution(m_Bloom, in srcDesc));
+                        int maxBloomMip = Mathf.Clamp(bloomMipCount - 1, 0, m_Bloom.maxIterations.value / 2);
+                        int useBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, maxBloomMip);
+
+                        TextureHandle bloomMipFlareSource = _BloomMipUp[useBloomMip];
+                        bool sameBloomInputOutputTex = false;
+                        if(useBloomMip == 0)
+                        {
+                            // Hierarchical blooms do only the prefilter if there's only 1 mip.
+                            if (bloomMipCount == 1 && m_Bloom.filter != BloomFilterMode.Kawase)
+                                bloomMipFlareSource = _BloomMipDown[0];
+
+                            // Flare source and Flare target is the same texture. BloomMip[0]
+                            sameBloomInputOutputTex = true; 
+                        }
 
                         // Kawase blur does not use the mip pyramid.
                         // It is safe to pass the same texture to both input/output.
