@@ -2,7 +2,7 @@
 
 Menu Path : **Attribute > Set > [Add/Blend/Inherit/Multiply/Set] \<Attribute> **
 
-The **Set Attribute** Block is a generic Block that allows you to write values to an attribute using composition.
+The **Set Attribute** Block is a generic Block that allows you to write values to an [attribute](attributes.md) using composition.
 
 You can either set the value of the attribute directly, or use two different random modes, **Uniform** and **Per-Component**, to set the attribute to a random value.
 
@@ -40,3 +40,7 @@ This Block is compatible with the following Contexts:
 | **A**            | Depends on the attribute | The first end of the random range the Block uses to calculate the value for the attribute.<br/>This property only appears if you set **Source** to **Port** and **Random** to **PerComponent** or **Uniform**. |
 | **B**            | Depends on the attribute | The other end of the random range the Block uses to calculate the value for the attribute.<br/>This property only appears if you set **Source** to **Port** and **Random** to **PerComponent** or **Uniform**. |
 | **Blend**        | Float (Range 0..1)       | The blend percentage between the current position attribute value and the newly calculated position value.<br/>This property only appears if you set **Composition** to **Blend**. |
+
+## Additional resources
+
+- [Attributes](Attributes.md)
