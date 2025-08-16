@@ -338,6 +338,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
+    "m_ConstIntMode": false,
     "m_Property": {
         "m_Id": "26c8f245ba6a4eb4bf4b120e5aaf4359"
     }
@@ -539,6 +540,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
+    "m_ConstIntMode": false,
     "m_Property": {
         "m_Id": "c28ae39dd0bc4e7f9a1af16710a69bf5"
     }
@@ -556,7 +558,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -671,7 +674,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -728,10 +732,8 @@
     "m_customAttributes": [],
     "m_Value": 0.0,
     "m_FloatType": 0,
-    "m_RangeValues": {
-        "x": 0.0,
-        "y": 1.0
-    },
+    "m_LiteralFloatMode": false,
+    "m_GammaSpace": false,
     "m_SliderType": 0,
     "m_SliderPower": 3.0,
     "m_EnumType": 0,
@@ -775,6 +777,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
+    "m_ConstIntMode": false,
     "m_Property": {
         "m_Id": "19c210f66a974620a27313de91fc1f12"
     }
@@ -861,6 +864,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
+    "m_ConstIntMode": false,
     "m_Property": {
         "m_Id": "35eaeab5fe764cd2865c09df94b176cd"
     }
@@ -897,6 +901,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
+    "m_ConstIntMode": false,
     "m_Property": {
         "m_Id": "cb329dca8610424a96aae23797f5d199"
     }

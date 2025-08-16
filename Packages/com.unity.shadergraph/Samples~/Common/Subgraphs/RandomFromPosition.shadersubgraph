@@ -99,7 +99,7 @@
         },
         "preventRotation": false
     },
-    "m_Path": "Sub Graphs",
+    "m_Path": "Procedural/Noise",
     "m_GraphPrecision": 0,
     "m_PreviewMode": 2,
     "m_OutputNode": {
@@ -172,6 +172,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "SimpleHash",
     "m_FunctionSource": "",
+    "m_FunctionSourceUsePragmas": true,
     "m_FunctionBody": "uint X = asuint(in_position.x);\r\nuint Y = asuint(in_position.y);\nuint Z = asuint(in_position.z);\r\nuint H = X ^ 2747636419u;\nH *= 2654435769u;\r\nH >> 16;\r\nH *= 2654435769u;\r\nH ^= H >> 16;\r\nH *= 2654435769u;\nH ^= Y;\nH ^= Z;\r\nout_hash = asfloat(H / 4294967295.0);"
 }
 
@@ -195,12 +196,22 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": 274769.0,
     "m_FloatType": 0,
-    "m_RangeValues": {
-        "x": 0.0,
-        "y": 1.0
-    }
+    "m_LiteralFloatMode": false,
+    "m_GammaSpace": false,
+    "m_SliderType": 0,
+    "m_SliderPower": 3.0,
+    "m_EnumType": 0,
+    "m_CSharpEnumString": "",
+    "m_EnumNames": [
+        "Default"
+    ],
+    "m_EnumValues": [
+        0
+    ]
 }
 
 {
@@ -215,7 +226,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -376,7 +388,8 @@
     "m_StageCapability": 3,
     "m_Value": 1234567.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -391,7 +404,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -452,7 +466,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -520,6 +535,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
+    "m_ConstIntMode": false,
     "m_Property": {
         "m_Id": "3b97c5182780489686cf16f9de4a9ade"
     }

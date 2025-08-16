@@ -1,0 +1,2903 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3245618711971525566
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 855044027788402175}
+  m_Layer: 0
+  m_Name: TerrainSamples
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &855044027788402175
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3245618711971525566}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1989161599903137892}
+  - {fileID: 2636287774216674069}
+  - {fileID: 5481604208622891115}
+  - {fileID: 7159436576699368312}
+  - {fileID: 7999770384012280203}
+  - {fileID: 3832905668359808272}
+  - {fileID: 5518043780390948627}
+  - {fileID: 5947885860394969593}
+  - {fileID: 3680733428466191437}
+  - {fileID: 2635068676477480812}
+  - {fileID: 143256598308310765}
+  - {fileID: 3241382058656626892}
+  - {fileID: 3775419280434676826}
+  - {fileID: 7806504225654663045}
+  - {fileID: 3461749494967353039}
+  - {fileID: 5298615766424701919}
+  - {fileID: 8463598291125179325}
+  - {fileID: 315350537332279699}
+  - {fileID: 822530377836536953}
+  - {fileID: 2725350906226399892}
+  - {fileID: 742673797690091879}
+  - {fileID: 9217100077570045875}
+  - {fileID: 5626150152769080506}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &264578847787820933
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHSimpleBlend
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: f4275a21403c9064ca34601a6d19f5bd, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CSNOH Simple Blend
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader is designed to be as simple as possible while still using
+        a custom layer type - the LayerSimpleCSNOH type.  It\u2019s using simple
+        lerp blending.  In our testing this shader and CSNOHSimpleHeight performed
+        the same - both of them very cheap (even cheaper than their CNM counterparts).\n\nTexture
+        Packing Type:\t\tCSNOH\r\nLayer Type: \t\t\tSimple\r\nLayer Blend Type: \t\tAlpha
+        Blend\r\nTile Breakup Type: \t\tNone\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture
+        Samples:\t\t\t9\nRelative Cost:\t\t\t0.56\r\n"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &2636287774216674069 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 264578847787820933}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &265613199614186492
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCNMRotationHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 90b74d60b3ac584479eca7ee097162d6, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -75
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CNM Rotation Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses the LayerRotation layer type - so it\u2019s using
+        the rotation method for tile break-up.  It is not as effective as the hex
+        tile method, but it\u2019s cheaper.  Layers are blended using height-based
+        blending.\n\nTexture Packing Type:\t\tCNM\r\nLayer Type: \t\t\tRotation\r\nLayer
+        Blend Type: \t\tHeight Blend\r\nTile Breakup Type: \t\tRotation\r\nMaterial
+        Mask Type:\t\tPainted Splatmap\nTexture Samples:\t\t\t29\nRelative Cost:\t\t\t2.32"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &2635068676477480812 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 265613199614186492}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &839991568200403309
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 75
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1955005432225279403, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_Name
+      value: TileBreakupRotation
+      objectReference: {fileID: 0}
+    - target: {fileID: 3699473107381856362, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: c95462529e406bf4fa319a3166c0a9cf, type: 2}
+    - target: {fileID: 6885782194408502559, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_text
+      value: This tile break-up method  samples the material textures twice. The
+        second texture sample has the UVs rotated 90 degrees and scaled differently.
+        Then the two samples are blended together using a mask texture. This is the
+        least expensive form of tile break-up. It provides decent results, but not
+        perfect.
+      objectReference: {fileID: 0}
+    - target: {fileID: 8507298289327844937, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_text
+      value: 'Tile Breakup: Rotation'
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b538ef86faca5d04bba381458583df34, type: 3}
+--- !u!4 &742673797690091879 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+  m_PrefabInstance: {fileID: 839991568200403309}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &848280931186181212
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHHexBlend
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 5ad12f2fa471e844695a9b890fb39abb, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -125
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CSNOH Hex Blend
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_xAdvance
+      value: 0.5352164
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineNumber
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineOffset
+      value: 0.24204545
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_characterCount
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementAscender
+      value: -0.04829544
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementDescender
+      value: -0.2903409
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LastBaseGlyphIndex
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.lineCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastCharacterOfLine
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_startOfLineAscender
+      value: 0.19375001
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_totalCharacterCount
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstCharacterOfLine
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.characterCount
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineVisibleCharacterCount
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastVisibleCharacterOfLine
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstVisibleCharacterOfLine
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_InternalTextProcessingArraySize
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses the LayerHexCSNOH layer nodes - so it\u2019s doing
+        the hex tile method of repetition artifact break-up. It\u2019s using standard
+        alpha blending between the layers instead of height-based blending.  Hex
+        tiling is more expensive than CSNOHSimpleBlend or CSNOHRotHeight, but is
+        the most effective at breaking up repetition.\n\nTexture Packing Type:\t\tCSNOH\r\nLayer
+        Type: \t\t\tHex\r\nLayer Blend Type: \t\tAlpha Blend\r\nTile Breakup Type:
+        \t\tHexagon Tiles\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture Samples:\t\t\t25\nRelative
+        Cost:\t\t\t3.12"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &3241382058656626892 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 848280931186181212}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1301320020259805568
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCNMSimpleHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: a923b20557381ce4db8558925a157e90, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CNM Simple Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader is the same as CNMSimpleBlend, but it\u2019s using height-based
+        blending instead of lerp blending for a more realistic look.\n\nTexture Packing
+        Type:\t\tCNM\r\nLayer Type: \t\t\tSimple\r\nLayer Blend Type: \t\tHeight
+        Blend\r\nTile Breakup Type: \t\tNone\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture
+        Samples:\t\t\t13\nRelative Cost:\t\t\t0.92"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &3832905668359808272 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 1301320020259805568}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1394703119935486154
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHHexHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 4fbec4e11aaff7740ab5eaf05bc5e108, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -150
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CSNOH Hex Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_xAdvance
+      value: 0.62467957
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineNumber
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineOffset
+      value: 0.24204545
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_characterCount
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementAscender
+      value: -0.04829544
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementDescender
+      value: -0.2903409
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LastBaseGlyphIndex
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.lineCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.wordCount
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastCharacterOfLine
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_startOfLineAscender
+      value: 0.19375001
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.spaceCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_totalCharacterCount
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstCharacterOfLine
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.characterCount
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineVisibleCharacterCount
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastVisibleCharacterOfLine
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstVisibleCharacterOfLine
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Unicode
+      value: 116
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_InternalTextProcessingArraySize
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_GlyphIndex
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Index
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_X
+      value: 123
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Y
+      value: 327
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Width
+      value: 22.828125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Height
+      value: 53.28125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Width
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Height
+      value: 54
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalAdvance
+      value: 28.359375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingX
+      value: 2.4375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingY
+      value: 52.734375
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses the LayerHexCSNOH layer nodes - so it\u2019s doing
+        the hex tile method of repetition artifact break-up. Layers are blended using
+        height-based blending. This hex tiling is more expensive than CSNOHSimpleBlend
+        or CSNOHRotHeight, but is the most effective at breaking up repetition.\n\nTexture
+        Packing Type:\t\tCSNOH\r\nLayer Type: \t\t\tHex\r\nLayer Blend Type: \t\tHeight
+        Blend\r\nTile Breakup Type: \t\tHexagon Tiles\r\nMaterial Mask Type:\t\tPainted
+        Splatmap\nTexture Samples:\t\t\t25\nRelative Cost:\t\t\t3.36\r\n"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &3775419280434676826 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 1394703119935486154}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1453140137259593949
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHRotationHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: e6c4e8643fbda3f4da4c21f97b682c93, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CSNOH Rotation Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_xAdvance
+      value: 0.62467957
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineNumber
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineOffset
+      value: 0.24204545
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_characterCount
+      value: 21
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementAscender
+      value: -0.04829544
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementDescender
+      value: -0.2903409
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LastBaseGlyphIndex
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.lineCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.wordCount
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastCharacterOfLine
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_startOfLineAscender
+      value: 0.19375001
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.spaceCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_totalCharacterCount
+      value: 21
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstCharacterOfLine
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.characterCount
+      value: 21
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineVisibleCharacterCount
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastVisibleCharacterOfLine
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstVisibleCharacterOfLine
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Unicode
+      value: 116
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_InternalTextProcessingArraySize
+      value: 21
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_GlyphIndex
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Index
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_X
+      value: 123
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Y
+      value: 327
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Width
+      value: 22.828125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Height
+      value: 53.28125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Width
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Height
+      value: 54
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalAdvance
+      value: 28.359375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingX
+      value: 2.4375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingY
+      value: 52.734375
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses LayerRotationCSNOH layer type - so it\u2019s using
+        the rotation method for tile break-up.  It is not as effective as the hex
+        tile method, but it\u2019s cheaper.  Layers are blended using height-based
+        blending.\n\nTexture Packing Type:\t\tCSNOH\r\nLayer Type: \t\t\tRotation\r\nLayer
+        Blend Type: \t\tHeight Blend\r\nTile Breakup Type: \t\tRotation\r\nMaterial
+        Mask Type:\t\tPainted Splatmap\nTexture Samples:\t\t\t21\nRelative Cost:\t\t\t1.68"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &3680733428466191437 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 1453140137259593949}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1672130820307993183
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCNMHexHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 2a7c83254d987f140af04252f17d5ddb, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -125
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CNM Hex Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses the LayerHex layer nodes (including one LayerHexDetail
+        layer) - so it\u2019s doing the hex tile method of repetition artifact break-up. 
+        It\u2019s more expensive than the other shaders, but is the most effective
+        at breaking up repetition. This shader also uses height-based blending between
+        materials for a more realistic look.\n\nTexture Packing Type:\t\tCNM\r\nLayer
+        Type: \t\t\tHex\r\nLayer Blend Type: \t\tHeight Blend\r\nTile Breakup Type:
+        \t\tHexagon Tiles\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture Samples:\t\t\t37\nRelative
+        Cost:\t\t\t4.08"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &3461749494967353039 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 1672130820307993183}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &2548572745234461955
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHAutoMaterialRotation
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 7d11fb9ce7f7dfd4d863736b4d8c595b, type: 2}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_SplatMapDistance
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: 'CSNOH Auto Rotation
+
+
+
+'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This is a second example of an auto material that applies materials
+        based on terrain angle and altitude rather than manual painting. This version
+        uses the Rotation technique for breaking up tiling.\n\n\nTexture Packing
+        Type:\t\tCSNOH\r\nLayer Type: \t\t\tRotation Auto\r\nLayer Blend Type: \t\tHeight
+        Blend\r\nTile Breakup Type: \t\tRotation\r\nMaterial Mask Type:\t\tProcedural\nTexture
+        Samples:\t\t\t20\nRelative Cost:\t\t\t5.04"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &315350537332279699 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 2548572745234461955}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &2608950011870821022
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 75
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1955005432225279403, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_Name
+      value: TileBreakupNone
+      objectReference: {fileID: 0}
+    - target: {fileID: 3699473107381856362, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: afff7c126a32a0d43be169245f00f477, type: 2}
+    - target: {fileID: 6885782194408502559, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_text
+      value: 'This is an example of what terrain materials look like when no tile
+        breakup method is used. The textures repeat over and over and look very unnatural. 
+        Doing no tile breakup like this is cheaper, though, so you may need to use
+        this method if performance is at a premium.
+
+
+        Here are some other
+        ideas for tile breakup if you can''t afford the performance cost of doing
+        it in the shader:
+
+
+        - Scale the material larger so that it repeats
+        less
+
+
+        - Edit the textures to remove unique features that make repetition
+        more obvious.
+
+
+        - Make each terrain layer tile at a different rate
+        and then paint the layers such that the blending itself breaks up the tiling.
+
+
+        -
+        Hide the tiling with other details on the terrain like rocks, grass, trees,
+        and other details.
+
+
+        In general, large stretches of empty terrain
+        make the tiling more obvious so anything you can do to interupt that will
+        reduce the repetativeness.'
+      objectReference: {fileID: 0}
+    - target: {fileID: 8507298289327844937, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_text
+      value: 'Tile Breakup: None'
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b538ef86faca5d04bba381458583df34, type: 3}
+--- !u!4 &2725350906226399892 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+  m_PrefabInstance: {fileID: 2608950011870821022}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &2793062801176769149
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHProceduralHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: d5cc491f8d7bddd4ca6a767f3e7d6ad8, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -75
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CSNOH Procedural Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_xAdvance
+      value: 1.2235577
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineNumber
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineOffset
+      value: 0.24204545
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_characterCount
+      value: 23
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementAscender
+      value: -0.04829544
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementDescender
+      value: -0.2903409
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LastBaseGlyphIndex
+      value: 22
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.lineCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.wordCount
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastCharacterOfLine
+      value: 22
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_startOfLineAscender
+      value: 0.19375001
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.spaceCount
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_totalCharacterCount
+      value: 23
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstCharacterOfLine
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.characterCount
+      value: 23
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineVisibleCharacterCount
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastVisibleCharacterOfLine
+      value: 22
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstVisibleCharacterOfLine
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Unicode
+      value: 116
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_InternalTextProcessingArraySize
+      value: 23
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_GlyphIndex
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Index
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_X
+      value: 123
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Y
+      value: 327
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Width
+      value: 22.828125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Height
+      value: 53.28125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Width
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Height
+      value: 54
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalAdvance
+      value: 28.359375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingX
+      value: 2.4375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingY
+      value: 52.734375
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses the Tile Break method of breaking up the repetition.
+        It\u2019s similar to the Rotation method in that it samples the material
+        textures twice, but the mask that blends between them is generated procedurally
+        instead of using a mask texture. It\u2019s more expensive than the Rotation
+        method, but also more effective at tile break-up.\n\nTexture Packing Type:\t\tCSNOH\r\nLayer
+        Type: \t\t\tTile Break\r\nLayer Blend Type: \t\tHeight Blend\r\nTile Breakup
+        Type: \t\tTile Break\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture
+        Samples:\t\t\t21\nRelative Cost:\t\t\t2.56"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &143256598308310765 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 2793062801176769149}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &3194239374110775529
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHHexParallaxHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 0a0f8bc7ed4f5fa48940456953be8073, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -175
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CSNOH Hex Parallax Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_xAdvance
+      value: 1.4235578
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineNumber
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineOffset
+      value: 0.24204545
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_characterCount
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementAscender
+      value: -0.04829544
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementDescender
+      value: -0.2903409
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LastBaseGlyphIndex
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.lineCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.wordCount
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastCharacterOfLine
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_startOfLineAscender
+      value: 0.19375001
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.spaceCount
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_totalCharacterCount
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstCharacterOfLine
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_isPreferredWidthDirty
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_AutoSizeIterationCount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_isPreferredHeightDirty
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.characterCount
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineVisibleCharacterCount
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastVisibleCharacterOfLine
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstVisibleCharacterOfLine
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Unicode
+      value: 116
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_InternalTextProcessingArraySize
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_GlyphIndex
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Index
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_X
+      value: 123
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Y
+      value: 327
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Width
+      value: 22.828125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Height
+      value: 53.28125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Width
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Height
+      value: 54
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalAdvance
+      value: 28.359375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingX
+      value: 2.4375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingY
+      value: 52.734375
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader is using both parallax mapping and hex grid tile break-up
+        for every layer.  It is extremely expensive (about 20x the cost of the default
+        shader) because of the high number of texture samples required by all of
+        the layers.  We DO NOT recommend using a shader like this in production (where
+        every layer is using the most expensive layer type).  Instead, you should
+        mix and match layer types based on the requirements of the materials you\u2019re
+        using. This example is included for performance and visual comparison purposes.\n\nTexture
+        Packing Type:\t\tCSNOH\r\nLayer Type: \t\t\tHex\r\nLayer Blend Type: \t\tHeight
+        Blend\r\nTile Breakup Type: \t\tHexagon Tiles\r\nMaterial Mask Type:\t\tPainted
+        Splatmap\nTexture Samples:\t\t\tvariable - very high\nRelative Cost:\t\t\t19.8"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &822530377836536953 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 3194239374110775529}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &4369876076655639796
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCHNOSArray Dither
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: b1e7116f5fd00384a9384fff82116084, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CHNOS Array Dither
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses an innovative technique for reducing texture samples
+        as much as possible.  The data from multiple materials is packed into a single
+        array texture. For each terrain material, the color and height data are stored
+        in individual CH textures (color in RGB, height in the alpha channel). But
+        the normal, occlusion, and smoothness for all of the materials on the terrain
+        are packed into a single array texture.  Because of this packing scheme,
+        this 4-layer shader is able to do just 6 texture samples total vs the CNMSimpleBlend
+        shader which requires 13! A dithered mask is used to select the array index
+        - which removes the hard seams.\n\nTexture Packing Type:\t\tCHNOS Array\r\nLayer
+        Type: \t\t\tArray\r\nLayer Blend Type: \t\tHeight Blend Dithered\r\nTile
+        Breakup Type: \t\tNone\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture
+        Samples:\t\t\t6\nRelative Cost:\t\t\t0.4"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &1989161599903137892 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 4369876076655639796}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &4928465688126865384
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHAutoMaterialSimple
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 1712cd8d6397316408202e13658b9d68, type: 2}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_SplatMapDistance
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: 'CSNOH Auto Simple
+
+
+'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This is an example of a shader that can automatically apply materials
+        to surfaces without requiring any manual painting or pre-generated splat
+        maps. The shader uses the angle of the terrain along with the altitude to
+        apply grass, dirt, rocks, cliff faces, and even snow in appropriate locations.
+        At lower altitudes, the shader blends between grass on flat surfaces and
+        dirt on more angled surfaces.  At higher altitudes, the shader blends between
+        rocky soil on flat surfaces and cliff faces on slopes.  Then it blends the
+        two together and adds snow on top.\n\n\nTexture Packing Type:\t\tCSNOH\r\nLayer
+        Type: \t\t\tSimple Auto\r\nLayer Blend Type: \t\tHeight Blend\r\nTile Breakup
+        Type: \t\tNone\r\nMaterial Mask Type:\t\tProcedural\nTexture Samples:\t\t\t10\nRelative
+        Cost:\t\t\t0.72"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &7159436576699368312 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 4928465688126865384}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5204723058113543451
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCNMSimpleBlend
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1627475104032042933, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1769942245448852939, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 8fa1f583c8b9c8d418e229e70fafdab6, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4981136768199893858, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CNM Simple Blend
+      objectReference: {fileID: 0}
+    - target: {fileID: 6108997183400005806, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6494663939027433094, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader is designed to be as simple as possible while still using
+        the standard texture packing method - CNM.  It\u2019s using simple lerp blending. 
+        In our testing this shader came out slightly cheeper than the Terrain Lit
+        code version.\n\nTexture Packing Type:\t\tCNM\r\nLayer Type: \t\t\tSimple\r\nLayer
+        Blend Type: \t\tAlpha Blend\r\nTile Breakup Type: \t\tNone\r\nMaterial Mask
+        Type:\t\tPainted Splatmap\nTexture Samples:\t\t\t13\nRelative Cost:\t\t\t0.88"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8715559512974516702, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &7999770384012280203 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 5204723058113543451}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5433670980132215573
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCNMProceduralHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 00e2a4fb59b0d2641a3d1c75d2dac6e7, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -100
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CNM Procedural Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses the Tile Break method of breaking up the repetition.
+        It\u2019s similar to the Rotation method in that it samples the material
+        textures twice, but the mask that blends between them is generated procedurally
+        instead of using a mask texture. It\u2019s more expensive than the Rotation
+        method, but also more effective at tile break-up.\n\nTexture Packing Type:\t\tCNM\r\nLayer
+        Type: \t\t\tTile Break\r\nLayer Blend Type: \t\tHeight Blend\r\nTile Breakup
+        Type: \t\tTile Breakup\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture
+        Samples:\t\t\t25\nRelative Cost:\t\t\t3.56"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &7806504225654663045 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 5433670980132215573}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5760851327029210288
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -75
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 75
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1955005432225279403, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_Name
+      value: TileBreakupHex
+      objectReference: {fileID: 0}
+    - target: {fileID: 3699473107381856362, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: ab87412d4abf2fb4ba675a16022e9db5, type: 2}
+    - target: {fileID: 6885782194408502559, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_text
+      value: This tile break-up method uses a hexagon grid. The grid is procedurally
+        generated and each tile has a unique offset, scale, and rotation. These transforms
+        are applied to the material textures to create the tile breakup.  In order
+        to blend smoothly between each hex tile, the material textures must be sampled
+        3 times. Because of these extra samples, this is the most expensive tile
+        break-up method. But it's also the most effective.
+      objectReference: {fileID: 0}
+    - target: {fileID: 8507298289327844937, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_text
+      value: 'Tile Breakup: Hexagon Grid'
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b538ef86faca5d04bba381458583df34, type: 3}
+--- !u!4 &5626150152769080506 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+  m_PrefabInstance: {fileID: 5760851327029210288}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5929759675649421101
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHParallaxHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: fc51d5f43a901614497afcb62132e2e5, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -100
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CSNOH Parallax Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_xAdvance
+      value: 0.62467957
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineNumber
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineOffset
+      value: 0.24204545
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_characterCount
+      value: 21
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementAscender
+      value: -0.04829544
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementDescender
+      value: -0.2903409
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LastBaseGlyphIndex
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.lineCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.wordCount
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastCharacterOfLine
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_startOfLineAscender
+      value: 0.19375001
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.spaceCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_totalCharacterCount
+      value: 21
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstCharacterOfLine
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.characterCount
+      value: 21
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineVisibleCharacterCount
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastVisibleCharacterOfLine
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstVisibleCharacterOfLine
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Unicode
+      value: 116
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_InternalTextProcessingArraySize
+      value: 21
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_GlyphIndex
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Index
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_X
+      value: 123
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Y
+      value: 327
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Width
+      value: 22.828125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Height
+      value: 53.28125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Width
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Height
+      value: 54
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalAdvance
+      value: 28.359375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingX
+      value: 2.4375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingY
+      value: 52.734375
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses parallax mapping - a form of ray marching, to create
+        the illusion of tessellation and displacement on the surface of the terrain. 
+        Since we\u2019re doing many texture samples, this technique can be quite
+        expensive.  Unlike this example which uses LayerParallaxCSNOH layers for
+        every layer, we recommend using only one or two LayerParallaxCSNOH layers
+        (for the materials that really need them) in your shaders to save on performance.\n\nTexture
+        Packing Type:\t\tCSNOH\r\nLayer Type: \t\t\tParallax\r\nLayer Blend Type:
+        \t\tHeight Blend\r\nTile Breakup Type: \t\tNone\r\nMaterial Mask Type:\t\tPainted
+        Splatmap\nTexture Samples:\t\t\tvariable\nRelative Cost:\t\t\t5.2"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &8463598291125179325 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 5929759675649421101}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &7722707096794991867
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHSimpleHeight
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: f6920341e0ebb064eb8319a09c878f95, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CSNOH Simple Height
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_xAdvance
+      value: 0.62467957
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineNumber
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineOffset
+      value: 0.24204545
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_characterCount
+      value: 19
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementAscender
+      value: -0.04829544
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ElementDescender
+      value: -0.2903409
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LastBaseGlyphIndex
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.lineCount
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastCharacterOfLine
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_startOfLineAscender
+      value: 0.19375001
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_totalCharacterCount
+      value: 19
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstCharacterOfLine
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_textInfo.characterCount
+      value: 19
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lineVisibleCharacterCount
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_lastVisibleCharacterOfLine
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_firstVisibleCharacterOfLine
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Unicode
+      value: 116
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_InternalTextProcessingArraySize
+      value: 19
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_GlyphIndex
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Index
+      value: 885
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_X
+      value: 123
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Y
+      value: 327
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Width
+      value: 22.828125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_Height
+      value: 53.28125
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Width
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_GlyphRect.m_Height
+      value: 54
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalAdvance
+      value: 28.359375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingX
+      value: 2.4375
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_cached_TextElement.m_Glyph.m_Metrics.m_HorizontalBearingY
+      value: 52.734375
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader is the same as CSNOHSimpleBlend, but it\u2019s using height-based
+        blending instead of alpha blending for a more realistic look.\n\nTexture
+        Packing Type:\t\tCSNOH\r\nLayer Type: \t\t\tSimple\r\nLayer Blend Type: \t\tHeight
+        Blend\r\nTile Breakup Type: \t\tNone\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture
+        Samples:\t\t\t9\nRelative Cost:\t\t\t0.56"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &5481604208622891115 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 7722707096794991867}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &7758021387601310595
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: StandardTerrainLit
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ReceiveGI
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_DrawHeightmap
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_DrawInstanced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 7f29bb3329492894e89062c2e8574dd9, type: 2}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_SplatMapDistance
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ShadowCastingMode
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_RenderingLayerMask
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_DrawTreesAndFoliage
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IgnoreQualitySettings
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4981136768199893858, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 127
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: Standard Terrain
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This is the standard Terrain Lit shader that's written in code. It's
+        included so that you can compare its features and performance with the other
+        shaders incluided in the sample set.\n\nTexture Packing Type:\t\tCNM\r\nLayer
+        Type: \t\t\tBuilt-In\r\nLayer Blend Type: \t\tMultiply/Add Blend\r\nTile
+        Breakup Type: \t\tNone\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture
+        Samples:\t\t\t13\nRelative Cost:\t\t\t1.0"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &5518043780390948627 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 7758021387601310595}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &7977693787346253647
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCSNOHAutoMaterialHex
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 00cf6655484153340bc9b2d6454ffcb6, type: 2}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_SplatMapDistance
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: 'CSNOH Auto Hex
+
+
+'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This example shader is similar to CSNOH Auto Material Simple, but it
+        uses the hex grid tiling technique to break up the texture tiling.\n\n\nTexture
+        Packing Type:\t\tCSNOH\r\nLayer Type: \t\t\tHex Auto\r\nLayer Blend Type:
+        \t\tHeight Blend\r\nTile Breakup Type: \t\tHexagon Tiles\r\nMaterial Mask
+        Type:\t\tProcedural\nTexture Samples:\t\t\t30\nRelative Cost:\t\t\t4.68"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &5298615766424701919 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 7977693787346253647}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &8481723275376022889
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_Name
+      value: TerrainCHNOSHexArray
+      objectReference: {fileID: 0}
+    - target: {fileID: 1458585235953980421, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2686328857450695717, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: 9c274d786193d2245828a5eac7732e08, type: 2}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5645319776432814256, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: CHNOS Hex Array
+      objectReference: {fileID: 0}
+    - target: {fileID: 7483008653348496358, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+      propertyPath: m_text
+      value: "This shader uses the same packing scheme as CHNOSArray, but also includes
+        hex grid tiling to break up texture repetition. It's only applied to the
+        color textures. The normal and masks are sampled from the array and are not
+        blended.  This four-layer shader is doing just 16 texture samples vs the
+        CNMHexHeight shader, which is doing 37!\n\nTexture Packing Type:\t\tCH NOSArray\r\nLayer
+        Type: \t\t\tArray Hex\r\nLayer Blend Type: \t\tHeight Blend\r\nTile Breakup
+        Type: \t\tHexagon Tiles\r\nMaterial Mask Type:\t\tPainted Splatmap\nTexture
+        Samples:\t\t\t16\nRelative Cost:\t\t\t1.64"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+--- !u!4 &5947885860394969593 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2827698493258890384, guid: 17683db9631b82b41994fef1836386ca, type: 3}
+  m_PrefabInstance: {fileID: 8481723275376022889}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &9083489610007304121
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 855044027788402175}
+    m_Modifications:
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -50
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 75
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1955005432225279403, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_Name
+      value: TileBreakupProcedural
+      objectReference: {fileID: 0}
+    - target: {fileID: 3699473107381856362, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_MaterialTemplate
+      value: 
+      objectReference: {fileID: 2100000, guid: c0fce08c904d2374b8021c3e3eeb3aa5, type: 2}
+    - target: {fileID: 6885782194408502559, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_text
+      value: This tile break-up method is similar to the Rotation method in that
+        it samples the material's textures twice. The difference is that the mask
+        that blends the two samples is generated procedurally instead of using another
+        texture. Because it's generated procedurally, the mask can adapt and blend
+        between the two samples in the most effective way.
+      objectReference: {fileID: 0}
+    - target: {fileID: 8507298289327844937, guid: b538ef86faca5d04bba381458583df34, type: 3}
+      propertyPath: m_text
+      value: 'Tile Breakup: Procedural
+
+'
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b538ef86faca5d04bba381458583df34, type: 3}
+--- !u!4 &9217100077570045875 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 137005759507881994, guid: b538ef86faca5d04bba381458583df34, type: 3}
+  m_PrefabInstance: {fileID: 9083489610007304121}
+  m_PrefabAsset: {fileID: 0}

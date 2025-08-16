@@ -1,0 +1,399 @@
+{
+	"introduction":
+	"""With the addition of Shader Graph support to the terrain system, artists now have the flexibility to design their own terrain solutions and customize them to fit their specific visual goals and performance budgets.  This sample set provides a large set of example terrain shaders and dozens of subgraphs that can be mixed and matched to create new shaders for terrain.
+
+	The example terrain shaders consist of the following elements. The names of each terrain shader indicate which of these elements are being used.
+
+	<b>Texture packing scheme</b>
+	The number of textures used to define a material and how the properties are packed into the channels of the textures. These terrain shaders use either a 3 texture packing scheme (CNM), or a 2 texture packing scheme (CSNOH).
+
+	<b>Layer type</b>
+	Controls the features and behavior of individual terrain layers/materials. Primarily, this means the type of tile break-up that the layer uses, but could also include other features such as detail mapping, triplanar projection, or parallax mapping. Most of the samples use the same layer type for all 4 layers, but it’s most efficient to use the cheapest layer type for each layer, depending on the needs of the specific material the layer is using.
+
+	<b>Tile break-up type</b>
+	Each layer uses one of the methods for reducing tiling artifacts. The Simple type is the cheapest, but does no tile break-up. Rotation is the simplest and cheapest form of tile break-up. Other methods - like Procedural, and Hex are more effective at tile break-up, but they’re also more expensive.
+	
+	<b>Layer Blend type</b>
+	Layers can be blended with additive blending (Blend) or with height blending (Height).
+
+	More details on all of these elements can be found in <a href="https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Shader-Graph-Sample-Terrain.html">the sample’s documentation.</a>
+
+	Select one of the example shaders from the drop-down menu to jump to that sample in the scene and see how it works. Shaders are in order from cheapest to most expensive for performance.
+
+	""",
+
+
+	"samples": [
+		{
+			"title": "CNM Simple Blend",
+			"prefabName": "TerrainCNMSimpleBlend",
+			"description":
+			"""<ignore><link="CNM Simple Blend.shadergraph">Open the example shader</link></ignore>
+			
+			This shader is designed to be as simple as possible while still using the standard texture packing method - CNM.  It’s using simple lerp blending.  In our testing this shader came out slightly cheaper than the Terrain Lit code version.
+			
+			Texture Packing Type:  CNM
+			Layer Type:  Simple
+			Layer Blend Type:  Alpha Blend
+			Tile Breakup Type:  None
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  13
+			Relative Cost:  0.88
+			"""
+		},
+		{
+			"title": "CNM Simple Height",
+			"prefabName": "TerrainCNMSimpleHeight",
+			"description":
+			"""<ignore><link="CNM Simple Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader is the same as CNMSimpleBlend, but it’s using height-based blending instead of lerp blending for a more realistic look.
+			
+			Texture Packing Type:  CNM
+			Layer Type:  Simple
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  None
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  13
+			Relative Cost:  0.92
+			"""
+		},
+		{
+			"title": "CNM Rotation Height",
+			"prefabName": "TerrainCNMRotationHeight",
+			"description":
+			"""<ignore><link="CNM Rotation Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses LayerRot layer type - so it’s using the rotation method for tile break-up.  It is not as effective as the hex tile method, but it’s cheaper.  Layers are blended using height-based blending.
+			
+			Texture Packing Type:  CNM
+			Layer Type:  Rotation
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Rotation
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  29
+			Relative Cost:  2.32
+			"""
+		},
+		{
+			"title": "CNM Procedural Height",
+			"prefabName": "TerrainCNMProceduralHeight",
+			"description":
+			"""<ignore><link="CNM Procedural Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses the Procedural method of breaking up the repetition. It’s similar to the Rotation method in that it samples the material textures twice, but the mask that blends between them is generated procedurally instead of using a mask texture. It’s more expensive than the Rotation method, but also more effective at tile break-up.
+			
+			Texture Packing Type:  CNM
+			Layer Type:  Tile Break
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Tile Breakup
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  25
+			Relative Cost:  3.56
+			"""
+		},
+		{
+			"title": "CNM Hex Height",
+			"prefabName": "TerrainCNMHexHeight",
+			"description":
+			"""<ignore><link="CNM Hex Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses the LayerHex layer nodes (including one LayerHexDetail layer) - so it’s doing the hex tile method of repetition artifact break-up.  It’s more expensive than the other shaders, but is the most effective at breaking up repetition. This shader also uses height blending for more realistic transitions between layers.
+			
+			Texture Packing Type:  CNM
+			Layer Type:  Hex
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Hexagon Tiles
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  37
+			Relative Cost:  4.08
+			"""
+		},
+		{
+			"title": "CHNOS Array Dither",
+			"prefabName": "TerrainCHNOSArray Dither",
+			"description":
+			"""<ignore><link="CHNOS Array Dither.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses an innovative technique for reducing texture samples as much as possible.  The texture packing scheme packs the data from multiple materials into a single array texture. For each terrain material, the color and height data are stored in individual CH textures (color in RGB, height in the alpha channel). But the normal, occlusion, and smoothness for all of the materials on the terrain are packed into a single array texture.  Because of this packing scheme, this 4-layer shader is able to do just 6 texture samples total vs the CNMSimpleBlend shader which requires 13! A dithered mask is used to select the array index - which removes the hard seams that would otherwise be present when sampling a texture array.
+			
+			Texture Packing Type:  CHNOS Array
+			Layer Type:  Array
+			Layer Blend Type:  Height Blend Dithered
+			Tile Breakup Type:  None
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  6
+			Relative Cost:  0.4
+			"""
+		},
+		{
+			"title": "CHNOS Hex Array",
+			"prefabName": "TerrainCHNOSHexArray",
+			"description":
+			"""<ignore><link="CHNOS Array Hex.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses the same packing scheme as CHNOSArray, but also includes hex grid tiling to break up texture repetition.  This four-layer shader is doing just 14 texture samples vs the CNMHexHeight shader, which is doing 37!
+			
+			Texture Packing Type:  CH NOSArray
+			Layer Type:  Array Hex
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Hexagon Tiles
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  16
+			Relative Cost:  1.64
+			"""
+		},{
+			"title": "CSNOH Simple Blend",
+			"prefabName": "TerrainCSNOHSimpleBlend",
+			"description":
+			"""<ignore><link="CSNOH Simple Blend.shadergraph">Open the example shader</link></ignore>
+			
+			This shader is designed to be as simple as possible. It uses the CSNOH texture packing type to reduce the number of texture samples required per layer from 3 down to 2.  It’s also using simple alpha blending.  In our testing this shader and CSNOHSimpleHeight performed the same - both of them very cheap (much cheaper than their CNM counterparts).
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Simple
+			Layer Blend Type:  Alpha Blend
+			Tile Breakup Type:  None
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  9
+			Relative Cost:  0.56
+			"""
+		},
+		{
+			"title": "CSNOH Simple Height",
+			"prefabName": "TerrainCSNOHSimpleHeight",
+			"description":
+			"""<ignore><link="CSNOH Simple Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader is the same as CSNOHSimpleBlend, but it’s using height-based blending instead of lerp blending for a more realistic look.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Simple
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  None
+			Material Mask Type: Painted Splatmap
+			Texture Samples:  9
+			Relative Cost:  0.56
+			"""
+		},
+		{
+			"title": "CSNOH Rotation Height",
+			"prefabName": "TerrainCSNOHRotationHeight",
+			"description":
+			"""<ignore><link="CSNOH Rotation Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses LayerRotationCSNOH layer type - so it’s using the rotation method for tile break-up.  It is not as effective as the hex tile method, but it’s cheaper.  Layers are blended using height-based blending.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Rotation
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Rotation
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  21
+			Relative Cost:  1.68
+			"""
+		},
+		{
+			"title": "CSNOH Procedural Height",
+			"prefabName": "TerrainCSNOHProceduralHeight",
+			"description":
+			"""<ignore><link="CSNOH Procedural Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses the Procedural method of breaking up the repetition. It’s similar to the Rotation method in that it samples the material textures twice, but the mask that blends between them is generated procedurally instead of using a mask texture. It’s more expensive than the Rotation method, but also more effective at tile break-up.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Tile Break
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Tile Break
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  21
+			Relative Cost:  2.56
+			"""
+		},
+		{
+			"title": "CSNOH Parallax Height",
+			"prefabName": "TerrainCSNOHParallaxHeight",
+			"description":
+			"""<ignore><link="CSNOH Parallax Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses parallax mapping - a form of ray marching, to create the illusion of tessellation and displacement on the surface of the terrain.  Since we’re doing many texture samples, this technique can be quite expensive.  Unlike this example which uses LayerParallaxCSNOH layers for every layer, we recommend using only one or two LayerParallaxCSNOH nodes (for the materials that really need them) in your shaders to save on performance.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Parallax
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  None
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  variable
+			Relative Cost:  5.2
+			"""
+		},
+		{
+			"title": "CSNOH Hex Blend",
+			"prefabName": "TerrainCSNOHHexBlend",
+			"description":
+			"""<ignore><link="CSNOH Hex Blend.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses the LayerHexCSNOH layer nodes - so it’s doing the hex tile method of repetition artifact break-up. It’s using standard alpha blending between the layers instead of height-based blending.  It’s more expensive than CSNOHSimpleBlend or CSNOHRotHeight, but is the most effective at breaking up repetition.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Hex
+			Layer Blend Type:  Alpha Blend
+			Tile Breakup Type:  Hexagon Tiles
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  25
+			Relative Cost:  3.12
+			"""
+		},
+		{
+			"title": "CSNOH Hex Height",
+			"prefabName": "TerrainCSNOHHexHeight",
+			"description":
+			"""<ignore><link="CSNOH Hex Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader uses the LayerHexCSNOH layer nodes - so it’s doing the hex tile method of repetition artifact break-up. Layers are blended using height-based blending. It’s more expensive than CSNOHSimpleBlend or CSNOHRotHeight, but is the most effective at breaking up repetition.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Hex
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Hexagon Tiles
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  25
+			Relative Cost:  3.36
+
+			"""
+		},
+		{
+			"title": "CSNOH Hex Parallax Height",
+			"prefabName": "TerrainCSNOHHexParallaxHeight",
+			"description":
+			"""<ignore><link="CSNOH Hex Parallax Height.shadergraph">Open the example shader</link></ignore>
+			
+			This shader is using both parallax mapping and hex grid tile break-up for every layer.  It is <u>extremely</u> expensive because of the high number of texture samples required by all of the layers.  We DO NOT recommend using a shader like this in production (where every layer is using the most expensive layer type).  Instead, you should mix and match layer types based on the requirements of the materials you’re using. This example is included for performance and visual comparison purposes.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Hex
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Hexagon Tiles
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  variable - very high
+			Relative Cost:  19.8
+			"""
+		},
+		{
+			"title": "CSNOH Auto Material Simple",
+			"prefabName": "TerrainCSNOHAutoMaterialSimple",
+			"description":
+			"""<ignore><link="CSNOH Auto Material Simple.shadergraph">Open the example shader</link></ignore>
+			
+			This is an example of a shader that can automatically apply materials to surfaces without requiring any manual painting or pre-generated splat maps. The shader uses the angle of the terrain along with the altitude to apply grass, dirt, rocks, cliff faces, and even snow in appropriate locations. At lower altitudes, the shader blends between grass on flat surfaces and dirt on more angled surfaces.  At higher altitudes, the shader blends between rocky soil on flat surfaces and cliff faces on slopes.  Then it blends the two together and adds snow on top.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Simple Auto
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  None
+			Material Mask Type:  Procedural
+			Texture Samples:  10
+			Relative Cost:  0.72
+			"""
+		},
+		{
+			"title": "CSNOH Auto Material Rotation",
+			"prefabName": "TerrainCSNOHAutoMaterialRotation",
+			"description":
+			"""<ignore><link="CSNOH Auto Material Rotation.shadergraph">Open the example shader</link></ignore>
+			
+			This is a second example of an auto material that applies materials based on terrain angle and altitude rather than manual painting. This version uses the Rotation technique for breaking up tiling.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Rotation Auto
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Rotation
+			Material Mask Type:  Procedural
+			Texture Samples:  20
+			Relative Cost:  5.04
+			"""
+		},
+		{
+			"title": "CSNOH Auto Material Hex",
+			"prefabName": "TerrainCSNOHAutoMaterialHex",
+			"description":
+			"""<ignore><link="CSNOH Auto Material Hex.shadergraph">Open the example shader</link></ignore>
+			
+			This example shader is similar to CSNOH Auto Material Simple, but it uses the hex grid tiling technique to break up the texture tiling.
+			
+			Texture Packing Type:  CSNOH
+			Layer Type:  Hex Auto
+			Layer Blend Type:  Height Blend
+			Tile Breakup Type:  Hexagon Tiles
+			Material Mask Type:  Procedural
+			Texture Samples:  30
+			Relative Cost:  4.68
+			"""
+		},
+		{
+			"title": "Standard Terrain Lit",
+			"prefabName": "StandardTerrainLit",
+			"description":
+			"""<ignore><link=""></link></ignore>
+			
+			This example is using the existing Terrain Lit shader that's written in code. It's here so you can compare its performance and features with the shaders created in Shader Graph.
+			
+			Texture Packing Type:  CNM
+			Layer Type:  Built-In
+			Layer Blend Type:  Multiply/Add Blend
+			Tile Breakup Type:  None
+			Material Mask Type:  Painted Splatmap
+			Texture Samples:  13
+			Relative Cost:  1.0
+			"""
+		},
+		{
+			"title": "Tile Breakup - None",
+			"prefabName": "TileBreakupNone",
+			"description":
+			"""<ignore><link=""></link></ignore>
+			
+			This is an example of what terrain materials look like when no tile breakup method is used. The textures repeat over and over and look very unnatural.  Doing no tile breakup like this is cheaper, though, so you may need to use this method if performance is at a premium.
+
+			Here are some other ideas for tile breakup if you can't afford the performance cost of doing it in the shader:
+
+			- Scale the material larger so that it repeats less
+
+			- Edit the textures to remove unique features that make repetition more obvious.
+
+			- Make each terrain layer tile at a different rate and then paint the layers such that the blending itself breaks up the tiling.
+
+			- Hide the tiling with other details on the terrain like rocks, grass, trees, and other details.
+
+			In general, large stretches of empty terrain make the tiling more obvious so anything you can do to interupt that will reduce the repetativeness.
+			"""
+		},
+		{
+			"title": "Tile Breakup - Rotation",
+			"prefabName": "TileBreakupRotation",
+			"description":
+			"""<ignore><link=""></link></ignore>
+			
+			This tile break-up method  samples the material textures twice. The second texture sample has the UVs rotated 90 degrees and scaled differently. Then the two samples are blended together using a mask texture. This is the least expensive form of tile break-up. It provides decent results, but not perfect.
+			"""
+		},
+		{
+			"title": "Tile Breakup - Procedural",
+			"prefabName": "TileBreakupProcedural",
+			"description":
+			"""<ignore><link=""></link></ignore>
+			
+			This tile break-up method is similar to the Rotation method in that it samples the material's textures twice. The difference is that the mask that blends the two samples is generated procedurally instead of using another texture. Because it's generated procedurally, the mask can adapt and blend between the two samples in the most effective way.
+			"""
+		},
+		{
+			"title": "Tile Breakup - Hexagon Tiles",
+			"prefabName": "TileBreakupHex",
+			"description":
+			"""<ignore><link=""></link></ignore>
+			
+			This tile break-up method uses a hexagon grid. The grid is procedurally generated and each tile has a unique offset, scale, and rotation. These transforms are applied to the material textures to create the tile breakup.  In order to blend smoothly between each hex tile, the material textures must be sampled 3 times. Because of these extra samples, this is the most expensive tile break-up method. But it's also the most effective.
+			"""
+		}
+	]
+}

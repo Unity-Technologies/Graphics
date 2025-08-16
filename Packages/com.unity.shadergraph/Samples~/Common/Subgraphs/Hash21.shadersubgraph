@@ -82,7 +82,7 @@
         },
         "preventRotation": false
     },
-    "m_Path": "Sub Graphs",
+    "m_Path": "Procedural/Noise",
     "m_GraphPrecision": 1,
     "m_PreviewMode": 2,
     "m_OutputNode": {
@@ -116,7 +116,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -173,6 +174,8 @@
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
     "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
     "m_Value": {
         "x": 0.0,
         "y": 0.0,
@@ -235,7 +238,8 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
@@ -289,6 +293,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
+    "m_ConstIntMode": false,
     "m_Property": {
         "m_Id": "918e51e0e4ce4634b8f74780255dd320"
     }
@@ -334,6 +339,7 @@
     "m_SourceType": 1,
     "m_FunctionName": "Hash21Tchou",
     "m_FunctionSource": "",
+    "m_FunctionSourceUsePragmas": true,
     "m_FunctionBody": "uint r;\r\nuint2 v = (uint2) (int2) round(p);\r\nv.y ^= 1103515245U;\r\nv.x += v.y;\r\nv.x *= v.y;                        \nv.x ^= v.x >> 5u;             \nv.x *= 0x27d4eb2du;     \nr = v.x;\r\nOut = r * (1.0 / float(0xffffffff));"
 }
 
