@@ -73,7 +73,7 @@ Library Subgraph Nodes used in this sample:
 - Vignette
 
 ## Buttons
-![](images/UITools-buttons.png) 
+![User interface component with three distinct buttons labeled Button and a circular person icon. From left to right: a blue capsule-shaped button, a circular person icon, a dark blue rhombus button, and a green rounded rectangle button. ](images/UITools-buttons.png) 
 These examples show how to create buttons of various visual styles. Each button has exposed parameters that control the button’s visual states - selected, pressed, and active. In the example scene, you can take a look at how these material parameters are connected to the button’s state events to drive the appearance of the button.
 
 Many shape elements of the buttons use the AntiAliasing node which converts SDFs and gradients to perfectly anti-aliased shapes, regardless of scale or camera position. For more details on how to accomplish this, refer to [How to create a resolution-independent shape](Shader-Graph-Sample-UGUI-Shaders-How-tos-Res-indepenent.md).
@@ -120,7 +120,8 @@ Library Subgraph Nodes used in this sample:
 - AntiAliasing
 
 ## Indicators
-![](images/UITools-meters2.png) 
+![From left to right: A rounded, 3D capsule split into orange and black halves, a circular icon featuring a person symbol, framed by a blue arc, a transparent sphere partially filled with glowing red liquid, a gradient progress bar fading from pink to purple and blue.](images/UITools-meters2.png)
+
 These UI elements indicate things to the player visually such as health level, ammo count, shield power, etc. All of them have an exposed material parameter called “Health” that drives the level of the meter. Using a script, you can connect this parameter to any value in your project to indicate its level to the player.
 
 ### AquaMeter
@@ -172,7 +173,7 @@ Library Subgraph Nodes used in this sample:
 - HistogramScan
 
 ## Progress Bars
-![](images/UITools-meters.png) 
+![From left to right: A circular segmented ring with a gradient transitioning from orange and brown to dark purple; a gradient bar smoothly blending from dark purple through pink, orange, yellow, to light gray; a spinner with circular segments fading from light to dark to simulate motion; and another spinner featuring green dots forming an incomplete curved circle, with larger dots clustered at the bottom-right and smaller ones tapering toward the top-left.](images/UITools-meters.png) 
 
 ### FancyLoading
 This is a circle that’s made of circles. Each circle starts large and then gets smaller over time and the effect is offset so it happens in a wave pattern. The larger circle pattern also appears to move and change perspective over time as if it were tilting around in a 3D space. These effects are all achieved by chaining together various nodes from the Subgraph Library.

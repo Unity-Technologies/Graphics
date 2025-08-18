@@ -735,6 +735,15 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4106_DRS-TAAU-AfterPost.unity
     guid: f3545370c7a89344e8947299391ba87d
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4107_DRS-FSR2-Hardware.unity
+    guid: 90eae0c5496f9ac4ea55280841b6efdb
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4108_DRS-FSR2-Software.unity
+    guid: 7ef4a19b40d29a74492f7a1166ef9523
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4109_DRS-FSR2-AfterPost.unity
+    guid: cbd1f7bf59ae04b46afbfcb1188b43b4
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5001_Fog_FogFallback.unity
     guid: d04c39af67e5e18449a44f6a7778862f
   - enabled: 1
@@ -1049,5 +1058,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9970-ScreenSpaceUIOverlay.unity
     guid: df8ad799e8a136e488cc1dc4c39a9c2c
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 20e925b8abdd424429b17f709e9d00f8,
+      type: 2}
   m_UseUCBPForAssetBundles: 0

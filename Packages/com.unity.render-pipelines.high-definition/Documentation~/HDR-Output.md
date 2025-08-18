@@ -13,7 +13,7 @@ To activate HDR output, navigate to **Project Settings > Player** > **Other Sett
 
 > **Note**: Only enable **Use HDR Display Output** if you need the main display to use HDR Output.
 
-HDR Output will be active only in Game View and in Player. Currently the feature is not working on DirectX 11 on PC, please use DirectX 12 to make use of it. 
+HDR Output is only active in the Player when using DirectX 11, and both in the Player and Game View when using DirectX 12.
 
 ## HDR tonemapping in HDRP
 
@@ -91,5 +91,3 @@ HDRP only supports HDR Output on the following platforms:
 * HDRP Supported Devices that use Metal
 * Consoles
 * XR devices with HDR support
-
-> **Note**: DirectX 11 only supports HDR Output in the Player, it does not support HDR Output in the Editor.

@@ -48,19 +48,19 @@ public class HDRP_Graphics_Tests
         "1351_Fabric$",
         "(Intel Mac) Slight divergence on the right-most materials.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
         "1710_Decals_Normal_Patch$",
         "(Intel Mac) Decals missing on top of StackLit and Fabric planes.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
         "1805_Depth_Pre_Post_Unlit$",
         "(Intel Mac) Certain overlapping areas diverge, though not too apparent to the naked eye.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest("1806_BatchCount$", "Fails everywhere (seems to be missing CPU markers).")]
     [IgnoreGraphicsTest(
@@ -102,7 +102,7 @@ public class HDRP_Graphics_Tests
         "2323_Shadow_Interlaced_Cascades_Update$",
         "(Intel Mac) Slight divergence on the right area of the image.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
         "2405_EnlightenDynamicAreaLights$",
@@ -113,7 +113,7 @@ public class HDRP_Graphics_Tests
         "2405_EnlightenDynamicAreaLights$",
         "Results on CI are very close to Windows ref-images. Maybe it just need a ref-image update?",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Vulkan },
-        runtimePlatforms: new [] { RuntimePlatform.LinuxEditor }
+        runtimePlatforms: new[] { RuntimePlatform.LinuxEditor }
     )]
     [IgnoreGraphicsTest(
         "3006_TileCluster_Cluster$",
@@ -124,7 +124,7 @@ public class HDRP_Graphics_Tests
         "3008_ShadowDebugMode$",
         "(Intel Mac) Clear color of the debug-view seems to be black instead of white. Probably just an outdated ref-image.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest("3012_MipMapMode_MipStreamingPerformance$", "There seems to be issues with the texture-streaming behaviour on all platforms.")]
     [IgnoreGraphicsTest("4012_MotionBlur_CameraOnly$", "Missing ref-image.")]
@@ -132,7 +132,7 @@ public class HDRP_Graphics_Tests
         "4075_PhysicalCamera-gateFit$",
         "Noisy result in Linux + VK..",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Vulkan },
-        runtimePlatforms: new []{ RuntimePlatform.LinuxEditor }
+        runtimePlatforms: new[] { RuntimePlatform.LinuxEditor }
     )]
     [IgnoreGraphicsTest(
         "4088_DRS-DLSS-Hardware$",
@@ -159,7 +159,7 @@ public class HDRP_Graphics_Tests
         "4105_LensFlareScreenSpace$",
         "(Intel Mac) Lens-flare behaviour seems to be different from all the other platforms.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
         "4106_DRS-TAAU-AfterPost$",
@@ -195,26 +195,26 @@ public class HDRP_Graphics_Tests
         "5011_VolumetricCloudsShadowsBake$",
         "(Intel Mac) Rendered image is completely black.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
         "5013_VolumetricCloudsShadowsNoExposureControl$",
         "(Intel Mac) Rendered image is completely black.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest(
         "8101_Opaque$",
         "(Intel Mac) Small divergence around 'Iridescence Specular Occlusion from Bent Normal' material. Might need a ref-image update.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest("8207_InstanceIDWithKeywords$", "Missing ref-image.")]
     [IgnoreGraphicsTest(
         "8213_Thickness$",
         "(Intel Mac) Bunny in the middle should be translucent-pink, not black.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal },
-        architectures: new [] { Architecture.X64 }
+        architectures: new[] { Architecture.X64 }
     )]
     [IgnoreGraphicsTest("9006_StencilUsage$", "Missing ref-image.")]
     [IgnoreGraphicsTest("9601_SkinnedMeshBatching-Off$", "Outdated ref-image.")]
@@ -243,6 +243,21 @@ public class HDRP_Graphics_Tests
         "9922_WaterPrefab$",
         "Minor divergence across the waves' crests.",
         graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal }
+    )]
+    [IgnoreGraphicsTest(
+        "4107_DRS-FSR2-Hardware$",
+        "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU }
+    )]
+    [IgnoreGraphicsTest(
+        "4108_DRS-FSR2-Software$",
+        "Platform not supported", // FSR is DX12/DX11/Vulkan on PC-only
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU }
+    )]
+    [IgnoreGraphicsTest(
+        "4109_DRS-FSR2-AfterPost$",
+        "Graphics devices type not supported", // FSR is DX12/DX11/Vulkan on PC-only
+        graphicsDeviceTypes: new[] { GraphicsDeviceType.Metal, GraphicsDeviceType.OpenGLES3, GraphicsDeviceType.PlayStation4, GraphicsDeviceType.XboxOne, GraphicsDeviceType.OpenGLCore, GraphicsDeviceType.Switch, GraphicsDeviceType.XboxOneD3D12, GraphicsDeviceType.GameCoreXboxOne, GraphicsDeviceType.GameCoreXboxSeries, GraphicsDeviceType.PlayStation5, GraphicsDeviceType.PlayStation5NGGC, GraphicsDeviceType.WebGPU }
     )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {

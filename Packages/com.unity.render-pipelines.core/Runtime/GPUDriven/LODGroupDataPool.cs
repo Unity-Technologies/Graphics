@@ -87,52 +87,6 @@ namespace UnityEngine.Rendering
     }
 
     [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-    internal unsafe struct AllocateOrGetLODGroupDataInstancesJob : IJob
-    {
-        [ReadOnly] public NativeArray<int> lodGroupsID;
-
-        public NativeList<LODGroupData> lodGroupsData;
-        public NativeList<LODGroupCullingData> lodGroupCullingData;
-        public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash;
-        public NativeList<GPUInstanceIndex> freeLODGroupDataHandles;
-
-        [WriteOnly] public NativeArray<GPUInstanceIndex> lodGroupInstances;
-
-        [NativeDisableUnsafePtrRestriction] public int* previousRendererCount;
-
-        public void Execute()
-        {
-            int freeHandlesCount = freeLODGroupDataHandles.Length;
-            int lodDataLength = lodGroupsData.Length;
-
-            for (int i = 0; i < lodGroupsID.Length; ++i)
-            {
-                int lodGroupID = lodGroupsID[i];
-
-                if (!lodGroupDataHash.TryGetValue(lodGroupID, out var lodGroupInstance))
-                {
-                    if (freeHandlesCount == 0)
-                        lodGroupInstance = new GPUInstanceIndex() { index = lodDataLength++ };
-                    else
-                        lodGroupInstance = freeLODGroupDataHandles[--freeHandlesCount];
-
-                    lodGroupDataHash.TryAdd(lodGroupID, lodGroupInstance);
-                }
-                else
-                {
-                    *previousRendererCount += lodGroupsData.ElementAt(lodGroupInstance.index).rendererCount;
-                }
-
-                lodGroupInstances[i] = lodGroupInstance;
-            }
-
-            freeLODGroupDataHandles.ResizeUninitialized(freeHandlesCount);
-            lodGroupsData.ResizeUninitialized(lodDataLength);
-            lodGroupCullingData.ResizeUninitialized(lodDataLength);
-        }
-    }
-
-    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     internal unsafe struct UpdateLODGroupDataJob : IJobParallelFor
     {
         public const int k_BatchSize = 256;
@@ -219,38 +173,6 @@ namespace UnityEngine.Rendering
         }
     }
 
-    [BurstCompile(DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
-    internal unsafe struct FreeLODGroupDataJob : IJob
-    {
-        [ReadOnly] public NativeArray<int> destroyedLODGroupsID;
-
-        public NativeList<LODGroupData> lodGroupsData;
-        public NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataHash;
-        public NativeList<GPUInstanceIndex> freeLODGroupDataHandles;
-
-        [NativeDisableUnsafePtrRestriction] public int* removedRendererCount;
-
-        public void Execute()
-        {
-            foreach (int lodGroupID in destroyedLODGroupsID)
-            {
-                if (lodGroupDataHash.TryGetValue(lodGroupID, out var lodGroupInstance))
-                {
-                    Assert.IsTrue(lodGroupInstance.valid);
-
-                    lodGroupDataHash.Remove(lodGroupID);
-                    freeLODGroupDataHandles.Add(lodGroupInstance);
-
-                    ref LODGroupData lodGroupData = ref lodGroupsData.ElementAt(lodGroupInstance.index);
-                    Assert.IsTrue(lodGroupData.valid);
-
-                    *removedRendererCount += lodGroupData.rendererCount;
-                    lodGroupData.valid = false;
-                }
-            }
-        }
-    }
-
     internal class LODGroupDataPool : IDisposable
     {
         private NativeList<LODGroupData> m_LODGroupData;
@@ -329,18 +251,9 @@ namespace UnityEngine.Rendering
 
             var lodGroupInstances = new NativeArray<GPUInstanceIndex>(inputData.lodGroupID.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-            int previousRendererCount = 0;
-
-            new AllocateOrGetLODGroupDataInstancesJob
-            {
-                lodGroupsID = inputData.lodGroupID,
-                lodGroupsData = m_LODGroupData,
-                lodGroupCullingData = m_LODGroupCullingData,
-                lodGroupDataHash = m_LODGroupDataHash,
-                freeLODGroupDataHandles = m_FreeLODGroupDataHandles,
-                lodGroupInstances = lodGroupInstances,
-                previousRendererCount = &previousRendererCount
-            }.Run();
+            int previousRendererCount = LODGroupDataPoolBurst.AllocateOrGetLODGroupDataInstances(inputData.lodGroupID,
+                ref m_LODGroupData, ref m_LODGroupCullingData,
+                ref m_LODGroupDataHash, ref m_FreeLODGroupDataHandles, ref lodGroupInstances);
 
             m_CrossfadedRendererCount -= previousRendererCount;
             Assert.IsTrue(m_CrossfadedRendererCount >= 0);
@@ -367,21 +280,12 @@ namespace UnityEngine.Rendering
             lodGroupInstances.Dispose();
         }
 
-        public unsafe void FreeLODGroupData(NativeArray<int> destroyedLODGroupsID)
+        public void FreeLODGroupData(NativeArray<int> destroyedLODGroupsID)
         {
             if (destroyedLODGroupsID.Length == 0)
                 return;
 
-            int removedRendererCount = 0;
-
-            new FreeLODGroupDataJob
-            {
-                destroyedLODGroupsID = destroyedLODGroupsID,
-                lodGroupsData = m_LODGroupData,
-                lodGroupDataHash = m_LODGroupDataHash,
-                freeLODGroupDataHandles = m_FreeLODGroupDataHandles,
-                removedRendererCount = &removedRendererCount
-            }.Run();
+            int removedRendererCount = LODGroupDataPoolBurst.FreeLODGroupData(destroyedLODGroupsID, ref m_LODGroupData, ref m_LODGroupDataHash, ref m_FreeLODGroupDataHandles);
 
             m_CrossfadedRendererCount -= removedRendererCount;
             Assert.IsTrue(m_CrossfadedRendererCount >= 0);

@@ -1,13 +1,15 @@
-# Profiling and Debug Panels
+# Performance and optimization
 
-The Profiling and Debug panels provide useful information about your running Visual Effects, such as CPU and GPU timings, memory usage, texture usage, and various states. These allow you to keep the performance of your effects under control while you author them.
+To optimize performance, use the **Profiling** and **Debug** panels.
 
-To enable the Profiling and Debug panels, follow these steps:
+The **Profiling** and **Debug** panels provide useful information about your running Visual Effects, such as CPU and GPU timings, memory usage, texture usage, and various states. These allow you to keep the performance of your effects under control while you author them.
+
+To enable the **Profiling** and **Debug** panels, follow these steps:
 
 1. Attach the **Visual Effect Graph** window to a GameObject that has a **Visual Effect** component. For more information, refer to [Attaching a Visual Effect](GettingStarted.md#attaching-a-visual-effect-from-the-scene-to-the-current-graph).
 2. Select the debug icon in the top-right of the **Visual Effect Graph** window.
 
-All the information displayed in the Profiling and Debug panels refers to the attached GameObject.
+All the information displayed in the **Profiling** and **Debug** panels refers to the attached GameObject.
 
 ## Graph Debug Information
 
@@ -20,10 +22,10 @@ The Graph Debug Information panel provides information relative to the entire gr
 | **Texture Usage**     | For each system, lists the textures used along with their dimension and memory size.                                                                                                                                                                                                                    |
 | **Heatmap parameter** | <li>GPU Time Threshold (ms): This controls the value, in milliseconds, above which the execution times in the panels will turn red. Adjust this value to easily identify expensive parts for your graph.     </li>                                                                                      |
 
-Shortcuts to the **Rendering Debugger**  [in URP](https://docs.unity3d.com/Manual/urp/features/rendering-debugger.html) or [in HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/rendering-debugger-window-reference.html) and to the [Unity Profiler](https://docs.unity3d.com/Manual/Profiler.html) are available through the menu on the top-right of the Graph Debug Information panel. 
+Shortcuts to the **Rendering Debugger**  [in URP](https://docs.unity3d.com/Manual/urp/features/rendering-debugger.html) or [in HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/rendering-debugger-window-reference.html) and to the [Unity Profiler](https://docs.unity3d.com/Manual/Profiler.html) are available through the menu on the top-right of the **Graph Debug Information** panel. 
 ## Particle System Info
 
- The Particle System Info panel is attached to the Initialize Context of each system. This panel provides information relative a specific system. 
+ The **Particle System Info** panel is attached to the Initialize Context of each system. This panel provides information relative a specific system. 
 
 | Property              | Description                                                                                                                                                                                                                                                                          |
 |-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -39,7 +41,7 @@ Shortcuts to the **Rendering Debugger**  [in URP](https://docs.unity3d.com/Manua
 
 Contexts debug panels are attached to each context of a system. They are displayed when a context is selected and can be locked to be kept on screen even when the context is unselected.
 
-Each context will display informations that are relevant to its use:
+Each context will display information that are relevant to its use:
 
 ### Spawn Context
 

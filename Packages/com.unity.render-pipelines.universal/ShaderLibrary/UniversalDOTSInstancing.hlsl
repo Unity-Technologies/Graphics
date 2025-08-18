@@ -38,6 +38,8 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_WorldTransformParams  LoadDOTSInstancedData_WorldTransformParams()
 #define unity_RenderingLayer        LoadDOTSInstancedData_RenderingLayer()
 #define unity_MotionVectorsParams   LoadDOTSInstancedData_MotionVectorsParams() 
+#define unity_RendererBounds_Min    LoadDOTSInstancedData_RendererBounds_Min()
+#define unity_RendererBounds_Max    LoadDOTSInstancedData_RendererBounds_Max()
 
 #define UNITY_SETUP_DOTS_SH_COEFFS  SetupDOTSSHCoeffs(UNITY_DOTS_INSTANCED_METADATA_NAME(SH, unity_SHCoefficients))
 #define UNITY_SETUP_DOTS_RENDER_BOUNDS  SetupDOTSRendererBounds(UNITY_DOTS_MATRIX_M)
@@ -54,9 +56,6 @@ static const float4 unity_SpecCube1_BoxMax = float4(1,1,1,1);
 static const float4 unity_SpecCube1_BoxMin = float4(0,0,0,0);
 static const float4 unity_SpecCube1_ProbePosition = float4(0,0,0,0);
 static const float4 unity_SpecCube1_HDR = float4(0,0,0,0);
-
-static const float4 unity_RendererBounds_Min = float4(0,0,0,0);
-static const float4 unity_RendererBounds_Max = float4(0,0,0,0);
 
 // Set up by BRG picking/selection code
 int unity_SubmeshIndex;

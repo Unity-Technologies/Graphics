@@ -475,24 +475,21 @@ namespace UnityEngine.Rendering
             m_InstanceData.EnsureFreeInstances(newInstancesCount);
             m_SharedInstanceData.EnsureFreeInstances(newSharedInstancesCount);
 
-            new ReallocateInstancesJob { implicitInstanceIndices = implicitInstanceIndices, rendererGroupInstanceMultiHash = m_RendererGroupInstanceMultiHash,
-                instanceAllocators = m_InstanceAllocators, sharedInstanceData = m_SharedInstanceData, instanceData = m_InstanceData,
-                rendererGroupIDs = rendererData.rendererGroupID, packedRendererData = rendererData.packedRendererData, instanceOffsets = rendererData.instancesOffset,
-                instanceCounts = rendererData.instancesCount, instances = instances }.Run();
+            InstanceDataSystemBurst.ReallocateInstances(implicitInstanceIndices, rendererData.rendererGroupID, rendererData.packedRendererData,
+                rendererData.instancesOffset, rendererData.instancesCount, ref m_InstanceAllocators, ref m_InstanceData,
+                ref m_SharedInstanceData, ref instances, ref m_RendererGroupInstanceMultiHash);
         }
 
         public void FreeRendererGroupInstances(NativeArray<int> rendererGroupsID)
         {
-            new FreeRendererGroupInstancesJob { rendererGroupInstanceMultiHash = m_RendererGroupInstanceMultiHash,
-                instanceAllocators = m_InstanceAllocators, sharedInstanceData = m_SharedInstanceData, instanceData = m_InstanceData,
-                rendererGroupsID = rendererGroupsID }.Run();
+            InstanceDataSystemBurst.FreeRendererGroupInstances(rendererGroupsID.AsReadOnly(), ref m_InstanceAllocators, ref m_InstanceData,
+                ref m_SharedInstanceData, ref m_RendererGroupInstanceMultiHash);
         }
 
         public void FreeInstances(NativeArray<InstanceHandle> instances)
         {
-            new FreeInstancesJob { rendererGroupInstanceMultiHash = m_RendererGroupInstanceMultiHash,
-                instanceAllocators = m_InstanceAllocators, sharedInstanceData = m_SharedInstanceData, instanceData = m_InstanceData,
-                instances = instances }.Run();
+            InstanceDataSystemBurst.FreeInstances(instances.AsReadOnly(), ref m_InstanceAllocators, ref m_InstanceData,
+                ref m_SharedInstanceData, ref m_RendererGroupInstanceMultiHash);
         }
 
         public JobHandle ScheduleUpdateInstanceDataJob(NativeArray<InstanceHandle> instances, in GPUDrivenRendererGroupData rendererData, NativeParallelHashMap<int, GPUInstanceIndex> lodGroupDataMap)

@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -168,25 +169,20 @@ namespace UnityEditor.Rendering.Tests
         {
             var vm = new VolumeManager();
             vm.baseComponentTypeArray = new[] {typeof(TestAnimationCurveVolumeComponent)};
-            vm.EvaluateVolumeDefaultState();
-
-            // Initialize the stack
-            var stack = vm.CreateStack();
+            vm.InitializeInternal();
 
             actionToPerform?.Invoke(
-                stack.parameters[0].GetValue<AnimationCurve>(),                 // parameterInterpolated
+                vm.stack.parameters[0].GetValue<AnimationCurve>(),              // parameterInterpolated
                 vm.m_ParametersDefaultState[0].GetValue<AnimationCurve>(),      // defaultParameterForFastAccess
                 m_DefaultComponent.testParameter.GetValue<AnimationCurve>(),    // defaultComponentParameterUsedToInitializeStack
-                stack,
+                vm.stack,
                 vm);
 
-            return (
-                stack.parameters == null ?
-                    -1 : stack.parameters[0].GetValue<AnimationCurve>().length,                 // parameterInterpolated
-                vm.m_ParametersDefaultState == null ?
-                    -1 : vm.m_ParametersDefaultState[0].GetValue<AnimationCurve>().length,      // defaultParameterForFastAccess
-                m_DefaultComponent.testParameter.GetValue<AnimationCurve>().length              // defaultComponentParameterUsedToInitializeStack
-                );
+            var parameterInterpolated = vm.stack.parameters == null ? -1 : vm.stack.parameters[0].GetValue<AnimationCurve>().length;
+            var defaultParameterForFastAccess = vm.m_ParametersDefaultState == null ? -1 : vm.m_ParametersDefaultState[0].GetValue<AnimationCurve>().length;
+            var defaultComponentParameterUsedToInitializeStack = m_DefaultComponent.testParameter.GetValue<AnimationCurve>().length;
+            vm.Deinitialize();
+            return (parameterInterpolated, defaultParameterForFastAccess, defaultComponentParameterUsedToInitializeStack);
         }
     }
 

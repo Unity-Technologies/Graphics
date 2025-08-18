@@ -43,8 +43,8 @@ The following image shows the effect of dual lobes on a human face model, with *
 The following image shows the effect of increasing **Diffuse Shading Power** on a human face model.
 
 <canvas class="image-comparison" role="img" aria-label="The front view of a head. When Diffuse Shading Power is increased from 1 to 1.9, the head looks less flat and has deeper shadows.">
-    <img src="Images/profile_diffuse_power.jpg" title="">
-    <img src="Images/profile_diffuse_power-2.jpg" title="">
+    <img src="Images/profile_diffuse_power.jpg" title="Diffuse Shading Power: 1.9">
+    <img src="Images/profile_diffuse_power-2.jpg" title="Diffuse Shading Power: 1">
 </canvas>
 <br />Drag the slider to compare the images.
 

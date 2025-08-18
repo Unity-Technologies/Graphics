@@ -390,8 +390,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
-                { CoreKeywordDescriptors.DBuffer },
-                { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
+                CoreKeywordDescriptors.DBuffer,
+                CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion,
+                CoreKeywordDescriptors.RenderPassEnabled,
+                CoreKeywordDescriptors.GBufferNormalsOct,
+                CoreKeywordDescriptors.ShadowsShadowmask
             };
         }
         #endregion
@@ -421,6 +424,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
+                { CoreIncludes.WriteRenderLayersPregraph },
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },

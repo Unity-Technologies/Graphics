@@ -127,7 +127,7 @@ GBufferData UnpackGBuffers(uint2 unCoord2)
     #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
     gBufferData.meshRenderingLayers = DecodeMeshRenderingLayer(renderingLayers);
     #else
-    gBufferData.meshRenderingLayers = 0xFFFF;
+    gBufferData.meshRenderingLayers = 0xFFFFFFFF;
     #endif
 
     return gBufferData;

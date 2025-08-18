@@ -1,4 +1,4 @@
-#if SHADERPASS != SHADERPASS_FOGVOLUME_VOXELIZATION
+#if SHADERPASS != SHADERPASS_FOG_VOLUME_VOXELIZATION
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -91,14 +91,13 @@ VertexToFragment Vert(uint instanceId : INSTANCEID_SEMANTIC, uint vertexId : VER
     return output;
 }
 
-FragInputs BuildFragInputs(VertexToFragment v2f, float3 voxelPositionOS, float3 voxelClipSpace)
+FragInputs BuildFragInputs(VertexToFragment v2f, float3 voxelPositionWS, float3 voxelClipSpace)
 {
     FragInputs output;
     ZERO_INITIALIZE(FragInputs, output);
 
-    float3 positionWS = mul(UNITY_MATRIX_M, float4(voxelPositionOS, 1)).xyz;
     output.positionSS = v2f.positionCS;
-    output.positionRWS = output.positionPredisplacementRWS = positionWS;
+    output.positionRWS = output.positionPredisplacementRWS = voxelPositionWS;
     output.positionPixel = uint2(v2f.positionCS.xy);
     output.texCoord0 = float4(saturate(voxelClipSpace * 0.5 + 0.5), 0);
     output.tangentToWorld = k_identity3x3;
@@ -140,9 +139,11 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     float3 rayoriginWS    = GetCurrentViewPosition();
     float3 voxelCenterWS = rayoriginWS + sliceDistance * raycenterDirWS;
 
+    // Build rotation matrix from normalized OBB axes to transform the world space position
     float3x3 obbFrame = float3x3(_VolumetricMaterialObbRight.xyz, _VolumetricMaterialObbUp.xyz, cross(_VolumetricMaterialObbRight.xyz, _VolumetricMaterialObbUp.xyz));
 
-    float3 voxelCenterBS = mul(voxelCenterWS - _VolumetricMaterialObbCenter.xyz + _WorldSpaceCameraPos.xyz, transpose(obbFrame));
+    // Rotate world position around the center of the local fog OBB
+    float3 voxelCenterBS = mul(GetAbsolutePositionWS(voxelCenterWS - _VolumetricMaterialObbCenter.xyz), transpose(obbFrame));
     float3 voxelCenterCS = (voxelCenterBS * rcp(_VolumetricMaterialObbExtents.xyz));
 
     // Still need to clip pixels outside of the box because of the froxel buffer shape
@@ -150,7 +151,7 @@ void Frag(VertexToFragment v2f, out float4 outColor : SV_Target0)
     if (!overlap)
         clip(-1);
 
-    FragInputs fragInputs = BuildFragInputs(v2f, voxelCenterBS, voxelCenterCS);
+    FragInputs fragInputs = BuildFragInputs(v2f, voxelCenterWS, voxelCenterCS);
     GetVolumeData(fragInputs, v2f.viewDirectionWS, albedo, extinction);
 
     // Accumulate volume parameters

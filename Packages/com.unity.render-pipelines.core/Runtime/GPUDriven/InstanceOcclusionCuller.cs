@@ -74,8 +74,10 @@ namespace UnityEngine.Rendering
     [GenerateHLSL(needAccessors = false)]
     internal enum InstanceOcclusionTestDebugCounter
     {
-        Occluded,
-        NotOccluded,
+        InstancesOccluded,
+        InstancesNotOccluded,
+        PrimitivesOccluded,
+        PrimitivesNotOccluded,
         Count,
     }
 
@@ -93,7 +95,7 @@ namespace UnityEngine.Rendering
         public uint firstIndex;
         public uint baseVertex;
         public uint firstInstanceGlobalIndex;
-        public uint maxInstanceCount;
+        public uint maxInstanceCountAndTopology; // [31:3]=max_instance_count, [2:0]=topology
     }
 
     internal struct IndirectBufferAllocInfo
@@ -280,7 +282,7 @@ namespace UnityEngine.Rendering
                 occluderDepthPyramid = RTHandles.Alloc(
                     occluderDepthPyramidSize.x, occluderDepthPyramidSize.y,
                     format: GraphicsFormat.R32_SFloat,
-                    dimension: TextureDimension.Tex2D,                    
+                    dimension: TextureDimension.Tex2D,
                     filterMode: FilterMode.Point,
                     wrapMode: TextureWrapMode.Clamp,
                     enableRandomWrite: true,

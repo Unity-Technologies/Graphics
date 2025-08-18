@@ -131,7 +131,8 @@ namespace UnityEditor.Rendering.Universal
             else if (EditorToolManager.IsActiveTool<ShadowCaster2DShadowCasterShapeTool>())
                 ToolManager.RestorePreviousTool();
 
-            EditorGUILayout.PropertyField(m_ShadowShape2DProvider, Styles.shadowShape2DProvider, true);
+            if(m_ShadowShape2DProvider != null)
+                EditorGUILayout.PropertyField(m_ShadowShape2DProvider, Styles.shadowShape2DProvider, true);
 
             serializedObject.ApplyModifiedProperties();
         }
