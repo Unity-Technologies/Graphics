@@ -1309,7 +1309,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         private void ValidateAttachment(in RenderTargetInfo attRenderTargetInfo, RenderGraphResourceRegistry resources, int nativePassWidth, int nativePassHeight, int nativePassMSAASamples,
-            bool isVrs)
+            bool isVrs, bool isShaderResolve)
         {
             if (RenderGraph.enableValidityChecks)
             {
@@ -1324,7 +1324,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
                 else
                 {
-                    if (attRenderTargetInfo.width != nativePassWidth || attRenderTargetInfo.height != nativePassHeight || attRenderTargetInfo.msaaSamples != nativePassMSAASamples)
+                    if (attRenderTargetInfo.width != nativePassWidth || attRenderTargetInfo.height != nativePassHeight || (attRenderTargetInfo.msaaSamples != nativePassMSAASamples && !isShaderResolve))
                         throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_AttachmentsDoNotMatch);
                 }
             }
@@ -1341,7 +1341,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 var height = nativePass.height;
                 var volumeDepth = nativePass.volumeDepth;
                 var samples = nativePass.samples;
-
+                var isShaderResolve = nativePass.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.MultisampledShaderResolve);
                 ValidateNativePass(nativePass, width, height, volumeDepth, samples, attachmentCount);
 
                 ref var nativeSubPasses = ref contextData.nativeSubPassData;
@@ -1377,7 +1377,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     resources.GetRenderTargetInfo(currAttachmentHandle, out var renderTargetInfo);
 
                     bool isVrs = (i == nativePass.shadingRateImageIndex);
-                    ValidateAttachment(renderTargetInfo, resources, width, height, samples, isVrs);
+                    ValidateAttachment(renderTargetInfo, resources, width, height, samples, isVrs, isShaderResolve);
 
                     ref var currBeginAttachment = ref m_BeginRenderPassAttachments.ElementAt(i);
                     currBeginAttachment = new AttachmentDescriptor(renderTargetInfo.format);
@@ -1425,6 +1425,23 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         {
                             currBeginAttachment.clearColor = desc.clearColor;
                         }
+                    }
+                }
+
+                if (nativePass.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.MultisampledShaderResolve))
+                {
+                    // The last subpass in a native pass with shader resolve is required to be the subpass that handles the resolve, and this subpass can only have 1 color attachment.
+                    if (nativeSubPassArray[^1].colorOutputs.Length != 1)
+                        throw new Exception(RenderGraph.RenderGraphExceptionMessages.k_MultisampledShaderResolveInvalidAttachmentSetup);
+
+                    if (SystemInfo.supportsMultisampledShaderResolve)
+                    {
+                        int attachmentIndex = nativeSubPassArray[^1].colorOutputs[0];
+
+                        ref var currBeginAttachment = ref m_BeginRenderPassAttachments.ElementAt(attachmentIndex);
+                        currBeginAttachment.resolveTarget = currBeginAttachment.loadStoreTarget;
+                        currBeginAttachment.loadStoreTarget = new RenderTargetIdentifier(BuiltinRenderTextureType.None);
+                        currBeginAttachment.storeAction = RenderBufferStoreAction.Store;
                     }
                 }
 

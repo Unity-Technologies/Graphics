@@ -141,6 +141,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
             internal const string k_AttachmentsDoNotMatch =
                 "Low level rendergraph error: Attachments in renderpass do not match.";
+            
+            internal const string k_MultisampledShaderResolveInvalidAttachmentSetup =
+                "Low level rendergraph error: last subpass with shader resolve must have one color attachment.";
 
             internal const string k_InvalidMRTSetup = "Multiple render texture (MRT) setup is invalid. Some indices are not used.";
 

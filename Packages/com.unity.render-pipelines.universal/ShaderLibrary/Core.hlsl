@@ -64,6 +64,12 @@
     #undef FRAMEBUFFER_INPUT_X_INT
     #undef FRAMEBUFFER_INPUT_X_UINT
     #undef LOAD_FRAMEBUFFER_X_INPUT
+    #undef LOAD_FRAMEBUFFER_INPUT_X
+    #undef FRAMEBUFFER_INPUT_X_HALF_MS
+    #undef FRAMEBUFFER_INPUT_X_FLOAT_MS
+    #undef FRAMEBUFFER_INPUT_X_INT_MS
+    #undef FRAMEBUFFER_INPUT_X_UINT_MS
+    #undef LOAD_FRAMEBUFFER_INPUT_X_MS
 
     #if defined(SHADER_API_METAL) && defined(UNITY_NEEDS_RENDERPASS_FBFETCH_FALLBACK)
 
@@ -88,21 +94,52 @@
 
         #define LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)                      ReadFBInput_##idx(hlslcc_fbfetch_##idx, uint2(v2fname.xy))
 
+        #define LOAD_FRAMEBUFFER_INPUT_X(idx, v2fname)                      LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)
+
+        #define FRAMEBUFFER_INPUT_X_FLOAT_MS(idx)                           cbuffer hlslcc_SubpassInput_F_##idx { float4 hlslcc_fbinput_##idx[8]; bool hlslcc_fbfetch_##idx; }; \
+                                                                            RENDERPASS_DECLARE_FALLBACK_MS_X(float4, idx)
+
+        #define FRAMEBUFFER_INPUT_X_HALF_MS(idx)                            cbuffer hlslcc_SubpassInput_H_##idx { half4 hlslcc_fbinput_##idx[8]; bool hlslcc_fbfetch_##idx; };  \
+                                                                            RENDERPASS_DECLARE_FALLBACK_MS_X(half4, idx)
+
+        #define FRAMEBUFFER_INPUT_X_INT_MS(idx)                             cbuffer hlslcc_SubpassInput_I_##idx { int4 hlslcc_fbinput_##idx[8]; bool hlslcc_fbfetch_##idx; };   \
+                                                                            RENDERPASS_DECLARE_FALLBACK_MS_X(int4, idx)
+
+        #define FRAMEBUFFER_INPUT_X_UINT_MS(idx)                            cbuffer hlslcc_SubpassInput_U_##idx { uint4 hlslcc_fbinput_##idx[8]; bool hlslcc_fbfetch_##idx; };  \
+                                                                            RENDERPASS_DECLARE_FALLBACK_MS(uint4, idx)
+
+        #define LOAD_FRAMEBUFFER_INPUT_X_MS(idx, sampleIdx, v2fname)        ReadFBInput_##idx(hlslcc_fbfetch_##idx, uint2(v2fname.xy), sampleIdx)
+
     #elif !defined(PLATFORM_SUPPORTS_NATIVE_RENDERPASS)
         #define FRAMEBUFFER_INPUT_X_HALF(idx)                               TEXTURE2D_X_HALF(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
         #define FRAMEBUFFER_INPUT_X_FLOAT(idx)                              TEXTURE2D_X_FLOAT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
         #define FRAMEBUFFER_INPUT_X_INT(idx)                                TYPED_TEXTURE2D_X(int4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
         #define FRAMEBUFFER_INPUT_X_UINT(idx)                               TYPED_TEXTURE2D_X(uint4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-        #define LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)                      _UnityFBInput##idx.Load(uint4(v2fname.xy, SLICE_ARRAY_INDEX, 0))
+        #define LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)                      LOAD_TEXTURE2D_ARRAY(_UnityFBInput##idx, v2fname.xy, SLICE_ARRAY_INDEX)
+        #define LOAD_FRAMEBUFFER_INPUT_X(idx, v2fname)                      LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)
+
+        #define FRAMEBUFFER_INPUT_X_HALF_MS(idx)                            Texture2DMSArray<float4> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize
+        #define FRAMEBUFFER_INPUT_X_FLOAT_MS(idx)                           Texture2DMSArray<float4> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize
+        #define FRAMEBUFFER_INPUT_X_INT_MS(idx)                             Texture2DMSArray<int4> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize
+        #define FRAMEBUFFER_INPUT_X_UINT_MS(idx)                            Texture2DMSArray<uint4> _UnityFBInput##idx; float4 _UnityFBInput##idx##_TexelSize
+        #define LOAD_FRAMEBUFFER_INPUT_X_MS(idx, sampleIdx, v2fname)        LOAD_TEXTURE2D_ARRAY_MSAA(_UnityFBInput##idx, v2fname.xy, SLICE_ARRAY_INDEX, sampleIdx)
     #else
         #define FRAMEBUFFER_INPUT_X_HALF(idx)                               FRAMEBUFFER_INPUT_HALF(idx)
         #define FRAMEBUFFER_INPUT_X_FLOAT(idx)                              FRAMEBUFFER_INPUT_FLOAT(idx)
         #define FRAMEBUFFER_INPUT_X_INT(idx)                                FRAMEBUFFER_INPUT_INT(idx)
         #define FRAMEBUFFER_INPUT_X_UINT(idx)                               FRAMEBUFFER_INPUT_UINT(idx)
         #define LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)                      LOAD_FRAMEBUFFER_INPUT(idx, v2fname)
+        #define LOAD_FRAMEBUFFER_INPUT_X(idx, v2fname)                      LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)
+
+        #define FRAMEBUFFER_INPUT_X_HALF_MS(idx)                            FRAMEBUFFER_INPUT_HALF_MS(idx)
+        #define FRAMEBUFFER_INPUT_X_FLOAT_MS(idx)                           FRAMEBUFFER_INPUT_FLOAT_MS(idx)
+        #define FRAMEBUFFER_INPUT_X_INT_MS(idx)                             FRAMEBUFFER_INPUT_INT_MS(idx)
+        #define FRAMEBUFFER_INPUT_X_UINT_MS(idx)                            FRAMEBUFFER_INPUT_UINT_MS(idx)
+        #define LOAD_FRAMEBUFFER_INPUT_X_MS(idx, sampleIdx, v2fname)        LOAD_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fname)
     #endif
 
     #define LOAD_TEXTURE2D_X(textureName, unCoord2)                         LOAD_TEXTURE2D_ARRAY(textureName, unCoord2, SLICE_ARRAY_INDEX)
+    #define LOAD_TEXTURE2D_X_MSAA(textureName, unCoord2, sampleIndex)       LOAD_TEXTURE2D_ARRAY_MSAA(textureName, unCoord2, SLICE_ARRAY_INDEX, sampleIndex)
     #define LOAD_TEXTURE2D_X_LOD(textureName, unCoord2, lod)                LOAD_TEXTURE2D_ARRAY_LOD(textureName, unCoord2, SLICE_ARRAY_INDEX, lod)
     #define SAMPLE_TEXTURE2D_X(textureName, samplerName, coord2)            SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, SLICE_ARRAY_INDEX)
     #define SAMPLE_TEXTURE2D_X_LOD(textureName, samplerName, coord2, lod)   SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, SLICE_ARRAY_INDEX, lod)
@@ -127,8 +164,16 @@
     #define FRAMEBUFFER_INPUT_X_INT(idx)                                    FRAMEBUFFER_INPUT_INT(idx)
     #define FRAMEBUFFER_INPUT_X_UINT(idx)                                   FRAMEBUFFER_INPUT_UINT(idx)
     #define LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)                          LOAD_FRAMEBUFFER_INPUT(idx, v2fname)
+    #define LOAD_FRAMEBUFFER_INPUT_X(idx, v2fname)                          LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)
+
+    #define FRAMEBUFFER_INPUT_X_HALF_MS(idx)                                FRAMEBUFFER_INPUT_HALF_MS(idx)
+    #define FRAMEBUFFER_INPUT_X_FLOAT_MS(idx)                               FRAMEBUFFER_INPUT_FLOAT_MS(idx)
+    #define FRAMEBUFFER_INPUT_X_INT_MS(idx)                                 FRAMEBUFFER_INPUT_INT_MS(idx)
+    #define FRAMEBUFFER_INPUT_X_UINT_MS(idx)                                FRAMEBUFFER_INPUT_UINT_MS(idx)
+    #define LOAD_FRAMEBUFFER_INPUT_X_MS(idx, sampleIdx, v2fname)            LOAD_FRAMEBUFFER_INPUT_MS(idx, sampleIdx, v2fname)
 
     #define LOAD_TEXTURE2D_X(textureName, unCoord2)                         LOAD_TEXTURE2D(textureName, unCoord2)
+    #define LOAD_TEXTURE2D_X_MSAA(textureName, unCoord2, sampleIndex)       LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex)
     #define LOAD_TEXTURE2D_X_LOD(textureName, unCoord2, lod)                LOAD_TEXTURE2D_LOD(textureName, unCoord2, lod)
     #define SAMPLE_TEXTURE2D_X(textureName, samplerName, coord2)            SAMPLE_TEXTURE2D(textureName, samplerName, coord2)
     #define SAMPLE_TEXTURE2D_X_LOD(textureName, samplerName, coord2, lod)   SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod)
