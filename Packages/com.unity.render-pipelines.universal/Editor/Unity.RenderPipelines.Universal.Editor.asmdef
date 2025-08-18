@@ -18,7 +18,8 @@
         "GUID:e40ba710768534012815d3193fa296cb",
         "GUID:516a5277b8c3b4f4c8cc86b77b1591ff",
         "GUID:4fd6538c1c56b409fb53fdf0183170ec",
-        "GUID:41524c21c95e5fe4dbc5b48bd21995a4"
+        "GUID:41524c21c95e5fe4dbc5b48bd21995a4",
+        "GUID:24bbfa70f4a5840c3ab7da95e6835815"
     ],
     "includePlatforms": [
         "Editor"
@@ -54,6 +55,11 @@
             "name": "com.unity.2d.animation",
             "expression": "10.0.0",
             "define": "USING_2DANIMATION"
+        },
+        {
+          "name": "com.unity.2d.common",
+          "expression": "11.0.0",
+          "define": "USING_2DCOMMON"
         }
     ],
     "noEngineReferences": false

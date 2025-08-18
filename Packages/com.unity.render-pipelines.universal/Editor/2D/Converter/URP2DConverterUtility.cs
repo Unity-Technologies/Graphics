@@ -8,6 +8,29 @@ using static UnityEditor.Rendering.AnimationClipUpgrader;
 
 internal static class URP2DConverterUtility
 {
+
+    private static class Styles
+    {
+        public static readonly GUIContent failedToInstallPackageTitle = EditorGUIUtility.TrTextContent("Installation Failed");
+        public static readonly GUIContent failedToInstallPackageContent = EditorGUIUtility.TrTextContent("Failed to install {0} package.\nErrorCode: {1}\nMessage: {2}");
+        public static readonly GUIContent okText = EditorGUIUtility.TrTextContent("OK");
+    }
+
+    public static bool InstallPackage(string package)
+    {
+        var addRequest = UnityEditor.PackageManager.Client.Add(package);
+        while (!addRequest.IsCompleted)
+            System.Threading.Thread.Sleep(10);
+
+        if (addRequest.Status == UnityEditor.PackageManager.StatusCode.Failure)
+        {
+            var message = System.String.Format(Styles.failedToInstallPackageContent.text, package, addRequest.Error.errorCode, addRequest.Error.message);
+            EditorUtility.DisplayDialog(Styles.failedToInstallPackageTitle.text, message, Styles.okText.text);
+        }
+        UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+        return addRequest.Status == UnityEditor.PackageManager.StatusCode.Success;
+    }
+
     public static bool IsPSB(string path)
     {
         if (string.IsNullOrEmpty(path))
