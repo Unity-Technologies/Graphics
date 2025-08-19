@@ -1,26 +1,25 @@
-# Simple Noise Node
+# Simple Noise node
 
-## Description
-
-Generates a simple, or [Value](https://en.wikipedia.org/wiki/Value_noise), noise based on input **UV**. The scale of the generated noise is controlled by input **Scale**.
-
-You can also choose to use two different hashing methods for calculating the noise. As of Unity version 2021.2, the Simple Noise node defaults to the **Deterministic** hash, to ensure consistent results for noise generation across platforms.
+The Simple Noise node generates a pseudo-random value, also known as value noise, for each UV coordinate in the input **UV**.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
+| **Name** | **Direction** | **Type** | **Binding** | **Description** |
 |:------------ |:-------------|:-----|:---|:---|
-| UV      | Input | Vector 2 | UV | Input UV value |
-| Scale      | Input | Float    | None | Noise scale |
-| Out | Output      |    Float    | None | Output value |
+| **UV** | Input | Vector 2 | UV | The UV coordinates to input. For example UV coordinates, refer to [UV Nodes](UV-Nodes.md). |
+| **Scale** | Input | Float | None | How much to scale the size of the output. A higher value zooms out so there are more noise values in the same space. The default is 500. |
+| **Out** | Output | Float | None | The simple noise. The range of each value is between 0 and 1. |
 
-## Controls
+## Hash Type
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| Hash Type      | Dropdown | Deterministic, LegacySine | Selects the hash function used to generate random numbers for noise generation. |
+The **Hash Type** dropdown determines the hash function Unity uses to generate random numbers for the noise generation.
 
-## Generated Code Example
+| **Option** | **Description** |
+|-|-|
+| **Deterministic** | Uses a hash function that generates the same noise across different platforms. This is the default option. |
+| **Legacy Sine** | Uses a sine-based hash function. For most uses, **Deterministic** replaces **Legacy Sine**. |
+
+## Generated code example
 
 The following example code represents one possible outcome of this node.
 
