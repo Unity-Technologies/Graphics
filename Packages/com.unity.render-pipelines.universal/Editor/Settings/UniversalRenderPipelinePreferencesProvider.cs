@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
+using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.Rendering.HighDefinition.Core
+namespace UnityEditor.Rendering.Universal
 {
     static class PackageManagerHelper
     {
@@ -28,10 +28,10 @@ namespace UnityEditor.Rendering.HighDefinition.Core
     }
 
     /// <summary>
-    /// Editor Preferences for HDRP
+    /// Editor Preferences for URP
     /// </summary>
-    [DisplayInfo(name = "High Definition Render Pipeline", order = 200)]
-    public class HDRenderPipelinePreferencesProvider : ICoreRenderPipelinePreferencesProvider
+    [DisplayInfo(name = "Universal Render Pipeline", order = 300)]
+    public class UniversalRenderPipelinePreferencesProvider : ICoreRenderPipelinePreferencesProvider
     {
         class Styles
         {
@@ -39,22 +39,16 @@ namespace UnityEditor.Rendering.HighDefinition.Core
 
             public static readonly GUIContent viewInPackageManagerLabel = new("View in Package Manager", "");
 
-            public static readonly GUIContent hdrpProjectSettingsPathLabel = EditorGUIUtility.TrTextContent("Resources Folder Name", "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.");
-
-            public static readonly GUIContent matcapViewMixAlbedoLabel = EditorGUIUtility.TrTextContent("MatCap Mode Mix Albedo", "Enable to make HDRP mix the albedo of the Material with its material capture.");
-            public static readonly GUIContent matcapViewScaleLabel = EditorGUIUtility.TrTextContent("MatCap Mode Intensity Scale", "Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably.");
+            public static readonly GUIContent urpProjectSettingsPathLabel = EditorGUIUtility.TrTextContent("Resources Folder Name", "Resources Folder will be the one where to get project elements related to URP as default scene and default settings.");
         }
 
         static List<string> s_SearchKeywords = new() {
-            "MatCap Mode",
-            "Intensity scale",
-            "Mix Albedo",
             "Default Resources Folder",
             "Config Package"
         };
 
         /// <summary>
-        /// Keyworks for the preferences
+        /// Keywords for the preferences
         /// </summary>
         public List<string> keywords => s_SearchKeywords;
 
@@ -64,21 +58,12 @@ namespace UnityEditor.Rendering.HighDefinition.Core
         public void PreferenceGUI()
         {
             EditorGUI.indentLevel++;
-            HDProjectSettings.projectSettingsFolderPath = EditorGUILayout.TextField(Styles.hdrpProjectSettingsPathLabel, HDProjectSettings.projectSettingsFolderPath);
+            UniversalProjectSettings.projectSettingsFolderPath = EditorGUILayout.TextField(Styles.urpProjectSettingsPathLabel, UniversalProjectSettings.projectSettingsFolderPath);
             DrawConfigPackageDropdown();
-            DrawMatCapDefaults();
             EditorGUI.indentLevel--;
         }
 
-        void DrawMatCapDefaults()
-        {
-            var matCapMode = HDRenderPipelinePreferences.matCapMode;
-            matCapMode.mixAlbedo.value = EditorGUILayout.Toggle(Styles.matcapViewMixAlbedoLabel, matCapMode.mixAlbedo.value);
-            if (matCapMode.mixAlbedo.value)
-                matCapMode.viewScale.value = EditorGUILayout.FloatField(Styles.matcapViewScaleLabel, matCapMode.viewScale.value);
-        }
-
-        private const string k_PackageName = "com.unity.render-pipelines.high-definition-config";
+        private const string k_PackageName = "com.unity.render-pipelines.universal-config";
         
         void DrawConfigPackageDropdown()
         {

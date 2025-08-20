@@ -7,7 +7,7 @@ QualitySettings:
   m_CurrentQuality: 0
   m_QualitySettings:
   - serializedVersion: 5
-    name: 00->DefaultURPAsset
+    name: 00-DefaultURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -61,7 +61,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 01->Backbuffer
+    name: 01-Backbuffer
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -115,7 +115,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 02->140_LightCookie
+    name: 02-140_LightCookie
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -169,7 +169,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 03->141_LightCookies_SmallAtlas
+    name: 03-141_LightCookies_SmallAtlas
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -223,7 +223,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 04->142_LightCookies_AtlasFull2_deferred
+    name: 04-142_LightCookies_AtlasFull2_deferred
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -277,7 +277,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 05->144_LightCookies_FormatConvert_Grayscale
+    name: 05-144_LightCookies_FormatConvert_Grayscale
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -331,7 +331,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 06->161_HDR_FP16_BackBuffer
+    name: 06-161_HDR_FP16_BackBuffer
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -385,7 +385,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 07->000_ForwardPlusRenderer
+    name: 07-000_ForwardPlusRenderer
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -439,7 +439,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 08->248_LOD_CrossFadeURPAsset
+    name: 08-248_LOD_CrossFadeURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -493,7 +493,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 09->200_SSAOURPAsset
+    name: 09-200_SSAOURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -547,7 +547,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 10->DBufferURPAsset
+    name: 10-DBufferURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -601,7 +601,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 11->DBufferWithRenderingLayersURPAsset
+    name: 11-DBufferWithRenderingLayersURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -655,7 +655,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 12->220_ScreenSpaceShadowsURPAsset
+    name: 12-220_ScreenSpaceShadowsURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -709,7 +709,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 13->SoftShadows
+    name: 13-SoftShadows
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -763,7 +763,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 14->280_DebugViews_MipMapMode
+    name: 14-280_DebugViews_MipMapMode
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -817,7 +817,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 15->311_DepthCopyTransparent
+    name: 15-311_DepthCopyTransparent
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -871,7 +871,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 16->DeferredPlusRenderer
+    name: 16-DeferredPlusRenderer
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2

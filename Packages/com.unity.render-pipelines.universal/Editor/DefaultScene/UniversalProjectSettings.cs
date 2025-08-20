@@ -29,6 +29,19 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        [SerializeField]
+        protected string m_ProjectSettingFolderPath = "URPDefaultResources";
+
+        public static string projectSettingsFolderPath
+        {
+            get => instance.m_ProjectSettingFolderPath;
+            set
+            {
+                instance.m_ProjectSettingFolderPath = value;
+                Save();
+            }
+        }
+
         //singleton pattern
         static UniversalProjectSettings s_Instance;
         static UniversalProjectSettings instance => s_Instance ?? CreateOrLoad();

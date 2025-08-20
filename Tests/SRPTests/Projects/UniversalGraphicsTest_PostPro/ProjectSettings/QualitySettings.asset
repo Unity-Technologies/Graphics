@@ -7,7 +7,7 @@ QualitySettings:
   m_CurrentQuality: 16
   m_QualitySettings:
   - serializedVersion: 4
-    name: 00->DefaultURPAsset
+    name: 00-DefaultURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -60,7 +60,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 01->ForwardAndShadowsURPAsset
+    name: 01-ForwardAndShadowsURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -113,7 +113,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 02->BackBufferMSAAURPAsset
+    name: 02-BackBufferMSAAURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -166,7 +166,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 03->URP_Asset_Scaling_Auto
+    name: 03-URP_Asset_Scaling_Auto
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -219,7 +219,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 04->URP_Asset_Scaling_FSR
+    name: 04-URP_Asset_Scaling_FSR
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -272,7 +272,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 05->URP_Asset_Scaling_Linear
+    name: 05-URP_Asset_Scaling_Linear
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -325,7 +325,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 06->URP_Asset_Scaling_Point
+    name: 06-URP_Asset_Scaling_Point
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -378,7 +378,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 07->260_TenthRenderScaleUniversalRPAsset
+    name: 07-260_TenthRenderScaleUniversalRPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -431,7 +431,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 08->URP_Asset_HDROutput
+    name: 08-URP_Asset_HDROutput
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -484,7 +484,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 09->URP_Asset_Scaling_STP
+    name: 09-URP_Asset_Scaling_STP
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -537,7 +537,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 10->URPAssetOcclusionWithRenderScale
+    name: 10-URPAssetOcclusionWithRenderScale
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -590,7 +590,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 11->URP_Asset_AlphaPassthrough_NoHDR_NoTerrainHoles_MSAA
+    name: 11-URP_Asset_AlphaPassthrough_NoHDR_NoTerrainHoles_MSAA
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -643,7 +643,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 12->URP_Asset_AlphaOutput_HDR_64bit_RGBA16F
+    name: 12-URP_Asset_AlphaOutput_HDR_64bit_RGBA16F
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -696,7 +696,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 13->URP_Asset_Stacked_DownScaling_Linear_Alpha_NoHDR
+    name: 13-URP_Asset_Stacked_DownScaling_Linear_Alpha_NoHDR
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -749,7 +749,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 14->URP_Asset_Stacked_UpScaling_Linear_Alpha_NoHDR
+    name: 14-URP_Asset_Stacked_UpScaling_Linear_Alpha_NoHDR
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -802,7 +802,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 15->URP_Asset_Stacked_UpScaling_FSR_Alpha_NoHDR
+    name: 15-URP_Asset_Stacked_UpScaling_FSR_Alpha_NoHDR
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -855,7 +855,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 16->URP_Asset_HDROutput_FSR
+    name: 16-URP_Asset_HDROutput_FSR
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2

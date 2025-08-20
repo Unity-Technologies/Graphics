@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace UnityEngine.Rendering
 {
+    using static UnityEngine.Rendering.HableCurve;
     using UnityObject = UnityEngine.Object;
 
     /// <summary>
@@ -1845,6 +1846,7 @@ namespace UnityEngine.Rendering
             var path = filePath.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
             if (!path.StartsWith("Assets" + Path.DirectorySeparatorChar, StringComparison.CurrentCultureIgnoreCase))
                 throw new ArgumentException($"Path should start with \"Assets/\". Got {filePath}.", filePath);
+
             var folderPath = Path.GetDirectoryName(path);
 
             if (!UnityEditor.AssetDatabase.IsValidFolder(folderPath))

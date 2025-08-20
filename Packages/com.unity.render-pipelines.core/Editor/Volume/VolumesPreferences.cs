@@ -87,12 +87,14 @@ namespace UnityEditor.Rendering
         /// </summary>
         public void PreferenceGUI()
         {
+            EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
             var newValue = EditorGUILayout.EnumPopup(Styles.volumeGizmosVisibilityLabel, volumeGizmosVisibilityOption);
             if (EditorGUI.EndChangeCheck())
             {
                 volumeGizmosVisibilityOption = (VolumeGizmoVisibility)newValue;
             }
+            EditorGUI.indentLevel--;
         }
     }
 }

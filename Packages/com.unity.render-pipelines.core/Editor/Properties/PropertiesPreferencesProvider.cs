@@ -19,9 +19,11 @@ namespace UnityEditor.Rendering
 
         public void PreferenceGUI()
         {
+            EditorGUI.indentLevel++;
             AdvancedProperties.enabled = EditorGUILayout.IntPopup(Styles.additionalPropertiesLabel,
                 AdvancedProperties.enabled ? 1 : 0, Styles.additionalPropertiesNames,
                 Styles.additionalPropertiesValues) == 1;
+            EditorGUI.indentLevel--;
         }
     }
 }

@@ -7,7 +7,7 @@ QualitySettings:
   m_CurrentQuality: 0
   m_QualitySettings:
   - serializedVersion: 4
-    name: 00->DefaultURPAsset
+    name: 00-DefaultURPAsset
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -60,7 +60,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 01->Backbuffer
+    name: 01-Backbuffer
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -113,7 +113,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 02->LightLayers
+    name: 02-LightLayers
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -166,7 +166,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 03->LightCookies
+    name: 03-LightCookies
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -219,7 +219,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 04->221_ShadowMask_ShaderGraph
+    name: 04-221_ShadowMask_ShaderGraph
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -272,7 +272,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 05->200_SSAO
+    name: 05-200_SSAO
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -325,7 +325,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 06->ReflectionProbes
+    name: 06-ReflectionProbes
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -378,7 +378,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 07->APV
+    name: 07-APV
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -431,7 +431,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 08->224_PerObejct_Probes_Blending
+    name: 08-224_PerObejct_Probes_Blending
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -484,7 +484,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: 09->APV_NoRealtimeShadows
+    name: 09-APV_NoRealtimeShadows
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -537,7 +537,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 10->060_Deferred
+    name: 10-060_Deferred
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -591,7 +591,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 11->060_Deferred_RL
+    name: 11-060_Deferred_RL
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -645,7 +645,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 12->060_Deferred_SM
+    name: 12-060_Deferred_SM
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
@@ -699,7 +699,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 5
-    name: 13->060_Deferred_RL_SM
+    name: 13-060_Deferred_RL_SM
     pixelLightCount: 4
     shadows: 2
     shadowResolution: 2
