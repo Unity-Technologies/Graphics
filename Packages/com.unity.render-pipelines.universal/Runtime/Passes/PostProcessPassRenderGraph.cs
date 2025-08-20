@@ -2551,11 +2551,9 @@ namespace UnityEngine.Rendering.Universal
                 passData.lutTexture = lutTexture;
                 builder.UseTexture(lutTexture, AccessFlags.Read);
                 passData.lutParams = lutParams;
+                passData.userLutTexture = userLutTexture; // This can be null if ColorLookup is not active.
                 if (userLutTexture.IsValid())
-                {
-                    passData.userLutTexture = userLutTexture;
                     builder.UseTexture(userLutTexture, AccessFlags.Read);
-                }
 
                 if (m_Bloom.IsActive())
                 {
