@@ -2915,6 +2915,11 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
 
+            foreach (var node in GetNodes<AbstractMaterialNode>())
+            {
+                node.SetupSlots();
+            }
+
             // OnEnable may be called multiple times. Ensure the callback only exists once.
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
             ShaderGraphPreferences.onVariantLimitChanged += OnKeywordChanged;

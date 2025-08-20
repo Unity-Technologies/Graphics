@@ -1501,16 +1501,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     );
 
                     graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
-
-                    // Add new elements to selection
-                    graphView.graphElements.ForEach(element =>
-                    {
-                        if (element is Edge edge && remappedEdges.Contains(edge.userData as IEdge))
-                            graphView.AddToSelection(edge);
-
-                        if (element is IShaderNodeView nodeView && remappedNodes.Contains(nodeView.node))
-                            graphView.AddToSelection((Node)nodeView);
-                    });
                 }
             }
         }

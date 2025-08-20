@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph
         public override string documentationURL {
             get {
                 // TODO: There should be a way for unity authored and distributed subgraphs to provide custom doc links.
-                if (name.Contains("SpeedTree8"))
+                if (m_SubGraph?.name.Contains("SpeedTree8") ?? false)
                     return Documentation.GetPageLink("SpeedTree8-SubGraphAssets");
                 else return Documentation.GetPageLink("Sub-graph");
             }
@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
                 m_SubGraph.LoadGraphData();
                 m_SubGraph.LoadDependencyData();
 
-                name = m_SubGraph.name;
+                name = ObjectNames.NicifyVariableName(m_SubGraph.name);
             }
         }
 

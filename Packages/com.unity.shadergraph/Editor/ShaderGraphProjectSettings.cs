@@ -75,7 +75,6 @@ namespace UnityEditor.ShaderGraph
             m_HeatValues = m_SerializedObject.FindProperty(nameof(ShaderGraphProjectSettings.customHeatmapValues));
         }
 
-        int oldWarningThreshold;
         void OnGUIHandler(string searchContext)
         {
             m_SerializedObject.Update();
@@ -105,19 +104,14 @@ namespace UnityEditor.ShaderGraph
             EditorGUILayout.LabelField(Styles.CustomInterpLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
-            int newError = EditorGUILayout.IntField(Styles.CustomInterpErrorThresholdLabel, m_customInterpError.intValue);
-            m_customInterpError.intValue = Mathf.Clamp(newError, kMinChannelThreshold, kMaxChannelThreshold);
-
+            int oldError = m_customInterpError.intValue;
             int oldWarn = m_customInterpWarn.intValue;
-            int newWarn = EditorGUILayout.IntField(Styles.CustomInterpWarnThresholdLabel, m_customInterpWarn.intValue);
 
-            // If the user did not modify the warning field, restore their previous input and reclamp against the new error threshold.
-            if (oldWarn == newWarn)
-                newWarn = oldWarningThreshold;
-            else
-                oldWarningThreshold = newWarn;
+            int newError = EditorGUILayout.DelayedIntField(Styles.CustomInterpErrorThresholdLabel, oldError);
+            int newWarn = EditorGUILayout.DelayedIntField(Styles.CustomInterpWarnThresholdLabel, oldWarn);
 
-            m_customInterpWarn.intValue = Mathf.Clamp(newWarn, kMinChannelThreshold, m_customInterpError.intValue);
+            m_customInterpError.intValue = Mathf.Clamp(newError, oldWarn, kMaxChannelThreshold);
+            m_customInterpWarn.intValue = Mathf.Clamp(newWarn, kMinChannelThreshold, oldError);
 
             GUILayout.BeginHorizontal(EditorStyles.helpBox);
             GUILayout.Label(EditorGUIUtility.IconContent("console.infoicon"), GUILayout.ExpandWidth(true));

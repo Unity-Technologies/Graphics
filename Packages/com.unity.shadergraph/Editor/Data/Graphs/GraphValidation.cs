@@ -16,8 +16,8 @@ namespace UnityEditor.ShaderGraph
 
             static SubTarget GetActiveSubTarget(Target target)
             {
-                // All targets have an active subtarget but it's not accessible from ShaderGraph
-                // so we use reflection to access it
+                if (target.activeSubTarget != null && target.activeSubTarget.IsActive())
+                    return target.activeSubTarget;
 
                 var type = target.GetType();
                 if (!s_ActiveSubTarget.TryGetValue(type, out var activeSubTarget))
@@ -46,14 +46,18 @@ namespace UnityEditor.ShaderGraph
                     bool disallowedByAllTargets = true;
                     bool disallowedByAnySubTarget = false;
                     IEnumerable<Target> targets = node.owner.activeTargets;
-                    if (node.owner.isSubGraph)
-                    {
-                        targets = node.owner.allPotentialTargets;
-                    }
+
                     foreach (var target in targets)
                     {
+                        var subtarget = GetActiveSubTarget(target);
+                        if (subtarget != null && (!subtarget.IsNodeAllowedBySubTarget(t) || !node.IsSubTargetCompatible(subtarget.GetType())))
+                        {
+                            disallowedByAnySubTarget = true;
+                            node.isValid = false;
+                            node.owner.AddValidationError(node.objectId, $"{node.name} Node is not allowed by {subtarget.displayName} implementation", Rendering.ShaderCompilerMessageSeverity.Error);
+                        }
                         //if at least one target doesn't allow a node, it is considered invalid
-                        if (!target.IsNodeAllowedByTarget(t))
+                        else if (!target.IsNodeAllowedByTarget(t))
                         {
                             disallowedByAnyTargets = true;
                             node.isValid = false;
@@ -65,15 +69,41 @@ namespace UnityEditor.ShaderGraph
                         {
                             disallowedByAllTargets = false;
                         }
+                    }
 
-                        var subtarget = GetActiveSubTarget(target);
-                        if (subtarget != null && !subtarget.IsNodeAllowedBySubTarget(t))
+                    // Subgraphs have no allegiance to a Target/SubTarget workflow,
+                    // but we can infer incompatibilities when SRPFilter and SubTargetFilter are
+                    // similarly incompatible across nodes in a subgraph.
+                    // Unfortunately, there isn't a good way to promote these compatibilities to
+                    // the main graph without quite a bit more work.
+                    if (node.owner.isSubGraph)
+                    {
+                        disallowedByAllTargets = false;
+                        System.Text.StringBuilder sb = new();
+                        if (!node.IsCompatibleWithSRPs(srpSet, out var badSrps))
+                        {
+                            disallowedByAnyTargets = true;
+                            sb.Append("Nodes in subgraph have conflicting SRP restrictions; ");
+                            foreach (var srp in badSrps)
+                                sb.Append($"{srp.Name}, ");
+                            sb.Remove(sb.Length - 2, 2);
+                            sb.AppendLine();
+                        }
+                        if (!node.IsCompatibleWithSubTargetFilters(subTargetSet, out var badSubTargets))
                         {
                             disallowedByAnySubTarget = true;
+                            sb.Append("Nodes in subgraph have conflicting Material restrictions; ");
+                            foreach (var subTarget in badSubTargets)
+                                sb.Append($"{subTarget.Name}, ");
+                            sb.Remove(sb.Length - 2, 2);
+                        }
+                        if (disallowedByAnySubTarget || disallowedByAnyTargets)
+                        {
                             node.isValid = false;
-                            node.owner.AddValidationError(node.objectId, $"{node.name} Node is not allowed by {subtarget.displayName} implementation", Rendering.ShaderCompilerMessageSeverity.Error);
+                            node.owner.AddValidationError(node.objectId, sb.ToString(), Rendering.ShaderCompilerMessageSeverity.Warning);
                         }
                     }
+
                     if (!disallowedByAnyTargets && !disallowedByAnySubTarget)
                     {
                         node.isValid = true;
@@ -92,9 +122,23 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            static HashSet<Type> srpSet;
+            static HashSet<Type> subTargetSet;
             public static void ValidateGraph(GraphData graph)
             {
                 graph.m_UnsupportedTargets.Clear();
+
+                srpSet = new();
+                subTargetSet = new();
+
+                if (graph.isSubGraph)
+                {
+                    foreach(var node in graph.GetNodes<AbstractMaterialNode>())
+                    {
+                        node.GatherSRPCompatibility(ref srpSet);
+                        node.GatherSubTargetCompatibility(ref subTargetSet);
+                    }
+                }
                 GraphDataUtils.ApplyActionLeafFirst(graph, ValidateNode);
             }
         }
