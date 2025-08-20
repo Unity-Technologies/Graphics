@@ -15,43 +15,43 @@ namespace UnityEngine.Rendering
         int IRenderPipelineGraphicsSettings.version => m_Version;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/TemporalFiltering.compute")]
-        ComputeShader m_TemporalFilteringShader;
+        public ComputeShader m_TemporalFilteringShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/SpatialFiltering.compute")]
-        ComputeShader m_SpatialFilteringShader;
+        public ComputeShader m_SpatialFilteringShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RestirEstimation.compute")]
-        ComputeShader m_RestirEstimationShader;
+        public ComputeShader m_RestirEstimationShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RisEstimation.urtshader")]
         ComputeShader m_RisEstimationComputeShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RisEstimation.urtshader")]
-        RayTracingShader m_RisEstimationRayTracingShader;
+        public RayTracingShader m_RisEstimationRayTracingShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/Scrolling.compute")]
-        ComputeShader m_ScrollingShader;
+        public ComputeShader m_ScrollingShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/Defrag.compute")]
-        ComputeShader m_DefragShader;
+        public ComputeShader m_DefragShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/Eviction.compute")]
-        ComputeShader m_EvictionShader;
+        public ComputeShader m_EvictionShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/UniformEstimation.urtshader")]
-        ComputeShader m_UniformEstimationComputeShader;
+        public ComputeShader m_UniformEstimationComputeShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/UniformEstimation.urtshader")]
-        RayTracingShader m_UniformEstimationRayTracingShader;
+        public RayTracingShader m_UniformEstimationRayTracingShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RestirCandidateTemporal.urtshader")]
-        ComputeShader m_RestirCandidateTemporalComputeShader;
+        public ComputeShader m_RestirCandidateTemporalComputeShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RestirCandidateTemporal.urtshader")]
-        RayTracingShader m_RestirCandidateTemporalRayTracingShader;
+        public RayTracingShader m_RestirCandidateTemporalRayTracingShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/SurfaceCacheCore/RestirSpatial.compute")]
-        ComputeShader m_RestirSpatialShader;
+        public ComputeShader m_RestirSpatialShader;
 
         public ComputeShader spatialFilteringShader
         {
