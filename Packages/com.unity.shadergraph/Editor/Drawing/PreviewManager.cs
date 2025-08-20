@@ -102,6 +102,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewElement.style.bottom = 16;
             root.Add(m_PreviewElement);
             m_PreviewShadedElement = m_PreviewElement.Q("shader");
+            UIElementsUtility.RegisterCachedPanel(m_PreviewPanelSettings.GetInstanceID(), m_PreviewPanelSettings.panel);
             SetupUITKFonts();
         }
 
@@ -1516,6 +1517,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (m_PreviewPanelSettings != null)
             {
+                UIElementsUtility.RemoveCachedPanel(m_PreviewPanelSettings.GetInstanceID());
                 Object.DestroyImmediate(m_PreviewPanelSettings);
                 m_PreviewPanelSettings = null;
             }
