@@ -544,15 +544,16 @@ class VisualEffectAssetEditor : UnityEditor.Editor
         if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
         {
             var currentDeltaTime = prewarmDeltaTime.floatValue;
-            var currentStepCount = prewarmStepCount.uintValue;
+            int currentStepCount = (int)prewarmStepCount.uintValue;
             var currentTotalTime = currentDeltaTime * currentStepCount;
             EditorGUI.BeginChangeCheck();
             currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
             if (EditorGUI.EndChangeCheck())
             {
-                if (currentStepCount <= 0)
+                if (currentStepCount <= 0 && currentTotalTime != 0.0f)
                 {
-                    prewarmStepCount.uintValue = currentStepCount = 1u;
+                    currentStepCount = 1;
+                    prewarmStepCount.uintValue = (uint)currentStepCount;
                 }
 
                 currentDeltaTime = currentTotalTime / currentStepCount;
@@ -561,17 +562,18 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             }
 
             EditorGUI.BeginChangeCheck();
-            currentStepCount = (uint)EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), (int)currentStepCount);
+            currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), (int)currentStepCount);
             if (EditorGUI.EndChangeCheck())
             {
-                if (currentStepCount <= 0 && currentTotalTime != 0.0f)
+                bool hasPrewarm = currentTotalTime != 0.0f;
+                if (currentStepCount <= 0)
                 {
-                    prewarmStepCount.uintValue = currentStepCount = 1;
+                    currentStepCount = hasPrewarm ? 1 : 0;
                 }
 
-                currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
+                currentDeltaTime = hasPrewarm ? currentTotalTime / currentStepCount : 0.0f;
                 prewarmDeltaTime.floatValue = currentDeltaTime;
-                prewarmStepCount.uintValue = currentStepCount;
+                prewarmStepCount.uintValue = (uint)currentStepCount;
                 resourceObject.ApplyModifiedProperties();
             }
 
@@ -581,18 +583,18 @@ class VisualEffectAssetEditor : UnityEditor.Editor
             {
                 if (currentDeltaTime < k_MinimalCommonDeltaTime)
                 {
-                    prewarmDeltaTime.floatValue = currentDeltaTime = k_MinimalCommonDeltaTime;
+                    currentDeltaTime = k_MinimalCommonDeltaTime;
                 }
 
-                if (currentDeltaTime > currentTotalTime)
+                float totalTime = currentDeltaTime * currentStepCount;
+                if (totalTime > currentTotalTime)
                 {
-                    currentTotalTime = currentDeltaTime;
+                    currentTotalTime = totalTime;
                 }
-
-                if (currentTotalTime != 0.0f)
+                else
                 {
-                    var candidateStepCount_A = (uint)Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
-                    var candidateStepCount_B = (uint)Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
+                    var candidateStepCount_A = Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
+                    var candidateStepCount_B = Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
 
                     var totalTime_A = currentDeltaTime * candidateStepCount_A;
                     var totalTime_B = currentDeltaTime * candidateStepCount_B;
@@ -606,7 +608,7 @@ class VisualEffectAssetEditor : UnityEditor.Editor
                         currentStepCount = candidateStepCount_B;
                     }
 
-                    prewarmStepCount.uintValue = currentStepCount;
+                    prewarmStepCount.uintValue = (uint)currentStepCount;
                 }
                 prewarmDeltaTime.floatValue = currentDeltaTime;
                 resourceObject.ApplyModifiedProperties();
