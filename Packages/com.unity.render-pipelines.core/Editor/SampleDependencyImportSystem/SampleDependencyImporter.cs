@@ -8,8 +8,7 @@ using UnityEngine.UIElements;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 /// <remarks>
-/// To implement this, the package needs to be in the allowedPackageList
-/// Then, in the package.json, an array can be added after the path variable of the sample. The path should start from the Packages/ folder, as such:
+/// In the package.json, an array can be added after the path variable of the sample. The path should start from the Packages/ folder, as such:
 /// "samples": [
 /// {
 ///     "displayName": "Sample name",
@@ -27,42 +26,123 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 /// </remarks>
 
 [InitializeOnLoad]
-class SampleDependencyImporter : IPackageManagerExtension
+internal class SampleDependencyImporter : IPackageManagerExtension
 {
-    /// <summary>
-    /// An implementation of AssetPostProcessor which will raise an event when a new asset is imported.
-    /// </summary>
-    class SamplePostprocessor : AssetPostprocessor
-    {
-        public static event Action<string> AssetImported;
-
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-        {
-            for (int i = 0; i < importedAssets.Length; i++)
-                AssetImported?.Invoke(importedAssets[i]);
-        }
-    }
+    internal static SampleDependencyImporter instance { get; private set; }
 
     static SampleDependencyImporter()
     {
-        PackageManagerExtensions.RegisterExtension(new SampleDependencyImporter());
+        instance = new SampleDependencyImporter();
+        PackageManagerExtensions.RegisterExtension(instance);
     }
-    
-    string[] allowedPackageList =
-    {
-        "com.unity.render-pipelines.high-definition",
-        "com.unity.render-pipelines.universal",
-        "com.unity.shadergraph",
-        "com.unity.visualeffectgraph"
-    };
 
     bool importingTextMeshProEssentialResources = false;
 
     PackageInfo m_PackageInfo;
-    List<Sample> m_Samples;
     SampleList m_SampleList;
+    List<Sample> m_Samples;
 
-    VisualElement IPackageManagerExtension.CreateExtensionUI() => default;
+    VisualElement injectingElement;
+    VisualElement _panelRoot;
+    VisualElement panelRoot
+    {
+        get
+        {
+            _panelRoot ??= injectingElement.panel.visualTree;
+            return _panelRoot;
+        }
+    }
+
+    /// <summary>
+    /// Use the extension UI to "inject" an invisible element in package manager UI
+    /// that will serve as a base to hook up additional logic to the import buttons.
+    /// </summary>
+    VisualElement IPackageManagerExtension.CreateExtensionUI()
+    {
+        injectingElement = new VisualElement();
+        injectingElement.style.display = DisplayStyle.None;
+
+        // This callback is called once the element is added to the UI, at this point we should have access to rest of the elements.
+        injectingElement.RegisterCallback<AttachToPanelEvent>((callback) => {
+            //Force clear the cached elements to fetch those from the newly openned window
+            _panelRoot = null;
+            samplesButton = null;
+
+            RefreshSampleButtons();
+        });
+
+        return injectingElement;
+    }
+
+    Button samplesButton;
+    const string samplesButtonName = "samplesButton";
+    const string sampleContainerClassName = "sampleContainer";
+    const string importButtonClassName = "importButton";
+    const string injectedButtonClassName = "importWithDependenciesButton";
+
+    void RefreshSampleButtons()
+    {
+        if (injectingElement == null || m_PackageInfo == null || m_SampleList == null)
+            return;
+
+        // Call refresh of samples and button injection when switching to the "Samples" tab.
+        if (samplesButton == null )
+        {
+            samplesButton = panelRoot.Q<Button>(name: samplesButtonName);
+            if (samplesButton != null)
+                samplesButton.clicked += RefreshSampleButtons;
+        }
+
+        // Get all of the samples container elements.
+        var query = panelRoot.Query(className: sampleContainerClassName);
+        query.Build();
+        var sampleContainers = query.ToList();
+
+        var bound = Mathf.Min(sampleContainers.Count, m_SampleList.samples.Length);
+
+        for (int i=0; i<bound; i++)
+        {
+            // Check if the sample has dependencies, if not just skip the injection.
+            var sampleInfo = m_SampleList.samples[i];
+            if (sampleInfo.dependencies == null || sampleInfo.dependencies.Length == 0)
+                continue;
+
+            // Inject the button if not already.
+            var sampleContainer = sampleContainers[i];
+            var injectedButton = sampleContainer.Q<Button>(className: injectedButtonClassName);
+
+            if (injectedButton == null)
+            {
+                // Get and hide the original import button.
+                var importButton = sampleContainer.Q<Button>(className: importButtonClassName);
+                importButton.style.display = DisplayStyle.None;
+
+                // Create a new button copying the original one with our additional class.
+                injectedButton = new Button();
+                foreach (var c in importButton.GetClasses())
+                    injectedButton.AddToClassList(c);
+                injectedButton.AddToClassList(injectedButtonClassName);
+                injectedButton.text = importButton.text;
+
+                // Add the new button at the same place as the original one.
+                importButton.parent.Insert(importButton.parent.IndexOf(importButton), injectedButton);
+
+                // Need to copy i for the lambda.
+                var index = i;
+                // On click of the imported button, import the dependencies first then call the original button logic.
+                injectedButton.clicked += () => {
+                    ImportSampleDependencies(index);
+
+                    using (var ev = NavigationSubmitEvent.GetPooled())
+                    {
+                        ev.target = importButton;
+                        importButton.SendEvent(ev);
+                    }
+                };
+            }
+        };
+    }
+
     public void OnPackageAddedOrUpdated(PackageInfo packageInfo) {}
     public void OnPackageRemoved(PackageInfo packageInfo) {}
 
@@ -72,37 +152,23 @@ class SampleDependencyImporter : IPackageManagerExtension
     /// </summary>
     void IPackageManagerExtension.OnPackageSelectionChange(PackageInfo packageInfo)
     {
+        m_PackageInfo = packageInfo;
+
         if (packageInfo == null)
             return;
 
-        // Triggers the dependencies import only on specific packages
-        bool packageFound = false;
-        foreach (string name in allowedPackageList)
-            if (name == packageInfo.name)
-            {
-                packageFound = true;
-                break;
-            }
-
-
-        if (!packageFound)
-            return;
-
-        m_PackageInfo = packageInfo;
-        m_Samples = GetSamples(packageInfo);
         // Only trigger the import if the package has samples. 
-        if (m_Samples != null && m_Samples.Count > 0)
+        if (new List<Sample>(Sample.FindByPackage(packageInfo.name, packageInfo.version)).Count > 0)
         {
-            if (TryLoadSampleConfiguration(m_PackageInfo, out m_SampleList))
-            {
-                SamplePostprocessor.AssetImported += LoadAssetDependencies;
-            }
+            TryLoadSampleConfiguration(m_PackageInfo, out m_SampleList);
         }
         else
         {
             m_PackageInfo = null;
-            SamplePostprocessor.AssetImported -= LoadAssetDependencies;
+            m_SampleList = null;
         }
+
+        RefreshSampleButtons();
     }
 
     /// <summary>
@@ -124,43 +190,46 @@ class SampleDependencyImporter : IPackageManagerExtension
     }
 
     /// <summary>
-    /// Handles loading common asset dependencies if required.
+    /// Imports a sample dependencies by sample index in the list of samples of the package.
     /// </summary>
-    void LoadAssetDependencies(string assetPath)
+    void ImportSampleDependencies( int sampleIndex )
     {
-        if (m_SampleList != null)
+        if (m_SampleList != null && m_SampleList.samples != null && m_SampleList.samples.Length > sampleIndex)
+            ImportSampleDependencies(m_SampleList.samples[sampleIndex]);
+    }
+
+    /// <summary>
+    /// Imports a sample dependencies by sample information.
+    /// </summary>
+    void ImportSampleDependencies(SampleInformation sampleInformation )
+    {
+        if (sampleInformation == null) return;
+
+        bool assetsImported = ImportDependencies(sampleInformation.dependencies);
+        ImportTextMeshProEssentialResources();
+
+        if ( assetsImported)
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+    }
+
+
+    /// <summary>
+    /// Imports a sample dependencies from PackageInfo and Sample struct.
+    /// </summary>
+    internal void ImportSampleDependencies( PackageInfo packageInfo, Sample sample )
+    {
+        if (TryLoadSampleConfiguration(packageInfo, out var sampleList))
         {
-            var assetsImported = false;
-            bool atLeastOneIsSampleDirectory = false;
-            
-            for (int i = 0; i < m_Samples.Count; ++i)
+            if (sampleList.samples != null && sampleList.samples.Length > 0)
             {
-                string pathPrefix = $"Assets/Samples/{m_PackageInfo.displayName}/{m_PackageInfo.version}/";
-                // Import dependencies if we are importing the root directory of the sample. 
-                // We also test the start of the path to avoid triggering the import if an asset is imported that has the same name of a sample
-                var isSampleDirectory = assetPath.EndsWith(m_Samples[i].displayName) && assetPath.StartsWith(pathPrefix);
-                if (isSampleDirectory)
+                for (int i=0; i<sampleList.samples.Length; i++)
                 {
-                    atLeastOneIsSampleDirectory = true;
-
-                    // Retrieving the dependencies of the sample that is currently being imported.
-                    SampleInformation currentSampleInformation = GetSampleInformation(m_Samples[i].displayName);
-
-                    if (currentSampleInformation != null)
+                    if ( sampleList.samples[i].displayName == sample.displayName )
                     {
-                        // Import the common asset dependencies
-                        assetsImported = ImportDependencies(m_PackageInfo, currentSampleInformation.dependencies);
+                        ImportSampleDependencies(sampleList.samples[i]);
                     }
                 }
             }
-
-            // Only import TMPro resources if a sample is currently imported. 
-            // This is done outside the loop to save cost.
-            if (atLeastOneIsSampleDirectory)
-                ImportTextMeshProEssentialResources();
-
-            if (assetsImported)
-                AssetDatabase.Refresh();
         }
     }
 
@@ -202,7 +271,7 @@ class SampleDependencyImporter : IPackageManagerExtension
     /// <summary>
     /// Imports specified dependencies from the package into the project.
     /// </summary>
-    static bool ImportDependencies(PackageInfo packageInfo, string[] paths)
+    static bool ImportDependencies(string[] paths)
     {
         if (paths == null)
             return false;
@@ -220,7 +289,7 @@ class SampleDependencyImporter : IPackageManagerExtension
                 //Last folder is the one we want to copy
                 string folderToCopyName = foldersArray[Mathf.Max(foldersArray.Length-1,0)]; 
               
-                CopyDirectory(dependencyPath, $"{Application.dataPath}/Samples/{currentDependencyPackageInfo.displayName}/{folderToCopyName}");
+                CopyDirectory(dependencyPath, $"{Application.dataPath}/Samples/{currentDependencyPackageInfo.displayName}/{currentDependencyPackageInfo.version}/{folderToCopyName}");
                 assetsImported = true;
             }
             else
@@ -230,18 +299,6 @@ class SampleDependencyImporter : IPackageManagerExtension
         }
 
         return assetsImported;
-    }
-
-    /// <summary>
-    /// Returns all samples part of the specified package.
-    /// </summary>
-    /// <param name="packageInfo"></param>
-    /// <returns></returns>
-    static List<Sample> GetSamples(PackageInfo packageInfo)
-    {
-        // Find all samples for the package
-        var samples = Sample.FindByPackage(packageInfo.name, packageInfo.version);
-        return new List<Sample>(samples);
     }
 
     /// <summary>
