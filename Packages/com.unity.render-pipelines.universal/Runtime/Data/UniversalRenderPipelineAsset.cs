@@ -699,6 +699,18 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
 
+        internal void Reset()
+        {
+            // If the asset path is valid, it means we are explicitly resetting an existing asset, so we will create
+            // a new default renderer asset to avoid errors. If the path is invalid, it means we are creating a new asset
+            // for which the default renderer is provided through UniversalRenderPipelineAsset.Create.
+            string path = AssetDatabase.GetAssetPath(this);
+            if (!string.IsNullOrEmpty(path))
+            {
+                m_RendererDataList[0] = CreateRendererAsset(path, m_RendererType);
+            }
+        }
+
         public static UniversalRenderPipelineAsset Create(ScriptableRendererData rendererData = null)
         {
             // Create Universal RP Asset

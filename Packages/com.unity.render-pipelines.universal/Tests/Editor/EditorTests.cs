@@ -121,6 +121,27 @@ class EditorTests
         ScriptableObject.DestroyImmediate(data);
     }
 
+    [Test]
+    public void ValidateDefaultRendererAfterReset()
+    {
+        UniversalRendererData data = ScriptableObject.CreateInstance<UniversalRendererData>();
+        UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
+        const string kTempDir = "Assets/ValidateDefaultRendererAfterReset";
+        string assetPath = $"{kTempDir}/URPAsset.asset";
+        CoreUtils.EnsureFolderTreeInAssetFilePath(assetPath);
+        AssetDatabase.CreateAsset(asset, assetPath);
+        AssetDatabase.SaveAssets();
+        string path = AssetDatabase.GetAssetPath(asset);
+        Assume.That(!string.IsNullOrEmpty(path));
+
+        Assert.NotNull(asset.m_RendererDataList[asset.m_DefaultRendererIndex]);
+        Unsupported.SmartReset(asset);// will create a new default renderer data
+        Assert.NotNull(asset.m_RendererDataList[asset.m_DefaultRendererIndex]);
+
+        ScriptableObject.DestroyImmediate(data);
+        AssetDatabase.DeleteAsset(kTempDir);
+    }
+
     // When working with SpeedTree v7 assets, UniversalSpeedTree8Upgrader should not throw exception
     [Test]
     public void UniversalSpeedTree8Upgrader_ShouldntThrowExceptionWhenImportingSpeedTree7Assets()
