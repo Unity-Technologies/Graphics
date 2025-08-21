@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace UnityEngine.Rendering
 {
+    using static UnityEngine.Rendering.HableCurve;
     using UnityObject = UnityEngine.Object;
 
     /// <summary>
@@ -1845,6 +1846,7 @@ namespace UnityEngine.Rendering
             var path = filePath.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
             if (!path.StartsWith("Assets" + Path.DirectorySeparatorChar, StringComparison.CurrentCultureIgnoreCase))
                 throw new ArgumentException($"Path should start with \"Assets/\". Got {filePath}.", filePath);
+
             var folderPath = Path.GetDirectoryName(path);
 
             if (!UnityEditor.AssetDatabase.IsValidFolder(folderPath))
@@ -1896,7 +1898,7 @@ namespace UnityEngine.Rendering
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static GraphicsFormat GetDefaultDepthStencilFormat()
         {
-#if UNITY_SWITCH || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
+#if UNITY_SWITCH || UNITY_SWITCH2 || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
             return GraphicsFormat.D24_UNorm_S8_UInt;
 #else
             return GraphicsFormat.D32_SFloat_S8_UInt;
@@ -1910,7 +1912,7 @@ namespace UnityEngine.Rendering
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static GraphicsFormat GetDefaultDepthOnlyFormat()
         {
-#if UNITY_SWITCH || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
+#if UNITY_SWITCH || UNITY_SWITCH2 || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
             return GraphicsFormatUtility.GetDepthStencilFormat(24, 0); // returns GraphicsFormat.D24_UNorm when hardware supports it
 #else
             return GraphicsFormat.D32_SFloat;
@@ -1924,7 +1926,7 @@ namespace UnityEngine.Rendering
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DepthBits GetDefaultDepthBufferBits()
         {
-#if UNITY_SWITCH || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
+#if UNITY_SWITCH || UNITY_SWITCH2 || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
             return DepthBits.Depth24;
 #else
             return DepthBits.Depth32;

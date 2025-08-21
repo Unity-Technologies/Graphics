@@ -1074,6 +1074,160 @@ namespace UnityEngine.Rendering.Tests
             m_Camera.Render();
         }
 
+        [Test]
+        public void RenderGraphMultisampledShaderResolvePassWorks()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                var colorTexDesc = new TextureDesc(Vector2.one, false, false)
+                {
+                    width = 4,
+                    height = 4,
+                    format = GraphicsFormat.R8G8B8A8_UNorm,
+                    clearBuffer = true,
+                    clearColor = Color.red,
+                    msaaSamples = MSAASamples.MSAA4x,
+                    memoryless = RenderTextureMemoryless.None, // Initially set memoryless to false, RG will modify it
+                    name = "MSAA Color Texture"
+                };
+
+                var createdMSAAx4Color = m_RenderGraph.CreateTexture(colorTexDesc);
+
+                colorTexDesc.msaaSamples = MSAASamples.None;
+                var createdMSAAx1Color = m_RenderGraph.CreateTexture(colorTexDesc);
+
+                // MSAA4x pass
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                {
+                    builder.SetRenderAttachment(createdMSAAx4Color, 0, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                // MSAA1x pass with shader resolve enabled
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                {
+                    builder.SetRenderAttachment(createdMSAAx1Color, 0, AccessFlags.Write);
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultisampledShaderResolve);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+
+                Assert.AreEqual(1, passes.Count);
+            };
+            m_Camera.Render();
+        }
+
+        [Test]
+        public void RenderGraphMultisampledShaderResolvePassWorksForMSAATarget()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                var colorTexDesc = new TextureDesc(Vector2.one, false, false)
+                {
+                    width = 4,
+                    height = 4,
+                    format = GraphicsFormat.R8G8B8A8_UNorm,
+                    clearBuffer = true,
+                    clearColor = Color.red,
+                    msaaSamples = MSAASamples.MSAA4x,
+                    memoryless = RenderTextureMemoryless.None, // Initially set memoryless to false, RG will modify it
+                    name = "MSAA Color Texture"
+                };
+
+                var createdMSAAx4Color0 = m_RenderGraph.CreateTexture(colorTexDesc);
+                var createdMSAAx4Color1 = m_RenderGraph.CreateTexture(colorTexDesc);
+
+                // MSAA4x pass
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                {
+                    builder.SetRenderAttachment(createdMSAAx4Color0, 0, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                // MSAA4x pass with shader resolve enabled
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                {
+                    builder.SetRenderAttachment(createdMSAAx4Color1, 0, AccessFlags.Write);
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultisampledShaderResolve);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+
+                Assert.AreEqual(1, passes.Count);
+            };
+            m_Camera.Render();
+        }
+
+        [Test]
+        public void RenderGraphMultisampledShaderResolvePassMustBeTheLastSubpass()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                const int kWidth = 4;
+                const int kHeight = 4;
+
+                TextureHandle dummyTexture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+                // Shader resolve enabled pass
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                {
+                    builder.SetRenderAttachment(dummyTexture0, 0, AccessFlags.Write);
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultisampledShaderResolve);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                // Second pass that should not be merged.
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+                {
+                    builder.SetRenderAttachment(dummyTexture0, 0, AccessFlags.Write);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+
+                // Can't merge any pass into shader resolve enabled pass
+                Assert.AreEqual(2, passes.Count); // 2 native passes
+            };
+            m_Camera.Render();
+        }
+
+        [Test]
+        public void RenderGraphMultisampledShaderResolvePassMustHaveOneColorAttachment()
+        {
+            const string kErrorMessage = "Low level rendergraph error: last subpass with shader resolve must have one color attachment.";
+            const int kWidth = 4;
+            const int kHeight = 4;
+
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                TextureHandle dummyTexture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+                TextureHandle dummyTexture1 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+
+                // Shader resolve enabled pass
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+                {
+                    builder.SetRenderAttachment(dummyTexture0, 0, AccessFlags.Write);
+                    builder.SetRenderAttachment(dummyTexture1, 1, AccessFlags.Write);
+                    builder.SetExtendedFeatureFlags(ExtendedFeatureFlags.MultisampledShaderResolve);
+                    builder.AllowPassCulling(false);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                }
+
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                LogAssert.Expect(LogType.Error, "Render Graph Execution error");
+                LogAssert.Expect(LogType.Exception, $"Exception: {kErrorMessage}");
+            };
+            m_Camera.Render();
+        }
+
         /*
         // Disabled for now as version management is not exposed to user code
         [Test]

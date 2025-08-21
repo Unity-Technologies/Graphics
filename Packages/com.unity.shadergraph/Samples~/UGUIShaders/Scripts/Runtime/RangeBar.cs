@@ -126,7 +126,7 @@ namespace Unity.UI.Shaders.Sample
 
         public virtual Material GetModifiedMaterial(Material baseMaterial)
         {
-            _material = new Material(baseMaterial);
+            _material ??= new(baseMaterial);
 
             if (_material.HasVector(RangeBarValuePropertyId))
                 _material.SetVector(RangeBarValuePropertyId, Vector);

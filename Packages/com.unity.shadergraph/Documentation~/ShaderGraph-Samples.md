@@ -54,5 +54,7 @@ The following samples are currently available for Shader Graph.
 |![](images/CustomLightingSample.png) |
 | The Shader Graph Custom Lighting sample shows how you can create your own custom lighting model in Shader Graph and provides dozens of example templates, shaders, and subgraphs to help you get started with your own custom lighting.
 
-
-
+| [Terrain Shaders](Shader-Graph-Sample-Terrain-Shaders.md) |
+|:--------------------|
+|![](images/TerrainSample.png) |
+| The Shader Graph Terrain Sample provides example shaders to learn from and subgraphs that you can use to build your own terrain shaders. Custom terrain shaders can use more advanced features like hexagon tile break-up, parallax occlusion mapping, or triplanar projection. Or you can use techniques like array texture sampling or alternate texture packing methods to make the shader cheaper to render than the default one. Whether you're making faster or more advanced terrain shaders, this sample will help you get the results you're looking for. |

@@ -1,34 +1,38 @@
-# Scene Depth Node
+# Scene Depth node
 
-## Description
+The Scene Depth node samples the depth texture of the current camera, using the screen space coordinates you input. The node returns the depth of the closest object the camera sees along the path towards the coordinates, or 1 (white) if no object is present.
 
-Provides access to the current **Camera**'s depth buffer using input **UV**, which is expected to be normalized screen coordinates.
+If you use the Universal Render Pipeline (URP), make sure the depth texture is enabled in the [URP asset](https://docs.unity3d.com/Manual/urp/universalrp-asset.html). Otherwise the Scene Depth node returns a value of 0.5 (mid-grey).
 
-Note: Depth buffer access requires depth buffer to be enabled on the active **Render Pipeline**. This process is different per **Render Pipeline**. It is recommended you read the documentation of your active **Render Pipeline** for information on enabling the depth buffer. If the depth buffer is unavailable this [Node](Node.md) will return mid grey.
+The Scene Depth node works only in the fragment [shader stage](Shader-Stage.md), and might not work if you set **Surface Type** to **Opaque** in the **Graph Inspector** window.
 
-Note: The executed HLSL code for this [Node](Node.md) is defined per **Render Pipeline**, and different **Render Pipelines** may produce different results. Custom **Render Pipelines** that wish to support this [Node](Node.md) will also need to explicitly define the behaviour for it. If undefined this [Node](Node.md) will return 1 (white).
+## Render pipeline support
 
-NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](Shader-Stage.md) and it is not guaranteed to work with an opaque material.
+This node supports the following render pipelines:
 
-#### Unity Render Pipelines Support
-- High Definition Render Pipeline
-- Universal Render Pipeline
+- High Definition Render Pipeline (HDRP)
+- Universal Render Pipeline (URP)
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
+| **Name** | **Direction** | **Type** | **Binding** | **Description** |
 |:------------ |:-------------|:-----|:---|:---|
-| UV     | Input | Vector 4 | Screen Position | Normalized screen coordinates |
-| Out | Output      |    Float    | None | Output value |
+| **UV** | Input | Vector 4 | Screen position | The normalized screen space coordinates to sample from. |
+| **Out** | Output | Float | None | The depth value from the depth texture at the **UV** coordinates. |
 
-## Depth Sampling modes
-| Name     | Description                        |
+## Sampling modes
+
+| **Name** | **Description** |
 |----------|------------------------------------|
-| Linear01 | Linear depth value between 0 and 1 |
-| Raw      | Raw depth value                    |
-| Eye      | Depth converted to eye space units |
+| **Linear 01** | Returns the linear depth value. The range is from 0 to 1. 0 is the near clipping plane of the camera, and 1 is the far clipping plane of the camera. |
+| **Raw** | Returns the non-linear depth value. The range is from 0 to 1. 0 is the near clipping plane of the camera, and 1 is the far clipping plane of the camera. |
+| **Eye** | Returns the depth value as the distance from the camera in meters. |
 
-## Generated Code Example
+For more information about clipping planes, refer to [Introduction to the camera view](https://docs.unity3d.com/Manual/UnderstandingFrustum.html).
+
+## Generated code example
+
+The HLSL code this node generates depends on the render pipeline you use. If you use your own custom render pipeline, you must define the behaviour of the node yourself, otherwise the node returns a value of 1 (white).
 
 The following example code represents one possible outcome of this node.
 

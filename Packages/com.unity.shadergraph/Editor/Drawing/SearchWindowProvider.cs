@@ -198,7 +198,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 else if (title[0] != k_HiddenFolderName)
                 {
-                    title.Add(asset.name);
+                    var name = ObjectNames.NicifyVariableName(asset.name);
+                    title.Add(name);
                     AddEntries(node, title.ToArray(), nodeEntries);
                 }
             }

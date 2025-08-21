@@ -298,6 +298,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     materialGraph.messageManager = messageManager;
                     string assetPath = AssetDatabase.GUIDToAssetPath(selectedGuid);
                     string graphName = Path.GetFileNameWithoutExtension(assetPath);
+                    graphObject.Validate();
 
                     graphEditorView = new GraphEditorView(this, materialGraph, messageManager, graphName)
                     {
@@ -305,7 +306,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     };
                     m_ColorSpace = PlayerSettings.colorSpace;
                     m_RenderPipelineAsset = GraphicsSettings.currentRenderPipeline;
-                    graphObject.Validate();
 
                     // update blackboard title for the new graphEditorView
                     updateTitle = true;

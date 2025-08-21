@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     return false;
                 }
 
-                if (fragmentInfoSamples != resInfo.msaaSamples)
+                if (fragmentInfoSamples != resInfo.msaaSamples && !extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.MultisampledShaderResolve))
                 {
                     var name = resInfo.GetName(ctx, h);
                     if (string.IsNullOrEmpty(name))
@@ -563,6 +563,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         FRStateMismatch, // One pass is using foveated rendering and the other not
         DifferentShadingRateImages, // The next pass uses a different shading rate image (and we only allow one in a whole NRP)
         DifferentShadingRateStates, // The next pass uses different shading rate states (and we only allow one set in a whole NRP)
+        MultisampledShaderResolveMustBeLastPass, // The current pass has MultisampledShaderResolve specified and so must be the last pass
         ExtendedFeatureFlagsIncompatible, // Handles the case where flags added via SetExtendedFeatureFlags are not compatible
         PassMergingDisabled, // Wasn't merged because pass merging is disabled
         Merged, // I actually got merged
@@ -599,6 +600,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             "The next pass uses a different foveated rendering state",
             "The next pass uses a different shading rate image",
             "The next pass uses a different shading rate rendering state",
+            "The current merged pass uses multisampled shader resolve and so can't have any more passes merged into it.",
             "Extended feature flags are incompatible",
             "Pass merging is disabled so this pass was not merged",
             "The next pass got merged into this pass.",
@@ -766,6 +768,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
+        static bool CanMergeMSAASamples(ref NativePassData nativePass, ref PassData passToMerge)
+        {
+            return (nativePass.samples == passToMerge.fragmentInfoSamples) ||
+                   (passToMerge.fragmentInfoSamples == 1 && passToMerge.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.MultisampledShaderResolve));
+        }
+        
         static bool AreExtendedFeatureFlagsCompatible(ExtendedFeatureFlags flags0, ExtendedFeatureFlags flags1)
         {
             // Which of the newly added flags are incompatible? 
@@ -800,7 +808,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (nativePass.width != passToMerge.fragmentInfoWidth ||
                     nativePass.height != passToMerge.fragmentInfoHeight ||
                     nativePass.volumeDepth != passToMerge.fragmentInfoVolumeDepth ||
-                    nativePass.samples != passToMerge.fragmentInfoSamples)
+                    !CanMergeMSAASamples(ref nativePass, ref passToMerge))
                 {
                     return new PassBreakAudit(PassBreakReason.TargetSizeMismatch, passIdToMerge);
                 }
@@ -857,6 +865,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
                         return new PassBreakAudit(PassBreakReason.DifferentShadingRateStates, passIdToMerge);
                     }
+                }
+
+                // If we have MSAA shader resolve set we must be the last subpass, so we can't merge anything else.
+                if (nativePass.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.MultisampledShaderResolve))
+                {
+                    return new PassBreakAudit(PassBreakReason.MultisampledShaderResolveMustBeLastPass, passIdToMerge);
                 }
             }
 
@@ -1274,6 +1288,11 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             nativePass.numGraphPasses++;
             nativePass.lastGraphPass = passIdToMerge;
+
+            // Shader resolve needs special handling as we can merge it into a native pass that doesn't have it, it should be the last pass
+            // but non fragment passes might get merged in after it and as those don't actually generate subpasses that should be fine.
+            if (passToMerge.extendedFeatureFlags.HasFlag(ExtendedFeatureFlags.MultisampledShaderResolve))
+                nativePass.extendedFeatureFlags |= ExtendedFeatureFlags.MultisampledShaderResolve;
 
             // Depth needs special handling if the native pass doesn't have depth and merges with a graph pass that does
             // as we require the depth attachment to be at index 0

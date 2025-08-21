@@ -207,9 +207,6 @@ class TilemapRenderer2DTests
         Assert.Greater(UnityStats.drawCalls, 0);
     }
 
-#if UNITY_EDITOR_OSX
-    [Ignore("UUM-110269")]
-#endif
     [UnityTest]
     public IEnumerator TilemapRenderer_IndividualMode_WithSameSpriteRenderers_DynamicBatched_SingleBatchDrawCall()
     {

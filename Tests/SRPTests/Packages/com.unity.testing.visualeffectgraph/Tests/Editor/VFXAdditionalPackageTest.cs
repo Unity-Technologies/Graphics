@@ -55,14 +55,7 @@ namespace UnityEditor.VFX.Test
             //Workaround for UUM-63664
             var current = matching[0];
             {
-                foreach (var extension in PackageManagerExtensions.Extensions)
-                    extension.OnPackageSelectionChange(searchRequest.Result[0]);
-
-                //Force import of dependencies before importing anything else
-                var samplePath = Path.Combine(kSampleExpectedPath, "Visual Effect Graph", version, current.displayName);
-                Directory.CreateDirectory(samplePath);
-                File.WriteAllText(samplePath + "/dummy.txt", "UUM-63664 workaround for test.");
-                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+                SampleDependencyImporter.instance.ImportSampleDependencies(searchRequest.Result[0], current);
             }
 
             var result = current.Import(Sample.ImportOptions.HideImportWindow | Sample.ImportOptions.OverridePreviousImports);

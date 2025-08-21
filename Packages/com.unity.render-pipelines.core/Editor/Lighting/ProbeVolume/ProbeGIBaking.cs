@@ -268,15 +268,15 @@ namespace UnityEngine.Rendering
         }
     }
 
-    class BakingBatch
+    class BakingBatch : IDisposable
     {
         public Dictionary<int, HashSet<string>> cellIndex2SceneReferences = new ();
         public List<BakingCell> cells = new ();
         // Used to retrieve probe data from it's position in order to fix seams
-        public Dictionary<int, int> positionToIndex = new ();
+        public NativeHashMap<int, int> positionToIndex;
         // Allow to get a mapping to subdiv level with the unique positions. It stores the minimum subdiv level found for a given position.
         // Can be probably done cleaner.
-        public Dictionary<int, int> uniqueBrickSubdiv = new ();
+        public NativeHashMap<int, int> uniqueBrickSubdiv;
         // Mapping for explicit invalidation, whether it comes from the auto finding of occluders or from the touch up volumes
         // TODO: This is not used yet. Will soon.
         public Dictionary<Vector3, bool> invalidatedPositions = new ();
@@ -306,6 +306,19 @@ namespace UnityEngine.Rendering
             maxBrickCount = cellCount * ProbeReferenceVolume.CellSize(refVolume.GetMaxSubdivision());
             inverseScale = ProbeBrickPool.kBrickCellCount / refVolume.MinBrickSize();
             offset = refVolume.ProbeOffset();
+            
+            // Initialize NativeHashMaps with reasonable initial capacity
+            // Using a larger capacity to reduce allocations during baking
+            positionToIndex = new NativeHashMap<int, int>(100000, Allocator.Persistent);
+            uniqueBrickSubdiv = new NativeHashMap<int, int>(100000, Allocator.Persistent);
+        }
+        
+        public void Dispose()
+        {
+            if (positionToIndex.IsCreated)
+                positionToIndex.Dispose();
+            if (uniqueBrickSubdiv.IsCreated)
+                uniqueBrickSubdiv.Dispose();
         }
 
         public int GetProbePositionHash(Vector3 position)
@@ -1202,6 +1215,7 @@ namespace UnityEngine.Rendering
         static void CleanBakeData()
         {
             s_BakeData.Dispose();
+            m_BakingBatch?.Dispose();
             m_BakingBatch = null;
             s_AdjustmentVolumes = null;
 
@@ -1478,6 +1492,15 @@ namespace UnityEngine.Rendering
             // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
             probeRefVolume.globalBounds = globalBounds;
 
+            // Validate baking cells size before any state modifications
+            var bakingCellsArray = m_BakedCells.Values.ToArray();
+            var chunkSizeInProbes = ProbeBrickPool.GetChunkSizeInProbeCount();
+            var hasVirtualOffsets = m_BakingSet.settings.virtualOffsetSettings.useVirtualOffset;
+            var hasRenderingLayers = m_BakingSet.useRenderingLayers;
+            
+            if (!ValidateBakingCellsSize(bakingCellsArray, chunkSizeInProbes, hasVirtualOffsets, hasRenderingLayers))
+                return; // Early exit if validation fails
+
             PrepareCellsForWriting(isBakingSceneSubset);
 
             m_BakingSet.chunkSizeInBricks = ProbeBrickPool.GetChunkSizeInBrickCount();
@@ -1488,9 +1511,13 @@ namespace UnityEngine.Rendering
 
             m_BakingSet.scenarios.TryAdd(m_BakingSet.lightingScenario, new ProbeVolumeBakingSet.PerScenarioDataInfo());
 
-            // Convert baking cells to runtime cells
+            // Attempt to convert baking cells to runtime cells
+            bool succeededWritingBakingCells;
             using (new BakingCompleteProfiling(BakingCompleteProfiling.Stages.WriteBakedData))
-                WriteBakingCells(m_BakedCells.Values.ToArray());
+                succeededWritingBakingCells = WriteBakingCells(m_BakedCells.Values.ToArray());
+
+            if (!succeededWritingBakingCells)
+                return;
 
             // Reset internal structures depending on current bake.
             Debug.Assert(probeRefVolume.EnsureCurrentBakingSet(m_BakingSet));
@@ -1534,6 +1561,7 @@ namespace UnityEngine.Rendering
             }
 
             // Mark stuff as up to date
+            m_BakingBatch?.Dispose();
             m_BakingBatch = null;
             foreach (var probeVolume in GetProbeVolumeList())
                 probeVolume.OnBakeCompleted();

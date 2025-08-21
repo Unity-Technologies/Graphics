@@ -99,6 +99,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 case PassBreakReason.DifferentShadingRateStates:
                     message += $"{prevPassName} uses different shading rate states than {passName}.";
                     break;
+                case PassBreakReason.MultisampledShaderResolveMustBeLastPass:
+                    message += $"{prevPassName} uses multisampled shader resolve and so can't have any more passes merged into it.";
+                    break;
                 case PassBreakReason.PassMergingDisabled:
                     message += "The pass merging is disabled.";
                     break;

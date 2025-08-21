@@ -102,6 +102,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewElement.style.bottom = 16;
             root.Add(m_PreviewElement);
             m_PreviewShadedElement = m_PreviewElement.Q("shader");
+            UIElementsUtility.RegisterCachedPanel(m_PreviewPanelSettings.GetInstanceID(), m_PreviewPanelSettings.panel);
             SetupUITKFonts();
         }
 
@@ -734,7 +735,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (drawPreviewCount <= 0)
                     return;
 
-                previewTime += Time.fixedDeltaTime;
+                previewTime = Time.realtimeSinceStartup;
                 var timeParameters = new Vector4(previewTime, Mathf.Sin(previewTime), Mathf.Cos(previewTime), 0.0f);
                 m_SharedPreviewPropertyBlock.SetVector("_TimeParameters", timeParameters);
                 if (prefersUITKPreview)
@@ -1516,6 +1517,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (m_PreviewPanelSettings != null)
             {
+                UIElementsUtility.RemoveCachedPanel(m_PreviewPanelSettings.GetInstanceID());
                 Object.DestroyImmediate(m_PreviewPanelSettings);
                 m_PreviewPanelSettings = null;
             }

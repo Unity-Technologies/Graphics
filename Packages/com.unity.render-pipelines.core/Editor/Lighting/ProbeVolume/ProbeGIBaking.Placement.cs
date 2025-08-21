@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine.SceneManagement;
 using UnityEditor;
-
+using System.Runtime.InteropServices;
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
 
 namespace UnityEngine.Rendering
@@ -191,7 +191,8 @@ namespace UnityEngine.Rendering
                 int positionStart = positions.Length;
 
                 ConvertBricksToPositions(bricks, out var probePositions, out var brickSubdivLevels);
-                DeduplicateProbePositions(in probePositions, in brickSubdivLevels, m_BakingBatch, positions, out var probeIndices);
+                if (!DeduplicateProbePositions(in probePositions, in brickSubdivLevels, m_BakingBatch, positions, out var probeIndices))
+                    return new NativeList<Vector3>(Allocator.Persistent);
 
                 BakingCell cell = new BakingCell()
                 {
@@ -210,9 +211,22 @@ namespace UnityEngine.Rendering
             return positions;
         }
 
-        private static void DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, BakingBatch batch,
+        // We know that the current limitation on native containers is this. When an integer overflow bug (https://jira.unity3d.com/browse/UUM-113721) has been fixed, we can raise the limit
+        // This and related work is tracked by https://jira.unity3d.com/browse/GFXLIGHT-1738
+        static readonly long k_MaxNumberOfPositions = 67180350;
+
+        static bool DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, BakingBatch batch,
             NativeList<Vector3> uniquePositions, out int[] indices)
         {
+            long numberOfPositions = (long)probePositions.Length + batch.positionToIndex.Count;
+            if (numberOfPositions > k_MaxNumberOfPositions)
+            {
+                Debug.LogError($"The number of Adaptive Probe Volume (APV) probes Unity generated exceeds the current system limit of {k_MaxNumberOfPositions} probes per Baking Set. Reduce density either by adjusting the general Probe Spacing in the Lighting window, or by modifying the Adaptive Probe Volumes in the scene to limit where the denser subdivision levels are used.");
+                indices = null;
+
+                return false;
+            }
+
             indices = new int[probePositions.Length];
             int uniqueIndex = batch.positionToIndex.Count;
 
@@ -238,6 +252,8 @@ namespace UnityEngine.Rendering
                     uniqueIndex++;
                 }
             }
+
+            return true;
         }
 
         static ProbeSubdivisionResult GetBricksFromLoaded(List<ProbeVolumePerSceneData> dataList)

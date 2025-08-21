@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.RadeonRays
             var top = new BvhNode[2];
             top[0].child0 = 0;
             top[0].child1 = 0;
-            top[0].parent = 0;
+            top[0].parent = 0xFFFFFFFF;
 
             top[1].child0 = 0;
             top[1].child1 = 0;

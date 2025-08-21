@@ -59,7 +59,9 @@ namespace UnityEngine.Rendering.RenderGraphModule
         ///<summary>On Meta XR, this flag can be set for the pass that performs the most 3D rendering to achieve better performance.</summary>
         TileProperties = 1 << 0,
         ///<summary>On XR, this flag can be set for passes that are compatible with Multiview Render Regions</summary>
-        MultiviewRenderRegionsCompatible = 1 << 1
+        MultiviewRenderRegionsCompatible = 1 << 1,
+        ///<summary>On Meta XR, this flag can be set to use MSAA shader resolve in the last subpass of a render pass. </summary>
+        MultisampledShaderResolve = 1 << 2,
     }
 
     [Flags]
@@ -2634,14 +2636,14 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
                 if (executedWorkDuringResourceCreation)
                 {
-                    rgContext.cmd.WaitOnAsyncGraphicsFence(previousFence);
+                    rgContext.cmd.WaitOnAsyncGraphicsFence(previousFence, SynchronisationStageFlags.PixelProcessing);
                 }
             }
 
             // Synchronize with graphics or compute pipe if needed.
             if (passInfo.syncToPassIndex != -1)
             {
-                rgContext.cmd.WaitOnAsyncGraphicsFence(m_CurrentCompiledGraph.compiledPassInfos[passInfo.syncToPassIndex].fence);
+                rgContext.cmd.WaitOnAsyncGraphicsFence(m_CurrentCompiledGraph.compiledPassInfos[passInfo.syncToPassIndex].fence, SynchronisationStageFlags.PixelProcessing);
             }
         }
 

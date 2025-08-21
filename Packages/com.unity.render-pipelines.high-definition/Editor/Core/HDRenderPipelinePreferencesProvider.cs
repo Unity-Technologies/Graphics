@@ -41,9 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition.Core
 
             public static readonly GUIContent hdrpProjectSettingsPathLabel = EditorGUIUtility.TrTextContent("Resources Folder Name", "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.");
 
-            public static readonly GUIContent matcapLabel = EditorGUIUtility.TrTextContent("MatCap Mode Default Values");
-            public static readonly GUIContent matcapViewMixAlbedoLabel = EditorGUIUtility.TrTextContent("Mix Albedo", "Enable to make HDRP mix the albedo of the Material with its material capture.");
-            public static readonly GUIContent matcapViewScaleLabel = EditorGUIUtility.TrTextContent("Intensity Scale", "Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably.");
+            public static readonly GUIContent matcapViewMixAlbedoLabel = EditorGUIUtility.TrTextContent("MatCap Mode Mix Albedo", "Enable to make HDRP mix the albedo of the Material with its material capture.");
+            public static readonly GUIContent matcapViewScaleLabel = EditorGUIUtility.TrTextContent("MatCap Mode Intensity Scale", "Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably.");
         }
 
         static List<string> s_SearchKeywords = new() {
@@ -64,20 +63,19 @@ namespace UnityEditor.Rendering.HighDefinition.Core
         /// </summary>
         public void PreferenceGUI()
         {
+            EditorGUI.indentLevel++;
             HDProjectSettings.projectSettingsFolderPath = EditorGUILayout.TextField(Styles.hdrpProjectSettingsPathLabel, HDProjectSettings.projectSettingsFolderPath);
             DrawConfigPackageDropdown();
             DrawMatCapDefaults();
+            EditorGUI.indentLevel--;
         }
 
         void DrawMatCapDefaults()
         {
-            EditorGUILayout.LabelField(Styles.matcapLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
             var matCapMode = HDRenderPipelinePreferences.matCapMode;
             matCapMode.mixAlbedo.value = EditorGUILayout.Toggle(Styles.matcapViewMixAlbedoLabel, matCapMode.mixAlbedo.value);
             if (matCapMode.mixAlbedo.value)
                 matCapMode.viewScale.value = EditorGUILayout.FloatField(Styles.matcapViewScaleLabel, matCapMode.viewScale.value);
-            EditorGUI.indentLevel--;
         }
 
         private const string k_PackageName = "com.unity.render-pipelines.high-definition-config";

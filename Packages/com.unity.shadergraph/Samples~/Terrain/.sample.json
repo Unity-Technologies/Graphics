@@ -1,0 +1,6 @@
+{
+  "displayName": "Terrain Shaders",
+  "interactiveImport": "false",
+      "description": "This sample helps you create customized shaders for your terrain. Learn from a large variety of terrain shader examples and benefit from a library of subgraphs that you can combine to build your own custom terrain shaders. The sample includes support for multiple texture packing schemes, multiple methods for breaking texture tiling, and demos of other features such as parallax mapping, detail mapping, and triplanar projection.",
+  "createSeparatePackage": true
+}

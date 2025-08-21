@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
@@ -7,7 +8,10 @@ namespace UnityEngine.Rendering.Universal
     {
         #region Fields
 
-        private const int k_EyeCount = 2;
+        private const int k_MaxViewPerPass = 2;
+        private Matrix4x4[] m_stagingMatrixArray = new Matrix4x4[k_MaxViewPerPass]; // Staging matrix to avoid allocating memory every frame when setting shader properties.
+        private const int k_EyeCount = 4;
+        private int m_numPreviousViews = 0;
 
         readonly Matrix4x4[] m_Projection = new Matrix4x4[k_EyeCount];
         readonly Matrix4x4[] m_View = new Matrix4x4[k_EyeCount];
@@ -66,6 +70,11 @@ namespace UnityEngine.Rendering.Universal
         internal Matrix4x4[] previousViewProjectionStereo
         {
             get => m_PreviousViewProjection;
+        }
+
+        internal Matrix4x4[] stagingMatrixStereo
+        {
+            get => m_stagingMatrixArray;
         }
 
         internal Matrix4x4[] projectionStereo
@@ -166,9 +175,7 @@ namespace UnityEngine.Rendering.Universal
             int eyeIndex = GetXRMultiPassId(cameraData.xr);
 
             // XR multipass renders the frame twice, avoid updating camera history twice.
-            bool xrMultipassEnabled = cameraData.xr.enabled && !cameraData.xr.singlePassEnabled;
-
-            bool isNewFrame = !xrMultipassEnabled || (eyeIndex == 0);
+            bool isNewFrame = (eyeIndex == 0);
 
             int frameIndex = Time.frameCount;
 
@@ -199,6 +206,8 @@ namespace UnityEngine.Rendering.Universal
                 m_previousPreviousWorldSpaceCameraPos = m_previousWorldSpaceCameraPos;
                 m_previousWorldSpaceCameraPos = m_worldSpaceCameraPos;
                 m_worldSpaceCameraPos = worldSpaceCameraPos;
+
+                m_numPreviousViews = 0;
             }
 
             // A camera could be rendered multiple times per frame, only update the view projections if needed
@@ -214,7 +223,7 @@ namespace UnityEngine.Rendering.Universal
 
                 for (int viewIndex = 0; viewIndex < numActiveViews; ++viewIndex)
                 {
-                    int targetIndex = viewIndex + eyeIndex;
+                    int targetIndex = viewIndex + m_numPreviousViews;
 
                     var gpuP = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrixNoJitter(viewIndex), true);
 
@@ -253,6 +262,7 @@ namespace UnityEngine.Rendering.Universal
 
                 m_LastFrameIndex[eyeIndex] = frameIndex;
                 m_PrevAspectRatio[eyeIndex] = cameraData.aspectRatio;
+                m_numPreviousViews += numActiveViews;
             }
         }
 
@@ -263,8 +273,12 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled && xr.singlePassEnabled)
             {
-                cmd.SetGlobalMatrixArray(ShaderPropertyId.previousViewProjectionNoJitterStereo, previousViewProjectionStereo);
-                cmd.SetGlobalMatrixArray(ShaderPropertyId.viewProjectionNoJitterStereo, viewProjectionStereo);
+                var viewStartIndex = xr.viewCount * passID;
+
+                Array.Copy(previousViewProjectionStereo, viewStartIndex, m_stagingMatrixArray, 0, xr.viewCount);
+                cmd.SetGlobalMatrixArray(ShaderPropertyId.previousViewProjectionNoJitterStereo, m_stagingMatrixArray);
+                Array.Copy(viewProjectionStereo, viewStartIndex, m_stagingMatrixArray, 0, xr.viewCount);
+                cmd.SetGlobalMatrixArray(ShaderPropertyId.viewProjectionNoJitterStereo, m_stagingMatrixArray);
             }
             else
 #endif

@@ -25,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering
         internal bool copyDepth;
         internal bool hasMotionVectorPass;
         internal bool spaceWarpRightHandedNDC;
+        internal bool isLastCameraPass;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal UnityEngine.XR.XRDisplaySubsystem.XRRenderPass xrSdkRenderPass;
@@ -52,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Views = new List<XRView>(2);
             m_OcclusionMesh = new XROcclusionMesh(this);
             m_VisibleMesh = new XRVisibleMesh(this);
+            isLastCameraPass = true;    // default to last camera pass when creating from default constructor
         }
 
         /// <summary>
@@ -132,11 +134,8 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>
         /// If true, is the last pass of a xr camera
-        /// Multipass last pass: pass ID == 1, viewCount == 1
-        /// Singlepass last pass: pass ID == 0, viewCount ==2
-        /// Emptypass(non-XR) last pass: pass ID == 0, viewCount == 0
         /// </summary>
-        public bool isLastCameraPass => (multipassId == 1 && viewCount <= 1) || (multipassId == 0 && viewCount > 1) || (multipassId == 0 && viewCount == 0) /* ViewCount 0 handles the empty pass*/;
+        public bool isLastCameraPass { get; private set; }
 
         /// <summary>
         /// Index of the pass inside the frame.
@@ -558,6 +557,7 @@ namespace UnityEngine.Experimental.Rendering
             m_OcclusionMesh.SetMaterial(createInfo.occlusionMeshMaterial);
             occlusionMeshScale = createInfo.occlusionMeshScale;
             foveatedRenderingInfo = createInfo.foveatedRenderingInfo;
+            isLastCameraPass = createInfo.isLastCameraPass;
         }
 
         internal void AddView(XRView xrView)

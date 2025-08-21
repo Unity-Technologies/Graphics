@@ -326,4 +326,11 @@
     * [Custom Lighting](Shader-Graph-Sample-Custom-Lighting.md)
         * [Lighting Models](Shader-Graph-Sample-Custom-Lighting-Lighting-Models.md)
         * [Components](Shader-Graph-Sample-Custom-Lighting-Components.md)
+    * [Terrain Shaders](Shader-Graph-Sample-Terrain.md)
+        * [Texture Packing Schemes](Shader-Graph-Sample-Terrain-Packing.md)
+        * [Shaders](Shader-Graph-Sample-Terrain-Shaders.md)
+        * [Layer Types](Shader-Graph-Sample-Terrain-Layers.md)
+        * [Components and Blends](Shader-Graph-Sample-Terrain-Components.md)
+        * [Problems and Solutions](Shader-Graph-Sample-Terrain-Solutions.md)
+        * [Performance Comparison](Shader-Graph-Sample-Terrain-Performance.md)
 

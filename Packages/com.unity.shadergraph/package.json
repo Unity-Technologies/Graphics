@@ -51,6 +51,15 @@
       "displayName": "Custom Lighting",
       "description": "This sample helps you customize the URP lighting model in Shader Graph to achieve a unique look for your project or make the lighting cheaper. Learn from the included examples to create lit shaders without fog, change the way SSAO and decals are applied, and create stylized rendering. Get additional templates for the template browser and benefit from a comprehensive library of subgraphs for all types of lighting operations.",
       "path": "Samples~/CustomLighting"
+    },
+    {
+      "displayName": "Terrain Shaders",
+      "description": "This sample helps you create customized shaders for your terrain. Learn from a large variety of terrain shader examples and benefit from a library of subgraphs that you can combine to build your own custom terrain shaders. The sample includes support for multiple texture packing schemes, multiple methods for breaking texture tiling, and demos of other features such as parallax mapping, detail mapping, and triplanar projection.",
+      "path": "Samples~/Terrain",
+      "dependencies": [
+        "com.unity.render-pipelines.core/Samples~/Common",
+        "com.unity.shadergraph/Samples~/Common"
+      ]
     }
-  ]
+   ]
 }

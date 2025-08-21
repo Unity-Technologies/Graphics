@@ -25,22 +25,22 @@ namespace UnityEngine.Rendering.Universal
         int IRenderPipelineGraphicsSettings.version => m_Version;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/FallbackMaterial.mat")]
-        Material m_FallbackMaterial;
+        public Material m_FallbackMaterial;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/PatchAllocation.compute")]
-        ComputeShader m_AllocationShader;
+        public ComputeShader m_AllocationShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/ScreenResolveLookup.compute")]
-        ComputeShader m_ScreenResolveLookupShader;
+        public ComputeShader m_ScreenResolveLookupShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/ScreenResolveUpsampling.compute")]
-        ComputeShader m_ScreenResolveUpsamplingShader;
+        public ComputeShader m_ScreenResolveUpsamplingShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/Debug.compute")]
-        ComputeShader m_DebugShader;
+        public ComputeShader m_DebugShader;
 
         [ResourcePath("Runtime/RendererFeatures/SurfaceCacheGlobalIlluminationRendererFeature/FlatNormalResolution.compute")]
-        ComputeShader m_FlatNormalResolutionShader;
+        public ComputeShader m_FlatNormalResolutionShader;
 
         public Material fallbackMaterial
         {

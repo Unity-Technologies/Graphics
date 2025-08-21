@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.Internal
                     return promotedFromCategoryName;
 
                 var src = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(PromotedAssetPath);
-                if (src is null || src.isNull || !src.isValid)
+                if (src is null)
                     return null;
 
                 return src.name;
