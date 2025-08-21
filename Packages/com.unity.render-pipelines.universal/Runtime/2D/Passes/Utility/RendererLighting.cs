@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int k_LightInvMatrixID = Shader.PropertyToID("_LightInvMatrix");
         private static readonly int k_InnerRadiusMultID = Shader.PropertyToID("_InnerRadiusMult");
         private static readonly int k_OuterAngleID = Shader.PropertyToID("_OuterAngle");
-        private static readonly int k_InnerAngleMultID = Shader.PropertyToID("_InnerAngleMult");
+        private static readonly int k_InnerAngleID = Shader.PropertyToID("_InnerAngle");
         private static readonly int k_LightLookupID = Shader.PropertyToID("_LightLookup");
         private static readonly int k_IsFullSpotlightID = Shader.PropertyToID("_IsFullSpotlight");
         private static readonly int k_LightZDistanceID = Shader.PropertyToID("_LightZDistance");
@@ -486,7 +486,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalMatrix(k_LightInvMatrixID, lightInverseMatrix);
             cmd.SetGlobalFloat(k_InnerRadiusMultID, innerRadiusMult);
             cmd.SetGlobalFloat(k_OuterAngleID, outerAngle);
-            cmd.SetGlobalFloat(k_InnerAngleMultID, 1 / (outerAngle - innerAngle));
+            cmd.SetGlobalFloat(k_InnerAngleID, innerAngle);
             cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
             cmd.SetGlobalTexture(k_FalloffLookupID, pass.rendererData.fallOffLookup);
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
