@@ -1,17 +1,17 @@
-# UV Node
+# UV node
 
-## Description
+The UV node outputs the vertex or fragment UV coordinates of a mesh.
 
-Provides access to the mesh vertex or fragment's **UV** coordinates. The coordinate channel of the output value can be selected with the **Channel** dropdown parameter.
+UV coordinates usually have two channels, but the UV node outputs four channels so you can use the remaining two channels, for example to store custom mesh data.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
+| **Name** | **Direction** | **Type** | **Binding** | **Description** |
 |:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Vector 4 | None | Mesh's **UV** coordinates. |
+| **Out** | Output | Vector 4 | None | The u and v coordinates from the mesh in the first two channels, and two extra channels. |
 
 ## Controls
 
-| Name        | Type           | Options  | Description |
+| **Name** | **Type** | **Options** | **Description** |
 |:------------ |:-------------|:-----|:---|
-| Channel | Dropdown | UV0, UV1, UV2, UV3 | Selects coordinate channel of **UV** to output. |
+| **Channel** | Dropdown | **UV0**, **UV1**, **UV2**, **UV3**, **UV4**, **UV5**, **UV6**, **UV7** | Selects the coordinate set to output. |

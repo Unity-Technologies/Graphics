@@ -1469,5 +1469,48 @@ namespace UnityEngine.Rendering.Tests
             // Ensure that the Render Graph data structures can be reinitialized at runtime, even native ones
             Assert.DoesNotThrow(() => m_Camera.Render());
         }
+
+        class TempAllocTestData
+        {
+            public TextureHandle whiteTexture;
+        }
+
+        [Test]
+        public void GetTempMaterialPropertyBlockAreReleasedAfterRenderGraphNodeExecution()
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                using (var builder = m_RenderGraph.AddUnsafePass<TempAllocTestData>("MPBPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    passData.whiteTexture = m_RenderGraph.defaultResources.whiteTexture;
+
+                    builder.SetRenderFunc((TempAllocTestData data, UnsafeGraphContext context) =>
+                    {
+                        // no temp alloc yet
+                        Assert.IsTrue(context.renderGraphPool.IsEmpty());
+
+                        var mpb = context.renderGraphPool.GetTempMaterialPropertyBlock();
+                        mpb.SetTexture(k_DefaultWhiteTextureID, data.whiteTexture);
+
+                        // memory temporarily allocated
+                        Assert.IsFalse(context.renderGraphPool.IsEmpty());
+                    });
+                }
+
+                using (var builder = m_RenderGraph.AddUnsafePass<TempAllocTestData>("PostPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+
+                    builder.SetRenderFunc((TempAllocTestData data, UnsafeGraphContext context) =>
+                    {
+                        // memory has been deallocated at the end of the previous RG node, no leak
+                        Assert.IsTrue(context.renderGraphPool.IsEmpty());
+                    });
+                }
+            };
+
+            m_Camera.Render();
+        }
     }
 }

@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         public readonly int volumeDepth;
         public readonly int msaaSamples;
 
-        public readonly int latestVersionNumber;
+        public int latestVersionNumber; // mostly readonly, can be decremented only if all passes using the last version are culled
 
         public readonly bool clear; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).clearBuffer;
         public readonly bool discard; // graph.m_Resources.GetTextureResourceDesc(fragment.resource).discardBuffer;
