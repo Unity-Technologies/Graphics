@@ -105,6 +105,12 @@ EditorBuildSettings:
     path: Assets/Scenes/114_Reflections_Decals.unity
     guid: f9afac297292781459c3e9072f8a2708
   - enabled: 1
+    path: Assets/Scenes/115_ReflectionsAPVFallback_Default.unity
+    guid: c638560d58a323243947dee0a7a571da
+  - enabled: 1
+    path: Assets/Scenes/115_ReflectionsAPVFallback_OneLayer_Quality.unity
+    guid: a696eb2aa9fb7bf4a83adfa65fa9e161
+  - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
   - enabled: 1

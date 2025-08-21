@@ -652,9 +652,9 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && urpAsset.useRenderingLayers);
             rsd.needsGBufferAccurateNormals       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && (universalRendererData.renderingMode == RenderingMode.Deferred || universalRendererData.renderingMode == RenderingMode.DeferredPlus) && universalRendererData.accurateGbufferNormals);
             rsd.needsRenderPass                   = (rsd.isUniversalRenderer && rsd.needsDeferredLighting);
-            rsd.needsReflectionProbeBlending      = urpAsset.reflectionProbeBlending;
+            rsd.needsReflectionProbeBlending      = urpAsset.ShouldUseReflectionProbeBlending();
             rsd.needsReflectionProbeBoxProjection = urpAsset.reflectionProbeBoxProjection;
-            rsd.needsReflectionProbeAtlas         = urpAsset.reflectionProbeBlending && (rsd.renderingMode == RenderingMode.DeferredPlus || urpAsset.reflectionProbeAtlas || urpAsset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled) && rsd.needsClusterLightLoop;
+            rsd.needsReflectionProbeAtlas         = urpAsset.ShouldUseReflectionProbeAtlasBlending(rsd.renderingMode) && rsd.needsClusterLightLoop;
             rsd.needsProcedural                   = NeedsProceduralKeyword(ref rsd);
             rsd.needsSHVertexForSHAuto            = s_UseSHPerVertexForSHAuto;
 
@@ -949,6 +949,9 @@ namespace UnityEditor.Rendering.Universal
             spd.stripDebugDisplay = stripDebug;
             spd.stripScreenCoordOverride = stripScreenCoord;
             spd.stripBicubicLightmapSampling = stripBicubicLightmap;
+            spd.stripReflectionProbeBlending = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBlending);
+            spd.stripReflectionProbeBoxProjection = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeBoxProjection);
+            spd.stripReflectionProbeAtlas = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ReflectionProbeAtlas);
 
             // Rendering Modes
             // Check if only Deferred is being used

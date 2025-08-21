@@ -30,7 +30,7 @@
 
 // Input data
 TEXTURE2D_X(_DepthTexture);
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 // Flag value that defines if a given pixel recieves reflections or not
 int _SsrStencilBit;
 TEXTURE2D_X(_SsrClearCoatMaskTexture);

@@ -592,7 +592,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             nativeCompiler?.Cleanup();
 
             m_CompilationCache?.Clear();
-            
+
             DelegateHashCodeUtils.ClearCache();
         }
 
@@ -869,6 +869,27 @@ namespace UnityEngine.Rendering.RenderGraphModule
             CheckNotUsedWhenExecuting();
 
             return m_Resources.CreateTexture(m_Resources.GetTextureResourceDesc(texture.handle));
+        }
+
+        /// <summary>
+        /// Create a new Render Graph Texture resource using the descriptor from another texture.
+        /// </summary>
+        /// <remarks>
+        /// This API cannot be called during the Render Graph execution, please call it outside of SetRenderFunc().
+        /// </remarks>
+        /// <param name="texture">Texture from which the descriptor should be used.</param>
+        /// <param name="name">The destination texture name.</param>
+        /// <param name="clear">Texture needs to be cleared on first use.</param>
+        /// <returns>A new TextureHandle.</returns>
+        public TextureHandle CreateTexture(TextureHandle texture, string name, bool clear = false)
+        {
+            CheckNotUsedWhenExecuting();
+
+            var destinationDesc = GetTextureDesc(texture);
+            destinationDesc.name = name;
+            destinationDesc.clearBuffer = clear;
+
+            return m_Resources.CreateTexture(destinationDesc);
         }
 
         /// <summary>
@@ -1166,6 +1187,17 @@ namespace UnityEngine.Rendering.RenderGraphModule
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void CheckNotUsingNativeRenderPassCompiler()
+        {
+            if (enableValidityChecks && nativeRenderPassesEnabled)
+            {
+                throw new InvalidOperationException(
+                    "`AddRenderPass` is not compatible with the Native Render Pass Compiler. It is meant to be used with the HDRP Compiler. " +
+                    "The APIs that are compatible with the Native Render Pass Compiler are AddUnsafePass, AddComputePass and AddRasterRenderPass.");
+            }
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         void CheckNotUsedWhenActive()
         {
             if (enableValidityChecks && (m_RenderGraphState & RenderGraphState.Active) != RenderGraphState.Idle)
@@ -1368,11 +1400,12 @@ namespace UnityEngine.Rendering.RenderGraphModule
             [CallerLineNumber] int line = 0) where PassData : class, new()
 #endif
         {
+            CheckNotUsingNativeRenderPassCompiler();
             CheckNotUsedWhenRecordingPass();
 
             m_RenderGraphState = RenderGraphState.RecordingPass;
 
-            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();          
+            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
             renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, RenderGraphPassType.Legacy, sampler);
             renderPass.AllowGlobalState(true);// Old pass types allow global state by default as HDRP relies on it
 

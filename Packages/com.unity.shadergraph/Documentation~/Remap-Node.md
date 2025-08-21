@@ -1,19 +1,17 @@
-# Remap Node
+# Remap node
 
-## Description
-
-Returns a value between the x and y components of input **Out Min Max** based on the linear interpolation of the value of input **In** between the x and y components of input **In Min Max**.
+The Remap node converts a value from one range to another, which is also known as linear interpolation. For example, you can use the node to convert a value in the range 0 to 1 to the equivalent value in the range 0 to 100.
 
 ## Ports
 
-| Name        | Direction           | Type  | Description |
+| **Name** | **Direction** | **Type** | **Description** |
 |:------------ |:-------------|:-----|:---|
-| In      | Input | Dynamic Vector | Input value |
-| In Min Max      | Input | Vector 2 | Minimum and Maximum values for input interpolation |
-| Out Min Max      | Input | Vector 2 | Minimum and Maximum values for output interpolation |
-| Out | Output      |    Dynamic Vector | Output value |
+| **In** | Input | Dynamic Vector | The value to convert. |
+| **In Min Max** | Input | Vector 2 | The original minimum and maximum range of **In**. |
+| **Out Min Max** | Input | Vector 2 | The new minimum and maximum range to use to interpolate **In**. |
+| **Out** | Output | Dynamic Vector | The converted value. |
 
-## Generated Code Example
+## Generated code example
 
 The following example code represents one possible outcome of this node.
 

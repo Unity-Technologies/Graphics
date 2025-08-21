@@ -187,7 +187,7 @@ float3 GetStripTangent(float3 currentPos, uint instanceIndex, uint relativeIndex
             nextTangent = tangent * rsqrt(sqrLength);
     }
 
-    return normalize(prevTangent + nextTangent);
+    return VFXSafeNormalize(prevTangent + nextTangent);
 }
 #endif
 

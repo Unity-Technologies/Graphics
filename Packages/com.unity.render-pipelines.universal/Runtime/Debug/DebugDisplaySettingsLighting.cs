@@ -76,7 +76,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     displayName = "Lighting Debug Modes",
                     flags = DebugUI.Flags.FrequentlyUsed,
-                    isHeader = true,
                     opened = true,
                     children =
                     {

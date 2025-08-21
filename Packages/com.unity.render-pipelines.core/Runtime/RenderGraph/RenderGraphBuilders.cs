@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
+using static UnityEngine.Rendering.RenderGraphModule.RenderGraph;
 
 namespace UnityEngine.Rendering.RenderGraphModule
 {
@@ -401,6 +402,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
 
         public void SetInputAttachment(TextureHandle tex, int index, AccessFlags flags, int mipLevel, int depthSlice)
         {
+            CheckFrameBufferFetchEmulationIsSupported(tex);
+
             CheckUseFragment(tex, false);
             ResourceHandle result = UseResource(tex.handle, flags);
             // Note the version for the attachments is a bit arbitrary so we just use the latest for now
@@ -512,6 +515,25 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 else
                 {
                     throw new Exception($"Trying to use an invalid resource (pass {m_RenderPass.name}).");
+                }
+            }
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        void CheckFrameBufferFetchEmulationIsSupported(in TextureHandle tex)
+        {
+            if (enableValidityChecks)
+            {
+                if (!Util.RenderGraphUtils.IsFramebufferFetchEmulationSupportedOnCurrentPlatform())
+                {
+                    throw new InvalidOperationException($"This API is not supported on the current platform: {SystemInfo.graphicsDeviceType}");
+                }
+
+                if (!Util.RenderGraphUtils.IsFramebufferFetchEmulationMSAASupportedOnCurrentPlatform())
+                {
+                    var sourceInfo = m_RenderGraph.GetRenderTargetInfo(tex);
+                    if (sourceInfo.bindMS)
+                        throw new InvalidOperationException($"This API is not supported with MSAA attachments on the current platform: {SystemInfo.graphicsDeviceType}");
                 }
             }
         }

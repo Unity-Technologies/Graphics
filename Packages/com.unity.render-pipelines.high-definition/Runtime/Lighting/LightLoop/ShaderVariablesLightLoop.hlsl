@@ -31,7 +31,7 @@ GLOBAL_TEXTURE2D(_CookieAtlas, RAY_TRACING_COOKIE_ATLAS_REGISTER);
 GLOBAL_TEXTURE2D_ARRAY(_ReflectionAtlas, RAY_TRACING_REFLECTION_ATLAS_REGISTER);
 
 // Contact shadows
-TEXTURE2D_X_UINT(_ContactShadowTexture);
+TYPED_TEXTURE2D_X(uint, _ContactShadowTexture);
 
 // Screen space shadows
 TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture);

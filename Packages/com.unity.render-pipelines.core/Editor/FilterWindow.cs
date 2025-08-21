@@ -232,8 +232,6 @@ namespace UnityEditor.Rendering
             s_FilterWindow = null;
         }
 
-        void OnLostFocus() => Close();
-
         internal static bool ValidateAddComponentMenuItem()
         {
             return true;

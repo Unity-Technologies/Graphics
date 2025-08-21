@@ -827,8 +827,7 @@ namespace UnityEngine.Rendering.Universal
 
                 GPUResidentDrawer.PostCullBeginCameraRendering(new RenderRequestBatcherContext { commandBuffer = cmd });
 
-                var isForwardPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.ForwardPlus };
-                var isDeferredPlus = cameraData.renderer is UniversalRenderer { renderingModeActual: RenderingMode.DeferredPlus };
+                RenderingMode? renderingMode = (cameraData.renderer as UniversalRenderer)?.renderingModeActual;
 
                 // Initialize all the data types required for rendering.
                 UniversalLightData lightData;
@@ -838,10 +837,10 @@ namespace UnityEngine.Rendering.Universal
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
                     CreateUniversalResourceData(frameData);
-                    lightData = CreateLightData(frameData, asset, data.cullResults.visibleLights, isDeferredPlus);
-                    shadowData = CreateShadowData(frameData, asset, isForwardPlus);
+                    lightData = CreateLightData(frameData, asset, data.cullResults.visibleLights, renderingMode);
+                    shadowData = CreateShadowData(frameData, asset, renderingMode);
                     CreatePostProcessingData(frameData, asset);
-                    CreateRenderingData(frameData, asset, cmd, isForwardPlus, cameraData.renderer);
+                    CreateRenderingData(frameData, asset, cmd, renderingMode, cameraData.renderer);
                     cullData = CreateCullContextData(frameData, context);
                 }
 
@@ -1594,13 +1593,13 @@ namespace UnityEngine.Rendering.Universal
             cameraData.isAlphaOutputEnabled = cameraData.isAlphaOutputEnabled && allowAlphaOutput;
         }
 
-        static UniversalRenderingData CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CommandBuffer cmd, bool isForwardPlus, ScriptableRenderer renderer)
+        static UniversalRenderingData CreateRenderingData(ContextContainer frameData, UniversalRenderPipelineAsset settings, CommandBuffer cmd, RenderingMode? renderingMode, ScriptableRenderer renderer)
         {
             UniversalLightData universalLightData = frameData.Get<UniversalLightData>();
 
             UniversalRenderingData data = frameData.Get<UniversalRenderingData>();
             data.supportsDynamicBatching = settings.supportsDynamicBatching;
-            data.perObjectData = GetPerObjectLightFlags(universalLightData, settings, isForwardPlus);
+            data.perObjectData = GetPerObjectLightFlags(universalLightData, settings, renderingMode);
 
             // Render graph does not support RenderingData.commandBuffer as its execution timeline might break.
             // RenderingData.commandBuffer is available only for the old non-RG execute code path.
@@ -1613,6 +1612,7 @@ namespace UnityEngine.Rendering.Universal
             if (universalRenderer != null)
             {
                 data.renderingMode = universalRenderer.renderingModeActual;
+                data.prepassLayerMask = universalRenderer.prepassLayerMask;
                 data.opaqueLayerMask = universalRenderer.opaqueLayerMask;
                 data.transparentLayerMask = universalRenderer.transparentLayerMask;
             }
@@ -1622,7 +1622,7 @@ namespace UnityEngine.Rendering.Universal
             return data;
         }
 
-        static UniversalShadowData CreateShadowData(ContextContainer frameData, UniversalRenderPipelineAsset urpAsset, bool isForwardPlus)
+        static UniversalShadowData CreateShadowData(ContextContainer frameData, UniversalRenderPipelineAsset urpAsset, RenderingMode? renderingMode)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeShadowData);
 
@@ -1669,6 +1669,8 @@ namespace UnityEngine.Rendering.Universal
 
             shadowData.mainLightShadowsEnabled = urpAsset.supportsMainLightShadows && urpAsset.mainLightRenderingMode == LightRenderingMode.PerPixel;
             shadowData.supportsMainLightShadows = SystemInfo.supportsShadows && shadowData.mainLightShadowsEnabled && cameraRenderShadows;
+
+            bool isForwardPlus = renderingMode.HasValue ? renderingMode.Value == RenderingMode.ForwardPlus : false;
 
             shadowData.additionalLightShadowsEnabled = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || isForwardPlus);
             shadowData.supportsAdditionalLightShadows = SystemInfo.supportsShadows && shadowData.additionalLightShadowsEnabled && !lightData.shadeAdditionalLightsPerVertex && cameraRenderShadows;
@@ -1813,14 +1815,13 @@ namespace UnityEngine.Rendering.Universal
             return frameData.Create<UniversalResourceData>();
         }
 
-        static UniversalLightData CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, bool isDeferredPlus)
+        static UniversalLightData CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, RenderingMode? renderingMode)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeLightData);
 
             UniversalLightData lightData = frameData.Create<UniversalLightData>();
-
+            lightData.visibleLights = visibleLights;
             lightData.mainLightIndex = GetMainLightIndex(settings, visibleLights);
-
             if (settings.additionalLightsRenderingMode != LightRenderingMode.Disabled)
             {
                 lightData.additionalLightsCount = Math.Min((lightData.mainLightIndex != -1) ? visibleLights.Length - 1 : visibleLights.Length, maxVisibleAdditionalLights);
@@ -1832,14 +1833,25 @@ namespace UnityEngine.Rendering.Universal
                 lightData.maxPerObjectAdditionalLightsCount = 0;
             }
 
+            if (settings.mainLightRenderingMode == LightRenderingMode.Disabled)
+            {
+                var mainLightIndex = GetBrightestDirectionalLightIndex(settings, visibleLights);
+                if (mainLightIndex != -1)
+                {
+                    // a visible main light was disabled, since it is still in the visible lights array we need to maintain
+                    // the mainLightIndex otherwise indexing in the lightloop goes wrong
+                    lightData.additionalLightsCount--;
+                    lightData.mainLightIndex = mainLightIndex;
+                }
+            }
+
             lightData.supportsAdditionalLights = settings.additionalLightsRenderingMode != LightRenderingMode.Disabled;
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
-            lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
             lightData.reflectionProbeBoxProjection = settings.reflectionProbeBoxProjection;
-            lightData.reflectionProbeBlending = settings.reflectionProbeBlending;
-            lightData.reflectionProbeAtlas = settings.reflectionProbeBlending && (isDeferredPlus || settings.reflectionProbeAtlas || settings.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled);
             lightData.supportsLightLayers = RenderingUtils.SupportsLightLayers(SystemInfo.graphicsDeviceType) && settings.useRenderingLayers;
+            lightData.reflectionProbeBlending = settings.ShouldUseReflectionProbeBlending();
+            lightData.reflectionProbeAtlas = renderingMode.HasValue ? settings.ShouldUseReflectionProbeAtlasBlending(renderingMode.Value) : false;
 
             return lightData;
         }
@@ -1945,9 +1957,14 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        static PerObjectData GetPerObjectLightFlags(UniversalLightData universalLightData, UniversalRenderPipelineAsset settings, bool isForwardPlus)
+        static PerObjectData GetPerObjectLightFlags(UniversalLightData universalLightData, UniversalRenderPipelineAsset settings, RenderingMode? renderingMode)
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.getPerObjectLightFlags);
+
+            bool useReflectionProbeBlending = settings.ShouldUseReflectionProbeBlending();
+            bool isForwardPlus = false;
+            if (renderingMode.HasValue)
+                isForwardPlus = renderingMode.Value == RenderingMode.ForwardPlus;
 
             var configuration = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.OcclusionProbe | PerObjectData.ShadowMask;
 
@@ -1955,7 +1972,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 configuration |= PerObjectData.ReflectionProbes | PerObjectData.LightData;
             }
-            else if (!settings.reflectionProbeBlending)
+            else if (!useReflectionProbeBlending)
             {
                 configuration |= PerObjectData.ReflectionProbes;
             }
@@ -1970,20 +1987,12 @@ namespace UnityEngine.Rendering.Universal
             return configuration;
         }
 
-        // Main Light is always a directional light
-        static int GetMainLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
+        static int GetBrightestDirectionalLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
         {
-            using var profScope = new ProfilingScope(Profiling.Pipeline.getMainLightIndex);
-
-            int totalVisibleLights = visibleLights.Length;
-
-            if (totalVisibleLights == 0 || settings.mainLightRenderingMode != LightRenderingMode.PerPixel)
-                return -1;
-
-
             Light sunLight = RenderSettings.sun;
             int brightestDirectionalLightIndex = -1;
             float brightestLightIntensity = 0.0f;
+            int totalVisibleLights = visibleLights.Length;
             for (int i = 0; i < totalVisibleLights; ++i)
             {
                 ref VisibleLight currVisibleLight = ref visibleLights.UnsafeElementAtMutable(i);
@@ -2011,6 +2020,19 @@ namespace UnityEngine.Rendering.Universal
             }
 
             return brightestDirectionalLightIndex;
+        }
+
+        // Main Light is always a directional light
+        static int GetMainLightIndex(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights)
+        {
+            using var profScope = new ProfilingScope(Profiling.Pipeline.getMainLightIndex);
+
+            int totalVisibleLights = visibleLights.Length;
+
+            if (totalVisibleLights == 0 || settings.mainLightRenderingMode != LightRenderingMode.PerPixel)
+                return -1;
+
+            return GetBrightestDirectionalLightIndex(settings, visibleLights);
         }
 
         void SetupPerFrameShaderConstants()

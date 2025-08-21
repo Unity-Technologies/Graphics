@@ -44,7 +44,7 @@ TEXTURE2D_X(_DepthTexture);
 TEXTURE2D_X(_SsrClearCoatMaskTexture);
 
 // Flag value that defines if a given pixel recieves reflections or not
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 int _SsrStencilBit;
 
 // Output structure of the reflection raytrace shader

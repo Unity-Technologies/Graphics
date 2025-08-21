@@ -35,8 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     internal class VFXShaderGraphGUISixWay : SixWayGUI
     {
-        const SurfaceOptionUIBlock.Features vfxSurfaceOptionFeatures = SurfaceOptionUIBlock.Features.Lit
-                                                                       | SurfaceOptionUIBlock.Features.ShowDepthOffsetOnly ^ SurfaceOptionUIBlock.Features.PreserveSpecularLighting;
+        const SurfaceOptionUIBlock.Features vfxSurfaceOptionFeatures = (SurfaceOptionUIBlock.Features.Lit | SurfaceOptionUIBlock.Features.ShowDepthOffsetOnly) ^ SurfaceOptionUIBlock.Features.DoubleSidedNormalMode ^ SurfaceOptionUIBlock.Features.PreserveSpecularLighting;
 
         public VFXShaderGraphGUISixWay()
         {

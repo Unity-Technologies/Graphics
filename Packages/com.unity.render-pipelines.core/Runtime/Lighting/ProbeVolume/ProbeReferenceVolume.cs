@@ -726,8 +726,19 @@ namespace UnityEngine.Rendering
         // Information of the probe volume scenes that is being loaded (if one is pending)
         List<string> m_ActiveScenes = new List<string>();
 
-        ProbeVolumeBakingSet m_CurrentBakingSet = null;
-        ProbeVolumeBakingSet m_LazyBakingSet = null;
+        ProbeVolumeBakingSetWeakReference m_CurrentBakingSetReference = new();
+        ProbeVolumeBakingSet m_CurrentBakingSet
+        {
+            get => m_CurrentBakingSetReference.Get();
+            set => m_CurrentBakingSetReference.Set(value);
+        }
+
+        ProbeVolumeBakingSetWeakReference m_LazyBakingSetReference = new();
+        ProbeVolumeBakingSet m_LazyBakingSet
+        {
+            get => m_LazyBakingSetReference.Get();
+            set => m_LazyBakingSetReference.Set(value);
+        }
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;
@@ -1076,6 +1087,11 @@ namespace UnityEngine.Rendering
         public void SetVertexSamplingEnabled(bool value)
         {
             m_VertexSampling = value;
+        }
+
+        internal void ForceMemoryBudget(ProbeVolumeTextureMemoryBudget budget)
+        {
+            m_MemoryBudget = budget;
         }
 
         // This is used for steps such as dilation that require the maximum order allowed to be loaded at all times. Should really never be used as a general purpose function.
@@ -1680,6 +1696,9 @@ namespace UnityEngine.Rendering
             //Ensure that all currently loaded scenes belong to the same set.
             foreach (var data in perSceneDataList)
             {
+                if (UnityEditor.SceneManagement.EditorSceneManager.IsPreviewScene(data.gameObject.scene))
+                    continue; // Ignore preview scenes - they are needed to make closed subscenes work
+
                 var set = ProbeVolumeBakingSet.GetBakingSetForScene(data.gameObject.scene);
                 if (set != bakingSet)
                     return false;

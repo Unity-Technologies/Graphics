@@ -2594,6 +2594,11 @@ PrefabInstance:
       propertyPath: xrCompatible
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
+      value: 0.00005
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

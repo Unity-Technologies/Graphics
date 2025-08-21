@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Rendering
 {
@@ -19,24 +19,6 @@ namespace UnityEngine.Rendering
         private Version m_version = Version.Last;
         int IRenderPipelineGraphicsSettings.version => (int)m_version;
 
-        [SerializeField, ResourcePath("Runtime/Debugging/Runtime UI Resources/DebugUICanvas.prefab")]
-        private GameObject  m_DebugUIHandlerCanvasPrefab;
-
-        /// <summary> Panel Settings </summary>
-        public GameObject debugUIHandlerCanvasPrefab
-        {
-            get => m_DebugUIHandlerCanvasPrefab;
-            set => this.SetValueAndNotify(ref m_DebugUIHandlerCanvasPrefab, value, nameof(m_DebugUIHandlerCanvasPrefab));
-        }
-
-        [SerializeField, ResourcePath("Runtime/Debugging/Runtime UI Resources/DebugUIPersistentCanvas.prefab")]
-        private GameObject  m_DebugUIPersistentCanvasPrefab;
-
-        /// <summary> Panel Settings </summary>
-        public GameObject debugUIPersistentCanvasPrefab
-        {
-            get => m_DebugUIPersistentCanvasPrefab;
-            set => this.SetValueAndNotify(ref m_DebugUIPersistentCanvasPrefab, value, nameof(m_DebugUIPersistentCanvasPrefab));
-        }
+        // TODO Add Rendering Debugger Resources here
     }
 }

@@ -90,6 +90,18 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
+        /// <inheritdoc/>
+        protected internal override bool SupportsCameraOpaque()
+        {
+            return true;
+        }
+
+        /// <inheritdoc/>
+        protected internal override bool SupportsCameraNormals()
+        {
+            return true;
+        }
+
         // Rendering mode setup from UI. The final rendering mode used can be different. See renderingModeActual.
         internal RenderingMode renderingModeRequested => m_RenderingMode;
 
@@ -213,6 +225,7 @@ namespace UnityEngine.Rendering.Universal
         internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
         internal RTHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
         internal DeferredLights deferredLights { get => m_DeferredLights; }
+        internal LayerMask prepassLayerMask { get; set; }
         internal LayerMask opaqueLayerMask { get; set; }
         internal LayerMask transparentLayerMask { get; set; }
         internal bool shadowTransparentReceive { get; set; }
@@ -265,6 +278,15 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
             m_IntermediateTextureMode = data.intermediateTextureMode;
+            if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings)
+                && !renderGraphSettings.enableRenderCompatibilityMode)
+            {
+                prepassLayerMask = data.prepassLayerMask;
+            }
+            else
+            {
+                prepassLayerMask = data.opaqueLayerMask;
+            }
             opaqueLayerMask = data.opaqueLayerMask;
             transparentLayerMask = data.transparentLayerMask;
             shadowTransparentReceive = data.shadowTransparentReceive;
@@ -319,8 +341,8 @@ namespace UnityEngine.Rendering.Universal
             // Schedule XR copydepth right after m_FinalBlitPass
             m_XRCopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRendering + k_AfterFinalBlitPassQueueOffset, copyDephPS);
 #endif
-            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
-            m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, prepassLayerMask);
+            m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, prepassLayerMask);
 
             if (renderingModeRequested == RenderingMode.Forward || renderingModeRequested == RenderingMode.ForwardPlus)
             {
@@ -626,7 +648,10 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 #endif
-
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (DebugHandler is { IsDepthPrimingCompatible: false })
+                return false;
+#endif
             // depth priming requires an extra depth copy, disable it on platforms not supporting it (like GLES when MSAA is on)
             if (!CanCopyDepth(cameraData))
                 return false;
@@ -1673,10 +1698,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: PerObjectCulling also affect reflection probes. Enabling it for now.
             // if (asset.additionalLightsRenderingMode == LightRenderingMode.Disabled ||
             //     asset.maxAdditionalLightsCount == 0)
-            bool usesReflectionProbeAtlas = UniversalRenderPipeline.asset.reflectionProbeBlending &&
-                (renderingModeActual == RenderingMode.DeferredPlus ||
-                UniversalRenderPipeline.asset.reflectionProbeAtlas ||
-                UniversalRenderPipeline.asset.gpuResidentDrawerMode != GPUResidentDrawerMode.Disabled);
+            bool usesReflectionProbeAtlas = UniversalRenderPipeline.asset.ShouldUseReflectionProbeAtlasBlending(renderingModeActual);
 
             if (usesClusterLightLoop && usesReflectionProbeAtlas)
             {

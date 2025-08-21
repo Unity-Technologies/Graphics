@@ -91,8 +91,8 @@
     #elif !defined(PLATFORM_SUPPORTS_NATIVE_RENDERPASS)
         #define FRAMEBUFFER_INPUT_X_HALF(idx)                               TEXTURE2D_X_HALF(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
         #define FRAMEBUFFER_INPUT_X_FLOAT(idx)                              TEXTURE2D_X_FLOAT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-        #define FRAMEBUFFER_INPUT_X_INT(idx)                                TEXTURE2D_X_INT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-        #define FRAMEBUFFER_INPUT_X_UINT(idx)                               TEXTURE2D_X_UINT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+        #define FRAMEBUFFER_INPUT_X_INT(idx)                                TYPED_TEXTURE2D_X(int4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+        #define FRAMEBUFFER_INPUT_X_UINT(idx)                               TYPED_TEXTURE2D_X(uint4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
         #define LOAD_FRAMEBUFFER_X_INPUT(idx, v2fname)                      _UnityFBInput##idx.Load(uint4(v2fname.xy, SLICE_ARRAY_INDEX, 0))
     #else
         #define FRAMEBUFFER_INPUT_X_HALF(idx)                               FRAMEBUFFER_INPUT_HALF(idx)

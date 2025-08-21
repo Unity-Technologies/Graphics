@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 /// <remarks>
-/// To implement this, the package needs to starts with k_srpPrefixPackage
+/// To implement this, the package needs to be in the allowedPackageList
 /// Then, in the package.json, an array can be added after the path variable of the sample. The path should start from the Packages/ folder, as such:
 /// "samples": [
 /// {
@@ -48,7 +48,14 @@ class SampleDependencyImporter : IPackageManagerExtension
         PackageManagerExtensions.RegisterExtension(new SampleDependencyImporter());
     }
     
-    const string k_unityPrefixPackage = "com.unity.";
+    string[] allowedPackageList =
+    {
+        "com.unity.render-pipelines.high-definition",
+        "com.unity.render-pipelines.universal",
+        "com.unity.shadergraph",
+        "com.unity.visualeffectgraph"
+    };
+
     bool importingTextMeshProEssentialResources = false;
 
     PackageInfo m_PackageInfo;
@@ -65,16 +72,27 @@ class SampleDependencyImporter : IPackageManagerExtension
     /// </summary>
     void IPackageManagerExtension.OnPackageSelectionChange(PackageInfo packageInfo)
     {
-        var isUnityPackage = packageInfo != null && packageInfo.name.StartsWith(k_unityPrefixPackage);
-        
-        if (isUnityPackage)
+        if (packageInfo == null)
+            return;
+
+        // Triggers the dependencies import only on specific packages
+        bool packageFound = false;
+        foreach (string name in allowedPackageList)
+            if (name == packageInfo.name)
+            {
+                packageFound = true;
+                break;
+            }
+
+
+        if (!packageFound)
+            return;
+
+        m_PackageInfo = packageInfo;
+        m_Samples = GetSamples(packageInfo);
+        // Only trigger the import if the package has samples. 
+        if (m_Samples != null && m_Samples.Count > 0)
         {
-
-           
-           
-
-                m_PackageInfo = packageInfo;
-            m_Samples = GetSamples(packageInfo);
             if (TryLoadSampleConfiguration(m_PackageInfo, out m_SampleList))
             {
                 SamplePostprocessor.AssetImported += LoadAssetDependencies;
@@ -110,13 +128,11 @@ class SampleDependencyImporter : IPackageManagerExtension
     /// </summary>
     void LoadAssetDependencies(string assetPath)
     {
-
-        ImportTextMeshProEssentialResources();
-
         if (m_SampleList != null)
         {
             var assetsImported = false;
-
+            bool atLeastOneIsSampleDirectory = false;
+            
             for (int i = 0; i < m_Samples.Count; ++i)
             {
                 string pathPrefix = $"Assets/Samples/{m_PackageInfo.displayName}/{m_PackageInfo.version}/";
@@ -125,18 +141,23 @@ class SampleDependencyImporter : IPackageManagerExtension
                 var isSampleDirectory = assetPath.EndsWith(m_Samples[i].displayName) && assetPath.StartsWith(pathPrefix);
                 if (isSampleDirectory)
                 {
+                    atLeastOneIsSampleDirectory = true;
+
                     // Retrieving the dependencies of the sample that is currently being imported.
                     SampleInformation currentSampleInformation = GetSampleInformation(m_Samples[i].displayName);
 
                     if (currentSampleInformation != null)
                     {
                         // Import the common asset dependencies
-                        assetsImported = ImportDependencies(m_PackageInfo, currentSampleInformation.dependencies); 
+                        assetsImported = ImportDependencies(m_PackageInfo, currentSampleInformation.dependencies);
                     }
                 }
             }
-            
-            
+
+            // Only import TMPro resources if a sample is currently imported. 
+            // This is done outside the loop to save cost.
+            if (atLeastOneIsSampleDirectory)
+                ImportTextMeshProEssentialResources();
 
             if (assetsImported)
                 AssetDatabase.Refresh();

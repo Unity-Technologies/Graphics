@@ -15,7 +15,7 @@
 
 // Input texture
 TEXTURE2D_X(_LightingDistanceTexture);
-TEXTURE2D_X_UINT(_AccumulationTexture);
+TYPED_TEXTURE2D_X(uint, _AccumulationTexture);
 TEXTURE2D_X(_DepthTexture);
 StructuredBuffer<int2> _DepthPyramidMipLevelOffsets;
 TEXTURE2D_X(_ReBlurMipChain);

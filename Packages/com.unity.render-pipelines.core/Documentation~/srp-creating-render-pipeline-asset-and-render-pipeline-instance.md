@@ -45,13 +45,14 @@ The following example shows how to create a script for a basic custom Render Pip
     ```lang-csharp
     using UnityEngine;
     using UnityEngine.Rendering;
+    using System.Collections.Generic;
     
     public class ExampleRenderPipelineInstance : RenderPipeline
     {
         public ExampleRenderPipelineInstance() {
         }
     
-        protected override void Render (ScriptableRenderContext context, Camera[] cameras) {
+        protected override void Render (ScriptableRenderContext context, List<Camera> cameras) {
             // This is where you can write custom rendering code. Customize this method to customize your SRP.
         }
     }
@@ -98,6 +99,7 @@ The following example shows how to create a `RenderPipelineAsset` script that de
     ```lang-csharp
     using UnityEngine;
     using UnityEngine.Rendering;
+    using System.Collections.Generic;
     
     public class ExampleRenderPipelineInstance : RenderPipeline
     {

@@ -61,7 +61,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields.Add(CoreRequiredFields.BasicLighting);
                 requiredFields.Add(SixWayStructs.RequiredFields);
 
-
                 DefineCollection defines = HDShaderPasses.GenerateDefines(CoreDefines.Forward, useVFX, useTessellation);
 
                 if (useColorAbsorption)
@@ -151,6 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             public static FieldCollection RequiredFields = new FieldCollection()
             {
+                StructFields.SurfaceDescriptionInputs.FaceSign,
                 SixWayVaryings.diffuseGIData0,
                 SixWayVaryings.diffuseGIData1,
                 SixWayVaryings.diffuseGIData2,
@@ -187,7 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 "VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional);
 
             public static FieldDescriptor[] AllFragInputs = new FieldDescriptor[]
-                { diffuseGIData0, diffuseGIData1, diffuseGIData2 };
+                { StructFields.Varyings.cullFace, diffuseGIData0, diffuseGIData1, diffuseGIData2 };
         }
 
 

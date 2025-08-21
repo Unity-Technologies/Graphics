@@ -188,6 +188,18 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.LIGHTMAP_BICUBIC_SAMPLING)]
         [SerializeField] private bool m_PrefilterBicubicLightmapSampling = false;
 
+        // Reflection probe blending (_REFLECTION_PROBE_BLENDING)
+        [ShaderKeywordFilter.SelectOrRemove(false, keywordNames: ShaderKeywordStrings.ReflectionProbeBlending)]
+        [SerializeField] private bool m_PrefilterReflectionProbeBlending = false;
+
+        // Reflection probe box projection (_REFLECTION_PROBE_BOX_PROJECTION)
+        [ShaderKeywordFilter.SelectOrRemove(false, keywordNames: ShaderKeywordStrings.ReflectionProbeBoxProjection)]
+        [SerializeField] private bool m_PrefilterReflectionProbeBoxProjection = false;
+
+        // Reflection probe atlas (_REFLECTION_PROBE_ATLAS)
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.ReflectionProbeAtlas)]
+        [SerializeField] private bool m_PrefilterReflectionProbeAtlas = false;
+
         /// <summary>
         /// Data used for Shader Prefiltering. Gathered after going through the URP Assets,
         /// Renderers and Renderer Features in OnPreprocessBuild() inside ShaderPreprocessor.cs.
@@ -227,6 +239,9 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSSAOSampleCountHigh;
 
             public bool stripBicubicLightmapSampling;
+            public bool stripReflectionProbeBlending;
+            public bool stripReflectionProbeBoxProjection;
+            public bool stripReflectionProbeAtlas;
 
             public static ShaderPrefilteringData GetDefault()
             {
@@ -283,6 +298,9 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterSSAOSampleCountHigh           = prefilteringData.stripSSAOSampleCountHigh;
 
             m_PrefilterBicubicLightmapSampling       = prefilteringData.stripBicubicLightmapSampling;
+            m_PrefilterReflectionProbeBlending       = prefilteringData.stripReflectionProbeBlending;
+            m_PrefilterReflectionProbeBoxProjection  = prefilteringData.stripReflectionProbeBoxProjection;
+            m_PrefilterReflectionProbeAtlas          = prefilteringData.stripReflectionProbeAtlas;
         }
     }
 }

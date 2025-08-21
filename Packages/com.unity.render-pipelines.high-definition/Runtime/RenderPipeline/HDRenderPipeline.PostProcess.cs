@@ -914,13 +914,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters.drsSettings = currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 // Must check this with nvidia. After trying many things this gives the least amount of ghosting.
                 // For now we clamp the exposure to a reasonable value.
-                passData.parameters.preExposure = Mathf.Clamp(hdCamera.GpuExposureValue(), 0.35f, 2.0f);
+                passData.parameters.preExposure = Mathf.Clamp(hdCamera.GpuExposureValue(), 0.20f, 2.0f);
 
                 var viewHandles = new UpscalerResources.ViewResourceHandles();
                 viewHandles.source = builder.ReadTexture(source);
                 viewHandles.output = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(hdCamera, renderGraph, "DLSS destination"));
                 viewHandles.depth = builder.ReadTexture(depthBuffer);
                 viewHandles.motionVectors = builder.ReadTexture(motionVectors);
+                // Note: exposure texture input
+                // We skip providing exposureTexture since HDRP pre-applies exposure in GBuffer pass / light accumulation buffer,
+                // and doesn't use it later on in tonemapping. DLSS docs mention this texture is needed if used in tonemapping later on.
+                // Given we also provide an option to inject DLSS post-tonemapping, we can safely skip providing this input as
+                // it usually exacerbates ghosting within the HDRP use context.
 
                 if (biasColorMask.IsValid())
                     viewHandles.biasColorMask = builder.ReadTexture(biasColorMask);

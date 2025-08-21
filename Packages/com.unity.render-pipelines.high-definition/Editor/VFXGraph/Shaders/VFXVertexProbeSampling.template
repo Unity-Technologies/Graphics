@@ -16,7 +16,7 @@ ${VFXEnd}
 ${VFXBegin:VFXVertexProbeFillVaryings}
 #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
 #if VFX_PRIMITIVE_QUAD || VFX_PRIMITIVE_TRIANGLE || VFX_PRIMITIVE_OCTAGON
-float4 inTangent = float4(o.VFX_VARYING_TANGENT, 1.0f);
+float4 inTangent = float4(o.VFX_VARYING_TANGENT, -1.0f);
 #else
 float4 inTangent = o.VFX_VARYING_TANGENT;
 #endif

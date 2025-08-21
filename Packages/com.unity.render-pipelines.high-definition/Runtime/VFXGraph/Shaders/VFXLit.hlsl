@@ -196,21 +196,29 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
             color.a = SampleCurve(i.VFX_VARYING_ALPHA_REMAP, color.a);
         #endif
 
+        float frontFaceSign = frontFace ? 1.0f : -1.0f;
+
         #if defined(VFX_VARYING_BAKE_DIFFUSE_LIGHTING)
             surfaceData.bakeDiffuseLighting0 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[0];
             surfaceData.bakeDiffuseLighting1 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[1];
             surfaceData.bakeDiffuseLighting2 = i.VFX_VARYING_BAKE_DIFFUSE_LIGHTING[2];
+            surfaceData.bakeDiffuseLighting2.xyz *= frontFaceSign;
         #endif
 
-        #ifdef VFX_VARYING_TANGENT
-        float signBitangent = frontFace ? 1.0f : -1.0f;
-        surfaceData.tangentWS = float4(i.VFX_VARYING_TANGENT.xyz,signBitangent);
+        #if defined(VFX_VARYING_TANGENT)
+        #if VFX_PRIMITIVE_QUAD || VFX_PRIMITIVE_TRIANGLE || VFX_PRIMITIVE_OCTAGON
+        float4 tangentWS = float4(i.VFX_VARYING_TANGENT, -1.0f);
         #else
-        surfaceData.tangentWS = float4(1,0,0,1);
+        float4 tangentWS = i.VFX_VARYING_TANGENT;
+        #endif
+        #else
+        float4 tangentWS = float4(1,0,0,1);
         #endif
 
-    surfaceData.baseColor.a = mapAlpha;
+        surfaceData.tangentWS = tangentWS;
+        surfaceData.bitangentWS = cross(normalWS, surfaceData.tangentWS.xyz) * frontFaceSign * tangentWS.w * GetOddNegativeScale();
 
+        surfaceData.baseColor.a = mapAlpha;
     #endif
 
     color = VFXApplySoftParticleFade(i, color);

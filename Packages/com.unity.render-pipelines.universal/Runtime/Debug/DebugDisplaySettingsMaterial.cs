@@ -511,7 +511,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     displayName = "Material Filters",
                     flags = DebugUI.Flags.FrequentlyUsed,
-                    isHeader = true,
                     opened = true,
                     children =
                     {
@@ -533,7 +532,6 @@ namespace UnityEngine.Rendering.Universal
                 AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Validation",
-                    isHeader = true,
                     opened = true,
                     children =
                     {

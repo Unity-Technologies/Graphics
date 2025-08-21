@@ -14,17 +14,14 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $FragInputs.diffuseGIData1:             surfaceData.bakeDiffuseLighting1 =      fragInputs.diffuseGIData[1];
     $FragInputs.diffuseGIData2:             surfaceData.bakeDiffuseLighting2 =      fragInputs.diffuseGIData[2];
 
-    float3 doubleSidedConstants = GetDoubleSidedConstants();
-
-    GetNormalWS(fragInputs, float3(0,0,1), surfaceData.normalWS, doubleSidedConstants);
+    float frontFaceSign = fragInputs.isFrontFace ? 1.0f : -1.0f;
 
     surfaceData.tangentWS = float4(normalize(fragInputs.tangentToWorld[0].xyz), 1);
-    #ifdef _DOUBLESIDED_ON
-    float tangentSign =  fragInputs.isFrontFace ? 1.0f : -1.0f;
-    #else
-    float tangentSign = 1.0f;
-    #endif
-    surfaceData.tangentWS = float4(Orthonormalize(surfaceData.tangentWS.xyz, surfaceData.normalWS), tangentSign);
+    surfaceData.bitangentWS = fragInputs.tangentToWorld[1].xyz;
+    surfaceData.normalWS = frontFaceSign * fragInputs.tangentToWorld[2].xyz;
+
+    surfaceData.bakeDiffuseLighting2.xyz *= frontFaceSign;
+
 
     bentNormalWS = surfaceData.normalWS; //Not used
     #ifdef DEBUG_DISPLAY

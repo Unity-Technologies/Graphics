@@ -49,6 +49,11 @@ namespace UnityEngine.Rendering.Universal
         public RenderingMode renderingMode { get; internal set; }
 
         /// <summary>
+        /// The layer mask set on the renderer to filter prepass objects.
+        /// </summary>
+        public LayerMask prepassLayerMask { get; internal set; }
+
+        /// <summary>
         /// The layer mask set on the renderer to filter opaque objects.
         /// </summary>
         public LayerMask opaqueLayerMask { get; internal set; }
@@ -72,6 +77,7 @@ namespace UnityEngine.Rendering.Universal
             perObjectData = default;
             renderingMode = default;
             stencilLodCrossFadeEnabled = default;
+            prepassLayerMask = -1;
             opaqueLayerMask = -1;
             transparentLayerMask = -1;
         }

@@ -1916,12 +1916,18 @@ namespace UnityEditor.Rendering
 
         void OnGraphRegistered(RenderGraph graph)
         {
+            if (m_RegisteredGraphs.ContainsKey(graph))
+                return;
+
             m_RegisteredGraphs.Add(graph, new HashSet<string>());
             RebuildHeaderUI();
         }
 
         void OnGraphUnregistered(RenderGraph graph)
         {
+            if (!m_RegisteredGraphs.ContainsKey(graph))
+                return;
+
             m_RegisteredGraphs.Remove(graph);
             RebuildHeaderUI();
             if (m_RegisteredGraphs.Count == 0)

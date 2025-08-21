@@ -79,6 +79,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.normalWS               = surfaceData.normalWS;
     bsdfData.tangentWS              = surfaceData.tangentWS;
+    bsdfData.bitangentWS            = surfaceData.bitangentWS;
 
     bsdfData.diffuseColor           = surfaceData.baseColor;
     bsdfData.absorptionRange        = surfaceData.absorptionRange;
@@ -152,7 +153,7 @@ void SixWayBakedDiffuseLighting(BSDFData bsdfData, inout BuiltinData builtinData
     bool alphaPremultipled = (_BlendMode == BLENDINGMODE_PREMULTIPLY);
 
     const real3 L0 = real3(bsdfData.bakeDiffuseLighting0.w, bsdfData.bakeDiffuseLighting1.w, bsdfData.bakeDiffuseLighting2.w);
-    const real3 diffuseGIData[3] = { bsdfData.bakeDiffuseLighting0.xyz, bsdfData.bakeDiffuseLighting1.xyz, bsdfData.tangentWS.w * bsdfData.bakeDiffuseLighting2.xyz};
+    const real3 diffuseGIData[3] = { bsdfData.bakeDiffuseLighting0.xyz, bsdfData.bakeDiffuseLighting1.xyz, bsdfData.bakeDiffuseLighting2.xyz};
 
 
     builtinData.bakeDiffuseLighting = GetSixWayDiffuseContributions(bsdfData.rightTopBack, bsdfData.leftBottomFront,
@@ -166,16 +167,14 @@ float3x3 GetLocalTBN(float3 normal, float4 tangent)
 {
     float3 zVec = -normal;
     float3 xVec = tangent.xyz;
-    float3 yVec = cross(zVec, xVec) * tangent.w;
+    float3 yVec = cross(normal, tangent.xyz) * tangent.w ;
     return float3x3(xVec, yVec, zVec);
 }
-
 float3 TransformToLocalFrame(float3 L, BSDFData bsdfData)
 {
-    float3x3 tbn = GetLocalTBN(bsdfData.normalWS, bsdfData.tangentWS);
+    float3x3 tbn = float3x3(bsdfData.tangentWS.xyz, bsdfData.bitangentWS, -bsdfData.normalWS);
     return mul(tbn, L);
 }
-
 
 void GatherLightProbeData(float3 positionRWS, float3x3 tbn, out float4 diffuseGIData[3])
 {
@@ -186,7 +185,7 @@ void GatherLightProbeData(float3 positionRWS, float3x3 tbn, out float4 diffuseGI
         [unroll]
         for (int i = 0; i<3; i++)
         {
-            float3 bakeDiffuseLighting = EvaluateLightProbeL1(tbn[i]);
+            float3 bakeDiffuseLighting = EvaluateLightProbeL1(tbn[i]  * kInvClampedCosine1);
             diffuseGIData[i].xyz = bakeDiffuseLighting;
             diffuseGIData[i].w = ambientL0[i];
         }
@@ -199,7 +198,7 @@ void GatherLightProbeData(float3 positionRWS, float3x3 tbn, out float4 diffuseGI
             float3 bakeDiffuseLighting = 0;
             float3 backBakeDiffuseLighting = 0;
             // Note: Probe volume here refer to LPPV not APV
-            SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, tbn[i], -tbn[i], GetProbeVolumeWorldToObject(),
+            SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, tbn[i]  * kInvClampedCosine1, -tbn[i]  * kInvClampedCosine1, GetProbeVolumeWorldToObject(),
                                  unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
 
             float3 ambientL0 = 0.5f * (bakeDiffuseLighting + backBakeDiffuseLighting);
@@ -217,7 +216,7 @@ void SampleAPVSixWay(APVSample apvSample, float3x3 tbn, out float4 diffuseGIData
     for (int i = 0; i<3; i++)
     {
         float3 bakeDiffuseLighting;
-        EvaluateAPVL1(apvSample, tbn[i], bakeDiffuseLighting);
+        EvaluateAPVL1(apvSample, tbn[i] * kInvClampedCosine1 , bakeDiffuseLighting);
         diffuseGIData[i].xyz = bakeDiffuseLighting;
         diffuseGIData[i].w = apvSample.L0[i];
     }
@@ -229,7 +228,7 @@ void EvaluateAmbientProbeSixWay(float weight, float3x3 tbn, out float4 diffuseGI
     [unroll]
     for (int i = 0; i<3; i++)
     {
-        float3 bakeDiffuseLighting = EvaluateAmbientProbeL1(tbn[i]) * (1.0f - weight);
+        float3 bakeDiffuseLighting = EvaluateAmbientProbeL1(tbn[i]  * kInvClampedCosine1) * (1.0f - weight);
         diffuseGIData[i].xyz = bakeDiffuseLighting;
         diffuseGIData[i].w = ambientL0[i];
     }
@@ -244,9 +243,7 @@ void GatherAPVData(float3 positionRWS, float3x3 tbn, out float4 diffuseGIData[3]
 
     if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
     {
-        #if MANUAL_FILTERING == 0
         apvSample.Decode();
-        #endif
 
         SampleAPVSixWay(apvSample, tbn, diffuseGIData); //Sample Only L1 even if L2 is available
 

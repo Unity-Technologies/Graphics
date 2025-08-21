@@ -377,8 +377,8 @@
     // Renderpass inputs: General fallback paths
     #define FRAMEBUFFER_INPUT_FLOAT(idx) TEXTURE2D_FLOAT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
     #define FRAMEBUFFER_INPUT_HALF(idx) TEXTURE2D_HALF(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-    #define FRAMEBUFFER_INPUT_INT(idx) TEXTURE2D_INT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
-    #define FRAMEBUFFER_INPUT_UINT(idx) TEXTURE2D_UINT(_UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+    #define FRAMEBUFFER_INPUT_INT(idx) TYPED_TEXTURE2D(int4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
+    #define FRAMEBUFFER_INPUT_UINT(idx) TYPED_TEXTURE2D(uint4, _UnityFBInput##idx); float4 _UnityFBInput##idx##_TexelSize
 
     #define LOAD_FRAMEBUFFER_INPUT(idx, v2fvertexname) _UnityFBInput##idx.Load(uint3(v2fvertexname.xy, 0))
 

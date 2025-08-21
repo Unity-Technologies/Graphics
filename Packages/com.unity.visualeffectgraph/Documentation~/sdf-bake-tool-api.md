@@ -15,7 +15,7 @@ Within a Visual Effect Graph, create a new exposed Texture3D property. To do thi
 3. Double-click on the new Texture3D, enter a meaningful name, and press enter to save it. You use this name to identify the property from the C# API.
 4. To the left of the new Texture3D, click the drop-down arrow.
 5. Enable **Exposed** if it is not already.
-6. Drag the property into the graph and connect it to an input that accepts an SDF. For example, the **Distance Field** property of a [Collision Shape Signed Distance Field](Block-CollideWithSignedDistanceField.md) Block.
+6. Drag the property into the graph and connect it to an input that accepts an SDF. For example, the **Distance Field** property of a [Collision Shape](Block-CollisionShape.md) block where **Shape** is set to **Signed Distance Field**.
 
 ![Assigning an SDF to the Distance Field input port of the Collision Shape Signed Distance Field Block.](Images/sdf-bake-tool-api-example.png)
 Assigning an SDF to the Distance Field input port of the Collision Shape Signed Distance Field Block.

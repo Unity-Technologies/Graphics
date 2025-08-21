@@ -105,7 +105,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var detailedStatsFoldout = new DebugUI.Foldout
             {
                 displayName = "Detailed Stats",
-                isHeader = true,
                 opened = false,
                 children =
                 {

@@ -110,7 +110,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
     inputData.vertexSH = SH;
     #endif
     #if defined(USE_APV_PROBE_OCCLUSION)
-    inputData.probeOcclusion = input.probeOcclusion;
+    inputData.probeOcclusion = IN.probeOcclusion;
     #endif
     #endif
 }
@@ -387,7 +387,7 @@ void SplatmapFragment(
     Varyings IN
     , out half4 outColor : SV_Target0
 #ifdef _WRITE_RENDERING_LAYERS
-    , out float4 outRenderingLayers : SV_Target1
+    , out uint outRenderingLayers : SV_Target1
 #endif
     )
 #endif
@@ -494,8 +494,7 @@ void SplatmapFragment(
     outColor = half4(color.rgb, 1.0h);
 
 #ifdef _WRITE_RENDERING_LAYERS
-    uint renderingLayers = GetMeshRenderingLayer();
-    outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+    outRenderingLayers = EncodeMeshRenderingLayer();
 #endif
 #endif
 }

@@ -1,25 +1,24 @@
-# Exposure Node
+# Exposure node
 
-The Exposure Node allows you to get the Camera's exposure value from the current or previous frame.
+The Exposure node outputs the exposure value of the current camera. You can output the value from the current frame or the previous frame.
 
 ## Render pipeline compatibility
 
-| **Node** | **Universal Render Pipeline (URP)** | **High Definition Render Pipeline (HDRP)** |
-| -------- | ----------------------------------- | ------------------------------------------ |
-| Exposure | No                                  | Yes                                        |
+The Exposure node is compatible only with the High Definition Render Pipeline (HDRP). 
+
+For more information about exposure, refer to [Control exposure](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Override-Exposure.html) in the HDRP manual.
 
 ## Ports
 
-| name | **Direction** | type | description |
+| **Name** | **Direction** | **Type** | **Description** |
 |--- | --- | --- | --- |
-|**Output** |Output | float | The exposure value.|
+| **Output** | Output | Float | The exposure value of the camera. |
 
-## Exposure Type
+## Type
 
-You can use Exposure Type to select which exposure value to get.
-| name | description |
-|--- | ---|
-| **CurrentMultiplier** | Gets the Camera's exposure value from the current frame. |
-| **InverseCurrentMultiplier** | Gets the inverse of the Camera's exposure value from the current frame. |
-| **PreviousMultiplier** | Gets the Camera's exposure value from the previous frame. |
-| **InversePreviousMultiplier** | Gets the inverse of the Camera's exposure value from the previous frame. |
+Use the **Type** property to select which exposure value to get. The options are:
+
+- **Current Multiplier**: Gets the camera's exposure value from the current frame.
+- **Inverse Current Multiplier**: Gets the inverse of the camera's exposure value from the current frame.
+- **Previous Multiplier**: Gets the camera's exposure value from the previous frame.
+- **Inverse Previous Multiplier**: Gets the inverse of the camera's exposure value from the previous frame.

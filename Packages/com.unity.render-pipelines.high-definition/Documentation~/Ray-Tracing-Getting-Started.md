@@ -200,7 +200,7 @@ HDRP supports ray tracing for DirectX 12 and specific console platforms. Consult
 HDRP ray tracing in Unity isn't compatible with the following features:
 
 - Vertex animation, for example wind deformation of vegetation.
-- [Decals](decals.md).
+- Emissive [Decals](decals.md). To disable emission, go to the [Decal Material Inspector window](decal-material-inspector-reference.md) and disable **Affect Emissive**.
 - Ray tracing is not compatible with the detail meshes and trees in the [Terrain system](https://docs.unity3d.com/Manual/script-Terrain.html). It is compatible with terrain geometry. To include detailed meshes and trees in ray traced reflections, use [mixed tracing](Override-Screen-Space-Reflection.md#mixed-tracing).
 - Volumetric [fog](create-a-local-fog-effect.md).
 - [Tessellation](Tessellation.md).

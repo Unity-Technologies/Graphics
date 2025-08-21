@@ -81,41 +81,14 @@ namespace Unity.Rendering.Universal.Tests
             renderGraphContext.ActivateContext(requestedRGContext);
             gpuResidentDrawerContext.ActivateContext(requestedGRDContext);
 
-            Assert.That(
-                GlobalContextManager.GetGlobalContext<RenderGraphGlobalContext>()?.Context,
-                Is.EqualTo((int)requestedRGContext),
-                $"Expected {requestedRGContext} but was {(RenderGraphContext)GlobalContextManager.GetGlobalContext<RenderGraphGlobalContext>()?.Context}"
-            );
-
-            Assert.That(
-                GlobalContextManager.GetGlobalContext<GpuResidentDrawerGlobalContext>()?.Context,
-                Is.EqualTo((int)requestedGRDContext),
-                $"Expected {requestedGRDContext} but was {(GpuResidentDrawerContext)GlobalContextManager.GetGlobalContext<GpuResidentDrawerGlobalContext>()?.Context}"
-            );
+            GlobalContextManager.AssertContextIs<RenderGraphGlobalContext, RenderGraphContext>(requestedRGContext);
+            GlobalContextManager.AssertContextIs<GpuResidentDrawerGlobalContext, GpuResidentDrawerContext>(requestedGRDContext);
         }
 
         [TearDown]
         public void TearDown()
         {
-            Assert.That(
-                GlobalContextManager.GetGlobalContext<RenderGraphGlobalContext>()?.Context,
-                Is.EqualTo((int)requestedRGContext),
-                $"Expected {requestedRGContext} but was {(RenderGraphContext)GlobalContextManager.GetGlobalContext<RenderGraphGlobalContext>()?.Context}"
-            );
-
-            // Right now we can't guarantee that the GRD context will not fall back to a different value during the test.
-            // So just log a warning if it does.
-            if (
-                requestedGRDContext
-                != (GpuResidentDrawerContext)
-                    GlobalContextManager.GetGlobalContext<GpuResidentDrawerGlobalContext>()?.Context
-            )
-            {
-                GraphicsTestLogger.Log(
-                    LogType.Warning,
-                    $"Expected {requestedGRDContext} but was {(GpuResidentDrawerContext)GlobalContextManager.GetGlobalContext<GpuResidentDrawerGlobalContext>()?.Context}"
-                );
-            }
+            GlobalContextManager.AssertContextIs<RenderGraphGlobalContext, RenderGraphContext>(requestedRGContext);
 
             Debug.ClearDeveloperConsole();
 #if ENABLE_VR

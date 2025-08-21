@@ -8,7 +8,7 @@ The **GPU Event** Context allows you to spawn new particles from particular Bloc
 
 | **Settings** | **Type** | **Description**                                              |
 | ------------ | -------- | ------------------------------------------------------------ |
-| **Evt**      | GPUEvent | Connection from a [Block](Blocks.md) that triggers a GPU Event. The Block that trigger a GPU Event are:<br/>&#8226; **Trigger Event Always**.<br/>&#8226; **Trigger Event On Die**.<br/>&#8226; **Trigger Event Rate** |
+| **Evt**      | GPUEvent | Connection from a [Block](Blocks.md) that triggers a GPU Event. The [Trigger Event Block](Block-Trigger-Event.md) triggers GPU Events. |
 
 ## Flow
 

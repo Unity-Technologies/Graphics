@@ -1,0 +1,20 @@
+#pragma kernel CSMain
+
+RWStructuredBuffer<float> resultBuffer;
+Texture2D<float> _DepthTexture; // Depth Texture Array
+
+[numthreads(1, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    // 2D pixel coordinates within the 4x4 texture
+    int2 pixelCoord = int2(id.xy);
+
+    // Load depth value from the texture array (layer 0, mip level 0)
+    float depth = _DepthTexture.Load(int3(pixelCoord, 0));
+
+    // Flatten 2D pixel coordinates (x, y) into a 1D index for resultBuffer
+    int index = pixelCoord.y * 4 + pixelCoord.x;
+
+    // Write the depth value to the structured buffer
+    resultBuffer[index] = depth;
+}

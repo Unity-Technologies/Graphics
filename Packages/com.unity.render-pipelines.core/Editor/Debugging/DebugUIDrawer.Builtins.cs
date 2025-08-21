@@ -477,6 +477,8 @@ namespace UnityEditor.Rendering
         /// <param name="state">Debug State associated with the Debug Item.</param>
         public override void Begin(DebugUI.Widget widget, DebugState state)
         {
+            CoreEditorUtils.DrawSplitter();
+            
             var w = Cast<DebugUI.Foldout>(widget);
             var s = Cast<DebugStateBool>(state);
 
@@ -484,7 +486,7 @@ namespace UnityEditor.Rendering
 
             Action<GenericMenu> fillContextMenuAction = null;
 
-            if (w.contextMenuItems != null)
+            if (w.contextMenuItems is { Count: > 0 })
             {
                 fillContextMenuAction = menu =>
                 {
@@ -495,7 +497,7 @@ namespace UnityEditor.Rendering
                 };
             }
 
-            bool previousValue = (bool)w.GetValue();
+            bool previousValue = w.GetValue();
             bool value = CoreEditorUtils.DrawHeaderFoldout(title, previousValue, isTitleHeader: w.isHeader, customMenuContextAction: fillContextMenuAction, documentationURL: w.documentationUrl);
             if (previousValue != value)
                 Apply(w, s, value);

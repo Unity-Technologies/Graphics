@@ -10,7 +10,7 @@
     --pass-block-color--highlight: white;
     --pass-block-text-color--highlight: var(--unity-colors-default-text-hover);
     --pass-block-color--culled: rgb(30, 30, 30);
-    --grid-line-color: var(--unity-colors-app_toolbar_button-background-hover);
+    --grid-line-color: #d6d6d6;
     --grid-line-color--hover: white;
     --resource-helper-line-color: #b0b0b0;
     --resource-helper-line-color--hover: white;

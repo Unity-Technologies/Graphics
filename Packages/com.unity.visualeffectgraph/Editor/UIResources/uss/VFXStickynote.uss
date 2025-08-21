@@ -5,3 +5,37 @@ VFXStickyNote .resizableElement > #left >  #bottom-left-resize {
     width: 12px;
     height: 12px
 }
+
+VFXStickyNote #title {
+    border-width: 0;
+}
+
+VFXStickyNote #title-field {
+    margin-left: -1px;
+}
+
+VFXStickyNote #title-field > TextInput {
+    border-radius: 0;
+    margin: 0 0;
+}
+
+VFXStickyNote #title-field > TextInput > TextElement {
+    padding: 0;
+}
+
+VFXStickyNote.size-small #title-field > TextInput {
+    left: 0;
+    font-size: 20px;
+}
+
+VFXStickyNote.size-medium #title-field > TextInput {
+    font-size: 40px;
+}
+
+VFXStickyNote.size-large #title-field > TextInput {
+    font-size: 60px;
+}
+
+VFXStickyNote.size-huge #title-field > TextInput {
+    font-size: 80px;
+}

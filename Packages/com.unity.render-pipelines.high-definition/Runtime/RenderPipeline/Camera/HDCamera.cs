@@ -1864,6 +1864,14 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool vrsEnabled => frameSettings.IsEnabled(FrameSettingsField.VariableRateShading) &&
                                     camera.cameraType == CameraType.Game &&
                                     !xr.enabled;
+
+
+        internal bool allowRayTracingCullingOverride { get; private set; } = true;
+
+        internal void SetRayTracingCullingOverride(bool allow)
+        {
+            allowRayTracingCullingOverride = allow;
+        }
         #endregion
 
 

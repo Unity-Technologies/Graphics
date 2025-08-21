@@ -2,7 +2,7 @@
 
 ## Advanced
 
-| [Absolute](Absolute-Node.md) | [Exponential](Absolute-Node.md) |
+| [Absolute](Absolute-Node.md) | [Exponential](Exponential-Node.md) |
 | :------- | :------ |
 | ![Image](images/AbsoluteNodeThumb.png) | ![Image](images/ExponentialNodeThumb.png) |
 | Returns the absolute value of input In. | Returns the exponential value of input In. |
@@ -104,7 +104,7 @@
 
 ## Trigonometry
 
-| [Arccosine](Arccosine-Node) | [Arcsine](Arcsine-Node.md) |
+| [Arccosine](Arccosine-Node.md) | [Arcsine](Arcsine-Node.md) |
 | :------- | :------ |
 | ![Image](images/ArccosineNodeThumb.png) | ![Image](images/ArcsineNodeThumb.png) |
 | Returns the arccosine of each component the input In as a vector of equal length. | Returns the arcsine of each component the input In as a vector of equal length. |
@@ -157,8 +157,3 @@
 | [**Matrix Split**](Matrix-Split-Node.md)                     | [**Matrix Transpose**](Matrix-Transpose-Node.md)                  |
 | ![Image](images/MatrixSplitNodeThumb.png)                    | ![Image](images/MatrixTransposeNodeThumb.png)                |
 | Splits a square matrix defined by input In into vectors.     | Returns the transposed value of the matrix defined by input In. |
-
-Noise Sine Wave
-Sawtooth Wave
-Square Wavve
-Triangle Wave

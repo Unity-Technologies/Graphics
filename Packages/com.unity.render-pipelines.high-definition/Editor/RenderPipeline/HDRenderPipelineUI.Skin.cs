@@ -183,7 +183,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing");
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode");
             public static readonly GUIContent supportVFXRayTracing = EditorGUIUtility.TrTextContent("Visual Effects Ray Tracing", "When enabled, Visual Effects Outputs which have Enable Ray Tracing on will be accounted for in Ray-traced effects.");
-            public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent rayTracingRestrictionOnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12, Playstation 5 and Xbox Series X.", null, CoreEditorStyles.iconWarn);
             public static readonly GUIContent rayTracingMSAAUnsupported = EditorGUIUtility.TrTextContent("When Ray tracing is enabled in asset, MSAA is not supported. Please refer to the documentation.");
             public static readonly GUIContent waterMSAAUnsupported = EditorGUIUtility.TrTextContent("When Water is enabled in asset, MSAA is not supported. Please refer to the documentation.");
@@ -313,7 +312,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string FSR2WinTargetWarning = "HDRP does not support AMD Fidelity FX2 for the current build target and graphics device API. To enable FSR2, set your build target to Windows x86_64 and DirectX12.";
             public const string FSR2SwitchTarget64Button = "Fix";
             public const string FSR2FeatureDetectedMsg = "Unity detected AMD Fidelity FX 2 Super Resolution and will ignore the Fallback Upscale Filter.";
-            public const string FSR2FeatureNotDetectedMsg = "Unity cannot detect Unity detected AMD Fidelity FX 2 Super Resolution and will use the Fallback Upscale Filter instead.";
+            public const string FSR2FeatureNotDetectedMsg = "Unity cannot detect AMD Fidelity FX 2 Super Resolution and will use the Fallback Upscale Filter instead.";
 
             public const string STPSwDrsWarningMsg = "STP cannot support dynamic resolution without hardware dynamic resolution mode. You can use the forced screen percentage feature to guarantee a fixed resoution for STP or HDRP will fall back to the next best supported upscaling filter instead.";
 

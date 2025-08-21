@@ -33,7 +33,9 @@ namespace UnityEditor.VFX.HDRP
             [SurfaceDataAttributes(new string[] { "Normal", "Normal World Space" }, true, checkIsNormalized = true)]
             public Vector3 normalWS;
             [SurfaceDataAttributes(new string[] { "Tangent", "Tangent World Space" })]
-            public Vector4 tangentWS;
+            public Vector3 tangentWS;
+            [SurfaceDataAttributes(new string[] { "Bitangent", "Bitangent World Space" })]
+            public Vector3 bitangentWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion", precision = FieldPrecision.Real)]
@@ -72,7 +74,9 @@ namespace UnityEditor.VFX.HDRP
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized: true)]
             public Vector3 normalWS;
             [SurfaceDataAttributes(new string[] { "Tangent", "Tangent World Space" })]
-            public Vector4 tangentWS;
+            public Vector3 tangentWS;
+            [SurfaceDataAttributes(new string[] { "Bitangent", "Bitangent World Space" })]
+            public Vector3 bitangentWS;
 
             //Smoke Lighting
             [SurfaceDataAttributes("Rig Right Top Back", precision = FieldPrecision.Real)]

@@ -91,7 +91,9 @@ namespace UnityEngine.Rendering.UI
             }
 
             m_UIPanels.Clear();
+
             m_DebugTreeState = DebugManager.instance.GetState();
+            var panels = DebugManager.instance.panels;
 
 #if UNITY_ANDROID || UNITY_IPHONE
             // Mobile device safe area
@@ -105,20 +107,15 @@ namespace UnityEngine.Rendering.UI
             var safeAreaOffsetTop = -safeAreaRect.yMin * scaleRatio;
             Vector2 safeAreaOffset = new Vector2(safeAreaOffsetLeft, safeAreaOffsetTop) + margin;
 #endif
-            var panels = DebugManager.instance.panels;
-            var panelsCount = panels.Count;
 
-            if (panelsCount > 0)
+            DebugUIHandlerWidget selectedWidget = null;
+            foreach (var panel in panels)
             {
-                DebugUIHandlerWidget selectedWidget = null;
-                for (int i = 0; i < panelsCount; i++)
-                {
-                    var panel = panels[i];
-                    if (panel.isEditorOnly || panel.children.Count(x => !x.isEditorOnly && !x.isHidden) == 0)
-                        continue;
+                if (panel.isEditorOnly || panel.children.Count(x => !x.isEditorOnly && !x.isHidden) == 0)
+                    continue;
 
-                    var go = Instantiate(panelPrefab, transform, false).gameObject;
-                    go.name = panel.displayName;
+                var go = Instantiate(panelPrefab, transform, false).gameObject;
+                go.name = panel.displayName;
 
 #if UNITY_ANDROID || UNITY_IPHONE
                 RectTransform rectTransform = go.GetComponent<RectTransform>();
@@ -126,22 +123,21 @@ namespace UnityEngine.Rendering.UI
                 rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, safeAreaRect.height * scaleRatio + 2 * safeAreaOffsetTop);
 #endif
 
-                    var uiPanel = go.GetComponent<DebugUIHandlerPanel>();
-                    uiPanel.SetPanel(panel);
-                    uiPanel.Canvas = this;
-                    m_UIPanels.Add(uiPanel);
-                    var container = go.GetComponent<DebugUIHandlerContainer>();
-                    DebugUIHandlerWidget selected = null;
-                    Traverse(panel, container.contentHolder, null, ref selected);
+                var uiPanel = go.GetComponent<DebugUIHandlerPanel>();
+                uiPanel.SetPanel(panel);
+                uiPanel.Canvas = this;
+                m_UIPanels.Add(uiPanel);
+                var container = go.GetComponent<DebugUIHandlerContainer>();
+                DebugUIHandlerWidget selected = null;
+                Traverse(panel, container.contentHolder, null, ref selected);
 
-                    if (selected != null && selected.GetWidget().queryPath.Contains(panel.queryPath))
-                    {
-                        selectedWidget = selected;
-                    }
+                if (selected != null && selected.GetWidget().queryPath.Contains(panel.queryPath))
+                {
+                    selectedWidget = selected;
                 }
-
-                ActivatePanel(m_SelectedPanel, selectedWidget);
             }
+
+            ActivatePanel(m_SelectedPanel, selectedWidget);
         }
 
         void Traverse(DebugUI.IContainer container, Transform parentTransform, DebugUIHandlerWidget parentUIHandler, ref DebugUIHandlerWidget selectedHandler)

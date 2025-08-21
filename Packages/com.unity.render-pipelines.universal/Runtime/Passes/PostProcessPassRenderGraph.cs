@@ -928,7 +928,7 @@ namespace UnityEngine.Rendering.Universal
 
         #region STP
 
-        private const string _UpscaledColorTargetName = "_UpscaledCameraColor";
+        private const string _UpscaledColorTargetName = "_CameraColorUpscaledSTP";
 
         private void RenderSTP(RenderGraph renderGraph, UniversalResourceData resourceData, UniversalCameraData cameraData, ref TextureHandle source, out TextureHandle destination)
         {
@@ -1261,7 +1261,7 @@ namespace UnityEngine.Rendering.Universal
             internal int downsample;
         }
 
-        public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, Camera camera, in TextureDesc srcDesc, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture)
+        public TextureHandle RenderLensFlareScreenSpace(RenderGraph renderGraph, Camera camera, in TextureDesc srcDesc, TextureHandle originalBloomTexture, TextureHandle screenSpaceLensFlareBloomMipTexture, bool sameInputOutputTex)
         {
             var downsample = (int) m_LensFlareScreenSpace.resolution.value;
 
@@ -1286,7 +1286,8 @@ namespace UnityEngine.Rendering.Universal
                 passData.screenSpaceLensFlareBloomMipTexture = screenSpaceLensFlareBloomMipTexture;
                 builder.UseTexture(screenSpaceLensFlareBloomMipTexture, AccessFlags.ReadWrite);
                 passData.originalBloomTexture = originalBloomTexture;
-                builder.UseTexture(originalBloomTexture, AccessFlags.ReadWrite);
+                if(!sameInputOutputTex)
+                    builder.UseTexture(originalBloomTexture, AccessFlags.ReadWrite);
                 passData.actualWidth = srcDesc.width; 
                 passData.actualHeight = srcDesc.height;
                 passData.camera = camera;
@@ -1893,11 +1894,9 @@ namespace UnityEngine.Rendering.Universal
                 passData.lutTexture = lutTexture;
                 builder.UseTexture(lutTexture, AccessFlags.Read);
                 passData.lutParams = lutParams;
+                passData.userLutTexture = userLutTexture; // This can be null if ColorLookup is not active.
                 if (userLutTexture.IsValid())
-                {
-                    passData.userLutTexture = userLutTexture;
                     builder.UseTexture(userLutTexture, AccessFlags.Read);
-                }
 
                 if (m_Bloom.IsActive())
                 {
@@ -2118,7 +2117,8 @@ namespace UnityEngine.Rendering.Universal
                     if (useLensFlareScreenSpace)
                     {
                         int maxBloomMip = Mathf.Clamp(m_LensFlareScreenSpace.bloomMip.value, 0, m_Bloom.maxIterations.value/2);
-                        bloomTexture = RenderLensFlareScreenSpace(renderGraph, cameraData.camera, srcDesc, bloomTexture, _BloomMipUp[maxBloomMip]);
+                        bool sameInputOutputTex = maxBloomMip == 0;
+                        bloomTexture = RenderLensFlareScreenSpace(renderGraph, cameraData.camera, srcDesc, bloomTexture, _BloomMipUp[maxBloomMip], sameInputOutputTex);
                     }
 
                     UberPostSetupBloomPass(renderGraph, m_Materials.uber, srcDesc);

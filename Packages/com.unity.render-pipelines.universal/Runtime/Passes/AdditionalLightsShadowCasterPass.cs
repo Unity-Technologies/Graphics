@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly Vector4 c_DefaultShadowParams = new (0, 0, 0, -1);
         private static Vector4 s_EmptyAdditionalShadowFadeParams;
         private static Vector4[] s_EmptyAdditionalLightIndexToShadowParams;
+        private static bool isAdditionalShadowParamsDirty;
 
         // Classes
         private static class AdditionalShadowsConstantBuffer
@@ -686,11 +687,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             s_EmptyAdditionalShadowFadeParams = new Vector4(shadowFadeScale, shadowFadeBias, 0, 0);
 
             var visibleLights = lightData.visibleLights;
-            if (m_VisibleLightIndexToAdditionalLightIndex.Length < visibleLights.Length)
+            if (s_EmptyAdditionalLightIndexToShadowParams.Length < visibleLights.Length)
             {
                 m_VisibleLightIndexToAdditionalLightIndex = new short[visibleLights.Length];
                 m_VisibleLightIndexToIsCastingShadows = new bool[visibleLights.Length];
                 s_EmptyAdditionalLightIndexToShadowParams = new Vector4[visibleLights.Length];
+                isAdditionalShadowParamsDirty = true;
+            }
+
+            // Temporarily we are avoiding SetGlobalVectorArray array for _AdditionalShadowParams if we exceeds maximum additional lights (UUM-102023).
+            if (isAdditionalShadowParamsDirty)
+            {
+                isAdditionalShadowParamsDirty = false;
+                Debug.LogWarning($"The number of visible additional lights {visibleLights.Length} exceeds the maximum supported lights {UniversalRenderPipeline.maxVisibleAdditionalLights}." +
+                    $" Please refer URP documentation to change maximum number of visible lights or" +
+                    $" reduce the number of lights to maximum allowed additional lights.");
             }
 
             // Initialize _AdditionalShadowParams
@@ -823,7 +834,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 shadowParamsBuffer.SetData(s_EmptyAdditionalLightIndexToShadowParams);
                 rasterCommandBuffer.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalShadowParams_SSBO, shadowParamsBuffer);
             }
-            else
+            else if (s_EmptyAdditionalLightIndexToShadowParams.Length <= UniversalRenderPipeline.maxVisibleAdditionalLights)
             {
                 rasterCommandBuffer.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, s_EmptyAdditionalLightIndexToShadowParams);
             }

@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering
     ///
     /// <remarks>
     /// Use the `IDebugData` interface to register custom debug data. You can reset the data when necessary, which makes it suitable for debugging scenarios
-    /// where you need to clear or reset specific data. For example, when the application state changes or during gameplay session resets,
+    /// where you need to clear or reset specific data. For example, when the application state changes or during gameplay session resets, 
     /// or when the **Reset** button is selected in the **Rendering Debugger** window in the Editor or at runtime.
     /// </remarks>
     ///
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering
     ///         new DebugUI.Value { displayName = "Light Color", getter = () => Color.white, setter = value => Debug.Log($"Light Color set to {value}") }
     ///     };
     ///     var items = list.ToArray();
-    ///
+    ///     
     ///     /// Obtain the panel from the DebugManager instance, and add the Widgets that we want to display there.
     ///     var panel = DebugManager.instance.GetPanel("Lighting", true);
     ///     panel.children.AddRange(items);
@@ -231,13 +231,9 @@ namespace UnityEngine.Rendering
 
                 if (uiManager == null)
                 {
-                    if (GraphicsSettings.TryGetRenderPipelineSettings<RenderingDebuggerRuntimeResources>(
-                            out var runtimeUIResources))
-                    {
-                        m_PersistentRoot = UnityObject.Instantiate(runtimeUIResources.debugUIPersistentCanvasPrefab).gameObject;
-                        m_PersistentRoot.name = "[Debug Canvas - Persistent]";
-                        m_PersistentRoot.transform.localPosition = Vector3.zero;
-                    }
+                    m_PersistentRoot = UnityObject.Instantiate(Resources.Load<Transform>("DebugUIPersistentCanvas")).gameObject;
+                    m_PersistentRoot.name = "[Debug Canvas - Persistent]";
+                    m_PersistentRoot.transform.localPosition = Vector3.zero;
                 }
                 else
                 {

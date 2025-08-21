@@ -3,7 +3,7 @@ using UnityEditor.Build.Reporting;
 
 namespace UnityEditor.Rendering
 {
-    // Make CoreBuildData constructed and keep the instance until the end of build
+    //Make CoreBuildData constructed and kept till end of build
     class CorePreprocessBuild : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
         int IOrderedCallback.callbackOrder => int.MinValue + 50;
@@ -13,8 +13,7 @@ namespace UnityEditor.Rendering
         void IPreprocessBuildWithReport.OnPreprocessBuild(BuildReport report)
         {
             m_BuildData?.Dispose();
-            bool isDevelopmentBuild = (report.summary.options & BuildOptions.Development) != 0;
-            m_BuildData = new CoreBuildData(EditorUserBuildSettings.activeBuildTarget, isDevelopmentBuild);
+            m_BuildData = CoreBuildData.instance;
         }
 
         void IPostprocessBuildWithReport.OnPostprocessBuild(BuildReport report)

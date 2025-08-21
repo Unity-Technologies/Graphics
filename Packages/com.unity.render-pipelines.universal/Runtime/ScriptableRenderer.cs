@@ -126,6 +126,24 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Check if the ScriptableRenderer implements a camera opaque pass.
+        /// </summary>
+        /// <returns>Returns true if the ScriptableRenderer implements a camera opaque pass. False otherwise.</returns>
+        protected internal virtual bool SupportsCameraOpaque()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Check if the ScriptableRenderer implements a camera normal pass.
+        /// </summary>
+        /// <returns>Returns true if the ScriptableRenderer implements a camera normal pass. False otherwise.</returns>
+        protected internal virtual bool SupportsCameraNormals()
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Override to provide a custom profiling name
         /// </summary>
         protected ProfilingSampler profilingExecute { get; set; }
@@ -338,9 +356,12 @@ namespace UnityEngine.Rendering.Universal
             // Projection flip sign logic is very deep in GfxDevice::SetInvertProjectionMatrix
             // This setup is tailored especially for overlay camera game view
             // For other scenarios this will be overwritten correctly by SetupCameraProperties
-            float projectionFlipSign = isTargetFlipped ? -1.0f : 1.0f;
-            Vector4 projectionParams = new Vector4(projectionFlipSign, near, far, 1.0f * invFar);
-            cmd.SetGlobalVector(ShaderPropertyId.projectionParams, projectionParams);
+            if (cameraData.renderType == CameraRenderType.Overlay)
+            {
+                float projectionFlipSign = isTargetFlipped ? -1.0f : 1.0f;
+                Vector4 projectionParams = new Vector4(projectionFlipSign, near, far, 1.0f * invFar);
+                cmd.SetGlobalVector(ShaderPropertyId.projectionParams, projectionParams);
+            }
 
             Vector4 orthoParams = new Vector4(camera.orthographicSize * cameraData.aspectRatio, camera.orthographicSize, 0.0f, isOrthographic);
 
@@ -751,7 +772,16 @@ namespace UnityEngine.Rendering.Universal
                 if (rendererFeatures[i] == null)
                     continue;
 
-                rendererFeatures[i].Dispose();
+                try
+                {
+                    // Guard the renderer feature Dispose() call so if it raises any exception,
+                    // it doesn't leave the renderer in a partially destructed state.
+                    rendererFeatures[i].Dispose();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
 
             Dispose(true);

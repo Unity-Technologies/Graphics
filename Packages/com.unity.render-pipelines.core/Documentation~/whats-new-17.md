@@ -1,4 +1,8 @@
-# What's new in SRP Core 17.1 / Unity 6.1
+# What's new in SRP Core 17 / Unity 6
+
+**Note:** Starting with 17.2 (Unity 6.2), refer to [What’s new in Unity](xref:um-whats-new) for the latest updates and improvements.
+
+## What's new in SRP Core 17.1 / Unity 6.1
 The following are the new features and improvements added to the SRP Core package 17.1, embedded Unity 6.1.
 
 ## Added

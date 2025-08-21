@@ -12,7 +12,7 @@ The version number for this package has increased due to a version update of a r
 
 ## [17.0.3] - 2025-02-13
 
-This version is compatible with Unity 6000.2.0a17.
+This version is compatible with Unity 6000.2.0a5.
 
 ### Changed
 - Added a new *Shader Graph UGUI Shaders* sample content set to the Shader Graph package. This sample demonstrates how to use the new Canvas target in Shader Graph to create dynamic UI elements. You can import this sample from the *Samples* tab in the Package Manager after selecting the Shader Graph package.

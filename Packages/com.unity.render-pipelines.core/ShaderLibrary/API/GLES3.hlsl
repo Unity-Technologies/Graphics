@@ -81,17 +81,15 @@
 #define TEXTURECUBE_SHADOW(textureName)         TEXTURECUBE(textureName)
 #define TEXTURECUBE_ARRAY_SHADOW(textureName)   TEXTURECUBE_ARRAY(textureName)
 
-#if SHADER_AVAILABLE_RANDOMWRITE
 #define TYPED_TEXTURE2D(type, textureName)       Texture2D<type> textureName
 #define TYPED_TEXTURE2D_ARRAY(type, textureName) Texture2DArray<type> textureName
 #define TYPED_TEXTURE3D(type, textureName)       Texture3D<type> textureName
+
+#if SHADER_AVAILABLE_RANDOMWRITE
 #define RW_TEXTURE2D(type, textureName)          RWTexture2D<type> textureName
 #define RW_TEXTURE2D_ARRAY(type, textureName)    RWTexture2DArray<type> textureName
 #define RW_TEXTURE3D(type, textureName)          RWTexture3D<type> textureName
 #else
-#define TYPED_TEXTURE2D(type, textureName)       ERROR_ON_UNSUPPORTED_FUNCTION(TypedTexture2D)
-#define TYPED_TEXTURE2D_ARRAY(type, textureName) ERROR_ON_UNSUPPORTED_FUNCTION(TypedTexture2DArray)
-#define TYPED_TEXTURE3D(type, textureName)       ERROR_ON_UNSUPPORTED_FUNCTION(TypedTexture3D)
 #define RW_TEXTURE2D(type, textureName)          ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture2D)
 #define RW_TEXTURE2D_ARRAY(type, textureName)    ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture2DArray)
 #define RW_TEXTURE3D(type, textureName)          ERROR_ON_UNSUPPORTED_FUNCTION(RWTexture3D)

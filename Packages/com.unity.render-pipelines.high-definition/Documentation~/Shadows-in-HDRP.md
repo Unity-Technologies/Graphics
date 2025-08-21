@@ -37,25 +37,14 @@ To enable this feature:
 
 HDRP renders all real-time shadows for a frame using a shadow map atlas for all [punctual light](Glossary.md#PunctualLight) shadows, an atlas for area lights and another one for Directional Light shadows.
 
+HDRP also renders separate shadow atlases for cached shadows. For more information, refer to [Update shadows less frequently](shadow-update-mode.md).
+
 Set the size of these atlases in your Unity Project’s [HDRP Asset](HDRP-Asset.md). The atlas size determines the maximum resolution of shadows in your Scene.
 
 For example, the default size of an atlas is 4096 x 4096, which can fit:
 
 - Sixteen shadow maps of 1024 x 1024 pixels.
 - Two shadow maps of 2048 x 2048 plus four shadow maps of 1024 x 1024 plus eight shadow maps of 512 x 512 plus 32 shadow maps of 256 x 256.
-
-### Preserve shadow atlas placement
-
-If you disable a Light or change its **Update Mode** to **Every Frame**, the cached shadow manager unreserves the Light's shadow map's space in the cached shadow atlas and HDRP begins to render the Light's shadow map to the normal shadow atlases every frame. If the cached shadow manager needs to allocate space on the atlas for another Light, it can overwrite the space currently taken up by the original Light's shadow map.
-
-If you want to temporarily set a Light's **Update Mode** to **Every Frame** and want to set it back to **On Enable** or **On Demand** later, you can preserve the Light's shadow map placement in its atlas. This is useful, for example, if you want HDRP to cache a far away Light's shadow map, but update it every frame when it gets close to the [Camera](hdrp-camera-component-reference.md). To do this:
-
-1. Select a Light in your scene to view it in the Inspector window.
-2. Go to **HDAdditionalLightData** and open the More menu (&#8942;)
-3. Select **Edit Script**
-4. Enable **preserveCachedShadow** and set it to **True**. HDRP preserves the Light's shadow map's space in its shadow atlas.
-
-**Note**: Even if you enable **preserveCachedShadow**, if you destroy the Light, it loses its placement in the shadow atlas.
 
 ### Control the maximum number of shadows on screen
 

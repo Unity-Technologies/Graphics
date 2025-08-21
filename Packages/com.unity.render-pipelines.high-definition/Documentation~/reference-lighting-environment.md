@@ -1,4 +1,4 @@
-# Lighting environment reference
+# Lighting window Environment (HDRP) tab reference
 
 The **Environment (HDRP)** is a section in the [Lighting window](https://docs.unity3d.com/Manual/lighting-window.html) that allows you to specify which sky to use for indirect ambient light in HDRP. To open the window, select **Window > Rendering > Lighting > Environment**.
 

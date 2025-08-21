@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = CorePragmas.Forward,
                     defines = new DefineCollection { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection { keywords },
-                    includes = new IncludeCollection { UnlitIncludes.Unlit },
+                    includes = new IncludeCollection { UnlitIncludes.Forward },
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -390,8 +390,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
-                { CoreKeywordDescriptors.DBuffer },
-                { CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion },
+                CoreKeywordDescriptors.DBuffer,
+                CoreKeywordDescriptors.ScreenSpaceAmbientOcclusion,
+                CoreKeywordDescriptors.RenderPassEnabled,
+                CoreKeywordDescriptors.GBufferNormalsOct,
+                CoreKeywordDescriptors.ShadowsShadowmask
             };
         }
         #endregion
@@ -402,7 +405,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
             const string kUnlitGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitGBufferPass.hlsl";
 
-            public static IncludeCollection Unlit = new IncludeCollection
+            public static IncludeCollection Forward = new IncludeCollection
             {
                 // Pre-graph
                 { CoreIncludes.DOTSPregraph },
@@ -411,6 +414,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },
+                { CoreIncludes.WriteRenderLayersPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
@@ -424,6 +428,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { CoreIncludes.DBufferPregraph },
+                { CoreIncludes.WriteRenderLayersPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },

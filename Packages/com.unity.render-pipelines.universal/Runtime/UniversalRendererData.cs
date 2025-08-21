@@ -132,8 +132,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public PostProcessData postProcessData = null;
 
-        const int k_LatestAssetVersion = 2;
+        const int k_LatestAssetVersion = 3;
         [SerializeField] int m_AssetVersion = 0;
+        [SerializeField] LayerMask m_PrepassLayerMask = -1;
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
@@ -161,6 +162,19 @@ namespace UnityEngine.Rendering.Universal
                 ReloadAllNullProperties();
             }
             return new UniversalRenderer(this);
+        }
+
+        /// <summary>
+        /// Use this to configure how to filter prepass objects.
+        /// </summary>
+        public LayerMask prepassLayerMask
+        {
+            get => m_PrepassLayerMask;
+            set
+            {
+                SetDirty();
+                m_PrepassLayerMask = value;
+            }
         }
 
         /// <summary>
@@ -399,6 +413,10 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyDepthMode = CopyDepthMode.AfterOpaques;
             }
 
+            if (m_AssetVersion <= 2)
+            {
+                m_PrepassLayerMask = m_OpaqueLayerMask;
+            }
 
             m_AssetVersion = k_LatestAssetVersion;
         }

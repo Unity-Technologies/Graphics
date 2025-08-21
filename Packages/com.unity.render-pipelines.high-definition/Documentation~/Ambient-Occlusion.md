@@ -1,24 +1,24 @@
-# Ambient occlusion
+# Assign an ambient occlusion texture
 
-The High Definition Render Pipeline (HDRP) uses ambient occlusion to approximate ambient light on a GameObject’s surface that has been cast by details present in the Material but not the surface geometry. Since these details don't exist on the model, you must provide an ambient occlusion Texture for HDRP to occlude indirect lighting (lighting from Lightmaps, [Light Probes](https://docs.unity3d.com/Manual/LightProbes.html) or Ambient Light Probes). HDRP also uses the ambient occlusion Texture to calculate specular occlusion. It calculates specular occlusion from the Camera's view vector and the ambient occlusion Texture to dim reflections in cavities.
+To assign an [ambient occlusion texture](ambient-occlusion-introduction.md) to a GameObject, follow these steps:
 
-To generate an ambient occlusion Texture, you can use external software like:
+1. Use an external software package to create a single-channel ambient occlusion texture that maps the corners and crevices where light is occluded. Use values closer to `0` to indicate more occlusion, and values closer to `1` to indicate less occlusion.
 
-* xNormal
-* Substance Designer or Painter
-* Knald
+1. Create a [mask map](Mask-Map-and-Detail-Map.md#MaskMap) texture, and use the ambient occlusion texture as the green channel.
 
-When authoring ambient occlusion Textures, be aware that a value of 0 specifies an area that's fully occluded and a value of 1 specifies an area that's fully visible.
+1. Import the mask map texture into Unity.
 
-When you create the Texture, you must apply it to a Material. To do this, you must use the green channel of a [mask map](Mask-Map-and-Detail-Map.md#MaskMap).
+1. Select a material in the **Project** window, then drag the mask map texture into the **Occlusion** (⊙) property of the **Inspector** window.
+
+HDRP also uses the ambient occlusion texture to calculate specular occlusion, by reducing the intensity of reflections in corners.
 
 **Note**: Ambient occlusion in a Lit Shader using [deferred rendering](Forward-And-Deferred-Rendering.md) affects emission due to a technical constraint. Lit Shaders that use [forward rendering](Forward-And-Deferred-Rendering.md) don't have this constraint and don't affect emission.
 
-## Properties
+For more information about ambient occlusion texture properties in an HDRP material, refer to the material in [Materials and surfaces](materials-and-surfaces.md).
 
-The ambient occlusion properties are located in the **Mask Map** section of the **Surface Inputs** foldout of your material's **Inspector** window.
+## Additional resources
 
-| Property                        | Description                                                  |
-| ------------------------------- | ------------------------------------------------------------ |
-| **Mask Map - Green channel**   | Assign the ambient occlusion map in the green channel of the **Mask Map** Texture. HDRP uses the green channel of this map to calculate ambient occlusion. |
-| **Ambient Occlusion Remapping** | Remaps the ambient occlusion map in the green channel of the **Mask Map** between the minimum and maximum values you define on the slider. These values are between 0 and 1.<br/><br/>&#8226; Drag the left handle to the right to make the ambient occlusion more subtle.<br/>&#8226; Drag the right handle to the left to apply ambient occlusion to the whole Material. This is useful when the GameObject this Material is on is occluded by a dynamic GameObject.<br/><br/>This property only appears when you assign a Texture to the **Mask Map**. |
+- [Screen space ambient occlusion (SSAO)](Override-Ambient-Occlusion.md)
+- [Ray-traced ambient occlusion (RTAO)](Ray-Traced-Ambient-Occlusion.md)
+- [Mask and detail maps](Mask-Map-and-Detail-Map.md#MaskMap)
+- [Textures](https://docs.unity3d.com/Manual/Textures-landing.html)

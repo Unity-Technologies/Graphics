@@ -66,9 +66,9 @@ namespace Unity.Rendering.Universal.Tests
 
         // Disable camera track for OCULUS_SDK and OPENXR_SDK so we ensure we get a consistent screen capture for image comparison
 #if OCULUS_SDK || OPENXR_SDK
-       // This code is added to hande a case where some test(001_SimpleCube_deferred_RenderPass) would throw error on Quest Vulkan, which would pollute the console for the tests running after. 
+       // This code is added to hande a case where some test(001_SimpleCube_deferred_RenderPass) would throw error on Quest Vulkan, which would pollute the console for the tests running after.
         UnityEngine.Debug.ClearDeveloperConsole();
-        
+
         XRDevice.DisableAutoXRCameraTracking(Camera.main, true);
 #endif
             var settings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
@@ -110,20 +110,27 @@ namespace Unity.Rendering.Universal.Tests
             if (settings.ImageComparisonSettings.UseBackBuffer)
             {
                 waitFrames = Mathf.Max(waitFrames, 1);
+            }
 
-                if (settings.SetBackBufferResolution)
-                {
-                    // Set screen/backbuffer resolution before doing the capture in ImageAssert.AreEqual. This will avoid doing
-                    // any resizing/scaling of the rendered image when comparing with the reference image in ImageAssert.AreEqual.
-                    // This has to be done before WaitForEndOfFrame, as the request will only be applied after the frame ends.
-                    int targetWidth = settings.ImageComparisonSettings.TargetWidth;
-                    int targetHeight = settings.ImageComparisonSettings.TargetHeight;
-                    Screen.SetResolution(targetWidth, targetHeight, true);
+            if (settings.SetBackBufferResolution)
+            {
+                // Set screen/backbuffer resolution before doing the capture in ImageAssert.AreEqual. This will avoid doing
+                // any resizing/scaling of the rendered image when comparing with the reference image in ImageAssert.AreEqual.
+                // This has to be done before WaitForEndOfFrame, as the request will only be applied after the frame ends.
+                int targetWidth = settings.ImageComparisonSettings.TargetWidth;
+                int targetHeight = settings.ImageComparisonSettings.TargetHeight;
+                Screen.SetResolution(targetWidth, targetHeight, settings.ImageComparisonSettings.UseBackBuffer ? FullScreenMode.FullScreenWindow : Screen.fullScreenMode);
 
-                    // We need to wait at least 2 frames for the Screen.SetResolution to take effect.
-                    // After that, Screen.width and Screen.height will have the target resolution.
-                    waitFrames = Mathf.Max(waitFrames, 2);
-                }
+                // Yield once to finish the current frame (this code runs before the rendering in a frame) with the former
+                // resolution.
+                // Yield twice to finish the next frame with the new resolution taking effect.
+                // Note that once the yields finish and the test resumes after the next for loop, the rendering will be
+                // in the same frame where the new resolution first took place. For effects such as motion vector
+                // rendering it means if the aspect ratio changes after setting the resolution, the previous camera matrix
+                // will be reset, cancelling out all the camera-based motions.
+                // In this case (e.g. UniversalGraphicsTest_Terrain, test scene 300 and 301) increase the wait frame to 3
+                // on the UniversalGraphicsTestSettings component.
+                waitFrames = Mathf.Max(waitFrames, 2);
             }
 
             for (int i = 0; i < waitFrames; i++)

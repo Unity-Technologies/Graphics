@@ -29,7 +29,7 @@
 groupshared uint ldsFeatureFlags;
 RWStructuredBuffer<uint> g_TileFeatureFlags;
 
-TEXTURE2D_X_UINT2(_StencilTexture);
+TYPED_TEXTURE2D_X(uint2, _StencilTexture);
 
 [numthreads(NR_THREADS, 1, 1)]
 void MaterialFlagsGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
