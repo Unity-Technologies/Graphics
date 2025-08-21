@@ -2465,6 +2465,20 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.cameraTargetDescriptor.width = (int)(cameraData.camera.pixelWidth * cameraData.renderScale);
                 cameraData.cameraTargetDescriptor.height = (int)(cameraData.camera.pixelHeight * cameraData.renderScale);
+#if ENABLE_UPSCALER_FRAMEWORK
+                if (cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler)
+                {
+                    // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
+                    IUpscaler activeUpscaler = upscaling.GetActiveUpscaler();
+                    Debug.Assert(activeUpscaler != null);
+                    Vector2Int res = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.scaledHeight);
+                    activeUpscaler.NegotiatePreUpscaleResolution(ref res, new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight));
+                    cameraData.cameraTargetDescriptor.width = res.x;
+                    cameraData.cameraTargetDescriptor.height = res.y;
+                }
+#endif
+                cameraData.scaledWidth = cameraData.cameraTargetDescriptor.width;
+                cameraData.scaledHeight = cameraData.cameraTargetDescriptor.height;
             }
 
             var antialiasingQualityIndex = (int)cameraData.antialiasingQuality - AdaptivePerformance.AdaptivePerformanceRenderSettings.AntiAliasingQualityBias;
