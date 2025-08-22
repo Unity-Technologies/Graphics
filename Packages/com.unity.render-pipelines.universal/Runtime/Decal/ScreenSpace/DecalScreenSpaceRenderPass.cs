@@ -116,6 +116,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
 
             TextureHandle cameraDepthTexture = resourceData.cameraDepthTexture;
+            TextureHandle renderingLayersTexture = resourceData.renderingLayersTexture;
 
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
@@ -139,6 +140,9 @@ namespace UnityEngine.Rendering.Universal
 
                 if (cameraDepthTexture.IsValid())
                     builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
+
+                if (passData.decalLayers && renderingLayersTexture.IsValid())
+                    builder.UseTexture(renderingLayersTexture, AccessFlags.Read);
 
                 builder.AllowGlobalStateModification(true);
 
