@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             NRPRGComp_TryMergeNativePasses,
             NRPRGComp_FindResourceUsageRanges,
             NRPRGComp_DetectMemorylessResources,
-            NRPRGComp_ExecuteCreateResources,
+            NRPRGComp_ExecuteInitializeResources,
             NRPRGComp_ExecuteBeginRenderpassCommand,
             NRPRGComp_ExecuteDestroyResources,
         }
@@ -730,10 +730,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return true;
         }
 
-
-        private void ExecuteCreateRessource(InternalRenderGraphContext rgContext, RenderGraphResourceRegistry resources, in PassData pass)
+        private void ExecuteInitializeResource(InternalRenderGraphContext rgContext, RenderGraphResourceRegistry resources, in PassData pass)
         {
-            using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_ExecuteCreateResources)))
+            using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_ExecuteInitializeResources)))
             {
                 resources.forceManualClearOfResource = true;
 
@@ -748,15 +747,26 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                             foreach (ref readonly var res in subPass.FirstUsedResources(contextData))
                             {
                                 ref readonly var resInfo = ref contextData.UnversionedResourceData(res);
-                                if (resInfo.isImported == false && resInfo.memoryLess == false)
-                                {
-                                    bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
+                                bool usedAsFragmentThisPass = subPass.IsUsedAsFragment(res, contextData);
 
-                                    // This resource is read for the first time as a regular texture and not as a framebuffer attachment
-                                    // so we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
-                                    // TODO: Should this be a performance warning?? Maybe rare enough in practice?
-                                    resources.forceManualClearOfResource = !usedAsFragmentThisPass;
-                                    resources.CreatePooledResource(rgContext, res.iType, res.index);
+                                // This resource is read for the first time as a regular texture and not as a framebuffer attachment
+                                // so if requested we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
+                                resources.forceManualClearOfResource = !usedAsFragmentThisPass;
+
+                                if (!resInfo.memoryLess)
+                                {
+                                    if (!resInfo.isImported)
+                                    {
+                                        // This resource is read for the first time as a regular texture and not as a framebuffer attachment
+                                        // so we need to explicitly clear it, as loadAction.clear only works on framebuffer attachments
+                                        // TODO: Should this be a performance warning?? Maybe rare enough in practice?
+                                        resources.CreatePooledResource(rgContext, res.iType, res.index);
+                                    }
+                                    else // Imported resource
+                                    {
+                                        if (resInfo.clear && resources.forceManualClearOfResource)
+                                            resources.ClearResource(rgContext, res.iType, res.index);
+                                    }
                                 }
                             }
                         }
@@ -768,9 +778,14 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     foreach (ref readonly var create in pass.FirstUsedResources(contextData))
                     {
                         ref readonly var pointTo = ref contextData.UnversionedResourceData(create);
-                        if (pointTo.isImported == false)
+                        if (!pointTo.isImported)
                         {
                             resources.CreatePooledResource(rgContext, create.iType, create.index);
+                        }
+                        else // Imported resource
+                        {
+                            if (pointTo.clear)
+                                resources.ClearResource(rgContext, create.iType, create.index);
                         }
                     }
                 }
@@ -1387,7 +1402,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
                 var isRaster = pass.type == RenderGraphPassType.Raster;
 
-                ExecuteCreateRessource(rgContext, resources, pass);
+                ExecuteInitializeResource(rgContext, resources, pass);
 
                 var isAsyncCompute = pass.type == RenderGraphPassType.Compute && pass.asyncCompute == true;
                 if (isAsyncCompute)

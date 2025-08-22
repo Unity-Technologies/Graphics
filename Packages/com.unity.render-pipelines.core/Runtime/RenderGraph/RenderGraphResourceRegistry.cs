@@ -1067,15 +1067,33 @@ namespace UnityEngine.Rendering.RenderGraphModule
 #endif
 
             bool executedWork = false;
+
             if ((forceManualClearOfResource && resource.desc.clearBuffer) || m_RenderGraphDebug.clearRenderTargetsAtCreation)
             {
-                bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
-                var clearFlag = GraphicsFormatUtility.IsDepthStencilFormat(resource.desc.format) ? ClearFlag.DepthStencil : ClearFlag.Color;
-                var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
-                CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, clearColor);
+                ClearTexture(rgContext, resource);
                 executedWork = true;
             }
             return executedWork;
+        }
+
+        internal void ClearResource(InternalRenderGraphContext rgContext, int type, int index)
+        {
+            var resource = m_RenderGraphResources[type].resourceArray[index];
+
+            // Only TextureResource for now, but we expect to want to handle other types of resources in the future
+            if (resource is TextureResource textureResource)
+            {
+                ClearTexture(rgContext, textureResource);
+            }
+        }
+
+        private void ClearTexture(InternalRenderGraphContext rgContext, TextureResource resource)
+        {
+            if (resource == null) return;
+            var debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
+            var clearFlag = GraphicsFormatUtility.IsDepthStencilFormat(resource.desc.format) ? ClearFlag.DepthStencil : ClearFlag.Color;
+            var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
+            CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, clearColor);
         }
 
         internal void ReleasePooledResource(InternalRenderGraphContext rgContext, int type, int index)
