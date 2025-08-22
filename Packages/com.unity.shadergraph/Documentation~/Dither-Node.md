@@ -1,20 +1,20 @@
-# Dither Node
+# Dither node
 
-## Description
+The Dither node adds a structured form of noise to the input. Use the Dither node to reduce the color bands that might appear if you move from a high number of colors to a low number (quantizing), or to simulate transparency by adding random alpha pixels to an opaque object. 
 
-Dither is an intentional form of noise used to randomize quantization error. It is used to prevent large-scale patterns such as color banding in images. The **Dither** node applies dithering in screen-space to ensure a uniform distribution of the pattern. This can be adjusted by connecting another node to input **Screen Position**.
+The Dither node applies dithering in screen space to ensure a uniform distribution of the pattern. To change the space the node uses, connect another node to the **Screen Position** input, such as a [UV node](UV-Nodes.md).
 
-This [Node](Node.md) is commonly used as an input to **Alpha Clip Threshold** on the [Master Node](Master-Stack.md) to give the appearance of transparency to an opaque item. This is useful for creating geometry that appears to be transparent but has the advantages of rendering as opaque, such as writing depth or being rendered in deferred.
+To use a dither pattern for transparency, connect the Dither node to the **Alpha Clip Threshold** input in the [Master Stack](Master-Stack.md). As a result, when you adjust the overall alpha value of the material, some pixels are discarded because the alpha value is lower than their alpha clip threshold. This technique is useful for creating geometry that appears to be transparent but has the advantages of rendering as opaque, such as writing to the depth buffer or rendering using a deferred [rendering path](https://docs.unity3d.com/Manual/built-in-rendering-paths.html).
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
+| **Name** | **Direction** | **Type** | **Binding** | **Description** |
 |:------------ |:-------------|:-----|:---|:---|
-| In      | Input | Dynamic Vector | None | Input value |
-| Screen Position      | Input | Vector 4 | Screen Position | Coordinates used to apply dither pattern |
-| Out | Output      |    Dynamic Vector | None | Output value |
+| **In** | Input | Dynamic vector | None | The input to dither. The noise stays within the overall minimum and maximum range of the input values. |
+| **Screen Position** | Input | Vector 4 | Screen Position | The coordinates Unity uses to calculate the dither pattern. For more information about the options, refer to the [Screen Position node](Screen-Position-Node.md). |
+| **Out** | Output | Dynamic vector | None | The dithered output. |
 
-## Generated Code Example
+## Generated code example
 
 The following example code represents one possible outcome of this node.
 
@@ -33,3 +33,4 @@ void Unity_Dither_float4(float4 In, float4 ScreenPosition, out float4 Out)
     Out = In - DITHER_THRESHOLDS[index];
 }
 ```
+
