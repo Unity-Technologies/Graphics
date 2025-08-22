@@ -90,6 +90,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // value = m_Texture,
                 modifiable = false
             });
+
+            properties.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_DefaultWhiteTex",
+                displayName = "DefaultWhiteTex",
+            });
         }
     }
 }

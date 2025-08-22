@@ -739,8 +739,12 @@ namespace UnityEngine.Rendering.Universal
 
             var cameraSortingLayerBoundsIndex = m_Renderer2DData.GetCameraSortingLayerBoundsIndex();
 
+            bool useLights = false;
+            for (int i = 0; i < m_BatchCount; ++i)
+                useLights |= m_LayerBatches[i].lightStats.useLights;
+
             // Set Global Properties and Textures
-            GlobalPropertiesPass.Setup(renderGraph, frameData, m_Renderer2DData, cameraData);
+            GlobalPropertiesPass.Setup(renderGraph, frameData, m_Renderer2DData, cameraData, useLights);
 
             // Main render passes
 
