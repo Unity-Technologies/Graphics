@@ -373,3 +373,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Instability https://jira.unity3d.com/browse/UUM-100651
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c117ad53f0d031344b1a2e850c7e5eac, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'Unstable: https://jira.unity3d.com/browse/UUM-100651'
