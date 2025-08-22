@@ -123,17 +123,6 @@ namespace UnityEngine.Rendering.Universal
             get => m_DefaultMesh2DLitMaterial;
             set => this.SetValueAndNotify(ref m_DefaultMesh2DLitMaterial, value, nameof(m_DefaultMesh2DLitMaterial));
         }
-
-        [SerializeField, ResourcePath("Runtime/Materials/RenderAs2D-Default.mat")]
-        Material m_DefaultRenderAs2DMaterial = null;
-        internal Material defaultRenderAs2D
-        {
-            get => m_DefaultRenderAs2DMaterial;
-            set => this.SetValueAndNotify(ref m_DefaultRenderAs2DMaterial, value, nameof(m_DefaultRenderAs2DMaterial));
-        }
 #endif
-
-        [SerializeField, ResourcePath("Shaders/2D/RenderAs2D-Flattening.shader")]
-        Shader m_RenderAs2DFlatteningShader;
     }
 }

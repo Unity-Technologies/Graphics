@@ -120,13 +120,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Sort 3D as 2D Compatible", new Toggle() { value = target.sort3Das2DCompatible }, (evt) =>
+            context.AddProperty("Sort 3D as 2D Compatible", new Toggle() { value = target.sort3DAs2DCompatible }, (evt) =>
             {
-                if (Equals(target.sort3Das2DCompatible, evt.newValue))
+                if (Equals(target.sort3DAs2DCompatible, evt.newValue))
                     return;
 
                 registerUndo("Change Sort 3D as 2D Compatible");
-                target.sort3Das2DCompatible = evt.newValue;
+                target.sort3DAs2DCompatible = evt.newValue;
                 onChange();
             });
         }

@@ -131,11 +131,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     fieldDependencies = CoreFieldDependencies.Default,
 
                     // Conditional State
-                    renderStates = target.sort3Das2DCompatible ? Universal2DSubTargetDescriptors.RenderStateCollections.Sort3Das2DCompatible : SpriteSubTargetUtility.GetDefaultRenderState(target),
+                    renderStates = target.sort3DAs2DCompatible ? Universal2DSubTargetDescriptors.RenderStateCollections.Sort3DAs2DCompatible : SpriteSubTargetUtility.GetDefaultRenderState(target),
                     pragmas = CorePragmas._2DDefault,
                     defines = new DefineCollection(),
                     keywords = SpriteUnlitKeywords.Unlit,
-                    includes = target.sort3Das2DCompatible ? MeshUnlitIncludes.Unlit : SpriteUnlitIncludes.Unlit,
+                    includes = target.sort3DAs2DCompatible ? MeshUnlitIncludes.Unlit : SpriteUnlitIncludes.Unlit,
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common

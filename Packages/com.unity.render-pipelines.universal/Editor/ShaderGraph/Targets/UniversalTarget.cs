@@ -184,7 +184,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_DisableTint = false;
 
         [SerializeField]
-        bool m_Sort3Das2DCompatible = false;
+        bool m_Sort3DAs2DCompatible = false;
 
         [SerializeField]
         AdditionalMotionVectorMode m_AdditionalMotionVectorMode = AdditionalMotionVectorMode.None;
@@ -306,10 +306,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_DisableTint = value;
         }
 
-        public bool sort3Das2DCompatible
+        public bool sort3DAs2DCompatible
         {
-            get => m_Sort3Das2DCompatible;
-            set => m_Sort3Das2DCompatible = value;
+            get => m_Sort3DAs2DCompatible;
+            set => m_Sort3DAs2DCompatible = value;
         }
 
         public bool castShadows
