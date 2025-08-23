@@ -30,7 +30,6 @@ void Unity_Voronoi_float(float2 UV, float AngleOffset, float CellDensity, out fl
 {
     float2 g = floor(UV * CellDensity);
     float2 f = frac(UV * CellDensity);
-    float t = 8.0;
     float3 res = float3(8.0, 0.0, 0.0);
 
     for(int y=-1; y<=1; y++)
