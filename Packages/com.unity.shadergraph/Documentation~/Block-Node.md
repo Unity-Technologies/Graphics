@@ -4,7 +4,7 @@
 
 A Block is a specific type of node for the Master Stack. A Block represents a single piece of the surface (or vertex) description data that Shader Graph uses in the final shader output. [Built In Block nodes](Built-In-Blocks.md) are always available, but nodes that are specific to a certain render pipeline are only available for that pipeline. For example, Universal Block nodes are only available for the Universal Render Pipeline (URP), and High Definition Block nodes are only available for the High Definition Render Pipeline (HDRP).
 
-Some blocks are only compatible with specific [Graph Settings](Graph-Settings-Menu.md), and might become active or inactive based on the graph settings you select. You can't cut, copy, or paste Blocks.
+Some blocks are only compatible with specific [Graph Settings](Graph-Settings-Tab.md), and might become active or inactive based on the graph settings you select. You can't cut, copy, or paste Blocks.
 
 ## Add and Remove Block Nodes
 

@@ -131,7 +131,7 @@ Defines a [Texture 2D](https://docs.unity3d.com/Manual/class-TextureImporter.htm
 | Field        | Type  | Description |
 |:-------------|:------|:------------|
 | Default | Texture | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
-| Use Tiling and Offset | Boolean | When set to false, activates the property [NoScaleOffset](https://docs.unity3d.com/Manual/SL-Properties.html), to enable manipulation of scale and offset separately from other texture properties. See [SplitTextureTransformNode](Split-Texture-Transform-Node).|
+| Use Tiling and Offset | Boolean | When set to false, activates the property [NoScaleOffset](https://docs.unity3d.com/Manual/SL-Properties.html), to enable manipulation of scale and offset separately from other texture properties. See [SplitTextureTransformNode](Split-Texture-Transform-Node.md).|
 
 ## Texture 3D
 
