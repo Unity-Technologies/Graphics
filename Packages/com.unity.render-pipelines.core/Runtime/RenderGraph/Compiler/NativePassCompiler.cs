@@ -468,8 +468,9 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 }
 
                 // Update graph based on freshly culled nodes, remove any connection to them
+                // We start from the latest passes to the first ones as we might need to decrement the version number of unwritten resources
                 var numPasses = ctx.passData.Length;
-                for (int passIndex = 0; passIndex < numPasses; passIndex++)
+                for (int passIndex = numPasses - 1; passIndex >= 0; passIndex--)
                 {
                     ref readonly var pass = ref ctx.passData.ElementAt(passIndex);
 

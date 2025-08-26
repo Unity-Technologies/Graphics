@@ -1338,7 +1338,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
-        public void DecreaseResourceVersionIfLastPassIsCulled()
+        public void DecreaseResourceVersion_WhenAllProducersExceptFirstAreCulled()
         {
             var g = AllocateRenderGraph();
             var buffers = ImportAndCreateBuffers(g);
@@ -1359,14 +1359,30 @@ namespace UnityEngine.Rendering.Tests
                 builder.AllowPassCulling(true);
             }
 
-            // First pass is preserved as requested but second pass is culled
+            // Bumping version of extraBuffer within RG to 3 as we write to it in third pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            // Bumping version of extraBuffer within RG to 4 as we write to it in forth pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass3", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            // First pass is preserved as requested but other passes are culled
             var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
             var passes = result.contextData.GetNativePasses();
 
-            // Second pass has been culled
+            // Only the first pass is preserved
             Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 1);
             // extraBuffer version has decreased to 1 as it is only used by the first pass
-            Assert.AreEqual(passes[0].attachments[0].handle.version, 1);
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[0].handle).latestVersionNumber, 1);
         }
 
         [Test]
