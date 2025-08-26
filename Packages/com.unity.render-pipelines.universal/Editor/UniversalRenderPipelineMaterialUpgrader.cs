@@ -755,6 +755,14 @@ namespace UnityEditor.Rendering.Universal
     /// </summary>
     public class AutodeskInteractiveUpgrader : MaterialUpgrader
     {
+        enum LegacyRenderingMode
+        {
+            Opaque,
+            Cutout,
+            Fade,   // Old school alpha-blending mode, fresnel does not affect amount of transparency
+            Transparent // Physically plausible transparency mode, implemented as alpha pre-multiply
+        }
+
         /// <summary>
         /// Constructor for the autodesk interactive upgrader.
         /// </summary>
@@ -776,6 +784,25 @@ namespace UnityEditor.Rendering.Universal
             dstMaterial.SetFloat("_UseAoMap", srcMaterial.GetTexture("_OcclusionMap") ? 1.0f : .0f);
             dstMaterial.SetVector("_UvOffset", srcMaterial.GetTextureOffset("_MainTex"));
             dstMaterial.SetVector("_UvTiling", srcMaterial.GetTextureScale("_MainTex"));
+
+            var legacyRenderingMode = (LegacyRenderingMode)srcMaterial.GetFloat("_Mode");
+            switch (legacyRenderingMode)
+            {
+                case LegacyRenderingMode.Opaque:
+                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveShader.name, UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+                    break;
+                case LegacyRenderingMode.Cutout:
+                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveMaskedShader.name, UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+                    dstMaterial.SetFloat("_UseOpacityMap", .0f);
+                    dstMaterial.SetFloat("_OpacityThreshold", srcMaterial.GetFloat("_Cutoff"));
+                    break;
+                case LegacyRenderingMode.Fade:
+                case LegacyRenderingMode.Transparent:
+                    RenameShader(OldShaderPath, GraphicsSettings.GetRenderPipelineSettings<UniversalRenderPipelineEditorShaders>().autodeskInteractiveTransparentShader.name, UniversalRenderPipelineMaterialUpgrader.DisableKeywords);
+                    dstMaterial.SetFloat("_UseOpacityMap", .0f);
+                    dstMaterial.SetFloat("_Opacity", srcMaterial.GetColor("_Color").a);
+                    break;
+            }
         }
     }
 }
