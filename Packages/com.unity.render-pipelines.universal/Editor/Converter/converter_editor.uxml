@@ -22,11 +22,9 @@
         <ui:VisualElement name="bottomButtonVE" style="flex-direction: row-reverse; flex-shrink: 0; padding-left: 0; padding-right: 0; margin-top: 6px; width: auto; align-items: stretch; flex-grow: 0;">
             <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); min-width: auto; min-height: auto; flex-shrink: 0; width: auto; height: auto;">
                 <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; flex-shrink: 0;">
-                    <ui:Label tabindex="-1" display-tooltip-when-elided="true" style="flex-grow: 1;" />
-                    <ui:Button text="Initialize Converters" name="initializeButton" tooltip="Click to initialize all the selected converters." style="flex-direction: column; margin-bottom: 1px; min-width: auto; width: 130px; display: none;" />
-                    <ui:Button text=" Convert Assets" name="convertButton" style="flex-direction: column; margin-bottom: 1px; width: 130px; min-width: auto; display: none;" />
+                    <ui:Button text="Initialize Converters" name="initializeButton" tooltip="Click to initialize all the selected converters." style="flex-direction: column; margin-bottom: 1px; min-width: auto; width: 130px;" />
+                    <ui:Button text=" Convert Assets" name="convertButton" style="flex-direction: column; margin-bottom: 1px; width: 130px; min-width: auto;" />
                 </ui:VisualElement>
-                <ui:Button tabindex="-1" text="Initialize And Convert" display-tooltip-when-elided="true" name="initializeAndConvert" style="width: 140px;" />
             </ui:VisualElement>
             <ui:Label style="flex-grow: 1;" />
         </ui:VisualElement>

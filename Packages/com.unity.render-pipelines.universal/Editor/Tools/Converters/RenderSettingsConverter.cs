@@ -81,6 +81,9 @@ namespace UnityEditor.Rendering.Universal
                     asset.m_RendererDataList = renderers;
                     asset.m_DefaultRendererIndex = defaultIndex;
 
+                    // Set the asset dirty to make sure that the renderer data is saved
+                    EditorUtility.SetDirty(asset);
+
                     QualitySettings.renderPipeline = asset;
                     ok = true;
                 }
@@ -107,6 +110,7 @@ namespace UnityEditor.Rendering.Universal
                 CoreUtils.EnsureFolderTreeInAssetFilePath(path);
                 var asset = ScriptableObject.CreateInstance(typeof(UniversalRenderPipelineAsset)) as UniversalRenderPipelineAsset;
                 AssetDatabase.CreateAsset(asset, path);
+                AssetDatabase.SaveAssetIfDirty(asset);
                 return asset;
             }
             catch (Exception ex)
@@ -124,7 +128,7 @@ namespace UnityEditor.Rendering.Universal
 
             CoreUtils.EnsureFolderTreeInAssetFilePath(path);
 
-            var asset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer, relativePath: false) as UniversalRendererData; ;
+            var asset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer, relativePath: false) as UniversalRendererData;
             asset.renderingMode = renderingPath == RenderingPath.Forward ? RenderingMode.Forward : RenderingMode.Deferred;
 
             return asset;

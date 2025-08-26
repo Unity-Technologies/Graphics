@@ -35,7 +35,6 @@ namespace UnityEditor.Rendering.Universal
             // {"Default-Skybox", "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat"},
         };
     }
-
     internal class ReadonlyMaterialConverter : RenderPipelineConverter
     {
         public override string name => "Readonly Material Converter";

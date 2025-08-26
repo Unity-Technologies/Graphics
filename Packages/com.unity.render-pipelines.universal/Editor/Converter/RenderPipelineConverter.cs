@@ -5,8 +5,13 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.2D.PixelPerfect.Editor")]
 namespace UnityEditor.Rendering.Universal
 {
+    internal interface IRenderPipelineConverter
+    {
+        bool isEnabled { get; }
+    }
+
     // Might need to change this name before making it public
-    internal abstract class RenderPipelineConverter
+    internal abstract class RenderPipelineConverter : IRenderPipelineConverter
     {
         /// <summary>
         /// Name of the converter.

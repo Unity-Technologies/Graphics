@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -123,6 +124,10 @@ namespace UnityEditor.Rendering.Universal.Tools
             Assert.AreEqual(QualitySettings.shadowCascade2Split, urpAsset.cascade2Split, "cascade2Split mismatch");
             Assert.AreEqual(QualitySettings.shadowCascade4Split, urpAsset.cascade4Split, "cascade4Split mismatch");
             Assert.AreEqual(QualitySettings.shadows == ShadowQuality.All, urpAsset.supportsSoftShadows, "supportsSoftShadows mismatch");
+
+            // ---------- RENDERER FORWARDING CHECK ----------
+            Assert.AreEqual(1, urpAsset.m_RendererDataList.Length);
+            Assert.IsNotNull(urpAsset.m_RendererDataList[0]);
         }
     }
 
