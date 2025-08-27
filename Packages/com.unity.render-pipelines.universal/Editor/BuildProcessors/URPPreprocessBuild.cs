@@ -9,7 +9,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class URPPreprocessBuild : IPreprocessBuildWithReport
+    class URPPreprocessBuild : IPreprocessBuildWithReport, IPostprocessBuildWithReport
     {
         public int callbackOrder => int.MinValue + 100;
 
