@@ -450,6 +450,7 @@ namespace UnityEngine.Rendering.Universal
     /// <see cref="UniversalRenderPipeline"/>
     [ExcludeFromPreset]
     [URPHelpURL("universalrp-asset")]
+    [Icon("UnityEngine/Rendering/RenderPipelineAsset Icon")]
 #if UNITY_EDITOR
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
@@ -744,7 +745,7 @@ namespace UnityEngine.Rendering.Universal
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
-                "New Universal Render Pipeline Asset.asset", null, null);
+                "New Universal Render Pipeline Asset.asset", CoreUtils.GetIconForType<UniversalRenderPipelineAsset>(), null);
         }
 
         internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer")

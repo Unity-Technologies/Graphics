@@ -33,7 +33,8 @@ namespace UnityEngine.Rendering.Universal
         [MenuItem("Assets/Create/Rendering/URP Post-process Data", priority = CoreUtils.Sections.section5 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreatePostProcessData()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreatePostProcessDataAsset>(), "CustomPostProcessData.asset", null, null);
+            var icon = EditorGUIUtility.IconContent("ScriptableObject Icon").image as Texture2D;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreatePostProcessDataAsset>(), "CustomPostProcessData.asset", icon, null);
         }
 
         internal static PostProcessData GetDefaultPostProcessData()
