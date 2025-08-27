@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -30,11 +29,15 @@ namespace UnityEditor.Rendering.Universal
                 });
 
             private static readonly CED.IDrawer DisabledPostProcessingAAWarningDrawer = CED.Conditional(
-                (serialized, owner) => !serialized.renderPostProcessing.boolValue && (AntialiasingMode)serialized.antialiasing.intValue != AntialiasingMode.None,
+                (serialized, owner) => !serialized.renderPostProcessing.boolValue && (AntialiasingMode)serialized.antialiasing.intValue != AntialiasingMode.None && !IsIntermediateTextureForbidden(UniversalRenderPipeline.asset),
                 (serialized, owner) => EditorGUILayout.HelpBox(Styles.disabledPostprocessingAntiAliasWarning, MessageType.Warning));
 
             private static readonly CED.IDrawer MSAAWarningDrawer = CED.Conditional(
-                (serialized, owner) => (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset asset && asset.msaaSampleCount > 1) && serialized.baseCameraSettings.allowMSAA.boolValue == true && (AntialiasingMode)serialized.antialiasing.intValue == AntialiasingMode.TemporalAntiAliasing,
+                (serialized, owner) =>
+                {
+                    var asset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+                    return asset != null && asset.msaaSampleCount > 1 && serialized.baseCameraSettings.allowMSAA.boolValue == true && (AntialiasingMode)serialized.antialiasing.intValue == AntialiasingMode.TemporalAntiAliasing && !IsIntermediateTextureForbidden(asset);
+                },
                 (serialized, owner) => EditorGUILayout.HelpBox(Styles.MSAAWarning, MessageType.Warning));
 
             private static readonly CED.IDrawer PostProcessingStopNaNsWarningDrawer = CED.Conditional(
@@ -66,7 +69,7 @@ namespace UnityEditor.Rendering.Universal
                 DisabledPostProcessingAAWarningDrawer,
                 MSAAWarningDrawer,
                 CED.Conditional(
-                    (serialized, owner) => !serialized.antialiasing.hasMultipleDifferentValues,
+                    (serialized, owner) => !serialized.antialiasing.hasMultipleDifferentValues && !IsIntermediateTextureForbidden(UniversalRenderPipeline.asset),
                     CED.Group(
                         GroupOption.Indent,
                         new[]{
@@ -184,10 +187,45 @@ namespace UnityEditor.Rendering.Universal
 
                 if (EditorGUI.EndChangeCheck())
                     p.renderer.intValue = selectedRenderer;
+
+                if (!IsIntermediateTextureForbidden(rpAsset))
+                    return;
+                
+                if (selectedRenderer == -1) //default renderer
+                    selectedRenderer = rpAsset.m_DefaultRendererIndex;
+                var type = rpAsset.rendererDataList[selectedRenderer].GetType();
+                if (type == typeof(UniversalRendererData))
+                    EditorUtils.QualitySettingsHelpBox(
+                        "The active URP Asset is set to never use Intermediate Texture for maximum performance. This prevents the renderer from using the full-screen pass required by some features.\n"
+                        + (p.cameraType.intValue == (int)CameraRenderType.Overlay
+                        ? "Depth Texture and Post Processing"
+                        : "Opaque Texture, Depth Texture, Post Processing, Anti Aliasing and HDR")
+                        + " are deactivated.",
+                        MessageType.Info, 
+                        UniversalRenderPipelineAssetUI.Expandable.Quality, 
+                        "m_IntermediateTextureMode"
+                    );
+                else if (type == typeof(Renderer2DData))
+                    EditorUtils.QualitySettingsHelpBox(
+                        "The active URP Asset is set to never use Intermediate Texture for maximum performance. This prevents the renderer from using the full-screen pass required by some features.\n"
+                        + (p.cameraType.intValue == (int)CameraRenderType.Overlay
+                        ? "Depth Texture, Post Processing and PixelPerfectCamera"
+                        : "Opaque Texture, Depth Texture, Post Processing, Anti Aliasing, HDR and PixelPerfectCamera")
+                        + " are deactivated.",
+                        MessageType.Info, 
+                        UniversalRenderPipelineAssetUI.Expandable.Quality, 
+                        "m_IntermediateTextureMode"
+                    );
             }
+
+            internal static bool IsIntermediateTextureForbidden(UniversalRenderPipelineAsset rpAsset)
+                => rpAsset != null && rpAsset.intermediateTextureMode == IntermediateTextureMode.Never;
 
             static bool IsAnyRendererHasPostProcessingEnabled(UniversalRenderPipelineSerializedCamera p, UniversalRenderPipelineAsset rpAsset)
             {
+                if (IsIntermediateTextureForbidden(rpAsset))
+                    return false; //Post Process are not Tiled based yet
+
                 int selectedRendererOption = p.renderer.intValue;
 
                 if (selectedRendererOption < -1 || selectedRendererOption >= rpAsset.m_RendererDataList.Length || p.renderer.hasMultipleDifferentValues)
@@ -205,15 +243,21 @@ namespace UnityEditor.Rendering.Universal
 
             static void DrawerRenderingAntialiasing(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
-                Rect antiAliasingRect = EditorGUILayout.GetControlRect();
-                EditorGUI.BeginProperty(antiAliasingRect, Styles.antialiasing, p.antialiasing);
+                if (IsIntermediateTextureForbidden(UniversalRenderPipeline.asset))
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.EnumPopup(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.antialiasing), AntialiasingMode.None);
+                else
                 {
-                    EditorGUI.BeginChangeCheck();
-                    int selectedValue = (int)(AntialiasingMode)EditorGUI.EnumPopup(antiAliasingRect, Styles.antialiasing, (AntialiasingMode)p.antialiasing.intValue);
-                    if (EditorGUI.EndChangeCheck())
-                        p.antialiasing.intValue = selectedValue;
+                    Rect antiAliasingRect = EditorGUILayout.GetControlRect();
+                    EditorGUI.BeginProperty(antiAliasingRect, Styles.antialiasing, p.antialiasing);
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        int selectedValue = (int)(AntialiasingMode)EditorGUI.EnumPopup(antiAliasingRect, Styles.antialiasing, (AntialiasingMode)p.antialiasing.intValue);
+                        if (EditorGUI.EndChangeCheck())
+                            p.antialiasing.intValue = selectedValue;
+                    }
+                    EditorGUI.EndProperty();
                 }
-                EditorGUI.EndProperty();
             }
 
             static void DrawerRenderingClearDepth(UniversalRenderPipelineSerializedCamera p, Editor owner)
@@ -237,8 +281,7 @@ namespace UnityEditor.Rendering.Universal
 
                 {
                     // FSR overrides TAA CAS settings. Disable this setting when FSR is enabled.
-                    bool disableSharpnessControl = UniversalRenderPipeline.asset != null ?
-                        (UniversalRenderPipeline.asset.upscalingFilter == UpscalingFilterSelection.FSR) : false;
+                    bool disableSharpnessControl = UniversalRenderPipeline.asset != null && (UniversalRenderPipeline.asset.upscalingFilter == UpscalingFilterSelection.FSR);
                     using var disable = new EditorGUI.DisabledScope(disableSharpnessControl);
 
                     EditorGUILayout.Slider(p.taaContrastAdaptiveSharpening, 0.0f, 1.0f, Styles.taaContrastAdaptiveSharpening);
@@ -275,7 +318,11 @@ namespace UnityEditor.Rendering.Universal
 
             static void DrawerRenderingRenderPostProcessing(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.renderPostProcessing, Styles.renderPostProcessing);
+                if (IsIntermediateTextureForbidden(UniversalRenderPipeline.asset))
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.Toggle(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.renderPostProcessing), false);
+                else
+                    EditorGUILayout.PropertyField(p.renderPostProcessing, Styles.renderPostProcessing);
             }
 
             static void DrawerRenderingPriority(UniversalRenderPipelineSerializedCamera p, Editor owner)
@@ -285,12 +332,20 @@ namespace UnityEditor.Rendering.Universal
 
             static void DrawerRenderingDepthTexture(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.renderDepth, Styles.requireDepthTexture);
+                if (IsIntermediateTextureForbidden(UniversalRenderPipeline.asset))
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.EnumPopup(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.requireDepthTexture), CameraOverrideOption.Off);
+                else
+                    EditorGUILayout.PropertyField(p.renderDepth, Styles.requireDepthTexture);
             }
 
             static void DrawerRenderingOpaqueTexture(UniversalRenderPipelineSerializedCamera p, Editor owner)
             {
-                EditorGUILayout.PropertyField(p.renderOpaque, Styles.requireOpaqueTexture);
+                if (IsIntermediateTextureForbidden(UniversalRenderPipeline.asset))
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.EnumPopup(UniversalRenderPipelineAssetUI.Styles.GetNoIntermediateTextureVariant(Styles.requireOpaqueTexture), CameraOverrideOption.Off);
+                else
+                    EditorGUILayout.PropertyField(p.renderOpaque, Styles.requireOpaqueTexture);
             }
         }
     }

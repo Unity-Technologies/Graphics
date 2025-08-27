@@ -86,14 +86,44 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         /// <summary>
+        /// Controls whether the Pixel Perfect Camera feature is active and applies its viewport scaling.
+        /// This property also returns @@false@@ at runtime if the active Universal Render Pipeline Asset's @@IntermediateTextureMode@@ is set to @@Never@@.
+        /// To calculate the correct viewport scaling and keep pixel art crisp at different resolutions, the Pixel Perfect Camera may require an intermediate texture.
+        /// </summary>
+        public new bool enabled
+        {
+            get
+            {
+                if (!base.enabled)
+                    return false;
+
+                // Also disable if intermediate textures are forbidden.
+                var asset = UniversalRenderPipeline.asset;
+                if (asset == null)
+                    return base.enabled;
+                return asset.intermediateTextureMode != IntermediateTextureMode.Never;
+            }
+            set => base.enabled = value;
+        }
+
+
+        /// <summary>
         /// Defines how the output display will be cropped.
         /// </summary>
-        public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
+        public CropFrame cropFrame
+        {
+            get => m_CropFrame;
+            set => m_CropFrame = value;
+        }
 
         /// <summary>
         /// Defines if pixels will be locked to a grid determined by assetsPPU.
         /// </summary>
-        public GridSnapping gridSnapping { get { return m_GridSnapping; } set { m_GridSnapping = value; } }
+        public GridSnapping gridSnapping
+        {
+            get => m_GridSnapping;
+            set => m_GridSnapping = value;
+        }
 
         /// <summary>
         /// The target orthographic size of the camera.
@@ -108,12 +138,20 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The original horizontal resolution your Assets are designed for.
         /// </summary>
-        public int refResolutionX { get { return m_RefResolutionX; } set { m_RefResolutionX = value > 0 ? value : 1; } }
+        public int refResolutionX 
+        {
+            get => m_RefResolutionX;
+            set => m_RefResolutionX = value > 0 ? value : 1;
+        }
 
         /// <summary>
         /// Original vertical resolution your Assets are designed for.
         /// </summary>
-        public int refResolutionY { get { return m_RefResolutionY; } set { m_RefResolutionY = value > 0 ? value : 1; } }
+        public int refResolutionY 
+        {
+            get => m_RefResolutionY;
+            set => m_RefResolutionY = value > 0 ? value : 1; 
+        }
 
         /// <summary>
         /// Set to true to have the Scene rendered to a temporary texture set as close as possible to the Reference Resolution,
@@ -122,14 +160,8 @@ namespace UnityEngine.Rendering.Universal
         [System.Obsolete("Use gridSnapping instead #from(2021.2)")]
         public bool upscaleRT
         {
-            get
-            {
-                return m_GridSnapping == GridSnapping.UpscaleRenderTexture;
-            }
-            set
-            {
-                m_GridSnapping = value ? GridSnapping.UpscaleRenderTexture : GridSnapping.None;
-            }
+            get => m_GridSnapping == GridSnapping.UpscaleRenderTexture;
+            set => m_GridSnapping = value ? GridSnapping.UpscaleRenderTexture : GridSnapping.None;
         }
 
         /// <summary>
@@ -139,14 +171,8 @@ namespace UnityEngine.Rendering.Universal
         [System.Obsolete("Use gridSnapping instead #from(2021.2)")]
         public bool pixelSnapping
         {
-            get
-            {
-                return m_GridSnapping == GridSnapping.PixelSnapping;
-            }
-            set
-            {
-                m_GridSnapping = value ? GridSnapping.PixelSnapping : GridSnapping.None;
-            }
+            get => m_GridSnapping == GridSnapping.PixelSnapping;
+            set => m_GridSnapping = value ? GridSnapping.PixelSnapping : GridSnapping.None;
         }
 
         /// <summary>
@@ -155,10 +181,7 @@ namespace UnityEngine.Rendering.Universal
         [System.Obsolete("Use cropFrame instead #from(2021.2)")]
         public bool cropFrameX
         {
-            get
-            {
-                return m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Pillarbox;
-            }
+            get => m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Pillarbox;
             set
             {
                 if (value)
@@ -184,10 +207,7 @@ namespace UnityEngine.Rendering.Universal
         [System.Obsolete("Use cropFrame instead #from(2021.2)")]
         public bool cropFrameY
         {
-            get
-            {
-                return m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Letterbox;
-            }
+            get => m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Letterbox;
             set
             {
                 if (value)
@@ -214,17 +234,8 @@ namespace UnityEngine.Rendering.Universal
         [System.Obsolete("Use cropFrame instead. #from(2021.2)")]
         public bool stretchFill
         {
-            get
-            {
-                return m_CropFrame == CropFrame.StretchFill;
-            }
-            set
-            {
-                if (value)
-                    m_CropFrame = CropFrame.StretchFill;
-                else
-                    m_CropFrame = CropFrame.Windowbox;
-            }
+            get => m_CropFrame == CropFrame.StretchFill;
+            set => m_CropFrame = value ? CropFrame.StretchFill : CropFrame.Windowbox;
         }
 
         /// <summary>
@@ -251,13 +262,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns if an upscale pass is required.
         /// </summary>
-        public bool requiresUpscalePass
-        {
-            get
-            {
-                return m_Internal.requiresUpscaling;
-            }
-        }
+        public bool requiresUpscalePass => m_Internal.requiresUpscaling;
 
         /// <summary>
         /// Round a arbitrary position to an integer pixel position. Works in world space.
@@ -317,21 +322,11 @@ namespace UnityEngine.Rendering.Universal
         PixelPerfectCameraInternal m_Internal;
         bool m_CinemachineCompatibilityMode;
 
-        internal FilterMode finalBlitFilterMode
-        {
-            get
-            {
-                return m_FilterMode == PixelPerfectFilterMode.RetroAA ? FilterMode.Bilinear : FilterMode.Point;
-            }
-        }
+        internal FilterMode finalBlitFilterMode 
+            => m_FilterMode == PixelPerfectFilterMode.RetroAA ? FilterMode.Bilinear : FilterMode.Point;
 
         internal Vector2Int offscreenRTSize
-        {
-            get
-            {
-                return new Vector2Int(m_Internal.offscreenRTWidth, m_Internal.offscreenRTHeight);
-            }
-        }
+            => new Vector2Int(m_Internal.offscreenRTWidth, m_Internal.offscreenRTHeight);
 
         Vector2Int cameraRTSize
         {
@@ -366,7 +361,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Case 1249076: Initialize internals immediately after the scene is loaded,
             // as the Cinemachine extension may need them before OnBeginContextRendering is called.
-            UpdateCameraProperties();
+            if (enabled)
+                UpdateCameraProperties();
         }
 
         void UpdateCameraProperties()
@@ -382,6 +378,10 @@ namespace UnityEngine.Rendering.Universal
 
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
         {
+            // Deactivate the feature for when IntermediateTextureMode is set to Never
+            if (!enabled)
+                return;
+
             if (camera == m_Camera)
             {
                 UpdateCameraProperties();
@@ -423,6 +423,10 @@ namespace UnityEngine.Rendering.Universal
         // Show on-screen warning about invalid render resolutions.
         void OnGUI()
         {
+            //Deactivate the feature for when IntermediateTextureMode is set to Never
+            if (!enabled)
+                return;
+
             Color oldColor = GUI.color;
             GUI.color = Color.red;
 

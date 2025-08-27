@@ -708,5 +708,20 @@ namespace UnityEngine.Rendering.Universal
             stackAnyPostProcessingEnabled = false;
             stackLastCameraOutputToHDR = false;
         }
+
+        internal void ForceNoIntermediateTexture()
+        {
+            requiresDepthTexture = false;
+            requiresOpaqueTexture = false;
+            isHdrEnabled = false;
+            postProcessEnabled = false;
+            renderScale = 1f;
+            antialiasing = AntialiasingMode.None;
+
+            //Weirdly, this seems to never be assigned.
+            //Though the default value (false) prevent to remove optimization on 2D
+            //See Renderer2DRenderGraph.GetRenderPassInputs
+            isDefaultViewport = true; 
+        }
     }
 }

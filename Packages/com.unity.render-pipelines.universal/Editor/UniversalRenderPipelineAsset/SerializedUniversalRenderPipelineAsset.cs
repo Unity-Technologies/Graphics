@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -18,6 +19,7 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty hdr { get; }
         public SerializedProperty hdrColorBufferPrecisionProp { get; }
+        public SerializedProperty intermediateTextureMode { get; }
         public SerializedProperty msaa { get; }
         public SerializedProperty renderScale { get; }
         public SerializedProperty upscalingFilter { get; }
@@ -101,10 +103,14 @@ namespace UnityEditor.Rendering.Universal
 
         public EditorPrefBoolFlags<EditorUtils.Unit> state;
 
+        private SerializedProperty rendererList { get; }
+
         public SerializedUniversalRenderPipelineAsset(SerializedObject serializedObject)
         {
             asset = serializedObject.targetObject as UniversalRenderPipelineAsset;
             this.serializedObject = serializedObject;
+
+            rendererList = serializedObject.FindProperty("m_RendererDataList");
 
             requireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
             requireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
@@ -115,6 +121,7 @@ namespace UnityEditor.Rendering.Universal
 
             hdr = serializedObject.FindProperty("m_SupportsHDR");
             hdrColorBufferPrecisionProp = serializedObject.FindProperty("m_HDRColorBufferPrecision");
+            intermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
             msaa = serializedObject.FindProperty("m_MSAA");
             renderScale = serializedObject.FindProperty("m_RenderScale");
             upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
@@ -224,5 +231,22 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.ApplyModifiedProperties();
         }
+
+        //TODO: refactor renderer data editor to have a serialized intermediate structure for this kind of operations
+        internal IEnumerable<SerializedProperty> GetRendererDataProperties<T>() where T : ScriptableRendererData
+        {
+            SerializedProperty iterator = rendererList.Copy();
+            SerializedProperty end = iterator.GetEndProperty();
+            iterator.NextVisible(enterChildren: true); //enter the list
+            while (!SerializedProperty.DataEquals(iterator, end))
+            {
+                if (iterator.boxedValue != null && iterator.boxedValue.GetType() == typeof(T))
+                    yield return iterator.Copy();
+                iterator.NextVisible(enterChildren: false);
+            }
+        }
+
+        internal bool ForbidIntermediateTexture()
+            => intermediateTextureMode.intValue == (int)IntermediateTextureMode.Never;
     }
 }

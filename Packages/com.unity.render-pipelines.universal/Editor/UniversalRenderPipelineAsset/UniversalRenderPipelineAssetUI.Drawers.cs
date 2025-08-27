@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -126,11 +128,32 @@ namespace UnityEditor.Rendering.Universal
                 else if (!ValidateRendererGraphicsAPIs(serialized.asset, out var unsupportedGraphicsApisMessage))
                     EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
 
-                EditorGUILayout.PropertyField(serialized.requireDepthTextureProp, Styles.requireDepthTextureText);
-                EditorGUILayout.PropertyField(serialized.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
-                EditorGUI.BeginDisabledGroup(!serialized.requireOpaqueTextureProp.boolValue);
-                EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
-                EditorGUI.EndDisabledGroup();
+                EditorGUILayout.PropertyField(serialized.intermediateTextureMode, Styles.intermediateTextureMode);
+                DrawIntermediateTextureHelpBox(serialized);
+
+                bool forbidIntermediateTexture = serialized.ForbidIntermediateTexture();
+                if (forbidIntermediateTexture)
+                {
+                    // Depth / Opaque are texture not possible without Intermediate Textures
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        EditorGUILayout.Toggle(Styles.GetNoIntermediateTextureVariant(Styles.requireDepthTextureText), false);
+                        EditorGUILayout.Toggle(Styles.GetNoIntermediateTextureVariant(Styles.requireOpaqueTextureText), false);
+                    }
+                }
+                else
+                {
+                    EditorGUILayout.PropertyField(serialized.requireDepthTextureProp, Styles.requireDepthTextureText);
+                    EditorGUILayout.PropertyField(serialized.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
+                }
+
+                using (new EditorGUI.DisabledScope(!serialized.requireOpaqueTextureProp.boolValue || forbidIntermediateTexture))
+                {
+                    ++EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
+                    --EditorGUI.indentLevel;
+                }
+
                 EditorGUILayout.PropertyField(serialized.supportsTerrainHolesProp, Styles.supportsTerrainHolesText);
 
                 EditorGUILayout.PropertyField(serialized.gpuResidentDrawerMode, Styles.gpuResidentDrawerMode);
@@ -143,7 +166,14 @@ namespace UnityEditor.Rendering.Universal
                 {
                     ++EditorGUI.indentLevel;
                     serialized.smallMeshScreenPercentage.floatValue = Mathf.Clamp(EditorGUILayout.FloatField(Styles.smallMeshScreenPercentage, serialized.smallMeshScreenPercentage.floatValue), 0.0f, 20.0f);
-                    EditorGUILayout.PropertyField(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
+                    if (forbidIntermediateTexture)
+                    {
+                        // GPU occlusion culling can't work without intermediate textures
+                        using (new EditorGUI.DisabledScope(true)) 
+                            EditorGUILayout.Toggle(Styles.GetNoIntermediateTextureVariant(Styles.gpuResidentDrawerEnableOcclusionCullingInCameras), false);
+                    }
+                    else
+                        EditorGUILayout.PropertyField(serialized.gpuResidentDrawerEnableOcclusionCullingInCameras, Styles.gpuResidentDrawerEnableOcclusionCullingInCameras);
                     --EditorGUI.indentLevel;
 
                     if (brgStrippingError)
@@ -157,6 +187,165 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.HelpBox(Styles.renderGraphNotEnabledErrorMessage.text, MessageType.Info, true);
 #endif
                 }
+            }
+        }
+
+        static void DrawIntermediateTextureHelpBox(SerializedUniversalRenderPipelineAsset serialized)
+        {
+            FeatureRequiringIntermediateTexture hasFeatureRequireIntermediateTexture = CheckFeatureRequiringIntermediateTexture(serialized, out var problematicRendererFeatures);
+            
+            IntermediateTextureMode currentMode = (IntermediateTextureMode)serialized.intermediateTextureMode.intValue;
+            string message = L10n.Tr(currentMode switch
+            {
+                IntermediateTextureMode.Always => Styles.intermediateTextureAlways,
+                IntermediateTextureMode.Never => hasFeatureRequireIntermediateTexture > 0 ? Styles.intermediateTextureNeverWithIssue : Styles.intermediateTextureNeverWithoutIssue,
+                IntermediateTextureMode.Auto => hasFeatureRequireIntermediateTexture > 0 ? Styles.intermediateTextureAutoWithIssue : Styles.intermediateTextureAutoWithoutIssue,
+                _ => throw new NotSupportedException()
+            });
+            string buttonLabel = hasFeatureRequireIntermediateTexture == 0
+                ? null
+                : currentMode switch
+                {
+                    IntermediateTextureMode.Always => null,
+                    IntermediateTextureMode.Never => Styles.logBlockedFeature,
+                    IntermediateTextureMode.Auto => Styles.logFeature,
+                    _ => throw new NotSupportedException()
+                };
+
+            if (buttonLabel == null)
+            {
+                EditorGUILayout.HelpBox(message, MessageType.Info);
+                return;
+            }
+
+            var fullMessage = EditorGUIUtility.TrTextContent(message, CoreEditorStyles.iconInfo);
+
+            Rect textRect;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PrefixLabel(GUIContent.none, s_HelpBoxWithoutBackground.Value);
+                textRect = GUILayoutUtility.GetRect(fullMessage, s_HelpBoxWithoutBackground.Value);
+                using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel)) 
+                    EditorGUI.LabelField(textRect, fullMessage, s_HelpBoxWithoutBackground.Value);
+            }
+
+            Rect buttonRect = GUILayoutUtility.GetRect(EditorGUIUtility.TrTextContent(buttonLabel), EditorStyles.miniButton, GUILayout.MinWidth(60), GUILayout.ExpandWidth(true));
+            Rect fullArea = new (textRect);
+            fullArea.yMax = buttonRect.yMax;
+
+            if (Event.current.type == EventType.Repaint)
+                EditorStyles.helpBox.Draw(fullArea, false, false, false, false);
+
+            buttonRect.xMin = textRect.xMin + 10;
+            buttonRect.xMax = textRect.xMax - 10;
+            buttonRect.y -= 2;
+            bool clicked = GUI.Button(buttonRect, buttonLabel);
+
+            if (clicked)
+                Debug.Log(BuildReportForIntermediateTextureIssues(buttonLabel, hasFeatureRequireIntermediateTexture, problematicRendererFeatures, serialized));
+        }
+
+        static Lazy<GUIStyle> s_HelpBoxWithoutBackground = new(() =>
+        {
+            var style = new GUIStyle(EditorStyles.helpBox);
+            style.onNormal.scaledBackgrounds = new Texture2D[0]; //remove bg
+            style.name = "Custom Helpbox";
+            return style;
+        });
+
+        [Flags]
+        enum FeatureRequiringIntermediateTexture
+        {
+            ForcedByAlways = 1,
+            RequiredOpaqueTexture = 2,
+            RequiredDepthTexture = 4,
+            UseHDR = 8,
+            UsePostProcess = 16,
+            RenderingFeature = 32,
+            UseScaling = 64,
+            GPUOcclusionCulling = 128,
+            DepthPriming = 256,
+        }
+
+        static FeatureRequiringIntermediateTexture CheckFeatureRequiringIntermediateTexture(SerializedUniversalRenderPipelineAsset serialized, out HashSet<string> scriptableRendererFeatureList)
+        {
+            IntermediateTextureMode currentMode = (IntermediateTextureMode)serialized.intermediateTextureMode.intValue;
+            scriptableRendererFeatureList = new();
+            if (currentMode == IntermediateTextureMode.Always)
+                return FeatureRequiringIntermediateTexture.ForcedByAlways; //not checking the remaining in this case at it will never be logged in current implementation
+
+            FeatureRequiringIntermediateTexture features = default;
+            if (serialized.requireOpaqueTextureProp.boolValue)
+                features |= FeatureRequiringIntermediateTexture.RequiredOpaqueTexture;
+            if (serialized.requireDepthTextureProp.boolValue)
+                features |= FeatureRequiringIntermediateTexture.RequiredDepthTexture;
+            if (serialized.hdr.boolValue)
+                features |= FeatureRequiringIntermediateTexture.UseHDR;
+            if (!Mathf.Approximately(serialized.renderScale.floatValue, 1f))
+                features |= FeatureRequiringIntermediateTexture.UseScaling;
+            foreach (var rendererDataProperty in serialized.GetRendererDataProperties<UniversalRendererData>())
+            {
+                var data = rendererDataProperty.objectReferenceValue as UniversalRendererData;
+                if (data.postProcessData != null)
+                    features |= FeatureRequiringIntermediateTexture.UsePostProcess;
+                if (data.depthPrimingMode != DepthPrimingMode.Disabled)
+                    features |= FeatureRequiringIntermediateTexture.DepthPriming;
+                foreach (var rendererFeature in data.rendererFeatures)
+                {
+                    //Issue: we only know the pass when adding them due to design choice.
+                    //If we are in inspector of a URPAsset not in use, it will always be false
+                    //Todo: update design or ScriptableRendererFeature to extract pass infos from non active URPAsset
+                    if (rendererFeature == null || !rendererFeature.deactivatedAfterIntermediateNotAllowed)
+                        continue;
+                    
+                    features |= FeatureRequiringIntermediateTexture.RenderingFeature;
+                    scriptableRendererFeatureList.Add(rendererFeature.name);
+                }
+            }
+            foreach (var rendererDataProperty in serialized.GetRendererDataProperties<Renderer2DData>())
+            {
+                var data = rendererDataProperty.objectReferenceValue as Renderer2DData;
+                if (data.postProcessData != null)
+                    features |= FeatureRequiringIntermediateTexture.UsePostProcess;
+                foreach (var rendererFeature in data.rendererFeatures)
+                {
+                    //Issue: we only know the pass when adding them due to design choice.
+                    //If we are in inspector of a URPAsset not in use, it will always be false
+                    //Todo: update design or ScriptableRendererFeature to extract pass infos from non active URPAsset
+                    if (rendererFeature == null || !rendererFeature.deactivatedAfterIntermediateNotAllowed)
+                        continue;
+                    
+                    features |= FeatureRequiringIntermediateTexture.RenderingFeature;
+                    scriptableRendererFeatureList.Add(rendererFeature.name);
+                }
+            }
+            return features;
+        }
+
+        static string BuildReportForIntermediateTextureIssues(string titleReport, FeatureRequiringIntermediateTexture requirements, IEnumerable<string> problematicFeatureNames, SerializedUniversalRenderPipelineAsset serialized)
+        {
+            StringBuilder report = new();
+            report.AppendLine($"{titleReport}:");
+            
+            Append(FeatureRequiringIntermediateTexture.RequiredOpaqueTexture, $"Opaque Texture requested on {nameof(UniversalRenderPipelineAsset)}");
+            Append(FeatureRequiringIntermediateTexture.RequiredDepthTexture, $"Depth Texture requested on {nameof(UniversalRenderPipelineAsset)}");
+            Append(FeatureRequiringIntermediateTexture.UseHDR, $"HDR requested on {nameof(UniversalRenderPipelineAsset)}");
+            Append(FeatureRequiringIntermediateTexture.UseScaling, $"Down or Up-scaling is active on {nameof(UniversalRenderPipelineAsset)}");
+            Append(FeatureRequiringIntermediateTexture.UsePostProcess, $"Post process active on one of the {nameof(ScriptableRendererData)}");
+            Append(FeatureRequiringIntermediateTexture.DepthPriming, $"Depth Priming is active on one of the {nameof(UniversalRendererData)}");
+
+            if ((requirements & FeatureRequiringIntermediateTexture.RenderingFeature) == 0) 
+                return report.ToString();
+            
+            report.AppendLine($"  - {nameof(ScriptableRendererData)}'s {nameof(ScriptableRendererFeature)}:");
+            foreach (var feature in problematicFeatureNames)
+                report.AppendLine($"    - {feature}");
+            return report.ToString();
+            
+            void Append(FeatureRequiringIntermediateTexture flag, string text)
+            {
+                if ((requirements & flag) != 0)
+                    report.AppendLine($"  - {text}");
             }
         }
 
@@ -189,28 +378,40 @@ namespace UnityEditor.Rendering.Universal
             DrawHDR(serialized, ownerEditor);
 
             EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);
-            serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
 
-            DrawUpscalingFilterDropdownAndOptions(serialized);
-
-            if (serialized.renderScale.floatValue < 1.0f || serialized.asset.upscalingFilter == UpscalingFilterSelection.STP || serialized.asset.upscalingFilter == UpscalingFilterSelection.FSR)
+            if (serialized.ForbidIntermediateTexture())
             {
-                EditorGUILayout.HelpBox("Camera depth isn't supported when Upscaling is turned on in the game view. We will automatically fall back to not doing depth-testing for this pass.", MessageType.Warning, true);
-            }
-
-            EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
-            EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
-            EditorGUILayout.PropertyField(serialized.lodCrossFadeDitheringTypeProp, Styles.lodCrossFadeDitheringTypeText);
-            if (serialized.asset.enableLODCrossFade && serialized.asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.Stencil)
-            {
-                var rendererData = serialized.asset.m_RendererDataList[serialized.asset.m_DefaultRendererIndex];
-                if (rendererData is UniversalRendererData && ((UniversalRendererData)rendererData).defaultStencilState.overrideStencilState)
+                // Scaling is not possible without Intermediate Textures
+                using (new EditorGUI.DisabledScope(true))
                 {
-                    EditorGUILayout.HelpBox(Styles.stencilLodCrossFadeWarningMessage.text, MessageType.Warning, true);
+                    EditorGUILayout.Slider(Styles.GetNoIntermediateTextureVariant(Styles.renderScaleText), 1.0f, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
                 }
             }
+            else
+            {
+                serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+                DrawUpscalingFilterDropdownAndOptions(serialized);
 
-            EditorGUI.EndDisabledGroup();
+                if (serialized.renderScale.floatValue < 1.0f || serialized.asset.upscalingFilter == UpscalingFilterSelection.STP || serialized.asset.upscalingFilter == UpscalingFilterSelection.FSR)
+                {
+                    EditorGUILayout.HelpBox("Camera depth isn't supported when Upscaling is turned on in the game view. We will automatically fall back to not doing depth-testing for this pass.", MessageType.Warning, true);
+                }
+            }
+            
+            EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
+
+            using (new EditorGUI.DisabledScope(!serialized.enableLODCrossFadeProp.boolValue))
+            {
+                EditorGUILayout.PropertyField(serialized.lodCrossFadeDitheringTypeProp, Styles.lodCrossFadeDitheringTypeText);
+                if (serialized.asset.enableLODCrossFade && serialized.asset.lodCrossFadeDitheringType == LODCrossFadeDitheringType.Stencil)
+                {
+                    var rendererData = serialized.asset.m_RendererDataList[serialized.asset.m_DefaultRendererIndex];
+                    if (rendererData is UniversalRendererData && ((UniversalRendererData)rendererData).defaultStencilState.overrideStencilState)
+                    {
+                        EditorGUILayout.HelpBox(Styles.stencilLodCrossFadeWarningMessage.text, MessageType.Warning, true);
+                    }
+                }
+            }
         }
 
         static void DrawUpscalingFilterDropdownAndOptions(SerializedUniversalRenderPipelineAsset serialized)
@@ -362,15 +563,24 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawHDR(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
-            EditorGUILayout.PropertyField(serialized.hdr, Styles.hdrText);
-
-            // Nested and in-between additional property
-            bool additionalProperties = k_ExpandedState[Expandable.Quality] && k_AdditionalPropertiesState[ExpandableAdditional.Quality];
-            if (serialized.hdr.boolValue && additionalProperties)
+            if (serialized.ForbidIntermediateTexture())
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(serialized.hdrColorBufferPrecisionProp, Styles.hdrColorBufferPrecisionText);
-                EditorGUI.indentLevel--;
+                // HDR is not possible without Intermediate Textures
+                using (new EditorGUI.DisabledScope(true))
+                    EditorGUILayout.Toggle(Styles.GetNoIntermediateTextureVariant(Styles.hdrText), false);
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(serialized.hdr, Styles.hdrText);
+
+                // Nested and in-between additional property
+                bool additionalProperties = k_ExpandedState[Expandable.Quality] && k_AdditionalPropertiesState[ExpandableAdditional.Quality];
+                if (serialized.hdr.boolValue && additionalProperties)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(serialized.hdrColorBufferPrecisionProp, Styles.hdrColorBufferPrecisionText);
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 
@@ -761,29 +971,45 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawPostProcessing(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
-            EditorGUILayout.PropertyField(serialized.colorGradingMode, Styles.colorGradingMode);
-            bool isHdrOn = serialized.hdr.boolValue;
-            if (!isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
-                EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
-            else if (isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
-                EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
-            else if (isHdrOn && PlayerSettings.allowHDRDisplaySupport && serialized.colorGradingMode.intValue == (int)ColorGradingMode.LowDynamicRange)
-                EditorGUILayout.HelpBox(Styles.colorGradingModeWithHDROutput, MessageType.Warning);
+            if (serialized.ForbidIntermediateTexture())
+            {
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    // Post Processes are not possible without Intermediate Textures
+                    EditorGUILayout.EnumPopup(Styles.GetNoIntermediateTextureVariant(Styles.colorGradingMode), ColorGradingMode.LowDynamicRange);
+                    EditorGUILayout.IntField(Styles.GetNoIntermediateTextureVariant(Styles.colorGradingLutSize), 32);
+                    EditorGUILayout.Toggle(Styles.GetNoIntermediateTextureVariant(Styles.allowPostProcessAlphaOutput), false);
+                    EditorGUILayout.Toggle(Styles.GetNoIntermediateTextureVariant(Styles.useFastSRGBLinearConversion), false);
+                    EditorGUILayout.Toggle(Styles.GetNoIntermediateTextureVariant(Styles.supportDataDrivenLensFlare), true);
+                    EditorGUILayout.Toggle(Styles.GetNoIntermediateTextureVariant(Styles.supportScreenSpaceLensFlare), true);
+                }
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(serialized.colorGradingMode, Styles.colorGradingMode);
+                bool isHdrOn = serialized.hdr.boolValue;
+                if (!isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
+                    EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
+                else if (isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
+                    EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
+                else if (isHdrOn && PlayerSettings.allowHDRDisplaySupport && serialized.colorGradingMode.intValue == (int)ColorGradingMode.LowDynamicRange)
+                    EditorGUILayout.HelpBox(Styles.colorGradingModeWithHDROutput, MessageType.Warning);
 
-            EditorGUILayout.DelayedIntField(serialized.colorGradingLutSize, Styles.colorGradingLutSize);
-            serialized.colorGradingLutSize.intValue = Mathf.Clamp(serialized.colorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
-            if (isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && serialized.colorGradingLutSize.intValue < 32)
-                EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+                EditorGUILayout.DelayedIntField(serialized.colorGradingLutSize, Styles.colorGradingLutSize);
+                serialized.colorGradingLutSize.intValue = Mathf.Clamp(serialized.colorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
+                if (isHdrOn && serialized.colorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && serialized.colorGradingLutSize.intValue < 32)
+                    EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
 
-            HDRColorBufferPrecision hdrPrecision = (HDRColorBufferPrecision)serialized.hdrColorBufferPrecisionProp.intValue;
-            bool alphaEnabled = !isHdrOn /*RGBA8*/ || (isHdrOn && hdrPrecision == HDRColorBufferPrecision._64Bits); /*RGBA16Float*/
-            EditorGUILayout.PropertyField(serialized.allowPostProcessAlphaOutput, Styles.allowPostProcessAlphaOutput);
-            if(!alphaEnabled && serialized.allowPostProcessAlphaOutput.boolValue)
-                EditorGUILayout.HelpBox(Styles.alphaOutputWarning, MessageType.Warning);
+                HDRColorBufferPrecision hdrPrecision = (HDRColorBufferPrecision)serialized.hdrColorBufferPrecisionProp.intValue;
+                bool alphaEnabled = !isHdrOn /*RGBA8*/ || (isHdrOn && hdrPrecision == HDRColorBufferPrecision._64Bits); /*RGBA16Float*/
+                EditorGUILayout.PropertyField(serialized.allowPostProcessAlphaOutput, Styles.allowPostProcessAlphaOutput);
+                if(!alphaEnabled && serialized.allowPostProcessAlphaOutput.boolValue)
+                    EditorGUILayout.HelpBox(Styles.alphaOutputWarning, MessageType.Warning);
 
-            EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
-            EditorGUILayout.PropertyField(serialized.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
-            EditorGUILayout.PropertyField(serialized.supportScreenSpaceLensFlare, Styles.supportScreenSpaceLensFlare);
+                EditorGUILayout.PropertyField(serialized.useFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
+                EditorGUILayout.PropertyField(serialized.supportDataDrivenLensFlare, Styles.supportDataDrivenLensFlare);
+                EditorGUILayout.PropertyField(serialized.supportScreenSpaceLensFlare, Styles.supportScreenSpaceLensFlare);
+            }
         }
 
         static Editor s_VolumeProfileEditor;
