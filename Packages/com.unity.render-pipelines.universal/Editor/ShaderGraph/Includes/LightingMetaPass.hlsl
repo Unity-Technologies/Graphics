@@ -16,7 +16,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(unpacked);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
-    #if defined(_ALPHATEST_ON)
+    #if (!defined(UNIVERSAL_TERRAIN_ENABLED) && defined(_ALPHATEST_ON)) || defined(_TERRAIN_SG_ALPHA_CLIP)
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 

@@ -454,6 +454,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
             };
 
+            public static StructDescriptor MetaAttributesMesh = new StructDescriptor()
+            {
+                name = "AttributesMesh",
+                packFields = false,
+                fields = new FieldDescriptor[]
+                {
+                    HDStructFields.AttributesMesh.positionOS,
+                    HDStructFields.AttributesMesh.normalOS,
+                    HDStructFields.AttributesMesh.uv0,
+                    HDStructFields.AttributesMesh.uv1,
+                    HDStructFields.AttributesMesh.uv2,
+                    HDStructFields.AttributesMesh.color,
+                    HDStructFields.AttributesMesh.instanceID,
+                    HDStructFields.AttributesMesh.vertexID,
+                }
+            };
+
             public static StructDescriptor VaryingsMeshToPS = new StructDescriptor()
             {
                 name = "VaryingsMeshToPS",
@@ -480,6 +497,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static StructCollection Basic = new StructCollection
             {
                 { HDTerrainStructs.AttributesMesh },
+                { HDTerrainStructs.VaryingsMeshToPS },
+                { Structs.VertexDescriptionInputs },
+                { Structs.SurfaceDescriptionInputs },
+            };
+
+            public static StructCollection Meta = new StructCollection
+            {
+                { HDTerrainStructs.MetaAttributesMesh },
                 { HDTerrainStructs.VaryingsMeshToPS },
                 { Structs.VertexDescriptionInputs },
                 { Structs.SurfaceDescriptionInputs },
@@ -746,7 +771,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             public static PassDescriptor GenerateMETA(bool supportLighting)
             {
-                return new PassDescriptor
+                var pass = new PassDescriptor
                 {
                     // Definition
                     displayName = "META",
@@ -758,7 +783,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     validVertexBlocks = new BlockFieldDescriptor[0],
 
                     // Collections
-                    structs = GenerateStructs(),
+                    structs = new StructCollection { TerrainStructCollections.Meta },
                     requiredFields = CoreRequiredFields.Meta,
                     renderStates = CoreRenderStates.Meta,
                     // Note: no tessellation for meta pass
@@ -767,6 +792,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization, HDTerrainPasses.AlphaTestOn, },
                     includes = GenerateIncludes(),
                 };
+                return pass;
 
                 IncludeCollection GenerateIncludes()
                 {
