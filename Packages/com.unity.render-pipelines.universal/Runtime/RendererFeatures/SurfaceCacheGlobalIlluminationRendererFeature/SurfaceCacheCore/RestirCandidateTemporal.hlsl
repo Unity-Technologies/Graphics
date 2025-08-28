@@ -48,7 +48,6 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
     if (isCandidateFrame || oldRealization.weight == 0.0f)
     {
         Reservoir reservoir;
-        reservoir.Init();
 
         QrngPcg4D rng;
         const uint candidateFrameIdx = _FrameIdx - _FrameIdx / _ValidationFrameInterval;
@@ -112,13 +111,13 @@ void GenerateCandidateAndResampleTemporally(UnifiedRT::DispatchInfo dispatchInfo
 
             float invCandidateWeight = 2.0f * PI;
             float candidateWeight = TargetFunction(sample) * invCandidateWeight;
-            reservoir.Update(sample, 1.0f, candidateWeight, 0.5f);
+            reservoir.InitWithSample(sample, 1.0f, candidateWeight);
         }
 
         {
             float cappedConfidence = min(oldRealization.confidence, _ConfidenceCap);
             float candidateWeight = TargetFunction(oldRealization.sample) * oldRealization.weight * cappedConfidence;
-            reservoir.Update(oldRealization.sample, cappedConfidence, candidateWeight, rng.GetFloat(3));
+            reservoir.Update(oldRealization.sample, cappedConfidence, candidateWeight, rng.GetFloat(2));
         }
 
         newRealization = CreateRealizationFromReservoir(reservoir);

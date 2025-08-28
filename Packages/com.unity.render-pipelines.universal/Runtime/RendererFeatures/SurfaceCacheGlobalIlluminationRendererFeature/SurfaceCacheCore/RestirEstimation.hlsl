@@ -28,11 +28,11 @@ struct Reservoir
     float weightSum;
     float confidenceSum;
 
-    void Init()
+    void InitWithSample(in Sample newSample, float confidence, float weight)
     {
-        sample = (Sample)0;
-        weightSum = 0.0f;
-        confidenceSum = 0;
+        confidenceSum = confidence;
+        weightSum = weight;
+        sample = newSample;
     }
 
     void Update(in Sample newSample, float confidence, float weight, float u)

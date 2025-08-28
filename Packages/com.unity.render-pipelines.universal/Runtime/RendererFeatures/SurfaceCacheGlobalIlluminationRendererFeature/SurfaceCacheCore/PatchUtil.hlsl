@@ -153,6 +153,7 @@ namespace PatchUtil
         const int modulusInt = int(modulus);
         const int3 result = x - x / modulusInt * modulusInt;
         return VECTOR_LOGIC_SELECT(result < 0, result + modulusInt, result);
+        #pragma warning (default : 3556)
     }
 
     uint3 ConvertGridSpaceToStorageSpace(uint3 posGridSpace, uint gridSize, int3 cascadeOffset)
@@ -183,7 +184,6 @@ namespace PatchUtil
 
         resolution.markInvalid();
         const float halfGridSize = float(gridSize) * 0.5f;
-        [unroll(cascadeMax)]
         for (uint cascadeIdx = startCascadeIdx; cascadeIdx < cascadeCount; ++cascadeIdx)
         {
             const float cascadeVoxelSize = GetVoxelSize(voxelMinSize, cascadeIdx);
@@ -203,7 +203,6 @@ namespace PatchUtil
     int ResolveCascadeIndex(float3 gridTargetPos, float3 queryPos, uint gridSize, uint cascadeCount, float voxelMinSize)
     {
         int result = -1;
-        [unroll(cascadeMax)]
         for (uint cascadeIdx = 0; cascadeIdx < cascadeCount; ++cascadeIdx)
         {
             const float cascadeVoxelSize = GetVoxelSize(voxelMinSize, cascadeIdx);

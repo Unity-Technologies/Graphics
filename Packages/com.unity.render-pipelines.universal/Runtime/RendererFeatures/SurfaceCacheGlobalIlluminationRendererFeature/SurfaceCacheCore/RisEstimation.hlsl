@@ -79,24 +79,25 @@ SphericalHarmonics::ScalarL2 EstimateFromLuminanceSample(float luminanceSample, 
 {
     SphericalHarmonics::ScalarL2 estimate;
     estimate.l0 = luminanceSample * SphericalHarmonics::y0;
-    estimate.l1s[0] = luminanceSample * SphericalHarmonics::y1Constant * rayDirection.x;
-    estimate.l1s[1] = luminanceSample * SphericalHarmonics::y1Constant * rayDirection.z;
-    estimate.l1s[2] = luminanceSample * SphericalHarmonics::y1Constant * rayDirection.y;
-    estimate.l2s[0] = luminanceSample * SphericalHarmonics::y20Constant * rayDirection.x * rayDirection.y;
-    estimate.l2s[1] = luminanceSample * SphericalHarmonics::y21Constant * rayDirection.x * rayDirection.z;
-    estimate.l2s[2] = luminanceSample * SphericalHarmonics::y22Constant * (3.0f * rayDirection.z * rayDirection.z - 1.0f);
-    estimate.l2s[3] = luminanceSample * SphericalHarmonics::y23Constant * rayDirection.x * rayDirection.z;
-    estimate.l2s[4] = luminanceSample * 0.5 * SphericalHarmonics::y24Constant * (rayDirection.x * rayDirection.x - rayDirection.y * rayDirection.y);
+    estimate.l1s[0] = luminanceSample * (SphericalHarmonics::y1Constant * rayDirection.y);
+    estimate.l1s[1] = luminanceSample * (SphericalHarmonics::y1Constant * rayDirection.z);
+    estimate.l1s[2] = luminanceSample * (SphericalHarmonics::y1Constant * rayDirection.x);
+    estimate.l2s[0] = luminanceSample * (SphericalHarmonics::y20Constant * rayDirection.x * rayDirection.y);
+    estimate.l2s[1] = luminanceSample * (SphericalHarmonics::y21Constant * rayDirection.y * rayDirection.z);
+    estimate.l2s[2] = luminanceSample * (SphericalHarmonics::y22Constant * (3.0f * rayDirection.z * rayDirection.z - 1.0f));
+    estimate.l2s[3] = luminanceSample * (SphericalHarmonics::y23Constant * rayDirection.x * rayDirection.z);
+    estimate.l2s[4] = luminanceSample * (0.5 * SphericalHarmonics::y24Constant * (rayDirection.x * rayDirection.x - rayDirection.y * rayDirection.y));
     return estimate;
 }
 
 SphericalHarmonics::RGBL1 EstimateFromSampleAndWeight(float3 radianceSample, float3 rayDirection, float weight)
 {
     SphericalHarmonics::RGBL1 estimate;
-    estimate.l0 = radianceSample * SphericalHarmonics::y0 * weight;
-    estimate.l1s[0] = radianceSample * SphericalHarmonics::y1Constant * rayDirection.x * weight;
-    estimate.l1s[1] = radianceSample * SphericalHarmonics::y1Constant * rayDirection.z * weight;
-    estimate.l1s[2] = radianceSample * SphericalHarmonics::y1Constant * rayDirection.y * weight;
+    estimate.l0 = radianceSample * SphericalHarmonics::y0;
+    estimate.l1s[0] = radianceSample * SphericalHarmonics::y1Constant * rayDirection.y;
+    estimate.l1s[1] = radianceSample * SphericalHarmonics::y1Constant * rayDirection.z;
+    estimate.l1s[2] = radianceSample * SphericalHarmonics::y1Constant * rayDirection.x;
+    SphericalHarmonics::MulMut(estimate, weight);
     return estimate;
 }
 

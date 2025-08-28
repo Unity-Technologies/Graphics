@@ -324,14 +324,14 @@ namespace UnityEngine.Rendering.Universal
             private bool _cascadeMovement;
 
             // Debug
-            readonly private bool _debugEnabled;
-            readonly private DebugViewMode_ _debugViewMode;
-            readonly private bool _debugShowSamplePosition;
+            private readonly bool _debugEnabled;
+            private readonly DebugViewMode_ _debugViewMode;
+            private readonly bool _debugShowSamplePosition;
 
             // Screen Filtering
-            readonly private uint _lookupSampleCount;
-            readonly private float _upsamplingKernelSize;
-            readonly private uint _upsamplingSampleCount;
+            private readonly uint _lookupSampleCount;
+            private readonly float _upsamplingKernelSize;
+            private readonly uint _upsamplingSampleCount;
 
             private SurfaceCache _cache;
 
@@ -350,30 +350,16 @@ namespace UnityEngine.Rendering.Universal
                 bool debugEnabled,
                 DebugViewMode_ debugViewMode,
                 bool debugShowSamplePosition,
-                bool multiBounce,
-                SurfaceCacheEstimationMethod estimationMethod,
-                uint restirEstimationConfidenceCap,
-                uint restirEstimationSpatialSampleCount,
-                float restirEstimationSpatialFilterSize,
-                uint restirEstimationValidationFrameInterval,
-                uint uniformEstimationSampleCount,
-                uint risEstimationCandidateCount,
-                float risEstimationTargetFunctionUpdateWeight,
-                float temporalSmoothing,
-                bool spatialFilterEnabled,
-                uint spatialFilterSampleCount,
-                float spatialFilterRadius,
-                bool temporalPostFilterEnabled,
                 uint lookupSampleCount,
                 float upsamplingKernelSize,
                 uint upsamplingSampleCount,
-                uint gridSize,
-                float voxelMinSize,
-                uint cascadeCount,
+                SurfaceCacheGridParameterSet gridParams,
+                SurfaceCacheEstimationParameterSet estimationParams,
+                SurfaceCachePatchFilteringParameterSet patchFilteringParams,
                 bool cascadeMovement)
             {
-                Debug.Assert(cascadeCount != 0);
-                Debug.Assert(cascadeCount <= SurfaceCache.CascadeMax);
+                Debug.Assert(gridParams.CascadeCount != 0);
+                Debug.Assert(gridParams.CascadeCount <= SurfaceCache.CascadeMax);
 
                 _screenResolveLookupShader = screenResolveLookupShader;
                 _screenResolveUpsamplingShader = screenResolveUpsamplingShader;
@@ -406,26 +392,7 @@ namespace UnityEngine.Rendering.Universal
                 _upsamplingSampleCount = upsamplingSampleCount;
                 _lookupSampleCount = lookupSampleCount;
 
-                _cache = new SurfaceCache(
-                    resourceSet,
-                    gridSize,
-                    voxelMinSize,
-                    cascadeCount,
-                    estimationMethod,
-                    multiBounce,
-                    restirEstimationConfidenceCap,
-                    restirEstimationSpatialSampleCount,
-                    restirEstimationSpatialFilterSize,
-                    restirEstimationValidationFrameInterval,
-                    uniformEstimationSampleCount,
-                    risEstimationCandidateCount,
-                    risEstimationTargetFunctionUpdateWeight,
-                    temporalSmoothing,
-                    spatialFilterEnabled,
-                    spatialFilterSampleCount,
-                    spatialFilterRadius,
-                    temporalPostFilterEnabled);
-
+                _cache = new SurfaceCache(resourceSet, gridParams, estimationParams, patchFilteringParams);
                 _sceneTracker = new SceneUpdatesTracker();
 
                 _pathTracingWorld = new World();
@@ -1317,6 +1284,35 @@ namespace UnityEngine.Rendering.Universal
                 var coreResourceLoadResult = coreResources.LoadFromRenderPipeResources(_rtContext);
                 Debug.Assert(coreResourceLoadResult);
 
+                var gridParams = new SurfaceCacheGridParameterSet
+                {
+                    GridSize = _parameterSet.GridParams.GridSize,
+                    VoxelMinSize = _parameterSet.GridParams.VoxelMinSize,
+                    CascadeCount = _parameterSet.GridParams.CascadeCount,
+                };
+
+                var estimationParams = new SurfaceCacheEstimationParameterSet
+                {
+                    Method = _parameterSet.EstimationMethod,
+                    MultiBounce = _parameterSet.MultiBounce,
+                    RestirEstimationConfidenceCap = _parameterSet.RestirEstimationParams.ConfidenceCap,
+                    RestirEstimationSpatialSampleCount = _parameterSet.RestirEstimationParams.SpatialSampleCount,
+                    RestirEstimationSpatialFilterSize = _parameterSet.RestirEstimationParams.SpatialFilterSize,
+                    RestirEstimationValidationFrameInterval = _parameterSet.RestirEstimationParams.ValidationFrameInterval,
+                    UniformEstimationSampleCount = _parameterSet.UniformEstimationParams.SampleCount,
+                    RisEstimationCandidateCount = _parameterSet.RisEstimationParams.CandidateCount,
+                    RisEstimationTargetFunctionUpdateWeight = _parameterSet.RisEstimationParams.TargetFunctionUpdateWeight
+                };
+
+                var patchFilteringParams = new SurfaceCachePatchFilteringParameterSet
+                {
+                    TemporalSmoothing = _parameterSet.PatchFilteringParams.TemporalSmoothing,
+                    SpatialFilterEnabled = _parameterSet.PatchFilteringParams.SpatialFilterEnabled,
+                    SpatialFilterSampleCount = _parameterSet.PatchFilteringParams.SpatialFilterSampleCount,
+                    SpatialFilterRadius = _parameterSet.PatchFilteringParams.SpatialFilterRadius,
+                    TemporalPostFilterEnabled = _parameterSet.PatchFilteringParams.TemporalPostFilterEnabled
+                };
+
                 _pass = new SurfaceCachePass(
                     _rtContext,
                     coreResources,
@@ -1330,27 +1326,14 @@ namespace UnityEngine.Rendering.Universal
                     _parameterSet.DebugEnabled,
                     _parameterSet.DebugViewMode,
                     _parameterSet.DebugShowSamplePosition,
-                    _parameterSet.MultiBounce,
-                    _parameterSet.EstimationMethod,
-                    _parameterSet.RestirEstimationParams.ConfidenceCap,
-                    _parameterSet.RestirEstimationParams.SpatialSampleCount,
-                    _parameterSet.RestirEstimationParams.SpatialFilterSize,
-                    _parameterSet.RestirEstimationParams.ValidationFrameInterval,
-                    _parameterSet.UniformEstimationParams.SampleCount,
-                    _parameterSet.RisEstimationParams.CandidateCount,
-                    _parameterSet.RisEstimationParams.TargetFunctionUpdateWeight,
-                    _parameterSet.PatchFilteringParams.TemporalSmoothing,
-                    _parameterSet.PatchFilteringParams.SpatialFilterEnabled,
-                    _parameterSet.PatchFilteringParams.SpatialFilterSampleCount,
-                    _parameterSet.PatchFilteringParams.SpatialFilterRadius,
-                    _parameterSet.PatchFilteringParams.TemporalPostFilterEnabled,
                     _parameterSet.ScreenFilteringParams.LookupSampleCount,
                     _parameterSet.ScreenFilteringParams.UpsamplingKernelSize,
                     _parameterSet.ScreenFilteringParams.UpsamplingSampleCount,
-                    _parameterSet.GridParams.GridSize,
-                    _parameterSet.GridParams.VoxelMinSize,
-                    _parameterSet.GridParams.CascadeCount,
+                    gridParams,
+                    estimationParams,
+                    patchFilteringParams,
                     _parameterSet.GridParams.CascadeMovement);
+
                 _pass.renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
             }
         }

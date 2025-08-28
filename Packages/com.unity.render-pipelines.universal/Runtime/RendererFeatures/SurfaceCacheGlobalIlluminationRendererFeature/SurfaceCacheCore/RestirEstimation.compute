@@ -40,10 +40,11 @@ void Estimate(uint patchIdx : SV_DispatchThreadID)
     if (realization.weight != 0.0f)
     {
         SphericalHarmonics::RGBL1 estimate;
-        estimate.l0 = realization.sample.radiance * SphericalHarmonics::y0 * realization.weight;
-        estimate.l1s[0] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.x * realization.weight;
-        estimate.l1s[1] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.z * realization.weight;
-        estimate.l1s[2] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.y * realization.weight;
+        estimate.l0 = realization.sample.radiance * SphericalHarmonics::y0;
+        estimate.l1s[0] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.y;
+        estimate.l1s[1] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.z;
+        estimate.l1s[2] = realization.sample.radiance * SphericalHarmonics::y1Constant * rayDirection.x;
+        SphericalHarmonics::MulMut(estimate, realization.weight);
         ProcessAndStoreRadianceSample(_PatchIrradiances, _PatchStatistics, _PatchCounterSets, patchIdx, estimate, _ShortHysteresis);
     }
 }

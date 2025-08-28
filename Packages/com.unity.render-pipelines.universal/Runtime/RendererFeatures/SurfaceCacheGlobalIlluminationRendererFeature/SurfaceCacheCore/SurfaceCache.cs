@@ -178,6 +178,35 @@ namespace UnityEngine.Rendering
         Ris
     }
 
+    internal struct SurfaceCacheGridParameterSet
+    {
+        public uint GridSize;
+        public float VoxelMinSize;
+        public uint CascadeCount;
+    }
+
+    internal struct SurfaceCacheEstimationParameterSet
+    {
+        public SurfaceCacheEstimationMethod Method;
+        public bool MultiBounce;
+        public uint RestirEstimationConfidenceCap;
+        public uint RestirEstimationSpatialSampleCount;
+        public float RestirEstimationSpatialFilterSize;
+        public uint RestirEstimationValidationFrameInterval;
+        public uint UniformEstimationSampleCount;
+        public uint RisEstimationCandidateCount;
+        public float RisEstimationTargetFunctionUpdateWeight;
+    }
+
+    internal struct SurfaceCachePatchFilteringParameterSet
+    {
+        public float TemporalSmoothing;
+        public bool SpatialFilterEnabled;
+        public uint SpatialFilterSampleCount;
+        public float SpatialFilterRadius;
+        public bool TemporalPostFilterEnabled;
+    }
+
     internal class SurfaceCacheResourceSet
     {
         internal ComputeShader ScrollingShader;
@@ -288,25 +317,10 @@ namespace UnityEngine.Rendering
         private readonly SurfaceCacheResourceSet _resources;
         private GraphicsBuffer _traceScratch;
 
-        // Light transport settings.
-        private readonly SurfaceCacheEstimationMethod _estimationMethod;
-        private readonly bool _multiBounce;
-        private readonly uint _restirEstimationConfidenceCap;
-        private readonly uint _restirEstimationSpatialSampleCount;
-        private readonly float _restirEstimationSpatialFilterSize;
-        private readonly uint _restirEstimationValidationFrameInterval;
-        private readonly uint _uniformEstimationSampleCount;
-        private readonly uint _risEstimationCandidateCount;
-        private readonly float _risEstimationTargetFunctionUpdateWeight;
+        private SurfaceCacheEstimationParameterSet _estimationParams;
+        private SurfaceCachePatchFilteringParameterSet _patchFilteringParams;
 
-        // Patch Filtering
-        readonly private float _shortHysteresis;
-        readonly private bool _spatialFilterEnabled;
-        readonly private uint _spatialFilterSampleCount;
-        readonly private float _spatialFilterRadius;
-        readonly private bool _temporalPostFilterEnabled;
-
-        // Patch Maintenance
+        private float _shortHysteresis;
         readonly private uint _defragCount = 2;
 
         public SurfaceCachePatchList PatchList => _patchList;
@@ -556,51 +570,28 @@ namespace UnityEngine.Rendering
 
         public SurfaceCache(
             SurfaceCacheResourceSet resources,
-            uint gridSize, float voxelMinSize, uint cascadeCount, SurfaceCacheEstimationMethod estimationMethod,
-            bool multiBounce,
-            uint restirEstimationConfidenceCap,
-            uint restirEstimationSpatialSampleCount,
-            float restirEstimationSpatialFilterSize,
-            uint restirEstimationValidationFrameInterval,
-            uint uniformEstimationSampleCount,
-            uint risEstimationCandidateCount,
-            float risEstimationTargetFunctionUpdateWeight,
-            float temporalSmoothing,
-            bool spatialFilterEnabled,
-            uint spatialFilterSampleCount,
-            float spatialFilterRadius,
-            bool temporalPostFilterEnabled)
+            SurfaceCacheGridParameterSet gridParams,
+            SurfaceCacheEstimationParameterSet estimationParams,
+            SurfaceCachePatchFilteringParameterSet patchFilteringParams)
         {
-            Debug.Assert(cascadeCount != 0);
-            Debug.Assert(cascadeCount <= CascadeMax);
-            Debug.Assert(0.0f <= temporalSmoothing);
-            Debug.Assert(temporalSmoothing <= 1.0f);
+            Debug.Assert(gridParams.CascadeCount != 0);
+            Debug.Assert(gridParams.CascadeCount <= CascadeMax);
+            Debug.Assert(0.0f <= patchFilteringParams.TemporalSmoothing);
+            Debug.Assert(patchFilteringParams.TemporalSmoothing <= 1.0f);
 
             uint patchCapacity = 65536; // Must match HLSL side constant.
             Debug.Assert((UInt64)4294967296 % (UInt64)patchCapacity == 0, "Patch Capacity must be a divisor of 2^32."); // This property is required by the HLSL side ring buffer allocation logic.
 
             _resources = resources;
-            _grid = new SurfaceCacheGrid(gridSize, cascadeCount, voxelMinSize);
+            _grid = new SurfaceCacheGrid(gridParams.GridSize, gridParams.CascadeCount, gridParams.VoxelMinSize);
             _ringConfig = new SurfaceCacheRingConfig();
-            _patchList = new SurfaceCachePatchList(patchCapacity, estimationMethod);
+            _patchList = new SurfaceCachePatchList(patchCapacity, estimationParams.Method);
 
-            _estimationMethod = estimationMethod;
-            _multiBounce = multiBounce;
-            _restirEstimationConfidenceCap = restirEstimationConfidenceCap;
-            _restirEstimationSpatialSampleCount = restirEstimationSpatialSampleCount;
-            _restirEstimationSpatialFilterSize = restirEstimationSpatialFilterSize;
-            _restirEstimationValidationFrameInterval = restirEstimationValidationFrameInterval;
-            _uniformEstimationSampleCount = uniformEstimationSampleCount;
-            _risEstimationCandidateCount = risEstimationCandidateCount;
-            _risEstimationTargetFunctionUpdateWeight = risEstimationTargetFunctionUpdateWeight;
+            _estimationParams = estimationParams;
+            _patchFilteringParams = patchFilteringParams;
 
-            Debug.Assert(0.0f <= temporalSmoothing && temporalSmoothing <= 1.0f);
-            float shortHysteresis = Mathf.Lerp(0.75f, 0.95f, temporalSmoothing);
-            _shortHysteresis = shortHysteresis;
-            _spatialFilterEnabled = spatialFilterEnabled;
-            _spatialFilterSampleCount = spatialFilterSampleCount;
-            _spatialFilterRadius = spatialFilterRadius;
-            _temporalPostFilterEnabled = temporalPostFilterEnabled;
+            Debug.Assert(0.0f <= patchFilteringParams.TemporalSmoothing && patchFilteringParams.TemporalSmoothing <= 1.0f);
+            _shortHysteresis = Mathf.Lerp(0.75f, 0.95f, patchFilteringParams.TemporalSmoothing);
 
             _defragCount = 2;
         }
@@ -672,7 +663,7 @@ namespace UnityEngine.Rendering
         private uint RecordFiltering(RenderGraph renderGraph, uint frameIdx)
         {
             uint outputIrradianceBufferIdx = 0;
-            if (_spatialFilterEnabled)
+            if (_patchFilteringParams.SpatialFilterEnabled)
             {
                 outputIrradianceBufferIdx = 1;
                 using (var builder = renderGraph.AddComputePass("Surface Cache Spatial Filter", out SpatialFilterPassData passData))
@@ -689,8 +680,8 @@ namespace UnityEngine.Rendering
                     passData.CascadeCount = Grid.CascadeCount;
                     passData.GridSize = Grid.GridSize;
                     passData.VoxelMinSize = Grid.VoxelMinSize;
-                    passData.SampleCount = _spatialFilterSampleCount;
-                    passData.Radius = _spatialFilterRadius;
+                    passData.SampleCount = _patchFilteringParams.SpatialFilterSampleCount;
+                    passData.Radius = _patchFilteringParams.SpatialFilterRadius;
                     passData.CellPatchIndices = Grid.CellPatchIndices;
                     passData.CascadeOffsets = Grid.CascadeOffsetBuffer;
                     passData.RingConfigOffset = RingConfig.OffsetA;
@@ -701,7 +692,7 @@ namespace UnityEngine.Rendering
                 }
             }
 
-            if (_temporalPostFilterEnabled)
+            if (_patchFilteringParams.TemporalPostFilterEnabled)
             {
                 using (var builder = renderGraph.AddComputePass("Surface Cache Temporal Filter", out TemporalFilterPassData passData))
                 {
@@ -728,7 +719,7 @@ namespace UnityEngine.Rendering
 
         private void RecordEstimation(RenderGraph renderGraph, uint frameIdx, PathTracing.Core.World world)
         {
-            if (_estimationMethod == SurfaceCacheEstimationMethod.Uniform)
+            if (_estimationParams.Method == SurfaceCacheEstimationMethod.Uniform)
             {
                 using (var builder = renderGraph.AddUnsafePass("Surface Cache Uniform Estimation", out UniformEstimationPassData passData))
                 {
@@ -746,10 +737,10 @@ namespace UnityEngine.Rendering
                     passData.GridSize = Grid.GridSize;
                     passData.CascadeOffsets = Grid.CascadeOffsetBuffer;
                     passData.CascadeCount = Grid.CascadeCount;
-                    passData.MultiBounce = _multiBounce;
+                    passData.MultiBounce = _estimationParams.MultiBounce;
                     passData.ShortHysteresis = _shortHysteresis;
                     passData.RingConfigOffset = RingConfig.OffsetA;
-                    passData.SampleCount = _uniformEstimationSampleCount;
+                    passData.SampleCount = _estimationParams.UniformEstimationSampleCount;
                     passData.VoxelMinSize = Grid.VoxelMinSize;
 
                     RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
@@ -759,7 +750,7 @@ namespace UnityEngine.Rendering
                     builder.SetRenderFunc((UniformEstimationPassData data, UnsafeGraphContext cgContext) => UniformEstimate(data, cgContext));
                 }
             }
-            else if (_estimationMethod == SurfaceCacheEstimationMethod.Restir)
+            else if (_estimationParams.Method == SurfaceCacheEstimationMethod.Restir)
             {
                 using (var builder = renderGraph.AddUnsafePass("Surface Cache Restir Candidate + Temporal", out RestirCandidateTemporalPassData passData))
                 {
@@ -777,10 +768,10 @@ namespace UnityEngine.Rendering
                     passData.GridSize = Grid.GridSize;
                     passData.RingConfigOffset = RingConfig.OffsetA;
                     passData.CascadeCount = Grid.CascadeCount;
-                    passData.MultiBounce = _multiBounce;
-                    passData.ConfidenceCap = _restirEstimationConfidenceCap;
+                    passData.MultiBounce = _estimationParams.MultiBounce;
+                    passData.ConfidenceCap = _estimationParams.RestirEstimationConfidenceCap;
                     passData.VoxelMinSize = Grid.VoxelMinSize;
-                    passData.ValidationFrameInterval = _restirEstimationValidationFrameInterval;
+                    passData.ValidationFrameInterval = _estimationParams.RestirEstimationValidationFrameInterval;
 
                     RayTracingHelper.ResizeScratchBufferForTrace(passData.Shader, passData.PatchCapacity, 1, 1, ref _traceScratch);
                     passData.TraceScratchBuffer = _traceScratch;
@@ -806,8 +797,8 @@ namespace UnityEngine.Rendering
                     passData.VoxelMinSize = Grid.VoxelMinSize;
                     passData.GridSize = Grid.GridSize;
                     passData.CascadeCount = Grid.CascadeCount;
-                    passData.SampleCount = _restirEstimationSpatialSampleCount;
-                    passData.FilterSize = _restirEstimationSpatialFilterSize;
+                    passData.SampleCount = _estimationParams.RestirEstimationSpatialSampleCount;
+                    passData.FilterSize = _estimationParams.RestirEstimationSpatialFilterSize;
                     passData.GridTargetPos = Grid.TargetPos;
 
                     builder.AllowGlobalStateModification(true); // Set to ensure ordering.
@@ -833,7 +824,7 @@ namespace UnityEngine.Rendering
                     builder.SetRenderFunc((RestirEstimationPassData data, ComputeGraphContext cgContext) => RestirEstimate(data, cgContext));
                 }
             }
-            else if (_estimationMethod == SurfaceCacheEstimationMethod.Ris)
+            else if (_estimationParams.Method == SurfaceCacheEstimationMethod.Ris)
             {
                 using (var builder = renderGraph.AddUnsafePass("Surface Cache RIS Estimation", out RisEstimationPassData passData))
                 {
@@ -850,12 +841,12 @@ namespace UnityEngine.Rendering
                     passData.FrameIdx = frameIdx;
                     passData.GridSize = Grid.GridSize;
                     passData.CascadeCount = Grid.CascadeCount;
-                    passData.MultiBounce = _multiBounce;
-                    passData.CandidateCount = _risEstimationCandidateCount;
+                    passData.MultiBounce = _estimationParams.MultiBounce;
+                    passData.CandidateCount = _estimationParams.RisEstimationCandidateCount;
                     passData.RingConfigOffset = RingConfig.OffsetA;
                     passData.ShortHysteresis = _shortHysteresis;
                     passData.GridTargetPos = Grid.TargetPos;
-                    passData.TargetFunctionUpdateWeight = _risEstimationTargetFunctionUpdateWeight;
+                    passData.TargetFunctionUpdateWeight = _estimationParams.RisEstimationTargetFunctionUpdateWeight;
                     passData.VoxelMinSize = Grid.VoxelMinSize;
                     passData.PatchAccumulatedLuminances = PatchList.RisAccumulatedLuminances;
 

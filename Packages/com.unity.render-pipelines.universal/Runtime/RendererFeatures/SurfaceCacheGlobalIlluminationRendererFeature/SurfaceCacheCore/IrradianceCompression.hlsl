@@ -17,7 +17,6 @@ namespace IrradianceCompression
         const float3 multiplier = VECTOR_LOGIC_SELECT(irradiance.l0 == 0.0f, 0.0f, sqrt(3.0f) / 4.0f * rcp(irradiance.l0));
         const float3 addend = VECTOR_LOGIC_SELECT(irradiance.l0 == 0.0f, 0.0f, 0.5f);
 
-        [unroll]
         for (uint i = 0; i < 3; ++i)
             irradiance.l1s[i] = irradiance.l1s[i] * multiplier + addend;
     }
@@ -27,7 +26,6 @@ namespace IrradianceCompression
         const float3 multiplier = 4.0f / sqrt(3.0f) * irradiance.l0;
         const float3 addend = VECTOR_LOGIC_SELECT(irradiance.l0 == 0.0f, 0.0f, -0.5f);
 
-        [unroll]
         for (uint i = 0; i < 3; ++i)
             irradiance.l1s[i] = (irradiance.l1s[i] + addend) * multiplier;
     }
