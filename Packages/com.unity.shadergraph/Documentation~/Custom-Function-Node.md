@@ -140,7 +140,44 @@ void MyFunction_float(float3 A, float B, out float3 Out)
 #endif //MYHLSLINCLUDE_INCLUDED
 ```
 
-### Reusing Custom Function Nodes
+## Call Unity shader code functions
+
+You can call from your custom function any shader code functions that are part of existing Unity's Render Pipeline libraries.
+
+However, be aware of the following:
+
+* Your project must include the library that contains the shader code functions you need to call. To prevent errors, you should always isolate the code with an `#if defined()` condition according to the library you're using, and define fallback values for the variables. The usual keywords that identify Unity shader code libraries are the following:
+  * For the [Built-In Render Pipeline (BiRP)](https://docs.unity3d.com/Manual/use-built-in-shader-methods-birp.html) library, use `#if defined(BUILTIN_PIPELINE_CORE_INCLUDED)`.
+  * For the [Universal Render Pipeline (URP)](https://docs.unity3d.com/Manual/urp/use-built-in-shader-methods.html) library, use `#if defined(UNIVERSAL_PIPELINE_CORE_INCLUDED)`.
+  * For the [High-Definition Render Pipeline (HDRP)](https://docs.unity3d.com/Manual/high-definition-render-pipeline.html) library, use `#if defined(UNITY_HEADER_HD_INCLUDED)`.
+* The Shader Graph node and main previews can't access Unity's Render Pipeline libraries in the Editor. This generates compile errors in the Editor even though the shader works correctly in your project. To prevent this issue, you have to isolate the code with an `#ifdef SHADERGRAPH_PREVIEW` condition and also define default values for the variables in the Shader Graph preview context.
+* The code in libraries might change over time from one Unity version to another. You need to make sure to regularly test and update your custom functions in your projects.
+
+Here is an example with URP library function calls and the above-mentioned conditional protections set up:
+
+```
+#ifdef SHADERGRAPH_PREVIEW 
+	half3 color = half3(0,0,0);
+	half atten = 1;
+	half3 dir = half3 (0.707, 0, 0.707);
+	
+#else
+	#if defined(UNIVERSAL_PIPELINE_CORE_INCLUDED)
+		half4 shadowCoord = TransformWorldToShadowCoord(WorldPosition);
+		Light mainLight = GetMainLight(shadowCoord);
+		half3 color = mainLight.color;
+		half atten = mainLight.shadowAttenuation;
+		half3 dir = mainLight.direction;
+	#else
+		half3 color = half3(0, 0, 0);
+		half atten = 1;
+		half3 dir = half3 (0.707, 0, 0.707);
+	#endif
+	
+#endif
+```
+
+## Reuse Custom Function Nodes
 
 The Custom Function node, on its own, is a single node instance. If you wish to reuse the same custom function without re-creating the inputs, outputs, and function referencing, include the Custom Function node in a [Sub Graph](Sub-graph.md). Once created, the Sub Graph appears in the [Create Node Menu](Create-Node-Menu.md), along with the nodes.
 
@@ -148,7 +185,7 @@ The Custom Function node, on its own, is a single node instance. If you wish to 
 
 You can create a Sub Graph and add a Custom Function node to it, or right-click an existing Custom Function node and select `Convert to Sub Graph`. To add the appropriate input and output ports, use the [Graph Inspector](Internal-Inspector.md) and [Custom Port Menu](Custom-Port-Menu.md).
 
-### Working with texture wires
+## Work with texture wires
 
 From version 10.3, Shader Graph has five new data structures to ensure that Custom Function nodes and Sub Graphs input and output data from texture wire in a consistent way. The new structures also make it possible for SamplerState to compile on [GLES2](https://en.wikipedia.org/wiki/OpenGL_ES#OpenGL_ES_2.0) platforms and  access data associated with textures via `myInputTex.samplerstate` and `myInputTex.texelSize`.
 
