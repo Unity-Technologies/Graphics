@@ -367,13 +367,6 @@ namespace UnityEngine.Rendering.Universal
 
             var cmd = universalRenderingData.commandBuffer;
 
-#if UNITY_EDITOR
-            if(m_DefaultWhiteTextureHandle == null)
-                m_DefaultWhiteTextureHandle = RTHandles.Alloc(Texture2D.whiteTexture, "_DefaultWhiteTex");
-
-            cmd.SetGlobalTexture(m_DefaultWhiteTextureHandle.name, m_DefaultWhiteTextureHandle.nameID);
-#endif
-
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 CreateRenderTextures(ref renderPassInputs, cmd, cameraData, ppcUsesOffscreenRT, colorTextureFilterMode,

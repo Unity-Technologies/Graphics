@@ -85,7 +85,8 @@ namespace UnityEngine.Rendering.Universal
                         layerBatch.endLayerValue != light.GetTopMostLitLayer()))
                         continue;
 
-                    var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric);
+                    var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
+                    var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric, useShadows);
                     var lightMesh = light.lightMesh;
 
                     // For Batching.
@@ -100,7 +101,6 @@ namespace UnityEngine.Rendering.Universal
                     if (passData.layerBatch.lightStats.useNormalMap)
                         s_PropertyBlock.SetTexture(k_NormalMapID, passData.normalMap);
 
-                    var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
                     if (useShadows && TryGetShadowIndex(ref layerBatch, j, out var shadowIndex))
                         s_PropertyBlock.SetTexture(k_ShadowMapID, passData.shadowTextures[shadowIndex]);
 
@@ -163,7 +163,8 @@ namespace UnityEngine.Rendering.Universal
                         layerBatch.endLayerValue != light.GetTopMostLitLayer()))
                         continue;
 
-                    var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric);
+                    var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
+                    var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric, useShadows);
                     var lightMesh = light.lightMesh;
 
                     // For Batching.
@@ -178,7 +179,6 @@ namespace UnityEngine.Rendering.Universal
                     if (passData.layerBatch.lightStats.useNormalMap)
                         s_PropertyBlock.SetTexture(k_NormalMapID, passData.normalMap);
 
-                    var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
                     if (useShadows && TryGetShadowIndex(ref layerBatch, j, out var shadowIndex))
                         s_PropertyBlock.SetTexture(k_ShadowMapID, passData.shadowTextures[shadowIndex]);
 

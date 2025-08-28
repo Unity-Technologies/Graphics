@@ -87,8 +87,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 overrideReferenceName = GetVariableName(),
                 generatePropertyBlock = false,
                 defaultType = Texture2DShaderProperty.DefaultType.White,
-                // value = m_Texture,
                 modifiable = false
+            });
+
+            properties.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.White,
+                generatePropertyBlock = false,
+                overrideReferenceName = "_DefaultWhiteTex",
+                displayName = "DefaultWhiteTex",
             });
         }
     }
