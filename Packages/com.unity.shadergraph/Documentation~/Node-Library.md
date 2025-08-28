@@ -20,3 +20,8 @@ The **Node Library** contains documentation for all the individual [Nodes](Node.
 |:-|:-|
 | [Built In](Built-In-Blocks.md) |  |
 | Universal | High Definition |
+
+
+## Shader graph node reference samples
+
+To learn node functions or get deeper insights and ideas for custom shaders, browse the [Shader Graph Node Reference Samples](ShaderGraph-Samples.md).
