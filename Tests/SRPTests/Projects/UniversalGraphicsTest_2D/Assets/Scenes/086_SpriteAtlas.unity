@@ -1644,7 +1644,7 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: -1
   WaitFrames: 0
-  XRCompatible: 0
+  XRCompatible: 1
   gpuDrivenCompatible: 1
   CheckMemoryAllocation: 0
   renderBackendCompatibility: 2
