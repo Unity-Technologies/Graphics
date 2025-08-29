@@ -16,7 +16,6 @@ namespace UnityEditor.Rendering.Universal
             "This converter creates Universal Render Pipeline (URP) assets and corresponding Renderer assets, configuring their settings " +
             "to match the equivalent settings from the Built-in Render Pipeline.";
 
-
         public override Type container => typeof(BuiltInToURPConverterContainer);
 
         public override void OnInitialize(InitializeConverterContext context, Action callback)

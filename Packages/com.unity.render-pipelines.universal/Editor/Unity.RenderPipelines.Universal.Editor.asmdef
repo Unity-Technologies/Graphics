@@ -60,6 +60,11 @@
           "name": "com.unity.2d.common",
           "expression": "11.0.0",
           "define": "USING_2DCOMMON"
+        },
+        {
+            "name": "com.unity.postprocessing",
+            "expression": "0.0.1",
+            "define": "PPV2_EXISTS"
         }
     ],
     "noEngineReferences": false
