@@ -301,6 +301,7 @@ namespace UnityEditor.VFX.UI
 
         private void OnFirstDisplay(GeometryChangedEvent geometryChangedEvent)
         {
+            m_Parent.window.m_DontSaveToLayout = true;
             rootVisualElement.UnregisterCallback<GeometryChangedEvent>(OnFirstDisplay);
             UpdateDetailsPanelVisibility();
         }
