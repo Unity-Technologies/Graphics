@@ -173,6 +173,11 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
     [Test]
     public void WaveTest([Values]Kernel kernel, [Values]WaveSizeKeyword waveSizeKeyword)
     {
+#if UNITY_EDITOR_OSX
+        if (System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64)
+            Assert.Ignore("Fails on macOS13 Arm64 https://jira.unity3d.com/browse/UUM-115710");
+#endif
+
         int groupSize = (int)GroupSizeKeyword.GROUP_SIZE_128;
 
         // Ensure that the wave tests are capable of running on the current device
@@ -211,6 +216,11 @@ class ThreadingEmulationFunctionTests : IPrebuildSetup
     [Test]
     public void GroupTest([Values]Kernel kernel, [Values]GroupSizeKeyword groupSizeKeyword)
     {
+#if UNITY_EDITOR_OSX
+        if (System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.Arm64)
+            Assert.Ignore("Fails on macOS13 Arm64 https://jira.unity3d.com/browse/UUM-115710");
+#endif
+
         int groupSize = (int)groupSizeKeyword;
 
         // Ensure that the group tests are capable of running on the current device
