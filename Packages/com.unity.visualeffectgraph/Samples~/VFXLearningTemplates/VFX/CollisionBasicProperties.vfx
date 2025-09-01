@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: DEBUG VISUALIZER
     position:
       serializedVersion: 2
-      x: 982
-      y: 4369
-      width: 2815
-      height: 3062
+      x: 687
+      y: 2589
+      width: 2969
+      height: 2991
     contents:
     - model: {fileID: 8926484042661616106}
       id: 0
@@ -90,13 +90,25 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616215}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
   - title: Baseball
     position:
       serializedVersion: 2
-      x: 248
-      y: -853
-      width: 650
-      height: 3041
+      x: 447
+      y: -912
+      width: 1211
+      height: 2800
     contents:
     - model: {fileID: 8926484042661614583}
       id: 0
@@ -116,13 +128,31 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616397}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 17
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 7
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
   - title: Soccer
     position:
       serializedVersion: 2
-      x: 2011
-      y: -827
-      width: 659
-      height: 2745
+      x: 1836
+      y: -955
+      width: 1067
+      height: 2875
     contents:
     - model: {fileID: 8926484042661615539}
       id: 0
@@ -142,13 +172,25 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616401}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 14
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 13
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 9
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 10
+      isStickyNote: 1
   - title: Ping-Pong
     position:
       serializedVersion: 2
-      x: 3458
-      y: -772
-      width: 951
-      height: 2743
+      x: 3122
+      y: -949
+      width: 1038
+      height: 2835
     contents:
     - model: {fileID: 8926484042661615375}
       id: 0
@@ -171,32 +213,46 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616657}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 12
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 16
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 15
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 11
+      isStickyNote: 1
   stickyNoteInfos:
   - title: Debug Property Panel
     position:
       serializedVersion: 2
-      x: 791
-      y: 4227
+      x: 712
+      y: 2649
       width: 861
-      height: 100
-    contents: type something here
-    theme: Black
+      height: 166
+    contents: 
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Debug Value Display
     position:
       serializedVersion: 2
-      x: 2781
-      y: 4289
+      x: 2612
+      y: 2781
       width: 861
-      height: 100
-    contents: type something here
-    theme: Black
+      height: 128
+    contents: 
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Spawn State
     position:
       serializedVersion: 2
-      x: 2245
-      y: 4805
+      x: 2407
+      y: 3037
       width: 320
       height: 158
     contents: "Each loop has a different kind of bouncing object. We are utilizing
@@ -204,15 +260,16 @@ MonoBehaviour:
       this information in the \u201Cmass\u201D attribute because it's not possible
       to make a custom attribute in the spawn context, and the spawn state data can't
       be accessed outside of the spawn context.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Values
     position:
       serializedVersion: 2
-      x: 1777
-      y: 6149
+      x: 1688
+      y: 4561
       width: 385
-      height: 115
+      height: 116
     contents: 'As the spawn context data cannot be accessed outside the spawn context,
       we store the loop index in the mass attribute.
 
@@ -221,23 +278,25 @@ MonoBehaviour:
       the bounce, friction, and roughness set for each bouncy object.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Baseball
     position:
       serializedVersion: 2
-      x: 511
-      y: -967
+      x: 814
+      y: -853
       width: 371
-      height: 100
-    contents: type something here
-    theme: Black
+      height: 116
+    contents: 
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: 'Set Position Arc Cone:'
     position:
       serializedVersion: 2
-      x: 139
-      y: -143
+      x: 472
+      y: -121
       width: 293
       height: 187
     contents: "We're setting the initial position of our particle thanks to a \u201Cset
@@ -246,13 +305,14 @@ MonoBehaviour:
       you select the \u201Cset position arc cone\u201D block and the VFX in the scene
       is properly \u201Cattached,\u201D you should be able to edit the shape with
       a gizmo\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Mass:'
     position:
       serializedVersion: 2
-      x: 895
-      y: 101
+      x: 1238
+      y: 137
       width: 218
       height: 203
     contents: 'Setting a proper mass attribute can be a good way to get more realistic
@@ -270,13 +330,14 @@ MonoBehaviour:
       is roughly 0.145 kg.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Size:'
     position:
       serializedVersion: 2
-      x: 149
-      y: 307
+      x: 472
+      y: 211
       width: 301
       height: 191
     contents: 'When dealing with real-world objects, it can be interesting to get
@@ -297,13 +358,14 @@ MonoBehaviour:
       a regular baseball to make it more visible.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Collide with Cone:'
     position:
       serializedVersion: 2
-      x: 179
-      y: 1283
+      x: 516
+      y: 1295
       width: 262
       height: 142
     contents: 'You can add many collider blocks to the update context so that particles
@@ -314,13 +376,14 @@ MonoBehaviour:
       get out of our invisible tube.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: 'Mass:'
     position:
       serializedVersion: 2
-      x: 2661
-      y: 221
+      x: 2659
+      y: 215
       width: 218
       height: 197
     contents: 'Setting a proper mass attribute can be a good way to get more realistic
@@ -334,23 +397,25 @@ MonoBehaviour:
       ball is 0.4 kg.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Soccer Ball
     position:
       serializedVersion: 2
-      x: 2167
-      y: -950
+      x: 2188
+      y: -896
       width: 479
-      height: 100
-    contents: type something here
-    theme: Black
+      height: 119
+    contents: 
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: 'Mass:'
     position:
       serializedVersion: 2
-      x: 4141
-      y: 226
+      x: 3891
+      y: 211
       width: 218
       height: 177
     contents: 'Setting a proper mass attribute can be a good way to get more realistic
@@ -364,23 +429,25 @@ MonoBehaviour:
       is 0.0027 kg.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Ping Pong
     position:
       serializedVersion: 2
-      x: 3695
-      y: -903
-      width: 479
-      height: 100
-    contents: type something here
-    theme: Black
+      x: 3469
+      y: -889
+      width: 408
+      height: 117
+    contents: 
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: 'Set Position Arc Cone:'
     position:
       serializedVersion: 2
-      x: 1895
-      y: -61
+      x: 1861
+      y: -57
       width: 293
       height: 187
     contents: "We're setting the initial position of our particle thanks to a \u201Cset
@@ -389,13 +456,14 @@ MonoBehaviour:
       you select the \u201Cset position arc cone\u201D block and the VFX in the scene
       is properly \u201Cattached,\u201D you should be able to edit the shape with
       a gizmo\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Size:'
     position:
       serializedVersion: 2
-      x: 1891
-      y: 348
+      x: 1880
+      y: 351
       width: 301
       height: 167
     contents: 'When dealing with real-world objects, it can be interesting to get
@@ -415,13 +483,14 @@ MonoBehaviour:
 
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Size:'
     position:
       serializedVersion: 2
-      x: 3380
-      y: 443
+      x: 3147
+      y: 383
       width: 301
       height: 178
     contents: 'When dealing with real-world objects, it can be interesting to get
@@ -441,13 +510,14 @@ MonoBehaviour:
 
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Set Position Arc Cone:'
     position:
       serializedVersion: 2
-      x: 3389
-      y: -39
+      x: 3151
+      y: -97
       width: 293
       height: 187
     contents: "We're setting the initial position of our particle thanks to a \u201Cset
@@ -456,15 +526,16 @@ MonoBehaviour:
       you select the \u201Cset position arc cone\u201D block and the VFX in the scene
       is properly \u201Cattached,\u201D you should be able to edit the shape with
       a gizmo\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Collide With ...
     position:
       serializedVersion: 2
-      x: 938
-      y: 776
-      width: 795
-      height: 889
+      x: 1232
+      y: 1079
+      width: 400
+      height: 399
     contents: "The different collide blocks allow particles to collide with one or
       several shapes.\n\nYou can directly set the shape's transform or wire it to
       a property. \r\nYou can use an exposed property to bind it to an external game
@@ -479,15 +550,16 @@ MonoBehaviour:
       that the placement of blocks or nodes that have an impact on velocity should
       not be placed after the collision blocks, as this may result in a disruption
       of the collision calculation.\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: 139
-    y: -967
-    width: 4269
-    height: 8395
+    x: 447
+    y: -955
+    width: 3713
+    height: 6537
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -548,7 +620,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -564,10 +636,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 1
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 4
     m_PreWarmDeltaTime: 0.05
@@ -591,7 +659,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614790}
-  m_UIPosition: {x: 447, y: -795}
+  m_UIPosition: {x: 782, y: -735}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -631,7 +699,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614842}
   - {fileID: 8926484042661615291}
   - {fileID: 8926484042661614849}
-  m_UIPosition: {x: 447, y: -345}
+  m_UIPosition: {x: 782, y: -309}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1002,7 +1070,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615305}
   - {fileID: 8926484042661616437}
   - {fileID: 8926484042661616454}
-  m_UIPosition: {x: 447, y: 755}
+  m_UIPosition: {x: 782, y: 791}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1607,7 +1675,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615428}
   - {fileID: 8926484042661615140}
   - {fileID: 8926484042661616333}
-  m_UIPosition: {x: 3711, y: -221}
+  m_UIPosition: {x: 3463, y: -277}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2103,7 +2171,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615425}
   - {fileID: 8926484042661616501}
   - {fileID: 8926484042661616518}
-  m_UIPosition: {x: 3715, y: 775}
+  m_UIPosition: {x: 3467, y: 719}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2140,7 +2208,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 3483, y: 1603}
+  m_UIPosition: {x: 3235, y: 1547}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2167,6 +2235,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615183}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -2296,7 +2365,6 @@ MonoBehaviour:
     - 0
     - -1
     renderQueue: -1
-  useBaseColorMap: 0
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -2518,29 +2586,29 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615253}
       inputSlot: {fileID: 8926484042661616438}
-    position: {x: 273.33334, y: 1139.3334}
+    position: {x: 608, y: 1176}
     expandedSlots:
     - {fileID: 8926484042661615253}
     - {fileID: 8926484042661615258}
     - {fileID: 8926484042661615254}
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 2
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615253}
       inputSlot: {fileID: 8926484042661616502}
-    position: {x: 3507.3333, y: 1146}
+    position: {x: 3298.6667, y: 1088}
     expandedSlots:
     - {fileID: 8926484042661615253}
     - {fileID: 8926484042661615254}
     - {fileID: 8926484042661615258}
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 5
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615253}
       inputSlot: {fileID: 8926484042661616542}
-    position: {x: 2036.6666, y: 1139.3334}
+    position: {x: 2036.6666, y: 1139.3333}
     expandedSlots:
     - {fileID: 8926484042661615253}
     - {fileID: 8926484042661615254}
@@ -3367,7 +3435,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615378}
-  m_UIPosition: {x: 3711, y: -713}
+  m_UIPosition: {x: 3463, y: -769}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4665,7 +4733,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615659}
   - {fileID: 8926484042661615662}
   - {fileID: 8926484042661615672}
-  m_UIPosition: {x: 2219, y: -261}
+  m_UIPosition: {x: 2219, y: -270}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5959,7 +6027,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615806}
   - {fileID: 8926484042661615932}
-  m_UIPosition: {x: 2896, y: 4522}
+  m_UIPosition: {x: 2755, y: 2933}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6145,7 +6213,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615828}
   - {fileID: 8926484042661615935}
-  m_UIPosition: {x: 2896, y: 4941}
+  m_UIPosition: {x: 2755, y: 3351}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6615,7 +6683,7 @@ MonoBehaviour:
   - {fileID: 8926484042661616189}
   - {fileID: 8926484042661615854}
   - {fileID: 8926484042661615841}
-  m_UIPosition: {x: 2460, y: 5606}
+  m_UIPosition: {x: 2319, y: 4016}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6641,6 +6709,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615836}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -7296,7 +7365,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1933, y: 6503}
+  m_UIPosition: {x: 1886, y: 4919}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -7796,7 +7865,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2583, y: 4799}
+  m_UIPosition: {x: 2442, y: 3209}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -8167,7 +8236,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2728, y: 4799}
+  m_UIPosition: {x: 2587, y: 3209}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8452,7 +8521,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1750, y: 6276}
+  m_UIPosition: {x: 1730, y: 4697}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -8476,7 +8545,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1990, y: 6311}
+  m_UIPosition: {x: 1916, y: 4697}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8713,7 +8782,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2896, y: 5334}
+  m_UIPosition: {x: 2755, y: 3743}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -8757,7 +8826,7 @@ MonoBehaviour:
   - {fileID: 8926484042661616008}
   - {fileID: 8926484042661616203}
   - {fileID: 8926484042661616020}
-  m_UIPosition: {x: 3346, y: 6035}
+  m_UIPosition: {x: 3205, y: 4443}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8783,6 +8852,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615993}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -9919,7 +9989,7 @@ MonoBehaviour:
   - {fileID: 8926484042661616049}
   - {fileID: 8926484042661616196}
   - {fileID: 8926484042661616061}
-  m_UIPosition: {x: 2896, y: 5815}
+  m_UIPosition: {x: 2755, y: 4223}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -9945,6 +10015,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616034}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -11076,7 +11147,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2342, y: 6883}
+  m_UIPosition: {x: 2347, y: 5147}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -11100,7 +11171,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2130, y: 6751}
+  m_UIPosition: {x: 2207, y: 5017}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -11124,7 +11195,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2382, y: 6786}
+  m_UIPosition: {x: 2387, y: 5051}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -11361,7 +11432,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2462, y: 7291}
+  m_UIPosition: {x: 2724, y: 5445}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -11385,7 +11456,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2280, y: 7165}
+  m_UIPosition: {x: 2542, y: 5319}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -11409,7 +11480,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2534, y: 7201}
+  m_UIPosition: {x: 2796, y: 5355}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -11647,7 +11718,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661616099}
-  m_UIPosition: {x: 1007, y: 4427}
+  m_UIPosition: {x: 866, y: 2837}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -11865,7 +11936,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1007, y: 4900}
+  m_UIPosition: {x: 866, y: 3311}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -12237,7 +12308,7 @@ MonoBehaviour:
   - {fileID: 8926484042661616176}
   - {fileID: 8926484042661616134}
   - {fileID: 8926484042661616152}
-  m_UIPosition: {x: 1007, y: 5191}
+  m_UIPosition: {x: 866, y: 3601}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -12261,6 +12332,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616137}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -13254,7 +13326,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2252, y: 6416}
+  m_UIPosition: {x: 2111, y: 4825}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -13391,7 +13463,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2644, y: 6725}
+  m_UIPosition: {x: 2568, y: 5085}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -13528,7 +13600,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2742, y: 7239}
+  m_UIPosition: {x: 3004, y: 5393}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -13692,26 +13764,26 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661616227}
       inputSlot: {fileID: 8926484042661616415}
-    position: {x: 273.33334, y: 48.666664}
+    position: {x: 608, y: 85.33334}
     expandedSlots: []
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661616227}
       inputSlot: {fileID: 8926484042661616583}
-    position: {x: 2045.3334, y: 133.33333}
+    position: {x: 2012.6666, y: 164.66667}
     expandedSlots: []
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 2
     linkedSlots:
     - outputSlot: {fileID: 8926484042661616227}
       inputSlot: {fileID: 8926484042661616479}
-    position: {x: 3540, y: 164.66667}
+    position: {x: 3260.6667, y: 158}
     expandedSlots: []
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
 --- !u!114 &8926484042661616227
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14838,7 +14910,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 447, y: 1908}
+  m_UIPosition: {x: 782, y: 1607}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -14863,6 +14935,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616400}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -15031,6 +15104,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616404}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -23147,7 +23221,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 3958, y: 1613}
+  m_UIPosition: {x: 3709, y: 1557}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -23174,6 +23248,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616664}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -23306,7 +23381,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 0
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0

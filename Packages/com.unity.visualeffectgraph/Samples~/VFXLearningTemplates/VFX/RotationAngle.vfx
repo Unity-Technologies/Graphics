@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: 'Angle Value:'
     position:
       serializedVersion: 2
-      x: -55
-      y: 2159
-      width: 588
-      height: 204
+      x: -266
+      y: 2085
+      width: 803
+      height: 271
     contents:
     - model: {fileID: 8926484042661616432}
       id: 0
@@ -30,13 +30,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616430}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
   - title: OUTPUTS
     position:
       serializedVersion: 2
-      x: 676
-      y: 2790
+      x: 628
+      y: 2885
       width: 1012
-      height: 566
+      height: 591
     contents:
     - model: {fileID: 8926484042661617097}
       id: 0
@@ -47,10 +50,10 @@ MonoBehaviour:
   - title: 0-1
     position:
       serializedVersion: 2
-      x: 471
-      y: 1836
+      x: 458
+      y: 1691
       width: 481
-      height: 237
+      height: 391
     contents:
     - model: {fileID: 8926484042661617173}
       id: 0
@@ -58,13 +61,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661617175}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
   - title: Switch Axis
     position:
       serializedVersion: 2
-      x: -77
-      y: 2407
-      width: 973
-      height: 315
+      x: -190
+      y: 2371
+      width: 1097
+      height: 454
     contents:
     - model: {fileID: 8926484042661617225}
       id: 0
@@ -75,6 +81,50 @@ MonoBehaviour:
     - model: {fileID: 8926484042661617237}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 926
+      y: 1023
+      width: 787
+      height: 1593
+    contents:
+    - model: {fileID: 8926484042661615920}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615985}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615925}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616477}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617312}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617186}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616412}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617306}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
   stickyNoteInfos:
   - title: Set Color Custom
     position:
@@ -88,23 +138,25 @@ MonoBehaviour:
       mode exist, and we cases either use the age over lifetime, the speed, random
       value or custom ones.\r\n\r\nIn this example, we're using a custom 0-1 value
       to sample our color gradient.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Rotation & Angle
     position:
       serializedVersion: 2
-      x: 831
-      y: 1086
+      x: 962
+      y: 1083
       width: 665
-      height: 101
+      height: 115
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Switch Axis
     position:
       serializedVersion: 2
-      x: -545
-      y: 2469
+      x: -165
+      y: 2561
       width: 369
       height: 239
     contents: "To have each particle rotate on around a different axis, we use a
@@ -116,25 +168,27 @@ MonoBehaviour:
       axis value is then multiplied by an incremental value driven by time. This
       value is then used to set the \u201CAngle\u201D attribute value of our particles,
       which is responsible for driving the rotation of our particles.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Angle Value
     position:
       serializedVersion: 2
-      x: -465
-      y: 2221
+      x: -241
+      y: 2145
       width: 369
       height: 100
     contents: "We're using Time * Value to determine how fast the particle should
       be rotated around the desired angle. \r\nThe modulo operation makes the value
       cycle between 0-359\xB0. \r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Normalized 0-1 spawnIndex
     position:
       serializedVersion: 2
-      x: 44
-      y: 1877
+      x: 499
+      y: 1750
       width: 377
       height: 155
     contents: 'It''s often useful to have a 0-1 normalized value as it can be used
@@ -150,8 +204,9 @@ MonoBehaviour:
       to control the color of the particle.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Position Sequential Line
     position:
       serializedVersion: 2
@@ -163,15 +218,16 @@ MonoBehaviour:
       line.\r\n\r\nFirst, we define the start and end position of the line.\r\n\r\nThen
       we set the \u201CCount\u201D that divides the line into X positions. The particleID
       is used to determine on which position of the line to spawn, from.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -545
-    y: 1086
-    width: 3846
-    height: 2834
+    x: -266
+    y: 1023
+    width: 1979
+    height: 2452
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -208,7 +264,7 @@ MonoBehaviour:
   - {fileID: 8926484042661617039}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -224,10 +280,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -1280,7 +1332,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661617119}
-  m_UIPosition: {x: 701, y: 2859}
+  m_UIPosition: {x: 653, y: 2954}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1310,6 +1362,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661617114}
   - {fileID: 8926484042661617115}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -1335,7 +1388,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 0
   useMaskMap: 0
   useNormalMap: 1
   useEmissiveMap: 0
@@ -2017,7 +2069,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 496, y: 1895}
+  m_UIPosition: {x: 483, y: 1909}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2041,7 +2093,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 772, y: 1928}
+  m_UIPosition: {x: 759, y: 1943}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3604,7 +3656,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -51, y: 2523}
+  m_UIPosition: {x: 20, y: 2431}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3629,7 +3681,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661617292}
-  m_UIPosition: {x: 1237, y: 2849}
+  m_UIPosition: {x: 1189, y: 2944}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3658,6 +3710,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661617281}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -3686,7 +3739,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 0
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0

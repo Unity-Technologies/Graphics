@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Rotate Position Around TransformPos
     position:
       serializedVersion: 2
-      x: 142
-      y: 376
-      width: 675
-      height: 285
+      x: -373
+      y: 391
+      width: 928
+      height: 282
     contents:
     - model: {fileID: 8926484042661615335}
       id: 0
@@ -33,13 +33,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615357}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
   - title: Sample Mesh
     position:
       serializedVersion: 2
-      x: 106
-      y: 4
-      width: 721
-      height: 224
+      x: -241
+      y: -114
+      width: 795
+      height: 469
     contents:
     - model: {fileID: 8926484042661615185}
       id: 0
@@ -50,13 +53,19 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615225}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+    - model: {fileID: 8926484042661615992}
+      id: 3
+      isStickyNote: 0
   - title: Noise Size and Eye Dilation.
     position:
       serializedVersion: 2
-      x: -34
-      y: 712
-      width: 879
-      height: 474
+      x: -317
+      y: 735
+      width: 859
+      height: 757
     contents:
     - model: {fileID: 8926484042661616011}
       id: 0
@@ -79,13 +88,22 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616021}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+    - model: {fileID: 8926484042661615842}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615848}
+      id: 0
+      isStickyNote: 0
   - title: Rotate Direction
     position:
       serializedVersion: 2
-      x: 1470
-      y: 497
-      width: 809
-      height: 267
+      x: 1430
+      y: 376
+      width: 838
+      height: 361
     contents:
     - model: {fileID: 8926484042661615654}
       id: 0
@@ -96,12 +114,127 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615706}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 579
+      y: -825
+      width: 784
+      height: 2553
+    contents:
+    - model: {fileID: 8926484042661614555}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614861}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614558}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615227}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615234}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615362}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615364}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616119}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616120}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616123}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616129}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616132}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616139}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+    - model: {fileID: 8926484042661616241}
+      id: 0
+      isStickyNote: 0
+  - title: New Group Node
+    position:
+      serializedVersion: 2
+      x: 2299
+      y: -709
+      width: 795
+      height: 2166
+    contents:
+    - model: {fileID: 8926484042661615255}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615494}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615501}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616096}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616097}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616103}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616027}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616029}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615873}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615238}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615262}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615240}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615765}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615379}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615992}
+      id: 1
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
   stickyNoteInfos:
   - title: Sample Mesh
     position:
       serializedVersion: 2
-      x: -212
-      y: 15
+      x: -216
+      y: 114
       width: 302
       height: 216
     contents: 'Sampling a mesh allows you to get information from it like the triangles
@@ -120,25 +253,27 @@ MonoBehaviour:
       the particle mesh size so that it fits its eyes sockets.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Rotate3d
     position:
       serializedVersion: 2
-      x: -125
-      y: 376
+      x: -348
+      y: 514
       width: 248
       height: 117
     contents: "The Rotate3D operator allows you to rotate a position around an axis.\n\r\nHere,
       we apply a rotation to the particle's position around the \u201Ctransform\u201D
       position. \r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Noise operator:'
     position:
       serializedVersion: 2
-      x: -335
-      y: 729
+      x: -287
+      y: 1156
       width: 287
       height: 278
     contents: 'The value noise operator can be very useful to add some life or animation
@@ -163,15 +298,16 @@ MonoBehaviour:
       and number of octaves low.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'ORIENT: FACE CAMERA'
     position:
       serializedVersion: 2
-      x: 553
-      y: 1601
-      width: 787
-      height: 388
+      x: 621
+      y: 1529
+      width: 417
+      height: 174
     contents: "The Orient Block is very useful and can often be found in the output
       context. It is responsible for \u201Corienting\u201D the particles.\r\nDifferent
       modes are available, but the most common ones are Face Camera Position and
@@ -179,47 +315,51 @@ MonoBehaviour:
       orient the particles so that they're facing the camera (position or plane).\r\n\r\nUnder
       the hood, this block is setting the AxisX, AxisY, AxisZ attributes that are
       used to represent particle orientation.\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: Eyes Face Camera
     position:
       serializedVersion: 2
-      x: 692
-      y: -774
+      x: 605
+      y: -765
       width: 733
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Body
     position:
       serializedVersion: 2
-      x: 2407
-      y: -645
+      x: 2739
+      y: -650
       width: 236
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Rotate3d
     position:
       serializedVersion: 2
-      x: 1509
-      y: 369
+      x: 1960
+      y: 435
       width: 280
       height: 114
     contents: "The Rotate3D operator allows you to rotate a position around an axis.\n\r\nHere,
       we apply a rotation to the particle's position around the \u201Ctransform\u201D
       position. \r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -335
-    y: -774
-    width: 3073
-    height: 2763
+    x: -373
+    y: -825
+    width: 3467
+    height: 2553
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -264,6 +404,7 @@ MonoBehaviour:
   - {fileID: 8926484042661616021}
   - {fileID: 8926484042661616027}
   - {fileID: 8926484042661616029}
+  - {fileID: 8926484042661616241}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
@@ -271,7 +412,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -287,10 +428,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -314,7 +451,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614861}
-  m_UIPosition: {x: 847, y: -643}
+  m_UIPosition: {x: 607, y: -645}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -350,7 +487,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615227}
   - {fileID: 8926484042661615234}
-  m_UIPosition: {x: 847, y: -179}
+  m_UIPosition: {x: 607, y: -181}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -902,7 +1039,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 611, y: 771}
+  m_UIPosition: {x: 328, y: 794}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -926,7 +1063,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 423, y: 63}
+  m_UIPosition: {x: 266, y: 65}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2085,7 +2222,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 131, y: 81}
+  m_UIPosition: {x: -26, y: 83}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -2234,7 +2371,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615262}
-  m_UIPosition: {x: 2312, y: -513}
+  m_UIPosition: {x: 2643, y: -518}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2290,7 +2427,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615765}
   - {fileID: 8926484042661615379}
-  m_UIPosition: {x: 2312, y: -57}
+  m_UIPosition: {x: 2643, y: -62}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2660,7 +2797,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615494}
   - {fileID: 8926484042661615501}
-  m_UIPosition: {x: 2312, y: 478}
+  m_UIPosition: {x: 2643, y: 473}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2824,7 +2961,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 437, y: 435}
+  m_UIPosition: {x: 108, y: 450}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3567,7 +3704,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 167, y: 445}
+  m_UIPosition: {x: -162, y: 460}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -3592,7 +3729,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615364}
-  m_UIPosition: {x: 847, y: 356}
+  m_UIPosition: {x: 607, y: 355}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3689,7 +3826,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 250, y: 559}
+  m_UIPosition: {x: -80, y: 574}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4018,7 +4155,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1623, y: 556}
+  m_UIPosition: {x: 1583, y: 559}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4884,7 +5021,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2021, y: 709}
+  m_UIPosition: {x: 2029, y: 681}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -4910,7 +5047,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1495, y: 666}
+  m_UIPosition: {x: 1455, y: 667}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -5751,7 +5888,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 312, y: 931}
+  m_UIPosition: {x: 29, y: 954}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6055,7 +6192,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -9, y: 1071}
+  m_UIPosition: {x: -292, y: 1094}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -6112,7 +6249,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 329, y: 1375}
+  m_UIPosition: {x: 130, y: 1427}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -6169,7 +6306,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 495, y: 1336}
+  m_UIPosition: {x: 296, y: 1389}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6541,8 +6678,8 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2069, y: 1034}
-  m_UICollapsed: 0
+  m_UIPosition: {x: 2467, y: 1096}
+  m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
@@ -6592,7 +6729,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615993}
       inputSlot: {fileID: 8926484042661615188}
-    position: {x: 248.66667, y: 150.66667}
+    position: {x: 90.666664, y: 153.33334}
     expandedSlots: []
     expanded: 0
     supecollapsed: 0
@@ -6604,15 +6741,15 @@ MonoBehaviour:
       inputSlot: {fileID: 8926484042661616158}
     - outputSlot: {fileID: 8926484042661615994}
       inputSlot: {fileID: 8926484042661615242}
-    position: {x: 2134.6667, y: 97.33333}
+    position: {x: 2470, y: 170.66667}
     expandedSlots: []
     expanded: 1
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 2
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615994}
       inputSlot: {fileID: 8926484042661615341}
-    position: {x: 266, y: 489}
+    position: {x: -64, y: 504.66666}
     expandedSlots:
     - {fileID: 8926484042661615993}
     expanded: 0
@@ -6621,7 +6758,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615994}
       inputSlot: {fileID: 8926484042661614560}
-    position: {x: 662, y: -58.666664}
+    position: {x: 364, y: -54.666664}
     expandedSlots:
     - {fileID: 8926484042661615993}
     expanded: 0
@@ -7089,7 +7226,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 654, y: 893}
+  m_UIPosition: {x: 371, y: 916}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7258,7 +7395,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 654, y: 1023}
+  m_UIPosition: {x: 371, y: 1046}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7427,7 +7564,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -9, y: 981}
+  m_UIPosition: {x: -292, y: 1004}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -7526,7 +7663,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 183, y: 1023}
+  m_UIPosition: {x: -100, y: 1046}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -7732,7 +7869,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1993, y: 1357}
+  m_UIPosition: {x: 2325, y: 1352}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -7789,7 +7926,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2165, y: 1357}
+  m_UIPosition: {x: 2497, y: 1352}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -8163,7 +8300,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661616097}
   - {fileID: 8926484042661616103}
-  m_UIPosition: {x: 2312, y: 947}
+  m_UIPosition: {x: 2643, y: 942}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8190,6 +8327,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616118}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -8462,7 +8600,7 @@ MonoBehaviour:
   - {fileID: 8926484042661616129}
   - {fileID: 8926484042661616132}
   - {fileID: 8926484042661616139}
-  m_UIPosition: {x: 847, y: 710}
+  m_UIPosition: {x: 607, y: 709}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8491,6 +8629,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616151}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -8672,7 +8811,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661616119}
   m_Children: []
-  m_UIPosition: {x: 0, y: 190}
+  m_UIPosition: {x: 0, y: 189}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8770,7 +8909,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661616119}
   m_Children: []
-  m_UIPosition: {x: 0, y: 321}
+  m_UIPosition: {x: 0, y: 318}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8832,7 +8971,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661616119}
   m_Children: []
-  m_UIPosition: {x: 0, y: 456}
+  m_UIPosition: {x: 0, y: 415}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -11530,4 +11669,302 @@ MonoBehaviour:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
   m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661616241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3022e18cf9c74cc49be91d7f5cb63567, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.Operator.Normalize
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 114350483966674976}
+  m_Children: []
+  m_UIPosition: {x: 729, y: -503}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 8926484042661616242}
+  m_OutputSlots:
+  - {fileID: 8926484042661616246}
+  m_Type:
+    m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+  safeNormalize: 1
+--- !u!114 &8926484042661616242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat3
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 8926484042661616243}
+  - {fileID: 8926484042661616244}
+  - {fileID: 8926484042661616245}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661616242}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661616241}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"x":1.0,"y":1.0,"z":1.0}'
+    m_Space: -1
+  m_Property:
+    name: x
+    m_serializedType:
+      m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661616243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 8926484042661616242}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661616242}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: -1
+  m_Property:
+    name: x
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661616244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 8926484042661616242}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661616242}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: -1
+  m_Property:
+    name: y
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661616245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 8926484042661616242}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661616242}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: -1
+  m_Property:
+    name: z
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661616246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat3
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 0}
+  m_Children:
+  - {fileID: 8926484042661616247}
+  - {fileID: 8926484042661616248}
+  - {fileID: 8926484042661616249}
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661616246}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661616241}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: 
+    m_Space: -1
+  m_Property:
+    name: 
+    m_serializedType:
+      m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+  m_Direction: 1
+  m_LinkedSlots: []
+--- !u!114 &8926484042661616247
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 8926484042661616246}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661616246}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: -1
+  m_Property:
+    name: x
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+  m_Direction: 1
+  m_LinkedSlots: []
+--- !u!114 &8926484042661616248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 8926484042661616246}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661616246}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: -1
+  m_Property:
+    name: y
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+  m_Direction: 1
+  m_LinkedSlots: []
+--- !u!114 &8926484042661616249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
+  m_UIIgnoredErrors: []
+  m_Parent: {fileID: 8926484042661616246}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661616246}
+  m_MasterData:
+    m_Owner: {fileID: 0}
+    m_Value:
+      m_Type:
+        m_SerializableType: 
+      m_SerializableObject: 
+    m_Space: -1
+  m_Property:
+    name: z
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+  m_Direction: 1
   m_LinkedSlots: []

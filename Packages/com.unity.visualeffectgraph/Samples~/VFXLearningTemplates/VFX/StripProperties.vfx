@@ -16,7 +16,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614542}
-  m_UIPosition: {x: 1522, y: -1082}
+  m_UIPosition: {x: 1525, y: -1086}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -89,10 +89,10 @@ MonoBehaviour:
   - title: Debug Strips
     position:
       serializedVersion: 2
-      x: -3113
-      y: -1
+      x: -991
+      y: 656
       width: 863
-      height: 1597
+      height: 1593
     contents:
     - model: {fileID: 8926484042661615202}
       id: 0
@@ -112,40 +112,14 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615608}
       id: 0
       isStickyNote: 0
-  - title: Strip
-    position:
-      serializedVersion: 2
-      x: 2171
-      y: -270
-      width: 1022
-      height: 1670
-    contents:
-    - model: {fileID: 8926484042661614784}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661615538}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661614782}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661614894}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661614730}
-      id: 0
-      isStickyNote: 0
   - title: Strip Line Debug
     position:
       serializedVersion: 2
-      x: 334
-      y: -481
-      width: 1180
-      height: 2731
+      x: 164
+      y: 435
+      width: 1494
+      height: 1755
     contents:
-    - model: {fileID: 8926484042661615199}
-      id: 0
-      isStickyNote: 0
     - model: {fileID: 114780028408030698}
       id: 0
       isStickyNote: 0
@@ -161,15 +135,96 @@ MonoBehaviour:
     - model: {fileID: 8926484042661614662}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 7
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 9
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 10
+      isStickyNote: 1
+  - title: Initalize
+    position:
+      serializedVersion: 2
+      x: 228
+      y: -441
+      width: 1521
+      height: 755
+    contents:
     - model: {fileID: 114946465509916290}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 8926484042661615199}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+  - title: Spawn
+    position:
+      serializedVersion: 2
+      x: 1164
+      y: -1145
+      width: 812
+      height: 410
+    contents:
+    - model: {fileID: 114023846229194376}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 1826
+      y: -497
+      width: 1389
+      height: 1595
+    contents:
+    - model: {fileID: 8926484042661614730}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614894}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614784}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615538}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614782}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 11
+      isStickyNote: 1
   stickyNoteInfos:
   - title: Spawn Master
     position:
       serializedVersion: 2
-      x: 1186
-      y: -1060
+      x: 1189
+      y: -1064
       width: 329
       height: 100
     contents: 'You can use the same Spawn Context to trigger the Initialize Context
@@ -177,13 +232,14 @@ MonoBehaviour:
 
       This can be very practical to share spawnCount
       or to synchonyze different System''s loop.'
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Initialize Particle Strip
     position:
       serializedVersion: 2
-      x: 1062
-      y: -391
+      x: 1195
+      y: -346
       width: 529
       height: 307
     contents: "To generate Strips, you must utilize a Particle Strip Data type. You
@@ -197,13 +253,14 @@ MonoBehaviour:
       that this system will handle?\r\nHow many particles are going to compose each
       strip?\r\n\r\nNote that the number of particles per strip can have an influence
       over its appearance and behavior.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Strip Index
     position:
       serializedVersion: 2
-      x: 287
-      y: -375
+      x: 424
+      y: -231
       width: 270
       height: 180
     contents: 'The Strip Index is a standard per-particle attribute. This setting
@@ -217,28 +274,30 @@ MonoBehaviour:
       want all our particles to be included in it, so we''ll keep it at 0.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: ParticleIndex in Strip
     position:
       serializedVersion: 2
-      x: 83
-      y: 37
-      width: 240
-      height: 120
+      x: 253
+      y: 78
+      width: 251
+      height: 116
     contents: 'This attribute is a UInt that represents the Particle Index inside
       the Particle Strip buffer.
 
 
       As we''re spawning 9 particles, this index
       will modulate between 0-8.'
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Position Sequential Line
     position:
       serializedVersion: 2
-      x: 1065
-      y: 5
+      x: 1235
+      y: 46
       width: 348
       height: 221
     contents: 'This block allows you to set the particle''s position on a line.
@@ -247,39 +306,41 @@ MonoBehaviour:
       The
       line is divided into segments based on the count property value.
 
-      
+
 
       To
       determine the location of each particle on the line, we set an index setting.
       By default, the setting uses the ParticleID. In this example, we use a custom
       index and feed the ParticleIndexInStrip attribute to it.
 
-      
 
-      Using
-      the ParticleIndexInStrip attribute, this block spreads the particles that compose
+
+      Using the
+      ParticleIndexInStrip attribute, this block spreads the particles that compose
       the strip along a line.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Update Particle Strip
     position:
       serializedVersion: 2
-      x: 341
-      y: 551
+      x: 509
+      y: 523
       width: 242
       height: 112
     contents: When you connect the Update Particle to the Initialize Particle Strip
       context, that context is converted to the Update Particle Strip context to
       match the data type of the system.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Output ParticleStrip
     position:
       serializedVersion: 2
-      x: 47
-      y: 796
+      x: 197
+      y: 753
       width: 304
       height: 128
     contents: 'The ParticleStrip Output is responsible for rendering the particles
@@ -291,25 +352,27 @@ MonoBehaviour:
 
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Size
     position:
       serializedVersion: 2
-      x: 52
-      y: 1191
+      x: 209
+      y: 1183
       width: 304
       height: 100
     contents: The size attribute can be used to modify the width of your strips.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Spawn Index in Strip
     position:
       serializedVersion: 2
-      x: 39
-      y: 1757
+      x: 189
+      y: 1710
       width: 310
-      height: 178
+      height: 169
     contents: 'This attribute is a UInt representing the Spawn Index in the strip.
       Unlike the ParticleIndexInStrip attribute, the SpawnIndexInStrip is not unique.
       Two particles born on different frames in the same strip can share the same
@@ -322,44 +385,47 @@ MonoBehaviour:
 
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Debug Index
     position:
       serializedVersion: 2
-      x: 333
-      y: 1494
+      x: 479
+      y: 1450
       width: 270
       height: 119
     contents: "This Output is used to display the SpawnIndexInStrip value ranging
       between 0 and 8. \n\nYou can see this value displayed in the Strip Properties
       showcase."
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Output Quad
     position:
       serializedVersion: 2
-      x: 1517
-      y: 1491
+      x: 1273
+      y: 1986
       width: 343
       height: 137
     contents: 'We use Particle Strip Data for a Particle Strip output, but we can
       connect a regular Output Quad (unlit/lit/ShaderGraph) to Particle Strip Data
       too.
 
-      
 
-      Here, our quad outputs help illustrate the particle''s
-      position within the strip and the ParticleIndexInStrip value.
+
+      Here, our quad outputs help illustrate the particle''s position
+      within the strip and the ParticleIndexInStrip value.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Tiling Mode
     position:
       serializedVersion: 2
-      x: 3195
-      y: 827
+      x: 2849
+      y: 583
       width: 341
       height: 187
     contents: "\nThe Tiling Mode setting allows you to modify how the output generates
@@ -367,15 +433,16 @@ MonoBehaviour:
       along the whole strip.\r\n\u2022 Repeat Per Segment: Restart the mapping for
       every segment of the strip.\r\n\u2022 Custom: Manually provides the reference
       texture coordinate."
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -3112
-    y: -1082
-    width: 6648
-    height: 3332
+    x: -991
+    y: -1145
+    width: 4207
+    height: 3394
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -418,7 +485,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615568}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -601,7 +668,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 617, y: 525}
+  m_UIPosition: {x: 761, y: 495}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -709,7 +776,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615362}
   - {fileID: 8926484042661614671}
   - {fileID: 8926484042661615522}
-  m_UIPosition: {x: 591, y: -423}
+  m_UIPosition: {x: 761, y: -382}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -810,10 +877,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -1023,7 +1086,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614654}
   - {fileID: 8926484042661614659}
   - {fileID: 8926484042661614656}
-  m_UIPosition: {x: 383, y: 766}
+  m_UIPosition: {x: 527, y: 736}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1047,6 +1110,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614653}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -1398,7 +1462,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614666}
   - {fileID: 8926484042661614677}
   - {fileID: 8926484042661614669}
-  m_UIPosition: {x: 1063, y: 1467}
+  m_UIPosition: {x: 1207, y: 1437}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1422,6 +1486,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614665}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -1970,7 +2035,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614916}
   - {fileID: 8926484042661614734}
   - {fileID: 8926484042661614737}
-  m_UIPosition: {x: 2742, y: 796}
+  m_UIPosition: {x: 2397, y: 500}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1994,6 +2059,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614736}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -2071,7 +2137,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661614730}
   m_Children: []
-  m_UIPosition: {x: 2878.6277, y: 1375.1345}
+  m_UIPosition: {x: 0, y: 101}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2246,7 +2312,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2472, y: 557}
+  m_UIPosition: {x: 2125, y: 268}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2286,7 +2352,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615369}
   - {fileID: 8926484042661615542}
   - {fileID: 8926484042661615484}
-  m_UIPosition: {x: 2472, y: -211}
+  m_UIPosition: {x: 2127, y: -437}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2692,7 +2758,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615487}
   - {fileID: 8926484042661614898}
   - {fileID: 8926484042661614901}
-  m_UIPosition: {x: 2196, y: 792}
+  m_UIPosition: {x: 1851, y: 496}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2716,6 +2782,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614900}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -2793,7 +2860,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661614894}
   m_Children: []
-  m_UIPosition: {x: 3030.5989, y: 1413.9896}
+  m_UIPosition: {x: 0, y: 101}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2968,7 +3035,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661614730}
   m_Children: []
-  m_UIPosition: {x: 0, y: 0}
+  m_UIPosition: {x: 0, y: 2}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3166,7 +3233,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 363, y: 33}
+  m_UIPosition: {x: 533, y: 74}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3191,7 +3258,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615225}
-  m_UIPosition: {x: -2700, y: 58}
+  m_UIPosition: {x: -579, y: 715}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3247,7 +3314,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615593}
   - {fileID: 8926484042661615501}
-  m_UIPosition: {x: -2700, y: 491}
+  m_UIPosition: {x: -579, y: 1149}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3615,7 +3682,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615284}
   - {fileID: 8926484042661615257}
-  m_UIPosition: {x: -2700, y: 1067}
+  m_UIPosition: {x: -579, y: 1725}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3642,6 +3709,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615229}
   - {fileID: 8926484042661615230}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -4646,7 +4714,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615428}
   - {fileID: 8926484042661615430}
   - {fileID: 8926484042661615437}
-  m_UIPosition: {x: 617, y: 1467}
+  m_UIPosition: {x: 761, y: 1437}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4672,6 +4740,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615427}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -5551,7 +5620,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661614894}
   m_Children: []
-  m_UIPosition: {x: 2878.6277, y: 1375.1345}
+  m_UIPosition: {x: 0, y: 2}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6357,7 +6426,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2210, y: 141}
+  m_UIPosition: {x: 1865, y: -85}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -6978,7 +7047,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 359, y: 1749}
+  m_UIPosition: {x: 503, y: 1719}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -7612,7 +7681,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -2925, y: 786}
+  m_UIPosition: {x: -804, y: 1443}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -7671,7 +7740,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -2878, y: 1386}
+  m_UIPosition: {x: -757, y: 2043}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7772,7 +7841,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -3087, y: 1349}
+  m_UIPosition: {x: -966, y: 2007}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []

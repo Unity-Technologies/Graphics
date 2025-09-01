@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Init Position
     position:
       serializedVersion: 2
-      x: 517
-      y: 547
-      width: 403
-      height: 387
+      x: 371
+      y: 518
+      width: 517
+      height: 405
     contents:
     - model: {fileID: 8926484042661616184}
       id: 0
@@ -30,13 +30,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616184}
       id: 3
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
   - title: Orient Advanced
     position:
       serializedVersion: 2
-      x: 444
-      y: 2436
-      width: 485
-      height: 285
+      x: -281
+      y: 2430
+      width: 1041
+      height: 297
     contents:
     - model: {fileID: 8926484042661616247}
       id: 0
@@ -50,12 +53,106 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616328}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 7
+      isStickyNote: 1
+  - title: New Group Node
+    position:
+      serializedVersion: 2
+      x: 900
+      y: -113
+      width: 757
+      height: 1085
+    contents:
+    - model: {fileID: 8926484042661615931}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616383}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615937}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616386}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616535}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 782
+      y: 991
+      width: 1107
+      height: 1940
+    contents:
+    - model: {fileID: 8926484042661616150}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616153}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616202}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616520}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616184}
+      id: 2
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616375}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616135}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616101}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616305}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616104}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616114}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661616389}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 9
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
   stickyNoteInfos:
   - title: 'Set Color From Curve:'
     position:
       serializedVersion: 2
-      x: 1365
-      y: 2353
+      x: 1375
+      y: 2490
       width: 489
       height: 172
     contents: "The \u201Cattribute from curve\u201D allows us to \u201Cset\u201D
@@ -65,13 +162,14 @@ MonoBehaviour:
       given a random color in the color gradient that we defined.\r\n\r\nThere's
       a different sampling mode so that we can sample the gradient thanks to the
       particle's speed, overlife, etc.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: '!! Computed Source Code !!'
     position:
       serializedVersion: 2
-      x: 1377
-      y: 2564
+      x: 1373
+      y: 2713
       width: 385
       height: 193
     contents: "A great way to learn or understand what's being done by a \r\n\u201CContext
@@ -79,13 +177,14 @@ MonoBehaviour:
       Additional Debug Info.\u201D\n\nBy doing so, when selecting a \u201Ccontext
       block,\u201D you'll be able to see the generated code and attributes that are
       read and written.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: 'Init Position:'
     position:
       serializedVersion: 2
-      x: 225
-      y: 575
+      x: 396
+      y: 696
       width: 286
       height: 165
     contents: 'We''re using a sphere property to spawn our particles on this sphere,
@@ -98,13 +197,14 @@ MonoBehaviour:
       update and output context.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Bounds:'
     position:
       serializedVersion: 2
-      x: 1380
-      y: 561
+      x: 1375
+      y: 559
       width: 256
       height: 111
     contents: 'We''re using our sphere property for our bound center and size.
@@ -113,8 +213,9 @@ MonoBehaviour:
       way, the bounds will match our initial particle''s position on the sphere.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Conform to Sphere:'
     position:
       serializedVersion: 2
@@ -124,8 +225,9 @@ MonoBehaviour:
       height: 100
     contents: This block allows you to keep particles inside a sphere. You can play
       with the Attraction Force and Stick Force settings.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Turbulence:'
     position:
       serializedVersion: 2
@@ -137,15 +239,16 @@ MonoBehaviour:
       It's interesting to add more organic motion to your particles.\r\nHere we're
       also using a \u201Ctime\u201D operator to offset the transform of the noise.
       This allows for more intriguing motion.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Scale & Size:'
     position:
       serializedVersion: 2
-      x: 639
-      y: 2101
-      width: 286
-      height: 296
+      x: 1377
+      y: 2209
+      width: 417
+      height: 269
     contents: 'The scale is the attribute that controls the scale of the particles.
       By default, it''s a vector3.
 
@@ -171,15 +274,16 @@ MonoBehaviour:
       be a Vector2 instead of a Vector3, and this can help you save some memory.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Orient Advanced:'
     position:
       serializedVersion: 2
-      x: -119
-      y: 2443
+      x: -255
+      y: 2489
       width: 554
-      height: 616
+      height: 212
     contents: "In advanced mode, the orient block needs two vectors to properly orient
       the particles.\r\n\r\nThe Z-axis is the facing vector, while the Y-axis is
       the alignment vector.\r\nHere, we want our particle to always face the sphere
@@ -188,22 +292,24 @@ MonoBehaviour:
       they align with their velocity direction.\r\n\r\nNote that we don't need to
       normalize our vectors, as the Orient Block is already doing a normalization
       operation.\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: Orient Advanced
     position:
       serializedVersion: 2
-      x: 848
-      y: -75
+      x: 929
+      y: -54
       width: 669
       height: 110
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: 'Output Triangle :'
     position:
       serializedVersion: 2
-      x: 1374
+      x: 1380
       y: 1993
       width: 250
       height: 181
@@ -212,15 +318,16 @@ MonoBehaviour:
       UVs are handled, or even the \u201Cprimitive type.\u201D\r\n\r\nIn the Inspector
       tab, after selecting the \u201Coutput context\u201D block, we've changed the
       \u201Cprimitive type\u201D from quad to triangle.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -119
-    y: -75
-    width: 1973
-    height: 3134
+    x: -281
+    y: -113
+    width: 2170
+    height: 3045
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -253,7 +360,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -269,10 +376,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -296,7 +399,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661616383}
-  m_UIPosition: {x: 929, y: 61}
+  m_UIPosition: {x: 925, y: 59}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -352,7 +455,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661616386}
   - {fileID: 8926484042661616535}
-  m_UIPosition: {x: 929, y: 459}
+  m_UIPosition: {x: 925, y: 457}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -972,6 +1075,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661616138}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -1617,7 +1721,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661616185}
       inputSlot: {fileID: 8926484042661616536}
-    position: {x: 766.6667, y: 856}
+    position: {x: 736.6667, y: 828}
     expandedSlots:
     - {fileID: 8926484042661616186}
     - {fileID: 8926484042661616187}
@@ -1628,7 +1732,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661616188}
       inputSlot: {fileID: 8926484042661616392}
-    position: {x: 562.6667, y: 2604}
+    position: {x: 405.33334, y: 2604.6667}
     expandedSlots:
     - {fileID: 8926484042661616186}
     - {fileID: 8926484042661616187}
@@ -1644,14 +1748,14 @@ MonoBehaviour:
     - {fileID: 8926484042661616186}
     - {fileID: 8926484042661616187}
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 3
     linkedSlots:
     - outputSlot: {fileID: 8926484042661616188}
       inputSlot: {fileID: 8926484042661615939}
     - outputSlot: {fileID: 8926484042661616200}
       inputSlot: {fileID: 8926484042661616528}
-    position: {x: 542.6667, y: 605.3333}
+    position: {x: 512.6667, y: 577.3334}
     expandedSlots:
     - {fileID: 8926484042661616185}
     - {fileID: 8926484042661616186}
@@ -3310,7 +3414,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 654, y: 2665}
+  m_UIPosition: {x: 497, y: 2665}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -3396,7 +3500,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 469, y: 2495}
+  m_UIPosition: {x: 313, y: 2495}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -3420,7 +3524,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 745, y: 2546}
+  m_UIPosition: {x: 589, y: 2546}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -3589,7 +3693,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 796, y: 1401}
+  m_UIPosition: {x: 812, y: 1391}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -3856,7 +3960,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615931}
   m_Children: []
-  m_UIPosition: {x: 0, y: 0}
+  m_UIPosition: {x: 0, y: 2}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3947,7 +4051,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615937}
   m_Children: []
-  m_UIPosition: {x: 0, y: 0}
+  m_UIPosition: {x: 0, y: 2}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4541,7 +4645,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 722, y: 657}
+  m_UIPosition: {x: 692, y: 628}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4711,7 +4815,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615937}
   m_Children: []
-  m_UIPosition: {x: 0, y: 0}
+  m_UIPosition: {x: 0, y: 77}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
