@@ -72,6 +72,7 @@ Assigning the bulb’s Mesh Renderer to a specific Rendering Layer means that th
 ![To restore the transmission effect, create a Point Light and assign it to the same Rendering Layer as the bulb’s Mesh Renderer. Now this Point Light only affects the bulb’s Mesh Renderer and does not contribute to the rest of the Scene Lighting.](Images/LightLayers3.png)<br/>
 To restore the transmission effect, create a Point Light and assign it to the same Rendering Layer as the bulb’s Mesh Renderer. Now this Point Light only affects the bulb’s Mesh Renderer and does not contribute to the rest of the Scene Lighting.
 
+## Additional resources
 
-For more information on this process, see Pierre Donzallaz’s [expert guide](https://pydonzallaz.files.wordpress.com/2019/02/create-high-quality-light-fixtures-in-unity.pdf) on creating high quality light fixtures in Unity.
+- [Pierre Donzallaz - Expert guide: Create High-Quality  Light Fixtures in Unity](https://pydonzallaz.files.wordpress.com/2019/02/create-high-quality-light-fixtures-in-unity.pdf)
 
