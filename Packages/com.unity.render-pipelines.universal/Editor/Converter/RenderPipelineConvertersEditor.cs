@@ -217,11 +217,8 @@ namespace UnityEditor.Rendering.Universal
             rootVisualElement.Q<DropdownField>("conversionsDropDown").RegisterCallback<ChangeEvent<string>>((evt) =>
             {
                 m_ContainerChoiceIndex = rootVisualElement.Q<DropdownField>("conversionsDropDown").index;
-                rootVisualElement.Q<TextElement>("conversionInfo").text = currentContainer.info;
                 HideUnhideConverters();
             });
-
-            rootVisualElement.Q<TextElement>("conversionInfo").text = currentContainer.info;
 
             m_VEList.Clear();
             foreach (var converterNode in m_CoreConvertersList)
@@ -231,6 +228,13 @@ namespace UnityEditor.Rendering.Universal
                 converterVisualElement.converterSelected += EnableOrDisableConvertButton;
                 m_VEList.Add(converterVisualElement);
             }
+            m_VEList.Sort((a, b) =>
+            {
+                int cmp = a.converter.priority.CompareTo(b.converter.priority);
+                if (cmp == 0)
+                    cmp = string.Compare(a.converter.name, b.converter.name, StringComparison.Ordinal);
+                return cmp;
+            });
             HideUnhideConverters();
             EnableOrDisableConvertButton();
         }
@@ -295,6 +299,8 @@ namespace UnityEditor.Rendering.Universal
 
         private void HideUnhideConverters()
         {
+            rootVisualElement.Q<HelpBox>("conversionInfo").text = currentContainer.info + " Click the converters below to see more information.";
+
             var type = currentContainer.GetType();
             m_ContainerHelpButton.style.display = DocumentationUtils.TryGetHelpURL(type, out var url) ?
                 DisplayStyle.Flex : DisplayStyle.None;

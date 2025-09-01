@@ -29,6 +29,11 @@ namespace UnityEditor.Rendering.Universal
         public virtual bool isEnabled => true;
 
         /// <summary>
+        /// The message if the converter is disabled. This will be shown in the UI when hovering over the disabled converter.
+        /// </summary>
+        public virtual string isDisabledWarningMessage => string.Empty;
+
+        /// <summary>
         /// A priority of the converter. The lower the number (can be negative), the earlier it will be executed. Can be used to make sure that a converter runs before another converter.
         /// </summary>
         public virtual int priority => 0;
