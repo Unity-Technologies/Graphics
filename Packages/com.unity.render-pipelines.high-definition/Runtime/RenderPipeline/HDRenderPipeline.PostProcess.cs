@@ -1608,6 +1608,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, data.tmpTarget32);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, data.nextExposure);
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+
+            // After computing the exposure of the current frame, we can update the global variable
+            // so that the exposure compensation in the uber post takes the correct value instead
+            // of the default during the first frame.
+            cmd.SetGlobalTexture(HDShaderIDs._PreviousExposureTexture, data.nextExposure);
         }
 
         static void DoHistogramBasedExposure(DynamicExposureData data, CommandBuffer cmd)
@@ -1660,6 +1665,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+
+            // After computing the exposure of the current frame, we can update the global variable
+            // so that the exposure compensation in the uber post takes the correct value instead
+            // of the default during the first frame.
+            cmd.SetGlobalTexture(HDShaderIDs._PreviousExposureTexture, data.nextExposure);
         }
 
         class DynamicExposureData
