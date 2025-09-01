@@ -419,17 +419,6 @@ namespace UnityEditor.VFX.UI
                 m_DebugUI.Notify(VFXUIDebug.Events.VFXReset);
         }
 
-        public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
-        {
-            if (m_AttachedComponent != null
-                && visualEffects.Contains(m_AttachedComponent)
-                && m_AttachedComponent.visualEffectAsset != controller.graph.visualEffectResource.asset)
-            {
-                //The Visual Effect Asset has been changed and is no longer valid, we don't want to modify capacity on the wrong graph. We have to detach.
-                m_View.attachedComponent = null;
-            }
-        }
-
         VisualEffect m_AttachedComponent;
 
         public VisualEffect GetAttachedComponent()
