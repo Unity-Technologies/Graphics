@@ -18,8 +18,9 @@ Defines a constant **Boolean** value in the [Shader Graph](index.md), although i
 
 ## Generated Code Example
 
-The following example code represents one possible outcome of this node.
+The following basic test code represents one possible outcome of this node with the Boolean value set to 0:
 
 ```
-float _Boolean = 1;
+float _Boolean = 0;
 ```
+
