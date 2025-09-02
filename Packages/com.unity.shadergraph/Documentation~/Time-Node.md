@@ -8,11 +8,11 @@ Provides access to various **Time** parameters in the shader.
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Time | Output      |    Float    | None | Time value |
-| Sine Time | Output      |    Float    | None | Sine of Time value |
-| Cosine Time | Output      |    Float    | None | Cosine of Time value |
-| Delta Time | Output      |    Float    | None | Current frame time |
-| Smooth Delta | Output      |    Float    | None | Current frame time smoothed |
+| Time | Output      |    Float    | None | Elapsed time in seconds. |
+| Sine Time | Output      |    Float    | None | Sine of the **Time** value. Output ranges from &minus;1 to 1. |
+| Cosine Time | Output      |    Float    | None | Cosine of the **Time** value. Output ranges from &minus;1 to 1. |
+| Delta Time | Output      |    Float    | None | The time that has elapsed between the current frame and the last frame, in seconds. |
+| Smooth Delta | Output      |    Float    | None | The time that has elapsed between the current frame and the last frame, in seconds, averaged over several frames to reduce jitter. |
 
 ## Generated Code Example
 
