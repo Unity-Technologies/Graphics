@@ -796,7 +796,7 @@ MonoBehaviour:
   requiredSettingsSO: {fileID: 0}
   gameobjectSamplesName: {fileID: 0}
   gameobjectSamplesDescription: {fileID: 0}
-  gameViewCamera: {fileID: 0}
+  gameViewCamera: {fileID: 1823688466}
 --- !u!4 &759482794
 Transform:
   m_ObjectHideFlags: 0
@@ -898,8 +898,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1823688464}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.030037597, y: 0.9679731, z: -0.08060171, w: -0.2358586}
-  m_LocalPosition: {x: 2.111, y: 4.058, z: 0.38899803}
+  m_LocalRotation: {x: -0.021594318, y: 0.9672038, z: -0.08802241, w: -0.23728167}
+  m_LocalPosition: {x: -22.889, y: 4.058, z: 0.389}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

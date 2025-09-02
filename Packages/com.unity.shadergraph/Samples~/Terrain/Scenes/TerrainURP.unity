@@ -174,14 +174,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 203844586}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 0.9785366, b: 0.92, a: 1}
   m_Intensity: 3.14159
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 2
     m_Resolution: -1
@@ -316,7 +316,7 @@ MonoBehaviour:
   requiredSettingsSO: {fileID: 0}
   gameobjectSamplesName: {fileID: 0}
   gameobjectSamplesDescription: {fileID: 0}
-  gameViewCamera: {fileID: 0}
+  gameViewCamera: {fileID: 961739752}
 --- !u!4 &275721702
 Transform:
   m_ObjectHideFlags: 0
@@ -808,8 +808,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 961739749}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.02159431, y: -0.9672038, z: 0.08802222, w: 0.23728174}
-  m_LocalPosition: {x: -22.889, y: 4.058, z: 0.38899994}
+  m_LocalRotation: {x: 0.021594318, y: -0.9672038, z: 0.08802241, w: 0.23728167}
+  m_LocalPosition: {x: -22.889, y: 4.058, z: 0.389}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
