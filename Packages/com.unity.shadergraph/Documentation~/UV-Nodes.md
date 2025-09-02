@@ -14,5 +14,5 @@
 | ![Example of the Triplanar Node](images/TriplanarNodeThumb.png) | ![Example of the Twirl Node](images/TwirlNodeThumb.png) |
 | A method of generating UVs and sampling a texture by projecting in world space. | Applies a twirl warping effect similar to a black hole to the value of input UV. |
 | [**Parallax Mapping**](Parallax-Mapping-Node.md) | [**Parallax Occlusion Mapping**](Parallax-Occlusion-Mapping-Node.md) |
-| ![Example of the Parallax Mapping Node](images/ParallaxOcclusionMappingThumb.png) | ![Example of the Parallax Occlusion Mapping Node](images/ParallaxOcclusionMappingNodeThumb.PNG) |
+| ![Example of the Parallax Mapping Node](images/ParallaxMappingNodeThumb.PNG) | ![Example of the Parallax Occlusion Mapping Node](images/ParallaxOcclusionMappingNodeThumb.PNG) |
 | Creates a parallax effect that displaces a material's UVs. | Creates a parallax effect that displaces a material's UVs and depth. |
