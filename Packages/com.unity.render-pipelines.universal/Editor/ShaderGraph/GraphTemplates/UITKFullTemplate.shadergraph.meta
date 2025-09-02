@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 3e01bbae25716b24ea9da11102b44902
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 0
+  template:
+    name: UI Full
+    category: UI
+    description: "A simple UI Toolkit shader where Solids (background/borders) are red,
+      Textures are green, SDF Text is blue, Bitmap text is yellow and Gradients are
+      cyan. \n\n<i>Supported Pipeline(s): URP\r\n  Active Target: UI\r\n  VFX Graph
+      Support: disabled</i>"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 3d3db9f7026a8344cbbc2353827bbbc0, type: 3}
