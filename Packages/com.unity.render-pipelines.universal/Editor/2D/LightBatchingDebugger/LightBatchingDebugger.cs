@@ -457,18 +457,17 @@ namespace UnityEditor.Rendering.Universal
 
         private bool IsDirty()
         {
+            if (lightCullResult == null)
+                return false;
+
             bool isDirty = false;
 
             // Refresh if layers are added or removed
             isDirty |= Light2DManager.GetCachedSortingLayer().Count() != batchList.Sum(x => x.LayerNames.Count());
             isDirty |= cachedSceneHandle != SceneManager.GetActiveScene().handle;
             isDirty |= cachedCamPos != Camera.main?.transform.position;
-
-            if (lightCullResult != null)
-            {
-                isDirty |= totalLightCount != lightCullResult.visibleLights.Count();
-                isDirty |= totalShadowCount != lightCullResult.visibleShadows.Count();
-            }
+            isDirty |= totalLightCount != lightCullResult.visibleLights.Count();
+            isDirty |= totalShadowCount != lightCullResult.visibleShadows.Count();
 
             return isDirty;
         }
