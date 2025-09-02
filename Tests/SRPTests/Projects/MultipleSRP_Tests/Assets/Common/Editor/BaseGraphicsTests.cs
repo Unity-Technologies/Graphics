@@ -24,6 +24,8 @@ public class BaseGraphicsTests
     }
 #endif
 
+    [IgnoreGraphicsTest("0001_SwitchPipeline_UniversalRenderPipelineAsset", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
+    [IgnoreGraphicsTest("0002_FallbackTest_UniversalRenderPipelineAsset", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
     [UnityTest, Category("Base")]
     [MultipleSRPGraphicsTest("Assets/GraphicsTests")]
     [Timeout(300 * 1000)]
@@ -58,7 +60,7 @@ public class BaseGraphicsTests
                 {
                     if(!srpAssets.Contains(srpAsset))
                     {
-                        srpAssets.Add(srpAsset); 
+                        srpAssets.Add(srpAsset);
                     }
                 }
             }

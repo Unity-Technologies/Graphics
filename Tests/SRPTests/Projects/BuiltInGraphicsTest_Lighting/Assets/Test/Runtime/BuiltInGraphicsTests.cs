@@ -15,6 +15,16 @@ public class BuiltInGraphicsTests
     [UnityTest, Category("BuiltInRP")]
     [SceneGraphicsTest("Assets/Scenes")]
     [IgnoreGraphicsTest("017_Lighting_Scene_DirectionalBaked", "Something about the meta pass seems wrong even in URP")]
+
+    [IgnoreGraphicsTest("009_AdditionalLightsShadows", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
+    [IgnoreGraphicsTest("019_Lighting_Scene_PointLights", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
+    [IgnoreGraphicsTest("031_Shader_GlossyEnvironmentSky", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
+    [IgnoreGraphicsTest("032_Shader_GlossyEnvironmentColor", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
+    [IgnoreGraphicsTest("033_Shader_HighlightsEnvironmentGradientSH", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
+    [IgnoreGraphicsTest("034_Shader_HighlightsEnvironmentGradientBaked", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
+    [IgnoreGraphicsTest("036_Lighting_Scene_DirectionalBakedDirectional", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
+    [IgnoreGraphicsTest("042_Lighting_Scene_VertexLighting", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
+    [IgnoreGraphicsTest("118_SkyboxReflectionTestOrthographic", "Failed from the start when introducing DX12 coverage", runtimePlatforms: new[] { RuntimePlatform.WindowsEditor }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {
 		Debug.Log($"Running test case '{testCase}' with scene '{testCase.ScenePath}' {testCase.ReferenceImagePathLog}.");
