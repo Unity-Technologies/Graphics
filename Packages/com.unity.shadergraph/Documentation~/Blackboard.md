@@ -75,6 +75,8 @@ To modify a material you have created with a Shader Graph, you can adjust specif
 ## Exposing properties and keywords
 Unity exposes properties and keywords by default. This enables write access from scripts, so that you can edit them via the C# API, in addition to the graph. Exposed items have a green dot in their label. Enable or disable this feature in the **Node Settings** menu.
 
+If you disable the **Exposed** setting of a property, the property reverts to the default value and no longer uses the custom value you set.
+
 ## Creating nodes
 
 Drag a property or keyword from the Blackboard into the graph to create a node of that kind. Settings for a node in the graph are identical to those for the related property or keyword in the Blackboard. Expand these nodes to use a sub-member of the property value.
