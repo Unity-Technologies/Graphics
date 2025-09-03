@@ -11,7 +11,7 @@
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.rendering.light-transport": "file:../../../../../Packages/com.unity.rendering.light-transport",
     "local.utf.references": "file:../../../Packages/local.utf.references",
-    "com.unity.testframework.graphics": "file:../../../Packages/com.unity.testframework.graphics",
+    "com.unity.testframework.graphics": "8.11.0-exp.1",
     "com.unity.timeline": "1.8.0",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "file:../../../../../Packages/com.unity.visualeffectgraph",
