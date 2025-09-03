@@ -117,7 +117,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(TerrainKeywordDescriptors.TerrainMaskmap);
             pass.keywords.Add(TerrainKeywordDescriptors.Terrain8Layers);
             pass.keywords.Add(TerrainKeywordDescriptors.TerrainSpecularOcclusionNone);
-            pass.keywords.Add(TerrainKeywordDescriptors.TerrainBlendHeight);
             pass.keywords.Add(CoreKeywordDescriptors.DepthOffset, new FieldCondition(HDFields.DepthOffset, true));
             pass.keywords.Add(CoreKeywordDescriptors.ConservativeDepthOffset, new FieldCondition(HDFields.ConservativeDepthOffset, true));
 
@@ -236,27 +235,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            collector.AddShaderProperty(new BooleanShaderProperty
-            {
-                value = terrainLitData.enableHeightBlend,
-                hidden = true,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_EnableHeightBlend",
-                displayName = "Enable Height Blend",
-            });
-
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                floatType = FloatType.Slider,
-                value = terrainLitData.heightTransition,
-                hidden = false,
-                overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                overrideReferenceName = "_HeightTransition",
-                displayName = "Height Transition",
-            });
-
             collector.AddShaderProperty(new BooleanShaderProperty
             {
                 value = terrainLitData.enableInstancedPerPixelNormal,
@@ -432,7 +410,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
             blockList.AddPropertyBlock(new TerrainLitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit));
-            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
+            var disabledAdvancedFeatures = AdvancedOptionsPropertyBlock.Features.LodCrossfade
+                                           | AdvancedOptionsPropertyBlock.Features.PrecomputedVelocity
+                                           | AdvancedOptionsPropertyBlock.Features.DebugSymbols;
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock(AdvancedOptionsPropertyBlock.Features.All ^ disabledAdvancedFeatures));
         }
 
 
@@ -572,15 +553,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 displayName = "Terrain Non Specular Occlusion",
                 referenceName = "_SPECULAR_OCCLUSION_NONE",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.ShaderFeature,
-                scope = KeywordScope.Local,
-            };
-
-            public static KeywordDescriptor TerrainBlendHeight = new KeywordDescriptor()
-            {
-                displayName = "Terrain Blend Height",
-                referenceName = "_TERRAIN_BLEND_HEIGHT",
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.ShaderFeature,
                 scope = KeywordScope.Local,
