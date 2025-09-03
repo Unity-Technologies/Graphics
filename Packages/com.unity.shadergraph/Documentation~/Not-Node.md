@@ -1,23 +1,18 @@
-# Not Node
+# Not node
 
-## Description
-
-Returns the opposite of input **In**. If **In** is true the output will be false, otherwise it will be true. This is useful for [Branching](Branch-Node.md).
+The Not node outputs the opposite of an input. If the input is true the output is false, otherwise the output is true. This node is useful for [branching](Branch-Node.md).
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
+| **Name** | **Direction** | **Type** | **Binding** | **Description** |
 |:------------ |:-------------|:-----|:---|:---|
-| In      | Input | Boolean | None | Input value |
-| Out | Output      |    Boolean | None | Output value |
+| **In** | Input | Boolean | None | The input value. |
+| **Out** | Output | Boolean | None | The opposite of **In**. |
 
-## Generated Code Example
+## Generated code example
 
 The following example code represents one possible outcome of this node.
 
 ```
-void Unity_NormalUnpack_float(float In, out float Out)
-{
-    Out = !In;
-}
+Out = !In;
 ```
