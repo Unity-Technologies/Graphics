@@ -71,6 +71,7 @@ namespace UnityEditor.Rendering
             public float setVal, unsetVal;
         }
         List<KeywordFloatRename> m_KeywordFloatRename = new List<KeywordFloatRename>();
+        Dictionary<string, (string, System.Func<float, bool>)> m_ConditionalFloatRename;
 
         /// <summary>
         /// Type of property to rename.
@@ -219,6 +220,20 @@ namespace UnityEditor.Rendering
 
                 dstMaterial.SetFloat(t.property, srcMaterial.IsKeywordEnabled(t.keyword) ? t.setVal : t.unsetVal);
             }
+
+            // Handle conditional float renaming
+            if (m_ConditionalFloatRename != null)
+            {
+                foreach (var (oldName, (newName, condition)) in m_ConditionalFloatRename)
+                {
+                    if (srcMaterial.HasProperty(oldName) &&
+                        condition(srcMaterial.GetFloat(oldName)) &&
+                        dstMaterial.HasProperty(newName))
+                    {
+                        dstMaterial.SetFloat(newName, 1.0f);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -313,6 +328,17 @@ namespace UnityEditor.Rendering
         public void RenameKeywordToFloat(string oldName, string newName, float setVal, float unsetVal)
         {
             m_KeywordFloatRename.Add(new KeywordFloatRename { keyword = oldName, property = newName, setVal = setVal, unsetVal = unsetVal });
+        }
+
+        /// <summary>
+        /// Rename a float property conditionally based on its value
+        /// </summary>
+        /// <param name="oldName">Old property name</param>
+        /// <param name="newName">New property name</param>
+        /// <param name="condition">Condition function that takes the float value and returns true if renaming should occur</param>
+        protected void RenameFloat(string oldName, string newName, System.Func<float, bool> condition)
+        {
+            (m_ConditionalFloatRename ??= new Dictionary<string, (string, System.Func<float, bool>)>())[oldName] = (newName, condition);
         }
 
         static MaterialUpgrader GetUpgrader(List<MaterialUpgrader> upgraders, Material material)
