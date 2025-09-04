@@ -44,10 +44,6 @@ namespace UnityEditor.Rendering.Universal
             s_VisualTreeAsset.Value.CloneTree(m_RootVisualElement);
             m_RootVisualElement.styleSheets.Add(s_StyleSheet.Value);
 
-            m_RootVisualElement.SetEnabled(converter.isEnabled);
-            m_RootVisualElement.Q<Label>("converterName").text = displayName;
-            m_RootVisualElement.Q<Label>("converterInfo").text = description;
-
             var converterEnabledToggle = m_RootVisualElement.Q<Toggle>("converterEnabled");
             converterEnabledToggle.SetValueWithoutNotify(state.isActive);
             converterEnabledToggle.RegisterCallback<ClickEvent>((evt) =>
@@ -63,6 +59,16 @@ namespace UnityEditor.Rendering.Universal
             {
                 showMoreInfo?.Invoke();
             });
+
+            topElement.RegisterCallback<TooltipEvent>(evt =>
+            {
+                // Show the tooltip around the toggle only
+                var rect = converterEnabledToggle.worldBound;
+                rect.position += new Vector2(150, -30); // offset it a bit to not be ove the toggle
+                evt.rect = rect; // position area that triggers it
+                evt.StopPropagation();
+            });
+
 
             var allLabel = m_RootVisualElement.Q<Label>("all");
             allLabel.RegisterCallback<ClickEvent>((evt) =>
@@ -108,9 +114,8 @@ namespace UnityEditor.Rendering.Universal
             m_ErrorLabel = m_RootVisualElement.Q<Label>("errorLabel");
             m_SuccessLabel = m_RootVisualElement.Q<Label>("successLabel");
 
-            UpdateInfo();
-
             Add(m_RootVisualElement);
+            Refresh();
         }
 
         private void SetItemsActive(bool value)
@@ -230,6 +235,9 @@ namespace UnityEditor.Rendering.Universal
         {
             m_RootVisualElement.Q<ListView>("converterItems").Rebuild();
             UpdateInfo();
+            m_RootVisualElement.SetEnabled(converter.isEnabled);
+            m_RootVisualElement.Q<Label>("converterName").text = displayName;
+            m_RootVisualElement.Q<VisualElement>("converterTopVisualElement").tooltip = (converter.isEnabled) ? description : converter.isDisabledWarningMessage;
         }
 
         public void Scan(Action onScanFinish)
@@ -296,7 +304,7 @@ namespace UnityEditor.Rendering.Universal
                     itemToConvertIndex / (float)state.pending))
                     break;
 
-                if (!item.hasConverted)
+                if (!item.hasConverted && item.isActive)
                 {
                     try
                     {
