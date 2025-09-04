@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: 0738648e2f2f84b489a2f0076b69e30a
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
+  useAsTemplate: 1
+  exposeTemplateAsShader: 0
+  template:
+    name: UI Basic
+    category: UI
+    description: "A simple UI Toolkit shader where Solids (background/borders) are red. All the other render types will use the default
+       code path as it would be without a custom shader.
+
+      \n\n<i>Supported Pipeline(s): URP\r\n  Active Target: UI\r\n  VFX Graph Support:
+      disabled</i>"
+    icon: {instanceID: 0}
+    thumbnail: {fileID: 2800000, guid: 8052b80993fff1242975e48e123bb767, type: 3}
