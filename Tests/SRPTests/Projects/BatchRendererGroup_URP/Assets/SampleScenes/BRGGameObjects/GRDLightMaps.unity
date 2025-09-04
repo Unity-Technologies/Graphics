@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11cd3711fbece6a4ba9d64f57247943f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneNameToLoad: GRDLightMaps1
+  sceneNameToLoad: GRDLightMaps0
 --- !u!4 &327685725
 Transform:
   m_ObjectHideFlags: 0
@@ -320,7 +320,8 @@ MonoBehaviour:
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  WaitFrames: 30
+  Wait: 1
+  WaitFrames: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
