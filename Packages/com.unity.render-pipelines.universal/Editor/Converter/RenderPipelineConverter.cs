@@ -1,15 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using UnityEditor.Rendering.Converter;
 
 [assembly: InternalsVisibleTo("PPv2URPConverters")]
 [assembly: InternalsVisibleTo("Unity.2D.PixelPerfect.Editor")]
 namespace UnityEditor.Rendering.Universal
 {
-    internal interface IRenderPipelineConverter
-    {
-        bool isEnabled { get; }
-    }
-
     // Might need to change this name before making it public
     internal abstract class RenderPipelineConverter : IRenderPipelineConverter
     {
@@ -23,10 +20,12 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         public abstract string info { get; }
 
+        private bool m_Enabled = true;
         /// <summary>
         /// A check if the converter is enabled or not. Can be used to do a check if prerequisites are met to have it enabled or disabled.
         /// </summary>
-        public virtual bool isEnabled => true;
+        public virtual bool isEnabled { get => m_Enabled; set => m_Enabled = value; }
+        public virtual string isDisabledMessage { get; set; }
 
         /// <summary>
         /// The message if the converter is disabled. This will be shown in the UI when hovering over the disabled converter.
@@ -59,6 +58,7 @@ namespace UnityEditor.Rendering.Universal
         // This is in which drop down item the converter belongs to.
         // Not properly implemented yet
         public abstract Type container { get; }
+        
 
         /// <summary>
         /// This runs when initializing the converter. To gather data for the UI and also for the converter if needed.
@@ -84,6 +84,85 @@ namespace UnityEditor.Rendering.Universal
         /// </summary>
         public virtual void OnPostRun()
         {
+        }
+
+        // Temporary solution until all converters are moved to new API
+        class RenderPipelineConverterItem : IRenderPipelineConverterItem
+        {
+            public string name { get; set; }
+            public string info { get; set; }
+            public int index { get; set; }
+            public ConverterItemDescriptor descriptor { get; set; }
+            public Action onClicked { get; set; }
+
+            public bool isEnabled { get; set; }
+            public string isDisabledMessage { get; set; }
+
+            public void OnClicked()
+            {
+                onClicked?.Invoke();
+            }
+        }
+
+        public void Scan(Action<List<IRenderPipelineConverterItem>> onScanFinish)
+        {
+            InitializeConverterContext ctx = new() { items = new() };
+
+            void TranslateOldAPIToNewAPI()
+            {
+                // Temporary solution until all converters are moved to new API
+                var listItems = new List<IRenderPipelineConverterItem>();
+                foreach (var i in ctx.items)
+                {
+                    var item = new RenderPipelineConverterItem()
+                    {
+                        name = i.name,
+                        info = i.info,
+                        index = ctx.items.IndexOf(i),
+                        descriptor = i,
+                        isEnabled = string.IsNullOrEmpty(i.warningMessage),
+                        isDisabledMessage = i.warningMessage,
+                        onClicked = () => OnClicked(ctx.items.IndexOf(i))
+                    };
+
+                    listItems.Add(item);
+                }
+                onScanFinish?.Invoke(listItems);
+            }
+
+            OnInitialize(ctx, TranslateOldAPIToNewAPI);
+        }
+
+        public void BeforeConvert()
+        {
+            OnPreRun();
+        }
+
+        public Status Convert(IRenderPipelineConverterItem item, out string message)
+        {
+            // Temporary solution until all converters are moved to new API
+            RenderPipelineConverterItem rpItem = item as RenderPipelineConverterItem;
+            var itemToConvertInfo = new ConverterItemInfo()
+            {
+                index = rpItem.index,
+                descriptor = rpItem.descriptor,
+            };
+            var ctx = new RunItemContext(itemToConvertInfo);
+            OnRun(ref ctx);
+
+            if (ctx.didFail)
+            {
+                message = ctx.info;
+                return Status.Error;
+            }
+
+            message = string.Empty;
+            return Status.Success;
+        }
+
+        public void AfterConvert()
+        {
+            OnPostRun();
         }
     }
 }

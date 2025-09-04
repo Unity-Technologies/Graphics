@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -41,7 +42,7 @@ namespace UnityEditor.Rendering.Universal
                 // Create a new ConvertState which holds the active state of the converter
                 var converterState = new ConverterState
                 {
-                    isActive = false,
+                    isSelected = false,
                     isInitialized = false,
                     items = new List<ConverterItemState>(),
                 };
@@ -63,10 +64,6 @@ namespace UnityEditor.Rendering.Universal
                 var state = kvp.Value;
                 state.isInitialized = false;
                 state.items.Clear();
-                state.pending = 0;
-                state.warnings = 0;
-                state.errors = 0;
-                state.success = 0;
             }
         }
 

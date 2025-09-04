@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -26,7 +27,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (m_ConverterItemState != null)
                 {
-                    m_ConverterItemState.isActive = !m_ConverterItemState.isActive;
+                    m_ConverterItemState.isSelected = !m_ConverterItemState.isSelected;
                     itemSelectionChanged?.Invoke();
                 }
             });
@@ -38,21 +39,15 @@ namespace UnityEditor.Rendering.Universal
         {
             m_ConverterItemState = itemState;
 
-            m_ItemSelectedToggle.SetValueWithoutNotify(m_ConverterItemState.isActive);
+            m_ItemSelectedToggle.SetValueWithoutNotify(m_ConverterItemState.isSelected);
 
-            var desc = m_ConverterItemState.descriptor;
-            m_RootVisualElement.Q<Label>("converterItemName").text = desc.name;
-            m_RootVisualElement.Q<Label>("converterItemPath").text = desc.info;
-
-            if (!string.IsNullOrEmpty(desc.helpLink))
-            {
-                m_RootVisualElement.Q<Image>("converterItemHelpIcon").image = CoreEditorStyles.iconHelp;
-                m_RootVisualElement.Q<Image>("converterItemHelpIcon").tooltip = desc.helpLink;
-            }
+            var item = m_ConverterItemState.item;
+            m_RootVisualElement.Q<Label>("converterItemName").text = item.name;
+            m_RootVisualElement.Q<Label>("converterItemPath").text = item.info;
 
             // Changing the icon here depending on the status.
             Texture2D icon = null;
-            Status status = m_ConverterItemState.status;
+            Status status = m_ConverterItemState.conversionResult.Status;
             switch (status)
             {
                 case Status.Pending:
@@ -70,7 +65,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             m_RootVisualElement.Q<Image>("converterItemStatusIcon").image = icon;
-            m_RootVisualElement.Q<Image>("converterItemStatusIcon").tooltip = m_ConverterItemState.message;
+            m_RootVisualElement.Q<Image>("converterItemStatusIcon").tooltip = m_ConverterItemState.conversionResult.Message;
         }
 
     }

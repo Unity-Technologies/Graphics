@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Rendering.Analytics;
+using UnityEditor.Rendering.Converter;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -11,32 +12,14 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Universal
 {
-    // Status for each row item to say in which state they are in.
-    // This will make sure they are showing the correct icon
-    [Serializable]
-    enum Status
-    {
-        Pending,
-        Warning,
-        Error,
-        Success
-    }
-
     // This is the serialized class that stores the state of each item in the list of items to convert
     [Serializable]
     class ConverterItemState
     {
-        public ConverterItemDescriptor descriptor;
-
-        public bool isActive;
-
-        // Message that will be displayed on the icon if warning or failed.
-        public string message;
-
-        // Status of the converted item, Pending, Warning, Error or Success
-        public Status status;
-
-        internal bool hasConverted = false;
+        public bool isSelected;
+        public IRenderPipelineConverterItem item;
+        public (Status Status, string Message) conversionResult = (Status.Pending, string.Empty);
+        internal bool hasConverted => conversionResult.Status != Status.Pending;
     }
 
     // Each converter uses the active bool
@@ -45,15 +28,27 @@ namespace UnityEditor.Rendering.Universal
     [Serializable]
     class ConverterState
     {
-        public bool isActive;
+        public bool isSelected;
         public bool isLoading; // to name
         public bool isInitialized;
         public List<ConverterItemState> items = new List<ConverterItemState>();
 
-        public int pending;
-        public int warnings;
-        public int errors;
-        public int success;
+        private int CountItemWithFlag(Status status)
+        {
+            int count = 0;
+            foreach (ConverterItemState itemState in items)
+            {
+                if (itemState.conversionResult.Status == status)
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+        public int pending => CountItemWithFlag(Status.Pending);
+        public int warnings => CountItemWithFlag(Status.Warning);
+        public int errors => CountItemWithFlag(Status.Error);
+        public int success => CountItemWithFlag(Status.Success);
 
         public override string ToString()
         {
@@ -67,7 +62,7 @@ namespace UnityEditor.Rendering.Universal
                 int count = 0;
                 foreach (ConverterItemState itemState in items)
                 {
-                    if (itemState.isActive)
+                    if (itemState.isSelected)
                     {
                         count++;
                     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEditor.Rendering.Converter;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -20,11 +21,10 @@ namespace UnityEditor.Rendering.Universal
         public string displayName => converter.name;
         public string description => converter.info;
 
-
         public ConverterState state => m_ConverterInfo.state;
         public RenderPipelineConverter converter => m_ConverterInfo.converter as RenderPipelineConverter;
 
-        public bool isActiveAndEnabled => converter.isEnabled && state.isActive;
+        public bool isActiveAndEnabled => converter.isEnabled && state.isSelected;
         public bool requiresInitialization => !state.isInitialized && isActiveAndEnabled;
 
         VisualElement m_RootVisualElement;
@@ -45,10 +45,10 @@ namespace UnityEditor.Rendering.Universal
             m_RootVisualElement.styleSheets.Add(s_StyleSheet.Value);
 
             var converterEnabledToggle = m_RootVisualElement.Q<Toggle>("converterEnabled");
-            converterEnabledToggle.SetValueWithoutNotify(state.isActive);
+            converterEnabledToggle.SetValueWithoutNotify(state.isSelected);
             converterEnabledToggle.RegisterCallback<ClickEvent>((evt) =>
             {
-                state.isActive = !state.isActive;
+                state.isSelected = !state.isSelected;
                 converterSelected?.Invoke();
                 UpdateConversionInfo();
                 evt.StopPropagation(); // This toggle needs to stop propagation since it is inside another clickable element
@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.Universal
         private void SetItemsActive(bool value)
         {
             foreach (var itemState in state.items)
-                itemState.isActive = value;
+                itemState.isSelected = value;
         }
 
         public void UpdateInfo()
@@ -167,22 +167,6 @@ namespace UnityEditor.Rendering.Universal
 
         void UpdateConversionInfo()
         {
-            // Make sure info is up to date
-            state.pending = 0;
-            state.errors = 0;
-            state.success = 0;
-            state.warnings = 0;
-            foreach (var converterItemState in state.items)
-            {
-                switch (converterItemState.status)
-                {
-                    case Status.Pending: state.pending++; break;
-                    case Status.Warning: state.warnings++; break;
-                    case Status.Error: state.errors++; break;
-                    case Status.Success: state.success++; break;
-                }
-            }
-
             var info = GetConversionInfo();
 
             m_RootVisualElement.Q<Label>("converterStateInfoL").text = info.message;
@@ -197,7 +181,7 @@ namespace UnityEditor.Rendering.Universal
 
         private (string message, Texture2D icon) GetConversionInfo()
         {
-            if (!state.isActive)
+            if (!state.isSelected)
                 return ("Converter Not Selected", null);
 
             if (!state.isInitialized)
@@ -247,31 +231,20 @@ namespace UnityEditor.Rendering.Universal
             var initCtx = new InitializeConverterContext { items = converterItemInfos };
 
             state.isLoading = true;
+            converter.Scan(OnConverterCompleteDataCollection);
 
-            converter.OnInitialize(initCtx, OnConverterCompleteDataCollection);
-
-            void OnConverterCompleteDataCollection()
+            void OnConverterCompleteDataCollection(List<IRenderPipelineConverterItem> items)
             {
                 // Set the item infos list to to the right index
                 state.items = new List<ConverterItemState>(converterItemInfos.Count);
 
-                for (var j = 0; j < converterItemInfos.Count; j++)
+                foreach(var item in items)
                 {
                     var converterItemState = new ConverterItemState()
                     {
-                        descriptor = initCtx.items[j],
-                        hasConverted = false,
-                        isActive = true, // Default all the entries to true
-                        status = Status.Pending
+                        item = item,
+                        isSelected = true, // Default all the entries to true
                     };
-
-                    // The scan has already found some items that might not be convertible
-                    if (!string.IsNullOrEmpty(converterItemInfos[j].warningMessage))
-                    {
-                        converterItemState.status = Status.Warning;
-                        converterItemState.message = converterItemInfos[j].warningMessage;
-                        converterItemState.isActive = false;
-                    }
 
                     state.items.Add(converterItemState);
                 }
@@ -294,51 +267,46 @@ namespace UnityEditor.Rendering.Universal
 
             var sb = new StringBuilder($"Conversion results for item: {displayName}:{Environment.NewLine}");
 
-            converter.OnPreRun();
+            converter.BeforeConvert();
             int itemIndex = 0;
             int itemToConvertIndex = 0;
-            foreach (var item in state.items)
+            foreach (var itemState in state.items)
             {
                 if (EditorUtility.DisplayCancelableProgressBar(progressTitle,
-                    $"({itemToConvertIndex} of {state.pending}) {item.descriptor.name}",
+                    $"({itemToConvertIndex} of {state.pending}) {itemState.item.name}",
                     itemToConvertIndex / (float)state.pending))
                     break;
 
-                if (!item.hasConverted && item.isActive)
+                if (!itemState.hasConverted && itemState.isSelected)
                 {
                     try
                     {
-                        var itemToConvertInfo = new ConverterItemInfo()
+                        var status = converter.Convert(itemState.item, out var message);
+                        switch (status)
                         {
-                            index = itemIndex,
-                            descriptor = item.descriptor,
-                        };
-                        var ctx = new RunItemContext(itemToConvertInfo);
-                        converter.OnRun(ref ctx);
-                        item.hasConverted = true;
+                            case Status.Pending:
+                                throw new InvalidOperationException("Converter returned a pending status when converting. This is not supported.");
+                            case Status.Error:
+                            case Status.Warning:
+                                sb.AppendLine($"- {itemState.item.name} ({status}) ({message})");
+                                break;
+                            case Status.Success:
+                                sb.AppendLine($"- {itemState.item.name} ({status})");
+                                break;
+                        }
 
-                        if (ctx.didFail)
-                        {
-                            item.status = Status.Error;
-                            item.message = ctx.info;
-                            sb.AppendLine($"- {item.descriptor.name} ({item.status}) ({ctx.info})");
-                        }
-                        else
-                        {
-                            item.status = Status.Success;
-                            item.message = string.Empty;
-                            sb.AppendLine($"- {item.descriptor.name} ({item.status})");
-                        }
+                        itemState.conversionResult.Status = status;
+                        itemState.conversionResult.Message = message;
                     }
                     catch(Exception ex)
                     {
-                        Debug.LogError($"Exception {ex.Message} while converting {item.descriptor} from {displayName}");
+                        Debug.LogError($"Exception {ex.Message} while converting {itemState.item.name} from {displayName}");
                     }
                     itemToConvertIndex++;
                 }
                 itemIndex++;
             }
-            converter.OnPostRun();
+            converter.AfterConvert();
 
             Refresh();
 
