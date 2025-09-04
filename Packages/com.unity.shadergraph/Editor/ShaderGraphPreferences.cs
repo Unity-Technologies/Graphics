@@ -32,6 +32,7 @@ namespace UnityEditor.ShaderGraph
             internal const string zoomStepSize = "UnityEditor.ShaderGraph.ZoomStepSize";
             internal const string graphTemplateWorkflow = "UnityEditor.ShaderGraph.GraphTemplateWorkflow";
             internal const string openNewGraphOnCreation = "UnityEditor.ShaderGraph.OpenNewGraphOnCreation";
+            internal const string newNodesPreview = "UnityEditor.ShaderGraph.NewNodesPreview";
         }
 
         static bool m_Loaded = false;
@@ -112,6 +113,13 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_OpenNewGraphOnCreation;
             set => TrySave(ref m_OpenNewGraphOnCreation, value, Keys.openNewGraphOnCreation);
+        }
+
+        static bool m_NewNodesPreview = true;
+        internal static bool newNodesPreview
+        {
+            get => m_NewNodesPreview;
+            private set => TrySave(ref m_NewNodesPreview, value, Keys.newNodesPreview);
         }
 
         internal static bool GetOrPromptOpenNewGraphOnCreation()
@@ -196,6 +204,13 @@ namespace UnityEditor.ShaderGraph
                 {
                     openNewGraphOnCreation = openNewGraphOnCreationValue;
                 }
+
+                EditorGUI.BeginChangeCheck();
+                var newNodesPreviewValue = EditorGUILayout.Toggle(new GUIContent("Expand Node Preview on Node creation", "Choose whether newly added Nodes' Previews should be expanded."), newNodesPreview);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    newNodesPreview = newNodesPreviewValue;
+                }
             }
         }
 
@@ -207,6 +222,7 @@ namespace UnityEditor.ShaderGraph
             m_ZoomStepSize = EditorPrefs.GetFloat(Keys.zoomStepSize, defaultZoomStepSize);
             m_GraphTemplateWorkflow = (GraphTemplateWorkflow)EditorPrefs.GetInt(Keys.graphTemplateWorkflow, (int)defaultGraphTemplateWorkflow);
             m_OpenNewGraphOnCreation = EditorPrefs.GetBool(Keys.openNewGraphOnCreation, true);
+            m_NewNodesPreview = EditorPrefs.GetBool(Keys.newNodesPreview, true);
             m_Loaded = true;
         }
 

@@ -708,6 +708,8 @@ namespace UnityEditor.ShaderGraph
                     return;
                 }
 
+                materialNode.previewExpanded = ShaderGraphPreferences.newNodesPreview;
+
                 AddNodeNoValidate(materialNode);
 
                 // If adding a Sub Graph node whose asset contains Keywords
