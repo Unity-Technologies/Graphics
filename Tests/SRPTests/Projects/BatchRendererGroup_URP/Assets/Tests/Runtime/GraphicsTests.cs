@@ -45,6 +45,14 @@ public class GraphicsTests
 
         yield return null;
 
+        // Add a maximum amount of wait frames to avoid infinite loop
+        int maxWaitFrames = 300;
+        while (settings.Wait && maxWaitFrames > 0)
+        {
+            maxWaitFrames--;
+            yield return new WaitForEndOfFrame();
+        }
+
         int waitFrames = settings.WaitFrames;
 
         if (settings.ImageComparisonSettings.UseBackBuffer && settings.WaitFrames < 1)
