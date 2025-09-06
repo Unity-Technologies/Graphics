@@ -275,6 +275,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 displayName = "DefaultWhiteTex",
             });
 
+            collector.AddShaderProperty(new Texture2DShaderProperty
+            {
+                defaultType = Texture2DShaderProperty.DefaultType.Black,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = "_BlackTex",
+                displayName = "DefaultBlackTex",
+            });
+
             collector.AddShaderProperty(new ColorShaderProperty()
             {
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f),
