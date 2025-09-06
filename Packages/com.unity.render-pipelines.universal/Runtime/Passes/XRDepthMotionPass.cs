@@ -48,6 +48,7 @@ namespace UnityEngine.Rendering.Universal
 
         ///  View projection data
         private Matrix4x4[] m_StagingMatrixArray = new Matrix4x4[k_XRViewCountPerPass]; // Staging matrix to avoid allocating memory every frame when setting shader properties.
+        private Matrix4x4[] m_PreviousStagingMatrixArray = new Matrix4x4[k_XRViewCountPerPass]; // Staging matrix to avoid allocating memory every frame when setting shader properties.
         private const int k_XRViewCount = 4;
         private Matrix4x4[] m_ViewProjection = new Matrix4x4[k_XRViewCount];
         private Matrix4x4[] m_PreviousViewProjection = new Matrix4x4[k_XRViewCount];
@@ -104,8 +105,8 @@ namespace UnityEngine.Rendering.Universal
             var xr = cameraData.xr;
             var viewStartIndex = xr.viewCount * xr.multipassId;
 
-            Array.Copy(m_PreviousViewProjection, viewStartIndex, m_StagingMatrixArray, 0, xr.viewCount);
-            passData.previousViewProjectionStereo = m_StagingMatrixArray;
+            Array.Copy(m_PreviousViewProjection, viewStartIndex, m_PreviousStagingMatrixArray, 0, xr.viewCount);
+            passData.previousViewProjectionStereo = m_PreviousStagingMatrixArray;
 
             Array.Copy(m_ViewProjection, viewStartIndex, m_StagingMatrixArray, 0, xr.viewCount);
             passData.viewProjectionStereo = m_StagingMatrixArray;
