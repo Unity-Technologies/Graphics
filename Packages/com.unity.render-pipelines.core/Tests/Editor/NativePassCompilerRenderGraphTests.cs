@@ -892,7 +892,7 @@ namespace UnityEngine.Rendering.Tests
             // Render to final buffer
             using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
             {
-                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.ReadWrite);
                 builder.SetRenderAttachment(importedTexture, 1, AccessFlags.Write);
                 builder.SetRenderAttachment(buffers.backBuffer, 2, AccessFlags.Write);
                 builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
@@ -1605,5 +1605,213 @@ namespace UnityEngine.Rendering.Tests
             Assert.IsTrue(passes[0].shadingRateImageIndex == buffers.extraBuffers[0].handle.index);
         }
 */
+
+        [Test]
+        public void UnusedResourceCulling_CullProducer_WhenVersionsAreNotExplicitlyRead()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // Bumping version of extraBuffer within RG to 1 as we write to it in first pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            // Bumping version of extraBuffer within RG to 2 as we write to it in second pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            // Bumping version of extraBuffer within RG to 3 as we write to it in third pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            // Bumping version of extraBuffer within RG to 4 as we write to it in fourth pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass3", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false); // Not culled!
+            }
+
+            // Bumping version of extraBuffer within RG to 5 as we write to it in fifth pass
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass4", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(true);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // All passes are only writing different versions of a non-imported texture that is never explicitly read by anyone
+            // Only fourth pass is preserved as requested but other passes are culled            
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 1);
+            // TestPass3 is the first pass needing extraBuffers[0] so this is the pass allocating it
+            Assert.IsTrue(result.contextData.passData.ElementAt(3).FirstUsedResources(result.contextData).Length == 1);
+            // extraBuffer version has decreased to 4 as it is written by the fourth pass
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[0].handle).latestVersionNumber, 4);
+        }
+
+        [Test]
+        public void UnusedResourceCulling_CullProducer_WhenNoneOfItsWrittenResourcesAreExplicitlyRead()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // This pass implicitly reads version 0 of extraBuffers[0] and writes its version 1 that will be implicitly read in the next pass - dependency
+            // It also explicitly reads version 0 of extraBuffers[1] and writes its version 1 but none reads it - no side effect
+            // It also implicitly reads version 0 of depthBuffer that is imported in RG but don't write it - no side effect
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(buffers.extraBuffers[1], 1, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // This pass implicitly reads version 1 of extraBuffers[1] and writes its version 2 that none reads - no side effect
+            // It also implicitly reads version 0 of extraBuffers[2] and writes its version 1 that will be explicitly read in the next pass - dependency
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[1], 1, AccessFlags.Write);
+                builder.SetRenderAttachment(buffers.extraBuffers[2], 2, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // This pass explicitly reads version 1 of extraBuffers[2]
+            // We explicitly request this pass not to be culled, so it will be preserved
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[2], 2, AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // - TestPass2 can NOT be culled
+            // - TestPass1 can NOT be culled as it is an explicit dependency of TestPass2 through extraBuffers[2]
+            // - TestPass0 can be culled as it is an implicit dependency of TestPass1 through extraBuffers[1] but none reads extraBuffers[1] so we can break this dependency
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 2);
+            // extraBuffer[1] latest version remains at 2 but none writes version 1, it is okay since none reads it
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[0].handle).latestVersionNumber, 2);
+            // extraBuffer[2] latest version remains at 1
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[1].handle).latestVersionNumber, 1);
+        }
+
+        [Test]
+        public void UnusedResourceCulling_DoNotCullProducer_WhenOneOfItsWrittenResourcesIsExplicitlyRead()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // This pass implicitly reads version 0 of extraBuffers[0] and writes its version 1 that will be explicitly read in the next pass - dependency
+            // It also explicitly reads version 0 of extraBuffers[1] and writes its version 1 but none reads it - no side effect
+            // It also implicitly reads version 0 of depthBuffer that is imported in RG but don't write it - no side effect
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(buffers.extraBuffers[1], 1, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // This pass explicitly reads version 1 of extraBuffers[1] and writes its version 2 that none reads - no side effect
+            // It also implicitly reads version 0 of extraBuffers[2] and writes its version 1 that will be explicitly read in the next pass - dependency
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[1], 1, AccessFlags.ReadWrite);
+                builder.SetRenderAttachment(buffers.extraBuffers[2], 2, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // This pass explicitly reads version 1 of extraBuffers[2]
+            // We explicitly request this pass not to be culled, so it will be preserved
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[2], 2, AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // All passes are preserved,
+            // - TestPass2 can't be culled
+            // - TestPass1 is an explicit dependency of TestPass2 through extraBuffers[2]
+            // - TestPass0 is an explicit dependency of TestPass1 through extraBuffers[1]            
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 3);
+            // depth last version is 0
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[0].handle).latestVersionNumber, 0);
+            // extraBuffer[0] latest version remains at 1
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[1].handle).latestVersionNumber, 1);
+            // extraBuffer[1] latest version remains at 2
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[2].handle).latestVersionNumber, 2);
+            // extraBuffer[2] latest version remains at 1
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[3].handle).latestVersionNumber, 1);
+        }
+
+        [Test]
+        public void UnusedResourceCulling_CullProducer_WhenNextVersionOfProducedResourceIsWrittenAll()
+        {
+            var g = AllocateRenderGraph();
+            var buffers = ImportAndCreateBuffers(g);
+
+            // This pass implicitly reads version 0 of extraBuffers[0] and writes its version 1 that will be explicitly read in the next pass - dependency
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // This pass explicitly reads version 1 of extraBuffers[0] - no side effect
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.Read);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // This pass implicitly reads version 1 of extraBuffers[0] and writes its version 2 that will not be read in the next pass - no side effect
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.Write);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+            }
+
+            // This pass writes all version 3 of extraBuffers[2]
+            // We explicitly request this pass not to be culled, so it will be preserved
+            using (var builder = g.AddRasterRenderPass<RenderGraphTestPassData>("TestPass3", out var passData))
+            {
+                builder.SetRenderAttachment(buffers.extraBuffers[0], 0, AccessFlags.WriteAll);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext context) => { });
+                builder.AllowPassCulling(false);
+            }
+
+            var result = g.CompileNativeRenderGraph(g.ComputeGraphHash());
+            var passes = result.contextData.GetNativePasses();
+
+            // Only last pass is preserved
+            // - TestPass3 can't be culled
+            // - TestPass2 can be culled as it is has no side effect and writes extraBuffers[0] at version 2 that none reads as TestPass3 rewrites all of extraBuffers[0]
+            // - TestPass1 can be culled as it is has no side effect and only reads extraBuffers[0]
+            // - TestPass0 can be culled as it is an implicit dependency of TestPass1 through extraBuffers[0] but TestPass1 will be culled
+            Assert.IsTrue(passes != null && passes.Count == 1 && passes[0].numGraphPasses == 1);
+            // extraBuffer[0] latest version remains at 2
+            Assert.AreEqual(result.contextData.UnversionedResourceData(passes[0].attachments[0].handle).latestVersionNumber, 3);
+        }
     }
 }
