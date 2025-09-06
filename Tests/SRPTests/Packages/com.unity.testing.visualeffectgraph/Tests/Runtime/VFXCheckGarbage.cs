@@ -92,7 +92,7 @@ Recorder m_gcAllocRecorder;
         }
 
         [UnityTest]
-#if UNITY_SWITCH
+#if UNITY_SWITCH || UNITY_PS5
         [Ignore("See UUM-108973")]
 #endif
         public IEnumerator Create_Garbage_Scenario([ValueSource(nameof(s_Scenarios))] string scenario, [ValueSource(nameof(s_CustomGarbageWrapperTest))] string garbageMode)
@@ -106,7 +106,7 @@ Recorder m_gcAllocRecorder;
             var forceGarbage = garbageMode == s_CustomGarbageWrapperTest[0];
             foreach (var currentVFX in vfxComponents)
             {
-                Assert.IsTrue(currentVFX.HasBool(kForceGarbageID));
+                Assert.IsTrue(currentVFX.HasBool(kForceGarbageID), $"ForceGarbage does not exist on the VFX component {currentVFX.name}.");
                 currentVFX.SetBool(kForceGarbageID, forceGarbage);
             }
 
@@ -219,11 +219,11 @@ Recorder m_gcAllocRecorder;
             knownAllocation += 1u; //RemoteTestResultSend.SendDataRoutine (which can occurs randomly)
             if (forceGarbage)
             {
-                Assert.IsTrue(allocationCountFromCustomCallback > knownAllocation);
+                Assert.Greater(allocationCountFromCustomCallback, knownAllocation);
             }
             else
             {
-                Assert.IsTrue(allocationCountFromCustomCallback <= knownAllocation);
+                Assert.LessOrEqual(allocationCountFromCustomCallback, knownAllocation);
             }
 #endif
         }
