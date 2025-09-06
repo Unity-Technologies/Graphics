@@ -24,6 +24,8 @@ namespace UnityEditor.Rendering
             public static readonly GUIContent meshBoxCollider = EditorGUIUtility.TrTextContent("Add a Mesh Collider");
             public static readonly GUIContent addColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Add a Collider to this GameObject to set boundaries for the local Volume.", CoreEditorStyles.iconWarn);
             public static readonly GUIContent disableColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Global Volumes do not need a collider. Disable or remove the collider.", CoreEditorStyles.iconWarn);
+            public static readonly GUIContent physicsBackendDisabledMessage = EditorGUIUtility.TrTextContentWithIcon("Local Volumes are unavailable when the Physics GameObject SDK is set to None. Either choose a different Physics SDK in Project Settings > Physics, or set the Mode to Global.", CoreEditorStyles.iconWarn);
+            public static readonly GUIContent physicsModuleDisabledMessage = EditorGUIUtility.TrTextContentWithIcon("Local Volumes are unavailable without the Physics module. Enable the Physics module, or set the Mode to Global.", CoreEditorStyles.iconWarn);
             public static readonly GUIContent enableColliderFixMessage = EditorGUIUtility.TrTextContentWithIcon("Local Volumes need a collider enabled. Enable the collider.", CoreEditorStyles.iconWarn);
             public static readonly GUIContent newLabel = EditorGUIUtility.TrTextContent("New", "Create a new profile.");
             public static readonly GUIContent saveLabel = EditorGUIUtility.TrTextContent("Save", "Save the instantiated profile");
@@ -92,6 +94,13 @@ namespace UnityEditor.Rendering
                 }
                 else
                 {
+#if ENABLE_PHYSICS_MODULE
+                    bool physicsBackendIsNone = Physics.GetCurrentIntegrationInfo().isFallback;
+                    if (physicsBackendIsNone)
+                        EditorGUILayout.HelpBox(Styles.physicsBackendDisabledMessage);
+#else
+                    EditorGUILayout.HelpBox(Styles.physicsModuleDisabledMessage);
+#endif
                     if (hasCollider)
                     {
                         if (!collider.enabled)

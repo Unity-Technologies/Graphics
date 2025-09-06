@@ -65,12 +65,12 @@ namespace Unity.Rendering.Universal.Tests
             Assert.True(cameras != null && cameras.Any(),
                 "Invalid test scene, couldn't find a camera with MainCamera tag.");
 
-        // Disable camera track for OCULUS_SDK and OPENXR_SDK so we ensure we get a consistent screen capture for image comparison
+            // Disable camera track for OCULUS_SDK and OPENXR_SDK so we ensure we get a consistent screen capture for image comparison
 #if OCULUS_SDK || OPENXR_SDK
-       // This code is added to hande a case where some test(001_SimpleCube_deferred_RenderPass) would throw error on Quest Vulkan, which would pollute the console for the tests running after.
-        UnityEngine.Debug.ClearDeveloperConsole();
+            // This code is added to hande a case where some test(001_SimpleCube_deferred_RenderPass) would throw error on Quest Vulkan, which would pollute the console for the tests running after.
+            UnityEngine.Debug.ClearDeveloperConsole();
 
-        XRDevice.DisableAutoXRCameraTracking(Camera.main, true);
+            XRDevice.DisableAutoXRCameraTracking(Camera.main, true);
 #endif
             var settings = Object.FindAnyObjectByType<UniversalGraphicsTestSettings>();
             Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
@@ -90,17 +90,18 @@ namespace Unity.Rendering.Universal.Tests
 
             int waitFrames = 1;
 
-        // for OCULUS_SDK or OPENXR_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
+            // for OCULUS_SDK or OPENXR_SDK, this ensures we wait for a reliable image rendering before screen capture and image comparison
 #if OCULUS_SDK || OPENXR_SDK
-        if(!settings.XRCompatible)
-        {
-            Assert.Ignore("Quest XR Automation: Test scene is not compatible with XR and will be skipped.");
-        }
+            if(!settings.XRCompatible)
+            {
+                Assert.Ignore("Quest XR Automation: Test scene is not compatible with XR and will be skipped.");
+            }
 
-        waitFrames = 4;
+            waitFrames = 4;
+#elif ENABLE_VR && USE_XR_MOCK_HMD
+            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
 #else
-            waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames,
-                settings.ImageComparisonSettings);
+            waitFrames = settings.WaitFrames;
 #endif
             Scene scene = SceneManager.GetActiveScene();
 

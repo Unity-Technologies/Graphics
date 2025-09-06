@@ -8,6 +8,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.imageconversion": "1.0.0",
+    "com.unity.modules.physics": "1.0.0",
     "com.unity.render-pipelines.core": "17.4.0",
     "com.unity.shadergraph": "17.4.0",
     "com.unity.visualeffectgraph": "17.4.0",

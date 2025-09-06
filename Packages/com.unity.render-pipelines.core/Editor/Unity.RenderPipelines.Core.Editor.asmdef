@@ -23,6 +23,11 @@
             "name": "com.unity.burst",
             "expression": "1.5.0",
             "define": "HAS_BURST"
+        },
+        {
+            "name": "com.unity.modules.physics",
+            "expression": "1.0.0",
+            "define": "ENABLE_PHYSICS_MODULE"
         }
     ],
     "noEngineReferences": false

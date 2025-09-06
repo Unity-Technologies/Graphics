@@ -49,6 +49,11 @@
             "name": "com.unity.modules.amd",
             "expression": "1.0.0",
             "define": "ENABLE_AMD_MODULE"
+        },
+        {
+            "name": "com.unity.modules.physics",
+            "expression": "1.0.0",
+            "define": "ENABLE_PHYSICS_MODULE"
         }
     ],
     "noEngineReferences": false

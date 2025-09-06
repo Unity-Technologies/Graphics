@@ -749,6 +749,10 @@ namespace UnityEngine.Rendering
                 beginVolumeStackUpdate?.Invoke(stack, camera);
 #endif
 
+#if ENABLE_PHYSICS_MODULE
+            bool physicsBackendIsNone = Physics.GetCurrentIntegrationInfo().isFallback;
+#endif
+
             // Traverse all volumes
             int numVolumes = volumes.Count;
             for (int i = 0; i < numVolumes; i++)
@@ -775,6 +779,11 @@ namespace UnityEngine.Rendering
                 }
 
                 if (onlyGlobal)
+                    continue;
+
+                // NOTE: Local volumes require physics module to be enabled
+#if ENABLE_PHYSICS_MODULE
+                if (physicsBackendIsNone)
                     continue;
 
                 // If volume isn't global and has no collider, skip it as it's useless
@@ -815,6 +824,7 @@ namespace UnityEngine.Rendering
 
                 // No need to clamp01 the interpolation factor or weight as both are always in [0;1[ range
                 OverrideData(stack, volume, interpFactor * Mathf.Clamp01(volume.weight));
+#endif
             }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering
     [ExecuteAlways]
     [AddComponentMenu("Miscellaneous/Volume")]
     [Icon("Packages/com.unity.render-pipelines.core/Editor/Icons/Processed/Volume Icon.asset")]
-    public class Volume : MonoBehaviour, IVolume
+    public class Volume : MonoBehaviour
     {
         [SerializeField, FormerlySerializedAs("isGlobal")]
         bool m_IsGlobal = true;
@@ -99,13 +99,15 @@ namespace UnityEngine.Rendering
             set => m_InternalProfile = value;
         }
 
+#if ENABLE_PHYSICS_MODULE
         readonly List<Collider> m_Colliders = new List<Collider>();
 
         /// <summary>
         /// The colliders of the volume if <see cref="isGlobal"/> is false
         /// </summary>
         public List<Collider> colliders => m_Colliders;
-        
+#endif
+
         GameObject m_CachedGameObject;
         internal GameObject cachedGameObject => m_CachedGameObject;
 
@@ -157,7 +159,9 @@ namespace UnityEngine.Rendering
         /// </remarks>
         public void UpdateColliders()
         {
+#if ENABLE_PHYSICS_MODULE
             GetComponents(m_Colliders);
+#endif
         }
 
         internal void UpdateLayer()

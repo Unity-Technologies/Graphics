@@ -1,130 +1,103 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    class VolumeGizmoDrawer
+    /// <summary>
+    /// Collection of static methods to draw gizmos for volume colliders.
+    /// </summary>
+    public static class VolumeGizmoDrawer
     {
-        #region GizmoCallbacks
-        static readonly Dictionary<Type, IVolumeAdditionalGizmo> s_AdditionalGizmoCallbacks = new();
-
-        [InitializeOnLoadMethod]
-        static void InitVolumeGizmoCallbacks()
+        /// <summary>
+        /// Draws a box collider gizmo.
+        /// </summary>
+        /// <param name="transform">Transform of the box collider.</param>
+        /// <param name="center">Center position of the box collider.</param>
+        /// <param name="size">Size of the box collider.</param>
+        public static void DrawBoxCollider(Transform transform, Vector3 center, Vector3 size)
         {
-            foreach (var additionalGizmoCallback in TypeCache.GetTypesDerivedFrom<IVolumeAdditionalGizmo>())
-            {
-                if (additionalGizmoCallback.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null) == null)
-                    continue;
-                var instance = Activator.CreateInstance(additionalGizmoCallback) as IVolumeAdditionalGizmo;
-                s_AdditionalGizmoCallbacks.Add(instance.type, instance);
-            }
+            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+
+            if (VolumesPreferences.drawWireFrame)
+                Gizmos.DrawWireCube(center, size);
+            if (VolumesPreferences.drawSolid)
+                Gizmos.DrawCube(center, size);
         }
 
-        #endregion
-
-        [DrawGizmo(GizmoType.Active | GizmoType.Selected | GizmoType.NonSelected)]
-        static void OnDrawGizmos(IVolume scr, GizmoType gizmoType)
+        /// <summary>
+        /// Draws a sphere collider gizmo.
+        /// </summary>
+        /// <param name="transform">Transform of the sphere collider.</param>
+        /// <param name="center">Center position of the sphere collider.</param>
+        /// <param name="radius">Radius of the sphere collider.</param>
+        public static void DrawSphereCollider(Transform transform, Vector3 center, float radius)
         {
-            if (scr is not MonoBehaviour monoBehaviour)
-                return;
+            // For sphere the only scale that is used is the transform.x
+            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one * transform.lossyScale.x);
 
-            if (!monoBehaviour.enabled)
-                return;
+            if (VolumesPreferences.drawWireFrame)
+                Gizmos.DrawWireSphere(center, radius);
+            if (VolumesPreferences.drawSolid)
+                Gizmos.DrawSphere(center, radius);
+        }
 
-            if (scr.isGlobal || scr.colliders == null)
-                return;
+        /// <summary>
+        /// Draws a mesh collider gizmo.
+        /// </summary>
+        /// <param name="transform">Transform of the mesh collider.</param>
+        /// <param name="mesh">Mesh to draw.</param>
+        public static void DrawMeshCollider(Transform transform, Mesh mesh)
+        {
+            // We'll just use scaling as an approximation for volume skin. It's far from being
+            // correct (and is completely wrong in some cases). Ultimately we'd use a distance
+            // field or at least a tessellate + push modifier on the collider's mesh to get a
+            // better approximation, but the current Gizmo system is a bit limited and because
+            // everything is dynamic in Unity and can be changed at anytime, it's hard to keep
+            // track of changes in an elegant way (which we'd need to implement a nice cache
+            // system for generated volume meshes).
 
-            // Store the computation of the lossyScale
-            var lossyScale = monoBehaviour.transform.lossyScale;
-            Gizmos.matrix = Matrix4x4.TRS(monoBehaviour.transform.position, monoBehaviour.transform.rotation, lossyScale);
+            Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+
+            if (VolumesPreferences.drawWireFrame)
+                Gizmos.DrawWireMesh(mesh);
+            if (VolumesPreferences.drawSolid)
+                Gizmos.DrawMesh(mesh); // Mesh pivot should be centered or this won't work
+        }
+
+#if ENABLE_PHYSICS_MODULE
+        [DrawGizmo(GizmoType.Active | GizmoType.Selected | GizmoType.NonSelected)]
+        static void OnDrawGizmos(Volume volume, GizmoType gizmoType)
+        {
+            if (!volume.enabled || volume.isGlobal || volume.colliders == null)
+                return;
 
             var gizmoColor = VolumesPreferences.volumeGizmoColor;
             var gizmoColorWhenBlendRegionEnabled = new Color(gizmoColor.r, gizmoColor.g, gizmoColor.b, 0.5f * gizmoColor.a);
 
-            s_AdditionalGizmoCallbacks.TryGetValue(scr.GetType(), out var callback);
-
-            // Draw a separate gizmo for each collider
-            foreach (var collider in scr.colliders)
+            foreach (var collider in volume.colliders)
             {
                 if (!collider || !collider.enabled)
                     continue;
 
-                float blendDistance = 0f;
-                if (scr is Volume volume)
-                    blendDistance = volume.blendDistance;
-
-                bool blendDistanceEnabled = blendDistance > 0f;
                 // Reduce gizmo opacity when blend region is enabled because there are two of them
+                bool blendDistanceEnabled = volume.blendDistance > 0f;
                 Gizmos.color = blendDistanceEnabled && VolumesPreferences.drawSolid ? gizmoColorWhenBlendRegionEnabled : gizmoColor;
-
-                // We'll just use scaling as an approximation for volume skin. It's far from being
-                // correct (and is completely wrong in some cases). Ultimately we'd use a distance
-                // field or at least a tesselate + push modifier on the collider's mesh to get a
-                // better approximation, but the current Gizmo system is a bit limited and because
-                // everything is dynamic in Unity and can be changed at anytime, it's hard to keep
-                // track of changes in an elegant way (which we'd need to implement a nice cache
-                // system for generated volume meshes).
 
                 switch (collider)
                 {
-                    case BoxCollider c: DrawBoxCollider(c); break;
-                    case SphereCollider c: DrawSphereCollider(c); break;
-                    case MeshCollider c: DrawMeshCollider(c); break;
-                    default:
-                        // Nothing for capsule (DrawCapsule isn't exposed in Gizmo), terrain, wheel and
-                        // other m_Colliders...
+                    case BoxCollider c:
+                        DrawBoxCollider(c.transform, c.center, c.size);
+                        if (blendDistanceEnabled)
+                            DrawBlendDistanceBox(c, volume.blendDistance);
                         break;
-                }
-
-                void DrawBoxCollider(BoxCollider boxCollider)
-                {
-                    if (VolumesPreferences.drawWireFrame)
-                        Gizmos.DrawWireCube(boxCollider.center, boxCollider.size);
-                    if (VolumesPreferences.drawSolid)
-                        Gizmos.DrawCube(boxCollider.center, boxCollider.size);
-
-                    if (blendDistanceEnabled)
-                        DrawBlendDistanceBox(boxCollider, blendDistance);
-
-                    callback?.OnBoxColliderDraw(scr, boxCollider);
-                }
-
-                void DrawSphereCollider(SphereCollider c)
-                {
-                    Matrix4x4 oldMatrix = Gizmos.matrix;
-                    // For sphere the only scale that is used is the transform.x
-                    Gizmos.matrix = Matrix4x4.TRS(monoBehaviour.transform.position, monoBehaviour.transform.rotation,
-                        Vector3.one * lossyScale.x);
-
-                    if (VolumesPreferences.drawWireFrame)
-                        Gizmos.DrawWireSphere(c.center, c.radius);
-                    if (VolumesPreferences.drawSolid)
-                        Gizmos.DrawSphere(c.center, c.radius);
-
-                    if (blendDistanceEnabled)
-                        DrawBlendDistanceSphere(c, blendDistance);
-
-                    callback?.OnSphereColliderDraw(scr, c);
-
-                    Gizmos.matrix = oldMatrix;
-                }
-
-                void DrawMeshCollider(MeshCollider c)
-                {
-                    // Only convex mesh m_Colliders are allowed
-                    if (!c.convex)
-                        c.convex = true;
-
-                    if (VolumesPreferences.drawWireFrame)
-                        Gizmos.DrawWireMesh(c.sharedMesh);
-                    if (VolumesPreferences.drawSolid)
-                        // Mesh pivot should be centered or this won't work
-                        Gizmos.DrawMesh(c.sharedMesh);
-
-                    callback?.OnMeshColliderDraw(scr, c);
+                    case SphereCollider c:
+                        DrawSphereCollider(c.transform, c.center, c.radius);
+                        if (blendDistanceEnabled)
+                            DrawBlendDistanceSphere(c, volume.blendDistance);
+                        break;
+                    case MeshCollider c:
+                        DrawMeshCollider(c.transform, c.sharedMesh);
+                        break;
                 }
             }
         }
@@ -155,5 +128,6 @@ namespace UnityEditor.Rendering
             if (VolumesPreferences.drawSolid)
                 Gizmos.DrawSphere(c.center, blendSphereSize);
         }
+#endif
     }
 }
