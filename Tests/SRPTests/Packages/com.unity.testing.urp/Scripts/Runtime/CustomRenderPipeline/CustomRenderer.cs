@@ -104,8 +104,6 @@ namespace UnityEngine.Rendering.Universal
             if (m_AdditionalLightsShadowCasterPass.Setup(renderingData, cameraData, lightData, shadowData))
                 additionalShadowsTexture = m_AdditionalLightsShadowCasterPass.Render(renderGraph, frameData);
 
-            SetupRenderGraphCameraProperties(renderGraph, cameraData.camera.targetTexture == null);
-
             RenderTargetIdentifier targetColorId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
             RenderTargetIdentifier targetDepthId = cameraData.targetTexture != null ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.Depth;
 
@@ -165,6 +163,7 @@ namespace UnityEngine.Rendering.Universal
             var targetHandle = renderGraph.ImportTexture(m_TargetColorHandle, importInfo, importBackbufferParams);
             var depthHandle = renderGraph.ImportTexture(m_TargetDepthHandle, importInfoDepth, importBackbufferParams);
 
+            SetupRenderGraphCameraProperties(renderGraph, cameraData.camera.targetTexture == null, targetHandle.IsValid() ? targetHandle : depthHandle);
 
             if (!renderGraph.nativeRenderPassesEnabled)
             {

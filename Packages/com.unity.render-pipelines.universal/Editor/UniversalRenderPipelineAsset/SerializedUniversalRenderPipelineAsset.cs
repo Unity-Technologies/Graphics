@@ -17,6 +17,9 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty lodCrossFadeDitheringTypeProp { get; }
         public SerializedProperty storeActionsOptimizationProperty { get; }
 
+#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
+        public SerializedProperty renderTextureUVOriginStrategyProp { get; }
+#endif
         public SerializedProperty hdr { get; }
         public SerializedProperty hdrColorBufferPrecisionProp { get; }
         public SerializedProperty intermediateTextureMode { get; }
@@ -187,6 +190,9 @@ namespace UnityEditor.Rendering.Universal
             volumeProfileProp = serializedObject.FindProperty("m_VolumeProfile");
 
             storeActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
+#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
+            renderTextureUVOriginStrategyProp = serializedObject.FindProperty("m_RenderTextureUVOriginStrategy");
+#endif
 
             colorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
             colorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");

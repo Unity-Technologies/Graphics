@@ -428,7 +428,7 @@ namespace UnityEngine.Rendering.Universal
         internal const string CompatibilityScriptingAPIConsoleWarning = "Your project uses Compatibility Mode, which disables the render graph system. Compatibility Mode is deprecated. Migrate your ScriptableRenderPasses to the Render Graph API instead. After you migrate, go to Edit > Project Settings > Player and remove the URP_COMPATIBILITY_MODE define from the Scripting Define Symbols. If you don't remove the define, build time and build size are slightly increased.";
     }
 #endif
-    
+
 #if UNITY_EDITOR && URP_COMPATIBILITY_MODE
     internal class WarnUsingNonRenderGraph
     {
@@ -581,6 +581,9 @@ namespace UnityEngine.Rendering.Universal
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
+#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
+        [SerializeField] RenderTextureUVOriginStrategy m_RenderTextureUVOriginStrategy;
+#endif
 #if UNITY_EDITOR
         // multi_compile _ LIGHTMAP_SHADOW_MIXING
         [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LightmapShadowMixing)]
@@ -1680,6 +1683,16 @@ namespace UnityEngine.Rendering.Universal
             OnValidate();
         }
 
+#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
+        /// <summary>
+        /// Returns the intermediate texture uv origin strategy for the current render pipeline.
+        /// </summary>
+        public RenderTextureUVOriginStrategy renderTextureUVOriginStrategy
+        {
+            get => m_RenderTextureUVOriginStrategy;
+            set => m_RenderTextureUVOriginStrategy = value;
+        }
+#endif
         /// <summary>
         /// Returns the selected ColorGradingMode in the URP Asset.
         /// If intermediateTextureMode is set to Never, this cannot be changed and the value is always ColorGradingMode.LowDynamicRange.

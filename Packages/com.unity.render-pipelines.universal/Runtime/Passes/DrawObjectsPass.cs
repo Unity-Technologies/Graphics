@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!data.isOpaque && !data.shouldTransparentsReceiveShadows)
                         TransparentSettingsPass.ExecutePass(context.cmd);
 
-                    bool yFlip = data.cameraData.IsRenderTargetProjectionMatrixFlipped(data.albedoHdl, data.depthHdl);
+                    bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.albedoHdl.IsValid() ? ref data.albedoHdl : ref data.depthHdl));
 
                     bool useScreenSpaceIrradiance = data.screenSpaceIrradianceHdl.IsValid();
                     context.cmd.SetKeyword(ShaderGlobalKeywords.ScreenSpaceIrradiance, useScreenSpaceIrradiance);
@@ -520,7 +520,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     if (!data.basePassData.isOpaque && !data.basePassData.shouldTransparentsReceiveShadows)
                         TransparentSettingsPass.ExecutePass(context.cmd);
 
-                    bool yFlip = data.basePassData.cameraData.IsRenderTargetProjectionMatrixFlipped(data.basePassData.albedoHdl, data.basePassData.depthHdl);
+                    bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.basePassData.albedoHdl.IsValid() ? ref data.basePassData.albedoHdl : ref data.basePassData.depthHdl));
 
                     // Execute
                     ExecutePass(context.cmd, data.basePassData, data.basePassData.rendererListHdl, data.basePassData.objectsWithErrorRendererListHdl, yFlip);
