@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using System.Runtime.CompilerServices;
 
 namespace UnityEngine.Rendering
 {
@@ -1885,5 +1886,47 @@ namespace UnityEngine.Rendering
             }
         }
 #endif
+
+        /// <summary>
+        /// Return the GraphicsFormat of DepthStencil RenderTarget preferred for the current platform.
+        /// </summary>
+        /// <returns>The GraphicsFormat of DepthStencil RenderTarget preferred for the current platform.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static GraphicsFormat GetDefaultDepthStencilFormat()
+        {
+#if UNITY_SWITCH || UNITY_SWITCH2 || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
+            return GraphicsFormat.D24_UNorm_S8_UInt;
+#else
+            return GraphicsFormat.D32_SFloat_S8_UInt;
+#endif
+        }
+
+        /// <summary>
+        /// Return the GraphicsFormat of Depth-only RenderTarget preferred for the current platform.
+        /// </summary>
+        /// <returns>The GraphicsFormat of Depth-only RenderTarget preferred for the current platform.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static GraphicsFormat GetDefaultDepthOnlyFormat()
+        {
+#if UNITY_SWITCH || UNITY_SWITCH2 || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
+            return GraphicsFormatUtility.GetDepthStencilFormat(24, 0); // returns GraphicsFormat.D24_UNorm when hardware supports it
+#else
+            return GraphicsFormat.D32_SFloat;
+#endif
+        }
+
+        /// <summary>
+        /// Return the number of DepthStencil RenderTarget depth bits preferred for the current platform.
+        /// </summary>
+        /// <returns>The number of DepthStencil RenderTarget depth bits preferred for the current platform.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static DepthBits GetDefaultDepthBufferBits()
+        {
+#if UNITY_SWITCH || UNITY_SWITCH2 || UNITY_EMBEDDED_LINUX || UNITY_QNX || UNITY_ANDROID
+            return DepthBits.Depth24;
+#else
+            return DepthBits.Depth32;
+#endif
+        }
     }
 }

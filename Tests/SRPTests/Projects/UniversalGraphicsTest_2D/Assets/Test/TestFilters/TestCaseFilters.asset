@@ -83,3 +83,11 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: VFX not supported on certain GPUs on Android GLES3
+    - {fileID: 102900000, guid: 428ccbee9b0fb7c4ca5f4dd5579b62d3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 48
+    GraphicsDevice: 29
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: CFE-158, instability, rendering is correct

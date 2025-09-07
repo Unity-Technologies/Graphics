@@ -167,6 +167,16 @@ MonoBehaviour:
     Reason: Platform Independent
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 9ea201c786bfd4e04bb62addbef3440d, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 29
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Platform Independent
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 1dc3dc627ca4fff4ba184eb8f939406b, type: 3}
     ColorSpace: 1
     BuildPlatform: 13
