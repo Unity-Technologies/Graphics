@@ -214,6 +214,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.color,
                 StructFields.Varyings.texCoord0,
+                StructFields.Varyings.normalWS,
             };
         }
         #endregion
