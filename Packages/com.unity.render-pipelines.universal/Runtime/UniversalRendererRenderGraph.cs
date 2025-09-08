@@ -1430,8 +1430,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (isTargetBackbuffer)
                 {
-                    resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                    resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                    resourceData.SwitchActiveTexturesToBackbuffer();
                 }
             }
 
@@ -1460,8 +1459,7 @@ namespace UnityEngine.Rendering.Universal
                 var source = resourceData.cameraColor;
                 m_PostProcessPassRenderGraph.RenderFinalPassRenderGraph(renderGraph, frameData, in source, in overlayUITexture, in target, needsColorEncoding);
 
-                resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                resourceData.SwitchActiveTexturesToBackbuffer();
             }
 
             bool cameraTargetResolved =
@@ -1488,8 +1486,7 @@ namespace UnityEngine.Rendering.Universal
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
                 m_FinalBlitPass.Render(renderGraph, frameData, cameraData, source, target, overlayUITexture);
-                resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                resourceData.SwitchActiveTexturesToBackbuffer();
             }
 
             // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.AfterRendering injected passes should only be called after the last camera in the stack
