@@ -668,7 +668,7 @@ namespace UnityEngine.Rendering.Universal
 
             DebugHandler?.Setup(renderGraph, cameraData.isPreviewCamera);
 
-            SetupRenderGraphCameraProperties(renderGraph, commonResourceData.isActiveTargetBackBuffer);
+            SetupRenderGraphCameraProperties(renderGraph, commonResourceData.isActiveTargetBackBuffer, commonResourceData.activeColorTexture);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph);

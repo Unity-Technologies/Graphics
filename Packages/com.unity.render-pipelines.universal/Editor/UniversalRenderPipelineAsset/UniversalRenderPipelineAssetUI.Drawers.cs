@@ -371,6 +371,9 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.supportsDynamicBatching, Styles.dynamicBatching);
             EditorGUILayout.PropertyField(serialized.debugLevelProp, Styles.debugLevel);
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
+#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
+            EditorGUILayout.PropertyField(serialized.renderTextureUVOriginStrategyProp, Styles.renderTextureUVOriginStrategyText);
+#endif
         }
 
         static void DrawQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

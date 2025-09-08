@@ -247,6 +247,19 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             }
         }
 
+        public TextureUVOrigin GetTextureUVOrigin(in TextureHandle targetHandle)
+        {
+            if (targetHandle.handle.IsValid())
+            {
+                ref readonly ResourceUnversionedData unversionedData = ref UnversionedResourceData(targetHandle.handle);
+                return unversionedData.textureUVOrigin == TextureUVOriginSelection.TopLeft ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft;
+            }
+            else
+            {
+                return TextureUVOrigin.BottomLeft;
+            }
+        }
+
         // Helper to loop over native passes
         public ref struct NativePassIterator
         {

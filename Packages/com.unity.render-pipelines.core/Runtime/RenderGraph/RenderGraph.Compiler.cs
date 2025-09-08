@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                 if (nativeCompiler == null)
                     nativeCompiler = new NativePassCompiler(m_CompilationCache);
 
-                bool compilationIsCached = nativeCompiler.Initialize(m_Resources, m_RenderPasses, m_DebugParameters, name, m_EnableCompilationCaching, graphHash, m_ExecutionCount);
+                bool compilationIsCached = nativeCompiler.Initialize(m_Resources, m_RenderPasses, m_DebugParameters, name, m_EnableCompilationCaching, graphHash, m_ExecutionCount, m_renderTextureUVOriginStrategy);
                 if (!compilationIsCached)
                     nativeCompiler.Compile(m_Resources);
 

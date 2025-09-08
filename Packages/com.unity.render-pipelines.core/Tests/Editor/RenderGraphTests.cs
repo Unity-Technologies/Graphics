@@ -948,7 +948,7 @@ namespace UnityEngine.Rendering.Tests
         {
             const int kWidth = 4;
             const int kHeight = 4;
-          
+
             TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
             TextureHandle depthTexture = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.D16_UNorm });
             // no depth with Tile Properties
@@ -987,7 +987,7 @@ namespace UnityEngine.Rendering.Tests
 
             TextureHandle texture0 = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
             TextureHandle depthTexture = m_RenderGraph.CreateTexture(new TextureDesc(kWidth, kHeight) { colorFormat = GraphicsFormat.D16_UNorm });
-            
+
             // no Tile Properties
             using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
             {
@@ -1006,7 +1006,7 @@ namespace UnityEngine.Rendering.Tests
             }
 
             var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
-            var passes = result.contextData.GetNativePasses();            
+            var passes = result.contextData.GetNativePasses();
             // TilePrperties flag should be added to subpass 0 and not interfere with merging.
             Assert.AreEqual(1, passes.Count); // 1 native Pass
             Assert.True(result.contextData.nativeSubPassData[0].flags.HasFlag(SubPassFlags.TileProperties));
@@ -2098,6 +2098,226 @@ namespace UnityEngine.Rendering.Tests
             Assert.IsTrue(resIn.GetInstanceID() == resOut.GetInstanceID());
 
             texturePool.Cleanup();
+        }
+
+        TextureDesc SimpleTextureDesc(string name, int w, int h, int samples)
+        {
+            TextureDesc result = new TextureDesc(w, h);
+            result.msaaSamples = (MSAASamples)samples;
+            result.format = GraphicsFormat.R8G8B8A8_UNorm;
+            result.name = name;
+            return result;
+        }
+
+        class TestRenderTargets
+        {
+            public TextureHandle backBuffer;
+            public TextureHandle depthBuffer;
+            public TextureHandle[] extraTextures = new TextureHandle[10];
+            public TextureHandle extraDepthBuffer;
+            public TextureHandle extraDepthBufferBottomLeft;
+        };
+
+        TestRenderTargets ImportAndCreateRenderTargets(RenderGraph g, TextureUVOrigin backBufferUVOrigin)
+        {
+            TestRenderTargets result = new TestRenderTargets();
+            var backBuffer = BuiltinRenderTextureType.CameraTarget;
+            var backBufferHandle = RTHandles.Alloc(backBuffer, "Backbuffer Color");
+            var depthBuffer = BuiltinRenderTextureType.Depth;
+            var depthBufferHandle = RTHandles.Alloc(depthBuffer, "Backbuffer Depth");
+            var extraDepthBufferHandle = RTHandles.Alloc(depthBuffer, "Extra Depth Buffer");
+            var extraDepthBufferBottomLeftHandle = RTHandles.Alloc(depthBuffer, "Extra Depth Buffer Bottom Left");
+
+            ImportResourceParams importParams = new ImportResourceParams();
+            importParams.textureUVOrigin = backBufferUVOrigin;
+
+            RenderTargetInfo importInfo = new RenderTargetInfo();
+            RenderTargetInfo importInfoDepth = new RenderTargetInfo();
+            importInfo.width = 1024;
+            importInfo.height = 768;
+            importInfo.volumeDepth = 1;
+            importInfo.msaaSamples = 1;
+            importInfo.format = GraphicsFormat.R16G16B16A16_SFloat;
+            result.backBuffer = g.ImportTexture(backBufferHandle, importInfo, importParams);
+
+            importInfoDepth = importInfo;
+            importInfoDepth.format = GraphicsFormat.D32_SFloat_S8_UInt;
+            result.depthBuffer = g.ImportTexture(depthBufferHandle, importInfoDepth, importParams);
+
+            importInfo.format = GraphicsFormat.D24_UNorm;
+            result.extraDepthBuffer = g.ImportTexture(extraDepthBufferHandle, importInfoDepth, importParams);
+
+            importParams.textureUVOrigin = TextureUVOrigin.BottomLeft;
+            result.extraDepthBufferBottomLeft = g.ImportTexture(extraDepthBufferBottomLeftHandle, importInfoDepth, importParams);
+
+            for (int i = 0; i < result.extraTextures.Length; i++)
+            {
+                result.extraTextures[i] = g.CreateTexture(SimpleTextureDesc("ExtraTexture" + i, 1024, 768, 1));
+            }
+
+            return result;
+        }
+
+        class UVOriginPassData
+        {
+            public TextureUVOrigin backBufferUVOrigin;
+            public TextureHandle renderAttachment;
+            public TextureHandle inputAttachment;
+        }
+
+        // Test the case we want to work, attachment reads connected to the backbuffer inherit the backbuffer uv origin.
+        [Test]
+        public void TextureUVOrigin_CheckBackbufferUVOriginInherited()
+        {
+            // We don't send the list of graphics commands to execute to avoid mistmatch attachment size errors in the native render pass layer due to the backbuffer usage
+            m_RenderGraphTestPipeline.invalidContextForTesting = true;
+            m_RenderGraphTestPipeline.renderTextureUVOriginStrategy = RenderTextureUVOriginStrategy.PropagateAttachmentOrientation; // Switch to the mode we want to test.
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                // On !SystemInfo.graphicsUVStartsAtTop APIs everything simplifies as that matches Unity's texture reads so we can't test a TopLeft system there.
+                var backBufferUVOrigin = SystemInfo.graphicsUVStartsAtTop ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft;
+                var renderTargets = ImportAndCreateRenderTargets(m_RenderGraph, backBufferUVOrigin);
+
+                // Render something to 0
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass0", out var passData))
+                {
+                    passData.backBufferUVOrigin = backBufferUVOrigin;
+                    passData.renderAttachment = renderTargets.extraTextures[0];
+
+                    builder.SetRenderAttachmentDepth(renderTargets.depthBuffer, AccessFlags.Write);
+                    builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                    {
+                        // Check that the backbuffer UV origin is inherited by attachments.
+                        Assert.AreEqual(context.GetTextureUVOrigin(data.renderAttachment), data.backBufferUVOrigin);
+                    });
+                }
+
+                // Render to 1 reading from 0 as an attachment
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass1", out var passData))
+                {
+                    passData.backBufferUVOrigin = backBufferUVOrigin;
+                    passData.inputAttachment = renderTargets.extraTextures[0];
+                    passData.renderAttachment = renderTargets.extraTextures[1];
+
+                    //builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                    builder.SetRenderAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Write);
+                    builder.SetInputAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Read);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                    {
+                        // Check that the backbuffer UV origin is inherited by attachments.
+                        Assert.AreEqual(context.GetTextureUVOrigin(data.renderAttachment), data.backBufferUVOrigin);
+                        Assert.AreEqual(context.GetTextureUVOrigin(data.inputAttachment), data.backBufferUVOrigin);
+                    });
+                }
+
+                // Render to final buffer reading from 1 as an attachment
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass2", out var passData))
+                {
+                    passData.backBufferUVOrigin = backBufferUVOrigin;
+                    passData.inputAttachment = renderTargets.extraTextures[1];
+                    passData.renderAttachment = renderTargets.backBuffer;
+
+                    //builder.SetRenderAttachmentDepth(buffers.depthBuffer, AccessFlags.Write);
+                    builder.SetRenderAttachment(renderTargets.backBuffer, 0, AccessFlags.Write);
+                    builder.SetInputAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Read);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                    {
+                        // Check that the backbuffer UV origin is inherited by attachments.
+                        Assert.AreEqual(context.GetTextureUVOrigin(data.renderAttachment), data.backBufferUVOrigin);
+                        Assert.AreEqual(context.GetTextureUVOrigin(data.inputAttachment), data.backBufferUVOrigin);
+                    });
+                }
+
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+                Assert.AreEqual(1, passes.Count);
+                Assert.AreEqual(4, passes[0].attachments.size);
+                Assert.AreEqual(3, passes[0].numGraphPasses);
+                Assert.AreEqual(3, passes[0].numNativeSubPasses);
+            };
+
+            m_Camera.Render();
+
+            m_RenderGraph.Cleanup();
+        }
+
+        // Test that texture reads break the inherited UV origin from the backbuffer.
+        [Test]
+        public void TextureUVOrigin_CheckTextureReadBreaksBackbufferUVOriginInherited()
+        {
+            // On OpenGL based APIs (!SystemInfo.graphicsUVStartsAtTop) we can't perform this test as we always assume the origin is BottomLeft which is compatible with texture reads.
+            if (!SystemInfo.graphicsUVStartsAtTop) return;
+
+            // We don't send the list of graphics commands to execute to avoid mistmatch attachment size errors in the native render pass layer due to the backbuffer usage
+            m_RenderGraphTestPipeline.invalidContextForTesting = true;
+            m_RenderGraphTestPipeline.renderTextureUVOriginStrategy = RenderTextureUVOriginStrategy.PropagateAttachmentOrientation; // Switch to the mode we want to test.
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                var backBufferUVOrigin = TextureUVOrigin.TopLeft;
+                var renderTargets = ImportAndCreateRenderTargets(m_RenderGraph, backBufferUVOrigin);
+
+                // Render something to 0
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass0", out var passData))
+                {
+                    passData.renderAttachment = renderTargets.extraTextures[0];
+
+                    builder.SetRenderAttachmentDepth(renderTargets.extraDepthBufferBottomLeft, AccessFlags.Write);
+                    builder.SetRenderAttachment(renderTargets.extraTextures[0], 0, AccessFlags.Write);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                    {
+                        // 0 is read in the next pass as a unity texture so needs to be bottom left.
+                        Assert.AreEqual(TextureUVOrigin.BottomLeft, context.GetTextureUVOrigin(data.renderAttachment));
+                    });
+                }
+
+                // Render to 1 reading from 0 as a texture
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass1", out var passData))
+                {
+                    passData.backBufferUVOrigin = backBufferUVOrigin;
+                    passData.renderAttachment = renderTargets.extraTextures[1];
+
+                    builder.SetRenderAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Write);
+                    builder.UseTexture(renderTargets.extraTextures[0], AccessFlags.Read);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                    {
+                        // Check that the backbuffer UV origin is inherited by attachment 1.
+                        // 1 is read via attachments so could inherit the backbuffer attachment but will probably generate an exception for mixed UV origin, but only on platforms (not in the editor) where we are top left origin.
+                        Assert.AreEqual(data.backBufferUVOrigin, context.GetTextureUVOrigin(data.renderAttachment));
+                    });
+                }
+
+                // Render to final buffer reading from 1 as an attachment
+                using (var builder = m_RenderGraph.AddRasterRenderPass<UVOriginPassData>("TestPass2", out var passData))
+                {
+                    passData.backBufferUVOrigin = backBufferUVOrigin;
+                    passData.renderAttachment = renderTargets.backBuffer;
+
+                    builder.SetRenderAttachment(renderTargets.backBuffer, 0, AccessFlags.Write);
+                    builder.SetInputAttachment(renderTargets.extraTextures[1], 0, AccessFlags.Read);
+                    builder.SetRenderFunc(static (UVOriginPassData data, RasterGraphContext context) =>
+                    {
+                        // Check the backbuffer is using the UV origin we expect
+                        Assert.AreEqual(data.backBufferUVOrigin, context.GetTextureUVOrigin(data.renderAttachment));
+                    });
+                }
+
+                var result = m_RenderGraph.CompileNativeRenderGraph(m_RenderGraph.ComputeGraphHash());
+                var passes = result.contextData.GetNativePasses();
+
+                Assert.AreEqual(2, passes.Count);
+                Assert.AreEqual(2, passes[0].attachments.size);
+                Assert.AreEqual(1, passes[0].numGraphPasses);
+                Assert.AreEqual(1, passes[0].numNativeSubPasses);
+
+                Assert.AreEqual(2, passes[1].attachments.size);
+                Assert.AreEqual(2, passes[1].numGraphPasses);
+                Assert.AreEqual(2, passes[1].numNativeSubPasses);
+            };
+
+            m_Camera.Render();
+
+            m_RenderGraph.Cleanup();
         }
     }
 }

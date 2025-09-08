@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
     }
 
     /// <summary>
-    /// A helper struct describing the clear behavior of imported textures.
+    /// A helper struct describing the behavior of imported textures.
     /// </summary>
     public struct ImportResourceParams
     {
@@ -66,6 +66,11 @@ namespace UnityEngine.Rendering.RenderGraphModule
         /// Fully discarding both multisampled and resolved data is not currently possible.
         /// </summary>
         public bool discardOnLastUse;
+
+        /// <summary>
+        /// The uv orientation that should be used by texture resources imported into the rendergraph.
+        /// </summary>
+        public TextureUVOrigin textureUVOrigin;
     }
 
     class RenderGraphResourceRegistry
@@ -456,6 +461,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             ImportResourceParams importParams = new ImportResourceParams();
             importParams.clearOnFirstUse = false;
             importParams.discardOnLastUse = false;
+            importParams.textureUVOrigin = TextureUVOrigin.BottomLeft;
 
             return ImportTexture(rt, importParams, isBuiltin);
         }
@@ -503,6 +509,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.clearBuffer = importParams.clearOnFirstUse;
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
+            texResource.textureUVOrigin = (TextureUVOriginSelection)importParams.textureUVOrigin;
 
             var texHandle = new TextureHandle(newHandle, false, isBuiltin);
 
@@ -542,6 +549,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     texResource.desc.clearBuffer = importParams.clearOnFirstUse;
                     texResource.desc.clearColor = importParams.clearColor;
                     texResource.desc.discardBuffer = importParams.discardOnLastUse;
+                    texResource.textureUVOrigin = (TextureUVOriginSelection)importParams.textureUVOrigin;
                     texResource.validDesc = false; // The desc above just contains enough info to make RenderTargetInfo not a full descriptor.
                                                    // This means GetRenderTargetInfo will work for the handle but GetTextureResourceDesc will throw
                 }
@@ -657,6 +665,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.desc.clearBuffer = importParams.clearOnFirstUse;
             texResource.desc.clearColor = importParams.clearColor;
             texResource.desc.discardBuffer = importParams.discardOnLastUse;
+            texResource.textureUVOrigin = (TextureUVOriginSelection)importParams.textureUVOrigin;
             texResource.validDesc = false;// The desc above just contains enough info to make RenderTargetInfo not a full descriptor.
                                           // This means GetRenderTargetInfo will work for the handle but GetTextureResourceDesc will throw
 
@@ -804,6 +813,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             texResource.validDesc = true;
             texResource.transientPassIndex = transientPassIndex;
             texResource.requestFallBack = desc.fallBackToBlackTexture;
+            texResource.textureUVOrigin = TextureUVOriginSelection.Unknown;
             return new TextureHandle(newHandle);
         }
 

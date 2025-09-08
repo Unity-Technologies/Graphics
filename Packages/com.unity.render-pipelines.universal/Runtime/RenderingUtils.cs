@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="projectionMatrix">Projection matrix to be set.</param>
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, bool setInverseMatrices) { SetViewAndProjectionMatrices(CommandBufferHelpers.GetRasterCommandBuffer(cmd), viewMatrix, projectionMatrix, setInverseMatrices); }
-        
+
         /// <summary>
         /// Set view and projection matrices.
         /// This function will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to given view and projection matrices.
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">RasterCommandBuffer to submit data to GPU.</param>
         /// <param name="viewMatrix">View matrix to be set.</param>
         /// <param name="projectionMatrix">Projection matrix to be set.</param>
-        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>        
+        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetViewAndProjectionMatrices(RasterCommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, bool setInverseMatrices)
         {
             Matrix4x4 viewAndProjectionMatrix = projectionMatrix * viewMatrix;
@@ -1019,7 +1019,7 @@ namespace UnityEngine.Rendering.Universal
                 // stencil-based LOD doesn't support native render pass for now.
                 lodCrossFadeStencilMask =
 #if URP_COMPATIBILITY_MODE
-                    !(GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) && renderGraphSettings.enableRenderCompatibilityMode) && 
+                    !(GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings) && renderGraphSettings.enableRenderCompatibilityMode) &&
 #endif
                     renderingData.stencilLodCrossFadeEnabled ? (int)UniversalRendererStencilRef.CrossFadeStencilRef_All : 0,
             };
@@ -1067,6 +1067,20 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < shaderTagIdList.Count; ++i)
                 settings.SetShaderPassName(i, shaderTagIdList[i]);
             return settings;
+        }
+
+        /// <summary>
+        /// This is a replace for the old UniversalCameraData.IsHandleYFlipped function to simplify the conversion of code towards
+        /// using the TextureUVOrigin to decide if the UV needs to be flipped. The function is a drop-in replacement, with exactly
+        /// the same output based on the texture orientation of the TextureHandle passed. For new code, avoid using this function and
+        /// directly use the TextureUVOrigin to decide if the UVs need to be flipped for more future proof and understandable code.
+        /// </summary>
+        /// <param name="renderGraphContext">The RasterGraphContext to use.</param>
+        /// <param name="textureHandle">Texture handle representing the texture in the render graph to check.</param>
+        /// <returns>If the texture should be rendered flipped.</returns>
+        internal static bool IsHandleYFlipped(in RasterGraphContext renderGraphContext, in TextureHandle textureHandle)
+        { 
+            return renderGraphContext.GetTextureUVOrigin(textureHandle) == TextureUVOrigin.BottomLeft;
         }
 
         /// <summary>

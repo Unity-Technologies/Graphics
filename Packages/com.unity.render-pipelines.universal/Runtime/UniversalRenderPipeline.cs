@@ -883,7 +883,7 @@ namespace UnityEngine.Rendering.Universal
                 else
 #endif
                 {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, asset);
                     renderer.FinishRenderGraphRendering(cmd);
                 }
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd

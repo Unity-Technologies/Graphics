@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
             this.mipLevel = mipLevel;
             this.depthSlice = depthSlice;
         }
-        
+
         public TextureAccess(TextureAccess access, TextureHandle handle)
         {
             this.textureHandle = handle;
@@ -29,6 +29,48 @@ namespace UnityEngine.Rendering.RenderGraphModule
             this.mipLevel = access.mipLevel;
             this.depthSlice = access.depthSlice;
         }
+    }
+
+    /// <summary>
+    /// Represents the origin of UV coordinates for a texture. It represents how Unity stores the content,
+    /// independent of the active graphics API. The UV coordinate (0,0) in the shader will either sample
+    /// the bottom left pixel of the image, or the top left pixel (flipped).
+    /// </summary>
+    public enum TextureUVOrigin
+    {
+        /// <summary>
+        /// The UV coordinate (0,0) in a shader will sample the BOTTOM left texel of the texture. This matched the OpenGL standard, which is also the Unity standard for textures.
+        /// To ensure this behavior, Unity will store the content for texture upside down (flipped) on modern graphics APIs.
+        /// </summary>
+        BottomLeft,
+        /// <summary>
+        /// The UV coordinate (0,0) in a shader will sample the TOP left texel of the texture. This matches the standard of modern graphics APIs (Vulkan, DX, Metal,...).
+        /// The actual backbuffer will have a TopLeft orientation when a modern graphics API is active.
+        /// </summary>
+        TopLeft
+    }
+
+    /// <summary>
+    /// Represents the origin of UV coordinates for a texture. It represents how Unity stores the content,
+    /// independent of the active graphics API. The UV coordinate (0,0) in the shader will either sample
+    /// the bottom left pixel of the image, or the top left pixel (flipped).
+    /// </summary>
+    internal enum TextureUVOriginSelection
+    {
+        /// <summary>
+        /// The UV coordinate (0,0) in a shader will sample the BOTTOM left texel of the texture. This matched the OpenGL standard, which is also the Unity standard for textures.
+        /// To ensure this behavior, Unity will store the content for texture upside down (flipped) on modern graphics APIs.
+        /// </summary>
+        BottomLeft,
+        /// <summary>
+        /// The UV coordinate (0,0) in a shader will sample the TOP left texel of the texture. This matches the standard of modern graphics APIs (Vulkan, DX, Metal,...).
+        /// The actual backbuffer will have a TopLeft orientation when a modern graphics API is active.
+        /// </summary>
+        TopLeft,
+        /// <summary>
+        /// The orientation has not been assigned yet.
+        /// </summary>
+        Unknown
     }
 
 
@@ -480,6 +522,8 @@ namespace UnityEngine.Rendering.RenderGraphModule
     class TextureResource : RenderGraphResource<TextureDesc, RTHandle>
     {
         static int m_TextureCreationIndex;
+
+        internal TextureUVOriginSelection textureUVOrigin;
 
         public override string GetName()
         {
