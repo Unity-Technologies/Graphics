@@ -901,6 +901,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         {
             using (new ProfilingScope(ProfilingSampler.Get(NativeCompilerProfileId.NRPRGComp_DetectMemorylessResources)))
             {
+                // No need to go further if we don't support memoryless textures
+                if (!SystemInfo.supportsMemorylessTextures)
+                    return;
+
                 // Native renderpasses and create/destroy lists have now been set-up. Detect memoryless resources, i.e resources that are created/destroyed
                 // within the scope of an nrp
                 foreach (ref readonly var nativePass in contextData.NativePasses)

@@ -6,6 +6,7 @@ using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.TestTools;
 using Unity.Collections;
 using UnityEngine.Rendering.RendererUtils;
+using System.Text.RegularExpressions;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -1079,6 +1080,11 @@ namespace UnityEngine.Rendering.Tests
         {
             m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
             {
+                if (!SystemInfo.supportsMultisampledShaderResolve)
+                {
+                    return; // Skip the test if the platform does not support multisampled shader resolve
+                }
+
                 var colorTexDesc = new TextureDesc(Vector2.one, false, false)
                 {
                     width = 4,
@@ -2023,8 +2029,14 @@ namespace UnityEngine.Rendering.Tests
                                 transientColorRTHandle = (RTHandle)data.transientColorOutputHandle;
                             });
 
+                            if (!SystemInfo.supportsMemorylessTextures)
+                            {
+                                Assert.IsTrue(createdDepthRTHandle.rt.memorylessMode == RenderTextureMemoryless.None);
+                                Assert.IsTrue(createdColorRTHandle.rt.memorylessMode == RenderTextureMemoryless.None);
+                                Assert.IsTrue(transientColorRTHandle.rt.memorylessMode == RenderTextureMemoryless.None);
+                            }
                             // And let's make sure that the RTHandles are memoryless, i.e. no memory is allocated in system memory
-                            if (msaaSamples != MSAASamples.None)
+                            else if (msaaSamples != MSAASamples.None)
                             {
                                 Assert.IsTrue(createdDepthRTHandle.rt.memorylessMode == (RenderTextureMemoryless.Depth | RenderTextureMemoryless.MSAA));
                                 Assert.IsTrue(createdColorRTHandle.rt.memorylessMode == (RenderTextureMemoryless.Color | RenderTextureMemoryless.MSAA));
