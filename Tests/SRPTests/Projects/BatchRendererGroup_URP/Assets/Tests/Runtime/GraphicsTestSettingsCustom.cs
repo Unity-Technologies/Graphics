@@ -5,6 +5,7 @@ using UnityEngine.TestTools.Graphics;
 
 public class GraphicsTestSettingsCustom : GraphicsTestSettings
 {
+    public bool Wait = false;
     public int WaitFrames = 2;
 
     public GraphicsTestSettingsCustom()
