@@ -250,6 +250,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
         public MixedLightingMode mixedLightingMode;
         public bool aoEnabled;
         public float aoDistance;
+        public bool useHardwareRayTracing;
 
         public void Transfer(IBakeInputVisitor visitor)
         {
@@ -261,6 +262,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             visitor.TransferBlittable(ref mixedLightingMode);
             visitor.TransferBoolean(ref aoEnabled);
             visitor.TransferBlittable(ref aoDistance);
+            visitor.TransferBlittable(ref useHardwareRayTracing);
         }
     }
 
