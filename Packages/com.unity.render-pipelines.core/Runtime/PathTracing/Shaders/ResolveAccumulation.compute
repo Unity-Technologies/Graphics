@@ -1,0 +1,96 @@
+RWTexture2D<float4> g_LightmapInOut;
+int g_TextureWidth;
+int g_TextureHeight;
+
+RWTexture2D<float4> g_DirectionalInOut;
+Texture2D<float4> g_InputSampleCountInW;
+Texture2D<float4> g_Normals;
+
+#pragma kernel NormalizeValidity
+[numthreads(8, 8, 1)]
+void NormalizeValidity(
+    in uint3 gidx : SV_DispatchThreadID,
+    in uint lidx : SV_GroupIndex)
+{
+    if (gidx.x >= (uint) g_TextureWidth || gidx.y >= (uint) g_TextureHeight || gidx.z >= 1)
+        return;
+
+    const float4 validity = g_LightmapInOut[gidx.xy];
+    const float sampleCount = max(validity.w, 1.0f);
+    const float4 normalizedValidity = float4(validity.xyz * (1.f / sampleCount), 1.f);
+    g_LightmapInOut[gidx.xy] = validity.w > 0.0f ? normalizedValidity : 0.0f;
+}
+
+#pragma kernel NormalizeAO
+[numthreads(8, 8, 1)]
+void NormalizeAO(
+    in uint3 gidx : SV_DispatchThreadID,
+    in uint lidx : SV_GroupIndex)
+{
+    if (gidx.x >= (uint) g_TextureWidth || gidx.y >= (uint) g_TextureHeight || gidx.z >= 1)
+        return;
+
+    const float4 occlusion = g_LightmapInOut[gidx.xy];
+    const float4 vZero = 0.0f;
+    const float sampleCount = max(occlusion.w, 1.0f);
+    const float4 normalizedOcclusion = float4(1.f - (occlusion.xyz * (1.f / sampleCount)), 1.f);
+    g_LightmapInOut[gidx.xy] = occlusion.w > 0.0f ? normalizedOcclusion : vZero;
+}
+
+#pragma kernel NormalizeRadiance
+[numthreads(8, 8, 1)]
+void NormalizeRadiance(
+    in uint3 gidx : SV_DispatchThreadID,
+    in uint lidx : SV_GroupIndex)
+{
+    if (gidx.x >= (uint) g_TextureWidth || gidx.y >= (uint) g_TextureHeight || gidx.z >= 1)
+        return;
+
+    const float4 radiance = g_LightmapInOut[gidx.xy];
+    const float4 vZero = 0.0f;
+    const float sampleCount = max(radiance.w, 1.0f);
+    const float4 normalizedRadiance = float4(radiance.xyz * (1.f / sampleCount), 1.f);
+    g_LightmapInOut[gidx.xy] = radiance.w > 0.0f ? normalizedRadiance : vZero;
+}
+
+#pragma kernel NormalizeDirection
+[numthreads(8, 8, 1)]
+void NormalizeDirection(
+    in uint3 gidx : SV_DispatchThreadID,
+    in uint lidx : SV_GroupIndex)
+{
+    if (gidx.x >= (uint) g_TextureWidth || gidx.y >= (uint) g_TextureHeight || gidx.z >= 1)
+        return;
+
+    const float4 vHalf = 0.5f;
+    const bool valid = g_InputSampleCountInW[gidx.xy].w > 0.0f;
+    if (!valid)
+    {
+        g_DirectionalInOut[gidx.xy] = vHalf;
+        return;
+    }
+
+    const float4 epsilon = 0.001f;
+    const float3 normal = g_Normals[gidx.xy].xyz;
+
+    float4 directionality = g_DirectionalInOut[gidx.xy];
+    directionality *= 1.0f / max(epsilon, directionality.wwww);
+    directionality.w = dot(normal, directionality.xyz);
+    g_DirectionalInOut[gidx.xy] = directionality * vHalf + vHalf;
+}
+
+#pragma kernel NormalizeShadowMask
+[numthreads(8, 8, 1)]
+void NormalizeShadowMask(
+    in uint3 gidx : SV_DispatchThreadID,
+    in uint lidx : SV_GroupIndex)
+{
+    if (gidx.x >= (uint) g_TextureWidth || gidx.y >= (uint) g_TextureHeight || gidx.z >= 1)
+        return;
+
+    const float4 shadow = g_LightmapInOut[gidx.xy];
+    const float4 vZero = 0.0f;
+    const float sampleCount = max(g_InputSampleCountInW[gidx.xy].w, 1.0f);
+    const float4 normalizedShadow = float4(shadow * (1.f / sampleCount));
+    g_LightmapInOut[gidx.xy] = g_InputSampleCountInW[gidx.xy].w > 0.0f ? normalizedShadow : vZero;
+}

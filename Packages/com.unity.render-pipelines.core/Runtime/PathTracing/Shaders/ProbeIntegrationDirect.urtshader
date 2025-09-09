@@ -1,0 +1,68 @@
+#define UNIFIED_RT_GROUP_SIZE_X 128
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC IntegrateDirectRadiance
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
+
+#include "PathTracing.hlsl"
+#include "SphericalHarmonicsUtils.hlsl"
+
+RWStructuredBuffer<float3> g_Positions;
+RWStructuredBuffer<float> g_RadianceShl2;
+uint g_PositionsOffset;
+uint g_SampleOffset;
+uint g_SampleCount;
+
+void IntegrateDirectRadiance(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    const uint threadIdx = dispatchInfo.dispatchThreadID.x;
+    const uint inProbeIdx = threadIdx / g_SampleCount + g_PositionsOffset;
+    const uint inProbeSampleIdx = threadIdx % g_SampleCount;
+    const uint outProbeIdx = threadIdx;
+
+    PathTracingSampler rngState;
+    rngState.Init(inProbeIdx, g_SampleOffset + inProbeSampleIdx);
+
+    // Local array to accumulate radiance into, using SoA layout.
+    float3 accumulatedRadianceSH[SH_COEFFICIENTS_PER_CHANNEL];
+    for (int i = 0; i < SH_COEFFICIENTS_PER_CHANNEL; ++i)
+    {
+        accumulatedRadianceSH[i] = 0.0f;
+    }
+
+    // Set up some stuff we need to sample lights.
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+    float3 worldPosition = g_Positions[inProbeIdx];
+
+    SampleLightsOptions options;
+    options.isDirect = true;
+    options.receiveShadows = true;
+    options.shadowRayMask = ShadowRayMask();
+    options.lightsRenderingLayerMask = 0xFFFFFFFF;
+    options.numLightCandidates = min(g_LightEvaluations, MAX_LIGHT_EVALUATIONS);
+
+    LightSample lightSample = (LightSample)0;
+    if (SampleLightsRadiance(dispatchInfo, accelStruct, g_AccelStructInstanceList, worldPosition, 0.0f, options, rngState, lightSample))
+    {
+        // Project into SH.
+        accumulatedRadianceSH[0] += lightSample.radiance * SHL0();
+        accumulatedRadianceSH[1] += lightSample.radiance * SHL1_1(lightSample.direction);
+        accumulatedRadianceSH[2] += lightSample.radiance * SHL10(lightSample.direction);
+        accumulatedRadianceSH[3] += lightSample.radiance * SHL11(lightSample.direction);
+
+        accumulatedRadianceSH[4] += lightSample.radiance * SHL2_2(lightSample.direction);
+        accumulatedRadianceSH[5] += lightSample.radiance * SHL2_1(lightSample.direction);
+        accumulatedRadianceSH[6] += lightSample.radiance * SHL20(lightSample.direction);
+        accumulatedRadianceSH[7] += lightSample.radiance * SHL21(lightSample.direction);
+        accumulatedRadianceSH[8] += lightSample.radiance * SHL22(lightSample.direction);
+    }
+
+    const float monteCarloNormalization = 1.0f / (float)g_SampleCount;
+    for (uint channel = 0; channel < SH_COLOR_CHANNELS; ++channel)
+    {
+        for (uint i = 0; i < SH_COEFFICIENTS_PER_CHANNEL; ++i)
+        {
+            g_RadianceShl2[SHIndex(outProbeIdx, channel, i)] = accumulatedRadianceSH[i][channel] * monteCarloNormalization;
+        }
+    }
+}

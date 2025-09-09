@@ -1,0 +1,87 @@
+// This shader computes a strided segmented reduction - essentially N reductions in parallel, in a single pass.
+// A very simple approach is used, where each thread just computes the i'th reduction sequentially.
+// Each segment is assumed to be the same length. The shader adds to its output, so zero-initialize it if needed.
+
+// Example with width = 2, stride = 3:
+// 
+// Input buffer layout:
+// |val 0|val 1|val 2|val 3|val 4|val 5|val 6|val 7|val 8|val 9|val 10|val 11|...
+// |    element 0    |    element 1    |    element 2    |     element 3     |...
+// |             segment 0             |             segment 1               |...
+//
+// Resulting output buffer:
+// |val 0 + val 3|val 1 + val 4|val 2 + val 5|val 6 + val 9|val 7 + val 10|val 8 + val 11|...
+// |            element 0 + element 1        |            element 2 + element 3          |...
+
+#pragma kernel SegmentedReductionFloat
+
+#define MAX_SEGMENT_STRIDE 32
+
+uint g_SegmentWidth;    // How many elements in each segment
+uint g_SegmentStride;   // How many values in each element
+uint g_SegmentCount;    // How many segments
+uint g_InputOffset;     // Offset into input buffer, specified in elements
+uint g_OutputOffset;    // Offset into output buffer, specified in elements
+uint g_OverwriteOutput; // If 1, overwrite the output buffer. Otherwise, add to it.
+StructuredBuffer<float> g_InputFloatBuffer;    // Length = g_SegmentWidth * g_SegmentStride * g_NumSegments
+RWStructuredBuffer<float> g_OutputFloatBuffer; // Length = g_SegmentStride * g_NumSegments
+
+// These uniforms can be used for multi-pass reductions, handling cases where the input segments can
+// not be cleanly divided into sub-segments. If g_TruncateInterval > 0 && g_TruncatedSegmentWidth > 0,
+// every g_TruncateInterval'th segment will be truncated to a width given by g_TruncatedSegmentWidth.
+uint g_TruncateInterval;
+uint g_TruncatedSegmentWidth;
+
+[numthreads(64,1,1)]
+void SegmentedReductionFloat(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= g_SegmentCount)
+		return;
+
+	uint currentSegmentWidth = g_SegmentWidth; // How large is this threads segment?
+	uint truncatedElementsThusFar = 0; // How many elements have been truncated thus far?
+
+	// Handle truncation
+	bool truncationEnabled = g_TruncateInterval > 0 && g_TruncatedSegmentWidth > 0;
+	if (truncationEnabled)
+	{
+		truncatedElementsThusFar = (id.x / g_TruncateInterval) * (g_SegmentWidth - g_TruncatedSegmentWidth);
+
+		bool shouldTruncate = (id.x + 1) % g_TruncateInterval == 0;
+		if (shouldTruncate)
+		{
+			currentSegmentWidth = g_TruncatedSegmentWidth;
+		}
+	}
+
+	// Step 1: Zero initialize an accumulator in local memory
+	float accumulator[MAX_SEGMENT_STRIDE];
+	uint valueIdx;
+	for (valueIdx = 0; valueIdx < g_SegmentStride; valueIdx++)
+	{
+		accumulator[valueIdx] = 0.0f;
+	}
+
+	// Step 2: Accumulate values in the segment into local memory
+	const uint baseElementIndex = id.x * g_SegmentWidth - truncatedElementsThusFar + g_InputOffset;
+	for (uint elementIdx = 0; elementIdx < currentSegmentWidth; elementIdx++)
+	{
+		for (valueIdx = 0; valueIdx < g_SegmentStride; valueIdx++)
+		{
+			accumulator[valueIdx] += g_InputFloatBuffer[(baseElementIndex + elementIdx) * g_SegmentStride + valueIdx];
+		}
+	}
+
+	// Step 3: Write accumulated values to global memory
+	for (valueIdx = 0; valueIdx < g_SegmentStride; valueIdx++)
+	{
+		if (g_OverwriteOutput)
+		{
+			g_OutputFloatBuffer[(id.x + g_OutputOffset) * g_SegmentStride + valueIdx] = accumulator[valueIdx];
+		}
+		else
+		{
+			g_OutputFloatBuffer[(id.x + g_OutputOffset) * g_SegmentStride + valueIdx] += accumulator[valueIdx];
+		}
+	}
+}

@@ -1,0 +1,183 @@
+RWTexture2D<float4> g_TextureInOut;
+int g_TextureWidth;
+int g_TextureHeight;
+
+float4 g_MultiplicationFactor;
+#pragma kernel Multiply
+[numthreads(8,8,1)]
+void Multiply(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_TextureWidth) || id.y >= uint(g_TextureHeight))
+        return;
+    g_TextureInOut[id.xy] = g_TextureInOut[id.xy] * g_MultiplicationFactor;
+}
+
+int g_ChannelIndex;
+#pragma kernel BroadcastChannel
+[numthreads(8,8,1)]
+void BroadcastChannel(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_TextureWidth) || id.y >= uint(g_TextureHeight))
+        return;
+    if (g_ChannelIndex < 0 || g_ChannelIndex > 3)
+        return;
+    g_TextureInOut[id.xy] = g_TextureInOut[id.xy][g_ChannelIndex];
+}
+
+float g_ChannelValue;
+#pragma kernel SetChannel
+[numthreads(8,8,1)]
+void SetChannel(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_TextureWidth) || id.y >= uint(g_TextureHeight))
+        return;
+    if (g_ChannelIndex < 0 || g_ChannelIndex > 3)
+        return;
+    switch (g_ChannelIndex)
+    {
+        case 0:
+            g_TextureInOut[id.xy] = float4(g_ChannelValue, g_TextureInOut[id.xy].g, g_TextureInOut[id.xy].b, g_TextureInOut[id.xy].a);
+            break;
+        case 1:
+            g_TextureInOut[id.xy] = float4(g_TextureInOut[id.xy].r, g_ChannelValue, g_TextureInOut[id.xy].b, g_TextureInOut[id.xy].a);
+            break;
+        case 2:
+            g_TextureInOut[id.xy] = float4(g_TextureInOut[id.xy].r, g_TextureInOut[id.xy].g, g_ChannelValue, g_TextureInOut[id.xy].a);
+            break;
+        case 3:
+            g_TextureInOut[id.xy] = float4(g_TextureInOut[id.xy].r, g_TextureInOut[id.xy].g, g_TextureInOut[id.xy].b, g_ChannelValue);
+            break;
+    }
+}
+
+Texture2D<float4> g_SourceTexture;
+SamplerState g_LinearClampSampler;
+RWTexture2D<float4> g_TextureOut;
+int g_BoxFilterRadius;
+#pragma kernel ReferenceBoxFilter
+[numthreads(8,8,1)]
+void ReferenceBoxFilter(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_TextureWidth) || id.y >= uint(g_TextureHeight))
+        return;
+    float4 sum = float4(0, 0, 0, 0);
+    for (int y = -g_BoxFilterRadius; y <= g_BoxFilterRadius; ++y)
+    {
+        for (int x = -g_BoxFilterRadius; x <= g_BoxFilterRadius; ++x)
+        {
+            float2 uv = (float2(id.xy) + float2(x, y)) / float2(g_TextureWidth, g_TextureHeight); 
+            sum += g_SourceTexture.SampleLevel(g_LinearClampSampler, uv, 0);
+        }
+    }
+    g_TextureOut[id.xy] = sum / float((g_BoxFilterRadius * 2 + 1) * (g_BoxFilterRadius * 2 + 1));
+}
+
+#pragma kernel ReferenceBoxFilterBlueChannel
+[numthreads(16,8,1)]
+void ReferenceBoxFilterBlueChannel(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_TextureWidth) || id.y >= uint(g_TextureHeight))
+        return;
+    float4 color = g_SourceTexture[id.xy];
+    float sum = 0;
+    for (int y = -g_BoxFilterRadius; y <= g_BoxFilterRadius; ++y)
+    {
+        for (int x = -g_BoxFilterRadius; x <= g_BoxFilterRadius; ++x)
+        {
+            float2 uv = (float2(id.xy) + float2(x, y)) / float2(g_TextureWidth, g_TextureHeight); 
+            sum += g_SourceTexture.SampleLevel(g_LinearClampSampler, uv, 0).b;
+        }
+    }
+    float average = sum / float((g_BoxFilterRadius * 2 + 1) * (g_BoxFilterRadius * 2 + 1));
+    g_TextureOut[id.xy] = float4(color.rg, average, color.a);
+}
+
+Texture2D<float4> g_SampleCountInW;
+Texture2D<float4> g_VarianceInR;
+#pragma kernel StandardError
+[numthreads(8,8,1)]
+void StandardError(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_TextureWidth) || id.y >= uint(g_TextureHeight))
+        return;
+    float variance = g_VarianceInR[id.xy].r;
+    float error = sqrt(variance / g_SampleCountInW[id.xy].w);
+    g_TextureOut[id.xy] = float4(error, error, error, 1.f);
+}
+
+Texture2D<float4> g_StandardErrorInR;
+Texture2D<float4> g_MeanInR;
+float g_StandardErrorThreshold;
+#pragma kernel StandardErrorThreshold
+[numthreads(8,8,1)]
+void StandardErrorThreshold(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_TextureWidth) || id.y >= uint(g_TextureHeight))
+        return;
+    float mean = g_MeanInR[id.xy].r;
+    float standardError = g_StandardErrorInR[id.xy].r;
+    bool shouldStop = standardError < mean * g_StandardErrorThreshold || mean < 0.000001f;
+    g_TextureOut[id.xy] = shouldStop ? float4(0.0f, 0.0f, 0.0f, 1.f) : float4(1.0f, 1.0f, 1.0f, 1.f);
+}
+
+RWStructuredBuffer<float> g_OutputBuffer;
+int g_X;
+int g_Y;
+#pragma kernel GetValue
+[numthreads(8,8,1)]
+void GetValue(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_TextureWidth) || id.y >= uint(g_TextureHeight))
+        return;
+    if (id.x == uint(g_X) && id.y == uint(g_Y))
+    {
+        float4 color = g_SourceTexture[id.xy];
+        g_OutputBuffer[0] = color.r;
+        g_OutputBuffer[1] = color.g;
+        g_OutputBuffer[2] = color.b;
+        g_OutputBuffer[3] = color.a;
+    }
+}
+
+#pragma kernel NormalizeByAlpha
+[numthreads(8,8,1)]
+void NormalizeByAlpha(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_TextureWidth) || id.y >= uint(g_TextureHeight))
+        return;
+    const float4 color = g_TextureInOut[id.xy];
+    const float sampleCount = max(color.w, 1.0f);
+    g_TextureInOut[id.xy] = float4(color.xyzw * (1.f / sampleCount));
+}
+
+StructuredBuffer<uint> g_InputBufferSelector; // 0 or 1
+int g_InputBufferLength;
+StructuredBuffer<uint> g_InputBuffer0;
+StructuredBuffer<uint> g_InputBuffer1;
+RWStructuredBuffer<uint> g_SelectionOutput;
+#pragma kernel SelectGraphicsBuffer
+[numthreads(16,1,1)]
+void SelectGraphicsBuffer(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_InputBufferLength) || id.y >= 1u || id.z >= 1u)
+        return;
+    g_SelectionOutput[id.x] = g_InputBufferSelector[0] == 0u ? g_InputBuffer0[id.x] : g_InputBuffer1[id.x];
+}
+
+RWTexture2D<float4> g_DestinationTexture;
+int g_SourceX;
+int g_SourceY;
+int g_SourceWidth;
+int g_SourceHeight;
+int g_DestinationX;
+int g_DestinationY;
+#pragma kernel CopyTextureAdditive
+[numthreads(8,8,1)]
+void CopyTextureAdditive(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= uint(g_SourceWidth) || id.y >= uint(g_SourceHeight))
+        return;
+    uint2 src = id.xy + uint2(uint(g_SourceX), uint(g_SourceY));
+    uint2 dst = id.xy + uint2(uint(g_DestinationX), uint(g_DestinationY));
+    g_DestinationTexture[dst] = g_DestinationTexture[dst] + g_SourceTexture[src];
+}

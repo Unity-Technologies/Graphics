@@ -1,0 +1,72 @@
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC AccumulateInternal
+
+#include "PathTracing.hlsl"
+#include "LightmapIntegrationHelpers.hlsl"
+
+int g_SampleOffset;
+float g_PushOff;
+RWStructuredBuffer<float4> g_ExpandedOutput;
+float g_AOMaxDistance;
+
+void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    float3 worldPosition = 0.f;
+    float3 worldNormal = 0.f;
+    float3 worldFaceNormal = 0.f;
+    uint localSampleOffset = 0;
+    uint2 instanceTexelPos = 0;
+    const bool gotSample = GetExpandedSample(dispatchInfo.dispatchThreadID.x, localSampleOffset, instanceTexelPos, worldPosition, worldNormal, worldFaceNormal);
+    if (!gotSample)
+        return;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    // setup rng
+    const uint sampleOffset = g_SampleOffset + localSampleOffset;
+    PathTracingSampler rngState;
+    rngState.Init(instanceTexelPos, sampleOffset);
+
+    // now sample occlusion with the gBuffer data
+    UnifiedRT::Ray ray;
+    float3 origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
+    float3 direction = CosineSample(float2(rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_X), rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_Y)), worldNormal);
+    ray.origin = origin;
+    ray.direction = direction;
+    ray.tMin = 0;
+    ray.tMax = g_AOMaxDistance;
+    rngState.NextBounce();
+
+    float3 occlusion = 0.f;
+    // trace through potentially several layers of transmissive materials, determining at each hit whether or not to kill the ray
+    for (uint i = 0; i < MAX_TRANSMISSION_BOUNCES; i++)
+    {
+        UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchInfo, accelStruct, RayMask(true), ray, 0);
+        if (hitResult.IsValid())
+        {
+            UnifiedRT::InstanceData instance = UnifiedRT::GetInstance(hitResult.instanceID);
+            PTHitGeom geometry = GetHitGeomInfo(instance, hitResult);
+            geometry.FixNormals(direction);
+            MaterialProperties material = LoadMaterialProperties(instance, false, geometry);
+
+            // Transmissive material, continue with a probability
+            if (ShouldTransmitRay(rngState, material))
+            {
+                ray.origin = geometry.NextTransmissionRayOrigin();
+                ray.tMax = g_AOMaxDistance - distance(origin, ray.origin);
+                rngState.NextBounce();
+            }
+            // No transmission, so the ray is occluded
+            else
+            {
+                occlusion = 1.f;
+                break;
+            }
+        }
+        // Hit nothing, so the ray is not occluded
+        else
+            break;
+    }
+    g_ExpandedOutput[dispatchInfo.dispatchThreadID.x] += float4(occlusion, 1.0f);
+}

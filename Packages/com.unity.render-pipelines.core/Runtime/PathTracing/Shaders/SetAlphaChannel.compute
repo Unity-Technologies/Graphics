@@ -1,0 +1,45 @@
+#define GROUP_SIZE_X 8
+#define GROUP_SIZE_Y 8
+
+int g_TextureWidth;
+int g_TextureHeight;
+int g_TargetSlice;
+int g_TargetOffsetX;
+int g_TargetOffsetY;
+Texture2D g_OpacityTexture;
+SamplerState sampler_g_OpacityTexture;
+float g_Alpha;
+uint g_UseAlphaCutoff;
+float g_AlphaCutoff;
+float4 g_OpacityTextureUVTransform;
+
+RWTexture2DArray<float4> g_AlbedoTextures;
+
+#pragma kernel SetAlphaChannel
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void SetAlphaChannel(in uint2 gidx: SV_DispatchThreadID)
+{
+    if (gidx.x >= uint(g_TextureWidth) || gidx.y >= uint(g_TextureHeight))
+        return;
+
+    uint2 targetOffset = uint2(g_TargetOffsetX, g_TargetOffsetY);
+
+    float2 uv = (float2(gidx)+0.5) / float2(g_TextureWidth, g_TextureHeight);
+    uv = g_OpacityTextureUVTransform.xy * uv + g_OpacityTextureUVTransform.zw;
+
+    float2 dUvdx = g_OpacityTextureUVTransform.x / float(g_TextureWidth);
+    float2 dUvdy = g_OpacityTextureUVTransform.y / float(g_TextureHeight);
+
+    float4 texelValue = g_AlbedoTextures[uint3(gidx + targetOffset, g_TargetSlice)];
+
+    texelValue.a = g_OpacityTexture.SampleGrad(sampler_g_OpacityTexture, uv, dUvdx, dUvdy).a * g_Alpha;
+
+    // Alpha clipping
+    if (g_UseAlphaCutoff)
+    {
+        texelValue.a = (texelValue.a > g_AlphaCutoff) ? 1.0f : 0.0f;
+    }
+
+    g_AlbedoTextures[uint3(gidx + targetOffset, g_TargetSlice)] = texelValue;
+}
+

@@ -1,0 +1,267 @@
+
+#pragma multi_compile _ SPARSE_GRID
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+
+#include "PathTracingCommon.hlsl"
+#include "PathTracingRandom.hlsl"
+#include "PathTracingLightGrid.hlsl"
+
+#define GROUP_SIZE_X 4
+#define GROUP_SIZE_Y 4
+#define GROUP_SIZE_Z 4
+#define MAX_RESERVOIRS_PER_VOXEL 64
+
+groupshared float s_SampleCount[GROUP_SIZE_X * GROUP_SIZE_Y * GROUP_SIZE_Z * MAX_RESERVOIRS_PER_VOXEL];
+
+#ifndef PI
+#define PI 3.14159265358979323846f
+#endif
+
+// Input parameters and lighting state
+StructuredBuffer<PTLight>       g_LightList;
+uint                            g_NumLights;
+uint                            g_MaxLightsPerCell;
+uint                            g_NumCandidates;
+uint                            g_BuildPass;
+
+// Output indices and grid
+RWStructuredBuffer<ThinReservoir>   g_LightGridCellsData;
+RWStructuredBuffer<uint2>           g_LightGrid;
+RWStructuredBuffer<uint>            g_TotalLightsInGridCount;
+
+// Source: https://bartwronski.com/2017/04/13/cull-that-cone/
+bool TestConeVsSphere(in float3 origin, in float3 forward, in float size, in float angle, in float4 testSphere)
+{
+    const float3 V = testSphere.xyz - origin;
+    const float VlenSq = dot(V, V);
+    const float V1len = dot(V, forward);
+    const float distanceClosestPoint = cos(angle) * sqrt(VlenSq - V1len * V1len) - V1len * sin(angle);
+
+    const bool angleCull = distanceClosestPoint > testSphere.w;
+    const bool frontCull = V1len > testSphere.w + size;
+    const bool backCull = V1len < -testSphere.w;
+    return !(angleCull || frontCull || backCull);
+}
+
+// Estimate the maximum emission in a voxel / Target function for RIS
+float3 EstimateEmission(PTLight light, float3 worldPosition)
+{
+    const float Deg2Rad = PI * 2.0f / 360.0f;
+    float3 emission = float3(1.0f, 1.0f, 1.0f);
+    
+    if (light.type == DIRECTIONAL_LIGHT)
+        // Directional lights affect all cells
+        emission = light.intensity;
+    else if (light.type == ENVIRONMENT_LIGHT)
+         // Environment light affects all cells
+         // For conservtive culling, returning any positive value is enough, but for ReGIR we can improve the sampling with a better estimate
+        emission = float3(1.0f, 1.0f, 1.0f);
+    else if ((light.type == POINT_LIGHT) || (light.type == SPOT_LIGHT))
+    {
+        // First compute the point light attenuation
+        float d = length(light.position - worldPosition);
+
+        // To be conservative on the attenuation, we substruct the cell radius of the grid
+        d = max(0.01f, d - GetCellSize());
+
+        // Analytical range attenuation from SRP core
+        float attenuation = SmoothWindowedDistanceAttenuation(d * d, rcp(d), light.attenuation.x, light.attenuation.y);
+
+        if (light.type == SPOT_LIGHT)
+        {
+            // For spotlights, we also do a conservative anglular atenuation: 0 if the spotlight cone does not intersect the voxel, 1 otherwise.
+            float4 bSphere = float4(worldPosition, 0.5 * GetCellSize());
+            bool intersection = TestConeVsSphere(light.position, light.forward, light.range, 0.5 * light.spotAngle.x * Deg2Rad, bSphere);
+            attenuation = intersection ? attenuation : 0.0f;
+        }
+
+        emission = attenuation * light.intensity;
+    }
+    else if (light.type == RECTANGULAR_LIGHT || light.type == DISC_LIGHT)
+    {
+         // First compute the point light attenuation
+        float d = length(light.position - worldPosition);
+
+        // To be conservative on the attenuation, we substruct the cell radius of the grid.
+        // We also substract the radius (of the bounding sphere) of the light
+        float r = light.type == DISC_LIGHT ? light.width : 0.5f * sqrt(light.width * light.width + light.height * light.height);
+        d = max(0.01f, d - GetCellSize() - r);
+
+        // Analytical range attenuation from SRP core
+        float attenuation = SmoothWindowedDistanceAttenuation(d * d, rcp(d), light.attenuation.x, light.attenuation.y);
+
+        // The analytical lights are single sided. To properly do the conservative culling, we re-use the spotlight culling code 
+        float4 bSphere = float4(worldPosition, 0.5 * GetCellSize());
+        const float angle = 0.5f * 180.0f * Deg2Rad;
+        bool intersection = TestConeVsSphere(light.position, light.forward, light.range, angle, bSphere);
+        attenuation = intersection ? attenuation : 0.0f;
+        
+        emission = attenuation * light.intensity;
+    }
+    else if (light.type == BOX_LIGHT)
+    {
+        // For box ligths we only do some basic culling based on the bounding sphere of the cell and the near/far plane, reusing the existing code
+        // Note: box lights/projectors don't have range attenuation
+        float4 bSphere = float4(worldPosition, 0.5 * GetCellSize());
+        const float angle = 0.5f * 180.0f * Deg2Rad;
+        bool intersection = TestConeVsSphere(light.position, light.forward, light.range, angle, bSphere);
+        float attenuation = intersection ? 1.0f : 0.0f;
+        
+        emission = attenuation * light.intensity;
+    }
+
+    return emission;
+}
+
+
+float GetLightTargetFunction(float3 pos, uint lightIndex)
+{
+    PTLight light = g_LightList[lightIndex];
+    float3 emission = EstimateEmission(light, pos);
+    return Luminance(emission);
+}
+
+
+#pragma kernel BuildConservativeLightGrid
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, GROUP_SIZE_Z)]
+void BuildConservativeLightGrid(in uint3 gidx : SV_DispatchThreadID, in uint threadIndex : SV_GroupIndex)
+{
+    if (gidx.x >= g_GridDimX || gidx.y >= g_GridDimY || gidx.z >= g_GridDimZ)
+        return;
+
+    uint cellIndex = GetCellIndex(gidx);
+
+    PathTracingSampler rngState;
+    rngState.Init(gidx.xy, gidx.z);
+
+    float3 pos = GetCellPosition(gidx);
+
+    if (g_BuildPass == 0) // compute number of lights overlapping current cell
+    {
+        uint lightCount = 0;
+        for (uint lightIndex = 0; lightIndex < g_NumLights; ++lightIndex)
+        {
+            if (GetLightTargetFunction(pos, lightIndex) > 0)
+                lightCount++;
+        }
+
+        uint unusedOldValue;
+        InterlockedAdd(g_TotalLightsInGridCount[0], lightCount, unusedOldValue);
+        g_LightGrid[cellIndex] = uint2(0, lightCount);
+    }
+    else // write lights overlapping current cell to g_LightGridCellsData
+    {
+        #if SPARSE_GRID
+            uint lightCount = g_LightGrid[cellIndex].y;
+            uint firstCellLightDataIndex;
+            InterlockedAdd(g_TotalLightsInGridCount[0], lightCount, firstCellLightDataIndex);
+            g_LightGrid[cellIndex].x = firstCellLightDataIndex;
+            uint cellDataStart = firstCellLightDataIndex;
+        #else
+            uint cellDataStart = cellIndex * g_MaxLightsPerCell;
+        #endif
+            uint lightDataIndex = 0;
+
+        for (uint lightIndex = 0; lightIndex < g_NumLights; ++lightIndex)
+        {
+            // Conservative culling mode: if there is a contribution, save the light index / reservoir
+            // This should be used when the number of candidates equals the number of ligths
+            if (GetLightTargetFunction(pos, lightIndex) > 0)
+            {
+                ThinReservoir reservoir = { lightIndex, 1.0f};
+                g_LightGridCellsData[cellDataStart + lightDataIndex] = reservoir;
+                lightDataIndex++;
+            }
+
+            #if !(SPARSE_GRID)
+            if (lightDataIndex >= g_MaxLightsPerCell)
+                break;
+            #endif
+        }
+
+        #if !(SPARSE_GRID)
+        uint lightCount = lightDataIndex;
+        g_LightGrid[cellIndex] = uint2(cellDataStart, lightCount);
+        #endif
+    }
+}
+
+void UpdateReservoir(int reservoirIndex, int lightIndex, float targetFunction, float r)
+{
+    float candidateRISWeight = targetFunction;
+
+    ThinReservoir reservoir = g_LightGridCellsData[reservoirIndex];
+    float totalWeights = reservoir.weight + candidateRISWeight;
+
+    if (r * totalWeights < candidateRISWeight)
+    {
+        reservoir.lightIndex = lightIndex;
+        reservoir.weight = totalWeights;
+    }
+
+    g_LightGridCellsData[reservoirIndex] = reservoir;
+}
+
+void NormalizeReservoirWeights(uint offset, float3 pos, uint numReservoirs, uint threadIndex)
+{
+    for (uint i = 0; i < numReservoirs; ++i)
+    {
+        ThinReservoir reservoir = g_LightGridCellsData[offset + i];
+        float numSamples = s_SampleCount[threadIndex * MAX_RESERVOIRS_PER_VOXEL + i];
+
+        float sampleTargetDensity = GetLightTargetFunction(pos, reservoir.lightIndex);
+        float risSampleWeight = (reservoir.weight / numSamples) / sampleTargetDensity;
+        reservoir.weight = risSampleWeight;
+        g_LightGridCellsData[offset + i] = reservoir;
+    }
+}
+
+#pragma kernel BuildRegirLightGrid
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, GROUP_SIZE_Z)]
+void BuildRegirLightGrid(in uint3 gidx : SV_DispatchThreadID, in uint threadIndex : SV_GroupIndex)
+{
+    if (gidx.x >= g_GridDimX || gidx.y >= g_GridDimY || gidx.z >= g_GridDimZ)
+        return;
+
+    uint cellIndex = GetCellIndex(gidx);
+
+    PathTracingSampler rngState;
+    rngState.Init(gidx.xy, gidx.z);
+
+    float3 pos = GetCellPosition(gidx);
+
+    uint reservoirIndex = 0;
+    for (uint lightIndex = 0; lightIndex < g_NumCandidates; ++lightIndex)
+    {
+        float targetFunction = GetLightTargetFunction(pos, lightIndex);
+
+        // Conservative culling mode: if there is a contribution, save the light index / reservoir
+        // This should be used when the number of candidates equals the number of ligths
+        if (targetFunction > 0)
+        {
+            ThinReservoir reservoir = { lightIndex, targetFunction };
+
+            if (reservoirIndex < g_NumReservoirs)
+            {
+                g_LightGridCellsData[cellIndex * g_NumReservoirs + reservoirIndex] = reservoir;
+                s_SampleCount[threadIndex * MAX_RESERVOIRS_PER_VOXEL + reservoirIndex] = 1.0f;
+                reservoirIndex++;
+            }
+            else
+            {
+                // When we run out of free reservoirs, we rely on reservoir sampling to update an existing one
+                // The reservoirs are stratified based on the lightIndex % g_NumReservoirs
+                uint reservoirLocalIndex = lightIndex % max(g_NumReservoirs, 1);
+                uint reservoirGlobalIndex = cellIndex * g_NumReservoirs + reservoirLocalIndex;
+                float rnd = rngState.GetFloatSample(lightIndex);
+                UpdateReservoir(reservoirGlobalIndex, lightIndex, targetFunction, rnd);
+                s_SampleCount[threadIndex * MAX_RESERVOIRS_PER_VOXEL + reservoirLocalIndex] += 1;
+            }
+        }
+    }
+
+    NormalizeReservoirWeights(cellIndex * g_NumReservoirs, pos, reservoirIndex, threadIndex);
+    g_LightGrid[cellIndex] = uint2(cellIndex * g_NumReservoirs, reservoirIndex);
+}

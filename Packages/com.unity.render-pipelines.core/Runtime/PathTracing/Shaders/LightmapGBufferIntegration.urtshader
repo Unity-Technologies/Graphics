@@ -1,0 +1,96 @@
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC AccumulateInternal
+
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
+#include "PathTracingRandom.hlsl"
+#include "StochasticLightmapSampling.hlsl"
+
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(g_UVAccelStruct);
+int g_StochasticAntialiasing;
+int g_SuperSampleWidth; // width of the super sampling grid - defines as g_SuperSampleWidth x g_SuperSampleWidth grid of samples
+int g_InstanceOffsetX;
+int g_InstanceOffsetY;
+int g_InstanceWidth;
+int g_InstanceHeight;
+float g_InstanceWidthScale;
+float g_InstanceHeightScale;
+int g_ChunkOffsetX;
+int g_ChunkOffsetY;
+int g_ChunkSize;
+int g_ExpandedTexelSampleWidth;
+int g_PassSampleCount;
+int g_SampleOffset;
+Texture2D<half2> g_UvFallback;
+RWStructuredBuffer<HitEntry> g_GBuffer;
+StructuredBuffer<uint> g_CompactedGBuffer;
+StructuredBuffer<uint> g_CompactedGBufferLength;
+
+float2 JitterSample(float2 sample, float2 random01, float jitterAmount)
+{
+    const float2 jitteredSample = sample + jitterAmount * (random01 - 0.5f);
+    return saturate(jitteredSample);
+}
+
+float2 GetSuperSamplingOffset(uint currentSuperSampleIndex, uint superSampleWidth)
+{
+    currentSuperSampleIndex = currentSuperSampleIndex % (superSampleWidth * superSampleWidth);
+    uint ssX = currentSuperSampleIndex % superSampleWidth;
+    uint ssY = currentSuperSampleIndex / superSampleWidth;
+    return (float2(ssX, ssY) + 0.5f) / (float)superSampleWidth;
+}
+
+void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    // The dispatch domain is [0; (g_ChunkSize * g_ExpandedTexelSampleWidth) - 1] in X
+    const uint sampleIndex = dispatchInfo.dispatchThreadID.x;
+    g_GBuffer[sampleIndex].instanceID = -1;
+    g_GBuffer[sampleIndex].primitiveIndex = -1;
+    g_GBuffer[sampleIndex].barycentrics = uint2(0,0);
+
+    const uint compactedRange = g_CompactedGBufferLength[0] * (uint)g_ExpandedTexelSampleWidth;
+    if (sampleIndex >= compactedRange)
+        return;
+
+    // check that the sample is needed, g_ExpandedTexelSampleWidth might have more samples than needed as it is power of two
+    // .. and the last sampling pass might have few remaining samples
+    uint localSampleIndex = (uint)sampleIndex % (uint)g_ExpandedTexelSampleWidth;
+    if (localSampleIndex >= (uint)g_PassSampleCount)
+        return;
+
+    uint compactedTexelIndex = sampleIndex / (uint)g_ExpandedTexelSampleWidth;
+    uint chunkLinearTexelIndex = g_CompactedGBuffer[compactedTexelIndex];
+    if (chunkLinearTexelIndex >= (uint)g_ChunkSize)
+        return;
+
+    const uint linearChunkOffset = g_ChunkOffsetX + g_ChunkOffsetY * g_InstanceWidth;
+    const uint linearInstancePos = linearChunkOffset + chunkLinearTexelIndex;
+    if (linearInstancePos >= (uint)g_InstanceWidth * (uint)g_InstanceHeight)
+        return;
+
+    const uint2 instanceTexelPos = uint2(linearInstancePos % g_InstanceWidth, linearInstancePos / g_InstanceWidth);
+    const uint2 lightmapTexelPos = uint2(g_InstanceOffsetX, g_InstanceOffsetY) + instanceTexelPos;
+    const float2 instanceSize = float2(g_InstanceWidth, g_InstanceHeight);
+
+    UnifiedRT::RayTracingAccelStruct uvAccelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_UVAccelStruct);
+
+    PathTracingSampler rngState;
+    rngState.Init(lightmapTexelPos, g_SampleOffset + localSampleIndex);
+
+     // select a random point in the texel
+    const float2 random01 = float2(rngState.GetFloatSample(RAND_DIM_AA_X), rngState.GetFloatSample(RAND_DIM_AA_Y));
+    const float2 texelSample = g_StochasticAntialiasing == 1 ? random01 : JitterSample(GetSuperSamplingOffset(g_SampleOffset + localSampleIndex, g_SuperSampleWidth), random01, 0.001f); // the jitter is to avoid issues with raytracing watertightness
+    const float2 instanceScale = float2(g_InstanceWidthScale, g_InstanceHeightScale);
+    const UnifiedRT::Hit hit = LightmapSampleTexelOffset(instanceTexelPos, texelSample, instanceSize, instanceScale, dispatchInfo, uvAccelStruct, g_UvFallback[instanceTexelPos]);
+
+    if (!hit.IsValid())
+    {
+        // no intersection found
+        return;
+    }
+    g_GBuffer[sampleIndex].instanceID = hit.instanceID;
+    g_GBuffer[sampleIndex].primitiveIndex = hit.primitiveIndex;
+    g_GBuffer[sampleIndex].barycentrics = hit.uvBarycentrics;
+}
+

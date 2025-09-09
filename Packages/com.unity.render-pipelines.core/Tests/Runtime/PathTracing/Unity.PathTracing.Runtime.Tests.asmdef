@@ -1,0 +1,23 @@
+{
+    "name": "Unity.PathTracing.Runtime.Tests",
+    "rootNamespace": "",
+    "references": [
+        "GUID:214c0945bb158c940aada223f3223ee8",
+        "GUID:c49c619b6af2be941af9bcbca2641964",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

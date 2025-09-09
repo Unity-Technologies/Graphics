@@ -570,7 +570,6 @@ namespace UnityEngine.Rendering.Universal
                     passData.World = _pathTracingWorld;
 
                     _pathTracingWorld.SetEnvironmentMaterial(RenderSettings.skybox);
-                    _pathTracingWorld.EnableEmissiveSampling = true;
 
                     builder.AllowGlobalStateModification(true);
                     builder.SetRenderFunc((WorldUpdatePassData data, UnsafeGraphContext graphCtx) => UpdateWorld(data, graphCtx, ref _worldUpdateScratch));
@@ -698,8 +697,11 @@ namespace UnityEngine.Rendering.Universal
             static void UpdateWorld(WorldUpdatePassData data, UnsafeGraphContext graphCtx, ref GraphicsBuffer scratch)
             {
                 Bounds sceneBounds = new Bounds(); // We assume that world doesn't need scene bounds because it only needs this when using power sampling, and we don't support that yet anyway.
+
+                const bool emissiveSampling = true;
                 var cmd = CommandBufferHelpers.GetNativeCommandBuffer(graphCtx.cmd);
-                data.World.Build(sceneBounds, cmd, ref scratch);
+
+                data.World.Build(sceneBounds, cmd, ref scratch, null, emissiveSampling);
             }
 
             static void LookupScreenIrradiance(ScreenIrradianceLookupPassData data, ComputeGraphContext cgContext)
@@ -842,17 +844,17 @@ namespace UnityEngine.Rendering.Universal
 
         class WorldAdapter : IDisposable
         {
-            // This dictionary maps from Unity InstanceID for MeshRenderer or Terrain, to corresponding InstanceHandle for accessing World.
-            private readonly Dictionary<int, InstanceHandle> _instanceIDToWorldInstanceHandles = new();
+            // This dictionary maps from Unity EntityID for MeshRenderer or Terrain, to corresponding InstanceHandle for accessing World.
+            private readonly Dictionary<EntityId, InstanceHandle> _entityIDToWorldInstanceHandles = new();
 
             // Same as above but for Lights
-            private readonly Dictionary<int, LightHandle> _instanceIDToWorldLightHandles = new();
+            private readonly Dictionary<EntityId, LightHandle> _entityIDToWorldLightHandles = new();
 
             // Same as above but for Materials
-            private Dictionary<int, MaterialHandle> _instanceIDToWorldMaterialHandles = new();
+            private Dictionary<EntityId, MaterialHandle> _entityIDToWorldMaterialHandles = new();
 
             // We also keep track of associated material descriptors, so we can free temporary temporary textures when a material is removed
-            private Dictionary<int, World.MaterialDescriptor> _instanceIDToWorldMaterialDescriptors = new();
+            private Dictionary<EntityId, World.MaterialDescriptor> _entityIDToWorldMaterialDescriptors = new();
 
             private World.MaterialDescriptor _fallbackMaterialDescriptor;
             private MaterialHandle _fallbackMaterialHandle;
@@ -861,16 +863,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 _fallbackMaterialDescriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(fallbackMaterial);
                 _fallbackMaterialHandle = world.AddMaterial(in _fallbackMaterialDescriptor, UVChannel.UV0);
-                _instanceIDToWorldMaterialHandles.Add(fallbackMaterial.GetInstanceID(), _fallbackMaterialHandle);
-                _instanceIDToWorldMaterialDescriptors.Add(fallbackMaterial.GetInstanceID(), _fallbackMaterialDescriptor);
+                _entityIDToWorldMaterialHandles.Add(fallbackMaterial.GetEntityId(), _fallbackMaterialHandle);
+                _entityIDToWorldMaterialDescriptors.Add(fallbackMaterial.GetEntityId(), _fallbackMaterialDescriptor);
             }
 
-            public void UpdateMaterials(World world, List<Material> addedMaterials, List<int> removedMaterials, List<Material> changedMaterials)
+            public void UpdateMaterials(World world, List<Material> addedMaterials, List<EntityId> removedMaterials, List<Material> changedMaterials)
             {
-                UpdateMaterials(world, _instanceIDToWorldMaterialHandles, _instanceIDToWorldMaterialDescriptors, addedMaterials, removedMaterials, changedMaterials);
+                UpdateMaterials(world, _entityIDToWorldMaterialHandles, _entityIDToWorldMaterialDescriptors, addedMaterials, removedMaterials, changedMaterials);
             }
 
-            private static void UpdateMaterials(World world, Dictionary<int, MaterialHandle> instanceIDToHandle, Dictionary<int, World.MaterialDescriptor> instanceIDToDescriptor, List<Material> addedMaterials, List<int> removedMaterials, List<Material> changedMaterials)
+            private static void UpdateMaterials(World world, Dictionary<EntityId, MaterialHandle> entityIDToHandle, Dictionary<EntityId, World.MaterialDescriptor> entityIDToDescriptor, List<Material> addedMaterials, List<EntityId> removedMaterials, List<Material> changedMaterials)
             {
                 static void DeleteTemporaryTextures(ref World.MaterialDescriptor desc)
                 {
@@ -879,18 +881,18 @@ namespace UnityEngine.Rendering.Universal
                     CoreUtils.Destroy(desc.Transmission);
                 }
 
-                foreach (var materialInstanceID in removedMaterials)
+                foreach (var entityID in removedMaterials)
                 {
                     // Clean up temporary textures in the descriptor
-                    UnityEngine.Debug.Assert(instanceIDToDescriptor.ContainsKey(materialInstanceID));
-                    var descriptor = instanceIDToDescriptor[materialInstanceID];
+                    UnityEngine.Debug.Assert(entityIDToDescriptor.ContainsKey(entityID));
+                    var descriptor = entityIDToDescriptor[entityID];
                     DeleteTemporaryTextures(ref descriptor);
-                    instanceIDToDescriptor.Remove(materialInstanceID);
+                    entityIDToDescriptor.Remove(entityID);
 
                     // Remove the material from the world
-                    UnityEngine.Debug.Assert(instanceIDToHandle.ContainsKey(materialInstanceID));
-                    world.RemoveMaterial(instanceIDToHandle[materialInstanceID]);
-                    instanceIDToHandle.Remove(materialInstanceID);
+                    UnityEngine.Debug.Assert(entityIDToHandle.ContainsKey(entityID));
+                    world.RemoveMaterial(entityIDToHandle[entityID]);
+                    entityIDToHandle.Remove(entityID);
                 }
 
                 foreach (var material in addedMaterials)
@@ -898,36 +900,36 @@ namespace UnityEngine.Rendering.Universal
                     // Add material to the world
                     var descriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(material);
                     var handle = world.AddMaterial(in descriptor, UVChannel.UV0);
-                    instanceIDToHandle.Add(material.GetInstanceID(), handle);
+                    entityIDToHandle.Add(material.GetEntityId(), handle);
 
                     // Keep track of the descriptor
-                    instanceIDToDescriptor.Add(material.GetInstanceID(), descriptor);
+                    entityIDToDescriptor.Add(material.GetEntityId(), descriptor);
                 }
 
                 foreach (var material in changedMaterials)
                 {
                     // Clean up temporary textures in the old descriptor
-                    UnityEngine.Debug.Assert(instanceIDToDescriptor.ContainsKey(material.GetInstanceID()));
-                    var oldDescriptor = instanceIDToDescriptor[material.GetInstanceID()];
+                    UnityEngine.Debug.Assert(entityIDToDescriptor.ContainsKey(material.GetEntityId()));
+                    var oldDescriptor = entityIDToDescriptor[material.GetEntityId()];
                     DeleteTemporaryTextures(ref oldDescriptor);
 
                     // Update the material in the world using the new descriptor
-                    UnityEngine.Debug.Assert(instanceIDToHandle.ContainsKey(material.GetInstanceID()));
+                    UnityEngine.Debug.Assert(entityIDToHandle.ContainsKey(material.GetEntityId()));
                     var newDescriptor = MaterialPool.ConvertUnityMaterialToMaterialDescriptor(material);
-                    world.UpdateMaterial(instanceIDToHandle[material.GetInstanceID()], in newDescriptor, UVChannel.UV0);
-                    instanceIDToDescriptor[material.GetInstanceID()] = newDescriptor;
+                    world.UpdateMaterial(entityIDToHandle[material.GetEntityId()], in newDescriptor, UVChannel.UV0);
+                    entityIDToDescriptor[material.GetEntityId()] = newDescriptor;
                 }
             }
 
-            private int _sunlightInstanceID = -1; // Used to track the sunlight instance ID, if any.
+            private int _sunlightEntityID = -1; // Used to track the sunlight instance ID, if any.
             // Hack: Ensures that we only add one Directional light as the "sunlight" into World
-            private void FilterForSunlight(List<Light> addedLights, List<int> removedLights, List<Light> changedLights)
+            private void FilterForSunlight(List<Light> addedLights, List<EntityId> removedLights, List<Light> changedLights)
             {
                 for(var i = 0; i < removedLights.Count; i++)
                 {
-                    if (removedLights[i] == _sunlightInstanceID)
+                    if (removedLights[i] == _sunlightEntityID)
                     {
-                        _sunlightInstanceID = -1;
+                        _sunlightEntityID = -1;
                     }
                     else
                     {
@@ -936,7 +938,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // If the sunlight was removed, try to find a new one
-                if (_sunlightInstanceID == -1)
+                if (_sunlightEntityID == -1)
                 {
                     // Get all the active realtime directional lights in the scenr
                     var allLights = FindObjectsByType<Light>(FindObjectsSortMode.None);
@@ -952,7 +954,7 @@ namespace UnityEngine.Rendering.Universal
 
                     foreach (var directionalLight in realtimeDirectionalLights)
                     {
-                        _sunlightInstanceID = directionalLight.GetInstanceID();
+                        _sunlightEntityID = directionalLight.GetEntityId();
                         if (!addedLights.Contains(directionalLight))
                         {
                             addedLights.Add(directionalLight);
@@ -964,7 +966,7 @@ namespace UnityEngine.Rendering.Universal
                 for (var i = 0; i < addedLights.Count; i++)
                 {
                     var addedLight = addedLights[i];
-                    if (addedLight.GetInstanceID() != _sunlightInstanceID)
+                    if (addedLight.GetEntityId() != _sunlightEntityID)
                     {
                         addedLights.RemoveAt(i--);
                     }
@@ -973,24 +975,24 @@ namespace UnityEngine.Rendering.Universal
                 for(var i = 0; i < changedLights.Count; i++)
                 {
                     var changedLight = changedLights[i];
-                    if (changedLight.GetInstanceID() != _sunlightInstanceID)
+                    if (changedLight.GetEntityId() != _sunlightEntityID)
                     {
                         changedLights.RemoveAt(i--);
                     }
                 }
             }
 
-            internal void UpdateLights(World world, List<Light> addedLights, List<int> removedLights,
+            internal void UpdateLights(World world, List<Light> addedLights, List<EntityId> removedLights,
                 List<Light> changedLights, LightPickingMethod pickingMethod, bool multiplyPunctualLightIntensityByPI, bool respectLightLayers, bool autoEstimateLUTRange)
             {
                 // Filter lights to ensure only one is added as the "sunlight"
                 FilterForSunlight(addedLights, removedLights, changedLights);
-                UpdateLights(world, _instanceIDToWorldLightHandles, addedLights, removedLights, changedLights, pickingMethod, multiplyPunctualLightIntensityByPI, respectLightLayers, autoEstimateLUTRange);
+                UpdateLights(world, _entityIDToWorldLightHandles, addedLights, removedLights, changedLights, pickingMethod, multiplyPunctualLightIntensityByPI, respectLightLayers, autoEstimateLUTRange);
             }
 
             private static void UpdateLights(
                 World world,
-                Dictionary<int, LightHandle> instanceIDToHandle, List<Light> addedLights, List<int> removedLights,
+                Dictionary<EntityId, LightHandle> entityIDToHandle, List<Light> addedLights, List<EntityId> removedLights,
                 List<Light> changedLights,
                 LightPickingMethod pickingMethod,
                 bool multiplyPunctualLightIntensityByPI,
@@ -998,27 +1000,27 @@ namespace UnityEngine.Rendering.Universal
                 bool autoEstimateLUTRange,
                 MixedLightingMode mixedLightingMode = MixedLightingMode.IndirectOnly)
             {
-                world.cdfLightPicking = pickingMethod == LightPickingMethod.Power;
+                world.lightPickingMethod = pickingMethod;
 
                 // Remove deleted lights
                 LightHandle[] handlesToRemove = new LightHandle[removedLights.Count];
                 for (int i = 0; i < removedLights.Count; i++)
                 {
-                    int lightInstanceID = removedLights[i];
-                    handlesToRemove[i] = instanceIDToHandle[lightInstanceID];
-                    instanceIDToHandle.Remove(lightInstanceID);
+                    int lightEntityID = removedLights[i];
+                    handlesToRemove[i] = entityIDToHandle[lightEntityID];
+                    entityIDToHandle.Remove(lightEntityID);
                 }
                 world.RemoveLights(handlesToRemove);
 
                 // Add new lights
                 LightHandle[] addedHandles = world.AddLights(Util.ConvertUnityLightsToLightDescriptors(addedLights.ToArray(), multiplyPunctualLightIntensityByPI), respectLightLayers, autoEstimateLUTRange, mixedLightingMode);
                 for (int i = 0; i < addedLights.Count; ++i)
-                    instanceIDToHandle.Add(addedLights[i].GetInstanceID(), addedHandles[i]);
+                    entityIDToHandle.Add(addedLights[i].GetEntityId(), addedHandles[i]);
 
                 // Update changed lights
                 LightHandle[] handlesToUpdate = new LightHandle[changedLights.Count];
                 for (int i = 0; i < changedLights.Count; i++)
-                    handlesToUpdate[i] = instanceIDToHandle[changedLights[i].GetInstanceID()];
+                    handlesToUpdate[i] = entityIDToHandle[changedLights[i].GetEntityId()];
 
                 world.UpdateLights(handlesToUpdate, Util.ConvertUnityLightsToLightDescriptors(changedLights.ToArray(), multiplyPunctualLightIntensityByPI), respectLightLayers, autoEstimateLUTRange, mixedLightingMode);
             }
@@ -1027,35 +1029,35 @@ namespace UnityEngine.Rendering.Universal
                 World world,
                 List<MeshRenderer> addedInstances,
                 List<InstanceChanges> changedInstances,
-                List<int> removedInstances,
+                List<EntityId> removedInstances,
                 RenderedGameObjectsFilter renderedGameObjects,
                 bool enableEmissiveSampling,
                 Material fallbackMaterial)
             {
-                UpdateInstances(world, _instanceIDToWorldInstanceHandles, _instanceIDToWorldMaterialHandles, addedInstances, changedInstances, removedInstances, renderedGameObjects, enableEmissiveSampling, fallbackMaterial);
+                UpdateInstances(world, _entityIDToWorldInstanceHandles, _entityIDToWorldMaterialHandles, addedInstances, changedInstances, removedInstances, renderedGameObjects, enableEmissiveSampling, fallbackMaterial);
             }
 
             private static void UpdateInstances(
                 World world,
-                Dictionary<int, InstanceHandle> instanceIDToInstanceHandle,
-                Dictionary<int, MaterialHandle> instanceIDToMaterialHandle,
+                Dictionary<EntityId, InstanceHandle> entityIDToInstanceHandle,
+                Dictionary<EntityId, MaterialHandle> entityIDToMaterialHandle,
                 List<MeshRenderer> addedInstances,
                 List<InstanceChanges> changedInstances,
-                List<int> removedInstances,
+                List<EntityId> removedInstances,
                 RenderedGameObjectsFilter renderedGameObjects,
                 bool enableEmissiveSampling,
                 Material fallbackMaterial)
             {
-                foreach (var meshRendererInstanceID in removedInstances)
+                foreach (var meshRendererEntityID in removedInstances)
                 {
-                    if (instanceIDToInstanceHandle.TryGetValue(meshRendererInstanceID, out InstanceHandle instance))
+                    if (entityIDToInstanceHandle.TryGetValue(meshRendererEntityID, out InstanceHandle instance))
                     {
                         world.RemoveInstance(instance);
-                        instanceIDToInstanceHandle.Remove(meshRendererInstanceID);
+                        entityIDToInstanceHandle.Remove(meshRendererEntityID);
                     }
                     else
                     {
-                        UnityEngine.Debug.LogError($"Failed to remove an instance with InstanceID {meshRendererInstanceID}");
+                        UnityEngine.Debug.LogError($"Failed to remove an instance with EntityID {meshRendererEntityID}");
                     }
                 }
 
@@ -1077,12 +1079,12 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (materials[i] == null)
                         {
-                            materialHandles[i] = instanceIDToMaterialHandle[fallbackMaterial.GetInstanceID()];
+                            materialHandles[i] = entityIDToMaterialHandle[fallbackMaterial.GetEntityId()];
                             visibility[i] = false;
                         }
                         else
                         {
-                            materialHandles[i] = instanceIDToMaterialHandle[materials[i].GetInstanceID()];
+                            materialHandles[i] = entityIDToMaterialHandle[materials[i].GetEntityId()];
                             visibility[i] = true;
                         }
                     }
@@ -1104,21 +1106,21 @@ namespace UnityEngine.Rendering.Universal
                         Util.IsStatic(meshRenderer.gameObject),
                         renderedGameObjects,
                         enableEmissiveSampling);
-                    int instanceID = meshRenderer.GetInstanceID();
-                    UnityEngine.Debug.Assert(!instanceIDToInstanceHandle.ContainsKey(instanceID));
-                    instanceIDToInstanceHandle.Add(instanceID, instance);
+                    int entityID = meshRenderer.GetEntityId();
+                    UnityEngine.Debug.Assert(!entityIDToInstanceHandle.ContainsKey(entityID));
+                    entityIDToInstanceHandle.Add(entityID, instance);
                 }
 
                 foreach (var instanceUpdate in changedInstances)
                 {
                     try
                     {
-                        var renderer = instanceUpdate.meshRenderer;
-                        var gameObject = renderer.gameObject;
+                        var meshRenderer = instanceUpdate.meshRenderer;
+                        var gameObject = meshRenderer.gameObject;
 
-                        if (!instanceIDToInstanceHandle.TryGetValue(renderer.GetInstanceID(), out InstanceHandle instance))
+                        if (!entityIDToInstanceHandle.TryGetValue(meshRenderer.GetEntityId(), out InstanceHandle instance))
                         {
-                            UnityEngine.Debug.LogError($"Failed to update an instance with InstanceID {instanceUpdate.meshRenderer.GetInstanceID()}");
+                            UnityEngine.Debug.LogError($"Failed to update an instance with EntityID {instanceUpdate.meshRenderer.GetEntityId()}");
                             continue;
                         }
 
@@ -1131,17 +1133,17 @@ namespace UnityEngine.Rendering.Universal
                         bool maskPropertiesChanged = (instanceUpdate.changes & ModifiedProperties.IsStatic) != 0 || (instanceUpdate.changes & ModifiedProperties.ShadowCasting) != 0 || (instanceUpdate.changes & ModifiedProperties.Layer) != 0;
                         if (materialChanged || enableEmissiveSampling || maskPropertiesChanged)
                         {
-                            var materials = Util.GetMaterials(renderer);
+                            var materials = Util.GetMaterials(meshRenderer);
                             var materialHandles = new MaterialHandle[materials.Length];
                             for (int i = 0; i < materials.Length; i++)
                             {
                                 if (materials[i] == null)
                                 {
-                                    materialHandles[i] = instanceIDToMaterialHandle[fallbackMaterial.GetInstanceID()];
+                                    materialHandles[i] = entityIDToMaterialHandle[fallbackMaterial.GetEntityId()];
                                 }
                                 else
                                 {
-                                    materialHandles[i] = instanceIDToMaterialHandle[materials[i].GetInstanceID()];
+                                    materialHandles[i] = entityIDToMaterialHandle[materials[i].GetEntityId()];
                                 }
                             }
 
@@ -1157,8 +1159,8 @@ namespace UnityEngine.Rendering.Universal
                                 uint[] masks = new uint[materials.Length];
                                 for (int i = 0; i < masks.Length; i++)
                                 {
-                                    bool hasLightmaps = (renderer.receiveGI == ReceiveGI.Lightmaps);
-                                    var mask = World.GetInstanceMask(renderer.shadowCastingMode, Util.IsStatic(renderer.gameObject), renderedGameObjects, hasLightmaps);
+                                    bool hasLightmaps = (meshRenderer.receiveGI == ReceiveGI.Lightmaps);
+                                    var mask = World.GetInstanceMask(meshRenderer.shadowCastingMode, Util.IsStatic(meshRenderer.gameObject), renderedGameObjects, hasLightmaps);
                                     masks[i] = visibility[i] ? mask : 0u;
                                 }
                                 world.UpdateInstanceMask(instance, masks);

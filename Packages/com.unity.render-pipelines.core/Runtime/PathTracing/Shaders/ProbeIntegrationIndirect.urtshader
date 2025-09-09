@@ -1,0 +1,122 @@
+#define UNIFIED_RT_GROUP_SIZE_X 128
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC IntegrateIndirectRadiance
+
+#include "PathTracing.hlsl"
+#include "SphericalHarmonicsUtils.hlsl"
+
+RWStructuredBuffer<float3> g_Positions;
+RWStructuredBuffer<float> g_RadianceShl2;
+uint g_PositionsOffset;
+uint g_SampleOffset;
+uint g_SampleCount;
+
+float3 EstimateProbeRadiance(UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::Ray ray, inout PathTracingSampler rngState)
+{
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    PathIterator pathIter;
+    InitPathIterator(pathIter, ray);
+
+    int transparencyBounce = 0;
+    // We start at bounce index 1, as bounce index is defined relative to the camera for this path tracer.
+    // Since this function is used for baking, we already implicitly have the first "hit", and are about
+    // to process the second path segment.
+    for (int bounceIndex = 1; bounceIndex <= g_BounceCount && transparencyBounce < MAX_TRANSMISSION_BOUNCES; bounceIndex++)
+    {
+        // The first path segment is special for the indirect pass - we should not add radiance from the
+        // environment or emission, as these are already explicitly sampled in the direct pass.
+        bool isFirstPathSegment = bounceIndex == 1;
+
+        uint pathRayMask = RayMask(bounceIndex == 0);
+        uint shadowRayMask = ShadowRayMask();
+
+        uint traceResult = TraceBounceRay(pathIter, bounceIndex, pathRayMask, dispatchInfo, accelStruct, rngState);
+
+        if (traceResult == TRACE_HIT)
+        {
+            if (!isFirstPathSegment)
+                AddEmissionRadiance(pathIter, accelStruct, g_AccelStructInstanceList, false);
+            AddRadianceFromDirectIllumination(pathIter, shadowRayMask, dispatchInfo, accelStruct, g_AccelStructInstanceList, rngState, false);
+        }
+
+        if (traceResult == TRACE_MISS)
+        {
+            if (!isFirstPathSegment)
+                AddEnvironmentRadiance(pathIter, false);
+            break;
+        }
+
+        if (traceResult == TRACE_TRANSMISSION)
+        {
+            bounceIndex--;
+            transparencyBounce++;
+            pathIter.ray.origin = pathIter.hitGeo.NextTransmissionRayOrigin();
+            pathIter.throughput *= pathIter.material.transmission;
+            rngState.NextBounce();
+            continue;
+        }
+
+        if (!Scatter(pathIter, rngState))
+            break;
+
+        if (bounceIndex >= RUSSIAN_ROULETTE_MIN_BOUNCES)
+        {
+            float p = max(pathIter.throughput.x, max(pathIter.throughput.y, pathIter.throughput.z));
+            if (rngState.GetFloatSample(RAND_DIM_RUSSIAN_ROULETTE) > p)
+                break;
+            else
+                pathIter.throughput /= p;
+        }
+
+        rngState.NextBounce();
+    }
+
+    return pathIter.radianceSample;
+}
+
+void IntegrateIndirectRadiance(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    const uint threadIdx = dispatchInfo.dispatchThreadID.x;
+    const uint inProbeIdx = threadIdx / g_SampleCount + g_PositionsOffset;
+    const uint inProbeSampleIdx = threadIdx % g_SampleCount;
+    const uint outProbeIdx = threadIdx;
+
+    PathTracingSampler rngState;
+    rngState.Init(inProbeIdx, g_SampleOffset + inProbeSampleIdx);
+
+    // TODO(pema.malling): This works but that is sort of by accident. Avoid coupling to AA (which is unrelated to probe integration). https://jira.unity3d.com/browse/LIGHT-1687
+    const float3 uniformSphereDir = MapSquareToSphere(float2(rngState.GetFloatSample(RAND_DIM_AA_X), rngState.GetFloatSample(RAND_DIM_AA_Y)));
+
+    UnifiedRT::Ray ray;
+    ray.origin = g_Positions[inProbeIdx];
+    ray.direction = uniformSphereDir;
+    ray.tMin = 0;
+    ray.tMax = K_T_MAX;
+
+    float3 radiance = EstimateProbeRadiance(dispatchInfo, ray, rngState);
+
+    // Local array to accumulate radiance into, using SoA layout.
+    float3 accumulatedRadianceSH[SH_COEFFICIENTS_PER_CHANNEL];
+    accumulatedRadianceSH[0] = radiance * SHL0();
+    accumulatedRadianceSH[1] = radiance * SHL1_1(uniformSphereDir);
+    accumulatedRadianceSH[2] = radiance * SHL10(uniformSphereDir);
+    accumulatedRadianceSH[3] = radiance * SHL11(uniformSphereDir);
+
+    accumulatedRadianceSH[4] = radiance * SHL2_2(uniformSphereDir);
+    accumulatedRadianceSH[5] = radiance * SHL2_1(uniformSphereDir);
+    accumulatedRadianceSH[6] = radiance * SHL20(uniformSphereDir);
+    accumulatedRadianceSH[7] = radiance * SHL21(uniformSphereDir);
+    accumulatedRadianceSH[8] = radiance * SHL22(uniformSphereDir);
+
+    const float reciprocalSampleCount = 1.0f / (float) g_SampleCount;
+    const float reciprocalUniformSphereDensity = 4.0f * PI;
+    const float monteCarloNormalization = reciprocalSampleCount * reciprocalUniformSphereDensity;
+    for (uint channel = 0; channel < SH_COLOR_CHANNELS; ++channel)
+    {
+        for (uint i = 0; i < SH_COEFFICIENTS_PER_CHANNEL; ++i)
+        {
+            g_RadianceShl2[SHIndex(outProbeIdx, channel, i)] = accumulatedRadianceSH[i][channel] * monteCarloNormalization;
+        }
+    }
+}

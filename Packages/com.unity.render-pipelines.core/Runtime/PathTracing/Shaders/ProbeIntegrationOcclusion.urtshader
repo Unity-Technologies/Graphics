@@ -1,0 +1,65 @@
+#define UNIFIED_RT_GROUP_SIZE_X 128
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC IntegrateOcclusion
+
+#include "PathTracing.hlsl"
+#include "LightSampling.hlsl"
+
+RWStructuredBuffer<float3> g_Positions;
+RWStructuredBuffer<int> g_PerProbeLightIndices;
+RWStructuredBuffer<float> g_Occlusion;
+uint g_ExpansionOffset;
+uint g_PositionsOffset;
+uint g_PerProbeLightIndicesOffset;
+uint g_MaxLightsPerProbe;
+uint g_SampleCount;
+uint g_SampleOffset;
+
+void IntegrateOcclusion(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    const uint threadIdx = dispatchInfo.dispatchThreadID.x;
+    const uint inProbeIdx = threadIdx / g_SampleCount;
+    const uint inProbeIdxWithOffset = inProbeIdx + g_PositionsOffset;
+    const uint inProbeSampleIdx = threadIdx % g_SampleCount;
+
+    float3 worldPosition = g_Positions[inProbeIdxWithOffset];
+
+    // Which probe in the expanded g_Occlusion buffer are we in?
+    const uint outProbeIdx = inProbeIdx * g_SampleCount + inProbeSampleIdx;
+
+    for (uint indirectLightIndex = 0; indirectLightIndex < g_MaxLightsPerProbe; indirectLightIndex++)
+    {
+        // Which light in the expanded g_Occlusion buffer are we in?
+        const uint outOcclusionValueIdx = outProbeIdx * g_MaxLightsPerProbe + indirectLightIndex;
+        // Which light in the non-expanded g_PerProbeLightIndices buffer are we in?
+        const uint perProbeLightIndicesIdx = (inProbeIdx + g_ExpansionOffset) * g_MaxLightsPerProbe + indirectLightIndex + g_PerProbeLightIndicesOffset;
+
+        PathTracingSampler rngState;
+        rngState.Init(inProbeIdxWithOffset, g_SampleOffset + inProbeSampleIdx);
+
+        uint lightIndex = g_PerProbeLightIndices[perProbeLightIndicesIdx];
+        if (lightIndex == -1)
+        {
+            g_Occlusion[outOcclusionValueIdx] = 0.0f;
+            continue;
+        }
+
+        PTLight light = FetchLight(lightIndex);
+        if (light.type != SPOT_LIGHT && light.type != POINT_LIGHT && light.type != DIRECTIONAL_LIGHT)
+        {
+            g_Occlusion[outOcclusionValueIdx] = 0.0f;
+            continue;
+        }
+
+        uint dimsOffset = 0;
+        uint dimsUsed = 0;
+        float3 attenuation = 1.0f;
+        bool isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, SHADOW_RAY_VIS_MASK, worldPosition, rngState, dimsOffset, dimsUsed, light, true, attenuation);
+        if (isVisible)
+        {
+            g_Occlusion[outOcclusionValueIdx] = 1.0f / g_SampleCount;
+        }
+    }
+}

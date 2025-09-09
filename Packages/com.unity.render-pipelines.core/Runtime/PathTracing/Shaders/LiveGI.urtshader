@@ -1,0 +1,173 @@
+#define UNIFIED_RT_GROUP_SIZE_X 16
+#define UNIFIED_RT_GROUP_SIZE_Y 8
+
+RWTexture2D<float4> g_Radiance; // Path tracer output
+RWTexture2D<float4> g_MotionVectors;
+RWTexture2D<float4> g_NormalsDepth;
+RWTexture2D<float4> g_DebugOutput;
+
+// Input
+float4x4 g_CameraToWorldMatrix;
+float4 g_CameraFrustum;
+float4x4 g_CameraViewProjection;
+float4x4 g_PreviousViewProjection;
+
+uint g_SampleCount;
+uint g_FrameIndex;
+int g_EnableSubPixelJittering;
+uint g_EnableDebug;
+
+#define READ_EXPOSURE_FROM_TEXTURE
+#include "PathTracing.hlsl"
+
+UnifiedRT::Ray GeneratePinholeRay(float2 frameCoord, float2 pixelJitter, uint2 launchDim)
+{
+    float2 ndcCoords01 = (frameCoord + pixelJitter) / float2(launchDim);
+    float3 viewDirection = float3(
+        lerp(g_CameraFrustum.x, g_CameraFrustum.y, ndcCoords01.x),
+        lerp(g_CameraFrustum.z, g_CameraFrustum.w, ndcCoords01.y),
+        -1.0);
+
+    viewDirection = normalize(viewDirection);
+
+    // Rotate the ray from view space to world space.
+    float3 rayDirection = mul((float3x3) g_CameraToWorldMatrix, viewDirection);
+
+    UnifiedRT::Ray ray;
+    ray.origin = GetColumn(g_CameraToWorldMatrix, 3).xyz; // last column
+    ray.direction = rayDirection;
+    ray.tMin = 0;
+    ray.tMax = K_T_MAX;
+
+    return ray;
+}
+
+UnifiedRT::Ray GeneratePrimaryRay(float2 frameCoord, float2 pixelJitter, uint2 launchDim)
+{
+    return GeneratePinholeRay(frameCoord, pixelJitter, launchDim);
+}
+
+void ComputeMotionVectorAndDepth(inout PixelState pixel, float2 pixelJitter, float3 worldSpacePos)
+{
+    float2 frameCoord = pixel.coord + pixelJitter;
+    float4 projCoords = mul(g_PreviousViewProjection, float4(worldSpacePos, 1.0));
+    projCoords.xyz = projCoords.xyz / projCoords.w;
+    projCoords.xy = (projCoords.xy * 0.5 + 0.5) * float2(pixel.launchDim);
+    pixel.motionVector = frameCoord - projCoords.xy;
+
+    float4 ndc = mul(g_CameraViewProjection, float4(worldSpacePos, 1.0));
+    pixel.depth = ndc.z / ndc.w;
+}
+
+void ComputeMotionVectorAndDepth(inout PixelState pixel, float2 pixelJitter, PTHitGeom hitGeom, UnifiedRT::Ray ray, bool hit)
+{
+    float3 lastWorldPosition;
+    if (!hit)
+    {
+        float t = 10000 / dot(ray.direction, GetColumn(g_CameraToWorldMatrix, 2).xyz);
+        lastWorldPosition = ray.origin + t * ray.direction;
+    }
+    else
+    {
+        lastWorldPosition = hitGeom.lastWorldPosition;
+        pixel.normal = hitGeom.worldFaceNormal;
+    }
+
+    ComputeMotionVectorAndDepth(pixel, pixelJitter, lastWorldPosition);
+}
+
+
+void TraceNewPath(UnifiedRT::DispatchInfo dispatchInfo, uint sampleIndex, inout PathTracingSampler rngState, inout PixelState pixel)
+{
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    float2 pixelJitter = g_EnableSubPixelJittering ? float2(rngState.GetFloatSample(RAND_DIM_AA_X), rngState.GetFloatSample(RAND_DIM_AA_Y)) - 0.5 : 0.0;
+
+    PathIterator pathIter;
+    InitPathIterator(pathIter, GeneratePrimaryRay(pixel.coord, pixelJitter, pixel.launchDim));
+
+    int transparencyBounce = 0;
+    for (int bounceIndex = 0; bounceIndex <= g_BounceCount && transparencyBounce < MAX_TRANSMISSION_BOUNCES; bounceIndex++)
+    {
+        uint traceResult = TraceBounceRayAndAddRadiance(pathIter, bounceIndex, RayMask(bounceIndex == 0), ShadowRayMask(), dispatchInfo, accelStruct, g_AccelStructInstanceList, rngState);
+        pixel.bounces++;
+
+        if (bounceIndex == 0 && sampleIndex == 0)
+            ComputeMotionVectorAndDepth(pixel, pixelJitter, pathIter.hitGeo, pathIter.ray, pathIter.hitResult.IsValid());
+
+        if (traceResult == TRACE_MISS)
+        {
+            break;
+        }
+        if (traceResult == TRACE_TRANSMISSION)
+        {
+            bounceIndex--;
+            transparencyBounce++;
+            pathIter.ray.origin = pathIter.hitGeo.NextTransmissionRayOrigin();
+            pathIter.throughput *= pathIter.material.transmission;
+            rngState.NextBounce();
+            continue;
+        }
+
+        if (!Scatter(pathIter, rngState))
+            break;
+
+        rngState.NextBounce();
+
+    }
+
+    pixel.radiance += pathIter.radianceSample;
+}
+
+PixelState SamplePixel(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    uint2 launchIndex = dispatchInfo.dispatchThreadID.xy;
+    uint2 launchDim = dispatchInfo.dispatchDimensionsInThreads.xy;
+
+    PixelState pixel = (PixelState) 0;
+    // flip the image (due to the pinhole camera)
+    pixel.launchIndex = uint2(launchIndex.x, launchDim.y - launchIndex.y - 1);
+    pixel.coord = pixel.launchIndex + float2(0.5, 0.5);
+    pixel.launchDim = launchDim;
+
+    PathTracingSampler rngState;
+    rngState.Init(pixel.launchIndex, g_FrameIndex * g_SampleCount);
+
+    for (uint sampleIndex = 0; sampleIndex < g_SampleCount; sampleIndex++)
+    {
+        TraceNewPath(dispatchInfo, sampleIndex, rngState, pixel);
+        rngState.NextPath();
+    }
+
+    pixel.radiance = pixel.radiance / g_SampleCount;
+    return pixel;
+}
+
+float4 GetHeatmapColor(int rays)
+{
+    if (rays <= 2)
+        return float4(0, 1, 0, 0);
+
+    if (rays <= 3)
+        return float4(0, 0, 1, 0);
+
+    return float4(1, 0, 0, 0);
+}
+
+void RayGenExecute(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    float exposureMultiplier = GetCurrentExposureMultiplier();
+
+    PixelState pixel = SamplePixel(dispatchInfo);
+    g_Radiance[pixel.launchIndex] = float4(pixel.radiance, 0) * exposureMultiplier;
+    g_MotionVectors[pixel.launchIndex] = float4(pixel.motionVector.x, pixel.motionVector.y, 0, 0);
+    g_NormalsDepth[pixel.launchIndex] = float4(pixel.normal, pixel.depth);
+    if (g_EnableDebug)
+    {
+        float4 heat = GetHeatmapColor(pixel.bounces);
+
+        g_Radiance[pixel.launchIndex] = heat;// * exposureMultiplier;
+        g_DebugOutput[pixel.launchIndex] = heat;
+    }
+
+}

@@ -1,0 +1,24 @@
+RWTexture2D<float4> g_LightmapInOut;
+Texture2D<half2> g_UvFallback;
+int g_InstanceOffsetX;
+int g_InstanceOffsetY;
+float g_InstanceWidthScale;
+float g_InstanceHeightScale;
+uint g_InstanceWidth;
+uint g_InstanceHeight;
+
+#pragma kernel BlitOccupancy
+[numthreads(8,8,1)]
+void BlitOccupancy(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint) g_InstanceWidth || id.y >= (uint)g_InstanceHeight)
+        return;
+
+    uint2 instanceTexelPos = id.xy;
+    uint2 lightmapTexelPos = uint2(g_InstanceOffsetX, g_InstanceOffsetY) + instanceTexelPos;
+
+    if (g_UvFallback[instanceTexelPos].x < 0)
+        g_LightmapInOut[lightmapTexelPos] = 0.f;
+    else
+        g_LightmapInOut[lightmapTexelPos] = 1.f;
+}
