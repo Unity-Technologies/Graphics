@@ -89,9 +89,9 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             try
             {
                 var lightmappingType = typeof(UnityEditor.Lightmapping);
-                var unifiedBakerProperty = lightmappingType.GetProperty("UnifiedBaker", 
+                var unifiedBakerProperty = lightmappingType.GetProperty("UnifiedBaker",
                     System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-                
+
                 if (unifiedBakerProperty != null && unifiedBakerProperty.CanWrite)
                 {
     #if UNIFIED_BAKER
@@ -274,6 +274,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                 case LightmapRequestOutputType.Normal:
                 case LightmapRequestOutputType.ChartIndex:
                 case LightmapRequestOutputType.OverlapPixelIndex:
+                case LightmapRequestOutputType.IrradianceEnvironment:
                     return false;
             }
             Debug.Assert(false, $"Error unknown LightmapRequestOutputType {type}.");
@@ -1386,6 +1387,10 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     byte[] compressedBlack = blackOutput.EncodeToR2D();
                     try
                     {
+                        // Environment is part of indirect irradiance.
+                        if (request.outputTypeMask.HasFlag(LightmapRequestOutputType.IrradianceEnvironment))
+                            File.WriteAllBytes(request.outputFolderPath + $"/irradianceEnvironment{lightmapIndex}.r2d", compressedBlack);
+
                         // occupiedTexels is needed for analytics, don't fail the bake if we cannot write it.
                         UInt64 occupiedTexels = (UInt64)lightmapRequestData.atlassing.m_EstimatedTexelCount;
                         if (request.outputTypeMask.HasFlag(LightmapRequestOutputType.Occupancy))

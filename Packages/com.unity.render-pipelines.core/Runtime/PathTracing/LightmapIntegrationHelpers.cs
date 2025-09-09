@@ -508,6 +508,7 @@ namespace UnityEngine.PathTracing.Lightmapping
         // these regions can overlap for multiple instances, when the instance's UV layout doesn't fully
         // cover the [0; 1] range. We pack based on tight bounding boxes of the instance's UVs,
         // but lightmap STs are with respect to the instance's entire UV layout.
+        // It is assumed that the lightmap offset is aligned to either half or full texel.
         internal static void ComputeOccupiedTexelRegionForInstance(
             uint lightmapWidth,
             uint lightmapHeight,
@@ -540,9 +541,35 @@ namespace UnityEngine.PathTracing.Lightmapping
             // Clamp the occupied region to the lightmap bounds.
             float occupiedTexelOffsetXFloat = Mathf.Max(occupiedOffsetX, 0f);
             float occupiedTexelOffsetYFloat = Mathf.Max(occupiedOffsetY, 0f);
-            Debug.Assert(Mathf.Abs(Mathf.Round(occupiedTexelOffsetXFloat) - occupiedTexelOffsetXFloat) < 0.001f, $"Expected offset (X) to be very close to zero. Was {occupiedTexelOffsetXFloat % 1}. Was the scene baked with the same resolution as it was atlassed for?");
-            Debug.Assert(Mathf.Abs(Mathf.Round(occupiedTexelOffsetYFloat) - occupiedTexelOffsetYFloat) < 0.001f, $"Expected offset (Y) to be very close to zero. Was {occupiedTexelOffsetYFloat % 1}. Was the scene baked with the same resolution as it was atlassed for?");
-            occupiedTexelOffset = new((int)Mathf.Round(occupiedTexelOffsetXFloat), (int)Mathf.Round(occupiedTexelOffsetYFloat));
+
+            // Get the fractional value
+            float offsetFracX = Mathf.Abs(occupiedTexelOffsetXFloat - Mathf.Floor(occupiedTexelOffsetXFloat));
+            float offsetFracY = Mathf.Abs(occupiedTexelOffsetYFloat - Mathf.Floor(occupiedTexelOffsetYFloat));
+
+            // Check that we are either aligned to half or full texel
+            float distanceToHalfX = Mathf.Abs(offsetFracX - 0.5f);
+            float distanceToHalfY = Mathf.Abs(offsetFracY - 0.5f);
+            float distanceToWholeX = Mathf.Abs(Mathf.Round(offsetFracX) - offsetFracX);
+            float distanceToWholeY = Mathf.Abs(Mathf.Round(offsetFracY) - offsetFracY);
+
+            Debug.Assert(Mathf.Min(distanceToHalfX, distanceToWholeX) < 0.001f, $"Expected offset (X) to align with an offset of 0.5 (half texel) or 0.0 (whole texel). Was {occupiedTexelOffsetXFloat}. Was the scene baked with the same resolution as it was atlassed for?");
+            Debug.Assert(Mathf.Min(distanceToHalfY, distanceToWholeY) < 0.001f, $"Expected offset (Y) to align with an offset of 0.5 (half texel) or 0.0 (whole texel). Was {occupiedTexelOffsetYFloat}. Was the scene baked with the same resolution as it was atlassed for?");
+            Debug.Assert((distanceToHalfX < distanceToWholeX && distanceToHalfY < distanceToWholeY) || (distanceToHalfX > distanceToWholeX && distanceToHalfY > distanceToWholeY), "Texel alignment with an offset of 0.5 (half texel) or 0.0 (whole texel) must be the same for X and Y");
+
+            int occupiedTexelOffsetX = 0;
+            int occupiedTexelOffsetY = 0;
+
+            if (distanceToHalfX < distanceToWholeX)
+                occupiedTexelOffsetX = (int)Mathf.Floor(occupiedTexelOffsetXFloat);
+            else
+                occupiedTexelOffsetX = (int)Mathf.Round(occupiedTexelOffsetXFloat);
+
+            if (distanceToHalfY < distanceToWholeY)
+                occupiedTexelOffsetY = (int)Mathf.Floor(occupiedTexelOffsetYFloat);
+            else
+                occupiedTexelOffsetY = (int)Mathf.Round(occupiedTexelOffsetYFloat);
+
+            occupiedTexelOffset = new(occupiedTexelOffsetX, occupiedTexelOffsetY);
         }
 
         // Computes the bounding box of a set of UV coordinates.
