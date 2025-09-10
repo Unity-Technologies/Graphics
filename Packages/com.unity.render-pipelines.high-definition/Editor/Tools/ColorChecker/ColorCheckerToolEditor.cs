@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-using System.Collections;
 using UnityEditor;
+using UnityEditor.Rendering;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEditor.Rendering;
 
 #if UNITY_EDITOR
 [InitializeOnLoad]
@@ -15,8 +13,9 @@ using UnityEditor.Rendering;
 /// </summary>
 public class ColorCheckerToolEditor : Editor
 {
-    private static readonly string UXMLPath = "ColorCheckerUI";
-   
+    private static readonly string k_UXMLPath = "Packages/com.unity.render-pipelines.high-definition/Editor/Tools/ColorChecker/UITK/ColorCheckerUI.uxml";
+    private static readonly string k_StyleSheetPath = "Packages/com.unity.render-pipelines.high-definition/Editor/Tools/ColorChecker/UITK/ColorCheckerStylesheet.uss";
+
     private void OnEnable()
     {
         var self = (ColorCheckerTool)target;
@@ -26,8 +25,10 @@ public class ColorCheckerToolEditor : Editor
     {
         //uxml setup
         var root = new VisualElement();
-        var visualTree = Resources.Load<VisualTreeAsset>(UXMLPath);
+        var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_UXMLPath);
         VisualElement inspectorUI = visualTree.CloneTree();
+        var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(k_StyleSheetPath);
+        inspectorUI.styleSheets.Add(styleSheet);
         root.Add(inspectorUI);
         var self = (ColorCheckerTool)target;
 
@@ -132,16 +133,8 @@ public class ColorCheckerToolEditor : Editor
             VisualElement newRow = new()
             {
                 name = "colorfieldsRow" + i,
-                style =
-                {
-                    flexDirection = UnityEngine.UIElements.FlexDirection.Row,
-                    alignItems = UnityEngine.UIElements.Align.FlexStart,
-                    justifyContent = UnityEngine.UIElements.Justify.SpaceAround,
-                    alignSelf = UnityEngine.UIElements.Align.Stretch,
-                    maxHeight = 22,
-                    flexWrap = Wrap.Wrap
-                }
             };
+            newRow.AddToClassList("color-fields-row");
             colorfieldsRoot.Add(newRow);
         }
 
