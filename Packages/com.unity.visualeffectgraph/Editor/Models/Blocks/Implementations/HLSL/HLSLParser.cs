@@ -375,7 +375,7 @@ namespace UnityEditor.VFX.Block
             var randMatches = s_RandMatcher.Matches(hlsl);
             if (randMatches.Count > 0)
             {
-                readAttributes.Add(VFXAttribute.Seed.name);
+                yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 for (int i = 0; i < randMatches.Count; i++)
                 {
                     if (randMatches[i].Groups["fixed"].Success)
