@@ -17,6 +17,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
 #endif
+using Object = UnityEngine.Object;
 
 [assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests")]
 [assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests-testable")]
@@ -343,6 +344,16 @@ namespace UnityEditor.VFX.Test
             var systemTextField = GetFieldValue<VFXSystemBorder, TextField>(sys, "m_TitleField");
             systemTextField.value = value;
             SetFieldValue(sys, "m_TitleField", systemTextField);
+        }
+
+        public static Object[] GetPreviewAssets(VFXGraph vfxGraph)
+        {
+            var previewAssetField = vfxGraph.GetType().GetField("m_PreviewAsset", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.IsNotNull(previewAssetField);
+            var valuePreviewAsset = previewAssetField.GetValue(vfxGraph);
+            Assert.IsNotNull(valuePreviewAsset);
+            Assert.IsInstanceOf<List<Object>>(valuePreviewAsset);
+            return ((List<Object>)valuePreviewAsset).ToArray();
         }
 
         internal static IEnumerable CheckCompilation(VFXGraph vfxGraph)

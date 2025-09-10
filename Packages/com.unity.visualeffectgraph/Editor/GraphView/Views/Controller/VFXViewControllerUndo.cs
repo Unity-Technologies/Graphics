@@ -77,6 +77,19 @@ namespace UnityEditor.VFX.UI
                         stateUpdated = true;
                     }
                     break;
+                case VFXModel.InvalidationCause.kMaterialChanged:
+                    if (model is not VFXAbstractRenderedOutput renderedOutput)
+                    {
+                        Debug.LogError("Unexpected model type from kMaterialChanged: " + model);
+                        m_FullGraphBackup = true;
+                    }
+                    else // fast path saving only material settings
+                    {
+                        AddMaterialSettingsChange(renderedOutput);
+                    }
+
+                    stateUpdated = true;
+                    break;
 
                 case VFXModel.InvalidationCause.kStructureChanged:
                 case VFXModel.InvalidationCause.kSettingChanged:
@@ -130,6 +143,7 @@ namespace UnityEditor.VFX.UI
                 {
                     slotValues = m_CurrentDeltas.slotValues,
                     modelUI = m_CurrentDeltas.modelUI,
+                    materialSettings = m_CurrentDeltas.materialSettings
                 };
             }
 
@@ -205,6 +219,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public void AddMaterialSettingsChange(VFXAbstractRenderedOutput model)
+        {
+            if (model != null)
+            {
+                if (m_CurrentDeltas.materialSettings == null)
+                    m_CurrentDeltas.materialSettings = new();
+
+                var sourceMaterialSettings = (VFXMaterialSerializedSettings)model.GetSettingValue("materialSettings");
+                if (sourceMaterialSettings != null)
+                {
+                    var settings = (VFXMaterialSerializedSettings)sourceMaterialSettings.Clone();
+                    m_CurrentDeltas.materialSettings[model] = settings;
+                }
+            }
+        }
+
         struct UIState
         {
             public Vector2 pos;
@@ -233,6 +263,7 @@ namespace UnityEditor.VFX.UI
         {
             public Dictionary<VFXSlot, object> slotValues;
             public Dictionary<VFXModel, UIState> modelUI;
+            public Dictionary<VFXAbstractRenderedOutput, VFXMaterialSerializedSettings> materialSettings;
 
             public bool Apply(VFXGraph graph, bool updateDeltas)
             {
@@ -257,7 +288,25 @@ namespace UnityEditor.VFX.UI
                         }
                     }
 
-                return false;  
+                if (materialSettings != null)
+                    foreach (var kv in materialSettings)
+                    {
+                        if (updateDeltas)
+                        {
+                            kv.Key.SetSettingValue("materialSettings", kv.Value.Clone());
+                        }
+
+                        var material = kv.Key.FindMaterial();
+                        if (material && kv.Key.GetSettingValue("materialSettings") is VFXMaterialSerializedSettings currentMaterialSettings)
+                            currentMaterialSettings.ApplyToMaterial(material);
+
+                        if (!updateDeltas)
+                        {
+                            kv.Key.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
+                        }
+                    }
+
+                return false;
             } 
         }
 

@@ -13,7 +13,8 @@
         "Unity.Timeline.Editor",
         "Unity.ShaderGraph.Editor",
         "UnityEngine.TestTools.Graphics",
-        "Unity.RenderPipelines.Core.Editor"
+        "Unity.RenderPipelines.Core.Editor",
+        "Unity.RenderPipelines.Universal.Editor"
     ],
     "includePlatforms": [
         "Editor"

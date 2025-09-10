@@ -1088,6 +1088,7 @@ namespace UnityEditor.VFX
 
             if ((cause == InvalidationCause.kStructureChanged ||
                 cause == InvalidationCause.kParamChanged ||
+                cause == InvalidationCause.kMaterialChanged ||
                 cause == InvalidationCause.kSettingChanged ||
                 cause == InvalidationCause.kSpaceChanged ||
                 cause == InvalidationCause.kConnectionChanged ||
