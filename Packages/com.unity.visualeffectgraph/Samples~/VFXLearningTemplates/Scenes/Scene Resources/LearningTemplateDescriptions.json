@@ -39,7 +39,7 @@
 			"""<ignore><link="SpawnContext.vfx">Open VFX</link>
 			<link="VFXG Spawn Context">Show VFX</link>
 			</ignore>
-			This VFX is intended to provide information related to the <b>Spawn Context</b>.What is the <b>Spawn Context</b>, what options can be found in the inspector but also extra informations like: What are <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetSpawnEvent.html">Spawn Event Attributes</a> ? How to setup <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetSpawnEvent.html">Spawn Event Attributes</a>? What is the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SpawnState.html">Spawn State Operator</a>.
+			This VFX is intended to provide information related to the <b>Spawn Context</b>.What is the <b>Spawn Context</b>, what options can be found in the inspector but also extra informations like: What are <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetSpawnEvent.html">Spawn Event Attributes</a>? How to setup <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-SetSpawnEvent.html">Spawn Event Attributes</a>? What is the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SpawnState.html">Spawn State Operator</a>.
 
 			<b>Covered Aspects:</b>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-Spawn.html">Spawn Context</a>
@@ -94,7 +94,7 @@
 			"""<ignore><link="OrientFixedAxis.vfx">Open VFX</link>
 			<link="VFXG Orient Fixed Axis">Show VFX</link>		
 			</ignore>
-			Whether the <b>Output</b> is set to Quads, Meshes, or even Strips, we often want to control how to orient the geometry on a particle. Should it be <b>facing the camera</b>? What is the <b>forward</b> or <b>Up-Axis</b> ? The <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient Block</a> helps us to easily <b>orient</b> our particles, as it comes with several modes. This example shows how to use the <b>Fixed Axis mode</b>.
+			Whether the <b>Output</b> is set to Quads, Meshes, or even Strips, we often want to control how to orient the geometry on a particle. Should it be <b>facing the camera</b>? What is the <b>forward</b> or <b>Up-Axis</b>? The <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient Block</a> helps us to easily <b>orient</b> our particles, as it comes with several modes. This example shows how to use the <b>Fixed Axis mode</b>.
 
 			<b>Covered Aspects:</b>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient</a>
@@ -108,7 +108,7 @@
 			"""<ignore><link="OrientAdvanced.vfx">Open VFX</link>
 			<link="VFXG Orient Advanced">Show VFX</link>
 			</ignore>
-			Whether the <b>Output</b> is set to Quads, Meshes, or even strips, we often want to control how to orient the geometry on a particle. Should it be <b>facing the camera</b>? What is the <b>forward</b> or <b>Up-Axis</b> ? The <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient Block</a> helps us to easily <b>orient</b> our particles as it comes with many handy modes. This example shows how to use the <b>Advanced Mode</b>.
+			Whether the <b>Output</b> is set to Quads, Meshes, or even strips, we often want to control how to orient the geometry on a particle. Should it be <b>facing the camera</b>? What is the <b>forward</b> or <b>Up-Axis</b>? The <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient Block</a> helps us to easily <b>orient</b> our particles as it comes with many handy modes. This example shows how to use the <b>Advanced Mode</b>.
 
 			<b>Covered Aspects:</b>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Orient.html">Orient</a>
@@ -193,7 +193,7 @@
 			This complex VFX is composed of several systems that are playing with the <b>texIndex attribute</b> creatively. Time, noise, and even particle position are used to control the </b>texIndex attribute</b> and give life to this VFX.
 
 			<b>Covered Aspects</b>:
-			• Flipbook UVs
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputSharedSettings.html#particle-options-settings">Flipbook UVs</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">TexIndex Attribute</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-FlipbookPlayer.html">Flipbook Player</a>"""
 		},
@@ -222,7 +222,7 @@
 			<b>Covered Aspects</b>:
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#rendering-attributes">Pivot Attribute</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/sg-working-with.html">Shader Graph integration</a>
-			• Activation Port """
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Blocks.html#activation-port">Activation Port</a>"""
 		},
 		{
 			"title": "Sample Mesh",
@@ -249,7 +249,7 @@
 			<b>Covered Aspects</b>:
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SampleTexture2D.html">Texture2D Sample Operator</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Reference-Attributes.html#basic-simulation-attributes">Alive attribute</a>
-			• Rejection Sampling"""
+			• <a href="https://en.wikipedia.org/wiki/Rejection_sampling">Rejection Sampling</a>"""
 		},
 		{
 			"title": "Sample Signed Distance Field (SDF)",
@@ -264,7 +264,7 @@
 			<b>Covered Aspects</b>:
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-SampleSDF.html">SDF Sample Operator</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-ConformToSignedDistanceField.html">Conform to SDF</a>
-			• Strip/trails"""
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>"""
 		},
 		{
 			"title": "Sample Skinned Mesh",
@@ -287,11 +287,11 @@
 			"""<ignore><link="CollisionBasicProperties.vfx">Open VFX</link>
 			<link="VFXG Collision Basic Properties">Show VFX</link>
 			</ignore>
-			As VFX Graph is <b>simulating particles on the GPU</b>, they cannot collide with regular Rigid Body Colliders. But you can still make them collide with different geometry approximations like <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithAABox.html">Boxes</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Spheres</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html">Cones</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithPlane.html">Planes</a> or even complex shapes with the use of <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSignedDistanceField.html">SDF</a> and/or <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithDepthBuffer.html">Depth Buffer</a>. This VFX Graph, shows the use of a standard <b>Collider Block</b> and how the different <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html#block-properties">Collision Properties</a> like <b>Bounce</b>, <b>Friction</b> and/or <b>Roughness</b> can influence the <b>collision response</b> of the particles.
+			As VFX Graph is <b>simulating particles on the GPU</b>, they cannot collide with regular Rigid Body Colliders. But you can still make them collide with different geometry <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#shape-dropdown">Shapes</a> like Boxes, Spheres, Cones, Planes or even complex ones with the use of <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#shape-dropdown">SDF</a> and/or <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithDepthBuffer.html">Depth Buffer</a>. This VFX Graph, shows the use of a standard <b>Collider Block</b> and how the different <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#block-properties">Collision Properties</a> like <b>Bounce</b>, <b>Friction</b> and/or <b>Roughness</b> can influence the <b>collision response</b> of the particles.
 
 			<b>Covered Aspects</b>:
-			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html#block-properties">Collision Properties</a>
-			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Collider Blocks</a>"""
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Collision-LandingPage.html">Collision</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#block-properties">Collision Properties</a>"""
 		},
 		{
 			"title": "Collision Simple",
@@ -300,12 +300,12 @@
 			"""<ignore><link="CollisionSimple.vfx">Open VFX</link>
 			<link="VFXG Collision Simple">Show VFX</link>
 			</ignore>
-			As VFX Graph is <b>simulating particles on the GPU</b>, they cannot collide with regular Rigid Body Colliders. But you can still make them collide with different geometry approximations like <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithAABox.html">Boxes</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Spheres</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html">Cones</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithPlane.html">Planes</a> or even complex shapes with the use of <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSignedDistanceField.html">SDF</a> and/or <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithDepthBuffer.html">Depth Buffer</a>. This example shows you how to combine different <b>collider blocks</b> to get the desired results.
+			As VFX Graph is <b>simulating particles on the GPU</b>, they cannot collide with regular Rigid Body Colliders. But you can still make them collide with different geometry <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#shape-dropdown">Shapes</a> like Boxes, Spheres, Cones, Planes or even complex ones with the use of <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#shape-dropdown">SDF</a> and/or <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithDepthBuffer.html">Depth Buffer</a>. This example shows you how to combine different <b>collider blocks</b> to get the desired results.
 
 			<b>Covered Aspects</b>:
-			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html#block-properties">Collision Properties</a>
-			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Collider Blocks</a>
-			• Boolean Port"""
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Collision-LandingPage.html">Collision</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#block-properties">Collision Properties</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Blocks.html#activation-port">Activation Port</a>"""
 		},
 		{
 			"title": "Collision Advanced",
@@ -314,11 +314,12 @@
 			"""<ignore><link="CollisionAdvanced.vfx">Open VFX</link>
 			<link="VFXG Collision Advanced">Show VFX</link>
 			</ignore>
-			As VFX Graph is <b>simulating particles on the GPU</b>, they cannot collide with regular Rigid Body Colliders. But you can still make them collide with different geometry approximations like <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithAABox.html">Boxes</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSphere.html">Spheres</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html">Cones</a>, <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithPlane.html">Planes</a> or even complex shapes with the use of <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSignedDistanceField.html">SDF</a> and/or <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithDepthBuffer.html">Depth Buffer</a>. Sometimes using simple collision shapes isn’t enough to get a precise enough collision with the environment. In this case, using <b>SDF</b> can be a good solution to approximate complex geometry like this sculpture of a hand.
+			As VFX Graph is <b>simulating particles on the GPU</b>, they cannot collide with regular Rigid Body Colliders. But you can still make them collide with different geometry <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#shape-dropdown">Shapes</a> like Boxes, Spheres, Cones, Planes or even complex ones with the use of <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#shape-dropdown">SDF</a> and/or <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithDepthBuffer.html">Depth Buffer</a>. Sometimes using simple collision shapes isn’t enough to get a precise enough collision with the environment. In this case, using <b>SDF</b> can be a good solution to approximate complex geometry like this sculpture of a hand.
 
 			<b>Covered Aspects</b>:
-			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithCone.html#block-properties">Collision Properties</a>
-			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollideWithSignedDistanceField.html">SDF Collider</a>"""
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Collision-LandingPage.html">Collision</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#block-properties">Collision Properties</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-CollisionShape.html#shape-dropdown">SDF Collider</a>"""
 		},
 		{
 			"title": "Trigger Event on Collide",
@@ -327,10 +328,11 @@
 			"""<ignore><link="TriggerEventCollide.vfx">Open VFX</link>
 			<link="VFXG Trigger Event on Collide">Show VFX</link>
 			</ignore>
-			This VFX is displaying an advanced usage of the Trigger Event on Collide block that allows us to spawn new particles when a particle collides. Dart particles are thrown at the dartboard. When they collide, they instantaneously die and trigger different <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>. Those <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a> are used to spawn new particles, like the Springy darts or the UI Score particles, that all <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html#source">inherit attributes</a> from their parent.
+			This VFX is displaying an advanced usage of the <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Trigger-Event.html#block-settings">Trigger Event on Collide</a> block. Those <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a> block that allows us to spawn new particles when a particle collides. Dart particles are thrown at the dartboard. When they collide, they instantaneously die and trigger different <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>. Those <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a> are used to spawn new particles, like the Springy darts or the UI Score particles, that all <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html#source">inherit attributes</a> from their parent.
 
 			<b>Covered Aspects</b>:
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Trigger-Event.html">Trigger Event</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Attributes.html#source">Source Attribute</a>"""
 		},
 		{
@@ -429,7 +431,7 @@
 			<b>Covered Aspects</b>:
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeStripIndex.html">Strip Index</a>
-			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-TriggerEventRate.html">Trigger Event Rate</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Trigger-Event.html#block-settings">Trigger Event Rate</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-GPUEvent.html">GPU Events</a>"""
 		},
 		{
@@ -439,10 +441,11 @@
 			"""<ignore><link="MultiStripGPUEvents.vfx">Open VFX</link>
 			<link="VFXG Multi-Strips GPU-Events">Show VFX</link>
 			</ignore>
-			There are several ways to spawn particles, and when dealing with <b>strips</b>, this can have some implications for how you need to set up your VFX. This example illustrates how to circumvent the usual limitation that only permits the creation of one strip per parent's particle when dealing with <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-TriggerEventRate.html">Trigger Events</a>. Each headphone jack is made of a particle mesh and spawns particles along its path.
+			There are several ways to spawn particles, and when dealing with <b>strips</b>, this can have some implications for how you need to set up your VFX. This example illustrates how to circumvent the usual limitation that only permits the creation of one strip per parent's particle when dealing with <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Trigger-Event.html">Trigger Events</a>. Each headphone jack is made of a particle mesh and spawns particles along its path.
 
 			<b>Covered Aspects</b>:
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Context-OutputShaderGraphStrip.html">Strip Output Context</a>
+			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Block-Trigger-Event.html">Trigger Event</a>
 			• <a href="https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@latest/index.html?subfolder=/manual/Operator-GetAttributeStripIndex.html">Strip Index</a>"""
 		}
 	]

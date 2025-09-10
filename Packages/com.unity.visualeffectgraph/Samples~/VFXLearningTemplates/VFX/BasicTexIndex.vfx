@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Set Grid Position
     position:
       serializedVersion: 2
-      x: -347
-      y: 350
-      width: 931
-      height: 338
+      x: -449
+      y: 387
+      width: 1035
+      height: 449
     contents:
     - model: {fileID: 8926484042661615215}
       id: 0
@@ -28,6 +28,12 @@ MonoBehaviour:
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661615267}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+    - model: {fileID: 8926484042661615213}
       id: 0
       isStickyNote: 0
   - title: Debug
@@ -44,12 +50,115 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615307}
       id: 0
       isStickyNote: 0
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 595
+      y: -312
+      width: 826
+      height: 1195
+    contents:
+    - model: {fileID: 8926484042661615089}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615091}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615095}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615245}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615255}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615205}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615208}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 2829
+      y: -59
+      width: 100
+      height: 100
+    contents:
+    - model: {fileID: 8926484042661614555}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614606}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614558}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614665}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614583}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615086}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614639}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614661}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614937}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614921}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614928}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615291}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614941}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615044}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615052}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615488}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615494}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615497}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
   stickyNoteInfos:
   - title: Sequential 3D
     position:
       serializedVersion: 2
-      x: -325
-      y: 539
+      x: -424
+      y: 577
       width: 246
       height: 141
     contents: 'The sequential 3D operator is useful to order and position particles
@@ -62,15 +171,16 @@ MonoBehaviour:
       the settings set.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'TexIndex Attribute:'
     position:
       serializedVersion: 2
-      x: 1016
-      y: 450
-      width: 637
-      height: 368
+      x: 1051
+      y: 627
+      width: 293
+      height: 193
     contents: 'The texIndex is a float attribute that determines which part of a
       sprite sheet to display.
 
@@ -85,15 +195,16 @@ MonoBehaviour:
       attribute is a float, that means that you can blend between two index values.
 
 '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'Flipbook Size:'
     position:
       serializedVersion: 2
       x: 651
-      y: 1173
+      y: 1291
       width: 400
-      height: 354
+      height: 145
     contents: 'To properly display the different parts of a sprite sheet, the UV
       mode needs to be set to either flipbook or flipbook blend.
 
@@ -108,32 +219,35 @@ MonoBehaviour:
       Columns.
 
 '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'Tex Index Animation:'
     position:
       serializedVersion: 2
-      x: 3304
-      y: 597
-      width: 604
-      height: 382
+      x: 3275
+      y: 775
+      width: 335
+      height: 197
     contents: "While a flipbook block exists to help you animate your sprite sheet,
       it's possible to control this yourself by manipulating the texIndex attribute.\r\n\r\nIn
       the update context, we're animating the texIndex attribute thanks to the time
       operator.\r\nAs the UV mode is set to \u201Cflipbook\u201D and not \u201Cflipbook
       blend,\u201D no interpolation is done between each texIndex.\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: SpriteSheet Debug
     position:
       serializedVersion: 2
-      x: 416
-      y: -251
+      x: 620
+      y: -253
       width: 775
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Leaf Flipbook
     position:
       serializedVersion: 2
@@ -142,15 +256,16 @@ MonoBehaviour:
       width: 552
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -346
-    y: -251
-    width: 4473
-    height: 2101
+    x: -449
+    y: -313
+    width: 4577
+    height: 2158
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -191,7 +306,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -207,10 +322,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 1
       shadowCastingMode: 0
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -862,6 +973,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661614644}
   - {fileID: 8926484042661615452}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -887,7 +999,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 3
   useMaskMap: 1
   useNormalMap: 1
   useEmissiveMap: 0
@@ -1372,6 +1483,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661614924}
   - {fileID: 8926484042661615453}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -2792,7 +2904,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615091}
-  m_UIPosition: {x: 591, y: -125}
+  m_UIPosition: {x: 623, y: -127}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2979,7 +3091,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615255}
   - {fileID: 8926484042661615205}
   - {fileID: 8926484042661615208}
-  m_UIPosition: {x: 591, y: 245}
+  m_UIPosition: {x: 623, y: 243}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3387,6 +3499,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615139}
   - {fileID: 8926484042661615454}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -3412,7 +3525,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 3
   useMaskMap: 1
   useNormalMap: 1
   useEmissiveMap: 0
@@ -4098,7 +4210,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 309, y: 679}
+  m_UIPosition: {x: 380, y: 700}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4122,7 +4234,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -47, y: 409}
+  m_UIPosition: {x: -146, y: 447}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5264,7 +5376,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -321, y: 409}
+  m_UIPosition: {x: -420, y: 447}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -5288,8 +5400,8 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 257, y: 409}
-  m_UICollapsed: 0
+  m_UIPosition: {x: 214, y: 483}
+  m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 8926484042661615281}
@@ -5931,6 +6043,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615318}
   - {fileID: 8926484042661615455}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -6614,6 +6727,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615370}
   - {fileID: 8926484042661615456}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -6632,7 +6746,7 @@ MonoBehaviour:
   enableRayTracing: 0
   decimationFactor: 1
   raytracedScaleMode: 0
-  needsOwnSort: 0
+  needsOwnSort: 1
   needsOwnAabbBuffer: 0
   shaderGraph: {fileID: 0}
   materialSettings:
@@ -9105,6 +9219,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615493}
   - {fileID: 8926484042661615568}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -9133,7 +9248,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 3
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -10053,6 +10167,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615548}
   - {fileID: 8926484042661615569}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -10081,7 +10196,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 3
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0

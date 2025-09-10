@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Animated Noise position
     position:
       serializedVersion: 2
-      x: -106
-      y: -429
-      width: 1059
-      height: 300
+      x: -183
+      y: -292
+      width: 1097
+      height: 366
     contents:
     - model: {fileID: 8926484042661615154}
       id: 0
@@ -36,13 +36,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615428}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
   - title: SDF Transform
     position:
       serializedVersion: 2
-      x: 520
-      y: 1029
-      width: 441
-      height: 306
+      x: 347
+      y: 1085
+      width: 449
+      height: 343
     contents:
     - model: {fileID: 8926484042661614994}
       id: 1
@@ -62,10 +65,10 @@ MonoBehaviour:
   - title: Velocity Noise Variation
     position:
       serializedVersion: 2
-      x: -444
-      y: 727
-      width: 1402
-      height: 303
+      x: -1035
+      y: 752
+      width: 1523
+      height: 298
     contents:
     - model: {fileID: 8926484042661615202}
       id: 0
@@ -88,13 +91,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615227}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 7
+      isStickyNote: 1
   - title: HAND Mesh
     position:
       serializedVersion: 2
-      x: -1065
-      y: 2368
-      width: 952
-      height: 368
+      x: -715
+      y: 2103
+      width: 953
+      height: 478
     contents:
     - model: {fileID: 8926484042661615457}
       id: 0
@@ -108,22 +114,80 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615461}
       id: 1
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
+  - title: Update
+    position:
+      serializedVersion: 2
+      x: 793
+      y: 293
+      width: 863
+      height: 1565
+    contents:
+    - model: {fileID: 8926484042661614583}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615188}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 940
+      y: -549
+      width: 703
+      height: 710
+    contents:
+    - model: {fileID: 8926484042661614558}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 825
+      y: -1139
+      width: 737
+      height: 577
+    contents:
+    - model: {fileID: 8926484042661614555}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
   stickyNoteInfos:
   - title: Collide Advanced
     position:
       serializedVersion: 2
-      x: 941
-      y: -1095
-      width: 711
-      height: 100
+      x: 850
+      y: -1079
+      width: 687
+      height: 109
     contents: type something here
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: 'Animated Noise position:'
     position:
       serializedVersion: 2
-      x: -432
-      y: -425
+      x: -128
+      y: -129
       width: 323
       height: 177
     contents: 'An animated spawn position can add interesting motion to a particle
@@ -142,28 +206,30 @@ MonoBehaviour:
       derived from this animated noise.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Random Mass:'
     position:
       serializedVersion: 2
-      x: 1402
-      y: -9
+      x: 1400
+      y: 11
       width: 217
       height: 100
     contents: 'Mass affects how particles react to force. Randomization of mass is
       a good way to add some variation to the particle''s motion and behavior.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Collide with SDF:'
     position:
       serializedVersion: 2
-      x: -65
-      y: 1037
-      width: 562
-      height: 368
+      x: 1396
+      y: 1005
+      width: 234
+      height: 236
     contents: 'We''re providing an SDF to the distance field settings, and we''re
       giving the size and position that we''re given by the SDF baker tool.
 
@@ -179,71 +245,77 @@ MonoBehaviour:
       SDF is rotating in sync with the hand''s mesh.
 
 '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'Colide With Cone:'
     position:
       serializedVersion: 2
       x: 1402
       y: 1369
-      width: 447
-      height: 181
+      width: 197
+      height: 113
     contents: 'This secondary collide block will cause the particles to collide with
       a cone shape similar to a mount of sand. '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'Colide With Cone:'
     position:
       serializedVersion: 2
-      x: 507
-      y: 1629
-      width: 447
-      height: 177
+      x: 1396
+      y: 1608
+      width: 212
+      height: 100
     contents: 'The third collision block is designed to ensure that the sand particles
       collide with the statue pedestal. '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'Animated Turbulence Transform:'
     position:
       serializedVersion: 2
-      x: 1397
-      y: 746
-      width: 342
-      height: 104
+      x: 1395
+      y: 630
+      width: 233
+      height: 124
     contents: "The \u201Cturbulence force\u201D block makes our particles move in
       interesting organic ways.\r\nWe can get even more appealing and fluid motions
-      by animating the transform.\r\n"
-    theme: Black
+      by animating its transform.\r\n"
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Velocity Noise Variation
     position:
       serializedVersion: 2
-      x: -807
-      y: 735
+      x: -1009
+      y: 923
       width: 350
       height: 100
     contents: Some velocity variation is created by sampling a Perlin noise. We take
       the velocity.Y absolute value and multiply it by -1 so that the velocity vector
       variation is always going downward.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Hand Mesh
     position:
       serializedVersion: 2
-      x: -809
-      y: 2221
-      width: 493
-      height: 100
+      x: -436
+      y: 2162
+      width: 454
+      height: 108
     contents: type something here
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -1065
-    y: -1095
-    width: 2915
-    height: 3832
+    x: -1034
+    y: -1139
+    width: 2791
+    height: 3884
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -291,7 +363,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -307,10 +379,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 1
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -1409,16 +1477,16 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614996}
       inputSlot: {fileID: 8926484042661615554}
-    position: {x: 763.3333, y: 1087.3334}
+    position: {x: 605.3333, y: 1143.3333}
     expandedSlots:
     - {fileID: 8926484042661614995}
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615004}
       inputSlot: {fileID: 8926484042661615562}
-    position: {x: 763.3333, y: 1257.3334}
+    position: {x: 590.6667, y: 1332.6666}
     expandedSlots:
     - {fileID: 8926484042661614995}
     expanded: 0
@@ -1913,6 +1981,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615061}
+  useBaseColorMap: 2
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -1938,7 +2007,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 2
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -2387,7 +2455,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -81, y: -371}
+  m_UIPosition: {x: -158, y: -233}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2654,7 +2722,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 276, y: -369}
+  m_UIPosition: {x: 199, y: -231}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3230,7 +3298,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 657, y: -321}
+  m_UIPosition: {x: 580, y: -183}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3399,7 +3467,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 88, y: -369}
+  m_UIPosition: {x: 11, y: -231}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4339,7 +4407,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 799, y: 640}
+  m_UIPosition: {x: 818, y: 692}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4396,7 +4464,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 139, y: 849}
+  m_UIPosition: {x: -397, y: 875}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -4491,7 +4559,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 287, y: 849}
+  m_UIPosition: {x: -249, y: 875}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -4689,7 +4757,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -183, y: 785}
+  m_UIPosition: {x: -719, y: 811}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5164,7 +5232,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -419, y: 785}
+  m_UIPosition: {x: -955, y: 811}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -5188,7 +5256,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 423, y: 785}
+  m_UIPosition: {x: -113, y: 811}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5557,7 +5625,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 691, y: 854}
+  m_UIPosition: {x: 155, y: 881}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5966,7 +6034,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 495, y: 925}
+  m_UIPosition: {x: -41, y: 951}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -6565,7 +6633,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -564, y: 2427}
+  m_UIPosition: {x: -213, y: 2254}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7130,7 +7198,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 593, y: 1113}
+  m_UIPosition: {x: 421, y: 1187}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -7397,7 +7465,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 777, y: 1137}
+  m_UIPosition: {x: 605, y: 1211}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7534,7 +7602,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 370, y: -235}
+  m_UIPosition: {x: 293, y: -97}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8242,7 +8310,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -998, y: 2531}
+  m_UIPosition: {x: -647, y: 2358}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -8509,7 +8577,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -806, y: 2555}
+  m_UIPosition: {x: -455, y: 2382}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8673,7 +8741,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615462}
       inputSlot: {fileID: 8926484042661615346}
-    position: {x: 545.3333, y: 1218}
+    position: {x: 372.66666, y: 1293.3333}
     expandedSlots: []
     expanded: 0
     supecollapsed: 0
@@ -8681,7 +8749,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615462}
       inputSlot: {fileID: 8926484042661615459}
-    position: {x: -1040, y: 2658.6667}
+    position: {x: -689.3333, y: 2486}
     expandedSlots: []
     expanded: 0
     supecollapsed: 0
@@ -8767,6 +8835,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615511}
+  useBaseColorMap: 2
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -8795,7 +8864,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 2
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0

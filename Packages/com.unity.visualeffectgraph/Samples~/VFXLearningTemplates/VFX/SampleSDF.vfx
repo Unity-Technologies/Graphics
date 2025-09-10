@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Push
     position:
       serializedVersion: 2
-      x: 357
-      y: 427
-      width: 562
-      height: 231
+      x: 117
+      y: 403
+      width: 816
+      height: 249
     contents:
     - model: {fileID: 8926484042661614687}
       id: 0
@@ -27,13 +27,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661614692}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
   - title: Sample SDF
     position:
       serializedVersion: 2
-      x: 157
-      y: 1297
-      width: 694
-      height: 330
+      x: -40
+      y: 1343
+      width: 748
+      height: 679
     contents:
     - model: {fileID: 8926484042661614856}
       id: 0
@@ -44,13 +47,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615356}
       id: 1
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
   - title: Orient
     position:
       serializedVersion: 2
-      x: 1733
-      y: 2844
-      width: 289
-      height: 180
+      x: 1576
+      y: 2818
+      width: 451
+      height: 210
     contents:
     - model: {fileID: 8926484042661614922}
       id: 0
@@ -58,13 +64,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615021}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
   - title: Random perStrip
     position:
       serializedVersion: 2
-      x: 1769
-      y: 3050
-      width: 243
-      height: 392
+      x: 1517
+      y: 3045
+      width: 505
+      height: 393
     contents:
     - model: {fileID: 8926484042661615000}
       id: 0
@@ -72,12 +81,122 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615009}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 9
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 733
+      y: 654
+      width: 1214
+      height: 1142
+    contents:
+    - model: {fileID: 8926484042661614583}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614792}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614704}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615106}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615014}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615396}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614991}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615356}
+      id: 2
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 12
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 2222
+      y: 1337
+      width: 695
+      height: 333
+    contents:
+    - model: {fileID: 8926484042661614817}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 11
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 13
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 752
+      y: -554
+      width: 829
+      height: 397
+    contents:
+    - model: {fileID: 8926484042661614555}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614556}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 10
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 1947
+      y: 1697
+      width: 796
+      height: 819
+    contents:
+    - model: {fileID: 8926484042661614820}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614836}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614911}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614882}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614849}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
+    - model: {fileID: 8926484042661614838}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 7
+      isStickyNote: 1
   stickyNoteInfos:
   - title: 'Push Positon:'
     position:
       serializedVersion: 2
-      x: 123
-      y: 423
+      x: 143
+      y: 463
       width: 228
       height: 164
     contents: 'Sometimes, particles can be too close to the SDF surface, making them
@@ -88,26 +207,28 @@ MonoBehaviour:
       direction attribute is calculated by the position (SDF) block.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: SDF Bounds SIZE
     position:
       serializedVersion: 2
-      x: 528
-      y: 225
+      x: 515
+      y: 271
       width: 225
       height: 100
     contents: To get a proper SDF transform, don't forget to store the bounds, scale,
       and position values given by your SDF baking tool.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: 'Position SDF:'
     position:
       serializedVersion: 2
-      x: 1401
-      y: 169
-      width: 402
-      height: 255
+      x: 1383
+      y: 257
+      width: 295
+      height: 115
     contents: 'The Position SDF block allows you to position particles randomly on
       an SDF surface or volume.
 
@@ -115,36 +236,39 @@ MonoBehaviour:
       of the provided SDF.
 
 '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: Turbulence Noise
     position:
       serializedVersion: 2
-      x: 1393
-      y: 903
+      x: 1390
+      y: 927
       width: 194
       height: 100
     contents: This node adds a curl noise force, making particles move in random
       directions.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Conform SDF
     position:
       serializedVersion: 2
-      x: 1372
-      y: 1045
+      x: 1369
+      y: 1069
       width: 552
       height: 203
     contents: While the turbulence block is creating organic motion by moving particles,
       this block creates forces to attract particles and make them stick to the SDF
       surface
-    theme: Black
+    theme: 
     textSize: Medium
+    colorTheme: 3
   - title: Sample SDF:Direction/Gradient
     position:
       serializedVersion: 2
-      x: 169
-      y: 1639
+      x: -15
+      y: 1686
       width: 693
       height: 311
     contents: 'We need to know the gradient, or normal, of the SDF at the current
@@ -160,24 +284,26 @@ MonoBehaviour:
       attribute.
 
 '
-    theme: Black
+    theme: 
     textSize: Medium
+    colorTheme: 3
   - title: 'Inherit Attributes:'
     position:
       serializedVersion: 2
-      x: 2043
-      y: 2007
+      x: 2020
+      y: 2027
       width: 256
       height: 114
     contents: "We are inheriting the parent's position to spawn our particles.\n\r\nVelocity
       and direction attributes are used to \u201Corient\u201D the child particles.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Velocity Integration
     position:
       serializedVersion: 2
-      x: 1979
-      y: 2317
+      x: 1972
+      y: 2312
       width: 306
       height: 171
     contents: "The Velocity integration has been \u201Cturned off\u201D in the inspector
@@ -186,13 +312,14 @@ MonoBehaviour:
       by the update context to update the position.\r\n\r\nIf you select the update
       context, in the inspector, you'll see that the \u201Cupdate position\u201D
       has been turned off.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Orient:'
     position:
       serializedVersion: 2
-      x: 1489
-      y: 2867
+      x: 1601
+      y: 2877
       width: 233
       height: 125
     contents: 'The orientation is done thanks to the particle''s parent velocity
@@ -204,46 +331,50 @@ MonoBehaviour:
       the direction is the facing vector.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Random per Strip
     position:
       serializedVersion: 2
-      x: 1491
-      y: 3077
+      x: 1543
+      y: 3113
       width: 283
       height: 104
     contents: "We used the \u201Cper particle strip\u201D seed option in the random
       operator to get a random value per strip instead of a random value per particle."
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Sample SDF Parent
     position:
       serializedVersion: 2
       x: 777
-      y: -492
+      y: -509
       width: 778
-      height: 100
-    contents: type something here
-    theme: Black
+      height: 113
+    contents: 
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Child Trails
     position:
       serializedVersion: 2
-      x: 2252
-      y: 1347
-      width: 507
-      height: 100
-    contents: type something here
-    theme: Black
+      x: 2247
+      y: 1396
+      width: 444
+      height: 101
+    contents: 
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Trigger Event
     position:
       serializedVersion: 2
-      x: 1163
-      y: 1619
+      x: 1084
+      y: 1635
       width: 262
-      height: 119
+      height: 135
     contents: 'The trigger event allows you to trigger events. Those events can be
       used to spawn new particles.
 
@@ -253,25 +384,27 @@ MonoBehaviour:
       distance, over time, collision, etc.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: GPU Event
     position:
       serializedVersion: 2
-      x: 2724
-      y: 1499
+      x: 2725
+      y: 1522
       width: 166
       height: 100
     contents: The GPU event can be used to spawn new particles.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Create an SDF
     position:
       serializedVersion: 2
-      x: -25
-      y: -303
+      x: 104
+      y: -153
       width: 476
-      height: 289
+      height: 334
     contents: 'VFX Graph provides an SDF baker tool that allows you to bake an SDF
       representation of your mesh inside Unity.
 
@@ -283,15 +416,16 @@ MonoBehaviour:
       Window>Visual Effects>Utilities>SDF Bake Tool
 
 '
-    theme: Black
+    theme: 
     textSize: Medium
+    colorTheme: 3
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -25
-    y: -492
-    width: 3044
-    height: 3935
+    x: -40
+    y: -569
+    width: 3059
+    height: 4007
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -332,7 +466,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -348,10 +482,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -375,7 +505,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614556}
-  m_UIPosition: {x: 941, y: -394}
+  m_UIPosition: {x: 941, y: -397}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -936,7 +1066,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615106}
   - {fileID: 8926484042661615014}
   - {fileID: 8926484042661615396}
-  m_UIPosition: {x: 941, y: 688}
+  m_UIPosition: {x: 938, y: 713}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2871,7 +3001,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2292, y: 1433}
+  m_UIPosition: {x: 2287, y: 1484}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3389,7 +3519,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2292, y: 2309}
+  m_UIPosition: {x: 2291, y: 2338}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3488,7 +3618,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 449, y: 1367}
+  m_UIPosition: {x: 271, y: 1414}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4489,7 +4619,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1764, y: 2969}
+  m_UIPosition: {x: 1840, y: 2953}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -4513,7 +4643,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 183, y: 1487}
+  m_UIPosition: {x: 5, y: 1534}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4537,7 +4667,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 761, y: 839}
+  m_UIPosition: {x: 758, y: 863}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4804,7 +4934,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1798, y: 3109}
+  m_UIPosition: {x: 1819, y: 3104}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4904,7 +5034,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1794, y: 3263}
+  m_UIPosition: {x: 1815, y: 3258}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -5066,7 +5196,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1758, y: 2903}
+  m_UIPosition: {x: 1834, y: 2887}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -5213,6 +5343,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615254}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -5338,7 +5469,6 @@ MonoBehaviour:
     - 2
     - 1
     renderQueue: -1
-  useBaseColorMap: 3
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -5969,6 +6099,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615332}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -5997,7 +6128,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 3
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -6911,7 +7041,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615357}
       inputSlot: {fileID: 8926484042661615372}
-    position: {x: 754.6667, y: 218.66667}
+    position: {x: 742, y: 265.3333}
     expandedSlots:
     - {fileID: 8926484042661615357}
     expanded: 1
@@ -6920,7 +7050,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615357}
       inputSlot: {fileID: 8926484042661614858}
-    position: {x: 232.66667, y: 1355.3334}
+    position: {x: 54, y: 1402.6666}
     expandedSlots: []
     expanded: 1
     supecollapsed: 0
@@ -6928,7 +7058,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615357}
       inputSlot: {fileID: 8926484042661614706}
-    position: {x: 761.3333, y: 1092}
+    position: {x: 758, y: 1117.3333}
     expandedSlots: []
     expanded: 0
     supecollapsed: 0

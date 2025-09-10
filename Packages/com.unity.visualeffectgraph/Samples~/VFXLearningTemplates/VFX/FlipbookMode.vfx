@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Position Line
     position:
       serializedVersion: 2
-      x: -370
-      y: 1343
-      width: 311
-      height: 271
+      x: -704
+      y: 1329
+      width: 577
+      height: 272
     contents:
     - model: {fileID: 8926484042661615495}
       id: 0
@@ -27,13 +27,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615576}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
   - title: Shader Graph
     position:
       serializedVersion: 2
-      x: -785
-      y: 1664
-      width: 725
-      height: 279
+      x: -1025
+      y: 1669
+      width: 904
+      height: 281
     contents:
     - model: {fileID: 8926484042661614814}
       id: 0
@@ -50,13 +53,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615569}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
   - title: Position Line
     position:
       serializedVersion: 2
-      x: 1727
-      y: 642
-      width: 313
-      height: 321
+      x: 1369
+      y: 581
+      width: 617
+      height: 754
     contents:
     - model: {fileID: 8926484042661615149}
       id: 0
@@ -64,13 +70,25 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615576}
       id: 1
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+    - model: {fileID: 8926484042661615072}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615076}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615078}
+      id: 0
+      isStickyNote: 0
   - title: Angle and Color Flicker
     position:
       serializedVersion: 2
-      x: 1079
-      y: 1563
-      width: 965
-      height: 438
+      x: 922
+      y: 1529
+      width: 969
+      height: 443
     contents:
     - model: {fileID: 8926484042661615535}
       id: 0
@@ -90,12 +108,188 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615613}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 1424
+      y: 2034
+      width: 1759
+      height: 708
+    contents:
+    - model: {fileID: 8926484042661614908}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614938}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615191}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615151}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615184}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615199}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615194}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615196}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 7
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: -100
+      y: 602
+      width: 577
+      height: 1415
+    contents:
+    - model: {fileID: 8926484042661615636}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615637}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615450}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615452}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615456}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615701}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 1949
+      y: -29
+      width: 947
+      height: 1969
+    contents:
+    - model: {fileID: 8926484042661614555}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614606}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614558}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615657}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614959}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615592}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615589}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615597}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614948}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614583}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661614945}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615604}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615607}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 9
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 3873
+      y: 1447
+      width: 100
+      height: 100
+    contents:
+    - model: {fileID: 8926484042661615202}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615317}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615280}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615212}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615222}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615315}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615287}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615232}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615242}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615244}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615248}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615263}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661615265}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 10
+      isStickyNote: 1
   stickyNoteInfos:
   - title: 'Position Line:'
     position:
       serializedVersion: 2
-      x: -677
-      y: 1324
+      x: -679
+      y: 1388
       width: 262
       height: 171
     contents: 'A line is defined thanks to a line property.
@@ -112,13 +306,14 @@ MonoBehaviour:
       or 1. This means they will both be positioned on the extremity of the line.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Shader Graph:'
     position:
       serializedVersion: 2
-      x: -1043
-      y: 1667
+      x: -999
+      y: 1736
       width: 248
       height: 186
     contents: 'A shader graph has been created, and properties have been exposed.
@@ -134,13 +329,14 @@ MonoBehaviour:
       Here, it''s to fake some wax illumination in the shader.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Position Line:'
     position:
       serializedVersion: 2
-      x: 1463
-      y: 647
+      x: 1484
+      y: 640
       width: 262
       height: 180
     contents: 'A line is defined thanks to a line property.
@@ -157,26 +353,28 @@ MonoBehaviour:
       or 1. This means they will both be positioned on the extremity of the line.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Random Texindex:'
     position:
       serializedVersion: 2
-      x: 2500
-      y: 1241
+      x: 2447
+      y: 1216
       width: 284
       height: 100
     contents: Setting a random value for texIndex attribute will offset each starting
       frame's animation
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: 'FlipBook Player:'
     position:
       serializedVersion: 2
-      x: 2503
-      y: 1511
-      width: 549
-      height: 326
+      x: 2447
+      y: 1531
+      width: 423
+      height: 121
     contents: 'The Flipbook Player allows you to easily animate your flipbook or
       sprite sheet.
 
@@ -189,66 +387,72 @@ MonoBehaviour:
       texIndex +=  frameRate * delta Time ;
 
 '
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'Noise:'
     position:
       serializedVersion: 2
-      x: 1093
-      y: 1817
+      x: 976
+      y: 1799
       width: 258
       height: 148
     contents: "We're feeding the time into a 1D value noise to get some animated
       random values. Those values are used to give some life to our small flames
       by \u201Cnoising\u201D the angle and color attributes.\r\nThis gives some life
       by adding some random rotation movement and fake color illumination.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'UV Mode Flipbook Blend Frames:'
     position:
       serializedVersion: 2
-      x: 2877
-      y: 2021
-      width: 647
-      height: 261
+      x: 2841
+      y: 2187
+      width: 317
+      height: 151
     contents: "The Flame on the Right has its UV move set to \u201Cflipbook blend\u201D.\r\nThis
       will blend or interpolate between frames and have smoother motion.\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'UV Mode Flipbook :'
     position:
       serializedVersion: 2
-      x: 1140
-      y: 2063
-      width: 666
-      height: 320
+      x: 1449
+      y: 2197
+      width: 364
+      height: 132
     contents: "The flame on the left has its UV move set to \u201Cflipbook,\u201D
       and the \u201Cflipbook blend frames\u201D option is turned off. This means
       that no blend or interpolation between frames is done during animation.\r\n\r\nDepending
       on your animation frame rate and the number of frames in your sprite sheet,
       this can cause animation stepping to be visible between each frame.\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: Candle Mesh
     position:
       serializedVersion: 2
-      x: -79
-      y: 651
+      x: -75
+      y: 661
       width: 526
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: FlipBook Flame
     position:
       serializedVersion: 2
-      x: 2013
-      y: 33
+      x: 1975
+      y: 31
       width: 605
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: FlipBook Mode Debug
     position:
       serializedVersion: 2
@@ -257,15 +461,16 @@ MonoBehaviour:
       width: 865
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -1043
-    y: 33
-    width: 5827
-    height: 2580
+    x: -1024
+    y: -29
+    width: 5809
+    height: 2770
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -320,7 +525,7 @@ MonoBehaviour:
   m_CustomAttributes: []
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -336,10 +541,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -363,7 +564,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661614606}
-  m_UIPosition: {x: 2061, y: 165}
+  m_UIPosition: {x: 2023, y: 163}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -402,7 +603,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615589}
   - {fileID: 8926484042661615597}
   - {fileID: 8926484042661614948}
-  m_UIPosition: {x: 2061, y: 505}
+  m_UIPosition: {x: 2023, y: 503}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -773,7 +974,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614945}
   - {fileID: 8926484042661615604}
   - {fileID: 8926484042661615607}
-  m_UIPosition: {x: 2061, y: 1447}
+  m_UIPosition: {x: 2023, y: 1445}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -960,7 +1161,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -760, y: 1748}
+  m_UIPosition: {x: -753, y: 1754}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1227,7 +1428,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -395, y: 1794}
+  m_UIPosition: {x: -387, y: 1800}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1599,7 +1800,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -568, y: 1795}
+  m_UIPosition: {x: -561, y: 1800}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1738,7 +1939,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661614938}
   - {fileID: 8926484042661615191}
-  m_UIPosition: {x: 2423, y: 1997}
+  m_UIPosition: {x: 2409, y: 2101}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1764,6 +1965,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661614911}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -2348,7 +2550,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1133, y: 1775}
+  m_UIPosition: {x: 975, y: 1743}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -2615,7 +2817,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1299, y: 1743}
+  m_UIPosition: {x: 1141, y: 1711}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -2682,7 +2884,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1439, y: 1743}
+  m_UIPosition: {x: 1281, y: 1711}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2986,7 +3188,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -758, y: 1888}
+  m_UIPosition: {x: -751, y: 1894}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -3085,7 +3287,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1779, y: 1177}
+  m_UIPosition: {x: 1682, y: 1137}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3152,7 +3354,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1549, y: 1239}
+  m_UIPosition: {x: 1452, y: 1199}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3176,7 +3378,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1491, y: 1137}
+  m_UIPosition: {x: 1394, y: 1097}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3748,7 +3950,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1753, y: 823}
+  m_UIPosition: {x: 1652, y: 818}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3774,7 +3976,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661615184}
   - {fileID: 8926484042661615199}
-  m_UIPosition: {x: 1831, y: 1989}
+  m_UIPosition: {x: 1817, y: 2093}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3800,6 +4002,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615165}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -4188,7 +4391,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1539, y: 2501}
+  m_UIPosition: {x: 1525, y: 2605}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -4212,7 +4415,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 2173, y: 2535}
+  m_UIPosition: {x: 2159, y: 2639}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -4398,6 +4601,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615211}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -4585,6 +4789,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615231}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 1
   flipbookLayout: 0
@@ -5641,7 +5846,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615452}
-  m_UIPosition: {x: -52, y: 784}
+  m_UIPosition: {x: -48, y: 795}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -5825,7 +6030,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615701}
-  m_UIPosition: {x: -52, y: 1172}
+  m_UIPosition: {x: -48, y: 1183}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6191,7 +6396,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -345, y: 1475}
+  m_UIPosition: {x: -411, y: 1465}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -6215,7 +6420,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1861, y: 1621}
+  m_UIPosition: {x: 1703, y: 1589}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6351,7 +6556,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1861, y: 1805}
+  m_UIPosition: {x: 1703, y: 1773}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6555,7 +6760,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -340, y: 1723}
+  m_UIPosition: {x: -333, y: 1728}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -6606,7 +6811,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615577}
       inputSlot: {fileID: 8926484042661615702}
-    position: {x: -244, y: 1402}
+    position: {x: -310, y: 1392}
     expandedSlots: []
     expanded: 0
     supecollapsed: 0
@@ -6614,7 +6819,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661615577}
       inputSlot: {fileID: 8926484042661615658}
-    position: {x: 1861.3334, y: 700.6667}
+    position: {x: 1759.3334, y: 696}
     expandedSlots:
     - {fileID: 8926484042661615577}
     expanded: 0
@@ -7252,7 +7457,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1105, y: 1661}
+  m_UIPosition: {x: 947, y: 1629}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -7559,7 +7764,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 8926484042661615637}
-  m_UIPosition: {x: -52, y: 1637}
+  m_UIPosition: {x: -48, y: 1647}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -7586,6 +7791,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661615644}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
