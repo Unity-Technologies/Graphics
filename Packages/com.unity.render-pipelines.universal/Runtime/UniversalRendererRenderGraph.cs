@@ -574,14 +574,12 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             resourceData.InitFrame();
-                        
-            if (!resourceData.allowsIntermediateTexture)
-                frameData.Get<UniversalCameraData>().ForceNoIntermediateTexture();
         }
 
         internal override void OnRecordRenderGraph(RenderGraph renderGraph, ScriptableRenderContext context)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+
             UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
@@ -603,7 +601,7 @@ namespace UnityEngine.Rendering.Universal
             bool requireDepthTexture = RequireDepthTexture(cameraData, in renderPassInputs, applyPostProcessing);
             bool requirePrepassForTextures = RequirePrepassForTextures(cameraData, renderPassInputs, requireDepthTexture);
 
-            useDepthPriming = IsDepthPrimingEnabledRenderGraph(cameraData, renderPassInputs, m_DepthPrimingMode, requireDepthTexture, requirePrepassForTextures, usesDeferredLighting, m_IntermediateTextureMode);
+            useDepthPriming = IsDepthPrimingEnabledRenderGraph(cameraData, renderPassInputs, m_DepthPrimingMode, requireDepthTexture, requirePrepassForTextures, usesDeferredLighting);
 
             bool requirePrepass = requirePrepassForTextures || useDepthPriming;
 
@@ -964,6 +962,7 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalLightData lightData = frameData.Get<UniversalLightData>();
+            UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
             if (!renderGraph.nativeRenderPassesEnabled)
             {
@@ -1585,11 +1584,8 @@ namespace UnityEngine.Rendering.Universal
         /// to ensure that the pipeline will actually do depth priming.
         /// When this is true then we are sure that after RenderPassEvent.AfterRenderingPrePasses the currentCameraDepth has been primed.
         /// </summary>
-        static bool IsDepthPrimingEnabledRenderGraph(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, DepthPrimingMode depthPrimingMode, bool requireDepthTexture, bool requirePrepassForTextures, bool usesDeferredLighting, IntermediateTextureMode intermediateTextureMode)
+        static bool IsDepthPrimingEnabledRenderGraph(UniversalCameraData cameraData, in RenderPassInputSummary renderPassInputs, DepthPrimingMode depthPrimingMode, bool requireDepthTexture, bool requirePrepassForTextures, bool usesDeferredLighting)
         {
-            if (intermediateTextureMode == IntermediateTextureMode.Never)
-                return false;
-            
 #if UNITY_EDITOR
             // We need to disable depth-priming for DrawCameraMode.Wireframe, since depth-priming forces ZTest to Equal
             // for opaques rendering, which breaks wireframe rendering.

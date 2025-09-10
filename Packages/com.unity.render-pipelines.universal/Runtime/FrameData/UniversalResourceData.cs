@@ -338,7 +338,6 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Reset()
         {
-            base.Reset();
             _backBufferColor = TextureHandle.nullHandle;
             _backBufferDepth = TextureHandle.nullHandle;
             _cameraColor = TextureHandle.nullHandle;

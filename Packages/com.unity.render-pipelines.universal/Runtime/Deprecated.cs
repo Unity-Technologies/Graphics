@@ -189,6 +189,16 @@ namespace UnityEngine.Rendering.Universal
                 return m_Textures;
             }
         }
+        
+        /// <summary>
+        /// Controls when URP renders via an intermediate texture.
+        /// </summary>
+        [Obsolete("This property is not used. #from(6000.3)", false)]
+        public IntermediateTextureMode intermediateTextureMode
+        {
+            get => default;
+            set {}
+        }
     }
 
     public abstract partial class ScriptableRenderer

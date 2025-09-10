@@ -7,7 +7,6 @@ using System;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -154,8 +153,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField]
         bool m_AccurateGbufferNormals = false;
 
-        // Kept for data migration (see UniversalRenderPipelineAsset version 13)
-        [SerializeField, FormerlySerializedAs("m_IntermediateTextureMode")] internal IntermediateTextureMode m_ObsoleteIntermediateTextureMode = IntermediateTextureMode.Always;
+        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Always;
 
         /// <inheritdoc/>
         protected override ScriptableRenderer Create()
@@ -338,21 +336,13 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Controls when URP renders via an intermediate texture.
         /// </summary>
-        [Obsolete("Use UniversalRenderPipelineAsset.intermediateTextureMode instead", false)]
         public IntermediateTextureMode intermediateTextureMode
         {
-            get
-            {
-                var asset = QualitySettings.renderPipeline as UniversalRenderPipelineAsset;
-                if (asset == null)
-                    return m_ObsoleteIntermediateTextureMode; // No value to return normally. So prefer returning former value in case it is still relevant, instead of default.
-                return asset.intermediateTextureMode;
-            }
+            get => m_IntermediateTextureMode;
             set
             {
-                var asset = QualitySettings.renderPipeline as UniversalRenderPipelineAsset;
-                if (asset != null)
-                    asset.intermediateTextureMode = value;
+                SetDirty();
+                m_IntermediateTextureMode = value;
             }
         }
 
