@@ -508,12 +508,15 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
                 var m = ConvertTranform(instance.localToWorldTransform);
                 var bounds = GeometryUtility.CalculateBounds(new Vector3[]
-                { new Vector3(aabb.Min.x, aabb.Min.y, aabb.Max.z),
-                  new Vector3(aabb.Min.x, aabb.Max.y, aabb.Min.z),
-                  new Vector3(aabb.Min.x, aabb.Max.y, aabb.Max.z),
-                  new Vector3(aabb.Max.x, aabb.Min.y, aabb.Max.z),
-                  new Vector3(aabb.Max.x, aabb.Max.y, aabb.Min.z),
-                  new Vector3(aabb.Max.x, aabb.Max.y, aabb.Max.z)
+                {
+                    new Vector3(aabb.Min.x, aabb.Min.y, aabb.Min.z),
+                    new Vector3(aabb.Min.x, aabb.Min.y, aabb.Max.z),
+                    new Vector3(aabb.Min.x, aabb.Max.y, aabb.Min.z),
+                    new Vector3(aabb.Min.x, aabb.Max.y, aabb.Max.z),
+                    new Vector3(aabb.Max.x, aabb.Min.y, aabb.Min.z),
+                    new Vector3(aabb.Max.x, aabb.Min.y, aabb.Max.z),
+                    new Vector3(aabb.Max.x, aabb.Max.y, aabb.Min.z),
+                    new Vector3(aabb.Max.x, aabb.Max.y, aabb.Max.z)
                   }, m);
 
                 prims[i].primID = (uint)i;

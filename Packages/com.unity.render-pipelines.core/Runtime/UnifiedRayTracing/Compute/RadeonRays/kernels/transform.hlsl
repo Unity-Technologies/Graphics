@@ -66,14 +66,14 @@ Transform Inverse(in Transform t)
 
 Aabb TransformAabb(in Aabb aabb, in Transform t)
 {
-    float3 p0 = aabb.pmin;
+    float3 p0 = float3(aabb.pmin.x, aabb.pmin.y, aabb.pmin.z);
     float3 p1 = float3(aabb.pmin.x, aabb.pmin.y, aabb.pmax.z);
     float3 p2 = float3(aabb.pmin.x, aabb.pmax.y, aabb.pmin.z);
     float3 p3 = float3(aabb.pmin.x, aabb.pmax.y, aabb.pmax.z);
-    float3 p4 = float3(aabb.pmax.x, aabb.pmin.y, aabb.pmax.z);
-    float3 p5 = float3(aabb.pmax.x, aabb.pmax.y, aabb.pmin.z);
-    float3 p6 = float3(aabb.pmax.x, aabb.pmax.y, aabb.pmax.z);
-    float3 p7 = aabb.pmax;
+    float3 p4 = float3(aabb.pmax.x, aabb.pmin.y, aabb.pmin.z);
+    float3 p5 = float3(aabb.pmax.x, aabb.pmin.y, aabb.pmax.z);
+    float3 p6 = float3(aabb.pmax.x, aabb.pmax.y, aabb.pmin.z);
+    float3 p7 = float3(aabb.pmax.x, aabb.pmax.y, aabb.pmax.z);
 
     p0 = TransformPointT(p0, t);
     p1 = TransformPointT(p1, t);
