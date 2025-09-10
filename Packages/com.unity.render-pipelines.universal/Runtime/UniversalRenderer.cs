@@ -283,9 +283,8 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetPassOperation(stencilData.passOperation);
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
-            
-            var asset = UniversalRenderPipeline.asset;
-            m_IntermediateTextureMode = asset != null ? asset.intermediateTextureMode : IntermediateTextureMode.Always;
+
+            m_IntermediateTextureMode = data.intermediateTextureMode;
             
 #if URP_COMPATIBILITY_MODE
             if (GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphSettings>(out var renderGraphSettings)
@@ -304,6 +303,7 @@ namespace UnityEngine.Rendering.Universal
             transparentLayerMask = data.transparentLayerMask;
             shadowTransparentReceive = data.shadowTransparentReceive;
             
+            var asset = UniversalRenderPipeline.asset;
             if (asset != null && asset.supportsLightCookies)
             {
                 var settings = LightCookieManager.Settings.Create();

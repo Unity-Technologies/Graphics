@@ -846,7 +846,7 @@ namespace UnityEngine.Rendering.Universal
 
                 using (new ProfilingScope(Profiling.Pipeline.initializeRenderingData))
                 {
-                    CreateUniversalResourceData(frameData, asset);
+                    CreateUniversalResourceData(frameData);
                     lightData = CreateLightData(frameData, asset, data.cullResults.visibleLights, renderingMode);
                     shadowData = CreateShadowData(frameData, asset, renderingMode);
                     CreatePostProcessingData(frameData, asset);
@@ -1920,11 +1920,9 @@ namespace UnityEngine.Rendering.Universal
             return postProcessingData;
         }
 
-        static UniversalResourceData CreateUniversalResourceData(ContextContainer frameData, UniversalRenderPipelineAsset settings)
+        static UniversalResourceData CreateUniversalResourceData(ContextContainer frameData)
         {
-            var data = frameData.Create<UniversalResourceData>();
-            data.allowsIntermediateTexture = settings.intermediateTextureMode != IntermediateTextureMode.Never;
-            return data;
+            return frameData.Create<UniversalResourceData>();
         }
 
         static UniversalLightData CreateLightData(ContextContainer frameData, UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, RenderingMode? renderingMode)

@@ -138,9 +138,6 @@ namespace UnityEngine.Rendering.Universal
         internal const string k_SampleCountLowKeyword = "_SAMPLE_COUNT_LOW";
         internal const string k_SampleCountMediumKeyword = "_SAMPLE_COUNT_MEDIUM";
         internal const string k_SampleCountHighKeyword = "_SAMPLE_COUNT_HIGH";
-
-        /// <inheritdoc/>
-        protected override IntermediateTextureUsage useIntermediateTextures => IntermediateTextureUsage.Required;
         
         /// <inheritdoc/>
         public override void Create()

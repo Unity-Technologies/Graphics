@@ -9,17 +9,6 @@ public class #SCRIPTNAME# : ScriptableRendererFeature
     [SerializeField] #SCRIPTNAME#Settings settings;
     #SCRIPTNAME#Pass m_ScriptablePass;
 
-    // Override this property to declare the feature's dependency on an intermediate texture.
-    // This allows the renderer to optimize its setup by skipping this feature early if it's incompatible with
-    // the pipeline's Intermediate Texture setting (when set to 'Never').
-    //
-    // - Set to `Required`: If your feature's passes require an intermediate texture (for example, for color or depth input).
-    // - Set to `NotRequired`: For a small performance boost, if you are certain the feature does not need an intermediate texture.
-    // - Default (`Unknown`): This is a safe fallback, but the renderer might do unnecessary work before discovering an incompatibility.
-    //
-    // Note: URP still validates the usage in the Editor and in Development builds, even if this is set to `No`.
-    // protected override IntermediateTextureUsage useIntermediateTextures => IntermediateTextureUsage.Required;
-
     /// <inheritdoc/>
     public override void Create()
     {

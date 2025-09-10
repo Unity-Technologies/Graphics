@@ -189,9 +189,6 @@ namespace UnityEngine.Rendering.Universal
         RenderObjectsPass renderObjectsPass;
 
         /// <inheritdoc/>
-        protected override IntermediateTextureUsage useIntermediateTextures => IntermediateTextureUsage.NotRequired;
-
-        /// <inheritdoc/>
         public override void Create()
         {
             FilterSettings filter = settings.filterSettings;

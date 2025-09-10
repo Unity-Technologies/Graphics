@@ -639,10 +639,8 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
-#if URP_COMPATIBILITY_MODE
         private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
         private static bool m_UseOptimizedStoreActions = false;
-#endif
 
         const int k_RenderPassBlockCount = 4;
 
@@ -762,11 +760,12 @@ namespace UnityEngine.Rendering.Universal
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
 
-#if URP_COMPATIBILITY_MODE
             if (UniversalRenderPipeline.asset)
+            {
                 m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+            }
+
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
-#endif
         }
 
         /// <summary>
@@ -1654,76 +1653,36 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.addRenderPasses);
 
-            var urpAsset = UniversalRenderPipeline.asset;
-            var isIntermediateTextureFilteringEnabled = urpAsset != null && urpAsset.intermediateTextureMode == IntermediateTextureMode.Never;
-
             // Add render passes from custom renderer features
-            for (int featureIndex = 0; featureIndex < rendererFeatures.Count; ++featureIndex)
+            for (int i = 0; i < rendererFeatures.Count; ++i)
             {
-                var rendererFeature = rendererFeatures[featureIndex];
-                if (!rendererFeature.isActive)
+                if (!rendererFeatures[i].isActive)
+                {
                     continue;
-
-                // skipping if declaration made it not compatible
-                rendererFeature.deactivatedAfterIntermediateNotAllowed = false;
-                if (isIntermediateTextureFilteringEnabled && rendererFeature.useIntermediateTexturesInternal == ScriptableRendererFeature.IntermediateTextureUsage.Required)
-                    continue;
-
-                int previousCount = activeRenderPassQueue.Count;
+                }
 
 #if URP_COMPATIBILITY_MODE
-                if (!rendererFeature.SupportsNativeRenderPass())
+                if (!rendererFeatures[i].SupportsNativeRenderPass())
                     disableNativeRenderPassInFeatures = true;
 #endif
 
-                rendererFeature.AddRenderPasses(this, ref renderingData);
+                rendererFeatures[i].AddRenderPasses(this, ref renderingData);
 #if URP_COMPATIBILITY_MODE
                 disableNativeRenderPassInFeatures = false;
 #endif
-
-                if (isIntermediateTextureFilteringEnabled)
-                {
-                    bool declaresNoIntermediateTexture = rendererFeature.useIntermediateTexturesInternal == ScriptableRendererFeature.IntermediateTextureUsage.NotRequired;
-#if !(DEVELOPMENT_BUILD || UNITY_EDITOR)
-                    // In release builds, trust the declaration and skip verification if feature declares it won't use it.
-                    if (declaresNoIntermediateTexture)
-                        continue;
-#endif
-                    VerifyAndFilterRendererFeaturePasses(rendererFeature, previousCount, declaresNoIntermediateTexture);
-                }
             }
 
             // Remove any null render pass that might have been added by user by mistake
-            activeRenderPassQueue.RemoveAll(item => item == null);
-
-#if URP_COMPATIBILITY_MODE
-            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
-            if (activeRenderPassQueue.Count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
-                m_UseOptimizedStoreActions = false;
-#endif
-        }
-
-        private void VerifyAndFilterRendererFeaturePasses(ScriptableRendererFeature feature, int startIndex, bool declaresNoIntermediateTexture)
-        {
-            // Remove fully any feature requiring IntermediateTexture in any pass if it is forbidden by settings
-            bool requiresIntermediateTexture = false;
-            for (int passIndex = activeRenderPassQueue.Count - 1; passIndex >= startIndex && !requiresIntermediateTexture; passIndex--)
+            int count = activeRenderPassQueue.Count;
+            for (int i = count - 1; i >= 0; i--)
             {
-                var renderPass = activeRenderPassQueue[passIndex];
-                requiresIntermediateTexture |= renderPass.requiresIntermediateTexture
-                                                      || (renderPass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None // Needs color
-                                                      || (renderPass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None; // Needs depth
+                if (activeRenderPassQueue[i] == null)
+                    activeRenderPassQueue.RemoveAt(i);
             }
 
-            if (!requiresIntermediateTexture)
-                return;
-
-            if (declaresNoIntermediateTexture)
-                Debug.LogError($"{feature.name} declare not using IntermediateTexture but actually use it. Deactivating it. Important: This will cause issue on non development builds!");
-
-            activeRenderPassQueue.RemoveRange(startIndex, activeRenderPassQueue.Count - startIndex);
-
-            feature.deactivatedAfterIntermediateNotAllowed = true;
+            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
+            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
+                m_UseOptimizedStoreActions = false;
         }
 
 #if URP_COMPATIBILITY_MODE
