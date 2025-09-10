@@ -1,26 +1,15 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Rendering.Converter;
+using System.Reflection;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class RenderPipelineConverterManager : ScriptableSingleton<RenderPipelineConverterManager>, ISerializationCallbackReceiver
+    class RenderPipelineConverterManager : ScriptableSingleton<RenderPipelineConverterManager>
+        , ISerializationCallbackReceiver
     {
-        List<IRenderPipelineConverter> m_RenderPipelineConverters = new List<IRenderPipelineConverter>();
-
-        public List<IRenderPipelineConverter> renderPipelineConverters => m_RenderPipelineConverters;
-
-        [SerializeField] SerializedDictionary<string, ConverterState> m_RenderPipelineConvertersStates = new();
-
-        public ConverterState GetConverterState(IRenderPipelineConverter renderPipelineConverter)
-        {
-            if (!m_RenderPipelineConvertersStates.TryGetValue(renderPipelineConverter.GetType().AssemblyQualifiedName, out var state))
-                throw new KeyNotFoundException($"Unable to find state for {renderPipelineConverter.GetType()}");
-
-            return state;
-        }
+        [field:SerializeField]
+        public List<ConverterState> converterStates { get; private set; } = new();
 
         public RenderPipelineConverterManager()
         {
@@ -28,25 +17,49 @@ namespace UnityEditor.Rendering.Universal
         }
 
         private void ReloadConverters() 
-        { 
-            m_RenderPipelineConverters.Clear();
-            m_RenderPipelineConvertersStates.Clear();
-            foreach (var converterType in TypeCache.GetTypesDerivedFrom<IRenderPipelineConverter>())
+        {
+            using(UnityEngine.Pool.HashSetPool<Type>.Get(out var availableConverterTypes))
             {
-                if (converterType.IsAbstract || converterType.IsInterface)
-                    continue;
-
-                var renderPipelineConverter = Activator.CreateInstance(converterType) as RenderPipelineConverter;
-                m_RenderPipelineConverters.Add(renderPipelineConverter);
-
-                // Create a new ConvertState which holds the active state of the converter
-                var converterState = new ConverterState
+                foreach (var converterType in TypeCache.GetTypesDerivedFrom<IRenderPipelineConverter>())
                 {
-                    isSelected = false,
-                    isInitialized = false,
-                    items = new List<ConverterItemState>(),
-                };
-                m_RenderPipelineConvertersStates.Add(renderPipelineConverter.GetType().AssemblyQualifiedName, converterState);
+                    if (converterType.IsAbstract || converterType.IsInterface)
+                        continue;
+
+                    var obsoleteAtt = converterType.GetCustomAttribute<ObsoleteAttribute>();
+                    if (obsoleteAtt != null && obsoleteAtt.IsError == false)
+                    {
+                        // Skip obsolete converters that are soft deprecated
+                        continue;
+                    }
+
+                    availableConverterTypes.Add(converterType);
+
+                    var serializedConverter = converterStates.Find(i => i.converter.GetType() == converterType);
+
+                    if (serializedConverter != null)
+                        continue;
+
+                    var renderPipelineConverter = Activator.CreateInstance(converterType) as RenderPipelineConverter;
+
+                    // Create a new ConvertState which holds the active state of the converter
+                    var converterState = new ConverterState
+                    {
+                        isSelected = false,
+                        isInitialized = false,
+                        items = new List<ConverterItemState>(),
+                        converter = renderPipelineConverter
+                    };
+                    converterStates.Add(converterState);
+                }
+
+                foreach(var converter in converterStates)
+                {
+                    if (!availableConverterTypes.Contains(converter.converter.GetType()))
+                    {
+                        Debug.Log($"Removing converter state {converter.converter.GetType()} as it is no longer available or deprecated.");
+                        converterStates.Remove(converter);
+                    }
+                }
             }
         }
 
@@ -59,16 +72,13 @@ namespace UnityEditor.Rendering.Universal
         {
             // TODO: As the converters have data stored inside during initialization we need to clear the states
             // Once we keep the items to be classes and converters can inherit them to store any kind of data this can be removed
-            foreach (var kvp in m_RenderPipelineConvertersStates)
-            {
-                var state = kvp.Value;
-                state.isInitialized = false;
-                state.items.Clear();
-            }
+            foreach (var state in converterStates)
+                state.Clear();
         }
 
         public void OnAfterDeserialize()
         {
+
         }
     }
 }

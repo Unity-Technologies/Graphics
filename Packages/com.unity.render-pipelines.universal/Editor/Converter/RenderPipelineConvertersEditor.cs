@@ -32,6 +32,8 @@ namespace UnityEditor.Rendering.Universal
         public bool isLoading; // to name
         public bool isInitialized;
         public List<ConverterItemState> items = new List<ConverterItemState>();
+        [SerializeReference]
+        public IRenderPipelineConverter converter;
 
         private int CountItemWithFlag(Status status)
         {
@@ -53,6 +55,12 @@ namespace UnityEditor.Rendering.Universal
         public override string ToString()
         {
             return $"Warnings: {warnings} - Errors: {errors} - Ok: {success} - Total: {items?.Count ?? 0}";
+        }
+
+        public void Clear()
+        {
+            isInitialized = false;
+            items.Clear();
         }
 
         public int selectedItemsCount
@@ -108,9 +116,9 @@ namespace UnityEditor.Rendering.Universal
         {
             var elements = new List<ConverterInfo>();
             var manager = RenderPipelineConverterManager.instance;
-            foreach (var converter in manager.renderPipelineConverters)
+            foreach (var state in manager.converterStates)
             {
-                elements.Add(new ConverterInfo(converter, manager.GetConverterState(converter)));
+                elements.Add(new ConverterInfo(state.converter, state));
             }
             return elements;
         }
@@ -313,9 +321,6 @@ namespace UnityEditor.Rendering.Universal
             if (!SaveCurrentSceneAndContinue())
                 return;
 
-            bool isDeepSearchEnabled = Search.SearchService.IsDeepIndexingEnabled();
-            bool isPackageIndexingEnabled = Search.SearchService.IsPackageIndexingEnabled();
-
             // Gather all the converters that are selected
             var selectedConverters = new List<RenderPipelineConverterVisualElement>();
             foreach (var converterVE in m_VEList)
@@ -340,21 +345,7 @@ namespace UnityEditor.Rendering.Universal
                 // Check if all the converters did finish
                 if (iConverterIndex >= count)
                 {
-                    if (isDeepSearchEnabled != Search.SearchService.IsDeepIndexingEnabled() ||
-                        isPackageIndexingEnabled != Search.SearchService.IsPackageIndexingEnabled())
-                    {
-                        // Rollback the index settings, and call the callback to notify that the initialization is done
-                        Search.SearchService.ChangeIndexingSettings(
-                            deepIndexing: isDeepSearchEnabled,
-                            packageIndexing: isPackageIndexingEnabled,
-                            InitializationFinish);
-                    }
-                    else
-                    {
-                        // No need to rollback the index info, the initialization is done now
-                        InitializationFinish();
-                    }
-
+                    InitializationFinish();
                     return;
                 }
 
@@ -378,28 +369,7 @@ namespace UnityEditor.Rendering.Universal
                 current.Scan(OnConverterScanFinished);
             }
 
-            void OnSearchIndexReady()
-            {
-                ProcessNextConverter();
-            }
-
-            bool needsDeepSearch = ShouldCreateSearchIndex();
-            bool needsPackageIndexing = false;
-
-            if (isDeepSearchEnabled != needsDeepSearch || isPackageIndexingEnabled != needsPackageIndexing)
-            {
-                EditorUtility.DisplayProgressBar("Initializing converters", $"Modifying {name} search index", -1f);
-                Search.SearchService.ChangeIndexingSettings(
-                    deepIndexing: needsDeepSearch,
-                    packageIndexing: false,
-                    OnSearchIndexReady
-                );
-            }
-            else
-            {
-                // The search index is already set up for our needs, no need to configure anything
-                OnSearchIndexReady();
-            }
+            ProcessNextConverter();
         }
 
         private void RefreshUI()
@@ -430,22 +400,6 @@ namespace UnityEditor.Rendering.Universal
             }
 
             return true;
-        }
-
-        bool ShouldCreateSearchIndex()
-        {
-            foreach (var converterVE in m_VEList)
-            {
-                if (converterVE.requiresInitialization)
-                {
-                    if (converterVE.converter.needsIndexing)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         struct AnalyticContextInfo

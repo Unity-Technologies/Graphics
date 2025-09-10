@@ -74,7 +74,9 @@ namespace UnityEditor.Rendering.Universal.Tools
         {
             var materialConverter = new ReadonlyMaterialConverter();
             var gid = GlobalObjectId.GetGlobalObjectIdSlow(m_GO);
-            materialConverter.Add(gid.ToString(), k_PrefabPath);
+
+            var assetItem = new RenderPipelineConverterAssetItem(gid, k_PrefabPath);
+            materialConverter.assets.Add(assetItem);
 
             RunItemContext runItemContext = new RunItemContext(new ConverterItemInfo
             {

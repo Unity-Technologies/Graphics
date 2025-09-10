@@ -291,7 +291,10 @@ namespace UnityEditor.Rendering.Universal
                                 sb.AppendLine($"- {itemState.item.name} ({status}) ({message})");
                                 break;
                             case Status.Success:
+                            {
                                 sb.AppendLine($"- {itemState.item.name} ({status})");
+                                message = "Conversion successful!";
+                            }
                                 break;
                         }
 

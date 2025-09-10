@@ -132,6 +132,8 @@ namespace UnityEditor.Rendering.Universal
             assetPaths.Add(assetPath);
         }
 
+        internal List<RenderPipelineConverterAssetItem> assets = new();
+
         public override void OnInitialize(InitializeConverterContext ctx, Action callback)
         {
             SearchServiceUtils.RunQueuedSearch
@@ -140,17 +142,16 @@ namespace UnityEditor.Rendering.Universal
                 ReadonlyMaterialMap.GetMaterialSearchList(),
                 (item, description) =>
                 {
-                    if (GlobalObjectId.TryParse(item.id, out var gid))
+                    var assetItem = new RenderPipelineConverterAssetItem(item.id);
+                    assets.Add(assetItem);
+
+                    var itemDescriptor = new ConverterItemDescriptor()
                     {
-                        var assetPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
-                        var itemDescriptor = new ConverterItemDescriptor()
-                        {
-                            name = assetPath,
-                            info = description,
-                        };
-                        Add(gid.ToString(), assetPath);
-                        ctx.AddAssetToConvert(itemDescriptor);
-                    }
+                        name = assetItem.assetPath,
+                        info = description,
+                    };
+
+                    ctx.AddAssetToConvert(itemDescriptor);
                 },
                 callback
             );
@@ -182,51 +183,18 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnClicked(int index)
         {
-            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(assetPaths[index]));
+            assets[index].OnClicked();
         }
 
         private Object LoadObject(ref RunItemContext ctx, StringBuilder sb)
         {
-            var item = ctx.item;
-            var guid = guids[item.index];
+            var item = assets[ctx.item.index];
+            var obj = item.LoadObject();
 
-            if (GlobalObjectId.TryParse(guid, out var gid))
-            {
-                var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                if (!obj)
-                {
-                    // Open container scene
-                    if (gid.identifierType == (int)IdentifierType.kSceneObject)
-                    {
-                        var containerPath = AssetDatabase.GUIDToAssetPath(gid.assetGUID);
+            if (obj == null)
+                sb.AppendLine($"Failed to load {ctx.item.descriptor.info} Global ID {item.guid} Asset Path {item.assetPath}");
 
-                        var mainInstanceID = AssetDatabase.LoadAssetAtPath<Object>(containerPath);
-                        AssetDatabase.OpenAsset(mainInstanceID);
-
-                        // if we have a prefab open, then we already have the object we need to update
-                        var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-                        if (prefabStage != null)
-                        {
-                            obj = mainInstanceID;
-                        }
-
-                        // Reload object if it is still null
-                        if (obj == null)
-                        {
-                            obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                            if (!obj)
-                            {
-                                sb.AppendLine($"Object {gid.assetGUID} failed to load...");
-                            }
-                        }
-                    }
-                }
-
-                return obj;
-            }
-
-            sb.AppendLine($"Failed to parse Global ID {item.descriptor.info}...");
-            return null;
+            return obj;
         }
     }
 }
