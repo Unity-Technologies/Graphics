@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.textureSlot = IN.typeTexSettings.y;");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.uv = IN.uvClip.xy;");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.extraDilate = IN.circle.x;");
-                sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.textCoreLoc = IN.textCoreLoc;");
+                sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.textCoreLoc = round(IN.textCoreLoc);");
                 sb.AppendLine("Unity_UIE_EvaluateSdfTextNode_Input.opacity = IN.typeTexSettings.z;");
                 sb.AppendLine("CommonFragOutput Unity_UIE_EvaluateSdfTextNode_Output = uie_std_frag_sdf_text(Unity_UIE_EvaluateSdfTextNode_Input);");
                 sb.AppendLine("{0} = Unity_UIE_EvaluateSdfTextNode_Output.color;", outputVarName);
