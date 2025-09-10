@@ -348,9 +348,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            var universalTarget = (target as UniversalTarget);
-            universalTarget.AddDefaultMaterialOverrideGUI(ref context, onChange, registerUndo);
-
             context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
             {
                 if (Equals(target.alphaMode, evt.newValue))
