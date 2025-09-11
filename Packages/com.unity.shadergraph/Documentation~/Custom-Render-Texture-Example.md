@@ -53,15 +53,15 @@ The following Shader Graph reads the output of the Camera Render Texture, as wel
 
 Three new ShaderGraph nodes have been introduced to facilitate working with Custom Render Textures:
 
-1. [Custom Render Texture Self](Custom-Texture-Self)
+1. [Custom Render Texture Self](Custom-Texture-Self.md)
    - Outputs the double-buffered texture from the previous update.
    - It provides three outputs for different types of textures: 2D, 3D, and Cube textures.
 
-2. [Custom Render Texture Size](Custom-Texture-Size)
+2. [Custom Render Texture Size](Custom-Texture-Size.md)
    - Outputs the width, height, and volume depth of the current Custom Render Texture.
    - Use this node to determine the size of the texture being worked with.
 
-3. [Custom Render Texture Slice](Custom-Texture-Slice)
+3. [Custom Render Texture Slice](Custom-Texture-Slice.md)
    - Outputs the current slice for 2D Texture Arrays or the Cubemap face index being updated.
 
 ## Known Limitations

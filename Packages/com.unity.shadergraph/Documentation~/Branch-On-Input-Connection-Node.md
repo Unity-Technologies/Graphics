@@ -10,7 +10,7 @@ Shader Graph uses two ports when it determines the node's connection state:
 
 - The Branch On Input Connection node's **Input** port.
 
-- The Subgraph node's matching Property port in the parent Shader Graph. For more information on Subgraph nodes, see [Subgraph node](Sub-graph-Node).
+- The Subgraph node's matching Property port in the parent Shader Graph. For more information on Subgraph nodes, see [Subgraph node](Sub-graph-Node.md).
 
 The Branch On Input Connection node's functionality is based on the [Branch node](Branch-Node.md).
 

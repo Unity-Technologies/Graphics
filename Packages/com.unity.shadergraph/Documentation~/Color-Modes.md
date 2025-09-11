@@ -11,7 +11,7 @@ Shader Graph can display colors on nodes in your graph to improve readability. T
 | None         | Does not display colors on the nodes. All nodes use the default gray. |
 | Category     | Displays colors on the nodes based on their assigned category. See **Category Colors** below. |
 | Heatmap      | Displays colors on the nodes based on the nodes relative performance cost. By default, dark colored nodes contribute very little to the overall GPU performance cost of the shader and brighter colored nodes require more GPU computation to run. |
-| Precision    | Displays colors on the nodes based on the current [Precision Mode](Precision-Modes) in use. |
+| Precision    | Displays colors on the nodes based on the current [Precision Mode](Precision-Modes.md) in use. |
 | User Defined | Lets you set the display colors on a per-node basis. These are custom colors for your graph. See **User Defined Colors** below. |
 
 ### Category Colors

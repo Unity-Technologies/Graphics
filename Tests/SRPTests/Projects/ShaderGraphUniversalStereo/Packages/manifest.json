@@ -9,7 +9,7 @@
     "com.unity.render-pipelines.universal-config": "file:../../../../../Packages/com.unity.render-pipelines.universal-config",
     "com.unity.rendering.light-transport": "file:../../../../../Packages/com.unity.rendering.light-transport",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
-    "com.unity.testframework.graphics": "file:../../../Packages/com.unity.testframework.graphics",
+    "com.unity.testframework.graphics": "8.11.0-exp.1",
     "com.unity.ugui": "2.0.0",
     "com.unity.xr.mock-hmd": "1.1.1-preview.1",
     "local.utf.references": "file:../../../Packages/local.utf.references",

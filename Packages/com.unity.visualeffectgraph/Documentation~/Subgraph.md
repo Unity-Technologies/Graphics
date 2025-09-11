@@ -1,4 +1,4 @@
-## Subgraph
+# Subgraphs
 
 A Visual Effect Subgraph is an Asset that contains a part of a Visual Effect Graph that can be used in another Visual Effect Graph or Subgraph. Subgraphs appear as a single Node.
 
@@ -10,7 +10,7 @@ Subgraphs can be used in graphs as three main usages:
 
 Subgraphs allow you to factorize commonly used sets of Nodes in a graph into reusable Assets and adds them to the Library.
 
-## System Subgraphs
+# System Subgraphs
 
 System Subgraphs are Visual Effect Graphs that are **nested** inside other Visual Effect Graphs:
 
@@ -21,7 +21,7 @@ Visual Effect Graphs used as Subgraphs appear as a [Context](Contexts.md) that p
 * **Exposed Properties** defined in the subgraph.
 * **Events** used in the subgraph.
 
-### Creating System Subgraphs
+## Create System Subgraphs
 
 To create a System Subgraph:
 
@@ -32,7 +32,7 @@ To create a System Subgraph:
 
 Creating a subgraph using this method replaces all converted content with a System Subgraph Node.
 
-### Editing System Subgraphs
+## Edit System Subgraphs
 
 To edit a System Subgraph that is open in the Visual Effect Graph window:
 
@@ -40,11 +40,11 @@ To edit a System Subgraph that is open in the Visual Effect Graph window:
 2. Right-click the System Subgraph Context.
 3. Select Enter Subgraph in the context menu.
 
-### Using a System Subgraph in a Visual Effect Graph
+## Use a System Subgraph in a Visual Effect Graph
 
 To add a System Subgraph Node to your Graph, drag a Visual Effect Graph from your Project View to the Visual Effect Graph window.
 
-### Customizing System Subgraph Nodes
+## Customize System Subgraph Nodes
 
 You can customize System Subgraph properties in the same way you customise Visual Effect Graph properties. You can also use Operators to create custom expressions in that extend the behavior of the systems contained in the subgraph.
 
@@ -56,7 +56,7 @@ Block Subgraphs are specific Subgraphs that only contain Operators and Blocks. Y
 
 ![Example Block subgraph of a superpower.](Images/BlockSubgraph.png)<br/>Example Block subgraph of a superpower.
 
-### Creating Block Subgraphs
+## Create Block Subgraphs
 
 To create a Block Subgraph:
 
@@ -67,7 +67,7 @@ To create a Block Subgraph:
 
 When you create a subgraph using this method, Unity replaces all converted content with a Block Subgraph Node.
 
-### Editing Block Subgraphs
+## Edit Block Subgraphs
 
 You can edit a Block Subgraph in one of the following ways:
 
@@ -84,7 +84,7 @@ You can add Blocks inside the non-removable Context named Block Subgraph.
   
 You can define the Menu Category the subgraph Block appears in the [Blackboard](Blackboard.md)
 
-### Using Block Subgraphs
+## Use Block Subgraphs
 
 To add a Block Subgraph Node to your Graph:
 
@@ -94,17 +94,17 @@ Or:
 
 * Use the Create Block Menu by typing the Block Subgraph Asset name.
 
-### Customizing Block Subgraphs
+## Customize Block Subgraphs
 
 You can customize Block Subgraph properties in the same way as regular Block properties. You can also use Operators to create custom expressions in order to extend the behavior of the Block used as subgraph.
 
-## Operator Subgraphs
+# Operator Subgraphs
 
 Operator Subgraphs are specific Subgraphs Assets that only contain Operators and that can be used as Operators inside another Visual Effect Graph or Sub Graph.
 
 ![Example Operator subgraph of a random vector.](Images/OperatorSubgraph.png)<br/>Example Operator subgraph of a random vector.
 
-### Creating Operator Subgraphs
+## Create Operator Subgraphs
 
 To create an Operator Subgraph:
 
@@ -115,7 +115,7 @@ To create an Operator Subgraph:
 
 When you create a subgraph using this method, Unity replaces all converted content with an Operator Subgraph Node.
 
-### Editing Operator Subgraphs
+## Edit Operator Subgraphs
 
 To edit an Operator Subgraph by opening it in the Visual Effect Graph window:
 
@@ -132,7 +132,7 @@ You can set up Input and Output Properties for the Operator in the Blackboard:
 
 Use the [Blackboard](Blackboard.md) to define the Menu Category that the subgraph Operator appears in.
 
-### Using Operator Subgraphs
+## Use Operator Subgraphs
 
 To add an Operator Subgraph Node to your Graph:
 
@@ -142,6 +142,28 @@ Or:
 
 * Right-click in the workspace, select Create Node from the menu, go to Subgraph category, and pick your preferred subgraph operator.
 
-### Customizing Operator Subgraphs
+## Customize Operator Subgraphs
 
 You can customize Operator Subgraph properties in the same way as regular Block properties. You can also use Operators to create custom expressions in order to extend the behavior of the Block used as subgraph.
+
+## Specify a subgraph category
+
+To specify a category for a subgraph used in the node search, follow these steps:
+
+1. Double-click the subgraph.
+
+1. Double-click the subtitle of the Blackboard panel.
+
+1. Enter the desired category name.
+
+   * To create multiple category levels, use the `/` character.
+
+     For example, enter `MySubgraphs/Math` to create a hierarchical category.
+
+   * To organize your subgraphs visually within their category, define separators using the following syntax:
+`MySubgraphs/Math/#0Trigonometry` or `MySubgraphs/Math/#1Algebra`.
+
+     The `#` character indicates a separator, and the number determines the sorting order.
+
+1. Press **Return**.
+

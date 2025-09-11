@@ -726,8 +726,19 @@ namespace UnityEngine.Rendering
         // Information of the probe volume scenes that is being loaded (if one is pending)
         List<string> m_ActiveScenes = new List<string>();
 
-        ProbeVolumeBakingSet m_CurrentBakingSet = null;
-        ProbeVolumeBakingSet m_LazyBakingSet = null;
+        ProbeVolumeBakingSetWeakReference m_CurrentBakingSetReference = new();
+        ProbeVolumeBakingSet m_CurrentBakingSet
+        {
+            get => m_CurrentBakingSetReference.Get();
+            set => m_CurrentBakingSetReference.Set(value);
+        }
+
+        ProbeVolumeBakingSetWeakReference m_LazyBakingSetReference = new();
+        ProbeVolumeBakingSet m_LazyBakingSet
+        {
+            get => m_LazyBakingSetReference.Get();
+            set => m_LazyBakingSetReference.Set(value);
+        }
 
         bool m_NeedLoadAsset = false;
         bool m_ProbeReferenceVolumeInit = false;

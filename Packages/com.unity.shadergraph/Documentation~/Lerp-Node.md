@@ -4,7 +4,11 @@
 
 Returns the result of linearly interpolating between input **A** and input **B** by input **T**.
 
-For example, when the value of input **T** is 0 the return value is equal to the value of input **A**, when it is 1 the return value is equal to the value of input **B** and when it is 0.5 the return value is the midpoint of the two inputs **A** and **B**.
+The output is calculated as `A + T * (B - A)`. The value of input **T** acts as a weight factor applied to the difference between **B** and **A**:
+
+- When **T** is `0`, the output equals **A**.
+- When **T** is `1`, the output equals **B**.
+- When **T** is `0.5`, the output is the midpoint between **A** and **B**.
 
 ## Ports
 

@@ -4,7 +4,9 @@
 
 Unpacks a normal map defined by input **In**. This node is used to unpack a texture that is defined as a **Normal Map** in its Texture Import Settings when it is sampled as if it were a default texture.
 
-Note that in most cases this node is unnecessary as the normal map should be sampled as such by setting its **Type** parameter to **Normal** when it is sampled using a [Sample Texture 2D](Sample-Texture-2D-Node) or [Triplanar](Triplanar-Node) node.
+Data is stored in textures from 0 to 1. But vectors need to be from -1 to 1. Unpacking the normal means to expand its range from the original range to a range of -1 to 1, so you can use it as a vector.
+
+Note that in most cases this node is unnecessary as the normal map should be sampled as such by setting its **Type** parameter to **Normal** when it is sampled using a [Sample Texture 2D](Sample-Texture-2D-Node.md) or [Triplanar](Triplanar-Node.md) node.
 
 ## Ports
 

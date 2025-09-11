@@ -300,6 +300,7 @@ QualitySettings:
     Android: 2
     Nintendo 3DS: 5
     Nintendo Switch: 5
+    Switch2: 5
     PS4: 5
     PSP2: 2
     Standalone: 5

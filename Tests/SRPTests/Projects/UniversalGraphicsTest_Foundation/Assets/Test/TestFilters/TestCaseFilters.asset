@@ -758,6 +758,16 @@ MonoBehaviour:
     Reason: No support in webgpu
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 828958c3149de6e41b3aa7de89b12419, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 48
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: Alembic package is desktop only
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 443214b3f73466742a19acf21b430d0d, type: 3}
     - {fileID: 102900000, guid: 9d25fa9f3eb332f4dad8f36653f93a14, type: 3}
     ColorSpace: -1
@@ -839,6 +849,16 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: UUM-91474
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 646226f38a4201047a6572d1cb8a620c, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 48
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: UUM-57771
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: f07beec5ff4e7744383242b8ed2eefff, type: 3}
@@ -1198,6 +1218,23 @@ MonoBehaviour:
     - {fileID: 102900000, guid: ee7e786ca1044e9488f4e81fd2cddfb4, type: 3}
     ColorSpace: -1
     BuildPlatform: 47
+    GraphicsDevice: 4
+    Architecture: 0
+    XrSdk: 
+    StereoModes: 0
+    Reason: No debug display variants available.
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: df9ecbd3ee4e5004b9987029b4a54000, type: 3}
+    - {fileID: 102900000, guid: 072dea7c1ff3b4c438fcf0d15ef2792d, type: 3}
+    - {fileID: 102900000, guid: 5533322bdbc381043993a9d3f5a7bb05, type: 3}
+    - {fileID: 102900000, guid: de8c47297e49eeb43bf4c01dcf675a77, type: 3}
+    - {fileID: 102900000, guid: d7a4da34f29dc024ca7cdc62413c21e0, type: 3}
+    - {fileID: 102900000, guid: f959a64217d4e5f41896b8d1171b7b3b, type: 3}
+    - {fileID: 102900000, guid: d1d22e35a1ae8d04ab8df1bb370e0b22, type: 3}
+    - {fileID: 102900000, guid: ee7e786ca1044e9488f4e81fd2cddfb4, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 48
     GraphicsDevice: 4
     Architecture: 0
     XrSdk: 
