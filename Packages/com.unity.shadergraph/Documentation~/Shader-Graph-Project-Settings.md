@@ -22,11 +22,11 @@ It's impossible to limit the number of channels users can create in a Shader Gra
 
 ## Heatmap Color Mode Settings 
 
-You can create multiple customized heatmap values assets and swap them in and out based on the current needs of your project. Use **Heatmap Color Mode Settings** to specify which custom heatmap values asset to use for your project. 
+You can customize the [Heatmap color mode](Color-Modes.md#heatmap-colors) and use different sets of colors with different node assignments according to your project needs. For this, you first have to [create a custom Shader Graph Heatmap Values asset](Color-Modes.md#customize-the-heatmap-color-mode). 
 
 | Property          | Description                                |
 |:------------------|:-------------------------------------------|
-| **Custom Values** | Specify which set of customized heatmap values to use for your project. |
+| **Custom Values** | Specify the Shader Graph Heatmap Values asset to use for your project, or **None** if you want to use the default values. |
 
 ## Additional resources
 
