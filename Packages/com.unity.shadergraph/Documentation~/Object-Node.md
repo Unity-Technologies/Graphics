@@ -1,27 +1,28 @@
-# Object Node
+# Object node
 
-## Description
+The Object node outputs the position or scale of the overall GameObject that Unity is currently rendering.
 
-Provides access to various parameters of the currently rendering **Object**.
+## Render pipeline compatibility
 
-Note: The behaviour of the Position [Port](Port.md) can be defined per Render Pipeline. Different Render Pipelines may produce different results. If you're building a shader in one Render Pipeline that you want to use in both, try checking it in both pipelines before production.
+The Object node is compatible with the following render pipelines:
 
-#### Unity Render Pipelines Support
-- Universal Render Pipeline
-- High Definition Render Pipeline
+- Universal Render Pipeline (URP)
+- High Definition Render Pipeline (HDRP)
+
+**Note:** The output of the **Position** port might depend on the render pipeline you use. If you use your shader in both URP and HDRP, check the results in both pipelines before you use the shader in production.
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
+| **Name** | **Direction** | **Type** | **Binding** | **Description** |
 |:------------ |:-------------|:-----|:---|:---|
-| Position      | Output | Vector 3 | None | Object position in world space |
-| Scale       | Output | Vector 3 | None | Object scale in world space |
+| **Position** | Output | Vector 3 | None | The position of the overall GameObject in world space. |
+| **Scale** | Output | Vector 3 | None | The scale of the overall GameObject in world space |
 
-## Generated Code Example
+## Generated code example
 
 The following example code represents one possible outcome of this node.
 
-```
+```hlsl
 float3 _Object_Position = SHADERGRAPH_OBJECT_POSITION;
 float3 _Object_Scale = float3(length(float3(UNITY_MATRIX_M[0].x, UNITY_MATRIX_M[1].x, UNITY_MATRIX_M[2].x)),
                              length(float3(UNITY_MATRIX_M[0].y, UNITY_MATRIX_M[1].y, UNITY_MATRIX_M[2].y)),

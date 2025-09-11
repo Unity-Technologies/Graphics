@@ -459,6 +459,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             RenameFloat("_Mode", "_Surface");
+            RenameFloat("_Mode", "_AlphaClip", renderingMode => renderingMode == 1.0f);
             RenameTexture("_MainTex", "_BaseMap");
             RenameColor("_Color", "_BaseColor");
             RenameFloat("_GlossyReflections", "_EnvironmentReflections");
