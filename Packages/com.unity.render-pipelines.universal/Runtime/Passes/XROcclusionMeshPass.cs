@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
         {
             profilingSampler = new ProfilingSampler("Draw XR Occlusion Mesh");
             renderPassEvent = evt;
-            
+
 #if URP_COMPATIBILITY_MODE
 #pragma warning disable CS0618
             m_IsActiveTargetBackBuffer = false;
@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.Universal
                 if (data.isActiveTargetBackBuffer)
                     cmd.SetViewport(data.xr.GetViewport());
 
-                data.xr.RenderOcclusionMesh(cmd, renderIntoTexture: !data.isActiveTargetBackBuffer);
+                data.xr.RenderOcclusionMesh(cmd, renderIntoTexture: data.shouldYFlip);
             }
         }
 
@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_PassData.xr = renderingData.cameraData.xr;
             m_PassData.isActiveTargetBackBuffer = m_IsActiveTargetBackBuffer;
+            m_PassData.shouldYFlip = !m_PassData.isActiveTargetBackBuffer;
             ExecutePass(CommandBufferHelpers.GetRasterCommandBuffer(renderingData.commandBuffer), m_PassData);
         }
 #endif
@@ -59,6 +60,8 @@ namespace UnityEngine.Rendering.Universal
         {
             internal XRPass xr;
             internal bool isActiveTargetBackBuffer;
+            internal bool shouldYFlip;
+            internal TextureHandle cameraColorAttachment;
         }
 
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle cameraColorAttachment, in TextureHandle cameraDepthAttachment)
@@ -69,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddRasterRenderPass<PassData>(passName, out var passData, profilingSampler))
             {
                 passData.xr = cameraData.xr;
+                passData.cameraColorAttachment = cameraColorAttachment;
                 builder.SetRenderAttachment(cameraColorAttachment, 0);
                 builder.SetRenderAttachmentDepth(cameraDepthAttachment, AccessFlags.Write);
 
@@ -84,6 +88,7 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.SetRenderFunc((PassData data, RasterGraphContext context) =>
                 {
+                    passData.shouldYFlip = RenderingUtils.IsHandleYFlipped(context, in data.cameraColorAttachment);
                     ExecutePass(context.cmd, data);
                 });
 

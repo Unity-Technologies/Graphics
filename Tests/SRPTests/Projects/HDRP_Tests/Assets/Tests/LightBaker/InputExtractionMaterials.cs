@@ -173,9 +173,9 @@ namespace UnityEditor.LightBaking.Tests
             EditorSceneManager.OpenScene($"Assets/Tests/LightBaker/Scenes/{sceneName}");
 
             // Extract the scene
-            using LightBaker.BakeInput bakeInput = new();
-            using LightBaker.LightmapRequests lightmapRequest = new();
-            using LightBaker.LightProbeRequests probeRequest = new();
+            using BakeInput bakeInput = new();
+            using LightmapRequests lightmapRequest = new();
+            using LightProbeRequests probeRequest = new();
             using SourceMap map = new();
             var result = ExtractFromScene(
                 FileUtil.LightBakerTempOutputPath,
@@ -187,7 +187,7 @@ namespace UnityEditor.LightBaking.Tests
             Assert.IsTrue(result, $"Scene {metaPassTest.SceneName} failed to extract.");
 
             // Lookup the texture data for the requested object
-            LightBaker.TextureData actualTextureData = new LightBaker.TextureData();
+            TextureData actualTextureData = new TextureData();
             {
                 uint? instanceIndex = SourceMapUtil.LookupInstanceIndex(
                     map,

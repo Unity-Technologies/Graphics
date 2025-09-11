@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.Universal
         {
             var instance = ScriptableObject.CreateInstance<Create2DRendererDataAsset>();
             instance.onCreated += onCreatedCallback;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, instance, "New 2D Renderer Data.asset", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, instance, "New 2D Renderer Data.asset", CoreUtils.GetIconForType<ScriptableRendererData>(), null);
         }
 
         class Create2DRendererDataAsset : EndNameEditAction
@@ -101,7 +101,8 @@ namespace UnityEditor.Rendering.Universal
 
         static Light2D CreateLight(MenuCommand menuCommand, Light2D.LightType type, Vector3[] shapePath = null)
         {
-            GameObject go = ObjectFactory.CreateGameObject("Light 2D", typeof(Light2D));
+            var lightName = type != Light2D.LightType.Point ? type.ToString() : "Spot";
+            GameObject go = ObjectFactory.CreateGameObject(lightName + " Light 2D", typeof(Light2D));
             Light2D light2D = go.GetComponent<Light2D>();
             light2D.batchSlotIndex = LightBatch.batchSlotIndex;
             light2D.lightType = type;
@@ -198,8 +199,8 @@ namespace UnityEditor.Rendering.Universal
         [MenuItem("Assets/Create/Rendering/URP Asset (with 2D Renderer)", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateUniversalPipeline()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, UniversalRenderPipelineAsset.CreateInstance<CreateUniversalPipelineAsset>(),
-                "New Universal Render Pipeline Asset.asset", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<CreateUniversalPipelineAsset>(),
+                "New Universal Render Pipeline Asset.asset", CoreUtils.GetIconForType<UniversalRenderPipelineAsset>(), null);
         }
 
         [MenuItem("Assets/Create/Rendering/URP 2D Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]

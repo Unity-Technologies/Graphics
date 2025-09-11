@@ -217,6 +217,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 clearColor = true;
                 clearDepth = true;
+                debugHandler.TryGetScreenClearColor(ref cameraBackgroundColor);
             }
 
             output.cameraColorParams.clearOnFirstUse = clearColor;
@@ -668,7 +669,7 @@ namespace UnityEngine.Rendering.Universal
 
             DebugHandler?.Setup(renderGraph, cameraData.isPreviewCamera);
 
-            SetupRenderGraphCameraProperties(renderGraph, commonResourceData.isActiveTargetBackBuffer);
+            SetupRenderGraphCameraProperties(renderGraph, commonResourceData.isActiveTargetBackBuffer, commonResourceData.activeColorTexture);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph);
@@ -739,8 +740,12 @@ namespace UnityEngine.Rendering.Universal
 
             var cameraSortingLayerBoundsIndex = m_Renderer2DData.GetCameraSortingLayerBoundsIndex();
 
+            bool useLights = false;
+            for (int i = 0; i < m_BatchCount; ++i)
+                useLights |= m_LayerBatches[i].lightStats.useLights;
+
             // Set Global Properties and Textures
-            GlobalPropertiesPass.Setup(renderGraph, frameData, m_Renderer2DData, cameraData);
+            GlobalPropertiesPass.Setup(renderGraph, frameData, m_Renderer2DData, cameraData, useLights);
 
             // Main render passes
 
@@ -944,11 +949,14 @@ namespace UnityEngine.Rendering.Universal
             // If HDR debug views are enabled, DebugHandler will perform the blit from debugScreenColor (== finalColorHandle) to backBufferColor.
             DebugHandler?.Render(renderGraph, cameraData, finalColorHandle, commonResourceData.overlayUITexture, commonResourceData.backBufferColor);
 
-            if (cameraData.isSceneViewCamera)
-                DrawRenderGraphWireOverlay(renderGraph, frameData, commonResourceData.backBufferColor);
+            if (cameraData.resolveFinalTarget)
+            {
+                if (cameraData.isSceneViewCamera)
+                    DrawRenderGraphWireOverlay(renderGraph, frameData, commonResourceData.backBufferColor);
 
-            if (drawGizmos)
-                DrawRenderGraphGizmos(renderGraph, frameData, commonResourceData.activeColorTexture, commonResourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
+                if (drawGizmos)
+                    DrawRenderGraphGizmos(renderGraph, frameData, commonResourceData.activeColorTexture, commonResourceData.activeDepthTexture, GizmoSubset.PostImageEffects);
+            }
         }
 
         public Renderer2DData GetRenderer2DData()

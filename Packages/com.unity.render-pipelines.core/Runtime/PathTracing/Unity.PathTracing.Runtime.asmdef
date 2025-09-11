@@ -1,0 +1,31 @@
+{
+    "name": "Unity.PathTracing.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
+        "GUID:e3bf50bf561c9a7418912816ec4cb8e1",
+        "GUID:214c0945bb158c940aada223f3223ee8",
+        "GUID:d8b63aba1907145bea998dd612889d6b"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "WindowsStandalone64"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.rendering.denoising",
+            "expression": "2.0.0",
+            "define": "ENABLE_UNITY_DENOISING_PLUGIN"
+        }
+    ],
+    "noEngineReferences": false
+}

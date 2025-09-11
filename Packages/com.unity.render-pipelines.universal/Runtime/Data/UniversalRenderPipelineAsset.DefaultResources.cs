@@ -11,7 +11,6 @@ namespace UnityEngine.Rendering.Universal
         Sprite,
         SpriteMask,
         Decal,
-        RenderAs2D
     }
 
     public partial class UniversalRenderPipelineAsset
@@ -85,12 +84,6 @@ namespace UnityEngine.Rendering.Universal
         public override Material default2DMaskMaterial => GetMaterial(DefaultMaterialType.SpriteMask);
 
         /// <summary>
-        /// Returns the default renderAs2D material for the 2D renderer.
-        /// </summary>
-        /// <value>Returns the material containing the default RenderAs2D shader passes for meshes in the 2D renderer.</value>
-        public override Material defaultRenderAs2DMaterial => GetMaterial(DefaultMaterialType.RenderAs2D);
-
-        /// <summary>
         /// Returns the Material that Unity uses to render decals.
         /// </summary>
         /// <returns>Returns the Material containing the Unity decal shader.</returns>
@@ -151,7 +144,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeTerrainShaders>(
                         out var shadersResources))
                 {
                     return shadersResources.terrainDetailLitShader;
@@ -168,7 +161,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeTerrainShaders>(
                         out var shadersResources))
                 {
                     return shadersResources.terrainDetailGrassShader;
@@ -185,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(
+                if (GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeTerrainShaders>(
                         out var shadersResources))
                 {
                     return shadersResources.terrainDetailGrassBillboardShader;

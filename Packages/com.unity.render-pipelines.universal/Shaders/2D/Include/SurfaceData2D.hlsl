@@ -8,6 +8,9 @@ struct SurfaceData2D
     half alpha;
     half4 mask;
     half3 normalTS;
+#if defined(DEBUG_DISPLAY)
+    half3 normalWS;
+#endif
 };
 
 void InitializeSurfaceData(half3 albedo, half alpha, half4 mask, half3 normalTS, out SurfaceData2D surfaceData)

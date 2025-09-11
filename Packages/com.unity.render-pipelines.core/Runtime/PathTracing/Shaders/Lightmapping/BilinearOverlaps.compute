@@ -1,0 +1,91 @@
+#pragma exclude_renderers webgpu // No atomics
+
+#pragma kernel MarkBilinearOverlaps
+
+#define UINT_MAX 4294967295u
+#define NO_CHART UINT_MAX
+
+uint _TileSize;
+uint _TileX;
+uint _TileY;
+
+uint _InstanceIndex;
+uint _EdgeCount;
+StructuredBuffer<float4> _TriangleEdges; // Per thread. Edge of each triangle (startX, startY, endX, endY)
+StructuredBuffer<uint> _ChartIndices; // Per thread chart index.
+
+uint _TextureSize;
+RWStructuredBuffer<uint> _PerPixelChart; // Per pixel chart index.
+RWStructuredBuffer<uint> _OverlapPixels; // Per pixel, no overlap = 0, overlap = 1
+RWStructuredBuffer<uint> _OverlapInstances; // Per instance, no overlap = 0, overlap = 1
+
+[numthreads(128,1,1)]
+void MarkBilinearOverlaps(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _EdgeCount)
+        return;
+
+    // Tile the dispatch so we don't do too much work on each thread
+    uint2 tilePos = uint2(_TileX, _TileY) * _TileSize;
+    uint2 tileEnd = tilePos + _TileSize;
+
+    // Fetch chart and triangle edge for this thread.
+    uint chartIdx = _ChartIndices[id.x];
+    float4 edge = _TriangleEdges[id.x];
+    float2 startPos = edge.xy;
+    float2 endPos = edge.zw;
+
+    uint2 aabbStartPos = max(uint2(floor(min(startPos, endPos) - 0.5f)), 0);
+    uint2 aabbEndPos = min(uint2(ceil(max(startPos, endPos) + 0.5f)), _TextureSize-1);
+    aabbStartPos = clamp(aabbStartPos, tilePos, tileEnd);
+    aabbEndPos = clamp(aabbEndPos, tilePos, tileEnd);
+    uint2 extent = aabbEndPos - aabbStartPos;
+
+    // The edge is described by a line A*x + B*y + C = 0.
+    float lineA = endPos.y - startPos.y;
+    float lineB = startPos.x - endPos.x;
+    float lineC = startPos.y * endPos.x - startPos.x * endPos.y;
+
+    // For every pixel in the AABB...
+    [allow_uav_condition]
+    for (uint y = 0; y < extent.y; y++)
+    {
+        [allow_uav_condition]
+        for (uint x = 0; x < extent.x; x++)
+        {
+            uint2 pixelCoord = uint2(x, y) + aabbStartPos;
+            float2 bottomLeftCornerPos = pixelCoord - 0.5f;
+
+            // For each corner of the bilinear neighborhood...
+            bool4 cornerMask = false;
+            [unroll]
+            for (uint corner = 0; corner < 4; corner++)
+            {
+                uint offsetX = 2 * (corner & 1);
+                uint offsetY = corner & 2;
+                float2 cornerPos = bottomLeftCornerPos + float2(offsetX, offsetY);
+                // Check if the corner is below or above the edge.
+                cornerMask[corner] = lineA * cornerPos.x + lineB * cornerPos.y + lineC > 0;
+            }
+
+            // If some, but not all, corners of the bilinear neighborhood are above the edge,
+            // the bilinear neighborhood is occupied - mark it.
+            [branch]
+            if (any(cornerMask) && !all(cornerMask))
+            {
+                uint pixelIndex = pixelCoord.y * _TextureSize + pixelCoord.x;
+
+                // Try to write assuming there was no chart already present.
+                uint prevChart;
+                InterlockedCompareExchange(_PerPixelChart[pixelIndex], NO_CHART, chartIdx, prevChart);
+
+                // If there was already a chart present, and it wasn't this threads chart, we have an overlap, so mark it.
+                if (prevChart != NO_CHART && prevChart != chartIdx)
+                {
+                    _OverlapPixels[pixelIndex] = 1;
+                    _OverlapInstances[_InstanceIndex] = 1;
+                }
+            }
+        }
+    }
+}

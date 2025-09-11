@@ -107,7 +107,6 @@ class NoLeaksOnEnterLeavePlaymode
             // Debug materials
             "Hidden/Universal/HDRDebugView",
             "Hidden/Universal Render Pipeline/Debug/DebugReplacement",
-            "2D/RenderAs2D-Flattening",                 // Add an exception for RenderAs2D Default Material.
 
             // Fonts are intentionally preserved in the editor for performance reasons.
             "Apple Color Emoji - Regular Material",

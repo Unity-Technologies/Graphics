@@ -62,7 +62,8 @@ namespace UnityEngine.Rendering
         private void OnValidate()
         {
             OnDisable();
-            OnEnable();
+            if (enabled)
+                OnEnable();
         }
     }
 }

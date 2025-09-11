@@ -14,16 +14,13 @@ using UnityEngine.Rendering.Universal;
 // Make the Volume Override active in the Universal Render Pipeline.
 [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
 
+// Set the name of the volume component in the list in the Volume Profile.
+[DisplayInfo(name = "#DISPLAY_NAME#")]
+
 // Create the Volume Override by inheriting from VolumeComponent
 public sealed class #VOLUME_TYPE# : VolumeComponent, IPostProcessComponent
 {
-    // Set the name of the volume component in the list in the Volume Profile.
-    public #VOLUME_TYPE#()
-    {
-        displayName = "#DISPLAY_NAME#";
-    }
-
-    // Create a property to control the intesity of the effect, with a tooltip description.
+    // Create a property to control the intensity of the effect, with a tooltip description.
     // You can set the default value in the project-wide Graphics settings window. For more information, refer to https://docs.unity3d.com/Manual/urp/urp-global-settings.html
     // You can override the value in a local or global volume. For more information, refer to https://docs.unity3d.com/Manual/urp/volumes-landing-page.html
     // To access the value in a script, refer to the VolumeManager API: https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.VolumeManager.html 

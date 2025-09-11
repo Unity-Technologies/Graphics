@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.Tools.Tests
                             NotAvailableForUpgradeReason = MaterialUpgrader.GenerateReason(info4)
                         }
                     },
-                    ExpectedLog = $"Testing\r\nSkipping material: Standard Variant - {MaterialUpgrader.GenerateReason(info4)}\r\n"
+                    ExpectedLog = "Testing" + Environment.NewLine + $"Skipping material: Standard Variant - {MaterialUpgrader.GenerateReason(info4)}" + Environment.NewLine
                 }).SetName("Material is a variant and skipped");
             }
         }

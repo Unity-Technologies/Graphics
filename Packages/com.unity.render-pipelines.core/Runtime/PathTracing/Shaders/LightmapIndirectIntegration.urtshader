@@ -1,0 +1,132 @@
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC AccumulateInternal
+
+#include "PathTracing.hlsl"
+#include "LightmapIntegrationHelpers.hlsl"
+
+int g_AccumulateDirectional;
+int g_SampleOffset;
+float g_PushOff;
+RWStructuredBuffer<float4> g_ExpandedOutput;
+RWStructuredBuffer<float4> g_ExpandedDirectional;
+
+// additional instance flags to deal with lightmap lods
+#define CURRENT_LOD_FOR_LIGHTMAP_INSTANCE 8u
+#define LOD_ZERO_FOR_LIGHTMAP_INSTANCE 16u
+#define CURRENT_LOD_FOR_LIGHTMAP_INSTANCE_SHADOW 32u
+#define LOD_ZERO_FOR_LIGHTMAP_INSTANCE_SHADOW 64u
+
+float3 EstimateLightmapRadiance(UnifiedRT::DispatchInfo dispatchInfo, UnifiedRT::Ray ray, inout PathTracingSampler rngState)
+{
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    PathIterator pathIter;
+    InitPathIterator(pathIter, ray);
+
+    // LOD handling: Rays starting from the lightmapped object use an accel struct built with that same LOD level
+    uint rayLightmapLodMask = CURRENT_LOD_FOR_LIGHTMAP_INSTANCE;
+    uint shadowRayLightmapLodMask = CURRENT_LOD_FOR_LIGHTMAP_INSTANCE_SHADOW;
+
+    int transparencyBounce = 0;
+    // We start at bounce index 1, as bounce index is defined relative to the camera for this path tracer.
+    // Since this function is used for baking, we already implicitly have the first "hit", and are about
+    // to process the second path segment.
+    for (int bounceIndex = 1; bounceIndex <= g_BounceCount && transparencyBounce < MAX_TRANSMISSION_BOUNCES; bounceIndex++)
+    {
+        // The first path segment is special for the indirect pass - we should not add radiance from the
+        // environment or emission, as these are already explicitly sampled in the direct pass.
+        bool isFirstPathSegment = bounceIndex == 1;
+
+        uint pathRayMask = RayMask(bounceIndex == 0) | rayLightmapLodMask;
+        uint traceResult = TraceBounceRay(pathIter, bounceIndex, pathRayMask, dispatchInfo, accelStruct, rngState);
+
+        if (traceResult == TRACE_HIT)
+        {
+            uint hitInstanceMask = UnifiedRT::GetInstance(pathIter.hitResult.instanceID).instanceMask;
+
+            // LOD handling: If the ray hits a surface that is not the current lightmap instance,
+            // then, for the rest of the path, we can replace it in the scene accel struct by one that using lod 0.
+            if (!(hitInstanceMask & CURRENT_LOD_FOR_LIGHTMAP_INSTANCE))
+            {
+                rayLightmapLodMask = LOD_ZERO_FOR_LIGHTMAP_INSTANCE;
+                shadowRayLightmapLodMask = LOD_ZERO_FOR_LIGHTMAP_INSTANCE_SHADOW;
+            }
+
+            uint shadowRayMask = ShadowRayMask() | shadowRayLightmapLodMask;
+            if (!isFirstPathSegment)
+                AddEmissionRadiance(pathIter, accelStruct, g_AccelStructInstanceList, false);
+            AddRadianceFromDirectIllumination(pathIter, shadowRayMask, dispatchInfo, accelStruct, g_AccelStructInstanceList, rngState, false);
+        }
+
+        if (traceResult == TRACE_MISS)
+        {
+            if (!isFirstPathSegment)
+                AddEnvironmentRadiance(pathIter, false);
+            break;
+        }
+
+        if (traceResult == TRACE_TRANSMISSION)
+        {
+            bounceIndex--;
+            transparencyBounce++;
+            pathIter.ray.origin = pathIter.hitGeo.NextTransmissionRayOrigin();
+            pathIter.throughput *= pathIter.material.transmission;
+            rngState.NextBounce();
+            continue;
+        }
+
+        if (!Scatter(pathIter, rngState))
+            break;
+
+        if (bounceIndex >= RUSSIAN_ROULETTE_MIN_BOUNCES)
+        {
+            float p = max(pathIter.throughput.x, max(pathIter.throughput.y, pathIter.throughput.z));
+            if (rngState.GetFloatSample(RAND_DIM_RUSSIAN_ROULETTE) > p)
+                break;
+            else
+                pathIter.throughput /= p;
+        }
+
+        rngState.NextBounce();
+    }
+
+    return pathIter.radianceSample;
+}
+
+
+void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    float3 worldPosition = 0.f;
+    float3 worldNormal = 0.f;
+    float3 worldFaceNormal = 0.f;
+    uint localSampleOffset = 0;
+    uint2 instanceTexelPos = 0;
+    const bool gotSample = GetExpandedSample(dispatchInfo.dispatchThreadID.x, localSampleOffset, instanceTexelPos, worldPosition, worldNormal, worldFaceNormal);
+    if (!gotSample)
+        return;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    // now sample irradiance with the gBuffer data
+    const uint sampleOffset = g_SampleOffset + localSampleOffset;
+    PathTracingSampler rngState;
+    rngState.Init(instanceTexelPos, sampleOffset);
+    UnifiedRT::Ray ray;
+    ray.origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
+    ray.direction = CosineSample(float2(rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_X), rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_Y)), worldNormal);
+    ray.tMin = 0;
+    ray.tMax = Max_float();
+    rngState.NextBounce();
+
+    float3 sampleRadiance = EstimateLightmapRadiance(dispatchInfo, ray, rngState);
+
+    const float sampleLuminance = Luminance(sampleRadiance.xyz);
+    const float reciprocalProbabilityDensityMulipliedByCosine = PI;
+
+    // store new accumulated radiance
+    g_ExpandedOutput[dispatchInfo.dispatchThreadID.x] += float4(sampleRadiance * reciprocalProbabilityDensityMulipliedByCosine, 1.0f);
+    // the cosine term from the PDF cancels with the cosine term for the integrand.
+    if (g_AccumulateDirectional > 0)
+        g_ExpandedDirectional[dispatchInfo.dispatchThreadID.x] += float4(normalize(ray.direction), 1.f) * sampleLuminance;
+}

@@ -428,7 +428,7 @@ namespace UnityEngine.Rendering.Universal
         internal const string CompatibilityScriptingAPIConsoleWarning = "Your project uses Compatibility Mode, which disables the render graph system. Compatibility Mode is deprecated. Migrate your ScriptableRenderPasses to the Render Graph API instead. After you migrate, go to Edit > Project Settings > Player and remove the URP_COMPATIBILITY_MODE define from the Scripting Define Symbols. If you don't remove the define, build time and build size are slightly increased.";
     }
 #endif
-    
+
 #if UNITY_EDITOR && URP_COMPATIBILITY_MODE
     internal class WarnUsingNonRenderGraph
     {
@@ -450,6 +450,7 @@ namespace UnityEngine.Rendering.Universal
     /// <see cref="UniversalRenderPipeline"/>
     [ExcludeFromPreset]
     [URPHelpURL("universalrp-asset")]
+    [Icon("UnityEngine/Rendering/RenderPipelineAsset Icon")]
 #if UNITY_EDITOR
     [ShaderKeywordFilter.ApplyRulesIfTagsEqual("RenderPipeline", "UniversalPipeline")]
 #endif
@@ -459,7 +460,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == k_AssetVersion;
 
-        private const int k_LastVersion = 12;
+        private const int k_LastVersion = 13;
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] int k_AssetVersion = k_LastVersion;
         [SerializeField] int k_AssetPreviousVersion = k_LastVersion;
@@ -579,6 +580,9 @@ namespace UnityEngine.Rendering.Universal
         // Advanced settings
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
+#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
+        [SerializeField] RenderTextureUVOriginStrategy m_RenderTextureUVOriginStrategy;
+#endif
 #if UNITY_EDITOR
         // multi_compile _ LIGHTMAP_SHADOW_MIXING
         [ShaderKeywordFilter.RemoveIf(false, keywordNames: ShaderKeywordStrings.LightmapShadowMixing)]
@@ -741,7 +745,7 @@ namespace UnityEngine.Rendering.Universal
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
-                "New Universal Render Pipeline Asset.asset", null, null);
+                "New Universal Render Pipeline Asset.asset", CoreUtils.GetIconForType<UniversalRenderPipelineAsset>(), null);
         }
 
         internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer")
@@ -1642,6 +1646,16 @@ namespace UnityEngine.Rendering.Universal
             OnValidate();
         }
 
+#if ENABLE_RENDERTEXTURE_UV_ORIGIN_STRATEGY
+        /// <summary>
+        /// Returns the intermediate texture uv origin strategy for the current render pipeline.
+        /// </summary>
+        public RenderTextureUVOriginStrategy renderTextureUVOriginStrategy
+        {
+            get => m_RenderTextureUVOriginStrategy;
+            set => m_RenderTextureUVOriginStrategy = value;
+        }
+#endif
         /// <summary>
         /// Returns the selected ColorGradingMode in the URP Asset.
         /// <see cref="ColorGradingMode"/>
@@ -1915,6 +1929,12 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 12;
             }
+            
+            if (k_AssetVersion < 13)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 13;
+            }
 
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
@@ -1978,6 +1998,11 @@ namespace UnityEngine.Rendering.Universal
                     globalSettings.apvScenesData = asset.apvScenesData;
 #pragma warning restore CS0618 // Type or member is obsolete
                 asset.k_AssetPreviousVersion = 12;
+            }
+            
+            if (asset.k_AssetPreviousVersion < 13)
+            {
+                asset.k_AssetPreviousVersion = 13;
             }
 
             ResourceReloader.ReloadAllNullIn(asset, packagePath);

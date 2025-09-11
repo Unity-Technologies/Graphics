@@ -1,0 +1,66 @@
+#define GROUP_SIZE_X 8
+#define GROUP_SIZE_Y 8
+
+#pragma multi_compile _ GRAYSCALE_BLIT
+
+TextureCube<float4>	g_Source;
+RWTexture2D<float4> g_Destination;
+
+SamplerState sampler_g_Source;
+
+int g_TextureSize;
+int g_Face;
+
+#define PositiveX 0
+#define NegativeX 1
+#define PositiveY 2
+#define NegativeY 3
+#define PositiveZ 4
+#define NegativeZ 5
+
+// Projects (blits) a face of a cubemap on a 2D texture 
+#pragma kernel BlitCubemap
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void BlitCubemap(in uint2 gidx: SV_DispatchThreadID)
+{
+    if (gidx.x >= uint(g_TextureSize) || gidx.y >= uint(g_TextureSize))
+        return;
+
+    float u = (gidx.x + 0.5f) / g_TextureSize;
+    float v = (gidx.y + 0.5f) / g_TextureSize;
+
+    u = 2 * u - 1.0f;
+    v = 1.0f - 2 * v;
+
+    float3 texCoord = 0;
+    switch (g_Face)
+    {
+        case PositiveX:
+            texCoord = float3(1, v, -u);
+            break;
+        case NegativeX:
+            texCoord = float3(-1, v, u);
+            break;
+        case PositiveY:
+            texCoord = float3(u, 1, -v);
+            break;
+        case NegativeY:
+            texCoord = float3(u, -1, v);
+            break;
+        case PositiveZ:
+            texCoord = float3(u, v, 1);
+            break;
+        case NegativeZ:
+            texCoord = float3(-u, v, -1);
+            break;
+    }
+
+    float4 c = g_Source.SampleLevel(sampler_g_Source, texCoord, 0);
+    
+#if defined(GRAYSCALE_BLIT)
+    g_Destination[gidx] = float4(c.w, c.w, c.w, 1);
+#else
+    g_Destination[gidx] = float4(c.r, c.g, c.b, 1);
+#endif
+}
+

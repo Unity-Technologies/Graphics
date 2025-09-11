@@ -59,19 +59,11 @@ void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
         {
             float weight = 1.0f - length(jitter) * INV_SQRT2;
             weightSum += weight;
-            patchIrradianceSum.l0 += irradiance.l0 * weight;
-            patchIrradianceSum.l1s[0] += irradiance.l1s[0] * weight;
-            patchIrradianceSum.l1s[1] += irradiance.l1s[1] * weight;
-            patchIrradianceSum.l1s[2] += irradiance.l1s[2] * weight;
+            SphericalHarmonics::AddMut(patchIrradianceSum, SphericalHarmonics::MulPure(irradiance, weight));
         }
 
         rng.NextSample();
     }
 
-    SphericalHarmonics::RGBL1 output;
-    output.l0 = patchIrradianceSum.l0 / weightSum;
-    output.l1s[0] = patchIrradianceSum.l1s[0] / weightSum;
-    output.l1s[1] = patchIrradianceSum.l1s[1] / weightSum;
-    output.l1s[2] = patchIrradianceSum.l1s[2] / weightSum;
-    _OutputPatchIrradiances[patchIdx] = output;
+    _OutputPatchIrradiances[patchIdx] = SphericalHarmonics::MulPure(patchIrradianceSum, rcp(weightSum));
 }

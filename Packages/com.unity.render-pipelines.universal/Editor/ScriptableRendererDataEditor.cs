@@ -41,6 +41,13 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_FalseBool;
         [SerializeField] private bool falseBool = false;
         List<Editor> m_Editors = new List<Editor>();
+        
+        // Computed on first access on this editor frame, and cleaned at the end of OnInspectorGUI
+        /// <summary>
+        /// Compute if this ScriptableRenderer is contained by an URPAsset that has IntermediateTextureMode == Never.
+        /// </summary>
+        [Obsolete("This method is not used. #from(6000.3)", false)]
+        protected bool isIntermediateTextureForbidden => false;
 
         private void OnEnable()
         {
@@ -112,6 +119,15 @@ namespace UnityEditor.Rendering.Universal
             }
             title = null;
             return false;
+        }
+
+        /// <summary>
+        /// Draws a warning when IntermediateTextureMode is set to Never.
+        /// Should be called at the top of the Inspector.
+        /// </summary>
+        [Obsolete("This method is not used. #from(6000.3)", false)]
+        protected void DisplayIntermediateTextureWarnings()
+        {
         }
 
         private bool GetTooltip(Type type, out string tooltip)

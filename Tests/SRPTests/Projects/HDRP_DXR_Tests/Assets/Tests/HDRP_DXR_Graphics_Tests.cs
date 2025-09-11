@@ -79,12 +79,7 @@ public class HDRP_Graphics_Tests
     )]
     [IgnoreGraphicsTest(
         "10003_TerrainShadow",
-        "Disabled for Instability https://jira.unity3d.com/browse/UUM-104980",
-        runtimePlatforms: new RuntimePlatform[] 
-        { 
-            RuntimePlatform.GameCoreXboxSeries, 
-            RuntimePlatform.WindowsPlayer 
-        }
+        "Disabled for Instability https://jira.unity3d.com/browse/UUM-104980"
     )]
     public IEnumerator Run(SceneGraphicsTestCase testCase)
     {

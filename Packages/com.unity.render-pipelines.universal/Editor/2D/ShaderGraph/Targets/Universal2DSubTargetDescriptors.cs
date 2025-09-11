@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         internal static class RenderStateCollections
         {
-            public static readonly RenderStateCollection Sort3Das2DCompatible = new RenderStateCollection()
+            public static readonly RenderStateCollection Sort3DAs2DCompatible = new RenderStateCollection()
             {
                 { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true)},
                 { RenderState.ZWrite(ZWrite.On) },

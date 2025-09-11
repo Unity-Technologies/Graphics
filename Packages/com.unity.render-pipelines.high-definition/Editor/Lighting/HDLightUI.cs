@@ -433,7 +433,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // If light unit is currently displayed in lumen and 'reflector' is on, recalculate candela so lumen value remains constant
                         bool isReflectorRelevant = serialized.settings.enableSpotReflector.boolValue &&
                                                    serialized.settings.lightUnit.GetEnumValue<LightUnit>() == LightUnit.Lumen;
-                        bool needsReflectedIntensityRecalc = false;
+                        bool updateSpotAngles = false;
 
                         int indent = EditorGUI.indentLevel;
 
@@ -464,8 +464,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         min = EditorGUI.DelayedFloatField(minRect, min);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            serialized.customSpotLightShadowCone.floatValue = Math.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
-                            min = Mathf.Clamp(min, HDAdditionalLightData.k_MinSpotAngle, max);
+                            updateSpotAngles = true;
                             serialized.settings.innerSpotAngle.floatValue = min;
                         }
 
@@ -473,29 +472,39 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.MinMaxSlider(sliderRect, ref min, ref max, HDAdditionalLightData.k_MinSpotAngle,HDAdditionalLightData.k_MaxSpotAngle );
                         if (EditorGUI.EndChangeCheck())
                         {
-                            min = Mathf.Clamp(min, HDAdditionalLightData.k_MinSpotAngle, max);
-                            serialized.settings.innerSpotAngle.floatValue = min;
                             serialized.settings.spotAngle.floatValue = max;
-                            serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
-                            needsReflectedIntensityRecalc = (max != oldSpotAngle);
+                            serialized.settings.innerSpotAngle.floatValue = min;
+                            updateSpotAngles = true;
                         }
 
                         EditorGUI.BeginChangeCheck();
                         EditorGUI.DelayedFloatField(maxRect, serialized.settings.spotAngle, GUIContent.none);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            needsReflectedIntensityRecalc = true;
+                            updateSpotAngles = true;
                         }
 
-                        if (isReflectorRelevant && needsReflectedIntensityRecalc)
+                        if (updateSpotAngles)
                         {
-                            // If light unit is currently displayed in lumen and 'reflector' is on and the spot angle has changed,
-                            // recalculate candela so lumen value remains constant
-                            float oldSolidAngle = LightUnitUtils.GetSolidAngleFromSpotLight(oldSpotAngle);
-                            float oldLumen = LightUnitUtils.CandelaToLumen(serialized.settings.intensity.floatValue, oldSolidAngle);
-                            float newSolidAngle = LightUnitUtils.GetSolidAngleFromSpotLight(serialized.settings.spotAngle.floatValue);
-                            float newCandela = LightUnitUtils.LumenToCandela(oldLumen, newSolidAngle);
-                            serialized.settings.intensity.floatValue = newCandela;
+                            // Clamp outer spot angle
+                            serialized.settings.spotAngle.floatValue = Mathf.Max(HDAdditionalLightData.k_MinSpotAngle, serialized.settings.spotAngle.floatValue);
+                            // Clamp inner spot angle
+                            serialized.settings.innerSpotAngle.floatValue = Mathf.Clamp(serialized.settings.innerSpotAngle.floatValue, HDAdditionalLightData.k_MinSpotAngle, serialized.settings.spotAngle.floatValue);
+                            // Update other dependent values
+                            serialized.customSpotLightShadowCone.floatValue = Mathf.Min(serialized.customSpotLightShadowCone.floatValue, serialized.settings.spotAngle.floatValue);
+                            serialized.settings.bakedShadowRadiusProp.floatValue = serialized.shapeRadius.floatValue;
+
+                            if (isReflectorRelevant)
+                            {
+                                // If light unit is currently displayed in lumen and 'reflector' is
+                                // on and the spot angle has changed, recalculate candela so lumen
+                                // value remains constant
+                                float oldSolidAngle = LightUnitUtils.GetSolidAngleFromSpotLight(oldSpotAngle);
+                                float oldLumen = LightUnitUtils.CandelaToLumen(serialized.settings.intensity.floatValue, oldSolidAngle);
+                                float newSolidAngle = LightUnitUtils.GetSolidAngleFromSpotLight(serialized.settings.spotAngle.floatValue);
+                                float newCandela = LightUnitUtils.LumenToCandela(oldLumen, newSolidAngle);
+                                serialized.settings.intensity.floatValue = newCandela;
+                            }
                         }
 
                         EditorGUI.indentLevel = indent - 1;

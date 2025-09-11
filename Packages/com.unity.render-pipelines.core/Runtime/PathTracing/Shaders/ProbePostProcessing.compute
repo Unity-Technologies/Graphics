@@ -1,0 +1,166 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+#define UNIFIED_RT_BACKEND_COMPUTE
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/CommonStructs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
+
+#include "PathTracingCommon.hlsl"
+#include "SphericalHarmonicsUtils.hlsl"
+
+#pragma kernel ConvolveRadianceToIrradiance
+#pragma kernel ConvertToUnityFormat
+#pragma kernel AddSphericalHarmonicsL2
+#pragma kernel ScaleSphericalHarmonicsL2
+#pragma kernel WindowSphericalHarmonicsL2
+
+StructuredBuffer<float> g_PrimaryInputShl2;
+StructuredBuffer<float> g_SecondaryInputShl2;
+RWStructuredBuffer<float> g_OutputShl2;
+uint g_PrimaryInputOffset;
+uint g_SecondaryInputOffset;
+uint g_OutputOffset;
+uint g_ProbeCount;
+float g_Scale;
+
+[numthreads(64, 1, 1)]
+void ConvolveRadianceToIrradiance(in uint3 gidx: SV_DispatchThreadID)
+{
+    if (gidx.x >= g_ProbeCount)
+        return;
+
+    uint inProbeIdx = gidx.x + g_PrimaryInputOffset;
+    uint outProbeIdx = gidx.x + g_OutputOffset;
+
+    // aHat is from https://cseweb.ucsd.edu/~ravir/papers/envmap/envmap.pdf and is used
+    // to convert spherical radiance to irradiance.
+    float aHat0 = 3.1415926535897932384626433832795028841971693993751058209749445923f; // π
+    float aHat1 = 2.0943951023931954923084289221863352561314462662500705473166297282f; // 2π/3
+    float aHat2 = 0.7853981633974483096156608458198757210492923498437764552437361480f; // π/4
+    for (uint channel = 0; channel < SH_COLOR_CHANNELS; channel++)
+    {
+        g_OutputShl2[SHIndex(outProbeIdx, channel, 0)] = g_PrimaryInputShl2[SHIndex(inProbeIdx, channel, 0)] * aHat0;
+
+        uint i = 0;
+        for (i = 1; i < 4; ++i)
+        {
+            g_OutputShl2[SHIndex(outProbeIdx, channel, i)] = g_PrimaryInputShl2[SHIndex(inProbeIdx, channel, i)] * aHat1;
+        }
+
+        for (i = 4; i < 9; ++i)
+        {
+            g_OutputShl2[SHIndex(outProbeIdx, channel, i)] = g_PrimaryInputShl2[SHIndex(inProbeIdx, channel, i)] * aHat2;
+        }
+    }
+}
+
+[numthreads(64, 1, 1)]
+void ConvertToUnityFormat(in uint3 gidx: SV_DispatchThreadID)
+{
+    if (gidx.x >= g_ProbeCount)
+        return;
+
+    uint inProbeIdx = gidx.x + g_PrimaryInputOffset;
+    uint outProbeIdx = gidx.x + g_OutputOffset;
+
+    for (int rgb = 0; rgb < SH_COLOR_CHANNELS; ++rgb)
+    {
+        // Copy input SH so we don't overwrite the inputs while we're reading them,
+        // in case the input and output buffers are aliased.
+        const uint baseInputIdx = SHIndex(inProbeIdx, rgb, 0);
+        float l00 = g_PrimaryInputShl2[baseInputIdx];
+        float l1_1 = g_PrimaryInputShl2[baseInputIdx + 1];
+        float l10 = g_PrimaryInputShl2[baseInputIdx + 2];
+        float l11 = g_PrimaryInputShl2[baseInputIdx + 3];
+        float l2_2 = g_PrimaryInputShl2[baseInputIdx + 4];
+        float l2_1 = g_PrimaryInputShl2[baseInputIdx + 5];
+        float l20 = g_PrimaryInputShl2[baseInputIdx + 6];
+        float l21 = g_PrimaryInputShl2[baseInputIdx + 7];
+        float l22 = g_PrimaryInputShl2[baseInputIdx + 8];
+
+        // Calculate output indices
+        const uint l00Index = SHIndex(outProbeIdx, rgb, 0);
+        const uint l1_1Index = l00Index + 1;
+        const uint l10Index = l00Index + 2;
+        const uint l11Index = l00Index + 3;
+        const uint l2_2Index = l00Index + 4;
+        const uint l2_1Index = l00Index + 5;
+        const uint l20Index = l00Index + 6;
+        const uint l21Index = l00Index + 7;
+        const uint l22Index = l00Index + 8;
+
+        // L0
+        g_OutputShl2[l00Index] = (l00 * SH_L0_NORMALIZATION) / PI;
+
+        // L1
+        g_OutputShl2[l1_1Index] = (l10 * SH_L1_NORMALIZATION) / PI;
+        g_OutputShl2[l10Index] = (l11 * SH_L1_NORMALIZATION) / PI;
+        g_OutputShl2[l11Index] = (l1_1 * SH_L1_NORMALIZATION) / PI;
+
+        // L2
+        g_OutputShl2[l2_2Index] = (l2_2 * SH_L2_2_NORMALIZATION) / PI;
+        g_OutputShl2[l2_1Index] = (l2_1 * SH_L2_1_NORMALIZATION) / PI;
+        g_OutputShl2[l20Index] = (l20 * SH_L20_NORMALIZATION) / PI;
+        g_OutputShl2[l21Index] = (l21 * SH_L21_NORMALIZATION) / PI;
+        g_OutputShl2[l22Index] = (l22 * SH_L22_NORMALIZATION) / PI;
+    }
+}
+
+[numthreads(64, 1, 1)]
+void AddSphericalHarmonicsL2(in uint3 gidx: SV_DispatchThreadID)
+{
+    if (gidx.x >= g_ProbeCount)
+        return;
+
+    uint inProbeIdx = gidx.x + g_PrimaryInputOffset;
+    uint inSecondaryProbeIdx = gidx.x + g_SecondaryInputOffset;
+    uint outProbeIdx = gidx.x + g_OutputOffset;
+
+    for (uint i = 0; i < SH_TOTAL_COEFFICIENTS; i++)
+    {
+        g_OutputShl2[SHIndex(outProbeIdx, i)] = g_PrimaryInputShl2[SHIndex(inProbeIdx, i)] + g_SecondaryInputShl2[SHIndex(inSecondaryProbeIdx, i)];
+    }
+}
+
+[numthreads(64, 1, 1)]
+void ScaleSphericalHarmonicsL2(in uint3 gidx: SV_DispatchThreadID)
+{
+    if (gidx.x >= g_ProbeCount)
+        return;
+
+    uint inProbeIdx = gidx.x + g_PrimaryInputOffset;
+    uint outProbeIdx = gidx.x + g_OutputOffset;
+
+    for (uint i = 0; i < SH_TOTAL_COEFFICIENTS; i++)
+    {
+        g_OutputShl2[SHIndex(outProbeIdx, i)] = g_PrimaryInputShl2[SHIndex(inProbeIdx, i)] * g_Scale;
+    }
+}
+
+[numthreads(64, 1, 1)]
+void WindowSphericalHarmonicsL2(in uint3 gidx: SV_DispatchThreadID)
+{
+    if (gidx.x >= g_ProbeCount)
+        return;
+
+    uint inProbeIdx = gidx.x + g_PrimaryInputOffset;
+    uint outProbeIdx = gidx.x + g_OutputOffset;
+
+    // Windowing constants from WindowDirectSH in SHDering.cpp.
+    const float extraWindow[3] = { 1.0f, 0.922066f, 0.731864f };
+
+    // Apply windowing: Essentially SHConv3 times the window constants.
+    for (uint coefficient = 0; coefficient < SH_COEFFICIENTS_PER_CHANNEL; coefficient++)
+    {
+        float window;
+        if (coefficient == 0) // DC
+            window = extraWindow[0];
+        else if (coefficient < 4) // L1
+            window = extraWindow[1];
+        else
+            window = extraWindow[2]; // L2
+
+        g_OutputShl2[SHIndex(outProbeIdx, SH_CHANNEL_RED, coefficient)] = g_PrimaryInputShl2[SHIndex(inProbeIdx, SH_CHANNEL_RED, coefficient)] * window;
+        g_OutputShl2[SHIndex(outProbeIdx, SH_CHANNEL_GREEN, coefficient)] = g_PrimaryInputShl2[SHIndex(inProbeIdx, SH_CHANNEL_GREEN, coefficient)] * window;
+        g_OutputShl2[SHIndex(outProbeIdx, SH_CHANNEL_BLUE, coefficient)] = g_PrimaryInputShl2[SHIndex(inProbeIdx, SH_CHANNEL_BLUE, coefficient)] * window;
+    }
+}

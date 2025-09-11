@@ -13,7 +13,7 @@
     "com.unity.render-pipelines.universal-config": "file:../../../../../Packages/com.unity.render-pipelines.universal-config",
     "com.unity.shadergraph": "file:../../../../../Packages/com.unity.shadergraph",
     "com.unity.test-framework": "file:../../../../../Packages/com.unity.test-framework",
-    "com.unity.testframework.graphics": "8.9.1-exp.1",
+    "com.unity.testframework.graphics": "file:../../../Packages/com.unity.test-framework.graphics",
     "com.unity.testing.xr": "file:../../../Packages/com.unity.testing.xr",
     "com.unity.ugui": "2.0.0",
     "com.unity.modules.ai": "1.0.0",

@@ -1,0 +1,56 @@
+#define UNIFIED_RT_GROUP_SIZE_X 128
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC IntegrateValidity
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/FetchGeometry.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/UnifiedRayTracing/TraceRayAndQueryHit.hlsl"
+
+#include "PathTracingCommon.hlsl"
+#include "PathTracingMaterials.hlsl"
+#include "PathTracingRandom.hlsl"
+
+UNIFIED_RT_DECLARE_ACCEL_STRUCT(g_SceneAccelStruct);
+
+RWStructuredBuffer<float3> g_Positions;
+RWStructuredBuffer<float> g_Validity;
+uint g_PositionsOffset;
+uint g_SampleCount;
+uint g_SampleOffset;
+
+void IntegrateValidity(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    const uint threadIdx = dispatchInfo.dispatchThreadID.x;
+    const uint inProbeIdx = threadIdx / g_SampleCount + g_PositionsOffset;
+    const uint inProbeSampleIdx = threadIdx % g_SampleCount;
+    const uint outProbeIdx = threadIdx;
+
+    PathTracingSampler rngState;
+    rngState.Init(inProbeIdx, g_SampleOffset + inProbeSampleIdx);
+
+    // TODO(pema.malling): This works but that is sort of by accident. Avoid coupling to AA (which is unrelated to probe integration). https://jira.unity3d.com/browse/LIGHT-1687
+    const float3 uniformSphereDir = MapSquareToSphere(float2(rngState.GetFloatSample(RAND_DIM_AA_X), rngState.GetFloatSample(RAND_DIM_AA_Y)));
+
+    UnifiedRT::Ray ray;
+    ray.origin = g_Positions[inProbeIdx];
+    ray.direction = uniformSphereDir;
+    ray.tMin = 0;
+    ray.tMax = K_T_MAX;
+
+    int rayFlags = UnifiedRT::kRayFlagNone;
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+    UnifiedRT::Hit hitResult = UnifiedRT::TraceRayClosestHit(dispatchInfo, accelStruct, UINT_MAX, ray, rayFlags);
+
+    bool invalidHit = false;
+    if (hitResult.IsValid())
+    {
+        UnifiedRT::InstanceData instance = UnifiedRT::GetInstance(hitResult.instanceID);
+        PTHitGeom geometry = GetHitGeomInfo(instance, hitResult);
+        MaterialProperties material = LoadMaterialProperties(instance, false, geometry);
+
+        if (!hitResult.isFrontFace && !material.doubleSidedGI && !material.isTransmissive)
+            invalidHit = true;
+    }
+
+    g_Validity[outProbeIdx] = invalidHit ? 1.0f / g_SampleCount : 0.0f;
+}

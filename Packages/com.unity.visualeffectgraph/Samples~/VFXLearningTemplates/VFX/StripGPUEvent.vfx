@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Add Upward Velocity
     position:
       serializedVersion: 2
-      x: -1456
-      y: 561
-      width: 793
-      height: 363
+      x: -1583
+      y: 385
+      width: 865
+      height: 504
     contents:
     - model: {fileID: 8926484042661615049}
       id: 0
@@ -36,13 +36,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616261}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
   - title: MushRoom Foot Size
     position:
       serializedVersion: 2
-      x: 462
-      y: 2888
-      width: 1207
-      height: 502
+      x: 438
+      y: 2844
+      width: 1221
+      height: 541
     contents:
     - model: {fileID: 8926484042661616183}
       id: 0
@@ -74,13 +77,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616251}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 13
+      isStickyNote: 1
   - title: Fake Gravity
     position:
       serializedVersion: 2
-      x: -155
-      y: 3572
-      width: 2035
-      height: 554
+      x: -141
+      y: 3575
+      width: 2081
+      height: 556
     contents:
     - model: {fileID: 8926484042661615630}
       id: 0
@@ -121,13 +127,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615644}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 14
+      isStickyNote: 1
   - title: Fake Gravity
     position:
       serializedVersion: 2
       x: -2647
-      y: 2935
-      width: 1975
-      height: 469
+      y: 2865
+      width: 1977
+      height: 540
     contents:
     - model: {fileID: 8926484042661615692}
       id: 0
@@ -162,6 +171,9 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615792}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 9
+      isStickyNote: 1
   - title: Dust Powder
     position:
       serializedVersion: 2
@@ -174,9 +186,6 @@ MonoBehaviour:
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661616561}
-      id: 0
-      isStickyNote: 0
-    - model: {fileID: 8926484042661616982}
       id: 0
       isStickyNote: 0
     - model: {fileID: 8926484042661616688}
@@ -220,10 +229,10 @@ MonoBehaviour:
   - title: Trigger Logic
     position:
       serializedVersion: 2
-      x: -1574
-      y: 1486
-      width: 873
-      height: 377
+      x: -1925
+      y: 1616
+      width: 1204
+      height: 378
     contents:
     - model: {fileID: 8926484042661616348}
       id: 0
@@ -243,13 +252,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661617011}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
   - title: Rotten Attribute
     position:
       serializedVersion: 2
-      x: -1722
-      y: 977
-      width: 487
-      height: 227
+      x: -1969
+      y: 898
+      width: 701
+      height: 317
     contents:
     - model: {fileID: 8926484042661616131}
       id: 0
@@ -260,13 +272,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616281}
       id: 1
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
   - title: Blend Velocity
     position:
       serializedVersion: 2
-      x: -1207
-      y: 1135
-      width: 499
-      height: 352
+      x: -1540
+      y: 1224
+      width: 805
+      height: 364
     contents:
     - model: {fileID: 8926484042661616002}
       id: 0
@@ -280,13 +295,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661615088}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
   - title: Random Scale
     position:
       serializedVersion: 2
-      x: -2500
-      y: 2418
-      width: 1779
-      height: 430
+      x: -2526
+      y: 2313
+      width: 1726
+      height: 534
     contents:
     - model: {fileID: 8926484042661615349}
       id: 0
@@ -312,13 +330,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616738}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
   - title: Rotten
     position:
       serializedVersion: 2
-      x: 1669
-      y: 2119
-      width: 497
-      height: 201
+      x: 1458
+      y: 1963
+      width: 679
+      height: 308
     contents:
     - model: {fileID: 8926484042661616257}
       id: 0
@@ -329,13 +350,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616281}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 11
+      isStickyNote: 1
   - title: Strip Ratio
     position:
       serializedVersion: 2
-      x: 0
-      y: 0
-      width: 100
-      height: 100
+      x: 1295
+      y: 2285
+      width: 809
+      height: 425
     contents:
     - model: {fileID: 8926484042661615246}
       id: 0
@@ -349,13 +373,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616178}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 12
+      isStickyNote: 1
   - title: Random Angular VelocityZ
     position:
       serializedVersion: 2
-      x: 4244
-      y: 2225
-      width: 503
-      height: 339
+      x: 3966
+      y: 2223
+      width: 778
+      height: 340
     contents:
     - model: {fileID: 8926484042661616444}
       id: 0
@@ -366,13 +393,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616438}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 15
+      isStickyNote: 1
   - title: Position Based Velocity
     position:
       serializedVersion: 2
-      x: 4217
+      x: 3938
       y: 1901
-      width: 540
-      height: 291
+      width: 821
+      height: 292
     contents:
     - model: {fileID: 8926484042661616466}
       id: 0
@@ -383,82 +413,122 @@ MonoBehaviour:
     - model: {fileID: 8926484042661616461}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 16
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: -685
+      y: -321
+      width: 781
+      height: 863
+    contents:
+    - model: {fileID: 8926484042661614707}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+  - title: Random Selector Weighted
+    position:
+      serializedVersion: 2
+      x: 5667
+      y: 3843
+      width: 567
+      height: 436
+    contents:
+    - model: {fileID: 8926484042661616982}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 17
+      isStickyNote: 1
   stickyNoteInfos:
   - title: Mushroom Cap
     position:
       serializedVersion: 2
-      x: -202
-      y: -330
+      x: -195
+      y: -228
       width: 265
       height: 100
     contents: This system is bursting particles. Those particles will be parents
       and spawn other particles along their path.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Initialize Context
     position:
       serializedVersion: 2
-      x: -203
-      y: 157
+      x: -197
+      y: 161
       width: 245
       height: 100
     contents: In this context, we set the initial position of our parent particles,
       their initial velocity, and a random size.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Add Upward Velocity
     position:
       serializedVersion: 2
-      x: -1771
-      y: 562
+      x: -1557
+      y: 445
       width: 299
       height: 124
     contents: "We\u2019re using the age over lifetime 0-1 to sample a curve.\nThis
       curve helps us determine when the particles should have some upward velocity.\n\r\nThe
       intensity is then randomized per particle.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Rotten Attribute
     position:
       serializedVersion: 2
-      x: -2003
-      y: 950
+      x: -1943
+      y: 957
       width: 269
       height: 145
     contents: "We\u2019re setting a custom attribute value during the particle\u2019s
       lifetime.\n\nThis corresponds to when the mushroom will start to rot.\n\r\nThis
       0-1 value will help us drive the appearance and behavior of our mushroom.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Blend Velocity
     position:
       serializedVersion: 2
-      x: -1493
-      y: 1263
+      x: -1515
+      y: 1283
       width: 271
       height: 153
     contents: "The mushroom should stop growing at some point.\r\nTo achieve this,
       we use a Blend Velocity block.\n\nThis node smoothly reduces the particle\u2019s
       velocity to 0, which will stop the mushroom caps' growth movement.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Trigger Over Distance
     position:
       serializedVersion: 2
-      x: -220
-      y: 1264
-      width: 312
-      height: 131
+      x: -215
+      y: 1244
+      width: 336
+      height: 130
     contents: "The Trigger over distance Block triggers the creation of particles
       via a GPU Event using a specified rate. \n\nYou can set the rate to spawn particles
       over time (per second) or over distance (parent particle distance change).\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Trigger Logic
     position:
       serializedVersion: 2
-      x: -1921
-      y: 1485
+      x: -1900
+      y: 1687
       width: 336
       height: 155
     contents: "To get lovely visual feedback on the mushroom blossom, we want to
@@ -466,8 +536,9 @@ MonoBehaviour:
       age over lifetime value with 0.5 which corresponds to when the mushroom stops.
       \n\nThe result of this boolean statement drives the activation port of the
       trigger event nodes.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: ShaderGraph Control
     position:
       serializedVersion: 2
@@ -479,64 +550,69 @@ MonoBehaviour:
       exposed. \n\nThis means that we can drive those values per particle.\n\r\nIt
       is possible to control the UV scale and offset to add some per-particle randomization.
       \n\nBut we can also control the \u201Crotten\u201D appearance of our mushrooms.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Scale
     position:
       serializedVersion: 2
-      x: -2751
-      y: 2417
+      x: -2501
+      y: 2372
       width: 248
       height: 155
     contents: "To get more randomization, we\u2019re playing with the scale attribute
       value. \nThese operations make the mushroom hats grow over their lifetime.
       \n\nThe \u201CRotten\u201D attribute is also used to shrink the scale value.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Fake Gravity
     position:
       serializedVersion: 2
-      x: -2919
-      y: 2943
+      x: -2607
+      y: 2924
       width: 262
       height: 167
     contents: "To achieve a more convincing rotting effect, we offset the particle\u2019s
       position using the rotten attribute value.\r\n\r\nThis is done by using the
       Rotate3D operator.\r\n\r\nThe rotation axis is calculated by a cross-product
       operation, and the rotation amount is driven by the rotten value.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Source Attribute and GPU Event
     position:
       serializedVersion: 2
-      x: 1847
-      y: 1832
+      x: 2605
+      y: 1833
       width: 321
       height: 152
     contents: "Particles spawned with GPU events can retrieve their parents\u2019
       attribute values in the initialize context.\n\r\nThe \u201Csource\u201D location
       lets you get the value from the parent particle.\n\r\nHere, we inherit the
       parent\u2019s position, size, lifetime, and age.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: Rotten
     position:
       serializedVersion: 2
-      x: 1433
-      y: 2129
+      x: 1483
+      y: 2023
       width: 220
       height: 179
     contents: "The particles inherits their parents\u2019 lifetime and age. \nThe
       age and lifetime is in sync with their parent. \n\nThis allows us to use the
       same sample curve operation and have rotten values in sync between the mushroom
       hats and the mushroom Strips/feet.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Strip Ratio
     position:
       serializedVersion: 2
-      x: 1105
-      y: 2371
+      x: 1320
+      y: 2344
       width: 336
       height: 187
     contents: "Getting a 0<>1 normalized value along the strip is always valuable
@@ -545,63 +621,68 @@ MonoBehaviour:
       minus 1.\r\n\r\nThis will give us a 0<>1 value across the strip that we can
       store in a custom attribute. This way, we can access this value at any time
       to drive the behavior or appearance of our Strips/trails.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: MushRoom Stem Size
     position:
       serializedVersion: 2
-      x: 243
-      y: 2891
+      x: 463
+      y: 2903
       width: 210
       height: 156
     contents: "We\u2019re driving the width of the strips (mushroom foot) based on
       our 0<>1 strip ratio value. \n\nWe also modulate this value with a noise and
       our rotten value."
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Fake Gravity
     position:
       serializedVersion: 2
-      x: -435
-      y: 3587
+      x: -88
+      y: 3913
       width: 262
       height: 193
     contents: "To achieve a more convincing rotting effect, we offset the particle\u2019s
       position using the rotten attribute value.\r\n\r\nThis is done by using the
       Rotate3D operator.\r\n\r\nThe rotation axis is calculated by a cross-product
       operation, and the rotation amount is driven by the rotten value.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Random Angular VelocityZ
     position:
       serializedVersion: 2
-      x: 3959
-      y: 2236
+      x: 3991
+      y: 2305
       width: 268
       height: 188
     contents: "Adding some angular velocity can help to get a nice rotational motion.\n\r\nHere,
       we\u2019re randomizing the angular velocity Z and multiplying it with a Random
       Selector.\n\r\nThis random selector is very practical and can help us get specific
       values.\n\nIn this case, it allows us to rotate either positively or negatively.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Position-based velocity
     position:
       serializedVersion: 2
-      x: 3919
-      y: 1905
+      x: 3963
+      y: 1972
       width: 241
       height: 127
     contents: "When dealing with local space systems, using the particle\u2019s position
       as a velocity vector is pretty standard.\n\r\nThis allows us to get outward
       velocity.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Random Selector Weighted
     position:
       serializedVersion: 2
-      x: 5706
-      y: 3992
+      x: 5692
+      y: 3920
       width: 276
       height: 265
     contents: "The random operator is the simplest solution to generate randomization.\nWhile
@@ -611,15 +692,16 @@ MonoBehaviour:
       Random Selector Weighted. It provides the capability to select a specified
       number of values and assign a weight to each entry.\n\nThis gives you great
       control over your random distribution to get more appealing results.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -2919
+    x: -2646
     y: -755
-    width: 9663
-    height: 5047
+    width: 9390
+    height: 5035
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -769,7 +851,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -785,10 +867,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -1000,7 +1078,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614995}
   - {fileID: 8926484042661615031}
   - {fileID: 8926484042661615286}
-  m_UIPosition: {x: -657, y: -309}
+  m_UIPosition: {x: -660, y: -262}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1100,7 +1178,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 13.5
+      m_SerializableObject: 7
     m_Space: -1
   m_Property:
     name: A
@@ -1134,7 +1212,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 15
+      m_SerializableObject: 8
     m_Space: -1
   m_Property:
     name: B
@@ -1245,7 +1323,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 16
+      m_SerializableObject: 9
     m_Space: -1
   m_Property:
     name: LoopDuration
@@ -2554,7 +2632,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1431, y: 644}
+  m_UIPosition: {x: -1503, y: 619}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2843,7 +2921,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1199, y: 620}
+  m_UIPosition: {x: -1271, y: 586}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2970,7 +3048,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -949, y: 717}
+  m_UIPosition: {x: -1021, y: 683}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3355,7 +3433,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1137, y: 756}
+  m_UIPosition: {x: -1209, y: 722}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3716,7 +3794,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1175, y: 1387}
+  m_UIPosition: {x: -1221, y: 1487}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3772,7 +3850,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -959, y: 1365}
+  m_UIPosition: {x: -1005, y: 1465}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3937,6 +4015,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615096}
   - {fileID: 8926484042661617148}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -5105,7 +5184,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 30
+      m_SerializableObject: 20
     m_Space: -1
   m_Property:
     name: Rate
@@ -5688,6 +5767,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615193}
   - {fileID: 8926484042661617149}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -5713,7 +5793,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 0
   useMaskMap: 0
   useNormalMap: 0
   useEmissiveMap: 0
@@ -6621,7 +6700,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1702, y: 2422}
+  m_UIPosition: {x: 1661, y: 2427}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -6680,7 +6759,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1469, y: 2534}
+  m_UIPosition: {x: 1428, y: 2539}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -6739,7 +6818,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1966, y: 2496}
+  m_UIPosition: {x: 1925, y: 2501}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -6876,7 +6955,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 695, y: 3055}
+  m_UIPosition: {x: 687, y: 3051}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8083,7 +8162,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 695, y: 3227}
+  m_UIPosition: {x: 687, y: 3223}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8455,7 +8534,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1315, y: 3055}
+  m_UIPosition: {x: 1307, y: 3051}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -8921,7 +9000,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -129, y: 3631}
+  m_UIPosition: {x: -116, y: 3635}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -9083,7 +9162,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 953, y: 3667}
+  m_UIPosition: {x: 966, y: 3671}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -9826,7 +9905,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 343, y: 3765}
+  m_UIPosition: {x: 356, y: 3769}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -10126,7 +10205,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 59, y: 3765}
+  m_UIPosition: {x: 72, y: 3769}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -10568,7 +10647,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 671, y: 3955}
+  m_UIPosition: {x: 684, y: 3959}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -10943,7 +11022,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 623, y: 3765}
+  m_UIPosition: {x: 636, y: 3769}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -11413,7 +11492,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1593, y: 3667}
+  m_UIPosition: {x: 1606, y: 3671}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -11788,7 +11867,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1415, y: 3909}
+  m_UIPosition: {x: 1428, y: 3913}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -11930,7 +12009,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1169, y: 3849}
+  m_UIPosition: {x: 1182, y: 3853}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -15768,7 +15847,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1181, y: 1194}
+  m_UIPosition: {x: -1227, y: 1295}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -15929,7 +16008,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -993, y: 1228}
+  m_UIPosition: {x: -1039, y: 1329}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -18433,7 +18512,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1477, y: 1036}
+  m_UIPosition: {x: -1477, y: 1047}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -18561,7 +18640,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1697, y: 1106}
+  m_UIPosition: {x: -1697, y: 1117}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -18891,7 +18970,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1694, y: 2221}
+  m_UIPosition: {x: 1699, y: 2173}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -19175,7 +19254,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1065, y: 3253}
+  m_UIPosition: {x: 1057, y: 3249}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -19234,7 +19313,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1079, y: 3139}
+  m_UIPosition: {x: 1071, y: 3135}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -19484,7 +19563,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1744, y: 2566}
+  m_UIPosition: {x: 1703, y: 2571}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -19620,7 +19699,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 487, y: 3115}
+  m_UIPosition: {x: 479, y: 3111}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -19680,7 +19759,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 449, y: 3865}
+  m_UIPosition: {x: 462, y: 3869}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -19739,7 +19818,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 467, y: 3989}
+  m_UIPosition: {x: 480, y: 3993}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -19798,7 +19877,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 951, y: 3835}
+  m_UIPosition: {x: 964, y: 3839}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -19857,7 +19936,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1205, y: 3967}
+  m_UIPosition: {x: 1218, y: 3971}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -20361,7 +20440,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1043, y: 2947}
+  m_UIPosition: {x: 1035, y: 2943}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -20530,7 +20609,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1243, y: 2947}
+  m_UIPosition: {x: 1235, y: 2943}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -20625,7 +20704,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1479, y: 2999}
+  m_UIPosition: {x: 1471, y: 2995}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -20763,7 +20842,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 827, y: 2991}
+  m_UIPosition: {x: 819, y: 2987}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -20819,7 +20898,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1924, y: 2182}
+  m_UIPosition: {x: 1929, y: 2135}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -20947,7 +21026,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1431, y: 727}
+  m_UIPosition: {x: -1503, y: 693}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -21038,7 +21117,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661616282}
       inputSlot: {fileID: 8926484042661616258}
-    position: {x: 1739.3334, y: 2177.3335}
+    position: {x: 1744, y: 2130}
     expandedSlots: []
     expanded: 1
     supecollapsed: 1
@@ -21046,7 +21125,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661616282}
       inputSlot: {fileID: 8926484042661616132}
-    position: {x: -1654, y: 1038.6666}
+    position: {x: -1653.3334, y: 1049.3333}
     expandedSlots: []
     expanded: 1
     supecollapsed: 0
@@ -21816,7 +21895,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -861, y: 1635}
+  m_UIPosition: {x: -864, y: 1765}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -28149,6 +28228,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661616691}
   - {fileID: 8926484042661617150}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -30906,7 +30986,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 5989, y: 3914}
+  m_UIPosition: {x: 5982, y: 3903}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -31427,7 +31507,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1549, y: 1585}
+  m_UIPosition: {x: -1552, y: 1715}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -31484,7 +31564,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1175, y: 1545}
+  m_UIPosition: {x: -1178, y: 1675}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -31615,7 +31695,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1175, y: 1681}
+  m_UIPosition: {x: -1178, y: 1811}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -31746,7 +31826,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1325, y: 1725}
+  m_UIPosition: {x: -1328, y: 1855}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -31883,7 +31963,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -1497, y: 1743}
+  m_UIPosition: {x: -1500, y: 1873}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -32142,6 +32222,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661617047}
   - {fileID: 8926484042661617151}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -33020,6 +33101,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661617109}
   - {fileID: 8926484042661617152}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -33048,7 +33130,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 0
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0

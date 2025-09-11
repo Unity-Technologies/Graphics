@@ -37,6 +37,10 @@ namespace UnityEngine.Rendering.Tests
 
             public RenderGraph renderGraph;
 
+            public RenderTextureUVOriginStrategy renderTextureUVOriginStrategy;
+
+            public bool invalidContextForTesting;
+
             protected override RenderPipeline CreatePipeline()
             {
                 return new RenderGraphTestPipelineInstance(this);
@@ -76,7 +80,8 @@ namespace UnityEngine.Rendering.Tests
                         commandBuffer = cmd,
                         scriptableRenderContext = renderContext,
                         currentFrameIndex = Time.frameCount,
-                        invalidContextForTesting = false
+                        invalidContextForTesting = asset.invalidContextForTesting,
+                        renderTextureUVOriginStrategy = asset.renderTextureUVOriginStrategy
                     };
 
                     try
@@ -99,10 +104,14 @@ namespace UnityEngine.Rendering.Tests
                         return;
                     }
 
-                    renderContext.ExecuteCommandBuffer(cmd);
+                    if (rgParams.invalidContextForTesting == false)
+                    {
+                        renderContext.ExecuteCommandBuffer(cmd);
+                    }
 
                     CommandBufferPool.Release(cmd);
                 }
+
                 renderContext.Submit();
             }
         }
@@ -175,6 +184,7 @@ namespace UnityEngine.Rendering.Tests
         [TearDown]
         public void CleanupRenderGraph()
         {
+            m_RenderGraphTestPipeline.invalidContextForTesting = false;
             // Cleaning all Render Graph resources and data structures
             // Nothing remains, Render Graph in next test will start from scratch
             m_RenderGraph.ForceCleanup();

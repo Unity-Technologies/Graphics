@@ -5,6 +5,11 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using System.Runtime.CompilerServices;
 
+#if UNITY_EDITOR
+using UnityEditor;
+using System.Reflection;
+#endif
+
 namespace UnityEngine.Rendering
 {
     using static UnityEngine.Rendering.HableCurve;
@@ -1861,6 +1866,19 @@ namespace UnityEngine.Rendering
                     rootPath = newPath + Path.DirectorySeparatorChar;
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the icon for the given type if it has an IconAttribute.
+        /// </summary>
+        /// <typeparam name="T">Type parameter</typeparam>
+        /// <returns>Valid icon texture, or null none is found</returns>
+        public static Texture2D GetIconForType<T>() where T : UnityEngine.Object
+        {
+            var iconAttribute = typeof(T).GetCustomAttribute<IconAttribute>();
+            if (iconAttribute == null || string.IsNullOrEmpty(iconAttribute.path))
+                return null;
+            return EditorGUIUtility.IconContent(iconAttribute.path)?.image as Texture2D;
         }
 #endif
 

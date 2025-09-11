@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [ExecuteAlways]
     [HDRPHelpURLAttribute("Custom-Pass")]
-    public class CustomPassVolume : MonoBehaviour, IVolume
+    public class CustomPassVolume : MonoBehaviour
     {
         [SerializeField, FormerlySerializedAs("isGlobal")]
         private bool m_IsGlobal = true;

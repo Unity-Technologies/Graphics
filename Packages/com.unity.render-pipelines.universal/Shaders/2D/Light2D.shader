@@ -21,9 +21,11 @@ Shader "Hidden/Light2D"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local USE_NORMAL_MAP __
+            #pragma multi_compile_local USE_SHADOW_MAP __
             #pragma multi_compile_local USE_ADDITIVE_BLENDING __
             #pragma multi_compile_local USE_VOLUMETRIC __
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
+            #pragma multi_compile_local USE_SPRITE_LIGHT __
             #pragma multi_compile_local LIGHT_QUALITY_FAST __
 
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl"
@@ -49,8 +51,10 @@ Shader "Hidden/Light2D"
                 LIGHT_OFFSET(TEXCOORD5)
             };
 
+#if USE_SPRITE_LIGHT
             TEXTURE2D(_CookieTex);          // This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
+#endif
 
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
@@ -149,30 +153,36 @@ Shader "Hidden/Light2D"
             FragmentOutput frag_shape(Varyings i, PerLight2D light)
             {
                 half4 lightColor = i.color;
-                if (_L2D_LIGHT_TYPE == 2)
-                {
-                    half4 cookie = SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
-#if USE_ADDITIVE_BLENDING
-                    lightColor *= cookie * cookie.a;
+
+#if USE_SPRITE_LIGHT
+                half4 cookie = SAMPLE_TEXTURE2D(_CookieTex, sampler_CookieTex, i.uv);
+
+    #if USE_ADDITIVE_BLENDING
+                lightColor *= cookie * cookie.a;
+    #else
+                lightColor *= cookie;
+    #endif
+
 #else
-                    lightColor *= cookie;
-#endif
-                }
-                else
-                {
-#if USE_ADDITIVE_BLENDING
-                    lightColor *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
-#elif USE_VOLUMETRIC
-                    lightColor.a = i.color.a * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
-#else
-                    lightColor.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
-#endif
-                }
+
+    #if USE_ADDITIVE_BLENDING
+                lightColor *= SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+    #elif USE_VOLUMETRIC
+                lightColor.a = i.color.a * SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+    #else
+                lightColor.a = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, i.uv).r;
+    #endif
+
+#endif // USE_SPRITE_LIGHT
 
 #if !USE_VOLUMETRIC
                 APPLY_NORMALS_LIGHTING(i, lightColor, _L2D_POSITION.xyz, _L2D_POSITION.w);
 #endif
+
+#if USE_SHADOW_MAP
                 APPLY_SHADOWS(i, lightColor, _L2D_SHADOW_INTENSITY);
+#endif
+
                 return ToFragmentOutput(lightColor);
             }
 
@@ -208,7 +218,10 @@ Shader "Hidden/Light2D"
 #if !USE_VOLUMETRIC
                 APPLY_NORMALS_LIGHTING(i, lightColor, _L2D_POSITION.xyz, _L2D_POSITION.w);
 #endif
+
+#if USE_SHADOW_MAP
                 APPLY_SHADOWS(i, lightColor, _L2D_SHADOW_INTENSITY);
+#endif
 
 #if USE_VOLUMETRIC
                 lightColor *= _L2D_VOLUME_OPACITY;

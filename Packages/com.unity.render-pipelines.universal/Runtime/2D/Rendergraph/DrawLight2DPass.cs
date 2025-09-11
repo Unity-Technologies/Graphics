@@ -87,7 +87,8 @@ namespace UnityEngine.Rendering.Universal
                         layerBatch.endLayerValue != light.GetTopMostLitLayer()))
                         continue;
 
-                    var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric);
+                    var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
+                    var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric, useShadows);
                     var lightMesh = light.lightMesh;
 
                     // For Batching.
@@ -102,7 +103,6 @@ namespace UnityEngine.Rendering.Universal
                     if (passData.layerBatch.lightStats.useNormalMap)
                         s_PropertyBlock.SetTexture(k_NormalMapID, passData.normalMap);
 
-                    var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
                     if (useShadows && TryGetShadowIndex(ref layerBatch, j, out var shadowIndex))
                         s_PropertyBlock.SetTexture(k_ShadowMapID, passData.shadowTextures[shadowIndex]);
 
@@ -165,7 +165,8 @@ namespace UnityEngine.Rendering.Universal
                         layerBatch.endLayerValue != light.GetTopMostLitLayer()))
                         continue;
 
-                    var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric);
+                    var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
+                    var lightMaterial = passData.rendererData.GetLightMaterial(light, passData.isVolumetric, useShadows);
                     var lightMesh = light.lightMesh;
 
                     // For Batching.
@@ -180,7 +181,6 @@ namespace UnityEngine.Rendering.Universal
                     if (passData.layerBatch.lightStats.useNormalMap)
                         s_PropertyBlock.SetTexture(k_NormalMapID, passData.normalMap);
 
-                    var useShadows = passData.layerBatch.lightStats.useShadows && layerBatch.shadowIndices.Contains(j);
                     if (useShadows && TryGetShadowIndex(ref layerBatch, j, out var shadowIndex))
                         s_PropertyBlock.SetTexture(k_ShadowMapID, passData.shadowTextures[shadowIndex]);
 
@@ -227,9 +227,22 @@ namespace UnityEngine.Rendering.Universal
         {
             Universal2DResourceData universal2DResourceData = frameData.Get<Universal2DResourceData>();
             CommonResourceData commonResourceData = frameData.Get<CommonResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+
+            DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
+            var isDebugLightingActive = debugHandler?.IsLightingActive ?? true;
+
+#if UNITY_EDITOR
+            if (cameraData.isSceneViewCamera && UnityEditor.SceneView.currentDrawingSceneView != null)
+                isDebugLightingActive &= UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
+
+            if (cameraData.camera.cameraType == CameraType.Preview)
+                isDebugLightingActive = false;
+#endif
 
             if (!layerBatch.lightStats.useLights ||
-                isVolumetric && !layerBatch.lightStats.useVolumetricLights)
+                isVolumetric && !layerBatch.lightStats.useVolumetricLights ||
+                !isDebugLightingActive)
                 return;
 
             // Render single RTs by using low level pass for apis that don't support MRTs

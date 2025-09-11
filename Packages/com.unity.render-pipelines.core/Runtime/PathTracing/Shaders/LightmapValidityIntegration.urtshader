@@ -1,0 +1,71 @@
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC AccumulateInternal
+
+#include "PathTracing.hlsl"
+#include "LightmapIntegrationHelpers.hlsl"
+
+int g_SampleOffset;
+float g_PushOff;
+RWStructuredBuffer<float4> g_ExpandedOutput;
+
+void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    float3 worldPosition = 0.f;
+    float3 worldNormal = 0.f;
+    float3 worldFaceNormal = 0.f;
+    uint localSampleOffset = 0;
+    uint2 instanceTexelPos = 0;
+    const bool gotSample = GetExpandedSample(dispatchInfo.dispatchThreadID.x, localSampleOffset, instanceTexelPos, worldPosition, worldNormal, worldFaceNormal);
+    if (!gotSample)
+        return;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    // setup rng
+    const uint sampleOffset = g_SampleOffset + localSampleOffset;
+    PathTracingSampler rngState;
+    rngState.Init(instanceTexelPos, sampleOffset);
+
+    // now sample validity with the gBuffer data
+    float invalidity = 0.f;
+    UnifiedRT::Ray ray;
+    ray.origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
+    const float3 direction = CosineSample(float2(rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_X), rngState.GetFloatSample(RAND_DIM_SURF_SCATTER_Y)), worldNormal);
+    ray.direction = direction;
+    ray.tMin = 0;
+    ray.tMax = Max_float();
+    rngState.NextBounce();
+
+    // trace through potentially several layers of transmissive materials, determining validity at each hit
+    for (uint i = 0; i < MAX_TRANSMISSION_BOUNCES; i++)
+    {
+        UnifiedRT::Hit hitResult = TraceRayClosestHit(dispatchInfo, accelStruct, RayMask(true), ray, 0);
+        if (!hitResult.IsValid())
+            break; // Hit nothing, so the ray is valid
+
+        // Something was hit
+        UnifiedRT::InstanceData instance = UnifiedRT::GetInstance(hitResult.instanceID);
+        PTHitGeom geometry = GetHitGeomInfo(instance, hitResult);
+        MaterialProperties material = LoadMaterialProperties(instance, false, geometry);
+
+        // Check for transmission
+        if (ShouldTransmitRay(rngState, material))
+        {
+            geometry.FixNormals(direction);
+            ray.origin = geometry.NextTransmissionRayOrigin();
+            rngState.NextBounce();
+            continue;
+        }
+
+        // Check for validity
+        bool treatAsBackFace = ShouldTreatAsBackface(hitResult, material);
+        if (!treatAsBackFace)
+            break; // we have a valid hit
+
+        // Hit was invalid and there is no transmission
+        invalidity += 1.f;
+        break;
+    }
+    g_ExpandedOutput[dispatchInfo.dispatchThreadID.x] += float4(invalidity, invalidity, invalidity, 1.0f);
+}

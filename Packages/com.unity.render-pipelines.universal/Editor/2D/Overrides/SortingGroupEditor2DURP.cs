@@ -67,8 +67,10 @@ namespace UnityEditor
                     {
                         if (!renderAs2D)
                         {
+                            Material mat = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.universal/Runtime/Materials/RenderAs2D-Flattening.mat");
                             RenderAs2D newRenderAs2D = sortingGroup.gameObject.AddComponent<RenderAs2D>();
                             newRenderAs2D.Init(sortingGroup);
+                            newRenderAs2D.material = mat;
                             newRenderAs2D.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
                             DirtyScene();
                         }

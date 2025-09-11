@@ -10,6 +10,9 @@ UNITY_TEXTURE_STREAMING_DEBUG_VARS_FOR_TEX(_MainTex);
 TEXTURE2D(_MaskTex);
 SAMPLER(sampler_MaskTex);
 
+TEXTURE2D(_NormalMap);
+SAMPLER(sampler_NormalMap);
+
 Varyings CommonLitVertex(Attributes input)
 {
     Varyings o = (Varyings) 0;
@@ -17,9 +20,10 @@ Varyings CommonLitVertex(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
     o.positionCS = TransformObjectToHClip(input.positionOS);
-    #if defined(DEBUG_DISPLAY)
-        o.positionWS = TransformObjectToWorld(input.positionOS);
-    #endif
+#if defined(DEBUG_DISPLAY)
+    o.positionWS = TransformObjectToWorld(input.positionOS);
+    o.normalWS = TransformObjectToWorldDir(input.normal);
+#endif
     o.uv = input.uv;
     o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
     return o;
@@ -29,15 +33,17 @@ half4 CommonLitFragment(Varyings input, half4 color)
 {
     const half4 main = color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
     const half4 mask = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, input.uv);
-
+    const half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.uv));
+    
     SurfaceData2D surfaceData;
     InputData2D inputData;
 
-    InitializeSurfaceData(main.rgb, main.a, mask, surfaceData);
+    InitializeSurfaceData(main.rgb, main.a, mask, normalTS, surfaceData);
     InitializeInputData(input.uv, input.lightingUV, inputData);
 
 #if defined(DEBUG_DISPLAY)
     SETUP_DEBUG_TEXTURE_DATA_2D_NO_TS(inputData, input.positionWS, input.positionCS, _MainTex);
+    surfaceData.normalWS = input.normalWS;
 #endif
 
     return CombinedShapeLightShared(surfaceData, inputData);

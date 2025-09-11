@@ -164,6 +164,27 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     inputColor = color;
 #endif
 
+#if defined(SHADEROPTIONS_PRE_EXPOSITION)
+    // Before applying color grading, we correct the exposition of the frame. In HDRP we use the pre-exposure to calculate
+    // intermediate color of the frame so that the values fits in 111110 buffers. Because pre-exposure needs to be applied from the start
+    // we need to use the value from previous frame, this introduces an error that can be corrected after the dynamic exposure pass.
+    // We do this correction in the uber post pass to avoid adding another extra fullscreen pass.
+
+    // We're after the dynamic/fixed exposure pass, so the current exposure value is stored in the previous texture and vice-versa.
+    float previousFrameExposure = GetCurrentExposureMultiplier();
+    float currentFrameExposure = GetPreviousExposureMultiplier();
+    // When the HDCamera is reset, post-processing history and exposure resets as well, leaving the default value for the current
+    // previous exposure frame even though the current exposure is still be valid (the frame was pre-exposed with a non default value).
+    // To avoid this case we don't perform exposure compensation if the current frame exposure is the default value.
+    if (currentFrameExposure != 1)
+    {
+        // Find the original color of the pixel as if it was not exposed, hence removing the previous frame exposure from current frame.
+        float3 nonExposedColor = color.rgb / previousFrameExposure;
+        // Apply the current frame exposure to get up to date luminance.
+        color.rgb = nonExposedColor * currentFrameExposure;
+    }
+#endif
+
     // Bloom
     UNITY_BRANCH
     if (BloomEnabled)

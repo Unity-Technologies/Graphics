@@ -442,6 +442,35 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             return false;
         }
+
+        internal void DisconnectFromResources(CompilerContextData ctx, Stack<ResourceHandle> unusedVersionedResourceIdCullingStack = null, int type = 0)
+        {
+            // If the culled pass was supposed to generate the latest version of a given resource,
+            // we need to decrement the latestVersionNumber of this resource
+            // because its last version will never be created due to its producer being culled
+            foreach (ref readonly var output in Outputs(ctx))
+            {
+                ref readonly var outputResource = ref output.resource;
+                bool isOutputLastVersion = (outputResource.version == ctx.UnversionedResourceData(outputResource).latestVersionNumber);
+
+                if (isOutputLastVersion)
+                    ctx.UnversionedResourceData(outputResource).latestVersionNumber--;
+            }
+
+            // Notifying the versioned resources that this pass is no longer reading them
+            foreach (ref readonly var input in Inputs(ctx))
+            {
+                ref readonly var inputResource = ref input.resource;
+                ref var inputVersionedDataResource = ref ctx.resources[inputResource];
+                inputVersionedDataResource.RemoveReadingPass(ctx, inputResource, passId);
+
+                // If a resource of the same type is not used anymore, adding it to the stack
+                if (unusedVersionedResourceIdCullingStack != null && inputResource.iType == type && inputVersionedDataResource.written && inputVersionedDataResource.numReaders == 0)
+                {
+                    unusedVersionedResourceIdCullingStack.Push(inputResource);
+                }
+            }
+        }
     }
 
     // Data per attachment of a native renderpass
@@ -555,6 +584,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
         NotOptimized, // Optimize never ran on this pass
         TargetSizeMismatch, // Target Sizes or msaa samples don't match
         NextPassReadsTexture, // The next pass reads data written by this pass as a texture
+        NextPassTargetsTexture, // The next pass targets the texture that this pass is reading
         NonRasterPass, // The next pass is a non-raster pass
         DifferentDepthTextures, // The next pass uses a different depth texture (and we only allow one in a whole NRP)
         AttachmentLimitReached, // Adding the next pass would have used more attachments than allowed
@@ -592,6 +622,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             "The native render pass optimizer never ran on this pass. Pass is standalone and not merged.",
             "The render target sizes of the next pass do not match.",
             "The next pass reads data output by this pass as a regular texture.",
+            "The next pass uses a texture sampled in this pass as a render target.",
             "The next pass is not a raster render pass.",
             "The next pass uses a different depth buffer. All passes in the native render pass need to use the same depth buffer.",
             $"The limit of {FixedAttachmentArray<PassFragmentData>.MaxAttachments} native pass attachments would be exceeded when merging with the next pass.",
@@ -924,6 +955,24 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     {
                         attachmentsToTryAdding.Add(fragment);
                         currAvailableAttachmentSlots--;
+                    }
+                }
+
+                // Check if this fragment is already sampled in the native renderpass not as a fragment but as an input
+                for (int i = nativePass.firstGraphPass; i <= nativePass.lastGraphPass; ++i)
+                {
+                    ref var earlierPassData = ref contextData.passData.ElementAt(i);
+                    foreach (ref readonly var earlierInput in earlierPassData.Inputs(contextData))
+                    {
+                        // If this fragment is already used in current native render pass
+                        if (earlierInput.resource.index == fragment.resource.index)
+                        {
+                            // If it's not used as a fragment, it's used as some sort of texture read of load so we need to sync it out
+                            if (!earlierPassData.IsUsedAsFragment(earlierInput.resource, contextData))
+                            {
+                                return new PassBreakAudit(PassBreakReason.NextPassTargetsTexture, passIdToMerge);
+                            }
+                        }
                     }
                 }
             }

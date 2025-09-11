@@ -1,0 +1,26 @@
+// See UnityComputeProbeIntegrator.IntegrateOcclusion()
+#pragma kernel MapIndices
+
+RWStructuredBuffer<int> g_PerProbeLightIndicesOutput;
+StructuredBuffer<int> g_PerProbeLightIndicesInput;
+StructuredBuffer<int> g_MappingTable;
+uint g_PerProbeLightIndicesInputOffset;
+uint g_MaxLightsPerProbe;
+uint g_ProbeCount;
+
+[numthreads(64,1,1)]
+void MapIndices(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= g_MaxLightsPerProbe * g_ProbeCount)
+		return;
+
+	for (uint i = 0; i < g_MaxLightsPerProbe; i++)
+	{
+		uint probeIdx = id.x * g_MaxLightsPerProbe + i;
+		int inLightIdx = g_PerProbeLightIndicesInput[probeIdx + g_PerProbeLightIndicesInputOffset];
+		if (inLightIdx < 0)
+			g_PerProbeLightIndicesOutput[probeIdx] = -1;
+		else
+			g_PerProbeLightIndicesOutput[probeIdx] = g_MappingTable[inLightIdx];
+	}
+}

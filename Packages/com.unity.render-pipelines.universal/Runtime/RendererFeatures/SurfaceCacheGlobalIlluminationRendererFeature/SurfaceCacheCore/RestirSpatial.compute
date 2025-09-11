@@ -31,7 +31,6 @@ void ResampleSpatially(uint patchIdx : SV_DispatchThreadID)
         return;
 
     Reservoir reservoir;
-    reservoir.Init();
 
     const PatchUtil::PatchGeometry patchGeo = _PatchGeometries[patchIdx];
     const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_GridTargetPos, patchGeo.position, _GridSize, _CascadeCount, _VoxelMinSize);
@@ -43,7 +42,7 @@ void ResampleSpatially(uint patchIdx : SV_DispatchThreadID)
     {
         const Realization realization = _InputPatchRealizations[patchIdx];
         const float candidateWeight = TargetFunction(realization.sample) * realization.weight * realization.confidence;
-        reservoir.Update(realization.sample, realization.confidence, candidateWeight, 0.5f);
+        reservoir.InitWithSample(realization.sample, realization.confidence, candidateWeight);
     }
 
     for (uint sampleIdx = 0; sampleIdx < _SampleCount; ++sampleIdx)

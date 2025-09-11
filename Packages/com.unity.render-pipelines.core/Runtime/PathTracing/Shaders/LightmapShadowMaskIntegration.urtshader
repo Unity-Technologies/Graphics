@@ -1,0 +1,62 @@
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC AccumulateInternal
+
+#include "PathTracing.hlsl"
+#include "LightmapIntegrationHelpers.hlsl"
+
+int g_SampleOffset;
+uint g_ReceiveShadows;
+float g_PushOff;
+RWStructuredBuffer<float4> g_ExpandedOutput;
+RWStructuredBuffer<float4> g_ExpandedSampleCountInW;
+
+void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    float3 worldPosition = 0.f;
+    float3 worldNormal = 0.f;
+    float3 worldFaceNormal = 0.f;
+    uint localSampleOffset = 0;
+    uint2 instanceTexelPos = 0;
+    const bool gotSample = GetExpandedSample(dispatchInfo.dispatchThreadID.x, localSampleOffset, instanceTexelPos, worldPosition, worldNormal, worldFaceNormal);
+    if (!gotSample)
+        return;
+
+    UnifiedRT::RayTracingAccelStruct accelStruct = UNIFIED_RT_GET_ACCEL_STRUCT(g_SceneAccelStruct);
+
+    // now sample direct lighting with the gBuffer data
+    const uint sampleOffset = g_SampleOffset + localSampleOffset;
+    PathTracingSampler rngState;
+    rngState.Init(instanceTexelPos, sampleOffset);
+
+    // now sample direct lighting with the gBuffer data
+    uint numLights = g_NumLights;
+    uint dimsOffset = 2; // first two dimensions are used for the stochastic gBuffer sampling
+    float visibility[4] = { 0.f, 0.f, 0.f, 0.f };
+    for (uint lightIndex = 0; lightIndex < numLights; ++lightIndex)
+    {
+        PTLight light = FetchLight(lightIndex);
+        if (light.shadowMaskChannel == -1)
+            continue;
+        if (light.type == EMISSIVE_MESH || light.type == ENVIRONMENT_LIGHT) // Shadowmask only makes sense for punctual lights
+            continue;
+        uint dimsUsed = 0;
+
+        float3 origin = OffsetRayOrigin(worldPosition, worldFaceNormal, g_PushOff);
+
+        float3 attenuation = 1.0f;
+        float isVisible = IsLightVisibleFromPoint(dispatchInfo, accelStruct, g_AccelStructInstanceList, ShadowRayMask(), origin, rngState, dimsOffset, dimsUsed, light, g_ReceiveShadows, attenuation) ? dot(float3(1.0f, 1.0f, 1.0f), attenuation)/3.0f : 0.0f;
+        // always start at an even dimension
+        if (dimsUsed % 2 == 1)
+            dimsUsed++;
+        dimsOffset += dimsUsed;
+        if (light.shadowMaskChannel < 0 || light.shadowMaskChannel >= 4)
+            continue;
+        visibility[light.shadowMaskChannel] += isVisible;
+    }
+
+    // store new accumulated radiance
+    g_ExpandedOutput[dispatchInfo.dispatchThreadID.x] += float4(visibility[0], visibility[1], visibility[2], visibility[3]);
+    g_ExpandedSampleCountInW[dispatchInfo.dispatchThreadID.x] += float4(0.f, 0.f, 0.f, 1.f);
+}
+

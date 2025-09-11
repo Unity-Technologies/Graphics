@@ -1260,6 +1260,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 UpdateEnvironment(renderGraph, hdCamera, hdCamera.lightingSky, sunLight, m_UpdateRequired, ambientMode == SkyAmbientMode.Dynamic, false, ambientMode);
 
+                // Also update the visual sky context if it's different from lighting sky
+                if (hdCamera.visualSky != hdCamera.lightingSky)
+                {
+                    UpdateEnvironment(renderGraph, hdCamera, hdCamera.visualSky, sunLight, m_UpdateRequired, false, false, ambientMode);
+                }
+
                 // Preview camera will have a different sun, therefore the hash for the static lighting sky will change and force a recomputation
                 // because we only maintain one static sky. Since we don't care that the static lighting may be a bit different in the preview we never recompute
                 // and we use the one from the main camera.

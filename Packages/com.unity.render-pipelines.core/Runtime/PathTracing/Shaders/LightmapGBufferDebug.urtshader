@@ -1,0 +1,21 @@
+#define UNIFIED_RT_GROUP_SIZE_X 64
+#define UNIFIED_RT_GROUP_SIZE_Y 1
+#define UNIFIED_RT_RAYGEN_FUNC AccumulateInternal
+
+#include "PathTracing.hlsl"
+#include "LightmapIntegrationHelpers.hlsl"
+
+RWStructuredBuffer<float2> g_LightmapSamplesExpanded;
+
+void AccumulateInternal(UnifiedRT::DispatchInfo dispatchInfo)
+{
+    float3 worldPosition = 0.f;
+    float3 worldNormal = 0.f;
+    float3 worldFaceNormal = 0.f;
+    float2 uv1 = 0.f;
+    const bool gotSample = GetExpandedSample(dispatchInfo.dispatchThreadID.x, worldPosition, worldNormal, worldFaceNormal, uv1);
+    if (!gotSample)
+        return;
+    g_LightmapSamplesExpanded[dispatchInfo.dispatchThreadID.x] = uv1;
+}
+

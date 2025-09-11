@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph
                     var generatedShaderCount = 0;
                     foreach (var generatedShader in generator.allGeneratedShaders)
                     {
-                        if (generatedShaderCount > 1)
+                        if (generatedShaderCount > 0)
                         {
                             string pathSub = String.Format("Temp/GeneratedFromGraph-{0}_{1}.shader", assetName.Replace(" ", ""), generatedShaderCount);
                             pathList.Add(pathSub);

@@ -883,7 +883,7 @@ namespace UnityEngine.Rendering.Universal
                 else
 #endif
                 {
-                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera);
+                    RecordAndExecuteRenderGraph(s_RenderGraph, context, renderer, cmd, cameraData.camera, asset);
                     renderer.FinishRenderGraphRendering(cmd);
                 }
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
@@ -1029,12 +1029,6 @@ namespace UnityEngine.Rendering.Universal
 
                     // Apply XR display's viewport scale to URP's dynamic resolution solution
                     float scaleToApply = XRSystem.GetRenderViewportScale();
-                    if (XRSystem.GetDynamicResolutionScale() < 1.0f)
-                    {
-                        // If XR dynamic resolution is enabled use the XRSystem dynamic resolution scale
-                        // Smaller than 1.0 renderViewport scale are not supported to have the best performance gain
-                        scaleToApply = XRSystem.GetDynamicResolutionScale();
-                    }
                     ScalableBufferManager.ResizeBuffers(scaleToApply, scaleToApply);
                 }
 
@@ -2465,6 +2459,20 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraData.cameraTargetDescriptor.width = (int)(cameraData.camera.pixelWidth * cameraData.renderScale);
                 cameraData.cameraTargetDescriptor.height = (int)(cameraData.camera.pixelHeight * cameraData.renderScale);
+#if ENABLE_UPSCALER_FRAMEWORK
+                if (cameraData.upscalingFilter == ImageUpscalingFilter.IUpscaler)
+                {
+                    // An IUpscaler is active. It might want to change the pre-upscale resolution. Negotiate with it.
+                    IUpscaler activeUpscaler = upscaling.GetActiveUpscaler();
+                    Debug.Assert(activeUpscaler != null);
+                    Vector2Int res = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.scaledHeight);
+                    activeUpscaler.NegotiatePreUpscaleResolution(ref res, new Vector2Int(cameraData.pixelWidth, cameraData.pixelHeight));
+                    cameraData.cameraTargetDescriptor.width = res.x;
+                    cameraData.cameraTargetDescriptor.height = res.y;
+                }
+#endif
+                cameraData.scaledWidth = cameraData.cameraTargetDescriptor.width;
+                cameraData.scaledHeight = cameraData.cameraTargetDescriptor.height;
             }
 
             var antialiasingQualityIndex = (int)cameraData.antialiasingQuality - AdaptivePerformance.AdaptivePerformanceRenderSettings.AntiAliasingQualityBias;

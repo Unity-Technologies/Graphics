@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("Assets/Create/Rendering/HDRP Asset", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateHDRenderPipeline()
         {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            var icon = CoreUtils.GetIconForType<HDRenderPipelineAsset>();
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRenderPipeline>(), "New HDRenderPipelineAsset.asset", icon, null);
         }
     }

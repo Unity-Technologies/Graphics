@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Random Initial AngularVelocity per Particle
     position:
       serializedVersion: 2
-      x: 1149
-      y: 643
-      width: 1066
-      height: 436
+      x: 1040
+      y: 589
+      width: 1133
+      height: 488
     contents:
     - model: {fileID: 8926484042661617657}
       id: 0
@@ -36,13 +36,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661617715}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 1
+      isStickyNote: 1
   - title: Pile Body
     position:
       serializedVersion: 2
-      x: 11245
-      y: 134
+      x: 11246
+      y: 8
       width: 901
-      height: 1707
+      height: 1813
     contents:
     - model: {fileID: 8926484042661617865}
       id: 0
@@ -56,13 +59,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661619571}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 13
+      isStickyNote: 1
   - title: Coin Slide
     position:
       serializedVersion: 2
       x: 3977
-      y: 5
+      y: -99
       width: 1224
-      height: 2258
+      height: 2363
     contents:
     - model: {fileID: 8926484042661617996}
       id: 0
@@ -88,13 +94,19 @@ MonoBehaviour:
     - model: {fileID: 8926484042661619644}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 4
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 11
+      isStickyNote: 1
   - title: Rotation Jitter
     position:
       serializedVersion: 2
       x: 5532
-      y: 2226
-      width: 1465
-      height: 442
+      y: 2163
+      width: 1469
+      height: 505
     contents:
     - model: {fileID: 8926484042661618139}
       id: 0
@@ -132,13 +144,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661619028}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 5
+      isStickyNote: 1
   - title: Add Position
     position:
       serializedVersion: 2
       x: 6050
-      y: 2704
-      width: 969
-      height: 330
+      y: 2703
+      width: 962
+      height: 331
     contents:
     - model: {fileID: 8926484042661618521}
       id: 0
@@ -161,13 +176,16 @@ MonoBehaviour:
     - model: {fileID: 8926484042661618557}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 6
+      isStickyNote: 1
   - title: Position Spread
     position:
       serializedVersion: 2
-      x: 8273
-      y: 2641
-      width: 995
-      height: 442
+      x: 8224
+      y: 2421
+      width: 1044
+      height: 615
     contents:
     - model: {fileID: 8926484042661618726}
       id: 0
@@ -205,13 +223,19 @@ MonoBehaviour:
     - model: {fileID: 8926484042661619156}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 9
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 8
+      isStickyNote: 1
   - title: Rand Seed Pos on circle
     position:
       serializedVersion: 2
       x: 8388
-      y: 2061
-      width: 912
-      height: 343
+      y: 2007
+      width: 891
+      height: 397
     contents:
     - model: {fileID: 8926484042661619096}
       id: 0
@@ -231,24 +255,166 @@ MonoBehaviour:
     - model: {fileID: 8926484042661618679}
       id: 0
       isStickyNote: 0
+    - model: {fileID: 0}
+      id: 7
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 2248
+      y: 79
+      width: 100
+      height: 100
+    contents:
+    - model: {fileID: 8926484042661617588}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617590}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617593}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617717}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619675}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617702}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 10
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 0
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 1944
+      y: 1141
+      width: 1153
+      height: 1713
+    contents:
+    - model: {fileID: 8926484042661617720}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617799}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617794}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661618299}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617746}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619195}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619203}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619207}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619211}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619214}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617624}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617650}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619698}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619715}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617788}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617824}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 2
+      isStickyNote: 1
+    - model: {fileID: 0}
+      id: 3
+      isStickyNote: 1
+  - title: 
+    position:
+      serializedVersion: 2
+      x: 8136
+      y: 1230
+      width: 100
+      height: 100
+    contents:
+    - model: {fileID: 8926484042661618373}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661618420}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619822}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661618857}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619606}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661619610}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661618460}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661618465}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661618864}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661618869}
+      id: 0
+      isStickyNote: 0
+    - model: {fileID: 8926484042661617824}
+      id: 1
+      isStickyNote: 0
+    - model: {fileID: 0}
+      id: 12
+      isStickyNote: 1
   stickyNoteInfos:
   - title: 'Set Angular Velocity:'
     position:
       serializedVersion: 2
-      x: 2685
-      y: 766
-      width: 439
-      height: 233
+      x: 2675
+      y: 866
+      width: 282
+      height: 123
     contents: "The \"angularVelocity'' is useful to rotate particles based on a velocity.
       It's a more \u201Cphysical\u201D way of rotating a particle without directly
       controlling the \u201Cangle\u201D attribute.\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'Switch:'
     position:
       serializedVersion: 2
-      x: 1173
-      y: 665
+      x: 1094
+      y: 649
       width: 230
       height: 164
     contents: 'The switch allows us to pick between various entry values.
@@ -265,15 +431,16 @@ MonoBehaviour:
       determine on which axis the particle is going to rotate.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Update Rotation:'
     position:
       serializedVersion: 2
-      x: 2688
-      y: 1086
-      width: 721
-      height: 398
+      x: 2672
+      y: 1281
+      width: 399
+      height: 245
     contents: "The \u201CUpdate Context\u201D is responsible for updating the particle's
       rotation by integrating their \u201Cangular velocity.\u201D By selecting the
       update context, you can find a checkbox in the Inspector to enable or disable
@@ -281,37 +448,40 @@ MonoBehaviour:
       force, the particle would rotate without loss of energy (try to disable the
       block).\r\n\r\nBy adding some drag, the angular velocity slowly decreases based
       on the drag coefficient until it reaches a stop.\r\n"
-    theme: Black
-    textSize: Medium
+    theme: 
+    textSize: Small
+    colorTheme: 3
   - title: 'Collider Blocks:'
     position:
       serializedVersion: 2
-      x: 2020
-      y: 1428
+      x: 2021
+      y: 1591
       width: 211
       height: 113
     contents: We're using the Collide with Cone and Collide with Plane blocks so
       that the falling coins bounce around and collide with the pile of coins.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Coin Slide:'
     position:
       serializedVersion: 2
-      x: 4003
-      y: 27
+      x: 4006
+      y: 101
       width: 321
       height: 169
     contents: 'This system is here to spawn particles sliding on the cone.
 
 
 '
-    theme: Black
+    theme: 
     textSize: Medium
+    colorTheme: 2
   - title: 'Rotation Jitter:'
     position:
       serializedVersion: 2
-      x: 5543
-      y: 2245
+      x: 5836
+      y: 2223
       width: 269
       height: 132
     contents: 'The switch is alternating between vectors.
@@ -327,24 +497,26 @@ MonoBehaviour:
       behavior and some life to the pyramid of coins.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 3
   - title: 'Add Position:'
     position:
       serializedVersion: 2
-      x: 6065
-      y: 2717
+      x: 6071
+      y: 2749
       width: 248
       height: 100
     contents: Here we're adding a Y offset to our initial pyramid position. This
       behavior helps sell the idea that the pyramid of coins is falling on itself.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Polar To Rectangular
     position:
       serializedVersion: 2
-      x: 8386
-      y: 1944
+      x: 8589
+      y: 2066
       width: 364
       height: 111
     contents: 'Here we''re using the Polar to Rectangular operator to spawn in a
@@ -355,32 +527,35 @@ MonoBehaviour:
       into 30 positions in a circle.
 
 '
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Add Position Shape Circle:'
     position:
       serializedVersion: 2
-      x: 8931
-      y: 2438
+      x: 8837
+      y: 2480
       width: 334
       height: 112
     contents: "This block composition mode is set to \u201Cadd.\u201D This means
       that this block will \u201Cadd\u201D to the previous position.\r\n\r\nBy doing
       so, we're randomly spreading our particle's position around our previously
       calculated circle distribution.\r\n"
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: 'Position Spread:'
     position:
       serializedVersion: 2
-      x: 8280
-      y: 2501
+      x: 8249
+      y: 2553
       width: 342
       height: 100
     contents: This is pushing the particle's position in the direction of the circle's
       normals.
-    theme: Black
+    theme: 
     textSize: Small
+    colorTheme: 2
   - title: Falling Coins
     position:
       serializedVersion: 2
@@ -389,45 +564,49 @@ MonoBehaviour:
       width: 513
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Sliding Coins
     position:
       serializedVersion: 2
-      x: 4493
-      y: -117
+      x: 4489
+      y: -39
       width: 513
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Coin's Pile
     position:
       serializedVersion: 2
       x: 8133
-      y: 0
+      y: -26
       width: 449
-      height: 101
+      height: 119
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   - title: Pile's Body
     position:
       serializedVersion: 2
-      x: 11480
-      y: -3
+      x: 11470
+      y: 67
       width: 461
       height: 101
     contents: 
-    theme: Black
+    theme: 
     textSize: Huge
+    colorTheme: 2
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: 1149
-    y: -117
-    width: 10998
-    height: 3199
+    x: 1040
+    y: -107
+    width: 11107
+    height: 3143
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -644,10 +823,10 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies:
-  - {fileID: 0}
+  - {fileID: 5371698748595113096, guid: bb17265ceda86d449a0a422f4a76645b, type: 3}
   m_CategoryPath: 
 --- !u!2058629511 &8926484042661614527
 VisualEffectResource:
@@ -661,10 +840,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 1
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -841,7 +1016,6 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots:
   - {fileID: 8926484042661617594}
-  - {fileID: 8926484042661617603}
   m_OutputSlots: []
   m_Label: 
   m_Data: {fileID: 8926484042661617607}
@@ -1159,142 +1333,6 @@ MonoBehaviour:
         PublicKeyToken=b77a5c561934e089
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &8926484042661617603
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 0}
-  m_Children:
-  - {fileID: 8926484042661617604}
-  - {fileID: 8926484042661617605}
-  - {fileID: 8926484042661617606}
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661617603}
-  m_MasterData:
-    m_Owner: {fileID: 8926484042661617593}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"x":0.5,"y":0.5,"z":0.5}'
-    m_Space: -1
-  m_Property:
-    name: boundsPadding
-    m_serializedType:
-      m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &8926484042661617604
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 8926484042661617603}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661617603}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
-    m_Space: -1
-  m_Property:
-    name: x
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &8926484042661617605
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 8926484042661617603}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661617603}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
-    m_Space: -1
-  m_Property:
-    name: y
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &8926484042661617606
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_UIIgnoredErrors: []
-  m_Parent: {fileID: 8926484042661617603}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661617603}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: 
-      m_SerializableObject: 
-    m_Space: -1
-  m_Property:
-    name: z
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &8926484042661617607
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1324,7 +1362,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsMode: 0
+  boundsMode: 1
   m_Space: 1
 --- !u!114 &8926484042661617624
 MonoBehaviour:
@@ -1345,7 +1383,7 @@ MonoBehaviour:
   - {fileID: 8926484042661619698}
   - {fileID: 8926484042661619715}
   - {fileID: 8926484042661617788}
-  m_UIPosition: {x: 2248, y: 1061}
+  m_UIPosition: {x: 2240, y: 1201}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1609,7 +1647,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1948, y: 904}
+  m_UIPosition: {x: 1839, y: 901}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2018,7 +2056,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1708, y: 904}
+  m_UIPosition: {x: 1599, y: 901}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2082,7 +2120,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1628, y: 702}
+  m_UIPosition: {x: 1519, y: 699}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2210,7 +2248,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1434, y: 796}
+  m_UIPosition: {x: 1325, y: 793}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2236,7 +2274,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 1174, y: 838}
+  m_UIPosition: {x: 1065, y: 835}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -2327,7 +2365,7 @@ MonoBehaviour:
   - {fileID: 8926484042661617794}
   - {fileID: 8926484042661618299}
   - {fileID: 8926484042661617746}
-  m_UIPosition: {x: 1977, y: 1815}
+  m_UIPosition: {x: 1969, y: 1955}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2357,6 +2395,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661617735}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -2382,7 +2421,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 0
   useMaskMap: 0
   useNormalMap: 1
   useEmissiveMap: 0
@@ -3259,22 +3297,22 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661617825}
       inputSlot: {fileID: 8926484042661619716}
-    position: {x: 2088.6667, y: 1356.6666}
+    position: {x: 2105.3333, y: 1538}
     expandedSlots:
     - {fileID: 8926484042661617825}
     - {fileID: 8926484042661617826}
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 1
     linkedSlots:
     - outputSlot: {fileID: 8926484042661617825}
       inputSlot: {fileID: 8926484042661619824}
-    position: {x: 8018, y: 770.6667}
+    position: {x: 8012, y: 745.3334}
     expandedSlots:
     - {fileID: 8926484042661617826}
     - {fileID: 8926484042661617825}
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 2
     linkedSlots:
     - outputSlot: {fileID: 8926484042661617825}
@@ -3284,7 +3322,7 @@ MonoBehaviour:
     - {fileID: 8926484042661617825}
     - {fileID: 8926484042661617826}
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
   - m_Id: 3
     linkedSlots:
     - outputSlot: {fileID: 8926484042661617825}
@@ -3294,7 +3332,7 @@ MonoBehaviour:
     - {fileID: 8926484042661617825}
     - {fileID: 8926484042661617826}
     expanded: 0
-    supecollapsed: 0
+    supecollapsed: 1
 --- !u!114 &8926484042661617825
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4479,6 +4517,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661617967}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -4504,7 +4543,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 0
   useMaskMap: 0
   useNormalMap: 1
   useEmissiveMap: 0
@@ -5398,6 +5436,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661618023}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -5423,7 +5462,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 0
   useMaskMap: 0
   useNormalMap: 1
   useEmissiveMap: 0
@@ -8360,6 +8398,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661618338}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -8385,7 +8424,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 0
   useMaskMap: 0
   useNormalMap: 1
   useEmissiveMap: 0
@@ -10833,6 +10871,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661618573}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -10858,7 +10897,6 @@ MonoBehaviour:
     m_PropertyNames: []
     m_PropertyValues: []
     renderQueue: -1
-  useBaseColorMap: 0
   useMaskMap: 0
   useNormalMap: 1
   useEmissiveMap: 0
@@ -12145,7 +12183,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8487, y: 2793}
+  m_UIPosition: {x: 8473, y: 2747}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -12282,7 +12320,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8451, y: 2709}
+  m_UIPosition: {x: 8437, y: 2663}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -12346,7 +12384,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8299, y: 2823}
+  m_UIPosition: {x: 8285, y: 2777}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -12445,7 +12483,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8329, y: 2749}
+  m_UIPosition: {x: 8315, y: 2703}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -12712,7 +12750,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8631, y: 2743}
+  m_UIPosition: {x: 8617, y: 2697}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -12849,7 +12887,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8790, y: 2743}
+  m_UIPosition: {x: 8776, y: 2697}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -12944,7 +12982,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8978, y: 2699}
+  m_UIPosition: {x: 8964, y: 2653}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -13050,7 +13088,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8373, y: 2875}
+  m_UIPosition: {x: 8359, y: 2829}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -16558,7 +16596,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8385, y: 2957}
+  m_UIPosition: {x: 8371, y: 2911}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []
@@ -16582,7 +16620,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8843, y: 2957}
+  m_UIPosition: {x: 8829, y: 2911}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -16882,7 +16920,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8695, y: 2957}
+  m_UIPosition: {x: 8681, y: 2911}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -17359,7 +17397,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 8451, y: 3027}
+  m_UIPosition: {x: 8437, y: 2981}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots:
@@ -17462,7 +17500,7 @@ MonoBehaviour:
   - {fileID: 8926484042661619207}
   - {fileID: 8926484042661619211}
   - {fileID: 8926484042661619214}
-  m_UIPosition: {x: 2461, y: 1815}
+  m_UIPosition: {x: 2453, y: 1955}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -17492,6 +17530,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661619202}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -17520,7 +17559,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 0
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -18606,6 +18644,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661619309}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -18634,7 +18673,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 0
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -19451,6 +19489,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661619478}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -19479,7 +19518,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 0
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -20295,6 +20333,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661619578}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -20323,7 +20362,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 0
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0
@@ -21151,6 +21189,7 @@ MonoBehaviour:
   sortingPriority: 0
   m_SubOutputs:
   - {fileID: 8926484042661619651}
+  useBaseColorMap: 0
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -21179,7 +21218,6 @@ MonoBehaviour:
   materialType: 0
   workflowMode: 0
   smoothnessSource: 0
-  useBaseColorMap: 0
   useOcclusionMap: 0
   useMetallicMap: 0
   useSpecularMap: 0

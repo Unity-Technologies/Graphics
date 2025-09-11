@@ -49,7 +49,7 @@ namespace SphericalHarmonics
 
     float3 Eval(in RGBL1 f, float3 direction)
     {
-        return f.l0 * y0 + y1Constant * (f.l1s[0] * direction.x + f.l1s[1] * direction.z + f.l1s[2] * direction.y);
+        return f.l0 * y0 + y1Constant * (f.l1s[0] * direction.y + f.l1s[1] * direction.z + f.l1s[2] * direction.x);
     }
 
     RGBL1 MulPure(RGBL1 f, float multiplier)
@@ -129,9 +129,9 @@ namespace SphericalHarmonics
     float Eval(in ScalarL2 f, float3 direction)
     {
         return f.l0 * y0 +
-            f.l1s[0] * y1Constant * direction.x +
+            f.l1s[0] * y1Constant * direction.y +
             f.l1s[1] * y1Constant * direction.z +
-            f.l1s[2] * y1Constant * direction.y +
+            f.l1s[2] * y1Constant * direction.x +
             f.l2s[0] * y20Constant * direction.x * direction.y +
             f.l2s[1] * y21Constant * direction.y * direction.z +
             f.l2s[2] * y22Constant * (3.0f * direction.z * direction.z - 1.0f) +

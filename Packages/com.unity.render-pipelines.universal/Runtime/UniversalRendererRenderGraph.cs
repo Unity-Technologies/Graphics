@@ -612,7 +612,7 @@ namespace UnityEngine.Rendering.Universal
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.BeforeRendering);
 
-            SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer);
+            SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer, resourceData.activeColorTexture.IsValid() ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             ProcessVFXCameraCommand(renderGraph);
@@ -726,7 +726,7 @@ namespace UnityEngine.Rendering.Universal
             // The camera need to be setup again after the shadows since those passes override some settings
             // TODO RENDERGRAPH: move the setup code into the shadow passes
             if (renderShadows)
-                SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer);
+                SetupRenderGraphCameraProperties(renderGraph, resourceData.isActiveTargetBackBuffer, resourceData.activeColorTexture.IsValid()  ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
 
             RecordCustomRenderGraphPasses(renderGraph, RenderPassEvent.AfterRenderingShadows);
 
@@ -1060,13 +1060,13 @@ namespace UnityEngine.Rendering.Universal
                         // Therefore we need to set the camera properties for the DepthNormal to be consistent with rendering to an intermediate render target.
                         if (resourceData.isActiveTargetBackBuffer)
                         {
-                            SetupRenderGraphCameraProperties(renderGraph, false);
+                            SetupRenderGraphCameraProperties(renderGraph, false, depthTarget);
                         }
                         DepthNormalPrepassRender(renderGraph, renderPassInputs, depthTarget, batchLayerMask, setGlobalDepth, setGlobalTextures);
                         // Restore camera properties for the rest of the render graph execution.
                         if (resourceData.isActiveTargetBackBuffer)
                         {
-                            SetupRenderGraphCameraProperties(renderGraph, true);
+                            SetupRenderGraphCameraProperties(renderGraph, true, resourceData.activeColorTexture.IsValid() ? resourceData.activeColorTexture : resourceData.activeDepthTexture);
                         }
                     }
                     else
@@ -1429,8 +1429,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (isTargetBackbuffer)
                 {
-                    resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                    resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                    resourceData.SwitchActiveTexturesToBackbuffer();
                 }
             }
 
@@ -1459,8 +1458,7 @@ namespace UnityEngine.Rendering.Universal
                 var source = resourceData.cameraColor;
                 m_PostProcessPassRenderGraph.RenderFinalPassRenderGraph(renderGraph, frameData, in source, in overlayUITexture, in target, needsColorEncoding);
 
-                resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                resourceData.SwitchActiveTexturesToBackbuffer();
             }
 
             bool cameraTargetResolved =
@@ -1487,8 +1485,7 @@ namespace UnityEngine.Rendering.Universal
                 debugHandler?.UpdateShaderGlobalPropertiesForFinalValidationPass(renderGraph, cameraData, !resolveToDebugScreen);
 
                 m_FinalBlitPass.Render(renderGraph, frameData, cameraData, source, target, overlayUITexture);
-                resourceData.activeColorID = UniversalResourceData.ActiveID.BackBuffer;
-                resourceData.activeDepthID = UniversalResourceData.ActiveID.BackBuffer;
+                resourceData.SwitchActiveTexturesToBackbuffer();
             }
 
             // TODO RENDERGRAPH: we need to discuss and decide if RenderPassEvent.AfterRendering injected passes should only be called after the last camera in the stack
@@ -1675,15 +1672,21 @@ namespace UnityEngine.Rendering.Universal
             // then we can discard MSAA buffers and only resolve, otherwise we must store and resolve
             bool noStoreOnlyResolveBBColor = !m_RequiresIntermediateAttachments && !isNativeRenderingAfterURP && (cameraData.cameraTargetDescriptor.msaaSamples > 1);
 
+            //Backbuffer orientation is used for either the actual backbuffer (not a texture), or in XR for the eye texture.
+            bool useActualBackbufferOrienation = !cameraData.isSceneViewCamera && !cameraData.isPreviewCamera && cameraData.targetTexture == null;
+            TextureUVOrigin backbufferTextureUVOrigin = useActualBackbufferOrienation ? (SystemInfo.graphicsUVStartsAtTop ? TextureUVOrigin.TopLeft : TextureUVOrigin.BottomLeft) : TextureUVOrigin.BottomLeft;
+
             ImportResourceParams importBackbufferColorParams = new ImportResourceParams();
             importBackbufferColorParams.clearOnFirstUse = clearBackbufferOnFirstUse;
             importBackbufferColorParams.clearColor = clearBackgroundColor;
             importBackbufferColorParams.discardOnLastUse = noStoreOnlyResolveBBColor;
+            importBackbufferColorParams.textureUVOrigin = backbufferTextureUVOrigin;
 
             ImportResourceParams importBackbufferDepthParams = new ImportResourceParams();
             importBackbufferDepthParams.clearOnFirstUse = clearBackbufferOnFirstUse;
             importBackbufferDepthParams.clearColor = clearBackgroundColor;
             importBackbufferDepthParams.discardOnLastUse = !isCameraTargetOffscreenDepth;
+            importBackbufferDepthParams.textureUVOrigin = backbufferTextureUVOrigin;
 
 #if UNITY_EDITOR
             // UUM-47698, UUM-97414: on TBDR GPUs like Apple M1/M2, we need to preserve the backbuffer depth for overlay cameras in Editor for Gizmos & preview grid

@@ -901,6 +901,11 @@ namespace UnityEditor.Rendering
             autoPlayToggle.text = evt.newValue ? L10n.Tr("Auto Update") : L10n.Tr("Pause");
             m_Paused = evt.newValue;
 
+            if (!m_Paused && !m_IsDeviceConnected && m_ConnectedDeviceName != k_EditorName)
+            {
+                ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
+            }
+
             UpdateStatusLabel();
 
             // Force update when unpausing
@@ -2100,7 +2105,7 @@ namespace UnityEditor.Rendering
                 else
                 {
                     m_ConnectedDeviceName = k_EditorName;
-                    m_IsDeviceConnected = false;
+                    m_IsDeviceConnected = true;
                 }
 
                 connectionState.Dispose(); // Dispose it immediately after use
@@ -2157,7 +2162,14 @@ namespace UnityEditor.Rendering
                 }
             }
 
-            ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
+            if (!m_Paused)
+            {
+                ConnectDebugSession<RenderGraphEditorLocalDebugSession>();
+            }
+            else
+            {
+                UpdateStatusLabel();
+            }
         }
 
         internal void ConnectDebugSession<TSession>()
@@ -2165,7 +2177,7 @@ namespace UnityEditor.Rendering
         {
             if (typeof(TSession) == typeof(RenderGraphEditorLocalDebugSession))
             {
-                if (!m_IsDeviceConnected)
+                if (m_ConnectedDeviceName == "Unknown" || m_ConnectedDeviceName == k_EditorName)
                 {
                     m_ConnectedDeviceName = k_EditorName;
                     m_IsDeviceConnected = true;

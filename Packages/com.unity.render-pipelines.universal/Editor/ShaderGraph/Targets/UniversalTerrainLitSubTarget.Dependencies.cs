@@ -174,7 +174,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainBaseMapGen, 1);
                 result.keywords.Add(TerrainDefines.TerrainMaskmap);
-                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
 
                 return result;
             }
@@ -217,7 +216,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines.Add(TerrainDefines.SmoothnessTextureAlbedoChannelA, 1);
                 result.defines.Add(TerrainDefines.TerrainBaseMapGen, 1);
                 result.keywords.Add(TerrainDefines.TerrainMaskmap);
-                result.keywords.Add(TerrainDefines.TerrainBlendHeight);
 
                 return result;
             }

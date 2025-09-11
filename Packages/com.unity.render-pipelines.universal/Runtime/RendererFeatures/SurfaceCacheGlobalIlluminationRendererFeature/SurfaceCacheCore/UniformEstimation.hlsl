@@ -82,9 +82,9 @@ void Estimate(UnifiedRT::DispatchInfo dispatchInfo)
         validSampleCount++;
 
         radianceAccumulator.l0 += radianceSample * SphericalHarmonics::y0;
-        radianceAccumulator.l1s[0] += radianceSample * SphericalHarmonics::y1Constant * ray.direction.x;
+        radianceAccumulator.l1s[0] += radianceSample * SphericalHarmonics::y1Constant * ray.direction.y;
         radianceAccumulator.l1s[1] += radianceSample * SphericalHarmonics::y1Constant * ray.direction.z;
-        radianceAccumulator.l1s[2] += radianceSample * SphericalHarmonics::y1Constant * ray.direction.y;
+        radianceAccumulator.l1s[2] += radianceSample * SphericalHarmonics::y1Constant * ray.direction.x;
 
         rng.NextSample();
     }

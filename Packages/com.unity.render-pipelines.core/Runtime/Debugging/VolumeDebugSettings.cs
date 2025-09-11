@@ -152,6 +152,7 @@ namespace UnityEngine.Rendering
             float weight = Mathf.Clamp01(volume.weight);
             if (!volume.isGlobal)
             {
+#if ENABLE_PHYSICS_MODULE
                 var colliders = volume.colliders;
 
                 // Find closest distance to volume, 0 means it's inside it
@@ -172,6 +173,7 @@ namespace UnityEngine.Rendering
                     weight = 0f;
                 else if (blendDistSqr > 0f)
                     weight *= 1f - (closestDistanceSqr / blendDistSqr);
+#endif
             }
             return weight;
         }

@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering
                 0,
                 ScriptableObject.CreateInstance<CreateVolumeProfileAction>(),
                 "New Volume Profile.asset",
-                null,
+                CoreUtils.GetIconForType<VolumeProfile>(),
                 null
             );
         }
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering
                 assetCreator.GetInstanceID(),
                 assetCreator,
                 fullPath,
-                null,
+                CoreUtils.GetIconForType<VolumeProfile>(),
                 null);
         }
 

@@ -1,15 +1,22 @@
-## Description
+# Normal Vector node
 
-Provides access to the mesh vertex or fragment's **Normal Vector**. The coordinate space of the output value can be selected with the **Space** dropdown parameter.
+The Normal Vector node outputs the normal of a vertex or fragment of a mesh.
+
+For more information about normals, refer to [Normal maps](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMapLanding.html).
 
 ## Ports
 
-| Name        | Direction           | Type  | Binding | Description |
+| **Name** | **Direction** | **Type** | **Binding** | **Description** |
 |:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Vector 3 | None | Mesh's **Normal Vector**. |
+| **Out** | Output | Vector 3 | None | The normal of the vertex or fragment of the mesh, depending on the [shader stage](Shader-Stage.md) of the graph section. |
 
-## Parameters
+## Space
 
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-| Space | Dropdown | Object, View, World, Tangent | Selects coordinate space of **Normal Vector** to output. |
+The **Space** dropdown determines the coordinate space of the normal vector. 
+
+| **Option** | **Description** |
+|-|-|
+| **Object**  | Returns the vertex or fragment normal in object space, where up is the up axis of local space. |
+| **View** | Returns the vertex or fragment normal in view space, where up is the up direction of the camera. |
+| **World**   | Returns the vertex or fragment normal in world space, where up is the up direction of the scene. |
+| **Tangent** | Returns the vertex or fragment normal in tangent space, where up is away from the surface of the mesh. |

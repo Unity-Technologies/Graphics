@@ -1,0 +1,23 @@
+<!-- Auto generated from 'C:\UnitySrc\neutron1\Packages\com.unity.render-pipelines.core\Tests\Editor\PathTracing\Unity.PathTracing.Editor.Tests.asmdef' on 07 May 2025 14:24:40 +02 -->
+<Project Sdk="Unity.Test.Sdk">
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableUnityEngineReferences>true</EnableUnityEngineReferences>
+    <AssemblyName>Unity.PathTracing.Editor.Tests</AssemblyName>
+    <RootNamespace></RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <UnityPlatformInclude>Editor</UnityPlatformInclude>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../Runtime/Unity.RenderPipelines.Core.Runtime.csproj" />
+    <ProjectReference Include="../../../Runtime/PathTracing/Unity.PathTracing.Runtime.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <UpmProjectReference Include="Unity.Rendering.LightTransport.Runtime.csproj" />
+  </ItemGroup>
+</Project>

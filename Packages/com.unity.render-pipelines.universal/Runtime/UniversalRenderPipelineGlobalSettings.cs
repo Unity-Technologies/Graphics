@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 9;
+        internal const int k_LastVersion = 10;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -168,6 +168,13 @@ namespace UnityEngine.Rendering.Universal
                 asset.m_AssetVersion = 9;
             }
 
+            // Migrate terrain shader settings from UniversalRenderPipelineRuntimeShaders to UniversalRenderPipelineRuntimeTerrainShaders
+            if (asset.m_AssetVersion < 10)
+            {
+                MigrateTerrainShaderSettings(asset);
+                asset.m_AssetVersion = 10;
+            }
+
             // If the asset version has changed, means that a migration step has been executed
             if (assetVersionBeforeUpgrade != asset.m_AssetVersion)
                 EditorUtility.SetDirty(asset);
@@ -237,6 +244,31 @@ namespace UnityEngine.Rendering.Universal
             defaultVolumeProfileSettings.volumeProfile = data.m_ObsoleteDefaultVolumeProfile;
             data.m_ObsoleteDefaultVolumeProfile = null; // Discard old reference after it is migrated
 #pragma warning restore 618 // Type or member is obsolete
+        }
+
+        static void MigrateTerrainShaderSettings(UniversalRenderPipelineGlobalSettings data)
+        {
+            try
+            {
+                // Get existing UniversalRenderPipelineRuntimeShaders settings
+                if (!GraphicsSettings.TryGetRenderPipelineSettings<UniversalRenderPipelineRuntimeShaders>(out var runtimeShaders))
+                {
+                    return;
+                }
+
+                // Create/get UniversalRenderPipelineRuntimeTerrainShaders container
+                var runtimeTerrainShaders = GetOrCreateGraphicsSettings<UniversalRenderPipelineRuntimeTerrainShaders>(data);
+
+                // Migrate terrain shaders from runtimeShaders to terrainShaders
+                runtimeTerrainShaders.terrainDetailLitShader = runtimeShaders.GetOriginalTerrainDetailLitShader();
+                runtimeTerrainShaders.terrainDetailGrassBillboardShader = runtimeShaders.GetOriginalTerrainDetailGrassBillboardShader();
+                runtimeTerrainShaders.terrainDetailGrassShader = runtimeShaders.GetOriginalTerrainDetailGrassShader();
+                runtimeShaders.ClearOriginalTerrainDetailShaders();
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"URP: Failed to migrate terrain detail shader settings: {ex.Message}. Terrain detail shaders will use default values.");
+            }
         }
 
 #endif // #if UNITY_EDITOR

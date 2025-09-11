@@ -9,6 +9,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Sampling/Hashes.hlsl"
+#include "SurfaceCacheCore/VectorLogic.hlsl"
 #include "SurfaceCacheCore/IrradianceCompression.hlsl"
 #include "SurfaceCacheCore/PatchUtil.hlsl"
 
@@ -155,7 +156,7 @@ void Allocate(uint2 lowResPixelPos : SV_DispatchThreadID)
                 {
                     const float2 threadUvPos = PixelPosToUvPos(fullResPixelPos, rcpFullResScreenSize);
                     float2 reprojectedThreadUvPos = threadUvPos - _CurrentFullResScreenMotionVectors[fullResPixelPos];
-                    if (all((0.0f < reprojectedThreadUvPos) * (reprojectedThreadUvPos < 1.0f)))
+                    if (all(VECTOR_LOGIC_AND(0.0f < reprojectedThreadUvPos, reprojectedThreadUvPos < 1.0f)))
                     {
                         const uint2 reprojectedThreadPixelPos = reprojectedThreadUvPos * fullResScreenSize;
                         const uint2 seedLowResPixelPos = reprojectedThreadPixelPos / lowResScreenScaling;

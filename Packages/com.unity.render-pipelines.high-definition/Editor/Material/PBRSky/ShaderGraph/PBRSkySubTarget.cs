@@ -311,7 +311,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             */
 
             // Copy the default graph from the package
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreatePBRSkyShaderGraph>(), "PBR Sky Shader Graph.shadergraph", null, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreatePBRSkyShaderGraph>(), "PBR Sky Shader Graph.shadergraph", ShaderGraphImporter.GetIcon(), null);
         }
     }
 }

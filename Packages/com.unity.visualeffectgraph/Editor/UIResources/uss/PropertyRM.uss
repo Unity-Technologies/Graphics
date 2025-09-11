@@ -70,10 +70,13 @@
 
 .propertyrm > Label
 {
-    margin-left: 4px;
     height: 16px;
     overflow:hidden;
     -unity-text-align:middle-left;
+}
+
+.propertyrm.expandable > Label {
+    margin-left: 4px;
 }
 
 .propertyrm > VFXEnumField.fieldContainer .unity-enum-field__input
