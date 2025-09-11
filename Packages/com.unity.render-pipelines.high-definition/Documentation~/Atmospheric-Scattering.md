@@ -11,3 +11,5 @@ HDRP implements an exponential fog, where density varies exponentially with dist
 Instead of using a constant color, fog can use the background sky as a source for color. In this case, HDRP samples the color from different mipmaps of the cubemap generated from the current sky settings. The chosen mip varies linearly between the lowest resolution and the highest resolution mipmaps, depending on the distance from the Camera and the values in the fog component’s **Mip Fog** properties. You can also choose to limit the resolution of the highest mip that HDRP uses. Doing this adds a volumetric effect to the fog and is less resource intensive to use than actual volumetric fog.
 
 Optionally, you can enable volumetric fog for GameObjects close to the camera. It realistically simulates the interaction of lights with fog, which allows for physically plausible rendering of glow and crepuscular rays, which are beams of light that stream through gaps in objects like clouds and trees from a central point.
+
+**Note:** Volumetric fog doesn't support [light rendering layers](Light-Layers).
